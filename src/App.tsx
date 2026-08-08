@@ -12,6 +12,7 @@ import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cog
 import { NavigationIcon } from "./components/NavigationIcon";
 import { applyMemoryRetrieval, applyMemoryReview, selectReinforceableMemoryIds } from "./core/memory-consolidation";
 import type { ReviewOutcome } from "./core/memory-consolidation";
+import { loadCompatibleArray } from "./core/storage-migration";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -41,16 +42,12 @@ type ForegroundContext = { windowTitle: string; processName: string };
 type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boolean };
 type Screen = "conversacion" | "nucleo" | "memoria" | "actividad" | "puentes" | "avatar";
 
-const storageKey = "proyecto-p-sessions-v1";
+const storageKey = "alice-cognitive-core-sessions-v1";
+const legacyStorageKeys = ["proyecto-p-sessions-v1"];
 const Avatar = lazy(() => import("./Page/Avatar").then((module) => ({ default: module.Avatar })));
 
 function loadSessions(): Session[] {
-  try {
-    const value = localStorage.getItem(storageKey);
-    return value ? (JSON.parse(value) as Session[]) : [];
-  } catch {
-    return [];
-  }
+  return loadCompatibleArray<Session>(localStorage, storageKey, legacyStorageKeys);
 }
 
 function saveSessions(sessions: Session[]) {

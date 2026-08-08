@@ -40,5 +40,5 @@ pub fn run() {
             send_cloud_message
         ])
         .run(tauri::generate_context!())
-        .expect("No se pudo iniciar Proyecto P");
+        .expect("No se pudo iniciar Alice Cognitive Core");
 }

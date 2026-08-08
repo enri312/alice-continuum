@@ -9,7 +9,7 @@ El equipo de Carlos Nuñez mantiene el sistema en C: con espacio limitado y util
 
 ## Decisión
 
-La raíz de datos será configurable mediante `ALICE_DATA_DIR`. `Iniciar Alice.cmd` establece esa variable en `E:\Proyecto P\data`. La memoria activa vive en `data\memory` y la auditoría de nube en `data\cloud`.
+La raíz de datos será configurable mediante `ALICE_DATA_DIR`. Tras adoptar el nombre Alice Cognitive Core, `Iniciar Alice.cmd` establece esa variable de forma relativa al iniciador y resuelve `E:\Alice Cognitive Core\data`. La memoria activa vive en `data\memory` y la auditoría de nube en `data\cloud`. La ruta anterior `E:\Proyecto P\data` se conserva como fuente de migración hasta verificar la copia.
 
 El contenido generado dentro de `data/` se excluye de Git. Si la variable no está definida, Tauri conserva `app_data_dir()` como fallback compatible para otras instalaciones.
 

@@ -1,4 +1,4 @@
-# Alice — Relanzamiento
+# Alice Cognitive Core
 
 El documento maestro que guía esta nueva etapa está en [`docs/alice_documento_maestro.html`](docs/alice_documento_maestro.html). La secuencia operativa y las puertas de calidad de las próximas fases están en [`Roadmap.md`](Roadmap.md). Antes de agregar más funciones, toda materialización debe respetar ambos documentos, su alcance y sus criterios de aceptación.
 
@@ -52,7 +52,7 @@ Para añadirlas, abrir **Editar las variables de entorno para tu cuenta** desde 
 
 La parte nativa vive en módulos dentro de `src-tauri/src/`; `lib.rs` solo los orquesta y registra sus órdenes limitadas. Observación, memoria, avatar y proveedores tienen responsabilidades y pruebas separadas. React no conoce ninguna clave. El proceso nativo ignora su propia ventana para conservar como referencia la última aplicación externa usada.
 
-Al iniciar con `Iniciar Alice.cmd`, la variable `ALICE_DATA_DIR` apunta a `E:\Proyecto P\data`. Alice crea allí `memory/` y `cloud/`, manteniendo recuerdos y auditorías fuera del disco C. `records.json` conserva recuerdos y enseñanzas; `manifest.json` identifica el formato; `backups/`, `exports/`, `audit/`, `attachments/` e `indexes/` separan responsabilidades. El contenido generado en `data/` está excluido de Git. Si `ALICE_DATA_DIR` no está definida, Tauri usa como compatibilidad el directorio de datos del usuario asignado por Windows. La pestaña Memoria muestra la ruta activa y permite abrirla. Al ejecutar solo la versión web, `localStorage` continúa como respaldo de desarrollo. El diseño completo está en `docs/architecture/MEMORY_SYSTEM.md`.
+Al iniciar con `Iniciar Alice.cmd`, la variable `ALICE_DATA_DIR` apunta a `E:\Alice Cognitive Core\data`. Alice crea allí `memory/` y `cloud/`, manteniendo recuerdos y auditorías fuera del disco C. `records.json` conserva recuerdos y enseñanzas; `manifest.json` identifica el formato; `backups/`, `exports/`, `audit/`, `attachments/` e `indexes/` separan responsabilidades. El contenido generado en `data/` está excluido de Git. Si `ALICE_DATA_DIR` no está definida, Tauri usa como compatibilidad el directorio de datos del usuario asignado por Windows. La pestaña Memoria muestra la ruta activa y permite abrirla. Al ejecutar solo la versión web, `localStorage` continúa como respaldo de desarrollo y migra por copia la clave histórica `proyecto-p-sessions-v1`. El diseño completo está en `docs/architecture/MEMORY_SYSTEM.md`.
 
 Las llamadas de nube agregan una línea a `cloud-audit.jsonl` con proveedor, modelo, cantidad de contexto, uso de tokens y huellas SHA-256. No registra la clave ni el texto completo de la consulta o respuesta.
 

@@ -277,9 +277,9 @@ npm run build
 
 El contrato, el inventario y la ADR de la **Fase R1 — Registro de capacidades** ya están definidos. El siguiente incremento permitido es implementar primero los tipos y validaciones de `capabilities.rs`, siguiendo `docs/plans/R1-capability-registry.md`. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap.
 
-## Decisión pendiente — nombre definitivo del proyecto
+## Identidad adoptada — Alice Cognitive Core
 
-`Proyecto P` es un nombre temporal y será reemplazado por una identidad más adecuada antes de publicar el repositorio actual. La elección debe ocurrir antes de configurar un remoto para evitar conservar rutas, paquetes y enlaces con un nombre provisional.
+Carlos Nuñez aprobó **Alice Cognitive Core** como identidad técnica. La marca visible de la asistente continúa siendo **Alice**.
 
 La migración del nombre deberá revisar de forma explícita:
 
@@ -290,6 +290,6 @@ La migración del nombre deberá revisar de forma explícita:
 - enlaces absolutos o ejemplos dentro de la documentación;
 - nombre del ejecutable, ventana, iconos e instalador;
 - estrategia de copia y verificación de `data/` sin borrar la ubicación anterior;
-- nombre del futuro repositorio de GitHub, que deberá crearse como **privado**.
+- repositorio de GitHub `alice-cognitive-core`, que deberá mantenerse **privado**.
 
-Hasta elegir y aprobar el nombre no se renombra la carpeta, no se mueve la memoria y no se crea un remoto para este repositorio.
+La migración se realiza por copia verificada hacia `E:\Alice Cognitive Core`. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase.

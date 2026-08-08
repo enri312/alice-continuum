@@ -9,7 +9,7 @@ La memoria de Alice conserva enseñanzas y experiencias locales para recuperarla
 
 ## Directorio de datos
 
-El iniciador define `ALICE_DATA_DIR=E:\Proyecto P\data`. Dentro de ese directorio Alice crea `memory/` y conserva la auditoría de proveedores en `cloud/`:
+El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese directorio Alice crea `memory/` y conserva la auditoría de proveedores en `cloud/`:
 
 ```text
 memory/
@@ -28,7 +28,7 @@ memory/
 
 La pantalla Memoria debe mostrar la ruta real y ofrecer un botón para abrirla. `data/*` está excluido de Git, salvo su README explicativo, de modo que los recuerdos no se publican al compartir el código.
 
-Si `ALICE_DATA_DIR` no está definida, Tauri conserva como fallback su directorio por usuario en Windows. En esta máquina, la ruta anterior era `C:\Users\enri3\AppData\Roaming\com.enrique.proyectop`. La migración a E: se realiza por copia y la fuente de C: no se borra hasta verificar la nueva ubicación.
+Si `ALICE_DATA_DIR` no está definida, Tauri conserva como fallback su directorio por usuario en Windows. En esta máquina existió la ruta histórica `C:\Users\enri3\AppData\Roaming\com.enrique.proyectop`. La migración vigente copia y verifica los datos en `E:\Alice Cognitive Core\data`; las fuentes anteriores no se borran hasta comprobar la nueva ubicación.
 
 ## Formatos
 

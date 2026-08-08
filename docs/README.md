@@ -19,6 +19,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 13. [Informe del documento maestro v0.16](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
 14. [Contrato e inventario del Registro de Capacidades R1](architecture/CAPABILITY_REGISTRY_R1.md)
 15. [Plan de implementación R1](plans/R1-capability-registry.md)
+16. [Decisión de identidad Alice Cognitive Core](decisions/ADR-P-042-identidad-alice-cognitive-core.md)
+17. [Plan de migración de identidad](plans/identity-migration.md)
 
 ## Secciones
 

@@ -122,7 +122,11 @@ pub(crate) fn spawn_observer_thread(store: ObservationStore) {
     thread::spawn(move || loop {
         if store.should_observe() {
             if let Some(context) = foreground_context() {
-                if !context.process_name.eq_ignore_ascii_case("proyecto-p.exe") {
+                if !context
+                    .process_name
+                    .eq_ignore_ascii_case("alice-cognitive-core.exe")
+                    && !context.process_name.eq_ignore_ascii_case("proyecto-p.exe")
+                {
                     store.update_latest(context);
                 }
             }

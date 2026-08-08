@@ -1,11 +1,11 @@
 [package]
-name = "proyecto-p"
+name = "alice-cognitive-core"
 version = "0.1.0"
 description = "Asistente personal local con contexto explícito"
 edition = "2021"
 
 [lib]
-name = "proyecto_p_lib"
+name = "alice_cognitive_core_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

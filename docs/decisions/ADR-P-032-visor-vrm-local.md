@@ -5,7 +5,7 @@ Estado: aceptada para implementación
 
 ## Contexto
 
-Alice dispone de un avatar propio creado por Carlos Nuñez en VRoid Studio y guardado en `E:\Proyecto P\Assets\Alice.vrm`. Antes de conectar voz, cámara, expresiones o movimiento corporal es necesario demostrar que la aplicación puede cargarlo, mostrarlo y liberar sus recursos correctamente.
+Alice dispone de un avatar propio creado por Carlos Nuñez en VRoid Studio y guardado en `E:\Alice Cognitive Core\Assets\Alice.vrm`. Antes de conectar voz, cámara, expresiones o movimiento corporal es necesario demostrar que la aplicación puede cargarlo, mostrarlo y liberar sus recursos correctamente.
 
 El archivo declara uso del creador, atribución requerida, redistribución prohibida y modificaciones prohibidas. Por ello no debe copiarse a `public/`, `dist/`, instaladores, repositorios ni exportaciones.
 
@@ -13,7 +13,7 @@ El archivo declara uso del creador, atribución requerida, redistribución prohi
 
 - Crear una pantalla `src/Page/Avatar.tsx` y un visor WebGL reutilizable.
 - Cargar VRM 1.0 con Three.js, `GLTFLoader` y `VRMLoaderPlugin` de `@pixiv/three-vrm`.
-- Exponer solamente el archivo exacto `E:\Proyecto P\Assets\Alice.vrm` mediante el protocolo local de Tauri. No se habilitarán comodines sobre el disco E ni la carpeta personal.
+- Exponer solamente el archivo exacto `E:\Alice Cognitive Core\Assets\Alice.vrm` mediante el protocolo local de Tauri. No se habilitarán comodines sobre el disco E ni la carpeta personal.
 - Obtener la ruta y el estado desde un comando Rust; React no adivina rutas ni examina carpetas.
 - Mostrar estados verificables: no disponible, cargando, listo o error. Los contadores procederán del VRM cargado.
 - Permitir giro, desplazamiento, zoom y restablecimiento del visor sin modificar el modelo.
