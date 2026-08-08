@@ -292,4 +292,4 @@ La migración del nombre deberá revisar de forma explícita:
 - estrategia de copia y verificación de `data/` sin borrar la ubicación anterior;
 - repositorio de GitHub `alice-cognitive-core`, que deberá mantenerse **privado**.
 
-La migración se realiza por copia verificada hacia `E:\Alice Cognitive Core`. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase.
+La migración local fue verificada en `E:\Alice Cognitive Core`: código, historial, memoria y avatar coinciden con el origen. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase. Falta confirmar el repositorio privado antes de cerrar la migración.

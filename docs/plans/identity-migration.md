@@ -1,6 +1,6 @@
 # Plan de migración — Alice Cognitive Core
 
-Estado: en ejecución controlada  
+Estado: migración local completa; publicación privada pendiente  
 Fecha: 2026-08-08
 
 ## Origen y destino
