@@ -1,6 +1,6 @@
 # Alice — Relanzamiento
 
-El documento maestro que guía esta nueva etapa está en [`docs/alice_documento_maestro.html`](docs/alice_documento_maestro.html). Antes de agregar más funciones, toda materialización debe respetar su alcance, fases y criterios de aceptación.
+El documento maestro que guía esta nueva etapa está en [`docs/alice_documento_maestro.html`](docs/alice_documento_maestro.html). La secuencia operativa y las puertas de calidad de las próximas fases están en [`Roadmap.md`](Roadmap.md). Antes de agregar más funciones, toda materialización debe respetar ambos documentos, su alcance y sus criterios de aceptación.
 
 ## Estado actual
 
