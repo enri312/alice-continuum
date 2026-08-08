@@ -15,3 +15,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-037](ADR-P-037-iconos-de-actividad-y-nucleo.md) | Semántica visual de los iconos Actividad y Núcleo |
 | [ADR-P-038](ADR-P-038-backend-rust-modular.md) | Backend Rust modular y `lib.rs` como orquestador |
 | [ADR-P-039](ADR-P-039-documento-maestro-formal.md) | Documento maestro formal con identidad visual de Alice |
+| [ADR-P-040](ADR-P-040-diagramas-svg-autonomos.md) | Diagramas de ingeniería SVG, accesibles y sin dependencias externas |
