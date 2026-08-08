@@ -40,7 +40,7 @@ Las fases `R1` a `R10` forman el nuevo ciclo de capacidades gobernadas. El prefi
 
 ### Fase R1 — Registro de capacidades
 
-**Estado:** próxima fase  
+**Estado:** en curso · contrato e inventario aprobados; implementación pendiente  
 **Objetivo:** crear una fuente de verdad sobre lo que Alice realmente puede observar o hacer.
 
 Cada capacidad tendrá como mínimo:
@@ -275,4 +275,21 @@ npm run build
 
 ## Próximo paso autorizado
 
-El siguiente trabajo de implementación es exclusivamente la **Fase R1 — Registro de capacidades**. Antes de escribir código se deberá definir su contrato, inventariar las capacidades existentes y documentar la decisión arquitectónica. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap.
+El contrato, el inventario y la ADR de la **Fase R1 — Registro de capacidades** ya están definidos. El siguiente incremento permitido es implementar primero los tipos y validaciones de `capabilities.rs`, siguiendo `docs/plans/R1-capability-registry.md`. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap.
+
+## Decisión pendiente — nombre definitivo del proyecto
+
+`Proyecto P` es un nombre temporal y será reemplazado por una identidad más adecuada antes de publicar el repositorio actual. La elección debe ocurrir antes de configurar un remoto para evitar conservar rutas, paquetes y enlaces con un nombre provisional.
+
+La migración del nombre deberá revisar de forma explícita:
+
+- carpeta raíz del proyecto;
+- `package.json`, configuración de Tauri e identificador de la aplicación;
+- `Iniciar Alice.cmd` y la variable `ALICE_DATA_DIR`;
+- rutas del avatar y otros activos privados;
+- enlaces absolutos o ejemplos dentro de la documentación;
+- nombre del ejecutable, ventana, iconos e instalador;
+- estrategia de copia y verificación de `data/` sin borrar la ubicación anterior;
+- nombre del futuro repositorio de GitHub, que deberá crearse como **privado**.
+
+Hasta elegir y aprobar el nombre no se renombra la carpeta, no se mueve la memoria y no se crea un remoto para este repositorio.

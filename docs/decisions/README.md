@@ -16,3 +16,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-038](ADR-P-038-backend-rust-modular.md) | Backend Rust modular y `lib.rs` como orquestador |
 | [ADR-P-039](ADR-P-039-documento-maestro-formal.md) | Documento maestro formal con identidad visual de Alice |
 | [ADR-P-040](ADR-P-040-diagramas-svg-autonomos.md) | Diagramas de ingeniería SVG, accesibles y sin dependencias externas |
+| [ADR-P-041](ADR-P-041-registro-de-capacidades.md) | Registro nativo, declarativo y pasivo de capacidades R1 |

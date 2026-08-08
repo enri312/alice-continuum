@@ -17,6 +17,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 11. [Plan de modularización del backend](plans/backend-modularization.md)
 12. [Informe de modularización del backend](testing/BACKEND_MODULARIZATION_REPORT_2026-08-08.md)
 13. [Informe del documento maestro v0.16](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
+14. [Contrato e inventario del Registro de Capacidades R1](architecture/CAPABILITY_REGISTRY_R1.md)
+15. [Plan de implementación R1](plans/R1-capability-registry.md)
 
 ## Secciones
 
