@@ -1,0 +1,24 @@
+* text=auto
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Fuentes y documentación conservan finales LF en el repositorio.
+*.css text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf whitespace=-trailing-space
+*.rs text eol=lf
+*.svg text eol=lf
+*.toml text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.xml text eol=lf
+
+# El iniciador se ejecuta de forma nativa en Windows.
+*.cmd text eol=crlf
+
+# Activos binarios.
+*.icns binary
+*.ico binary
+*.png binary

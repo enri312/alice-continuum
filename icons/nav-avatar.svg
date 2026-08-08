@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <style>
+    .av2-scan{animation:av2Scan 3.4s ease-in-out infinite}.av2-orbit{transform-box:fill-box;transform-origin:center;animation:av2Orbit 8s linear infinite}.av2-core{animation:av2Core 2.6s ease-in-out infinite}.av2-eye{transform-box:fill-box;transform-origin:center;animation:av2Blink 5s ease-in-out infinite}.av2-packet{animation:av2Packet 2.8s ease-in-out infinite}.av2-packet.b{animation-delay:-1.4s}.av2-led{animation:av2Led 1.4s steps(2,end) infinite}
+    @keyframes av2Scan{0%,100%{transform:translateY(-53px);opacity:.08}50%{transform:translateY(58px);opacity:.85}}@keyframes av2Orbit{to{transform:rotate(360deg)}}@keyframes av2Core{50%{opacity:.68;filter:brightness(1.25)}}@keyframes av2Blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.1)}}@keyframes av2Packet{0%,100%{opacity:.12;transform:translateX(-9px)}50%{opacity:1;transform:translateX(11px)}}@keyframes av2Led{50%{opacity:.2}}@media(prefers-reduced-motion:reduce){.av2-scan,.av2-orbit,.av2-core,.av2-eye,.av2-packet,.av2-led{animation:none}}
+  </style>
+  <defs>
+    <linearGradient id="av2-frame" x1="9" y1="5" x2="191" y2="195"><stop stop-color="#26364a"/><stop offset=".48" stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="av2-hair" x1="69" y1="42" x2="139" y2="146"><stop stop-color="#c084fc"/><stop offset=".38" stop-color="#6366f1"/><stop offset="1" stop-color="#172554"/></linearGradient>
+    <linearGradient id="av2-skin" x1="82" y1="59" x2="119" y2="132"><stop stop-color="#fdf4ff"/><stop offset=".48" stop-color="#f0abfc"/><stop offset="1" stop-color="#7e22ce"/></linearGradient>
+    <linearGradient id="av2-suit" x1="48" y1="133" x2="151" y2="183"><stop stop-color="#0e7490"/><stop offset=".5" stop-color="#312e81"/><stop offset="1" stop-color="#0f172a"/></linearGradient>
+    <radialGradient id="av2-core"><stop stop-color="#fff"/><stop offset=".18" stop-color="#22d3ee"/><stop offset=".56" stop-color="#7c3aed"/><stop offset="1" stop-color="#1e1b4b"/></radialGradient>
+    <filter id="av2-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.8" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="av2-shadow"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#020617" flood-opacity=".9"/></filter>
+    <pattern id="av2-grid" width="11" height="11" patternUnits="userSpaceOnUse"><path d="M11 0H0v11" fill="none" stroke="#164e63" stroke-width=".55"/></pattern>
+    <clipPath id="av2-screen"><rect x="24" y="31" width="152" height="145" rx="17"/></clipPath>
+  </defs>
+  <path d="M100 6c80 0 94 14 94 94s-14 94-94 94S6 180 6 100 20 6 100 6Z" fill="url(#av2-frame)" stroke="#38bdf8" stroke-width="3"/>
+  <path d="M100 12c74 0 88 14 88 88s-14 88-88 88-88-14-88-88 14-88 88-88Z" fill="url(#av2-grid)" opacity=".48" stroke="#0e7490"/>
+  <g fill="#475569" stroke="#020617" stroke-width="2"><circle cx="25" cy="25" r="5"/><circle cx="175" cy="25" r="5"/><circle cx="25" cy="175" r="5"/><circle cx="175" cy="175" r="5"/></g>
+  <text x="100" y="25" fill="#7dd3fc" font-family="Consolas,monospace" font-size="7.5" font-weight="900" text-anchor="middle" letter-spacing="1.4">ALICE · AVATAR CORE</text>
+  <rect x="24" y="31" width="152" height="145" rx="17" fill="#030816" stroke="#164e63" stroke-width="6" filter="url(#av2-shadow)"/>
+  <rect x="24" y="31" width="152" height="145" rx="17" fill="url(#av2-grid)" stroke="#67e8f9" stroke-width="1.5" opacity=".94"/>
+  <g clip-path="url(#av2-screen)">
+    <ellipse cx="100" cy="101" rx="65" ry="69" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="2 7" opacity=".5"/>
+    <g class="av2-orbit" fill="none" stroke="#c084fc" stroke-width="1.2" stroke-dasharray="10 8" opacity=".7"><ellipse cx="100" cy="101" rx="57" ry="64"/><ellipse cx="100" cy="101" rx="63" ry="51" transform="rotate(34 100 101)"/></g>
+    <path d="M39 185c5-38 25-51 49-55l12 9 12-9c24 4 44 17 49 55Z" fill="url(#av2-suit)" stroke="#22d3ee" stroke-width="2"/>
+    <path d="m82 132 18 31 18-31-8-8H90Z" fill="#111827" stroke="#a5b4fc" stroke-width="1.4"/>
+    <path d="m88 129 12 10 12-10-3 28-9 10-9-10Z" fill="url(#av2-core)" stroke="#e0f2fe" stroke-width="1.2" class="av2-core" filter="url(#av2-glow)"/>
+    <path d="M66 78c-4-28 13-47 36-47 29 0 41 22 34 52l5 47-20 18-42-3-18-20Z" fill="url(#av2-hair)" stroke="#e879f9" stroke-width="2" filter="url(#av2-shadow)"/>
+    <path d="M75 78c1-23 12-34 27-34 19 0 30 13 28 38l-3 26c-2 18-13 29-27 29s-25-11-27-29Z" fill="url(#av2-skin)" stroke="#f5d0fe" stroke-width="1.8"/>
+    <path d="M66 83c-8 17-8 42 4 61l13-12-5-39 4-34c-9 4-13 11-16 24Zm65-20c8 16 7 47-1 65l10 3c6-29 1-51-9-68Z" fill="#312e81" stroke="#818cf8" stroke-width="1.3"/>
+    <path d="M78 68c6-23 36-34 51-5-17-7-30-3-45 9l-8 18Z" fill="#7c3aed" stroke="#d8b4fe" stroke-width="1.2"/>
+    <g class="av2-eye" fill="#020617" stroke="#fff" stroke-width="1.5"><path d="M80 92c7-6 15-6 22 0-7 6-15 6-22 0Z"/><path d="M103 92c7-6 15-6 22 0-7 6-15 6-22 0Z"/></g>
+    <g fill="#22d3ee" filter="url(#av2-glow)"><circle cx="91" cy="92" r="2.7"/><circle cx="114" cy="92" r="2.7"/></g>
+    <path d="M95 112c4 2 7 2 11 0M89 120c8 7 15 7 23 0" fill="none" stroke="#fdf4ff" stroke-width="1.5" stroke-linecap="round"/>
+    <g fill="none" stroke="#67e8f9" stroke-width=".7" opacity=".65"><path d="M74 104h52M100 48v88"/><path d="M82 73 91 92l9 20 14-20 12-17M73 106l16 14 11 17 12-17 16-14"/></g>
+    <g fill="#fff" filter="url(#av2-glow)"><circle cx="82" cy="73" r="1.8"/><circle cx="74" cy="104" r="1.8"/><circle cx="89" cy="120" r="1.8"/><circle cx="100" cy="137" r="1.8"/><circle cx="112" cy="120" r="1.8"/><circle cx="128" cy="106" r="1.8"/><circle cx="126" cy="75" r="1.8"/></g>
+    <path class="av2-scan" d="M32 98h136" stroke="#34d399" stroke-width="1.7" filter="url(#av2-glow)"/>
+  </g>
+  <g font-family="Consolas,monospace" font-weight="900"><rect x="31" y="40" width="27" height="13" rx="2" fill="#020617" stroke="#0ea5e9"/><text x="44.5" y="49" fill="#7dd3fc" font-size="5.5" text-anchor="middle">VRM 1.0</text><rect x="142" y="40" width="27" height="13" rx="2" fill="#020617" stroke="#a855f7"/><text x="155.5" y="49" fill="#e9d5ff" font-size="5.5" text-anchor="middle">HUM 54</text></g>
+  <g class="av2-packet" fill="#22d3ee" filter="url(#av2-glow)"><circle cx="35" cy="63" r="2"/><path d="M40 63h15" stroke="#22d3ee"/></g><g class="av2-packet b" fill="#f472b6" filter="url(#av2-glow)"><circle cx="165" cy="151" r="2"/><path d="M145 151h15" stroke="#f472b6"/></g>
+  <g transform="translate(56 180)"><rect width="88" height="7" rx="3.5" fill="#020617" stroke="#334155"/><rect x="3" y="2" width="58" height="3" rx="1.5" fill="#38bdf8" filter="url(#av2-glow)"/><circle class="av2-led" cx="75" cy="3.5" r="2" fill="#34d399"/><circle cx="83" cy="3.5" r="2" fill="#f472b6"/></g>
+</svg>

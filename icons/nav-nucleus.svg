@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <style>
+    .core-pulse{transform-box:fill-box;transform-origin:center;animation:corePulse 2.5s ease-in-out infinite}.core-flow{animation:coreFlow 3.2s linear infinite}.core-node{animation:coreNode 2s ease-in-out infinite}.core-node:nth-child(2n){animation-delay:-1s}.core-orbit{transform-box:fill-box;transform-origin:center;animation:coreOrbit 14s linear infinite}
+    @keyframes corePulse{50%{transform:scale(1.13);opacity:.82}}@keyframes coreFlow{to{stroke-dashoffset:-32}}@keyframes coreNode{50%{opacity:.35}}@keyframes coreOrbit{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){.core-pulse,.core-flow,.core-node,.core-orbit{animation:none}}
+  </style>
+  <defs>
+    <linearGradient id="core-frame" x1="10" y1="8" x2="190" y2="192" gradientUnits="userSpaceOnUse"><stop stop-color="#28394e"/><stop offset=".48" stop-color="#0b1423"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="core-left" x1="38" y1="54" x2="101" y2="145" gradientUnits="userSpaceOnUse"><stop stop-color="#0e7490" stop-opacity=".72"/><stop offset=".6" stop-color="#082f49" stop-opacity=".5"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="core-right" x1="162" y1="54" x2="99" y2="145" gradientUnits="userSpaceOnUse"><stop stop-color="#b45309" stop-opacity=".68"/><stop offset=".6" stop-color="#451a03" stop-opacity=".46"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <radialGradient id="core-center"><stop stop-color="#fff"/><stop offset=".15" stop-color="#f5d0fe"/><stop offset=".5" stop-color="#c026d3"/><stop offset="1" stop-color="#4c1d95"/></radialGradient>
+    <radialGradient id="core-field"><stop stop-color="#a855f7" stop-opacity=".25"/><stop offset=".48" stop-color="#38bdf8" stop-opacity=".08"/><stop offset="1" stop-color="#020617" stop-opacity="0"/></radialGradient>
+    <filter id="core-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="core-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity=".88"/></filter>
+    <pattern id="core-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0v10" fill="none" stroke="#312e81" stroke-width=".55" opacity=".5"/></pattern>
+  </defs>
+
+  <path d="M100 7c79 0 93 14 93 93s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#core-frame)" stroke="#7c3aed" stroke-width="3"/>
+  <path d="M100 13c73 0 87 14 87 87s-14 87-87 87-87-14-87-87 14-87 87-87Z" fill="none" stroke="#e879f9" stroke-width="1.2" opacity=".56"/>
+  <circle cx="100" cy="103" r="77" fill="url(#core-field)"/><circle cx="100" cy="103" r="70" fill="url(#core-grid)" opacity=".36"/>
+  <g fill="#475569" stroke="#111827" stroke-width="2"><circle cx="29" cy="29" r="5"/><circle cx="171" cy="29" r="5"/><circle cx="29" cy="171" r="5"/><circle cx="171" cy="171" r="5"/></g><g stroke="#020617" stroke-width="2"><path d="m26 26 6 6m136-6 6 6M26 168l6 6m136-6 6 6"/></g>
+  <text x="100" y="27" fill="#f0abfc" font-family="Consolas,monospace" font-size="8.4" font-weight="900" text-anchor="middle" letter-spacing="1.6">NEU-02 · ALICE CORE</text>
+
+  <ellipse cx="100" cy="160" rx="69" ry="20" fill="#0f172a" stroke="#7c3aed" stroke-width="2" filter="url(#core-shadow)"/><ellipse cx="100" cy="160" rx="53" ry="13" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="8 4" opacity=".85"/>
+  <path d="M98 47C80 35 55 44 47 61c-16 4-23 22-15 36-9 14-2 34 13 39 7 18 30 25 53 10Z" fill="url(#core-left)" stroke="#38bdf8" stroke-width="2.8" filter="url(#core-shadow)"/>
+  <path d="M102 47c18-12 43-3 51 14 16 4 23 22 15 36 9 14 2 34-13 39-7 18-30 25-53 10Z" fill="url(#core-right)" stroke="#f59e0b" stroke-width="2.8" filter="url(#core-shadow)"/>
+  <path d="M98 48c-9 8-7 17-3 24-7 8-8 18-2 27-7 8-6 19 4 27-6 7-5 14 1 20M102 48c9 8 7 17 3 24 7 8 8 18 2 27 7 8 6 19-4 27 6 7 5 14-1 20" fill="none" stroke="#e879f9" stroke-width="2.2" opacity=".82"/>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" opacity=".9">
+    <path class="core-flow" d="m45 78 19-15 18 15 13-6M38 103l22-7 18 15 15-12M46 130l20-15 16 17 15-6M58 55l6 8-4 33 6 19-3 25M82 78l-4 33 4 21" stroke="#67e8f9" stroke-dasharray="5 3"/>
+    <path class="core-flow" d="m155 78-19-15-18 15-13-6m57 31-22-7-18 15-15-12m47 31-20-15-16 17-15-6m39-71-6 8 4 33-6 19 3 25m-19-62 4 33-4 21" stroke="#fbbf24" stroke-dasharray="5 3"/>
+    <path d="M64 63h72M60 96h80M66 115h68M82 132h36" stroke="#c084fc" opacity=".52"/>
+  </g>
+  <g class="core-node" filter="url(#core-glow)">
+    <g fill="#a5f3fc"><circle cx="45" cy="78" r="3"/><circle cx="64" cy="63" r="3"/><circle cx="82" cy="78" r="3"/><circle cx="38" cy="103" r="3"/><circle cx="60" cy="96" r="3"/><circle cx="78" cy="111" r="3"/><circle cx="46" cy="130" r="3"/><circle cx="66" cy="115" r="3"/><circle cx="82" cy="132" r="3"/></g>
+    <g fill="#fde68a"><circle cx="155" cy="78" r="3"/><circle cx="136" cy="63" r="3"/><circle cx="118" cy="78" r="3"/><circle cx="162" cy="103" r="3"/><circle cx="140" cy="96" r="3"/><circle cx="122" cy="111" r="3"/><circle cx="154" cy="130" r="3"/><circle cx="134" cy="115" r="3"/><circle cx="118" cy="132" r="3"/></g>
+  </g>
+
+  <ellipse class="core-orbit" cx="100" cy="99" rx="72" ry="29" fill="none" stroke="#c084fc" stroke-width="1.3" stroke-dasharray="4 7" opacity=".72"/>
+  <circle class="core-pulse" cx="100" cy="101" r="22" fill="url(#core-center)" stroke="#fff" stroke-width="1.8" filter="url(#core-glow)"/>
+  <circle cx="100" cy="101" r="14" fill="#100b2d" stroke="#f0abfc" stroke-width="1.5" opacity=".92"/>
+  <path d="m100 86-12 29h7l2-6h7l2 6h7Zm0 9 3 9h-6Z" fill="#fff" stroke="#f5d0fe" stroke-width=".8" filter="url(#core-glow)"/>
+  <path d="M100 76v7m0 36v7M75 101h8m34 0h8" stroke="#f0abfc" stroke-width="1.3" opacity=".72"/>
+
+  <g font-family="Consolas,monospace" font-size="5.2" font-weight="900">
+    <path d="M17 54h20l5 5v29l-5 5H17l-4-5V59Z" fill="#07111e" stroke="#38bdf8"/><path d="M20 62h14m-14 7h10m-10 7h14m-14 7h8" stroke="#67e8f9"/><text x="27" y="90" fill="#bae6fd" text-anchor="middle">LOCAL</text>
+    <path d="M163 54h20l4 5v29l-4 5h-20l-5-5V59Z" fill="#07111e" stroke="#f59e0b"/><path d="M166 62h14m-10 7h10m-14 7h14m-8 7h8" stroke="#fbbf24"/><text x="173" y="90" fill="#fef3c7" text-anchor="middle">SALIDA</text>
+    <rect x="78" y="151" width="44" height="12" rx="3" fill="#1e1b4b" stroke="#e879f9"/><circle cx="86" cy="157" r="2" fill="#f472b6" filter="url(#core-glow)"/><text x="105" y="159" fill="#f5d0fe" text-anchor="middle">IDENTIDAD</text>
+  </g>
+  <g fill="none" stroke="#c084fc" stroke-width="1" opacity=".78"><path d="M14 95h8v-8m-8 36h8v8m164-36h-8v-8m8 36h-8v8"/><path class="core-flow" d="M80 32h40" stroke-dasharray="3 4"/></g>
+  <g transform="translate(63 177)"><rect width="74" height="8" rx="4" fill="#020617" stroke="#334155"/><rect x="3" y="2.5" width="49" height="3" rx="1.5" fill="url(#core-center)" filter="url(#core-glow)"/><circle cx="62" cy="4" r="2" fill="#38bdf8"/><circle cx="70" cy="4" r="2" fill="#f59e0b"/></g>
+</svg>

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+*.log
+*.tsbuildinfo
+src-tauri/target/
+.cargo-target/
+data/*
+!data/README.md
+
+# Avatares privados: se cargan localmente y no se redistribuyen con Alice.
+Assets/*.vrm
+Assets/*.vroid

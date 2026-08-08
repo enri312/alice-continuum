@@ -1,0 +1,31 @@
+{
+  "name": "proyecto-p-contexto",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5",
+    "@tauri-apps/api": "^2.11.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.185.1",
+    "vite": "^7.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.185.4",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.10"
+  }
+}
