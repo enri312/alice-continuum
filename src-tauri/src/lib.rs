@@ -1,4 +1,7 @@
 mod avatar;
+// R1 compila y prueba primero el contrato, antes de registrar su comando de consulta.
+#[allow(dead_code)]
+mod capabilities;
 mod cloud;
 mod memory;
 mod observation;
