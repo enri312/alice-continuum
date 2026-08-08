@@ -7,7 +7,7 @@ use std::io::Write;
 use std::time::Duration;
 use tauri::AppHandle;
 
-const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Enrique. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
+const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Carlos Nuñez. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -547,12 +547,12 @@ mod tests {
     fn google_text_parser_joins_candidate_parts() {
         let response = serde_json::json!({
             "candidates": [{
-                "content": { "parts": [{ "text": "Hola" }, { "text": "Enrique" }] }
+                "content": { "parts": [{ "text": "Hola" }, { "text": "Carlos Nuñez" }] }
             }]
         });
         assert_eq!(
             extract_cloud_response_text("google", &response),
-            "Hola\nEnrique"
+            "Hola\nCarlos Nuñez"
         );
     }
 

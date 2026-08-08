@@ -5,22 +5,22 @@ Estado: aceptada para implementación
 
 ## Contexto
 
-Alice dispone de un formulario completo para recibir enseñanzas, pero una memoria vacía obliga a Enrique a decidir desde cero qué tema, tipo, fuente e importancia escribir. Esa fricción dificulta formar una base personal aunque el almacenamiento ya funcione.
+Alice dispone de un formulario completo para recibir enseñanzas, pero una memoria vacía obliga a Carlos Nuñez a decidir desde cero qué tema, tipo, fuente e importancia escribir. Esa fricción dificulta formar una base personal aunque el almacenamiento ya funcione.
 
 ## Decisión
 
 - Incorporar un selector compacto de puntos de partida dentro de la pantalla Memoria.
 - Ofrecer seis categorías: perfil personal, facultad, proyectos, preferencias, personas importantes y reglas para Alice.
 - Cada categoría cambia únicamente las ayudas del formulario, el tipo sugerido y una importancia inicial; no inserta hechos ni crea registros.
-- Mantener tema y contenido vacíos hasta que Enrique los escriba.
+- Mantener tema y contenido vacíos hasta que Carlos Nuñez los escriba.
 - Guardar continuará siendo la única confirmación que modifica `records.json`.
-- La fuente sugerida será `Enrique · enseñanza directa` y seguirá siendo editable.
+- La fuente sugerida será `Carlos Nuñez · enseñanza directa` y seguirá siendo editable.
 - No solicitar a un modelo de nube que deduzca datos personales ni transformar conversaciones antiguas en enseñanzas.
 
 ## Consecuencias
 
 - Alice puede comenzar a formar memoria útil sin una importación masiva ni un asistente invasivo.
-- Las ayudas son reutilizables y no presuponen información sobre Enrique.
+- Las ayudas son reutilizables y no presuponen información sobre Carlos Nuñez.
 - Más adelante se podrá añadir importación revisada por lotes sobre el mismo contrato de confirmación individual.
 
 ## Criterios de aceptación

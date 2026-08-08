@@ -17,7 +17,7 @@ type CloudPayloadInput = {
 export function buildCloudPayload(input: CloudPayloadInput): string {
   const sections: string[] = [];
   if (input.includeHistory && input.recentHistory.length) {
-    sections.push(`HISTORIAL LOCAL AUTORIZADO\n${input.recentHistory.map((item) => `${item.role === "user" ? "Enrique" : "Alice"}: ${item.text}`).join("\n")}`);
+    sections.push(`HISTORIAL LOCAL AUTORIZADO\n${input.recentHistory.map((item) => `${item.role === "user" ? "Carlos Nuñez" : "Alice"}: ${item.text}`).join("\n")}`);
   }
   if (input.includeMemory && input.memories.length) {
     sections.push(`RECUERDOS LOCALES RECUPERADOS Y AUTORIZADOS\n${input.memories.map((item) => `- ${item.intention}: ${item.summary || "sin resumen"}${item.nextStep ? ` · Próximo paso: ${item.nextStep}` : ""}`).join("\n")}`);

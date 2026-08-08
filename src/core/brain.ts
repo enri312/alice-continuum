@@ -89,7 +89,7 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
     retrievedMemoryTop: inputs.retrievedMemoryTop,
     focus: shortFocus,
     focusStatus: inputs.cloudPending ? "consultando la nube" : inputs.retrievedMemoryCount ? "recuperando memoria" : inputs.lastUserMessage ? "conversación activa" : "en espera",
-    focusDetail: inputs.retrievedMemoryCount ? `La búsqueda local encontró ${inputs.retrievedMemoryCount} recuerdos relacionados. Principal: ${inputs.retrievedMemoryTop}.` : inputs.lastUserMessage ? `Último mensaje autorizado de Enrique: ${focus}` : "Alice espera una pregunta; ya no hace falta iniciar una misión.",
+    focusDetail: inputs.retrievedMemoryCount ? `La búsqueda local encontró ${inputs.retrievedMemoryCount} recuerdos relacionados. Principal: ${inputs.retrievedMemoryTop}.` : inputs.lastUserMessage ? `Último mensaje autorizado de Carlos Nuñez: ${focus}` : "Alice espera una pregunta; ya no hace falta iniciar una misión.",
     nodes: [
       { id: "chat", label: "Entrada", value: inputs.lastUserMessage ? "mensaje recibido" : "disponible", detail: inputs.lastUserMessage ? `Entrada local más reciente: ${focus}` : "El canal de conversación está disponible.", group: "input", x: 12, y: 31 },
       { id: "window", label: "Ventana", value: inputs.observerEnabled ? inputs.foregroundContext?.processName ?? "esperando" : "apagada", detail: hasWindow ? `Contexto visible: ${inputs.foregroundContext?.windowTitle}` : "La observación de ventana no aporta datos a la nube salvo autorización expresa.", group: "input", x: 17, y: 68 },

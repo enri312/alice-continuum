@@ -5,7 +5,7 @@ Estado: aceptada para implementación
 
 ## Contexto
 
-Alice dispone de un avatar propio creado por Enrique en VRoid Studio y guardado en `E:\Proyecto P\Assets\Alice.vrm`. Antes de conectar voz, cámara, expresiones o movimiento corporal es necesario demostrar que la aplicación puede cargarlo, mostrarlo y liberar sus recursos correctamente.
+Alice dispone de un avatar propio creado por Carlos Nuñez en VRoid Studio y guardado en `E:\Proyecto P\Assets\Alice.vrm`. Antes de conectar voz, cámara, expresiones o movimiento corporal es necesario demostrar que la aplicación puede cargarlo, mostrarlo y liberar sus recursos correctamente.
 
 El archivo declara uso del creador, atribución requerida, redistribución prohibida y modificaciones prohibidas. Por ello no debe copiarse a `public/`, `dist/`, instaladores, repositorios ni exportaciones.
 

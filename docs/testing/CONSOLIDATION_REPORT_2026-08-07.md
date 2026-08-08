@@ -5,7 +5,7 @@ Estado: aprobado
 
 ## Alcance
 
-Se implementó el primer bloque de la Fase 4 sin modificar conversaciones, activar proveedores ni alterar el avatar. La cola procesa únicamente enseñanzas directas confirmadas por Enrique; una conversación almacenada no se convierte automáticamente en conocimiento consolidado.
+Se implementó el primer bloque de la Fase 4 sin modificar conversaciones, activar proveedores ni alterar el avatar. La cola procesa únicamente enseñanzas directas confirmadas por Carlos Nuñez; una conversación almacenada no se convierte automáticamente en conocimiento consolidado.
 
 ## Reglas verificadas
 

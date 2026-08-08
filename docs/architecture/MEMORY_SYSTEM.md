@@ -19,7 +19,7 @@ memory/
 |   |-- records.backup.json       # Respaldo automático anterior
 |   `-- records.pre-restore.json  # Estado protegido antes de restaurar
 |-- exports/
-|   `-- alice-memory-*.json       # Exportaciones solicitadas por Enrique
+|   `-- alice-memory-*.json       # Exportaciones solicitadas por Carlos Nuñez
 |-- audit/
 |   `-- memory-events.jsonl       # Eventos append-only con huella SHA-256
 |-- attachments/                  # Reservado para adjuntos autorizados
@@ -51,11 +51,11 @@ La fuerza de almacenamiento no es una certeza científica. Es una métrica de in
 
 ## Consolidación y repaso v1
 
-La cola de repaso acepta únicamente registros de clase `Enseñanza`, porque fueron escritos y confirmados directamente por Enrique. Las conversaciones guardadas permanecen consultables, pero no aumentan su fuerza ni se convierten automáticamente en conocimiento propio.
+La cola de repaso acepta únicamente registros de clase `Enseñanza`, porque fueron escritos y confirmados directamente por Carlos Nuñez. Las conversaciones guardadas permanecen consultables, pero no aumentan su fuerza ni se convierten automáticamente en conocimiento propio.
 
 La próxima fecha se deriva de `finishedAt` o `lastReviewedAt`, el balance entre `successfulReviews` y `correctionCount`, y la importancia. Los intervalos base son 1, 3, 7, 14, 30, 60 y 120 días. Marcar **Sigue vigente** refuerza el indicador y extiende el intervalo; **Necesita corrección** reduce la fuerza y cambia el estado a `conflict` hasta guardar una corrección.
 
-El uso durante conversación se registra de manera independiente. Si una enseñanza confirmada fue incluida en la previsualización, Enrique autorizó el envío y el proveedor respondió correctamente, Alice incrementa `successfulRecalls` y actualiza `lastRecalledAt`. Cancelar, desmarcar la memoria o recibir un error no produce refuerzo.
+El uso durante conversación se registra de manera independiente. Si una enseñanza confirmada fue incluida en la previsualización, Carlos Nuñez autorizó el envío y el proveedor respondió correctamente, Alice incrementa `successfulRecalls` y actualiza `lastRecalledAt`. Cancelar, desmarcar la memoria o recibir un error no produce refuerzo.
 
 No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruye al mostrar la memoria y todos sus datos continúan en `records.json`.
 

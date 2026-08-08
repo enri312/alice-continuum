@@ -138,7 +138,7 @@ export function Conversacion({ desktopApp, draft, status, messages, memories, ob
     <div className="conversation-layout">
       <div className="chat-column">
         <div className="message-stream" aria-live="polite">
-          {messages.length === 0 ? <div className="chat-empty"><span>A</span><h3>Estoy lista para conversar.</h3><p>No necesitás iniciar una misión. Podés preguntarme, estudiar conmigo o traer una idea para investigar.</p></div> : messages.map((item) => <article key={item.id} className={`chat-message ${item.role}`}><div className="message-author">{item.role === "user" ? "ENRIQUE" : "ALICE"}<small>{messageTime(item.createdAt)}</small></div><p>{item.text}</p>{item.model && <span className="message-model">{item.model}</span>}</article>)}
+          {messages.length === 0 ? <div className="chat-empty"><span>A</span><h3>Estoy lista para conversar.</h3><p>No necesitás iniciar una misión. Podés preguntarme, estudiar conmigo o traer una idea para investigar.</p></div> : messages.map((item) => <article key={item.id} className={`chat-message ${item.role}`}><div className="message-author">{item.role === "user" ? "CARLOS NUÑEZ" : "ALICE"}<small>{messageTime(item.createdAt)}</small></div><p>{item.text}</p>{item.model && <span className="message-model">{item.model}</span>}</article>)}
         </div>
         <div className="composer">
           <label htmlFor="alice-message">MENSAJE PARA ALICE</label>

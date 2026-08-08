@@ -59,7 +59,7 @@ export function Memoria({ sessions, onCreate, onUpdate, onDelete, onReview, onEx
   const [teachingTitle, setTeachingTitle] = useState("");
   const [teachingContent, setTeachingContent] = useState("");
   const [teachingType, setTeachingType] = useState<MemoryType>(teachingTemplates[0].memoryType);
-  const [teachingSource, setTeachingSource] = useState("Enrique · enseñanza directa");
+  const [teachingSource, setTeachingSource] = useState("Carlos Nuñez · enseñanza directa");
   const [teachingImportance, setTeachingImportance] = useState(teachingTemplates[0].importance);
   const [teachingMessage, setTeachingMessage] = useState("");
   const [activeTemplateId, setActiveTemplateId] = useState(teachingTemplates[0].id);
@@ -156,7 +156,7 @@ export function Memoria({ sessions, onCreate, onUpdate, onDelete, onReview, onEx
         <label>TIPO DE MEMORIA<select value={teachingType} onChange={(event) => setTeachingType(event.target.value as MemoryType)}><option value="semantic">Concepto o hecho</option><option value="procedural">Procedimiento</option><option value="preference">Preferencia personal</option><option value="episodic">Experiencia o episodio</option></select></label>
         <label className="teaching-content">QUÉ DEBE APRENDER<textarea value={teachingContent} onChange={(event) => { setTeachingContent(event.target.value); setTeachingMessage(""); }} placeholder={activeTemplate.contentPlaceholder} /></label>
         <label>FUENTE<input value={teachingSource} onChange={(event) => { setTeachingSource(event.target.value); setTeachingMessage(""); }} placeholder="Quién lo enseñó o de dónde proviene" /></label>
-        <label className="teaching-importance">IMPORTANCIA PARA ENRIQUE <strong>{teachingImportance}/5</strong><input type="range" min="1" max="5" step="1" value={teachingImportance} onChange={(event) => setTeachingImportance(Number(event.target.value))} /></label>
+        <label className="teaching-importance">IMPORTANCIA PARA CARLOS NUÑEZ <strong>{teachingImportance}/5</strong><input type="range" min="1" max="5" step="1" value={teachingImportance} onChange={(event) => setTeachingImportance(Number(event.target.value))} /></label>
       </div>
       <footer><span>{teachingMessage || "Guardar esta enseñanza será tu confirmación explícita."}</span><button className="primary" onClick={saveTeaching}>Guardar enseñanza local <span>→</span></button></footer>
     </section>

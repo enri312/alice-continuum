@@ -12,12 +12,12 @@ En Núcleo → Volumen neuronal, la cámara se controla con la rueda para zoom, 
 
 - Nada se envía a Internet hasta que la previsualización de una consulta sea autorizada expresamente.
 - No observa aplicaciones, pantalla ni archivos de forma automática o en segundo plano.
-- La observación de ventana activa solo existe en la aplicación de escritorio y permanece apagada hasta que Enrique la enciende. Consulta cada dos segundos el nombre del programa y el título de la última ventana usada; no registra teclas, contenido de archivos ni imágenes. Al apagarla, el contexto en memoria se borra.
+- La observación de ventana activa solo existe en la aplicación de escritorio y permanece apagada hasta que Carlos Nuñez la enciende. Consulta cada dos segundos el nombre del programa y el título de la última ventana usada; no registra teclas, contenido de archivos ni imágenes. Al apagarla, el contexto en memoria se borra.
 - Historial, recuerdos y ventana actual se excluyen de las consultas de nube por defecto. Cada fuente se incorpora con un control independiente.
 - Las solicitudes usan `store: false`, un máximo de 1200 tokens de salida y no habilitan herramientas. La política operativa y de retención del proveedor sigue siendo aplicable.
 - Alice no ejecuta comandos ni permite que el modelo modifique Windows en esta fase.
 - Cada recuerdo debe poder verse y corregirse.
-- La búsqueda de recuerdos ocurre localmente. Alice muestra las coincidencias y no las añade a una consulta de nube hasta que Enrique activa su autorización.
+- La búsqueda de recuerdos ocurre localmente. Alice muestra las coincidencias y no las añade a una consulta de nube hasta que Carlos Nuñez activa su autorización.
 
 ## Iniciar Alice
 
@@ -67,4 +67,4 @@ Las llamadas de nube agregan una línea a `cloud-audit.jsonl` con proveedor, mod
 - `Iniciar Alice.cmd`: inicio de la aplicación de escritorio mediante doble clic.
 - `localStorage`: compatibilidad temporal para desarrollo web y migración inicial hacia la aplicación de escritorio.
 
-La regla para las siguientes versiones es simple: primero se muestra qué se desea observar o hacer, luego Enrique lo autoriza y solo después ocurre la acción.
+La regla para las siguientes versiones es simple: primero se muestra qué se desea observar o hacer, luego Carlos Nuñez lo autoriza y solo después ocurre la acción.

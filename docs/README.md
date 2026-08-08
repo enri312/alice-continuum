@@ -16,7 +16,7 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 10. [Informe de enseñanza guiada y emblema](testing/GUIDED_TEACHING_ICON_REPORT_2026-08-08.md)
 11. [Plan de modularización del backend](plans/backend-modularization.md)
 12. [Informe de modularización del backend](testing/BACKEND_MODULARIZATION_REPORT_2026-08-08.md)
-13. [Informe del documento maestro v0.14](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
+13. [Informe del documento maestro v0.15](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
 
 ## Secciones
 

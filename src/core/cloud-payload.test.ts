@@ -29,7 +29,7 @@ describe("buildCloudPayload", () => {
     const payload = buildCloudPayload({ ...context, includeHistory: true });
 
     expect(payload).toContain("HISTORIAL LOCAL AUTORIZADO");
-    expect(payload).toContain("Enrique: mensaje privado anterior");
+    expect(payload).toContain("Carlos Nuñez: mensaje privado anterior");
     expect(payload).toContain("Alice: respuesta anterior");
     expect(payload).not.toContain("dato privado");
   });

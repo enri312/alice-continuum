@@ -32,4 +32,4 @@ Se conectó la recuperación lexical de Conversación con la consolidación pers
 
 Los datos actuales contienen conversaciones, pero ninguna enseñanza directa elegible. Por esa razón no se fabricó un registro ni se consumió una llamada de nube solo para producir una captura. La transformación exacta y la selección de identificadores están cubiertas con fechas y objetos controlados en `memory-consolidation.test.ts`.
 
-Cuando Enrique cree una enseñanza y autorice su inclusión en una conversación relacionada, la pestaña Memoria mostrará el aumento en **USOS AUTORIZADOS** y consolidación. Ese será el primer ensayo de extremo a extremo con datos reales del usuario.
+Cuando Carlos Nuñez cree una enseñanza y autorice su inclusión en una conversación relacionada, la pestaña Memoria mostrará el aumento en **USOS AUTORIZADOS** y consolidación. Ese será el primer ensayo de extremo a extremo con datos reales del usuario.

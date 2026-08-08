@@ -3,8 +3,8 @@ import { retrieveMemories } from "./memory-retrieval";
 
 const memories = [
   { id: "facultad", intention: "Horario de Programación", summary: "La clase de programación es el lunes por la noche.", nextStep: "Preparar el práctico." },
-  { id: "juego", intention: "World of Warcraft", summary: "Enrique juega cuando termina sus tareas.", nextStep: "No desplazar el estudio." },
-  { id: "familia", intention: "Cuidado de los abuelos", summary: "Enrique ayuda a su madre con el cuidado familiar." },
+  { id: "juego", intention: "World of Warcraft", summary: "Carlos Nuñez juega cuando termina sus tareas.", nextStep: "No desplazar el estudio." },
+  { id: "familia", intention: "Cuidado de los abuelos", summary: "Carlos Nuñez ayuda a su madre con el cuidado familiar." },
 ];
 
 describe("recuperación local de memoria", () => {

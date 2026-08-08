@@ -1,4 +1,4 @@
-# Informe del documento maestro v0.14
+# Informe del documento maestro v0.15
 
 Fecha: 2026-08-08  
 Estado: aprobado
@@ -14,7 +14,9 @@ Se consultó `E:\SKYTECH\documentacion_tecnica.html` únicamente como referencia
 ## Resultado
 
 - Tema propio en `docs/assets/alice-documento.css`: azul marino, cuadrícula, cian operativo, ámbar de advertencia y violeta del Núcleo.
-- Portada con autor, formación, institución, versión documental y versión de producto.
+- Portada con autor, formación, versión documental y versión de producto.
+- Autoría corregida a Carlos Nuñez y ficha de portada reducida a autor y formación, sin institución ni fecha de actualización.
+- Firma del Núcleo rediseñada como un módulo HUD: código del sistema, identidad Alice y señales cognitivo/local/observable.
 - Índice navegable de 20 capítulos y navegación lateral agrupada.
 - 11 requisitos funcionales y 12 no funcionales verificables.
 - 10 casos de uso con actor, precondición, flujo, alternativas, postcondición y requisitos asociados.
@@ -38,11 +40,15 @@ Se consultó `E:\SKYTECH\documentacion_tecnica.html` únicamente como referencia
 | Diagramas SVG | 6/6 con XML válido, `title` y `desc` |
 | Figuras integradas | 6/6 con texto alternativo, pie y enlace al original |
 | Revisión real en Microsoft Edge | Aprobada |
-| Evidencia visual | `artifacts/alice-documento-maestro-v013-approved.png` y `artifacts/alice-diagramas-sheet-v014-approved.png` |
+| Evidencia visual | `artifacts/alice-documento-portada-v015.png` y `artifacts/alice-diagramas-sheet-v015-approved.png` |
 
 La primera revisión visual encontró un solapamiento entre las etiquetas de versión y la ficha académica. Se corrigió cambiando la ficha a flujo normal y la tercera captura fue aprobada.
 
 La revisión 0.14 inspeccionó los seis diagramas juntos a resolución de 1440 × 1200. Se corrigió la etiqueta del ramal de corrección en el ciclo de memoria y se confirmó que cada figura mantiene legibilidad, jerarquía cromática y correspondencia con el texto asociado.
+
+La revisión 0.15 verificó la nueva portada a 1440 × 1000: autor y formación ocupan dos columnas equilibradas, los campos retirados ya no aparecen y la firma del Núcleo conserva lectura clara. También se volvieron a renderizar los diagramas después de sustituir el actor por Carlos Nuñez.
+
+La corrección de identidad se aplicó igualmente al prompt nativo, etiquetas del chat, fuente de enseñanza, contexto de nube, Núcleo y pruebas asociadas. El repositorio ya no contiene referencias versionadas al nombre anterior. Después del cambio aprobaron 28 pruebas TypeScript, 14 pruebas Rust, ambas compilaciones, formato y `clippy -D warnings`.
 
 ## Regresión del proyecto
 

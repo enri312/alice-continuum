@@ -22,7 +22,7 @@ Los recuerdos de Alice ya conservan importancia, fuerza de almacenamiento, confi
 
 - Alice puede explicar por qué un recuerdo está pendiente y cuándo corresponde revisarlo.
 - La fuerza de almacenamiento representa eventos de mantenimiento del registro, no conocimiento interno del proveedor de IA.
-- Corregir, confirmar o eliminar continúa bajo control de Enrique y utiliza el mecanismo de respaldo existente.
+- Corregir, confirmar o eliminar continúa bajo control de Carlos Nuñez y utiliza el mecanismo de respaldo existente.
 - La recuperación durante conversaciones utiliza contadores y fecha propios según ADR-P-034; esta decisión cubre revisión y vigencia local.
 
 ## Criterios de aceptación

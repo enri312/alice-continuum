@@ -5,7 +5,7 @@ Estado: aceptada
 
 ## Contexto
 
-El equipo de Enrique mantiene el sistema en C: con espacio limitado y utiliza E: para proyectos y datos de trabajo. La ubicación predeterminada de Tauri colocó memoria y auditorías en `AppData\Roaming`, aunque esos archivos pueden crecer con el uso de Alice.
+El equipo de Carlos Nuñez mantiene el sistema en C: con espacio limitado y utiliza E: para proyectos y datos de trabajo. La ubicación predeterminada de Tauri colocó memoria y auditorías en `AppData\Roaming`, aunque esos archivos pueden crecer con el uso de Alice.
 
 ## Decisión
 

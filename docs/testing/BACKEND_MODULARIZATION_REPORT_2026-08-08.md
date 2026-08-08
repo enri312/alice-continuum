@@ -44,6 +44,6 @@ Las cuatro pruebas Rust nuevas cubren validación de ruta VRM, extensión insens
 ## Observaciones
 
 - La línea base poseía una advertencia de `clippy` por recibir `&PathBuf`; la migración de Memoria la corrigió a `&Path` sin cambiar resultados.
-- `Page` fue movida por Enrique a `src/Page`; se actualizaron todas las importaciones y referencias documentales.
+- `Page` fue movida por Carlos Nuñez a `src/Page`; se actualizaron todas las importaciones y referencias documentales.
 - La caché histórica `.cargo-target` permanece ignorada y fuera del flujo de arranque. El destino vigente continúa siendo `src-tauri/target`.
 - `records.json` contenía 10 registros antes de iniciar la refactorización. Su última auditoría corresponde a una acción explícita `save` de las 14:19:08, anterior al trabajo de modularización; la huella auditada y la huella final coinciden en `f74bec5a…83a`. No hubo una escritura posterior producida por las migraciones o verificaciones.
