@@ -1,7 +1,7 @@
 # ADR-P-042 — Identidad técnica Alice Cognitive Core
 
 Fecha: 2026-08-08  
-Estado: aceptada; migración local verificada, publicación privada pendiente
+Estado: aceptada e implementada
 
 ## Contexto
 

@@ -1,7 +1,7 @@
 # Informe de migración — Alice Cognitive Core
 
 Fecha: 2026-08-08  
-Estado: migración local aprobada; publicación privada pendiente
+Estado: migración local y publicación privada aprobadas
 
 ## Alcance
 
@@ -56,9 +56,15 @@ Vite conserva una advertencia informativa porque el módulo diferido del visor V
 - `node_modules`, `dist` y cachés Rust se regeneraron y no se versionaron.
 - El remoto será añadido solamente en la nueva carpeta.
 
-## Pendiente para cierre total
+## Verificación de GitHub
 
-1. Crear `enri312/alice-cognitive-core` como repositorio privado.
-2. Publicar la rama vigente desde `E:\Alice Cognitive Core`.
-3. Confirmar visibilidad, rama predeterminada y commit remoto.
-4. Abrir la carpeta nueva en Codex antes de continuar R1.
+| Comprobación | Resultado |
+|---|---|
+| Repositorio | `enri312/alice-cognitive-core` |
+| URL | `https://github.com/enri312/alice-cognitive-core` |
+| Visibilidad informada por GitHub | `PRIVATE` |
+| Rama predeterminada | `master` |
+| Primer commit remoto verificado | `151d3cf` |
+| Seguimiento local | `master...origin/master` |
+
+La única acción operativa pendiente es abrir `E:\Alice Cognitive Core` como workspace de Codex antes de continuar R1. La conversación puede mantenerse, pero una tarea abierta sobre la ruta anterior no cambia automáticamente su raíz de herramientas.

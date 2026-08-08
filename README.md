@@ -2,6 +2,8 @@
 
 El documento maestro que guía esta nueva etapa está en [`docs/alice_documento_maestro.html`](docs/alice_documento_maestro.html). La secuencia operativa y las puertas de calidad de las próximas fases están en [`Roadmap.md`](Roadmap.md). Antes de agregar más funciones, toda materialización debe respetar ambos documentos, su alcance y sus criterios de aceptación.
 
+El repositorio canónico es privado: `https://github.com/enri312/alice-cognitive-core`. La carpeta local canónica es `E:\Alice Cognitive Core`; `E:\Proyecto P` se conserva temporalmente solo como respaldo de migración.
+
 ## Estado actual
 
 Alice ya dispone de conversación directa multiproveedor, un Núcleo que muestra estados comprobables, memoria local editable con recuperación lexical por relevancia y una consola de actividad. Ya no exige iniciar una misión ni elegir una categoría antes de hablar.
