@@ -1,7 +1,7 @@
 # Auditoría unificada y diagnóstico R3
 
 Versión del contrato: 1  
-Estado: primer incremento implementado  
+Estado: incrementos 1 y 2 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -39,9 +39,13 @@ La deserialización rechaza campos desconocidos. Por diseño no existen propieda
 - La lectura no crea carpetas ni archivos cuando todavía no existe auditoría.
 - La rotación nunca incluye señal cruda; descarta únicamente telemetría técnica antigua según esta política documentada.
 
-## Primer productor real
+## Productores reales
 
 Al iniciar el proceso nativo, Alice registra `process.startup` como etapa `execution`, resultado `success` y razón `PROCESS_STARTED`. Si el disco no permite escribir, Alice continúa arrancando y deja el fallo en stderr; los productores sensibles posteriores definirán explícitamente si deben fallar de forma cerrada.
+
+El Gateway R2 registra sus flujos con un UUID v4 interno compartido. Una repetición idempotente conserva la misma correlación. Los eventos cubren solicitud, decisión, ejecución, detención, revocación, bloqueo, error, vencimiento y fin natural del lease. Solo se adjunta el digest SHA-256 de la previsualización.
+
+Si no puede escribirse el inicio de una capacidad sensible, el adaptador se detiene y el grant se revoca. Las operaciones que reducen acceso —detener, revocar o vencer— nunca se revierten por un fallo de telemetría.
 
 ## Interfaz
 
@@ -49,9 +53,8 @@ Actividad incorpora `[08] NATIVE AUDIT R3`. La vista es de solo lectura, muestra
 
 ## Próximos productores
 
-1. Solicitud, decisión, ejecución, detención y revocación del Gateway R2.
-2. Escrituras, respaldos, restauraciones y exportaciones de memoria.
-3. Previsualización y resultado de nube sin texto ni credenciales.
-4. Diagnóstico pasivo de rutas, versiones, proveedores y adaptadores.
+1. Escrituras, respaldos, restauraciones y exportaciones de memoria.
+2. Previsualización y resultado de nube sin texto ni credenciales.
+3. Diagnóstico pasivo de rutas, versiones, proveedores y adaptadores.
 
 El volumen neuronal solo aumentará su actividad cuando estos productores entreguen eventos reales. No se fabricarán nodos, pulsos o porcentajes para aparentar vida.

@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 mod gateway;
 
+use crate::audit::{append_audit_event, AuditDecision, AuditEvent, AuditOutcome, AuditStage};
 use crate::observation::ObservationStore;
 use crate::sensory::{
     SensorKind, SensorLeaseSnapshot, SensorLeaseStore, CAMERA_LABEL, CAMERA_STABLE_ID,
@@ -14,9 +15,12 @@ use crate::sensory::{
 use crate::sensory::{
     CAMERA_CAPABILITY, CAMERA_OPERATION, MICROPHONE_CAPABILITY, MICROPHONE_OPERATION,
 };
-pub(crate) use gateway::{AuthorizedExecution, PermissionGateway, PermissionGatewayStatus};
+pub(crate) use gateway::{
+    AuthorizedExecution, PermissionAuditContext, PermissionGateway, PermissionGatewayStatus,
+    PreparedPermissionTrace,
+};
 use serde_json::json;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 pub(crate) const PERMISSION_GATEWAY_SCHEMA_VERSION: u32 = 1;
 pub(crate) const HIGH_RISK_DECISION_TTL_SECONDS: u64 = 60;
@@ -105,25 +109,99 @@ pub(crate) fn permission_gateway_status(
 pub(crate) fn prepare_permission_request(
     input: PreparePermissionRequestInput,
     gateway: State<'_, PermissionGateway>,
+    app: AppHandle,
 ) -> Result<PreparedPermissionRequest, String> {
-    prepare_supported_permission_request(&gateway, input)
+    let trace = prepare_supported_permission_trace(&gateway, input)?;
+    if trace.created {
+        if let Err(error) = record_permission_audit(
+            &app,
+            &trace.audit,
+            AuditStage::Request,
+            None,
+            AuditOutcome::Pending,
+            None,
+            "AWAITING_USER_DECISION",
+        ) {
+            let _ = gateway.cancel_request(&trace.request.request_id);
+            return Err(format!(
+                "La solicitud se canceló porque no pudo registrarse en R3: {error}"
+            ));
+        }
+    }
+    Ok(trace.request)
 }
 
 #[tauri::command]
 pub(crate) fn decide_permission_request(
     input: PermissionDecisionInput,
     gateway: State<'_, PermissionGateway>,
+    app: AppHandle,
 ) -> Result<Option<PermissionGrant>, String> {
-    gateway.decide(input)
+    let audit = gateway.audit_context_for_request(&input.request_id)?;
+    let decision = match input.decision {
+        PermissionDecision::Approve => AuditDecision::Allow,
+        PermissionDecision::Deny => AuditDecision::Deny,
+    };
+    let result = gateway.decide(input);
+    match result {
+        Ok(grant) => {
+            let (outcome, reason) = if grant.is_some() {
+                (AuditOutcome::Success, "USER_APPROVED")
+            } else {
+                (AuditOutcome::Blocked, "USER_DENIED")
+            };
+            if let Err(error) = record_permission_audit(
+                &app,
+                &audit,
+                AuditStage::Authorization,
+                Some(decision),
+                outcome,
+                None,
+                reason,
+            ) {
+                if let Some(grant) = &grant {
+                    let _ = gateway.revoke_grant(&grant.grant_id);
+                }
+                return Err(format!(
+                    "La decisión quedó cerrada porque no pudo registrarse en R3: {error}"
+                ));
+            }
+            Ok(grant)
+        }
+        Err(error) => {
+            let _ = record_permission_audit(
+                &app,
+                &audit,
+                AuditStage::Block,
+                Some(decision),
+                AuditOutcome::Blocked,
+                None,
+                "DECISION_BLOCKED",
+            );
+            Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 pub(crate) fn cancel_permission_request(
     input: CancelPermissionRequestInput,
     gateway: State<'_, PermissionGateway>,
+    app: AppHandle,
 ) -> Result<PreparedPermissionRequest, String> {
     input.validate()?;
-    gateway.cancel_request(&input.request_id)
+    let audit = gateway.audit_context_for_request(&input.request_id)?;
+    let cancelled = gateway.cancel_request(&input.request_id)?;
+    record_permission_audit(
+        &app,
+        &audit,
+        AuditStage::Authorization,
+        Some(AuditDecision::Cancel),
+        AuditOutcome::Blocked,
+        None,
+        "USER_CANCELLED",
+    )?;
+    Ok(cancelled)
 }
 
 #[tauri::command]
@@ -132,8 +210,22 @@ pub(crate) fn revoke_permission_grant(
     gateway: State<'_, PermissionGateway>,
     observation: State<'_, ObservationStore>,
     sensors: State<'_, SensorLeaseStore>,
+    app: AppHandle,
 ) -> Result<PermissionGrant, String> {
-    revoke_permission_grant_impl(&gateway, &observation, &sensors, input)
+    let audit = gateway.audit_context_for_grant(&input.grant_id)?;
+    let revoked = revoke_permission_grant_impl(&gateway, &observation, &sensors, input)?;
+    if let Err(error) = record_permission_audit(
+        &app,
+        &audit,
+        AuditStage::Revocation,
+        None,
+        AuditOutcome::Success,
+        None,
+        "USER_REVOKED",
+    ) {
+        eprintln!("Revocación aplicada sin evidencia R3: {error}");
+    }
+    Ok(revoked)
 }
 
 #[tauri::command]
@@ -141,8 +233,53 @@ pub(crate) fn execute_context_observation_grant(
     input: ExecutePermissionGrantInput,
     gateway: State<'_, PermissionGateway>,
     observation: State<'_, ObservationStore>,
+    app: AppHandle,
 ) -> Result<ContextObservationExecutionResult, String> {
-    execute_context_observation_grant_impl(&gateway, &observation, input)
+    let audit = gateway.audit_context_for_grant(&input.grant_id)?;
+    let started = Instant::now();
+    match execute_context_observation_grant_impl(&gateway, &observation, input) {
+        Ok(result) => {
+            let (stage, reason) = if result.enabled {
+                (AuditStage::Execution, "ADAPTER_STARTED")
+            } else {
+                (AuditStage::Stop, "USER_STOPPED")
+            };
+            if let Err(error) = record_permission_audit(
+                &app,
+                &audit,
+                stage,
+                None,
+                AuditOutcome::Success,
+                elapsed_ms(started),
+                reason,
+            ) {
+                if result.enabled {
+                    let _ = gateway.with_adapter_transition(|| {
+                        observation.disable_for_grant(&result.grant.grant_id)?;
+                        gateway.revoke_grant(&result.grant.grant_id)?;
+                        Ok(())
+                    });
+                    return Err(format!(
+                        "La observación se cerró porque no pudo registrarse en R3: {error}"
+                    ));
+                }
+                eprintln!("Detención aplicada sin evidencia R3: {error}");
+            }
+            Ok(result)
+        }
+        Err(error) => {
+            let _ = record_permission_audit(
+                &app,
+                &audit,
+                AuditStage::Block,
+                None,
+                AuditOutcome::Blocked,
+                elapsed_ms(started),
+                "EXECUTION_BLOCKED",
+            );
+            Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -150,8 +287,45 @@ pub(crate) fn execute_sensor_lease_grant(
     input: ExecutePermissionGrantInput,
     gateway: State<'_, PermissionGateway>,
     sensors: State<'_, SensorLeaseStore>,
+    app: AppHandle,
 ) -> Result<SensorLeaseExecutionResult, String> {
-    execute_sensor_lease_grant_impl(&gateway, &sensors, input)
+    let audit = gateway.audit_context_for_grant(&input.grant_id)?;
+    let started = Instant::now();
+    match execute_sensor_lease_grant_impl(&gateway, &sensors, input) {
+        Ok(result) => {
+            if let Err(error) = record_permission_audit(
+                &app,
+                &audit,
+                AuditStage::Execution,
+                None,
+                AuditOutcome::Success,
+                elapsed_ms(started),
+                "ADAPTER_STARTED",
+            ) {
+                let _ = gateway.with_adapter_transition(|| {
+                    sensors.stop_grant(&result.grant.grant_id)?;
+                    gateway.revoke_grant(&result.grant.grant_id)?;
+                    Ok(())
+                });
+                return Err(format!(
+                    "El sensor se cerró porque no pudo registrarse en R3: {error}"
+                ));
+            }
+            Ok(result)
+        }
+        Err(error) => {
+            let _ = record_permission_audit(
+                &app,
+                &audit,
+                AuditStage::Error,
+                None,
+                AuditOutcome::Error,
+                elapsed_ms(started),
+                "ADAPTER_ERROR",
+            );
+            Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -159,8 +333,23 @@ pub(crate) fn stop_sensor_lease(
     input: ExecutePermissionGrantInput,
     gateway: State<'_, PermissionGateway>,
     sensors: State<'_, SensorLeaseStore>,
+    app: AppHandle,
 ) -> Result<PermissionGrant, String> {
-    stop_sensor_lease_impl(&gateway, &sensors, input)
+    let audit = gateway.audit_context_for_grant(&input.grant_id)?;
+    let started = Instant::now();
+    let stopped = stop_sensor_lease_impl(&gateway, &sensors, input)?;
+    if let Err(error) = record_permission_audit(
+        &app,
+        &audit,
+        AuditStage::Stop,
+        None,
+        AuditOutcome::Success,
+        elapsed_ms(started),
+        "USER_STOPPED",
+    ) {
+        eprintln!("Detención sensorial aplicada sin evidencia R3: {error}");
+    }
+    Ok(stopped)
 }
 
 fn revoke_permission_grant_impl(
@@ -364,25 +553,59 @@ fn foreground_execution_enabled(execution: &AuthorizedExecution) -> Result<bool,
         .ok_or_else(|| "El plan privado de observación no contiene enabled booleano".to_string())
 }
 
+fn elapsed_ms(started: Instant) -> Option<u64> {
+    u64::try_from(started.elapsed().as_millis()).ok()
+}
+
+pub(crate) fn record_permission_audit(
+    app: &AppHandle,
+    context: &PermissionAuditContext,
+    stage: AuditStage,
+    decision: Option<AuditDecision>,
+    outcome: AuditOutcome,
+    duration_ms: Option<u64>,
+    reason_code: &'static str,
+) -> Result<(), String> {
+    let event = AuditEvent::permission(
+        context.operation_id.clone(),
+        context.capability_id.clone(),
+        context.operation.clone(),
+        stage,
+        decision,
+        outcome,
+        duration_ms,
+        Some(context.subject_digest.clone()),
+        reason_code,
+    )?;
+    append_audit_event(app, &event)
+}
+
 fn prepare_supported_permission_request(
     gateway: &PermissionGateway,
     input: PreparePermissionRequestInput,
 ) -> Result<PreparedPermissionRequest, String> {
+    Ok(prepare_supported_permission_trace(gateway, input)?.request)
+}
+
+fn prepare_supported_permission_trace(
+    gateway: &PermissionGateway,
+    input: PreparePermissionRequestInput,
+) -> Result<PreparedPermissionTrace, String> {
     match input.parameters {
         PermissionRequestParameters::Foreground(parameters) => {
-            prepare_foreground_permission_request(gateway, input, parameters.enabled)
+            prepare_foreground_permission_trace(gateway, input, parameters.enabled)
         }
         PermissionRequestParameters::Sensor(parameters) => {
-            prepare_sensor_permission_request(gateway, input, parameters.duration_seconds)
+            prepare_sensor_permission_trace(gateway, input, parameters.duration_seconds)
         }
     }
 }
 
-fn prepare_foreground_permission_request(
+fn prepare_foreground_permission_trace(
     gateway: &PermissionGateway,
     input: PreparePermissionRequestInput,
     enabled: bool,
-) -> Result<PreparedPermissionRequest, String> {
+) -> Result<PreparedPermissionTrace, String> {
     if input.capability_id != FOREGROUND_CONTROL_CAPABILITY
         || input.operation != FOREGROUND_CONTROL_OPERATION
     {
@@ -424,14 +647,14 @@ fn prepare_foreground_permission_request(
             Vec::new()
         },
     };
-    gateway.prepare_request(draft, json!({ "enabled": enabled }))
+    gateway.prepare_request_traced(draft, json!({ "enabled": enabled }))
 }
 
-fn prepare_sensor_permission_request(
+fn prepare_sensor_permission_trace(
     gateway: &PermissionGateway,
     input: PreparePermissionRequestInput,
     duration_seconds: u32,
-) -> Result<PreparedPermissionRequest, String> {
+) -> Result<PreparedPermissionTrace, String> {
     if duration_seconds == 0 || duration_seconds > SENSOR_SESSION_DURATION_SECONDS {
         return Err("La sesión sensorial debe solicitar entre 1 y 60 segundos".into());
     }
@@ -480,7 +703,7 @@ fn prepare_sensor_permission_request(
         summary: summary.into(),
         warnings: vec![warning.into()],
     };
-    gateway.prepare_request(
+    gateway.prepare_request_traced(
         draft,
         json!({ "durationSeconds": duration_seconds, "deviceStableId": stable_id }),
     )

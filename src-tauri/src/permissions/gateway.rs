@@ -30,6 +30,7 @@ struct StoredPermissionRequest {
     execution_plan: Vec<u8>,
     intent_digest: String,
     grant_id: Option<String>,
+    operation_id: String,
 }
 
 struct IdempotencyRecord {
@@ -41,6 +42,21 @@ struct IdempotencyRecord {
 pub(crate) struct AuthorizedExecution {
     pub(crate) grant: PermissionGrant,
     pub(crate) parameters: Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PermissionAuditContext {
+    pub(crate) operation_id: String,
+    pub(crate) capability_id: String,
+    pub(crate) operation: String,
+    pub(crate) subject_digest: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PreparedPermissionTrace {
+    pub(crate) request: PreparedPermissionRequest,
+    pub(crate) audit: PermissionAuditContext,
+    pub(crate) created: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -104,7 +120,17 @@ impl PermissionGateway {
         draft: PermissionRequestDraft,
         execution_plan: Value,
     ) -> Result<PreparedPermissionRequest, String> {
-        self.prepare_request_at(draft, execution_plan, current_utc_instant()?)
+        Ok(self
+            .prepare_request_traced_at(draft, execution_plan, current_utc_instant()?)?
+            .request)
+    }
+
+    pub(crate) fn prepare_request_traced(
+        &self,
+        draft: PermissionRequestDraft,
+        execution_plan: Value,
+    ) -> Result<PreparedPermissionTrace, String> {
+        self.prepare_request_traced_at(draft, execution_plan, current_utc_instant()?)
     }
 
     pub(crate) fn decide(
@@ -223,12 +249,40 @@ impl PermissionGateway {
             .ok_or_else(|| "Grant desconocido".to_string())
     }
 
-    fn prepare_request_at(
+    pub(crate) fn audit_context_for_request(
+        &self,
+        request_id: &str,
+    ) -> Result<PermissionAuditContext, String> {
+        let store = self.lock_store()?;
+        let stored = store
+            .requests
+            .get(request_id)
+            .ok_or_else(|| "Solicitud desconocida".to_string())?;
+        Ok(permission_audit_context(stored))
+    }
+
+    pub(crate) fn audit_context_for_grant(
+        &self,
+        grant_id: &str,
+    ) -> Result<PermissionAuditContext, String> {
+        let store = self.lock_store()?;
+        let grant = store
+            .grants
+            .get(grant_id)
+            .ok_or_else(|| "Grant desconocido".to_string())?;
+        let stored = store
+            .requests
+            .get(&grant.request_id)
+            .ok_or_else(|| "La solicitud del grant no existe".to_string())?;
+        Ok(permission_audit_context(stored))
+    }
+
+    fn prepare_request_traced_at(
         &self,
         mut draft: PermissionRequestDraft,
         execution_plan: Value,
         now: UtcInstant,
-    ) -> Result<PreparedPermissionRequest, String> {
+    ) -> Result<PreparedPermissionTrace, String> {
         let execution_plan = freeze_execution_plan(execution_plan)?;
         let execution_plan_digest = sha256_digest(&execution_plan);
 
@@ -250,15 +304,20 @@ impl PermissionGateway {
                     "La idempotencyKey ya existe con un plan de ejecución diferente".into(),
                 );
             }
-            return store
+            let stored = store
                 .requests
                 .get(&record.request_id)
-                .map(|stored| stored.preview.clone())
-                .ok_or_else(|| "El índice idempotente está inconsistente".to_string());
+                .ok_or_else(|| "El índice idempotente está inconsistente".to_string())?;
+            return Ok(PreparedPermissionTrace {
+                request: stored.preview.clone(),
+                audit: permission_audit_context(stored),
+                created: false,
+            });
         }
 
         let request_id = candidate.request_id.clone();
         let idempotency_key = candidate.idempotency_key.clone();
+        let operation_id = Uuid::new_v4().to_string();
         store.idempotency.insert(
             idempotency_key,
             IdempotencyRecord {
@@ -273,9 +332,31 @@ impl PermissionGateway {
                 execution_plan,
                 intent_digest,
                 grant_id: None,
+                operation_id: operation_id.clone(),
             },
         );
-        Ok(candidate)
+        Ok(PreparedPermissionTrace {
+            audit: PermissionAuditContext {
+                operation_id,
+                capability_id: candidate.capability_id.clone(),
+                operation: candidate.operation.clone(),
+                subject_digest: candidate.preview_digest.clone(),
+            },
+            request: candidate,
+            created: true,
+        })
+    }
+
+    #[cfg(test)]
+    fn prepare_request_at(
+        &self,
+        draft: PermissionRequestDraft,
+        execution_plan: Value,
+        now: UtcInstant,
+    ) -> Result<PreparedPermissionRequest, String> {
+        Ok(self
+            .prepare_request_traced_at(draft, execution_plan, now)?
+            .request)
     }
 
     fn decide_at(
@@ -516,6 +597,15 @@ impl PermissionGateway {
         self.adapter_transition
             .lock()
             .map_err(|_| "El control de transición del Gateway está bloqueado".to_string())
+    }
+}
+
+fn permission_audit_context(stored: &StoredPermissionRequest) -> PermissionAuditContext {
+    PermissionAuditContext {
+        operation_id: stored.operation_id.clone(),
+        capability_id: stored.preview.capability_id.clone(),
+        operation: stored.preview.operation.clone(),
+        subject_digest: stored.preview.preview_digest.clone(),
     }
 }
 
@@ -790,6 +880,45 @@ mod tests {
             .unwrap_err();
         assert!(error.contains("plan de ejecución diferente"));
         assert_eq!(gateway.lock_store().unwrap().requests.len(), 1);
+    }
+
+    #[test]
+    fn audit_correlation_is_uuid_v4_stable_across_idempotency_request_and_grant() {
+        let gateway = PermissionGateway::default();
+        let first = gateway
+            .prepare_request_traced_at(
+                draft("gateway-audit-correlation-01"),
+                json!({"enabled": true}),
+                at("2026-08-09T14:00:00Z"),
+            )
+            .unwrap();
+        let repeated = gateway
+            .prepare_request_traced_at(
+                draft("gateway-audit-correlation-01"),
+                json!({"enabled": true}),
+                at("2026-08-09T14:00:20Z"),
+            )
+            .unwrap();
+
+        assert!(first.created);
+        assert!(!repeated.created);
+        assert_eq!(first.request, repeated.request);
+        assert_eq!(first.audit, repeated.audit);
+        let parsed = Uuid::parse_str(&first.audit.operation_id).unwrap();
+        assert_eq!(parsed.get_version_num(), 4);
+        assert_eq!(first.audit.subject_digest, first.request.preview_digest);
+
+        let grant = gateway
+            .decide_at(
+                decision(&first.request, PermissionDecision::Approve),
+                at("2026-08-09T14:00:30Z"),
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            gateway.audit_context_for_grant(&grant.grant_id).unwrap(),
+            first.audit
+        );
     }
 
     #[test]

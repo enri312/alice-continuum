@@ -38,6 +38,21 @@ describe("parseAuditSnapshot", () => {
     expect(() => parseAuditEvent({ ...event, schemaVersion: 2 })).toThrow();
     expect(() => parseAuditEvent({ ...event, eventId: "inventado" })).toThrow();
     expect(() => parseAuditSnapshot({ schemaVersion: 1, events: [] })).toThrow();
+    expect(() => parseAuditEvent({ ...event, message: "contenido privado" })).toThrow();
+  });
+
+  it("acepta un flujo de permiso correlacionado sin contenido sensorial", () => {
+    const operationId = "123e4567-e89b-42d3-a456-426614174099";
+    const permissionEvents = [
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174010", operationId, source: "permission", capabilityId: "perception.camera.observe", operation: "observeAuthorizedCamera", stage: "request", outcome: "pending", reasonCode: "AWAITING_USER_DECISION" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174011", operationId, source: "permission", capabilityId: "perception.camera.observe", operation: "observeAuthorizedCamera", stage: "authorization", decision: "allow", reasonCode: "USER_APPROVED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174012", operationId, source: "permission", capabilityId: "perception.camera.observe", operation: "observeAuthorizedCamera", stage: "execution", durationMs: 12, reasonCode: "ADAPTER_STARTED" },
+    ];
+
+    const parsed = permissionEvents.map(parseAuditEvent);
+    expect(parsed.map((item) => item.stage)).toEqual(["request", "authorization", "execution"]);
+    expect(new Set(parsed.map((item) => item.operationId))).toEqual(new Set([operationId]));
+    expect(parsed.every((item) => item.subjectDigest === null)).toBe(true);
   });
 
   it("formatea límites sin ocultar la unidad", () => {

@@ -43,8 +43,16 @@ pub fn run() {
             if let Err(error) = record_process_started(app.handle()) {
                 eprintln!("Auditoría R3 no disponible al iniciar: {error}");
             }
-            spawn_observer_thread(observation_store.clone(), permission_gateway.clone());
-            spawn_sensor_reaper_thread(sensor_store.clone(), permission_gateway.clone());
+            spawn_observer_thread(
+                observation_store.clone(),
+                permission_gateway.clone(),
+                app.handle().clone(),
+            );
+            spawn_sensor_reaper_thread(
+                sensor_store.clone(),
+                permission_gateway.clone(),
+                app.handle().clone(),
+            );
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

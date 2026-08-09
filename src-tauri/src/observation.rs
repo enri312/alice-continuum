@@ -1,9 +1,10 @@
-use crate::permissions::PermissionGateway;
+use crate::audit::{AuditOutcome, AuditStage};
+use crate::permissions::{record_permission_audit, PermissionGateway, PermissionGrantState};
 use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -80,15 +81,37 @@ impl ObservationStore {
         Ok(data.enabled)
     }
 
-    fn reconcile_grant(&self, gateway: &PermissionGateway) -> Result<bool, String> {
+    fn reconcile_grant_with_audit(
+        &self,
+        gateway: &PermissionGateway,
+        app: &AppHandle,
+    ) -> Result<bool, String> {
         let Some(grant_id) = self.active_grant_id()? else {
             return Ok(false);
         };
-        if !gateway.session_is_active(&grant_id)? {
-            self.disable_for_grant(&grant_id)?;
-            return Ok(false);
+        if gateway.session_is_active(&grant_id)? {
+            return Ok(true);
         }
-        Ok(true)
+        self.disable_for_grant(&grant_id)?;
+        let grant = gateway.grant(&grant_id)?;
+        let reason = if grant.state == PermissionGrantState::Expired {
+            "GRANT_EXPIRED"
+        } else {
+            "SESSION_ENDED"
+        };
+        let context = gateway.audit_context_for_grant(&grant_id)?;
+        if let Err(error) = record_permission_audit(
+            app,
+            &context,
+            AuditStage::Stop,
+            None,
+            AuditOutcome::Success,
+            None,
+            reason,
+        ) {
+            eprintln!("Observación cerrada sin evidencia R3: {error}");
+        }
+        Ok(false)
     }
 
     fn latest_if_enabled(&self) -> Option<ForegroundContext> {
@@ -170,14 +193,19 @@ fn foreground_context() -> Option<ForegroundContext> {
 pub(crate) fn get_foreground_context(
     store: State<ObservationStore>,
     gateway: State<PermissionGateway>,
+    app: AppHandle,
 ) -> Result<Option<ForegroundContext>, String> {
-    store.reconcile_grant(&gateway)?;
+    store.reconcile_grant_with_audit(&gateway, &app)?;
     Ok(store.latest_if_enabled())
 }
 
-pub(crate) fn spawn_observer_thread(store: ObservationStore, gateway: PermissionGateway) {
+pub(crate) fn spawn_observer_thread(
+    store: ObservationStore,
+    gateway: PermissionGateway,
+    app: AppHandle,
+) {
     thread::spawn(move || loop {
-        if store.reconcile_grant(&gateway).is_err() {
+        if store.reconcile_grant_with_audit(&gateway, &app).is_err() {
             if let Ok(Some(grant_id)) = store.active_grant_id() {
                 let _ = store.disable_for_grant(&grant_id);
             }

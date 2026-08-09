@@ -5,7 +5,7 @@ Estado: aceptada para R3
 
 ## Contexto
 
-Alice posee auditorías separadas para memoria y nube, eventos temporales en React y un Gateway R2 que todavía no persiste su secuencia. El volumen neuronal puede representar actividad, pero sin una fuente correlacionada sería fácil confundir animación con evidencia real.
+Alice posee auditorías separadas para memoria y nube y eventos temporales en React. El Gateway R2 ya persiste su secuencia correlacionada; memoria y nube siguen pendientes de migración. Sin esta fuente sería fácil confundir animación con evidencia real.
 
 ## Decisión
 
@@ -27,7 +27,7 @@ Alice posee auditorías separadas para memoria y nube, eventos temporales en Rea
 
 ## Costos y límites
 
-- Durante este incremento solo `process.startup` produce eventos R3; R3 continúa en curso.
+- `process.startup` y el Gateway R2 producen eventos R3; memoria, nube y diagnóstico continúan pendientes.
 - Las auditorías históricas de memoria y nube no se reescriben ni migran automáticamente.
 - Una sola rotación prioriza el uso acotado de disco sobre retención indefinida.
 - La actividad observable no prueba conciencia ni reemplaza las pruebas funcionales.

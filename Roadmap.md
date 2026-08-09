@@ -96,7 +96,7 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 
-**Estado:** en curso · contrato v1, almacenamiento acotado y lectura nativa implementados  
+**Estado:** en curso · incrementos 1 y 2 implementados; Gateway R2 correlacionado  
 **Dependencia:** Fase R2  
 **Objetivo:** demostrar qué solicitó Alice, qué política se aplicó y cuál fue el resultado.
 
@@ -107,8 +107,8 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 **Criterios de aceptación:**
 
 - [x] Existe un esquema versionado de eventos.
-- [ ] Actividad diferencia solicitud, autorización, ejecución, bloqueo y error.
-- [ ] Los eventos correlacionados comparten un identificador de operación.
+- [x] Actividad diferencia solicitud, autorización, ejecución, bloqueo y error.
+- [x] Los eventos correlacionados comparten un identificador de operación.
 - [ ] El diagnóstico es de solo lectura y no expone secretos.
 - [x] La rotación o crecimiento de auditorías tiene una política documentada.
 
@@ -286,7 +286,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** su primer incremento aporta esquema v1 cerrado, JSONL local acotado, evento real de inicio y lectura nativa desde Actividad. El siguiente incremento autorizado conectará el Gateway R2 como productor correlacionado; hasta entonces no se declara que solicitud, autorización, ejecución, bloqueo y error estén completamente auditados. La actividad futura del volumen neuronal se derivará de estas señales reales. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** los incrementos 1 y 2 aportan esquema v1 cerrado, JSONL acotado, lectura nativa y un Gateway R2 correlacionado desde solicitud hasta cierre. El siguiente incremento incorporará memoria y nube sin copiar contenido privado. La actividad futura del volumen neuronal se derivará de estas señales reales. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

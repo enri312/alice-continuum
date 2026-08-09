@@ -35,6 +35,7 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 29. [Diseño de simulación afectiva explicable](architecture/AFFECTIVE_SIMULATION_DESIGN.md)
 30. [ADR-P-046: paleta afectiva y volumen cognitivo](decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md)
 31. [Informe visual de la matriz cognitivo-afectiva](testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md)
+32. [Informe R3 del Gateway correlacionado](testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md)
 
 ## Secciones
 

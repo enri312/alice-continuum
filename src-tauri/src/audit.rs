@@ -107,6 +107,38 @@ impl AuditEvent {
         Ok(event)
     }
 
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn permission(
+        operation_id: String,
+        capability_id: String,
+        operation: String,
+        stage: AuditStage,
+        decision: Option<AuditDecision>,
+        outcome: AuditOutcome,
+        duration_ms: Option<u64>,
+        subject_digest: Option<String>,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Permission,
+            capability_id: Some(capability_id),
+            operation,
+            stage,
+            decision,
+            outcome,
+            duration_ms,
+            subject_digest,
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -386,6 +418,67 @@ mod tests {
         assert_eq!(snapshot.events, vec![event]);
         assert!(snapshot.current_bytes > 0);
         fs::remove_dir_all(&root).expect("remove isolated test root");
+    }
+
+    #[test]
+    fn correlated_permission_flow_persists_without_private_content() {
+        let root = temp_root();
+        let operation_id = Uuid::new_v4().to_string();
+        let digest = Some(format!("sha256:{}", "b".repeat(64)));
+        let events = [
+            AuditEvent::permission(
+                operation_id.clone(),
+                "perception.camera.observe".into(),
+                "observeAuthorizedCamera".into(),
+                AuditStage::Request,
+                None,
+                AuditOutcome::Pending,
+                None,
+                digest.clone(),
+                "AWAITING_USER_DECISION",
+            )
+            .unwrap(),
+            AuditEvent::permission(
+                operation_id.clone(),
+                "perception.camera.observe".into(),
+                "observeAuthorizedCamera".into(),
+                AuditStage::Authorization,
+                Some(AuditDecision::Allow),
+                AuditOutcome::Success,
+                None,
+                digest.clone(),
+                "USER_APPROVED",
+            )
+            .unwrap(),
+            AuditEvent::permission(
+                operation_id.clone(),
+                "perception.camera.observe".into(),
+                "observeAuthorizedCamera".into(),
+                AuditStage::Execution,
+                None,
+                AuditOutcome::Success,
+                Some(12),
+                digest,
+                "ADAPTER_STARTED",
+            )
+            .unwrap(),
+        ];
+        for event in &events {
+            append_event_at(&root, event, AUDIT_MAX_BYTES).unwrap();
+        }
+
+        let snapshot = snapshot_at(&root).unwrap();
+        assert_eq!(snapshot.events.len(), 3);
+        assert!(snapshot
+            .events
+            .iter()
+            .all(|event| event.operation_id == operation_id));
+        let json = fs::read_to_string(audit_paths(&root).0).unwrap();
+        assert!(!json.contains("message"));
+        assert!(!json.contains("purpose"));
+        assert!(!json.contains("parameters"));
+        assert!(!json.contains("deviceStableId"));
+        fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

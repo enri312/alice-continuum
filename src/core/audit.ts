@@ -36,9 +36,17 @@ const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
+const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasExactKeys(value: Record<string, unknown>, expected: string[]) {
+  const actual = Object.keys(value).sort();
+  const canonical = [...expected].sort();
+  return actual.length === canonical.length && actual.every((key, index) => key === canonical[index]);
 }
 
 function finiteNonNegative(value: unknown): value is number {
@@ -51,6 +59,7 @@ function nullableString(value: unknown): value is string | null {
 
 export function parseAuditEvent(value: unknown): AuditEvent {
   if (!isObject(value)
+    || !hasExactKeys(value, eventKeys)
     || value.schemaVersion !== 1
     || typeof value.eventId !== "string" || !uuidV4.test(value.eventId)
     || typeof value.operationId !== "string" || !uuidV4.test(value.operationId)
@@ -71,6 +80,7 @@ export function parseAuditEvent(value: unknown): AuditEvent {
 
 export function parseAuditSnapshot(value: unknown): AuditSnapshot {
   if (!isObject(value)
+    || !hasExactKeys(value, snapshotKeys)
     || value.schemaVersion !== 1
     || typeof value.healthy !== "boolean"
     || typeof value.storagePath !== "string"

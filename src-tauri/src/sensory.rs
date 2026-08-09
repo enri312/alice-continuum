@@ -6,8 +6,11 @@ use std::sync::{mpsc, Arc, Mutex, MutexGuard, Weak};
 use std::thread;
 use std::time::Duration;
 
-use crate::permissions::{PermissionGateway, PermissionGrant};
-use tauri::State;
+use crate::audit::{AuditOutcome, AuditStage};
+use crate::permissions::{
+    record_permission_audit, PermissionGateway, PermissionGrant, PermissionGrantState,
+};
+use tauri::{AppHandle, State};
 
 pub(crate) const CAMERA_CAPABILITY: &str = "perception.camera.observe";
 pub(crate) const CAMERA_OPERATION: &str = "observeAuthorizedCamera";
@@ -456,7 +459,11 @@ fn prune_finished(store: &mut SensorProcesses) {
     }
 }
 
-pub(crate) fn spawn_sensor_reaper_thread(sensors: SensorLeaseStore, gateway: PermissionGateway) {
+pub(crate) fn spawn_sensor_reaper_thread(
+    sensors: SensorLeaseStore,
+    gateway: PermissionGateway,
+    app: AppHandle,
+) {
     let weak = sensors.weak();
     thread::spawn(move || loop {
         thread::sleep(Duration::from_millis(250));
@@ -477,7 +484,25 @@ pub(crate) fn spawn_sensor_reaper_thread(sensors: SensorLeaseStore, gateway: Per
             Err(_) => break,
         };
         for grant_id in finished_grant_ids {
-            let _ = gateway.with_adapter_transition(|| gateway.stop_session(&grant_id));
+            let context = gateway.audit_context_for_grant(&grant_id);
+            if gateway
+                .with_adapter_transition(|| gateway.stop_session(&grant_id))
+                .is_ok()
+            {
+                if let Ok(context) = context {
+                    if let Err(error) = record_permission_audit(
+                        &app,
+                        &context,
+                        AuditStage::Stop,
+                        None,
+                        AuditOutcome::Success,
+                        None,
+                        "SESSION_FINISHED",
+                    ) {
+                        eprintln!("Lease finalizado sin evidencia R3: {error}");
+                    }
+                }
+            }
         }
         for grant_id in grant_ids {
             if !gateway.session_is_active(&grant_id).unwrap_or(false) {
@@ -488,6 +513,27 @@ pub(crate) fn spawn_sensor_reaper_thread(sensors: SensorLeaseStore, gateway: Per
                         if let Some(mut sensor) = store.active.remove(&kind) {
                             terminate(&mut sensor.child);
                         }
+                    }
+                }
+                if let (Ok(context), Ok(grant)) = (
+                    gateway.audit_context_for_grant(&grant_id),
+                    gateway.grant(&grant_id),
+                ) {
+                    let reason = if grant.state == PermissionGrantState::Expired {
+                        "GRANT_EXPIRED"
+                    } else {
+                        "SESSION_ENDED"
+                    };
+                    if let Err(error) = record_permission_audit(
+                        &app,
+                        &context,
+                        AuditStage::Stop,
+                        None,
+                        AuditOutcome::Success,
+                        None,
+                        reason,
+                    ) {
+                        eprintln!("Lease cerrado sin evidencia R3: {error}");
                     }
                 }
             }
