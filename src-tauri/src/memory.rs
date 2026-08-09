@@ -52,6 +52,22 @@ pub(crate) struct MemorySnapshot {
     existed: bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum MemoryResourceState {
+    Missing,
+    Valid,
+    Invalid,
+    Error,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct MemoryCapabilityProbe {
+    pub(crate) directory_exists: bool,
+    pub(crate) manifest: MemoryResourceState,
+    pub(crate) records: MemoryResourceState,
+    pub(crate) backup: MemoryResourceState,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct MemoryAuditEntry {
@@ -114,6 +130,47 @@ fn validate_memory_sessions(sessions: &[MemorySession]) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn inspect_memory_records(path: &Path) -> MemoryResourceState {
+    match fs::read_to_string(path) {
+        Ok(content) => match serde_json::from_str::<Vec<MemorySession>>(&content) {
+            Ok(sessions) if validate_memory_sessions(&sessions).is_ok() => {
+                MemoryResourceState::Valid
+            }
+            Ok(_) | Err(_) => MemoryResourceState::Invalid,
+        },
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => MemoryResourceState::Missing,
+        Err(_) => MemoryResourceState::Error,
+    }
+}
+
+fn inspect_memory_manifest(path: &Path) -> MemoryResourceState {
+    match fs::read_to_string(path) {
+        Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
+            Ok(value)
+                if value.get("format").and_then(|item| item.as_str()) == Some("alice-memory")
+                    && value.get("version").and_then(|item| item.as_u64()) == Some(1)
+                    && value.get("recordsFile").and_then(|item| item.as_str())
+                        == Some("records.json") =>
+            {
+                MemoryResourceState::Valid
+            }
+            Ok(_) | Err(_) => MemoryResourceState::Invalid,
+        },
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => MemoryResourceState::Missing,
+        Err(_) => MemoryResourceState::Error,
+    }
+}
+
+pub(crate) fn memory_capability_probe(data_root: &Path) -> MemoryCapabilityProbe {
+    let directory = data_root.join("memory");
+    MemoryCapabilityProbe {
+        directory_exists: directory.is_dir(),
+        manifest: inspect_memory_manifest(&directory.join("manifest.json")),
+        records: inspect_memory_records(&directory.join("records.json")),
+        backup: inspect_memory_records(&directory.join("backups").join("records.backup.json")),
+    }
 }
 
 fn append_memory_audit(
@@ -309,6 +366,17 @@ pub(crate) fn open_memory_directory(app: AppHandle) -> Result<String, String> {
 mod tests {
     use super::*;
 
+    fn temporary_probe_root(label: &str) -> PathBuf {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system time")
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "alice-memory-probe-{label}-{}-{unique}",
+            std::process::id()
+        ))
+    }
+
     fn legacy_memory() -> MemorySession {
         serde_json::from_value(serde_json::json!({
             "id": "legacy-1",
@@ -376,5 +444,81 @@ mod tests {
 
         let duplicate = vec![legacy.clone(), legacy];
         assert!(validate_memory_sessions(&duplicate).is_err());
+    }
+
+    #[test]
+    fn capability_probe_does_not_create_a_missing_data_root() {
+        let root = temporary_probe_root("missing");
+        assert!(!root.exists());
+
+        assert_eq!(
+            memory_capability_probe(&root),
+            MemoryCapabilityProbe {
+                directory_exists: false,
+                manifest: MemoryResourceState::Missing,
+                records: MemoryResourceState::Missing,
+                backup: MemoryResourceState::Missing,
+            }
+        );
+        assert!(!root.exists());
+    }
+
+    #[test]
+    fn capability_probe_validates_existing_files_without_modifying_them() {
+        let root = temporary_probe_root("valid");
+        let memory = root.join("memory");
+        let backups = memory.join("backups");
+        fs::create_dir_all(&backups).expect("create controlled fixture");
+        let manifest = serde_json::json!({
+            "format": "alice-memory",
+            "version": 1,
+            "recordsFile": "records.json"
+        })
+        .to_string();
+        let records = serde_json::to_string(&vec![legacy_memory()]).expect("serialize fixture");
+        fs::write(memory.join("manifest.json"), &manifest).expect("write manifest fixture");
+        fs::write(memory.join("records.json"), &records).expect("write records fixture");
+        fs::write(backups.join("records.backup.json"), &records).expect("write backup fixture");
+
+        assert_eq!(
+            memory_capability_probe(&root),
+            MemoryCapabilityProbe {
+                directory_exists: true,
+                manifest: MemoryResourceState::Valid,
+                records: MemoryResourceState::Valid,
+                backup: MemoryResourceState::Valid,
+            }
+        );
+        assert_eq!(
+            fs::read_to_string(memory.join("manifest.json")).expect("read manifest fixture"),
+            manifest
+        );
+        assert_eq!(
+            fs::read_to_string(memory.join("records.json")).expect("read records fixture"),
+            records
+        );
+        assert_eq!(
+            fs::read_to_string(backups.join("records.backup.json")).expect("read backup fixture"),
+            records
+        );
+
+        fs::remove_dir_all(root).expect("remove controlled fixture");
+    }
+
+    #[test]
+    fn capability_probe_reports_invalid_records_without_rewriting_them() {
+        let root = temporary_probe_root("invalid");
+        let memory = root.join("memory");
+        fs::create_dir_all(&memory).expect("create controlled fixture");
+        fs::write(memory.join("records.json"), "not-json").expect("write corrupt fixture");
+
+        let probe = memory_capability_probe(&root);
+        assert_eq!(probe.records, MemoryResourceState::Invalid);
+        assert_eq!(
+            fs::read_to_string(memory.join("records.json")).expect("read corrupt fixture"),
+            "not-json"
+        );
+
+        fs::remove_dir_all(root).expect("remove controlled fixture");
     }
 }

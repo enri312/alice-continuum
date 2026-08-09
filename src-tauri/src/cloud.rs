@@ -15,6 +15,12 @@ pub(crate) struct CloudStatus {
     providers: Vec<CloudProvider>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct CloudCapabilityProbe {
+    pub(crate) provider_count: usize,
+    pub(crate) configured_provider_count: usize,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct CloudProvider {
@@ -140,6 +146,18 @@ pub(crate) fn cloud_status() -> CloudStatus {
                 retention_mode: "definida por el servicio".into(),
             },
         ],
+    }
+}
+
+pub(crate) fn cloud_capability_probe() -> CloudCapabilityProbe {
+    let status = cloud_status();
+    CloudCapabilityProbe {
+        provider_count: status.providers.len(),
+        configured_provider_count: status
+            .providers
+            .iter()
+            .filter(|provider| provider.configured)
+            .count(),
     }
 }
 
@@ -458,6 +476,14 @@ mod tests {
                 "compatible"
             ]
         );
+    }
+
+    #[test]
+    fn capability_probe_only_summarizes_provider_configuration() {
+        let probe = cloud_capability_probe();
+
+        assert_eq!(probe.provider_count, 6);
+        assert!(probe.configured_provider_count <= probe.provider_count);
     }
 
     #[test]

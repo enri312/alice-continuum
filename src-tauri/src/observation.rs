@@ -20,7 +20,24 @@ struct ObservationData {
 #[derive(Clone, Default)]
 pub(crate) struct ObservationStore(Arc<Mutex<ObservationData>>);
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ObservationCapabilityProbe {
+    pub(crate) enabled: bool,
+    pub(crate) has_latest_context: bool,
+}
+
 impl ObservationStore {
+    pub(crate) fn capability_probe(&self) -> Result<ObservationCapabilityProbe, String> {
+        let data = self
+            .0
+            .lock()
+            .map_err(|_| "No se pudo consultar el estado de observación".to_string())?;
+        Ok(ObservationCapabilityProbe {
+            enabled: data.enabled,
+            has_latest_context: data.enabled && data.latest.is_some(),
+        })
+    }
+
     fn set_enabled(&self, enabled: bool) -> bool {
         let mut data = self.0.lock().expect("observation state lock");
         data.enabled = enabled;
@@ -163,5 +180,37 @@ mod tests {
         assert!(!store.set_enabled(false));
         assert_eq!(store.latest_if_enabled(), None);
         assert_eq!(store.0.lock().expect("observation state lock").latest, None);
+    }
+
+    #[test]
+    fn capability_probe_reads_state_without_capturing_or_mutating_context() {
+        let store = ObservationStore::default();
+        assert_eq!(
+            store.capability_probe(),
+            Ok(ObservationCapabilityProbe {
+                enabled: false,
+                has_latest_context: false,
+            })
+        );
+
+        assert!(store.set_enabled(true));
+        assert_eq!(
+            store.capability_probe(),
+            Ok(ObservationCapabilityProbe {
+                enabled: true,
+                has_latest_context: false,
+            })
+        );
+        assert_eq!(store.latest_if_enabled(), None);
+
+        store.update_latest(context());
+        assert_eq!(
+            store.capability_probe(),
+            Ok(ObservationCapabilityProbe {
+                enabled: true,
+                has_latest_context: true,
+            })
+        );
+        assert_eq!(store.latest_if_enabled(), Some(context()));
     }
 }

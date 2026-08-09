@@ -11,6 +11,12 @@ pub(crate) struct AvatarStatus {
     size_bytes: u64,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AvatarCapabilityProbe {
+    pub(crate) available: bool,
+    pub(crate) size_bytes: u64,
+}
+
 fn validate_avatar_path(path: PathBuf) -> Result<PathBuf, String> {
     if !path.is_absolute() {
         return Err("ALICE_AVATAR_PATH debe contener una ruta absoluta".into());
@@ -37,6 +43,19 @@ fn local_avatar_path() -> Result<PathBuf, String> {
                 .join("Alice.vrm")
         });
     validate_avatar_path(path)
+}
+
+fn avatar_capability_probe_at(path: PathBuf) -> Result<AvatarCapabilityProbe, String> {
+    let path = validate_avatar_path(path)?;
+    let metadata = fs::metadata(path).ok().filter(|value| value.is_file());
+    Ok(AvatarCapabilityProbe {
+        available: metadata.is_some(),
+        size_bytes: metadata.map(|value| value.len()).unwrap_or(0),
+    })
+}
+
+pub(crate) fn avatar_capability_probe() -> Result<AvatarCapabilityProbe, String> {
+    avatar_capability_probe_at(local_avatar_path()?)
 }
 
 #[tauri::command]
@@ -76,5 +95,46 @@ mod tests {
     fn avatar_path_accepts_vrm_extension_case_insensitively() {
         let path = std::env::temp_dir().join("Alice.VRM");
         assert_eq!(validate_avatar_path(path.clone()), Ok(path));
+    }
+
+    #[test]
+    fn capability_probe_reads_metadata_without_loading_the_avatar() {
+        let missing = std::env::temp_dir().join("alice-missing-avatar.VRM");
+        assert_eq!(
+            avatar_capability_probe_at(missing),
+            Ok(AvatarCapabilityProbe {
+                available: false,
+                size_bytes: 0,
+            })
+        );
+
+        assert!(avatar_capability_probe_at(std::env::temp_dir().join("alice.png")).is_err());
+    }
+
+    #[test]
+    fn capability_probe_reports_a_controlled_vrm_fixture_without_changing_it() {
+        let path = std::env::temp_dir().join(format!(
+            "alice-avatar-probe-{}-{}.vrm",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system time")
+                .as_nanos()
+        ));
+        fs::write(&path, b"controlled-vrm-fixture").expect("write controlled avatar fixture");
+
+        assert_eq!(
+            avatar_capability_probe_at(path.clone()),
+            Ok(AvatarCapabilityProbe {
+                available: true,
+                size_bytes: 22,
+            })
+        );
+        assert_eq!(
+            fs::read(&path).expect("read controlled avatar fixture"),
+            b"controlled-vrm-fixture"
+        );
+
+        fs::remove_file(path).expect("remove controlled avatar fixture");
     }
 }

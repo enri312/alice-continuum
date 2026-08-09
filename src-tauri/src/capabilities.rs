@@ -1,5 +1,10 @@
+use crate::avatar::{avatar_capability_probe, AvatarCapabilityProbe};
+use crate::cloud::{cloud_capability_probe, CloudCapabilityProbe};
+use crate::memory::{memory_capability_probe, MemoryCapabilityProbe, MemoryResourceState};
+use crate::observation::{ObservationCapabilityProbe, ObservationStore};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::path::Path;
 
 pub(crate) const CAPABILITY_REGISTRY_SCHEMA_VERSION: u32 = 1;
 
@@ -141,6 +146,617 @@ pub(crate) enum CapabilityPermissionEnforcer {
     CurrentUi,
     OperatingSystem,
     None,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct CapabilityProbeSnapshot {
+    pub(crate) cloud: CloudCapabilityProbe,
+    pub(crate) observation: Result<ObservationCapabilityProbe, String>,
+    pub(crate) memory: MemoryCapabilityProbe,
+    pub(crate) avatar: Result<AvatarCapabilityProbe, String>,
+}
+
+impl CapabilityProbeSnapshot {
+    pub(crate) fn collect(data_root: &Path, observation_store: &ObservationStore) -> Self {
+        Self {
+            cloud: cloud_capability_probe(),
+            observation: observation_store.capability_probe(),
+            memory: memory_capability_probe(data_root),
+            avatar: avatar_capability_probe(),
+        }
+    }
+}
+
+pub(crate) fn capability_registry_from_probes(
+    generated_at: String,
+    probes: &CapabilityProbeSnapshot,
+) -> Result<CapabilityRegistrySnapshot, String> {
+    let mut capabilities = Vec::with_capacity(18);
+    capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
+    capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
+    capabilities.extend(memory_capabilities(&generated_at, &probes.memory));
+    capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
+    capabilities.extend(planned_output_capabilities());
+
+    let snapshot = CapabilityRegistrySnapshot {
+        schema_version: CAPABILITY_REGISTRY_SCHEMA_VERSION,
+        generated_at,
+        capabilities,
+    };
+    snapshot.validate()?;
+    Ok(snapshot)
+}
+
+fn cloud_capabilities(checked_at: &str, probe: &CloudCapabilityProbe) -> Vec<CapabilityDescriptor> {
+    let provider_summary = format!(
+        "Se inspeccionaron {} adaptadores; {} tienen configuración presente.",
+        probe.provider_count, probe.configured_provider_count
+    );
+    let send_available = probe.configured_provider_count > 0;
+    vec![
+        capability(
+            "cloud.providers.inspect",
+            "Inspeccionar proveedores",
+            "Resume qué proveedores tienen configuración sin devolver claves.",
+            CapabilityDomain::Cloud,
+            CapabilityKind::Observation,
+            CapabilityMaturity::Implemented,
+            "cloud",
+            &["cloud_status"],
+            CapabilityState::Idle,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::CredentialPresenceRead],
+            &["providerConfigurationPresence"],
+            &[],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::Native,
+                "Rust limita la respuesta a presencia de configuración y modelos públicos.",
+            ),
+            health(
+                CapabilityHealthStatus::Healthy,
+                provider_summary,
+                Some(checked_at),
+            ),
+        ),
+        capability(
+            "cloud.conversation.send",
+            "Enviar conversación autorizada",
+            "Envía únicamente el contexto previsualizado al proveedor elegido y audita metadatos.",
+            CapabilityDomain::Cloud,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "cloud",
+            &["send_cloud_message"],
+            if send_available {
+                CapabilityState::Idle
+            } else {
+                CapabilityState::Unavailable
+            },
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::NetworkSend, CapabilityEffect::LocalWrite],
+            &["authorizedConversationContext", "cloudAuditMetadata"],
+            &["Al menos un proveedor configurado"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "React muestra el contexto y solicita confirmación antes del envío.",
+            ),
+            health(
+                if send_available {
+                    CapabilityHealthStatus::Healthy
+                } else {
+                    CapabilityHealthStatus::Unavailable
+                },
+                if send_available {
+                    "Existe al menos un proveedor configurado; no se realizó ninguna solicitud."
+                } else {
+                    "No hay proveedores configurados; no se realizó ninguna solicitud."
+                },
+                Some(checked_at),
+            ),
+        ),
+    ]
+}
+
+fn observation_capabilities(
+    checked_at: &str,
+    probe: &Result<ObservationCapabilityProbe, String>,
+) -> Vec<CapabilityDescriptor> {
+    let (control_state, read_state, status, control_summary, read_summary) = match probe {
+        Ok(probe) if probe.enabled => (
+            CapabilityState::Active,
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            "La observación autorizada de ventana está encendida.".to_string(),
+            if probe.has_latest_context {
+                "Existe una muestra vigente; el registro no leyó ni devolvió su contenido."
+            } else {
+                "La observación está encendida, pero todavía no existe una muestra."
+            }
+            .to_string(),
+        ),
+        Ok(_) => (
+            CapabilityState::Disabled,
+            CapabilityState::Disabled,
+            CapabilityHealthStatus::Healthy,
+            "La observación de ventana está apagada.".to_string(),
+            "La lectura está desactivada porque no existe opt-in de sesión.".to_string(),
+        ),
+        Err(error) => (
+            CapabilityState::Error,
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            error.clone(),
+            error.clone(),
+        ),
+    };
+    vec![
+        capability(
+            "context.foreground.control",
+            "Controlar observación de ventana",
+            "Activa o detiene la observación autorizada de título y proceso de la ventana externa.",
+            CapabilityDomain::Context,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "observation",
+            &["set_context_observation_enabled"],
+            control_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::WindowMetadataRead],
+            &["foregroundWindowTitle", "foregroundProcessName"],
+            &["Opt-in visible durante la sesión"],
+            permission(
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La opción visible de React controla el estado nativo durante la sesión.",
+            ),
+            health(status, control_summary, Some(checked_at)),
+        ),
+        capability(
+            "context.foreground.read",
+            "Leer contexto de ventana",
+            "Devuelve la última ventana observada solo cuando el control de sesión está encendido.",
+            CapabilityDomain::Context,
+            CapabilityKind::Query,
+            CapabilityMaturity::Implemented,
+            "observation",
+            &["get_foreground_context"],
+            read_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::WindowMetadataRead],
+            &["foregroundWindowTitle", "foregroundProcessName"],
+            &["Observación de ventana encendida"],
+            permission(
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La lectura depende del opt-in vigente de la interfaz.",
+            ),
+            health(status, read_summary, Some(checked_at)),
+        ),
+    ]
+}
+
+fn memory_capabilities(
+    checked_at: &str,
+    probe: &MemoryCapabilityProbe,
+) -> Vec<CapabilityDescriptor> {
+    let (records_state, records_health, records_summary) = memory_records_health(probe);
+    let (directory_state, directory_health, directory_summary) = if probe.directory_exists {
+        (
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            "La carpeta privada de memoria existe; no se abrió ningún proceso.",
+        )
+    } else {
+        (
+            CapabilityState::Unavailable,
+            CapabilityHealthStatus::Unavailable,
+            "La carpeta privada de memoria todavía no existe y la sonda no la creó.",
+        )
+    };
+    let (restore_state, restore_health, restore_summary) = match probe.backup {
+        MemoryResourceState::Valid => (
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            "Existe un respaldo válido; no se restauró ni modificó la memoria.",
+        ),
+        MemoryResourceState::Missing => (
+            CapabilityState::Unavailable,
+            CapabilityHealthStatus::Unavailable,
+            "No existe un respaldo para restaurar.",
+        ),
+        MemoryResourceState::Invalid => (
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            "El respaldo existe, pero su estructura no es válida.",
+        ),
+        MemoryResourceState::Error => (
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            "No se pudo inspeccionar el respaldo local.",
+        ),
+    };
+
+    vec![
+        capability(
+            "memory.records.read",
+            "Leer memoria local",
+            "Lee y valida registros locales sin utilizar la red.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Partial,
+            "memory",
+            &["load_memory"],
+            records_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead],
+            &["memoryRecords"],
+            &["Manifiesto y registros locales válidos"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La interfaz carga la memoria al iniciar; el comando actual también puede inicializarla.",
+            ),
+            health(records_health, records_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.records.write",
+            "Modificar memoria local",
+            "Crea, edita o elimina registros mediante sustitución validada y respaldo.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "memory",
+            &["save_memory"],
+            records_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["memoryRecords", "memoryBackup", "memoryAudit"],
+            &["Memoria local válida"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "Las acciones son visibles y la eliminación solicita confirmación en React.",
+            ),
+            health(records_health, records_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.records.export",
+            "Exportar memoria local",
+            "Copia la memoria validada a la carpeta privada de exportaciones.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Export,
+            CapabilityMaturity::Implemented,
+            "memory",
+            &["export_memory"],
+            records_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["memoryRecords", "memoryExport"],
+            &["Memoria local válida"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La exportación comienza únicamente desde una acción visible.",
+            ),
+            health(records_health, records_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.records.restore",
+            "Restaurar respaldo de memoria",
+            "Restaura un respaldo validado y protege primero el estado desplazado.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "memory",
+            &["restore_memory_backup"],
+            restore_state,
+            CapabilityRisk::High,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["memoryRecords", "memoryBackup", "memoryAudit"],
+            &["Respaldo local válido"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "React solicita confirmación antes de sustituir la memoria vigente.",
+            ),
+            health(restore_health, restore_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.directory.open",
+            "Abrir carpeta de memoria",
+            "Inicia Explorer únicamente sobre la carpeta privada de memoria.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Process,
+            CapabilityMaturity::Implemented,
+            "memory",
+            &["open_memory_directory"],
+            directory_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::ProcessLaunch],
+            &["memoryDirectoryPath"],
+            &["Carpeta privada de memoria existente"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "Explorer se inicia solo desde una acción visible de la interfaz.",
+            ),
+            health(directory_health, directory_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.retrieval.lexical",
+            "Recuperar recuerdos relacionados",
+            "Busca localmente hasta tres recuerdos relacionados mediante coincidencia lexical.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Implemented,
+            "memory-retrieval",
+            &["retrieveMemories"],
+            records_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["memoryRecords", "localQueryText"],
+            &["Memoria local válida"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La búsqueda ocurre localmente al redactar; un envío posterior requiere otra autorización.",
+            ),
+            health(records_health, records_summary, Some(checked_at)),
+        ),
+    ]
+}
+
+fn avatar_capabilities(
+    checked_at: &str,
+    probe: &Result<AvatarCapabilityProbe, String>,
+) -> Vec<CapabilityDescriptor> {
+    let (state, status, summary) = match probe {
+        Ok(probe) if probe.available => (
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            format!(
+                "El archivo VRM existe y ocupa {} bytes; no se cargó ni renderizó.",
+                probe.size_bytes
+            ),
+        ),
+        Ok(_) => (
+            CapabilityState::Unavailable,
+            CapabilityHealthStatus::Unavailable,
+            "No existe un archivo VRM válido en la ruta configurada.".to_string(),
+        ),
+        Err(error) => (
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            error.clone(),
+        ),
+    };
+    vec![
+        capability(
+            "avatar.vrm.inspect",
+            "Inspeccionar avatar VRM",
+            "Comprueba ruta, extensión, existencia y tamaño del avatar privado.",
+            CapabilityDomain::Avatar,
+            CapabilityKind::Observation,
+            CapabilityMaturity::Implemented,
+            "avatar",
+            &["avatar_status"],
+            state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["avatarFileMetadata"],
+            &["Ruta absoluta a un archivo .vrm"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::Native,
+                "Rust valida la ruta y devuelve únicamente metadatos mínimos.",
+            ),
+            health(status, summary.clone(), Some(checked_at)),
+        ),
+        capability(
+            "avatar.vrm.render",
+            "Renderizar avatar VRM",
+            "Carga y presenta localmente el avatar privado sin conectar rostro ni cuerpo.",
+            CapabilityDomain::Avatar,
+            CapabilityKind::Presentation,
+            CapabilityMaturity::Implemented,
+            "avatar-viewer",
+            &["AvatarViewer.render"],
+            state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::AssetRender],
+            &["avatarFile"],
+            &["Archivo VRM local válido"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "El visor carga el archivo únicamente al abrir la pestaña Avatar.",
+            ),
+            health(status, summary, Some(checked_at)),
+        ),
+    ]
+}
+
+fn planned_output_capabilities() -> Vec<CapabilityDescriptor> {
+    [
+        (
+            "output.text.external",
+            "Entregar texto externo",
+            "Representa una futura entrega de texto a otra aplicación.",
+            CapabilityKind::Mutation,
+            "deliverAuthorizedText",
+        ),
+        (
+            "output.voice.synthesize",
+            "Sintetizar voz",
+            "Representa una futura conversión de texto autorizado en audio.",
+            CapabilityKind::Presentation,
+            "synthesizeAuthorizedText",
+        ),
+        (
+            "output.avatar.face",
+            "Controlar rostro del avatar",
+            "Representa un futuro adaptador de expresiones y habla.",
+            CapabilityKind::Presentation,
+            "animateAvatarFace",
+        ),
+        (
+            "output.avatar.gaze",
+            "Controlar mirada del avatar",
+            "Representa un futuro adaptador de ojos y orientación de mirada.",
+            CapabilityKind::Presentation,
+            "orientAvatarGaze",
+        ),
+        (
+            "output.avatar.body",
+            "Controlar cuerpo del avatar",
+            "Representa un futuro adaptador de poses y acciones corporales.",
+            CapabilityKind::Presentation,
+            "animateAvatarBody",
+        ),
+        (
+            "output.external.adapter",
+            "Conectar adaptador externo",
+            "Representa una futura conexión revisada con VRChat u otro destino.",
+            CapabilityKind::Process,
+            "connectReviewedAdapter",
+        ),
+    ]
+    .into_iter()
+    .map(|(id, label, description, kind, operation)| {
+        capability(
+            id,
+            label,
+            description,
+            CapabilityDomain::Output,
+            kind,
+            CapabilityMaturity::Planned,
+            "none",
+            &[operation],
+            CapabilityState::Unavailable,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::None],
+            &[],
+            &["Adaptador real y ADR propia"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::None,
+                "No existe permiso aplicable porque la capacidad no está implementada.",
+            ),
+            health(
+                CapabilityHealthStatus::Unavailable,
+                "Capacidad planificada sin adaptador; no se ejecutó ninguna sonda.",
+                None,
+            ),
+        )
+    })
+    .collect()
+}
+
+fn memory_records_health(
+    probe: &MemoryCapabilityProbe,
+) -> (CapabilityState, CapabilityHealthStatus, &'static str) {
+    if matches!(
+        probe.manifest,
+        MemoryResourceState::Error | MemoryResourceState::Invalid
+    ) || matches!(
+        probe.records,
+        MemoryResourceState::Error | MemoryResourceState::Invalid
+    ) {
+        return (
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            "La estructura de memoria existe, pero no es válida o no pudo leerse.",
+        );
+    }
+    if !probe.directory_exists
+        || probe.manifest == MemoryResourceState::Missing
+        || probe.records == MemoryResourceState::Missing
+    {
+        return (
+            CapabilityState::Unavailable,
+            CapabilityHealthStatus::Unavailable,
+            "La estructura de memoria requerida no está completa y la sonda no creó archivos.",
+        );
+    }
+    (
+        CapabilityState::Idle,
+        CapabilityHealthStatus::Healthy,
+        "El manifiesto y los registros locales son válidos; la sonda no los modificó.",
+    )
+}
+
+fn permission(
+    mode: CapabilityPermissionMode,
+    enforced_by: CapabilityPermissionEnforcer,
+    summary: &str,
+) -> CapabilityPermission {
+    CapabilityPermission {
+        mode,
+        enforced_by,
+        summary: summary.to_string(),
+    }
+}
+
+fn health(
+    status: CapabilityHealthStatus,
+    summary: impl Into<String>,
+    checked_at: Option<&str>,
+) -> CapabilityHealth {
+    CapabilityHealth {
+        status,
+        summary: summary.into(),
+        checked_at: checked_at.map(str::to_string),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn capability(
+    id: &str,
+    label: &str,
+    description: &str,
+    domain: CapabilityDomain,
+    kind: CapabilityKind,
+    maturity: CapabilityMaturity,
+    adapter: &str,
+    operations: &[&str],
+    state: CapabilityState,
+    risk: CapabilityRisk,
+    effects: &[CapabilityEffect],
+    data_scopes: &[&str],
+    requirements: &[&str],
+    permission: CapabilityPermission,
+    health: CapabilityHealth,
+) -> CapabilityDescriptor {
+    CapabilityDescriptor {
+        id: id.to_string(),
+        version: 1,
+        label: label.to_string(),
+        description: description.to_string(),
+        domain,
+        kind,
+        maturity,
+        adapter: adapter.to_string(),
+        operations: operations
+            .iter()
+            .map(|value| (*value).to_string())
+            .collect(),
+        state,
+        risk,
+        effects: effects.to_vec(),
+        data_scopes: data_scopes
+            .iter()
+            .map(|value| (*value).to_string())
+            .collect(),
+        requirements: requirements
+            .iter()
+            .map(|value| (*value).to_string())
+            .collect(),
+        permission,
+        health,
+        last_execution: None,
+    }
 }
 
 impl CapabilityRegistrySnapshot {
@@ -525,6 +1141,45 @@ mod tests {
         }
     }
 
+    fn unavailable_probes() -> CapabilityProbeSnapshot {
+        CapabilityProbeSnapshot {
+            cloud: CloudCapabilityProbe {
+                provider_count: 6,
+                configured_provider_count: 0,
+            },
+            observation: Ok(ObservationCapabilityProbe {
+                enabled: false,
+                has_latest_context: false,
+            }),
+            memory: MemoryCapabilityProbe {
+                directory_exists: false,
+                manifest: MemoryResourceState::Missing,
+                records: MemoryResourceState::Missing,
+                backup: MemoryResourceState::Missing,
+            },
+            avatar: Ok(AvatarCapabilityProbe {
+                available: false,
+                size_bytes: 0,
+            }),
+        }
+    }
+
+    fn registry(probes: &CapabilityProbeSnapshot) -> CapabilityRegistrySnapshot {
+        capability_registry_from_probes("2026-08-08T18:00:00-03:00".into(), probes)
+            .expect("valid capability registry")
+    }
+
+    fn registered<'a>(
+        snapshot: &'a CapabilityRegistrySnapshot,
+        id: &str,
+    ) -> &'a CapabilityDescriptor {
+        snapshot
+            .capabilities
+            .iter()
+            .find(|capability| capability.id == id)
+            .expect("registered capability")
+    }
+
     #[test]
     fn snapshot_serializes_the_camel_case_contract() {
         let value = serde_json::to_value(snapshot(vec![implemented_capability()])).unwrap();
@@ -774,5 +1429,131 @@ mod tests {
         value["capabilities"][0]["inventedTelemetry"] = json!(42);
 
         assert!(serde_json::from_value::<CapabilityRegistrySnapshot>(value).is_err());
+    }
+
+    #[test]
+    fn registry_contains_the_approved_inventory_without_invented_activity() {
+        let snapshot = registry(&unavailable_probes());
+
+        assert_eq!(snapshot.capabilities.len(), 18);
+        assert_eq!(
+            registered(&snapshot, "cloud.providers.inspect").state,
+            CapabilityState::Idle
+        );
+        assert_eq!(
+            registered(&snapshot, "cloud.conversation.send").state,
+            CapabilityState::Unavailable
+        );
+        assert_eq!(
+            registered(&snapshot, "context.foreground.control").state,
+            CapabilityState::Disabled
+        );
+        assert_eq!(
+            registered(&snapshot, "memory.records.read").state,
+            CapabilityState::Unavailable
+        );
+        assert_eq!(
+            registered(&snapshot, "avatar.vrm.render").state,
+            CapabilityState::Unavailable
+        );
+
+        let planned = snapshot
+            .capabilities
+            .iter()
+            .filter(|capability| capability.maturity == CapabilityMaturity::Planned)
+            .collect::<Vec<_>>();
+        assert_eq!(planned.len(), 6);
+        assert!(planned.iter().all(|capability| {
+            capability.state == CapabilityState::Unavailable
+                && capability.adapter == "none"
+                && capability.last_execution.is_none()
+                && capability.health.checked_at.is_none()
+        }));
+    }
+
+    #[test]
+    fn registry_maps_configured_active_and_valid_probe_states() {
+        let mut probes = unavailable_probes();
+        probes.cloud.configured_provider_count = 1;
+        probes.observation = Ok(ObservationCapabilityProbe {
+            enabled: true,
+            has_latest_context: false,
+        });
+        probes.memory = MemoryCapabilityProbe {
+            directory_exists: true,
+            manifest: MemoryResourceState::Valid,
+            records: MemoryResourceState::Valid,
+            backup: MemoryResourceState::Valid,
+        };
+        probes.avatar = Ok(AvatarCapabilityProbe {
+            available: true,
+            size_bytes: 42,
+        });
+        let snapshot = registry(&probes);
+
+        for id in [
+            "cloud.conversation.send",
+            "context.foreground.read",
+            "memory.records.read",
+            "memory.records.write",
+            "memory.records.export",
+            "memory.records.restore",
+            "memory.directory.open",
+            "memory.retrieval.lexical",
+            "avatar.vrm.inspect",
+            "avatar.vrm.render",
+        ] {
+            assert_eq!(registered(&snapshot, id).state, CapabilityState::Idle);
+        }
+        let observation = registered(&snapshot, "context.foreground.control");
+        assert_eq!(observation.state, CapabilityState::Active);
+        assert_eq!(
+            observation.health.checked_at.as_deref(),
+            Some("2026-08-08T18:00:00-03:00")
+        );
+    }
+
+    #[test]
+    fn registry_reports_invalid_memory_and_probe_failures_as_errors() {
+        let mut probes = unavailable_probes();
+        probes.memory.directory_exists = true;
+        probes.memory.manifest = MemoryResourceState::Valid;
+        probes.memory.records = MemoryResourceState::Invalid;
+        probes.memory.backup = MemoryResourceState::Invalid;
+        probes.observation = Err("Estado de observación no disponible".into());
+        probes.avatar = Err("Ruta de avatar no válida".into());
+        let snapshot = registry(&probes);
+
+        for id in [
+            "memory.records.read",
+            "memory.records.restore",
+            "context.foreground.control",
+            "avatar.vrm.inspect",
+        ] {
+            assert_eq!(registered(&snapshot, id).state, CapabilityState::Error);
+            assert_eq!(
+                registered(&snapshot, id).health.status,
+                CapabilityHealthStatus::Error
+            );
+        }
+    }
+
+    #[test]
+    fn collecting_probes_does_not_create_a_missing_data_root() {
+        let root = std::env::temp_dir().join(format!(
+            "alice-registry-probe-missing-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system time")
+                .as_nanos()
+        ));
+        assert!(!root.exists());
+
+        let probes = CapabilityProbeSnapshot::collect(&root, &ObservationStore::default());
+        let snapshot = registry(&probes);
+
+        assert_eq!(snapshot.capabilities.len(), 18);
+        assert!(!root.exists());
     }
 }
