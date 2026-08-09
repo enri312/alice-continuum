@@ -62,7 +62,7 @@ export function Conversacion({ desktopApp, draft, status, provider, model, messa
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
-  const [rememberLocally, setRememberLocally] = useState(true);
+  const [rememberLocally, setRememberLocally] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [reviewRequest, setReviewRequest] = useState<CloudRequest | null>(null);
   const [reviewMemoryIds, setReviewMemoryIds] = useState<string[]>([]);
@@ -78,6 +78,12 @@ export function Conversacion({ desktopApp, draft, status, provider, model, messa
   useEffect(() => {
     onMemoryRetrieval({ count: memoryMatches.length, top: memoryMatches[0]?.memory.intention ?? "" });
   }, [memoryMatches, onMemoryRetrieval]);
+
+  useEffect(() => {
+    if (observationEnabled) return;
+    setIncludeWindow(false);
+    setReviewing(false);
+  }, [observationEnabled]);
 
   const payload = useMemo(() => buildCloudPayload({
     draft,
@@ -142,14 +148,19 @@ export function Conversacion({ desktopApp, draft, status, provider, model, messa
       <aside className="cloud-control">
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
         <h3>Qué puede salir</h3>
+        <div className="context-section-label"><strong>SALIDA A LA NUBE</strong><span>TODO DESMARCADO POR DEFECTO</span></div>
         <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles</small></span></label>
         <label className="context-toggle"><input type="checkbox" checked={includeMemory} disabled={!memoryMatches.length} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>Recuerdos relevantes</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos relacionados. No se adjuntará memoria.</p>}</div>}
         <label className="context-toggle"><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? foregroundContext.processName : "sin contexto observado"}</small></span></label>
-        {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Detener observación" : "Activar observación de ventana"}</button>}
+        <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? "La ventana solo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
+        {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Abrir Gateway para detener" : "Abrir Gateway para activar"}</button>}
+        <p className="context-sensor-boundary">Cámara, micrófono, fotogramas y audio no son fuentes elegibles para este envío.</p>
+        <div className="context-section-label local"><strong>ALMACENAMIENTO LOCAL</strong><span>NO SALE A LA NUBE</span></div>
         <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Recordar localmente</strong><small>Guarda pregunta y respuesta en tu JSON privado</small></span></label>
-        <div className="cloud-rule"><strong>POLÍTICA FIJA</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens · sin herramientas</span></div>
-        <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Abrir configuración del sistema</button>
+        <div className="conversation-route"><strong>DESTINO ACTUAL · SOLO LECTURA</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
+        <div className="cloud-rule"><strong>POLÍTICA DE ENVÍO</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens de salida · sin herramientas · previsualización obligatoria</span></div>
+        <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
       </aside>
     </div>
 

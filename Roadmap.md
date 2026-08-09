@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · ventana, cámara y micrófono protegidos; cierre documental pendiente  
+**Estado:** completada en su alcance inicial · ventana, cámara y micrófono protegidos  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 protege `context.foreground.control` y leases separados de cámara y micrófono. Los sensores muestran dispositivo y duración exactos, no se abren al aprobar, exigen Activar, mantienen indicador y permiten Detener; revocación, vencimiento o cierre descartan el proceso y el búfer. La prueba viva recibió señal de `ACER HD User Facing` y del arreglo Intel sin crear ni modificar archivos multimedia. El siguiente incremento permitido es el cierre documental y de trazabilidad de R2; análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1 y R2** están completadas en su alcance inicial. R2 protege `context.foreground.control` y leases separados de cámara y micrófono; la prueba viva recibió señal de `ACER HD User Facing` y del arreglo Intel sin crear ni modificar archivos multimedia. El control de Conversación separa ahora salida a nube, almacenamiento local y destino de solo lectura. Envío de nube y mutaciones de memoria conservan por ahora sus controles actuales declarados por R1 y se migrarán individualmente, sin fingir protección nativa. El siguiente incremento autorizado es **R3 — Auditoría unificada y diagnóstico**. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

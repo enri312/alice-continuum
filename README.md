@@ -2,7 +2,7 @@
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
-![R2](https://img.shields.io/badge/R2-leases%20sensoriales%20reales-16a34a?style=flat-square)
+![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-61%2F61%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-80%2F80%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
@@ -26,7 +26,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
-| Gateway de permisos R2 | Ventana, cámara y micrófono protegidos por grants nativos; rutas directas ausentes |
+| Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
 | Pruebas TypeScript | 61/61 aprobadas |
@@ -50,6 +50,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - Voz, rostro, mirada, cuerpo y adaptadores externos permanecen desconectados.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
 - R2 consume grants efímeros para ventana, cámara o micrófono. Aprobar no abre hardware: cada sensor exige una activación posterior y ofrece Detener inmediato.
+- El envío a la nube todavía usa previsualización y confirmación en React; R1 lo declara `enforcedBy: currentUi` hasta una migración nativa futura.
 
 ## Pantallas
 
@@ -80,6 +81,19 @@ El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada r
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
 Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md) y [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md).
+
+## Control de contexto de conversación
+
+El panel lateral de Conversación es la última revisión antes de una solicitud de nube:
+
+- historial, recuerdos y ventana comienzan desmarcados;
+- observar una ventana localmente no implica enviarla;
+- cámara, micrófono, fotogramas y audio no son fuentes elegibles;
+- `Recordar localmente` empieza desactivado y no controla qué sale a Internet;
+- proveedor y modelo se muestran como destino de solo lectura y solo se cambian en Configuración;
+- el botón de ventana abre el Gateway R2: no activa ni detiene directamente.
+
+El informe completo del alcance inicial está en [R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md](docs/testing/R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md).
 
 ## Iniciar Alice
 

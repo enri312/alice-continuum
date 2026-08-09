@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; pasos 1 a 6 completados  
+Estado: alcance inicial completado; pasos 1 a 7 aprobados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -75,13 +75,15 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** `src-tauri/src/sensory.rs` implementa procesos locales controlados y leases independientes de 60 segundos para `ACER HD User Facing` y `Microphone Array (Intel Smart Sound Technology for Digital Microphones)`. Aprobar solo crea el grant; `execute_sensor_lease_grant` abre el dispositivo después de validar el plan privado, `stop_sensor_lease` reduce autoridad inmediatamente y el reaper limpia revocación o vencimiento. La pestaña Aprendizaje muestra previsualización, dispositivo, duración, indicador, métricas verificadas y Detener. La prueba viva gobernada abrió ambos dispositivos reales, recibió señal positiva, detuvo los dos leases y mantuvo 107 archivos multimedia sin cambios (`MEDIA_DELTA=0`). La batería normal alcanza 80 Rust y 61 TypeScript; `fmt`, `clippy` y ambos builds aprueban. Análisis, transcripción, candidatos y memoria siguen desconectados.
 
-## Paso 7 — Cierre
+## Paso 7 — Cierre ✅
 
 - Actualizar documento maestro, Roadmap, README y matriz de trazabilidad.
 - Crear informe `docs/testing/R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md`.
 - Ejecutar toda la batería Rust, TypeScript y builds.
 - Comparar SHA-256 y fechas de memoria y avatar.
 - Crear commit acotado y publicar solo después de revisar secretos y archivos privados.
+
+**Resultado 2026-08-09:** README, Roadmap, contratos, documento maestro y matriz de trazabilidad quedaron alineados. El panel de Conversación separa salida a nube, almacenamiento local y ruta de proveedor; historial, recuerdos, ventana y persistencia del intercambio comienzan desactivados. La gestión de ventana abre el Gateway en lugar de simular una acción directa, y cámara/micrófono quedan excluidos del payload. Se creó `docs/testing/R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md`, se repitieron pruebas, builds, hardware vivo, revisión de secretos y preservación de nueve archivos de datos más el avatar privado. El alcance inicial R2 queda cerrado; las capacidades todavía declaradas `currentUi` deberán migrarse individualmente.
 
 ## Fuera de alcance
 
@@ -92,6 +94,6 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - ejecución libre de comandos;
 - automatización en segundo plano.
 
-## Condición para R3
+## Condición para R3 ✅
 
-R3 no comienza hasta que al menos una capacidad real esté protegida por el Gateway, las rutas directas sin grant sean rechazadas y la revocación haya sido comprobada en la aplicación real.
+La condición se cumplió: ventana, cámara y micrófono poseen grants nativos, las rutas directas están ausentes, la revocación fue comprobada y los dispositivos reales se abrieron y detuvieron sin persistencia. R3 puede comenzar en el siguiente incremento.
