@@ -38,7 +38,7 @@ R2 gobierna permisos. No convierte al modelo en ejecutor, no instala herramienta
 
 ### Solicitud preparada
 
-Representa un plan validado todavía no autorizado. El backend conserva de forma privada los parámetros ejecutables; React recibe únicamente una previsualización segura.
+Representa un plan validado todavía no autorizado. El backend conserva de forma privada los parámetros ejecutables; React recibe únicamente una previsualización segura y la huella del plan congelado, nunca sus parámetros privados.
 
 ```json
 {
@@ -56,18 +56,21 @@ Representa un plan validado todavía no autorizado. El backend conserva de forma
     "label": "ACER HD User Facing"
   },
   "dataScopes": ["cameraFrames"],
-  "effects": ["none"],
+  "effects": ["cameraObserve"],
   "risk": "high",
   "createdAt": "2026-08-09T14:00:00Z",
   "decisionExpiresAt": "2026-08-09T14:01:00Z",
   "requestedDurationSeconds": 120,
   "maximumDurationSeconds": 300,
+  "executionPlanDigest": "sha256:...",
   "previewDigest": "sha256:...",
   "state": "awaitingDecision",
   "summary": "Alice solicita observar la cámara durante un máximo de 2 minutos.",
   "warnings": ["La luz de la cámara puede encenderse."]
 }
 ```
+
+`executionPlanDigest` prueba que los parámetros retenidos siguen intactos. `previewDigest` cubre toda la previsualización, incluida esa huella. Ninguno de los dos permite reconstruir el plan privado.
 
 ### Decisión
 

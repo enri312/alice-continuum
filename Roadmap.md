@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · contrato v1 y primer incremento nativo validados  
+**Estado:** en curso · tipos y almacén efímero nativos validados  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 ya dispone del contrato, ADR-P-044 y tipos nativos validados en `permissions.rs`, con digest SHA-256 determinista y 12 pruebas específicas. El siguiente incremento permitido es implementar el almacén efímero y la máquina de estados, todavía sin registrar comandos ni abrir dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
+La **Fase R1 — Registro de capacidades** está completada. R2 ya dispone de tipos, digest SHA-256, planes privados congelados, almacén efímero y máquina de estados nativos, con 24 pruebas específicas. El siguiente incremento permitido es exponer únicamente consulta de estado y preparación mediante comandos Tauri, sin capacidad de aprobar, ejecutar ni abrir dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
 
 ## Identidad adoptada — Alice Cognitive Core
 

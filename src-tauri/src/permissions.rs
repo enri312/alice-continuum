@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+mod gateway;
+
+pub(crate) use gateway::PermissionGateway;
 
 pub(crate) const PERMISSION_GATEWAY_SCHEMA_VERSION: u32 = 1;
 pub(crate) const HIGH_RISK_DECISION_TTL_SECONDS: u64 = 60;
@@ -33,6 +38,7 @@ pub(crate) struct PreparedPermissionRequest {
     pub(crate) decision_expires_at: String,
     pub(crate) requested_duration_seconds: Option<u32>,
     pub(crate) maximum_duration_seconds: Option<u32>,
+    pub(crate) execution_plan_digest: String,
     pub(crate) preview_digest: String,
     pub(crate) state: PermissionRequestState,
     pub(crate) summary: String,
@@ -190,12 +196,21 @@ struct CanonicalPermissionPreview<'a> {
     decision_expires_at: &'a str,
     requested_duration_seconds: Option<u32>,
     maximum_duration_seconds: Option<u32>,
+    execution_plan_digest: &'a str,
     summary: &'a str,
     warnings: &'a [String],
 }
 
 impl PreparedPermissionRequest {
     pub(crate) fn from_draft(draft: PermissionRequestDraft) -> Result<Self, String> {
+        let empty_plan_digest = sha256_digest(b"{}");
+        Self::from_draft_with_execution_digest(draft, empty_plan_digest)
+    }
+
+    fn from_draft_with_execution_digest(
+        draft: PermissionRequestDraft,
+        execution_plan_digest: String,
+    ) -> Result<Self, String> {
         let mut request = Self {
             schema_version: draft.schema_version,
             request_id: draft.request_id,
@@ -213,6 +228,7 @@ impl PreparedPermissionRequest {
             decision_expires_at: draft.decision_expires_at,
             requested_duration_seconds: draft.requested_duration_seconds,
             maximum_duration_seconds: draft.maximum_duration_seconds,
+            execution_plan_digest,
             preview_digest: String::new(),
             state: PermissionRequestState::AwaitingDecision,
             summary: draft.summary,
@@ -264,6 +280,7 @@ impl PreparedPermissionRequest {
             decision_expires_at: &self.decision_expires_at,
             requested_duration_seconds: self.requested_duration_seconds,
             maximum_duration_seconds: self.maximum_duration_seconds,
+            execution_plan_digest: &self.execution_plan_digest,
             summary: &self.summary,
             warnings: &self.warnings,
         }
@@ -282,12 +299,10 @@ impl PreparedPermissionRequest {
         self.resource.validate()?;
         validate_identifier_list("dataScopes", &self.data_scopes, true)?;
         validate_effects(&self.effects)?;
+        validate_digest(&self.execution_plan_digest)?;
         validate_text("summary", &self.summary, MAX_SUMMARY_LENGTH)?;
         validate_text_list("warnings", &self.warnings, MAX_WARNING_LENGTH)?;
 
-        if self.state != PermissionRequestState::AwaitingDecision {
-            return Err("Una solicitud preparada debe estar awaitingDecision".into());
-        }
         if self.mode == PermissionMode::ImplicitRead {
             return Err("implicitRead no crea solicitudes ni grants en R2".into());
         }
@@ -593,10 +608,62 @@ fn encode_hex(bytes: &[u8]) -> String {
     encoded
 }
 
+fn sha256_digest(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    format!("sha256:{}", encode_hex(&digest))
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-struct UtcInstant {
+pub(super) struct UtcInstant {
     seconds: i64,
     nanos: u32,
+}
+
+impl UtcInstant {
+    pub(super) fn add_seconds(self, seconds: u64) -> Result<Self, String> {
+        let seconds = i64::try_from(seconds).map_err(|_| "Duración fuera de rango")?;
+        Ok(Self {
+            seconds: self
+                .seconds
+                .checked_add(seconds)
+                .ok_or_else(|| "Fecha fuera de rango".to_string())?,
+            nanos: self.nanos,
+        })
+    }
+}
+
+pub(super) fn current_utc_instant() -> Result<UtcInstant, String> {
+    let duration = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|_| "El reloj del sistema es anterior a UNIX_EPOCH".to_string())?;
+    let seconds = i64::try_from(duration.as_secs())
+        .map_err(|_| "El reloj del sistema está fuera de rango".to_string())?;
+    Ok(UtcInstant {
+        seconds,
+        nanos: duration.subsec_nanos(),
+    })
+}
+
+pub(super) fn format_utc_timestamp(instant: UtcInstant) -> Result<String, String> {
+    if instant.seconds < 0 {
+        return Err("La fecha UTC no puede ser anterior a 1970".into());
+    }
+    let days = instant.seconds.div_euclid(86_400);
+    let seconds_of_day = instant.seconds.rem_euclid(86_400);
+    let (year, month, day) = civil_from_days(days);
+    let hour = seconds_of_day / 3_600;
+    let minute = (seconds_of_day % 3_600) / 60;
+    let second = seconds_of_day % 60;
+    let mut value = format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}");
+    if instant.nanos != 0 {
+        let fraction = format!("{:09}", instant.nanos)
+            .trim_end_matches('0')
+            .to_string();
+        value.push('.');
+        value.push_str(&fraction);
+    }
+    value.push('Z');
+    Ok(value)
 }
 
 fn validate_positive_ttl(
@@ -691,6 +758,21 @@ fn days_from_civil(year: u32, month: u32, day: u32) -> i64 {
     let day_of_year = (153 * adjusted_month + 2) / 5 + i64::from(day) - 1;
     let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     era * 146_097 + day_of_era - 719_468
+}
+
+fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
+    let days = days_since_epoch + 719_468;
+    let era = days.div_euclid(146_097);
+    let day_of_era = days - era * 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let mut year = year_of_era + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let month_prime = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * month_prime + 2) / 5 + 1;
+    let month = month_prime + if month_prime < 10 { 3 } else { -9 };
+    year += i64::from(month <= 2);
+    (year, month, day)
 }
 
 #[cfg(test)]

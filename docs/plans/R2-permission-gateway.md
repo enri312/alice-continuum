@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; paso 1 completado  
+Estado: implementación en curso; pasos 1 y 2 completados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -18,7 +18,7 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** completado en `src-tauri/src/permissions.rs` con 12 pruebas específicas y 48 pruebas Rust totales. El módulo no registra comandos, no crea grants reales y no abre dispositivos.
 
-## Paso 2 — Almacén efímero y máquina de estados
+## Paso 2 — Almacén efímero y máquina de estados ✅
 
 - Mantener solicitudes, planes privados y grants en `State<PermissionGateway>`.
 - Usar IDs aleatorios opacos.
@@ -27,6 +27,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - Revocar todo al terminar el proceso.
 
 **Puerta:** pruebas de aprobación, rechazo, cancelación, vencimiento, revocación, doble consumo y concurrencia.
+
+**Resultado 2026-08-09:** completado en `src-tauri/src/permissions/gateway.rs`. El almacén vive en `State<PermissionGateway>`, retiene el plan JSON congelado, usa UUID v4, resuelve idempotencia bajo `Mutex` y elimina todo al terminar el proceso. Doce pruebas nuevas cubren transiciones, integridad, 12 reintentos concurrentes y un lote real de 1.000 IDs sin repeticiones; la batería Rust alcanza 60 pruebas. No hay comandos R2 registrados.
 
 ## Paso 3 — Consulta y preparación
 

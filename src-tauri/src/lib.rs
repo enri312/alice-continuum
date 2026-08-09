@@ -19,12 +19,14 @@ use observation::{
     get_foreground_context, set_context_observation_enabled, spawn_observer_thread,
     ObservationStore,
 };
+use permissions::PermissionGateway;
 use tauri::Manager;
 
 pub fn run() {
     let observation_store = ObservationStore::default();
     tauri::Builder::default()
         .manage(observation_store.clone())
+        .manage(PermissionGateway::default())
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
