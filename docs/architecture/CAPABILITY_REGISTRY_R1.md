@@ -157,19 +157,19 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `memory.retrieval.lexical` | Busca hasta tres recuerdos relacionados sin usar red. | `retrieveMemories` | Implementada | Bajo | Lectura local al escribir una consulta. | Se ejecuta en TypeScript; solo el envío posterior puede sacar el resultado del equipo. |
 | `avatar.vrm.inspect` | Comprueba ruta, extensión, existencia y tamaño del VRM. | `avatar_status` | Implementada | Bajo | Lectura implícita al abrir Avatar. | La sonda no carga el modelo ni modifica el archivo. |
 | `avatar.vrm.render` | Carga y presenta el VRM privado en el visor local. | `AvatarViewer` | Implementada | Bajo | Abrir la pestaña Avatar. | `idle` con archivo válido y `unavailable` sin él; renderizar no conecta rostro ni cuerpo. |
+| `perception.camera.observe` | Abre la cámara integrada durante un lease visible y descarta fotogramas. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | OpenCV/DirectShow local; `idle` o `active`; análisis y memoria desconectados. |
+| `perception.microphone.observe` | Abre el arreglo Intel durante un lease visible y descarta muestras. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | PortAudio/WASAPI local; `idle` o `active`; transcripción y memoria desconectadas. |
 
 ### Entradas sensoriales planificadas, sin adaptador
 
 | ID estable | Representación futura | Estado obligatorio en R1 |
 |---|---|---|
 | `perception.screen.observe` | Analizar fotogramas efímeros de una pantalla elegida. | `planned` + `unavailable` |
-| `perception.camera.observe` | Analizar una cámara durante una sesión visible. | `planned` + `unavailable` |
-| `perception.microphone.observe` | Detectar voz o sonido durante una sesión revocable. | `planned` + `unavailable` |
 | `perception.media.inspect` | Consultar metadatos del reproductor actual. | `planned` + `unavailable` |
 | `perception.desktop.observe` | Recibir eventos accesibles de interfaz sin registrar teclas. | `planned` + `unavailable` |
 | `perception.gesture.derive` | Derivar landmarks y gestos desde una cámara autorizada. | `planned` + `unavailable` |
 
-Estas entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos.
+Estas cuatro entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos. Cámara y micrófono ya figuran arriba como parciales porque poseen adaptador y Gateway nativo comprobados.
 
 ### Puentes planificados, sin adaptador
 
@@ -182,7 +182,7 @@ Estas entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las decl
 | `output.avatar.body` | Entregar poses o acciones corporales. | `planned` + `unavailable` |
 | `output.external.adapter` | Conectar VRChat u otro destino revisado. | `planned` + `unavailable` |
 
-Fish Audio, cámara, micrófono, captura de pantalla, Mocap y Active Ragdoll no se registran como implementados. Las entradas sensoriales aparecen únicamente como planificadas y no podrán pasar a `partial` o `implemented` sin adaptador real, requisitos verificables y Gateway de permisos.
+Fish Audio, captura de pantalla, Mocap y Active Ragdoll no se registran como implementados. Cámara y micrófono son parciales: verifican señal efímera, pero no ejecutan percepción semántica, transcripción, aprendizaje ni control del avatar.
 
 ## Funciones internas fuera del registro
 

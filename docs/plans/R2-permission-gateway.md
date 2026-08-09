@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; pasos 1 a 5 completados  
+Estado: implementación en curso; pasos 1 a 6 completados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -63,7 +63,7 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** `set_context_observation_enabled` fue retirado del handler Tauri y sustituido por `execute_context_observation_grant`. Rust extrae `enabled` exclusivamente del plan privado congelado, rechaza IDs sin grant, inicia una sesión ligada al grant y consume una autorización `oneShot` para detenerla. Revocar un grant activo apaga el `ObservationStore`; el hilo nativo reconcilia vencimientos y descarta el contexto. R1 declara ahora `context.foreground.control` y su lectura como `enforcedBy: native`. Pruebas de integración con el almacén y observador reales cubren bypass, inicio idempotente, detención, revocación, limpieza y dos inicios concurrentes; la batería alcanza 76 Rust y 58 TypeScript. Una prueba viva opcional confirmó además que Win32 devuelve metadatos reales de la ventana en primer plano sin imprimirlos ni persistirlos. Cámara, micrófono y archivos multimedia no fueron abiertos ni creados.
 
-## Paso 6 — Preparación de sesiones sensoriales
+## Paso 6 — Preparación de sesiones sensoriales ✅
 
 - Añadir leases separados para cámara y micrófono.
 - Mostrar dispositivo real, duración máxima e indicador persistente.
@@ -72,6 +72,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - Descartar señal cruda y verificar que no se crean archivos multimedia.
 
 **Puerta:** pruebas con `ACER HD User Facing` y el arreglo de micrófonos Intel, autorizadas por Carlos Nuñez. No usar imágenes o audios pregrabados como sustituto de señal viva.
+
+**Resultado 2026-08-09:** `src-tauri/src/sensory.rs` implementa procesos locales controlados y leases independientes de 60 segundos para `ACER HD User Facing` y `Microphone Array (Intel Smart Sound Technology for Digital Microphones)`. Aprobar solo crea el grant; `execute_sensor_lease_grant` abre el dispositivo después de validar el plan privado, `stop_sensor_lease` reduce autoridad inmediatamente y el reaper limpia revocación o vencimiento. La pestaña Aprendizaje muestra previsualización, dispositivo, duración, indicador, métricas verificadas y Detener. La prueba viva gobernada abrió ambos dispositivos reales, recibió señal positiva, detuvo los dos leases y mantuvo 107 archivos multimedia sin cambios (`MEDIA_DELTA=0`). La batería normal alcanza 80 Rust y 61 TypeScript; `fmt`, `clippy` y ambos builds aprueban. Análisis, transcripción, candidatos y memoria siguen desconectados.
 
 ## Paso 7 — Cierre
 

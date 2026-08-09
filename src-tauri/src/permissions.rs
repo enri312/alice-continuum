@@ -6,6 +6,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 mod gateway;
 
 use crate::observation::ObservationStore;
+use crate::sensory::{
+    SensorKind, SensorLeaseSnapshot, SensorLeaseStore, CAMERA_LABEL, CAMERA_STABLE_ID,
+    MICROPHONE_LABEL, MICROPHONE_STABLE_ID, SENSOR_SESSION_DURATION_SECONDS,
+};
+#[cfg(test)]
+use crate::sensory::{
+    CAMERA_CAPABILITY, CAMERA_OPERATION, MICROPHONE_CAPABILITY, MICROPHONE_OPERATION,
+};
 pub(crate) use gateway::{AuthorizedExecution, PermissionGateway, PermissionGatewayStatus};
 use serde_json::json;
 use tauri::State;
@@ -32,13 +40,26 @@ pub(crate) struct PreparePermissionRequestInput {
     pub(crate) capability_id: String,
     pub(crate) operation: String,
     pub(crate) purpose: String,
-    pub(crate) parameters: ForegroundControlParameters,
+    pub(crate) parameters: PermissionRequestParameters,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub(crate) enum PermissionRequestParameters {
+    Foreground(ForegroundControlParameters),
+    Sensor(SensorSessionParameters),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct ForegroundControlParameters {
     pub(crate) enabled: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SensorSessionParameters {
+    pub(crate) duration_seconds: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,6 +85,13 @@ pub(crate) struct ExecutePermissionGrantInput {
 pub(crate) struct ContextObservationExecutionResult {
     pub(crate) grant: PermissionGrant,
     pub(crate) enabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SensorLeaseExecutionResult {
+    pub(crate) grant: PermissionGrant,
+    pub(crate) lease: SensorLeaseSnapshot,
 }
 
 #[tauri::command]
@@ -103,8 +131,9 @@ pub(crate) fn revoke_permission_grant(
     input: RevokePermissionGrantInput,
     gateway: State<'_, PermissionGateway>,
     observation: State<'_, ObservationStore>,
+    sensors: State<'_, SensorLeaseStore>,
 ) -> Result<PermissionGrant, String> {
-    revoke_permission_grant_impl(&gateway, &observation, input)
+    revoke_permission_grant_impl(&gateway, &observation, &sensors, input)
 }
 
 #[tauri::command]
@@ -116,18 +145,40 @@ pub(crate) fn execute_context_observation_grant(
     execute_context_observation_grant_impl(&gateway, &observation, input)
 }
 
+#[tauri::command]
+pub(crate) fn execute_sensor_lease_grant(
+    input: ExecutePermissionGrantInput,
+    gateway: State<'_, PermissionGateway>,
+    sensors: State<'_, SensorLeaseStore>,
+) -> Result<SensorLeaseExecutionResult, String> {
+    execute_sensor_lease_grant_impl(&gateway, &sensors, input)
+}
+
+#[tauri::command]
+pub(crate) fn stop_sensor_lease(
+    input: ExecutePermissionGrantInput,
+    gateway: State<'_, PermissionGateway>,
+    sensors: State<'_, SensorLeaseStore>,
+) -> Result<PermissionGrant, String> {
+    stop_sensor_lease_impl(&gateway, &sensors, input)
+}
+
 fn revoke_permission_grant_impl(
     gateway: &PermissionGateway,
     observation: &ObservationStore,
+    sensors: &SensorLeaseStore,
     input: RevokePermissionGrantInput,
 ) -> Result<PermissionGrant, String> {
     input.validate()?;
-    gateway.with_adapter_transition(|| revoke_permission_grant_locked(gateway, observation, &input))
+    gateway.with_adapter_transition(|| {
+        revoke_permission_grant_locked(gateway, observation, sensors, &input)
+    })
 }
 
 fn revoke_permission_grant_locked(
     gateway: &PermissionGateway,
     observation: &ObservationStore,
+    sensors: &SensorLeaseStore,
     input: &RevokePermissionGrantInput,
 ) -> Result<PermissionGrant, String> {
     let previous = gateway.grant(&input.grant_id)?;
@@ -139,7 +190,79 @@ fn revoke_permission_grant_locked(
     {
         observation.disable_for_grant(&input.grant_id)?;
     }
+    if SensorKind::from_capability(&previous.capability_id, &previous.operation).is_ok() {
+        sensors.stop_grant(&input.grant_id)?;
+    }
     Ok(revoked)
+}
+
+fn execute_sensor_lease_grant_impl(
+    gateway: &PermissionGateway,
+    sensors: &SensorLeaseStore,
+    input: ExecutePermissionGrantInput,
+) -> Result<SensorLeaseExecutionResult, String> {
+    input.validate()?;
+    gateway.with_adapter_transition(|| {
+        let grant = gateway.grant(&input.grant_id)?;
+        let kind = SensorKind::from_capability(&grant.capability_id, &grant.operation)?;
+        if grant.mode != PermissionMode::Session {
+            return Err("Un lease sensorial requiere un grant session".into());
+        }
+        let execution = gateway.start_session(&input.grant_id)?;
+        let (duration, stable_id) = sensor_execution_plan(&execution)?;
+        if stable_id != kind.stable_id() {
+            let _ = gateway.revoke_grant(&input.grant_id);
+            return Err("El dispositivo no coincide con el plan privado aprobado".into());
+        }
+        match sensors.start(kind, &execution.grant, duration) {
+            Ok(lease) => Ok(SensorLeaseExecutionResult {
+                grant: execution.grant,
+                lease,
+            }),
+            Err(error) => {
+                let _ = gateway.revoke_grant(&input.grant_id);
+                let _ = sensors.stop_grant(&input.grant_id);
+                Err(error)
+            }
+        }
+    })
+}
+
+fn stop_sensor_lease_impl(
+    gateway: &PermissionGateway,
+    sensors: &SensorLeaseStore,
+    input: ExecutePermissionGrantInput,
+) -> Result<PermissionGrant, String> {
+    input.validate()?;
+    gateway.with_adapter_transition(|| {
+        let grant = gateway.grant(&input.grant_id)?;
+        SensorKind::from_capability(&grant.capability_id, &grant.operation)?;
+        sensors.stop_grant(&input.grant_id)?;
+        gateway.stop_session(&input.grant_id)
+    })
+}
+
+fn sensor_execution_plan(execution: &AuthorizedExecution) -> Result<(u32, &str), String> {
+    let object = execution
+        .parameters
+        .as_object()
+        .ok_or_else(|| "El plan privado sensorial no es un objeto".to_string())?;
+    if object.len() != 2
+        || !object.contains_key("durationSeconds")
+        || !object.contains_key("deviceStableId")
+    {
+        return Err("El plan privado sensorial contiene campos inesperados".into());
+    }
+    let duration = object
+        .get("durationSeconds")
+        .and_then(serde_json::Value::as_u64)
+        .and_then(|value| u32::try_from(value).ok())
+        .ok_or_else(|| "El plan privado sensorial no contiene una duración válida".to_string())?;
+    let stable_id = object
+        .get("deviceStableId")
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| "El plan privado sensorial no contiene un dispositivo".to_string())?;
+    Ok((duration, stable_id))
 }
 
 fn execute_context_observation_grant_impl(
@@ -245,16 +368,26 @@ fn prepare_supported_permission_request(
     gateway: &PermissionGateway,
     input: PreparePermissionRequestInput,
 ) -> Result<PreparedPermissionRequest, String> {
+    match input.parameters {
+        PermissionRequestParameters::Foreground(parameters) => {
+            prepare_foreground_permission_request(gateway, input, parameters.enabled)
+        }
+        PermissionRequestParameters::Sensor(parameters) => {
+            prepare_sensor_permission_request(gateway, input, parameters.duration_seconds)
+        }
+    }
+}
+
+fn prepare_foreground_permission_request(
+    gateway: &PermissionGateway,
+    input: PreparePermissionRequestInput,
+    enabled: bool,
+) -> Result<PreparedPermissionRequest, String> {
     if input.capability_id != FOREGROUND_CONTROL_CAPABILITY
         || input.operation != FOREGROUND_CONTROL_OPERATION
     {
-        return Err(
-            "R2 solo permite preparar context.foreground.control/setContextObservationEnabled en este incremento"
-                .into(),
-        );
+        return Err("Los parámetros enabled solo autorizan context.foreground.control".into());
     }
-
-    let enabled = input.parameters.enabled;
     let draft = PermissionRequestDraft {
         schema_version: PERMISSION_GATEWAY_SCHEMA_VERSION,
         request_id: "assigned_by_gateway".into(),
@@ -292,6 +425,65 @@ fn prepare_supported_permission_request(
         },
     };
     gateway.prepare_request(draft, json!({ "enabled": enabled }))
+}
+
+fn prepare_sensor_permission_request(
+    gateway: &PermissionGateway,
+    input: PreparePermissionRequestInput,
+    duration_seconds: u32,
+) -> Result<PreparedPermissionRequest, String> {
+    if duration_seconds == 0 || duration_seconds > SENSOR_SESSION_DURATION_SECONDS {
+        return Err("La sesión sensorial debe solicitar entre 1 y 60 segundos".into());
+    }
+    let kind = SensorKind::from_capability(&input.capability_id, &input.operation)?;
+    let (resource_kind, effect, scope, stable_id, label, summary, warning) = match kind {
+        SensorKind::Camera => (
+            PermissionResourceKind::Camera,
+            PermissionEffect::CameraObserve,
+            "cameraFrames",
+            CAMERA_STABLE_ID,
+            CAMERA_LABEL,
+            "Alice solicita abrir temporalmente la cámara integrada y descartar cada fotograma.",
+            "La luz de la cámara puede encenderse; no se guardarán imágenes ni video.",
+        ),
+        SensorKind::Microphone => (
+            PermissionResourceKind::Microphone,
+            PermissionEffect::MicrophoneObserve,
+            "microphoneAudio",
+            MICROPHONE_STABLE_ID,
+            MICROPHONE_LABEL,
+            "Alice solicita abrir temporalmente el micrófono integrado y descartar cada muestra.",
+            "El indicador de micrófono permanecerá visible; no se guardará audio.",
+        ),
+    };
+    let draft = PermissionRequestDraft {
+        schema_version: PERMISSION_GATEWAY_SCHEMA_VERSION,
+        request_id: "assigned_by_gateway".into(),
+        idempotency_key: input.idempotency_key,
+        capability_id: input.capability_id,
+        capability_version: 1,
+        operation: input.operation,
+        mode: PermissionMode::Session,
+        purpose: input.purpose,
+        resource: PermissionResource {
+            kind: resource_kind,
+            stable_id: stable_id.into(),
+            label: label.into(),
+        },
+        data_scopes: vec![scope.into()],
+        effects: vec![effect],
+        risk: PermissionRisk::High,
+        created_at: "1970-01-01T00:00:00Z".into(),
+        decision_expires_at: "1970-01-01T00:00:01Z".into(),
+        requested_duration_seconds: Some(duration_seconds),
+        maximum_duration_seconds: Some(SENSOR_SESSION_DURATION_SECONDS),
+        summary: summary.into(),
+        warnings: vec![warning.into()],
+    };
+    gateway.prepare_request(
+        draft,
+        json!({ "durationSeconds": duration_seconds, "deviceStableId": stable_id }),
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1356,7 +1548,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Observar la aplicación activa durante esta sesión.".into(),
-                parameters: ForegroundControlParameters { enabled: true },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: true,
+                }),
             },
         )
         .unwrap();
@@ -1379,7 +1573,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Detener la observación de la aplicación activa.".into(),
-                parameters: ForegroundControlParameters { enabled: false },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: false,
+                }),
             },
         )
         .unwrap();
@@ -1396,16 +1592,18 @@ mod tests {
         let error = prepare_supported_permission_request(
             &gateway,
             PreparePermissionRequestInput {
-                idempotency_key: "prepare-camera-0001".into(),
-                capability_id: "perception.camera.observe".into(),
-                operation: "observeAuthorizedCamera".into(),
+                idempotency_key: "prepare-screen-0001".into(),
+                capability_id: "perception.screen.observe".into(),
+                operation: "observeSelectedScreen".into(),
                 purpose: "Intento que todavía no está autorizado.".into(),
-                parameters: ForegroundControlParameters { enabled: true },
+                parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
+                    duration_seconds: 60,
+                }),
             },
         )
         .unwrap_err();
 
-        assert!(error.contains("solo permite preparar"));
+        assert!(error.contains("no autoriza una cámara o micrófono"));
         assert!(gateway.status().unwrap().requests.is_empty());
     }
 
@@ -1432,11 +1630,149 @@ mod tests {
         let mut unknown_parameter = input;
         unknown_parameter["parameters"]["deviceId"] = json!("camera");
         assert!(
-            serde_json::from_value::<PreparePermissionRequestInput>(unknown_parameter)
-                .unwrap_err()
-                .to_string()
-                .contains("unknown field")
+            serde_json::from_value::<PreparePermissionRequestInput>(unknown_parameter).is_err()
         );
+    }
+
+    #[test]
+    fn sensor_preparation_names_real_devices_without_opening_them() {
+        let gateway = PermissionGateway::default();
+        for (idempotency_key, capability_id, operation, kind, label, scope, effect) in [
+            (
+                "prepare-camera-real-01",
+                CAMERA_CAPABILITY,
+                CAMERA_OPERATION,
+                PermissionResourceKind::Camera,
+                CAMERA_LABEL,
+                "cameraFrames",
+                PermissionEffect::CameraObserve,
+            ),
+            (
+                "prepare-microphone-real-01",
+                MICROPHONE_CAPABILITY,
+                MICROPHONE_OPERATION,
+                PermissionResourceKind::Microphone,
+                MICROPHONE_LABEL,
+                "microphoneAudio",
+                PermissionEffect::MicrophoneObserve,
+            ),
+        ] {
+            let request = prepare_supported_permission_request(
+                &gateway,
+                PreparePermissionRequestInput {
+                    idempotency_key: idempotency_key.into(),
+                    capability_id: capability_id.into(),
+                    operation: operation.into(),
+                    purpose: "Verificar señal viva sin persistencia.".into(),
+                    parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
+                        duration_seconds: 60,
+                    }),
+                },
+            )
+            .unwrap();
+            assert_eq!(request.resource.kind, kind);
+            assert_eq!(request.resource.label, label);
+            assert_eq!(request.data_scopes, vec![scope]);
+            assert_eq!(request.effects, vec![effect]);
+            assert_eq!(request.risk, PermissionRisk::High);
+            assert_eq!(request.requested_duration_seconds, Some(60));
+            assert_eq!(request.maximum_duration_seconds, Some(60));
+        }
+        assert_eq!(gateway.status().unwrap().requests.len(), 2);
+        assert!(gateway.status().unwrap().grants.is_empty());
+    }
+
+    #[test]
+    fn sensor_execution_without_a_grant_never_opens_a_device() {
+        let gateway = PermissionGateway::default();
+        let sensors = SensorLeaseStore::default();
+        let error = execute_sensor_lease_grant_impl(
+            &gateway,
+            &sensors,
+            ExecutePermissionGrantInput {
+                grant_id: "grant_sensor_missing_001".into(),
+            },
+        )
+        .unwrap_err();
+        assert!(error.contains("Grant desconocido"));
+        assert!(sensors.status().unwrap().leases.is_empty());
+    }
+
+    #[test]
+    #[ignore = "requiere cámara ACER y arreglo de micrófonos Intel autorizados"]
+    fn live_camera_and_microphone_leases_use_real_signal_and_stop_cleanly() {
+        for (kind, idempotency_key, capability_id, operation) in [
+            (
+                SensorKind::Camera,
+                "live-camera-session-001",
+                CAMERA_CAPABILITY,
+                CAMERA_OPERATION,
+            ),
+            (
+                SensorKind::Microphone,
+                "live-microphone-session-01",
+                MICROPHONE_CAPABILITY,
+                MICROPHONE_OPERATION,
+            ),
+        ] {
+            let gateway = PermissionGateway::default();
+            let sensors = SensorLeaseStore::default();
+            let request = prepare_supported_permission_request(
+                &gateway,
+                PreparePermissionRequestInput {
+                    idempotency_key: idempotency_key.into(),
+                    capability_id: capability_id.into(),
+                    operation: operation.into(),
+                    purpose: "Prueba viva autorizada sin persistencia.".into(),
+                    parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
+                        duration_seconds: 5,
+                    }),
+                },
+            )
+            .unwrap();
+            assert!(sensors.status().unwrap().leases.is_empty());
+            let grant = gateway
+                .decide(PermissionDecisionInput {
+                    request_id: request.request_id,
+                    preview_digest: request.preview_digest,
+                    decision: PermissionDecision::Approve,
+                })
+                .unwrap()
+                .unwrap();
+            assert!(sensors.status().unwrap().leases.is_empty());
+
+            let execution = execute_sensor_lease_grant_impl(
+                &gateway,
+                &sensors,
+                ExecutePermissionGrantInput {
+                    grant_id: grant.grant_id.clone(),
+                },
+            )
+            .unwrap();
+            assert_eq!(execution.lease.kind, kind);
+            assert!(execution.lease.verified_signal_units > 0);
+            assert!(!execution.lease.raw_persistence);
+            match kind {
+                SensorKind::Camera => {
+                    assert!(execution.lease.width.unwrap_or_default() > 0);
+                    assert!(execution.lease.height.unwrap_or_default() > 0);
+                }
+                SensorKind::Microphone => {
+                    assert!(execution.lease.sample_rate_hz.unwrap_or_default() > 0);
+                }
+            }
+            assert_eq!(sensors.status().unwrap().leases.len(), 1);
+            let stopped = stop_sensor_lease_impl(
+                &gateway,
+                &sensors,
+                ExecutePermissionGrantInput {
+                    grant_id: grant.grant_id,
+                },
+            )
+            .unwrap();
+            assert_eq!(stopped.state, PermissionGrantState::Stopped);
+            assert!(sensors.status().unwrap().leases.is_empty());
+        }
     }
 
     #[test]
@@ -1453,7 +1789,9 @@ mod tests {
                     capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                     operation: FOREGROUND_CONTROL_OPERATION.into(),
                     purpose: "Comprobar preparación efímera sin archivos.".into(),
-                    parameters: ForegroundControlParameters { enabled: false },
+                    parameters: PermissionRequestParameters::Foreground(
+                        ForegroundControlParameters { enabled: false },
+                    ),
                 },
             )
             .unwrap();
@@ -1476,7 +1814,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Revisar una aprobación sin ejecutar observación.".into(),
-                parameters: ForegroundControlParameters { enabled: true },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: true,
+                }),
             },
         )
         .unwrap();
@@ -1519,7 +1859,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Activar observación mediante un grant real.".into(),
-                parameters: ForegroundControlParameters { enabled: true },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: true,
+                }),
             },
         )
         .unwrap();
@@ -1564,7 +1906,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Detener observación mediante un grant real.".into(),
-                parameters: ForegroundControlParameters { enabled: false },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: false,
+                }),
             },
         )
         .unwrap();
@@ -1597,6 +1941,7 @@ mod tests {
     fn revoking_an_active_foreground_grant_stops_the_real_observer() {
         let gateway = PermissionGateway::default();
         let observation = ObservationStore::default();
+        let sensors = SensorLeaseStore::default();
         let request = prepare_supported_permission_request(
             &gateway,
             PreparePermissionRequestInput {
@@ -1604,7 +1949,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Activar y revocar observación real.".into(),
-                parameters: ForegroundControlParameters { enabled: true },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: true,
+                }),
             },
         )
         .unwrap();
@@ -1628,6 +1975,7 @@ mod tests {
         let revoked = revoke_permission_grant_impl(
             &gateway,
             &observation,
+            &sensors,
             RevokePermissionGrantInput {
                 grant_id: grant.grant_id,
             },
@@ -1652,7 +2000,9 @@ mod tests {
                         capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                         operation: FOREGROUND_CONTROL_OPERATION.into(),
                         purpose: "Competir por una única sesión autorizada.".into(),
-                        parameters: ForegroundControlParameters { enabled: true },
+                        parameters: PermissionRequestParameters::Foreground(
+                            ForegroundControlParameters { enabled: true },
+                        ),
                     },
                 )
                 .unwrap();
@@ -1714,7 +2064,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Cancelar esta solicitud pendiente.".into(),
-                parameters: ForegroundControlParameters { enabled: false },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: false,
+                }),
             },
         )
         .unwrap();
@@ -1730,7 +2082,9 @@ mod tests {
                 capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
                 operation: FOREGROUND_CONTROL_OPERATION.into(),
                 purpose: "Crear y revocar un grant sin usarlo.".into(),
-                parameters: ForegroundControlParameters { enabled: false },
+                parameters: PermissionRequestParameters::Foreground(ForegroundControlParameters {
+                    enabled: false,
+                }),
             },
         )
         .unwrap();

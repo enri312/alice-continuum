@@ -103,6 +103,15 @@ export type PrepareForegroundControlPermissionInput = {
   parameters: { enabled: boolean };
 };
 
+export type SensorKind = "camera" | "microphone";
+export type PrepareSensorPermissionInput = {
+  idempotencyKey: string;
+  capabilityId: "perception.camera.observe" | "perception.microphone.observe";
+  operation: "observeAuthorizedCamera" | "observeAuthorizedMicrophone";
+  purpose: string;
+  parameters: { durationSeconds: number };
+};
+
 export type PermissionDecisionInput = {
   requestId: string;
   previewDigest: string;
@@ -117,6 +126,25 @@ export type ContextObservationExecutionResult = {
   grant: PermissionGrant;
   enabled: boolean;
 };
+
+export type SensorLease = {
+  kind: SensorKind;
+  capabilityId: "perception.camera.observe" | "perception.microphone.observe";
+  grantId: string;
+  device: PermissionResource;
+  adapter: string;
+  expiresAt: string;
+  maximumDurationSeconds: number;
+  indicator: string;
+  rawPersistence: false;
+  verifiedSignalUnits: number;
+  width: number | null;
+  height: number | null;
+  sampleRateHz: number | null;
+};
+
+export type SensorLeaseStatus = { schemaVersion: 1; leases: SensorLease[] };
+export type SensorLeaseExecutionResult = { grant: PermissionGrant; lease: SensorLease };
 
 const modes = ["implicitRead", "oneShot", "session"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
@@ -363,6 +391,32 @@ export function createForegroundControlPreparation(
   };
 }
 
+export function createSensorPreparation(
+  kind: SensorKind,
+  idempotencyKey: string,
+  purpose: string,
+  durationSeconds = 60,
+): PrepareSensorPermissionInput {
+  opaqueId(idempotencyKey, "idempotencyKey");
+  cleanText(purpose, "purpose");
+  if (!Number.isInteger(durationSeconds) || durationSeconds < 1 || durationSeconds > 60) {
+    fail("durationSeconds debe estar entre 1 y 60");
+  }
+  return kind === "camera" ? {
+    idempotencyKey,
+    capabilityId: "perception.camera.observe",
+    operation: "observeAuthorizedCamera",
+    purpose,
+    parameters: { durationSeconds },
+  } : {
+    idempotencyKey,
+    capabilityId: "perception.microphone.observe",
+    operation: "observeAuthorizedMicrophone",
+    purpose,
+    parameters: { durationSeconds },
+  };
+}
+
 export function createPermissionDecisionInput(
   request: PreparedPermissionRequest,
   decision: PermissionDecision,
@@ -401,4 +455,60 @@ export function parseContextObservationExecutionResult(value: unknown): ContextO
     fail("execution detenida requiere un grant oneShot completado");
   }
   return { grant, enabled: input.enabled };
+}
+
+function nullablePositiveInteger(value: unknown, field: string): number | null {
+  return value === null ? null : positiveInteger(value, field);
+}
+
+function parseSensorLease(value: unknown): SensorLease {
+  const input = record(value, "lease");
+  exactKeys(input, ["kind", "capabilityId", "grantId", "device", "adapter", "expiresAt", "maximumDurationSeconds", "indicator", "rawPersistence", "verifiedSignalUnits", "width", "height", "sampleRateHz"], "lease");
+  const kind = enumValue(input.kind, ["camera", "microphone"] as const, "lease.kind");
+  const expectedCapability = kind === "camera" ? "perception.camera.observe" : "perception.microphone.observe";
+  if (input.capabilityId !== expectedCapability) fail("lease.capabilityId no coincide con el sensor");
+  const device = parseResource(input.device);
+  if (device.kind !== kind) fail("lease.device.kind no coincide con el sensor");
+  if (input.rawPersistence !== false) fail("lease.rawPersistence debe permanecer false");
+  const verifiedSignalUnits = positiveInteger(input.verifiedSignalUnits, "lease.verifiedSignalUnits");
+  const width = nullablePositiveInteger(input.width, "lease.width");
+  const height = nullablePositiveInteger(input.height, "lease.height");
+  const sampleRateHz = nullablePositiveInteger(input.sampleRateHz, "lease.sampleRateHz");
+  if (kind === "camera" && (width === null || height === null || sampleRateHz !== null)) fail("lease.camera requiere resolución y no sampleRateHz");
+  if (kind === "microphone" && (sampleRateHz === null || width !== null || height !== null)) fail("lease.microphone requiere sampleRateHz y no resolución");
+  return {
+    kind,
+    capabilityId: expectedCapability,
+    grantId: opaqueId(input.grantId, "lease.grantId"),
+    device,
+    adapter: cleanText(input.adapter, "lease.adapter"),
+    expiresAt: utcTimestamp(input.expiresAt, "lease.expiresAt"),
+    maximumDurationSeconds: positiveInteger(input.maximumDurationSeconds, "lease.maximumDurationSeconds"),
+    indicator: cleanText(input.indicator, "lease.indicator"),
+    rawPersistence: false,
+    verifiedSignalUnits,
+    width,
+    height,
+    sampleRateHz,
+  };
+}
+
+export function parseSensorLeaseStatus(value: unknown): SensorLeaseStatus {
+  const input = record(value, "sensorStatus");
+  exactKeys(input, ["schemaVersion", "leases"], "sensorStatus");
+  if (input.schemaVersion !== 1 || !Array.isArray(input.leases)) fail("sensorStatus no coincide con el contrato v1");
+  const leases = input.leases.map(parseSensorLease);
+  if (new Set(leases.map((lease) => lease.kind)).size !== leases.length) fail("sensorStatus repite un tipo de sensor");
+  return { schemaVersion: 1, leases };
+}
+
+export function parseSensorLeaseExecutionResult(value: unknown): SensorLeaseExecutionResult {
+  const input = record(value, "sensorExecution");
+  exactKeys(input, ["grant", "lease"], "sensorExecution");
+  const grant = parsePermissionGrant(input.grant);
+  const lease = parseSensorLease(input.lease);
+  if (grant.mode !== "session" || grant.state !== "active" || grant.grantId !== lease.grantId || grant.capabilityId !== lease.capabilityId) {
+    fail("sensorExecution no coincide con el grant session activo");
+  }
+  return { grant, lease };
 }

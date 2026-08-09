@@ -145,7 +145,7 @@ Una transición no listada se rechaza. `denied`, `cancelled`, `completed`, `stop
 |---|---|
 | Espera de decisión para riesgo alto | 60 segundos |
 | Espera de decisión para riesgo medio o menor | 5 minutos |
-| Sesión inicial de cámara o micrófono | máximo 5 minutos |
+| Sesión inicial de cámara o micrófono | máximo 60 segundos en el incremento actual |
 | Cantidad de cámara activa | una |
 | Cantidad de micrófono activo | uno |
 | Persistencia después de cerrar Alice | ninguna |
@@ -168,13 +168,16 @@ El usuario puede solicitar menos tiempo, nunca ampliar el máximo desde React.
 | Comando | Estado actual | Efecto permitido en R2 |
 |---|---|---|
 | `permission_gateway_status` | Expuesto | Consulta solicitudes, grants y límites sin exponer parámetros privados |
-| `prepare_permission_request` | Expuesto | Prepara solo `context.foreground.control`; no concede ni ejecuta |
+| `prepare_permission_request` | Expuesto | Prepara ventana, cámara o micrófono; no concede ni ejecuta |
 | `decide_permission_request` | Expuesto | Aprueba o rechaza una previsualización vigente; aprobar solo crea un grant efímero |
 | `cancel_permission_request` | Expuesto | Cancela una solicitud pendiente sin crear un grant |
 | `revoke_permission_grant` | Expuesto | Invalida un grant y apaga la observación si esa sesión estaba activa |
 | `execute_context_observation_grant` | Expuesto | Consume únicamente un grant válido para activar o detener los metadatos de ventana |
+| `execute_sensor_lease_grant` | Expuesto | Abre únicamente la cámara o micrófono congelado en un grant session vigente |
+| `stop_sensor_lease` | Expuesto | Detiene el lease y descarta el proceso/búfer sin requerir autoridad adicional |
+| `sensor_lease_status` | Expuesto | Devuelve indicadores y métricas técnicas reales sin señal cruda |
 
-La presencia en esta tabla no concede autoridad general. Los seis comandos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: true` y `r2ExecutionCommandsExposed: true`. La única ejecución admitida es `context.foreground.control`, cuyo plan permanece privado en Rust. El antiguo `set_context_observation_enabled` dejó de estar registrado y R1 declara `enforcedBy: native`. Cámara, micrófono, shell y las demás capacidades continúan sin comando de ejecución R2.
+La presencia en esta tabla no concede autoridad general. Los nueve comandos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: true` y `r2ExecutionCommandsExposed: true`. Los planes de ventana y sensores permanecen privados en Rust. El antiguo `set_context_observation_enabled` no está registrado; tampoco existe shell genérico ni una ruta directa para abrir hardware.
 
 ## Migración de capacidades existentes
 
@@ -183,10 +186,10 @@ La migración será individual. Una capacidad no puede declarar `permission.enfo
 Orden propuesto:
 
 1. ✅ `context.foreground.control`, migrada y verificada sin bypass.
-2. exportación, restauración y apertura de la carpeta de memoria.
-3. envío de conversación de nube.
-4. escrituras de memoria.
-5. futuras sesiones de cámara y micrófono.
+2. ✅ sesiones separadas de cámara y micrófono, migradas y verificadas con señal viva.
+3. exportación, restauración y apertura de la carpeta de memoria.
+4. envío de conversación de nube.
+5. escrituras de memoria.
 
 Las lecturas pasivas de registro, estado de proveedores, salud de memoria y disponibilidad del avatar pueden permanecer `implicitRead`.
 

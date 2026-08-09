@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · primera capacidad real protegida; sesiones sensoriales pendientes  
+**Estado:** en curso · ventana, cámara y micrófono protegidos; cierre documental pendiente  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -233,7 +233,7 @@ Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, an
 
 - [ ] Desconectar un puente no detiene conversación ni memoria.
 - [ ] La interfaz diferencia datos reales, ausencia de señal y error.
-- [ ] Cámara y micrófono requieren indicadores y revocación visibles.
+- [x] Cámara y micrófono requieren indicadores y revocación visibles.
 - [ ] El avatar acredita a Carlos Nuñez y su creación con VRoid Studio.
 - [ ] Ragdoll no controla decisiones; solamente transforma movimiento aprobado en respuesta física.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 protege de extremo a extremo `context.foreground.control`: la ruta directa fue eliminada, Rust rechaza ejecución sin grant, el inicio conserva un grant de sesión activo y la detención consume un grant `oneShot`; revocar o vencer apaga el observador y descarta el contexto. El siguiente incremento permitido es preparar leases separados para cámara y micrófono con dispositivo exacto, indicador persistente y control Detener. No se abrirá hardware ni se procesará señal hasta validar primero esas puertas.
+La **Fase R1 — Registro de capacidades** está completada. R2 protege `context.foreground.control` y leases separados de cámara y micrófono. Los sensores muestran dispositivo y duración exactos, no se abren al aprobar, exigen Activar, mantienen indicador y permiten Detener; revocación, vencimiento o cierre descartan el proceso y el búfer. La prueba viva recibió señal de `ACER HD User Facing` y del arreglo Intel sin crear ni modificar archivos multimedia. El siguiente incremento permitido es el cierre documental y de trazabilidad de R2; análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

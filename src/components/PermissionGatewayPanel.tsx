@@ -131,8 +131,8 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     parsePermissionGrant(await invoke<unknown>("revoke_permission_grant", {
       input: createRevokePermissionInput(grant.grantId),
     }));
-    if (grant.mode === "session" && grant.state === "active") onObservationStateChange(false);
-    setMessage(grant.state === "active" ? "Grant revocado y observación detenida." : "Grant revocado antes de su ejecución.");
+    if (grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active") onObservationStateChange(false);
+    setMessage(grant.state === "active" ? "Grant revocado y su sesión detenida." : "Grant revocado antes de su ejecución.");
     await refresh();
   });
 
@@ -187,7 +187,8 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
         {grants.length === 0 ? <p>SIN GRANTS REALES</p> : grants.map((grant) => <article key={grant.grantId}>
           <div><strong>{grant.capabilityId}</strong><small>{grant.state.toUpperCase()} · vence {formatTimestamp(grant.expiresAt)}</small></div>
           <div className="permission-grant-actions">
-            {grant.state === "approved" ? <button type="button" disabled={busy !== null} onClick={() => execute(grant)}>{grant.mode === "session" ? "ACTIVAR" : "DETENER"}</button> : null}
+            {grant.state === "approved" && grant.capabilityId === "context.foreground.control" ? <button type="button" disabled={busy !== null} onClick={() => execute(grant)}>{grant.mode === "session" ? "ACTIVAR" : "DETENER"}</button> : null}
+            {grant.state === "approved" && grant.capabilityId.startsWith("perception.") ? <span>GESTIONAR EN APRENDIZAJE</span> : null}
             {grant.state === "approved" || grant.state === "active" ? <button type="button" disabled={busy !== null} onClick={() => revoke(grant)}>REVOCAR</button> : <span>{grant.mode}</span>}
           </div>
         </article>)}

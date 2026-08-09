@@ -2,9 +2,10 @@
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
-![R2](https://img.shields.io/badge/R2-primera%20capacidad%20protegida-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-58%2F58%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-76%2F76%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R2](https://img.shields.io/badge/R2-leases%20sensoriales%20reales-16a34a?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-61%2F61%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-80%2F80%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
 ![Windows](https://img.shields.io/badge/plataforma-Windows-0078d4?style=flat-square&logo=windows11&logoColor=white)
@@ -25,13 +26,14 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
-| Gateway de permisos R2 | `context.foreground.control` protegido de extremo a extremo; ruta directa eliminada |
-| Capacidades implementadas o parciales | 12 |
-| Capacidades planificadas | 12, todas sin adaptador y no disponibles |
-| Pruebas TypeScript | 58/58 aprobadas |
-| Pruebas Rust | 76/76 aprobadas |
+| Gateway de permisos R2 | Ventana, cámara y micrófono protegidos por grants nativos; rutas directas ausentes |
+| Capacidades implementadas o parciales | 14 |
+| Capacidades planificadas | 10, sin adaptador y no disponibles |
+| Pruebas TypeScript | 61/61 aprobadas |
+| Pruebas Rust | 80/80 normales; prueba viva CAM+MIC aprobada explícitamente |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
+| Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
 | Memoria real | Nueve archivos preservados durante consultas repetidas del registro |
 | Avatar privado | Preservado y excluido de Git |
 
@@ -44,10 +46,10 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - React no recibe ni muestra claves de proveedores.
 - Una respuesta de nube no se convierte automáticamente en recuerdo o verdad.
 - La observación vigente se limita a metadatos autorizados de la ventana activa; no registra teclas, archivos ni imágenes.
-- Pantalla, cámara, micrófono, reproductores, acciones accesibles y gestos figuran como capacidades planificadas hasta implementar R2.
+- Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados.
 - Voz, rostro, mirada, cuerpo y adaptadores externos permanecen desconectados.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
-- R2 consume grants efímeros únicamente para activar o detener `context.foreground.control`; el comando directo sin grant ya no está registrado.
+- R2 consume grants efímeros para ventana, cámara o micrófono. Aprobar no abre hardware: cada sensor exige una activación posterior y ofrece Detener inmediato.
 
 ## Pantallas
 
@@ -64,7 +66,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 
 ## Cámara, micrófono y aprendizaje sensorial
 
-Carlos Nuñez autorizó comenzar el trabajo con la cámara y el micrófono integrados de la notebook. Esta autorización permite diseñar y probar el adaptador, pero la aplicación final deberá pedir consentimiento visible por sesión, indicar cuándo un dispositivo está activo y permitir detenerlo inmediatamente.
+Carlos Nuñez autorizó las pruebas con la cámara y el micrófono integrados. Alice ya prepara una previsualización específica, crea un grant separado por dispositivo y solo abre el hardware después de pulsar **Activar**. El indicador permanece visible y **Detener**, revocar, vencer o cerrar la aplicación finaliza el lease.
 
 Comprobación real de hardware del 09 de agosto de 2026:
 
@@ -73,11 +75,11 @@ Comprobación real de hardware del 09 de agosto de 2026:
 | `ACER HD User Facing` | 12 fotogramas recibidos mediante DirectShow, 640×480, sin guardar imágenes |
 | `Microphone Array (Intel Smart Sound Technology)` | 77.175 muestras recibidas, 44.100 Hz, 1,75 s, señal RMS real y sin guardar audio |
 
-Este resultado acredita disponibilidad física, no integración en Alice. Las capacidades `perception.camera.observe` y `perception.microphone.observe` continúan `planned / unavailable` hasta completar el Gateway de permisos R2.
+El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada real: la prueba exigió señal positiva, detuvo cada lease y confirmó `MEDIA_DELTA=0` sobre 107 archivos. Las capacidades `perception.camera.observe` y `perception.microphone.observe` son ahora `partial`, usan `enforcedBy: native` y aparecen `idle` o `active` según el proceso real. Todavía no analizan, transcriben ni crean recuerdos.
 
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
-Más detalles en [el informe real de cámara y micrófono](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md) y [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md).
+Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md) y [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md).
 
 ## Iniciar Alice
 
@@ -149,6 +151,7 @@ src-tauri/src/
 ├── permissions.rs        tipos, validaciones y digest del Gateway R2
 ├── permissions/
 │   └── gateway.rs        almacén efímero y máquina de estados R2
+├── sensory.rs            leases CAM/MIC y adaptador local de señal efímera
 ├── util.rs               rutas y utilidades compartidas
 └── lib.rs                estado y registro de comandos Tauri
 ```

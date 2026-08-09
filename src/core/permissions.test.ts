@@ -5,11 +5,14 @@ import {
   createForegroundControlPreparation,
   createPermissionDecisionInput,
   createRevokePermissionInput,
+  createSensorPreparation,
   createWebDevelopmentPermissionGateway,
   parsePermissionGrant,
   parseContextObservationExecutionResult,
   parsePermissionGatewayStatus,
   parsePreparedPermissionRequest,
+  parseSensorLeaseExecutionResult,
+  parseSensorLeaseStatus,
 } from "./permissions";
 
 const digest = `sha256:${"a".repeat(64)}`;
@@ -209,5 +212,74 @@ describe("permission gateway contract", () => {
         state: "active",
       },
     })).toThrow(/oneShot completado/);
+  });
+
+  it("construye perfiles sensoriales cerrados y limita la duración a 60 segundos", () => {
+    expect(createSensorPreparation("camera", "sensor-camera-0001", "Verificar cámara viva.", 60)).toEqual({
+      idempotencyKey: "sensor-camera-0001",
+      capabilityId: "perception.camera.observe",
+      operation: "observeAuthorizedCamera",
+      purpose: "Verificar cámara viva.",
+      parameters: { durationSeconds: 60 },
+    });
+    expect(createSensorPreparation("microphone", "sensor-microphone-01", "Verificar micrófono vivo.", 30).capabilityId).toBe("perception.microphone.observe");
+    expect(() => createSensorPreparation("camera", "sensor-camera-0002", "Verificar.", 61)).toThrow(/1 y 60/);
+  });
+
+  it("valida un lease real sin persistencia y ligado a su grant activo", () => {
+    const lease = {
+      kind: "camera",
+      capabilityId: "perception.camera.observe",
+      grantId: "grant_sensor_camera_001",
+      device: { kind: "camera", stableId: "camera-acer-hd-user-facing", label: "ACER HD User Facing" },
+      adapter: "OpenCV 5 · DirectShow · proceso local controlado",
+      expiresAt: "2026-08-09T15:01:02Z",
+      maximumDurationSeconds: 60,
+      indicator: "ACTIVO · SEÑAL VIVA · DESCARTE INMEDIATO",
+      rawPersistence: false,
+      verifiedSignalUnits: 3,
+      width: 640,
+      height: 480,
+      sampleRateHz: null,
+    };
+    expect(parseSensorLeaseStatus({ schemaVersion: 1, leases: [lease] }).leases[0].width).toBe(640);
+    const result = parseSensorLeaseExecutionResult({
+      lease,
+      grant: {
+        schemaVersion: 1,
+        grantId: "grant_sensor_camera_001",
+        requestId: "request_sensor_camera_01",
+        previewDigest: digest,
+        capabilityId: "perception.camera.observe",
+        operation: "observeAuthorizedCamera",
+        mode: "session",
+        issuedAt: "2026-08-09T15:00:02Z",
+        expiresAt: "2026-08-09T15:01:02Z",
+        remainingUses: null,
+        state: "active",
+      },
+    });
+    expect(result.lease.rawPersistence).toBe(false);
+  });
+
+  it("rechaza telemetría sensorial ficticia o contradictoria", () => {
+    const microphone = {
+      kind: "microphone",
+      capabilityId: "perception.microphone.observe",
+      grantId: "grant_sensor_microphone_01",
+      device: { kind: "microphone", stableId: "microphone-array-intel-smart-sound", label: "Microphone Array" },
+      adapter: "PortAudio · WASAPI",
+      expiresAt: "2026-08-09T15:01:02Z",
+      maximumDurationSeconds: 60,
+      indicator: "ACTIVO",
+      rawPersistence: false,
+      verifiedSignalUnits: 11025,
+      width: null,
+      height: null,
+      sampleRateHz: 44100,
+    };
+    expect(() => parseSensorLeaseStatus({ schemaVersion: 1, leases: [{ ...microphone, rawPersistence: true }] })).toThrow(/rawPersistence/);
+    expect(() => parseSensorLeaseStatus({ schemaVersion: 1, leases: [{ ...microphone, width: 640 }] })).toThrow(/sampleRateHz/);
+    expect(() => parseSensorLeaseStatus({ schemaVersion: 1, leases: [microphone, microphone] })).toThrow(/repite/);
   });
 });

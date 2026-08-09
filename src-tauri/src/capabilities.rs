@@ -2,6 +2,7 @@ use crate::avatar::{avatar_capability_probe, AvatarCapabilityProbe};
 use crate::cloud::{cloud_capability_probe, CloudCapabilityProbe};
 use crate::memory::{memory_capability_probe, MemoryCapabilityProbe, MemoryResourceState};
 use crate::observation::{ObservationCapabilityProbe, ObservationStore};
+use crate::sensory::{SensorCapabilityProbe, SensorLeaseStore};
 use crate::util::alice_data_root_path;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -122,6 +123,8 @@ pub(crate) enum CapabilityEffect {
     WindowMetadataRead,
     CredentialPresenceRead,
     AssetRender,
+    CameraObserve,
+    MicrophoneObserve,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -158,15 +161,21 @@ pub(crate) struct CapabilityProbeSnapshot {
     pub(crate) observation: Result<ObservationCapabilityProbe, String>,
     pub(crate) memory: MemoryCapabilityProbe,
     pub(crate) avatar: Result<AvatarCapabilityProbe, String>,
+    pub(crate) sensory: Result<SensorCapabilityProbe, String>,
 }
 
 impl CapabilityProbeSnapshot {
-    pub(crate) fn collect(data_root: &Path, observation_store: &ObservationStore) -> Self {
+    pub(crate) fn collect(
+        data_root: &Path,
+        observation_store: &ObservationStore,
+        sensor_store: &SensorLeaseStore,
+    ) -> Self {
         Self {
             cloud: cloud_capability_probe(),
             observation: observation_store.capability_probe(),
             memory: memory_capability_probe(data_root),
             avatar: avatar_capability_probe(),
+            sensory: sensor_store.capability_probe(),
         }
     }
 }
@@ -180,7 +189,7 @@ pub(crate) fn capability_registry_from_probes(
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
     capabilities.extend(memory_capabilities(&generated_at, &probes.memory));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
-    capabilities.extend(planned_sensory_capabilities());
+    capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
     capabilities.extend(planned_output_capabilities());
 
     let snapshot = CapabilityRegistrySnapshot {
@@ -192,8 +201,53 @@ pub(crate) fn capability_registry_from_probes(
     Ok(snapshot)
 }
 
-fn planned_sensory_capabilities() -> Vec<CapabilityDescriptor> {
-    [
+fn sensory_capabilities(
+    checked_at: &str,
+    probe: &Result<SensorCapabilityProbe, String>,
+) -> Vec<CapabilityDescriptor> {
+    let (runtime_available, camera_active, microphone_active, probe_summary) = match probe {
+        Ok(probe) => (
+            probe.runtime_available,
+            probe.camera_active,
+            probe.microphone_active,
+            probe.summary.clone(),
+        ),
+        Err(error) => (
+            false,
+            false,
+            false,
+            format!("Sonda sensorial fallida: {error}"),
+        ),
+    };
+    let mut capabilities = vec![
+        sensory_capability(
+            "perception.camera.observe",
+            "Observar cámara local",
+            "Abre una sesión visible de cámara autorizada y descarta cada fotograma sin persistirlo.",
+            "OpenCV 5 / DirectShow local",
+            "observeAuthorizedCamera",
+            "cameraFrames",
+            CapabilityEffect::CameraObserve,
+            runtime_available,
+            camera_active,
+            checked_at,
+            &probe_summary,
+        ),
+        sensory_capability(
+            "perception.microphone.observe",
+            "Escuchar micrófono local",
+            "Abre una sesión visible de micrófono autorizada y descarta cada muestra sin persistirla.",
+            "PortAudio / WASAPI local",
+            "observeAuthorizedMicrophone",
+            "microphoneAudio",
+            CapabilityEffect::MicrophoneObserve,
+            runtime_available,
+            microphone_active,
+            checked_at,
+            &probe_summary,
+        ),
+    ];
+    capabilities.extend([
         (
             "perception.screen.observe",
             "Observar pantalla seleccionada",
@@ -201,22 +255,6 @@ fn planned_sensory_capabilities() -> Vec<CapabilityDescriptor> {
             "observeSelectedScreen",
             "screenPixels",
             "Gateway R2 y selector Windows Graphics Capture",
-        ),
-        (
-            "perception.camera.observe",
-            "Observar cámara local",
-            "Representa una futura vista previa visible para análisis local sin conservar video por defecto.",
-            "observeAuthorizedCamera",
-            "cameraFrames",
-            "Gateway R2, permiso de cámara y vista previa visible",
-        ),
-        (
-            "perception.microphone.observe",
-            "Escuchar micrófono local",
-            "Representa una futura sesión de audio revocable con detección de voz y descarte del búfer crudo.",
-            "observeAuthorizedMicrophone",
-            "microphoneAudio",
-            "Gateway R2, permiso de micrófono e indicador visible",
         ),
         (
             "perception.media.inspect",
@@ -271,16 +309,72 @@ fn planned_sensory_capabilities() -> Vec<CapabilityDescriptor> {
             ),
         )
     })
-    .collect()
+    .collect::<Vec<_>>());
+    capabilities
+}
+
+#[allow(clippy::too_many_arguments)]
+fn sensory_capability(
+    id: &str,
+    label: &str,
+    description: &str,
+    adapter: &str,
+    operation: &str,
+    data_scope: &str,
+    effect: CapabilityEffect,
+    runtime_available: bool,
+    active: bool,
+    checked_at: &str,
+    probe_summary: &str,
+) -> CapabilityDescriptor {
+    capability(
+        id,
+        label,
+        description,
+        CapabilityDomain::Perception,
+        CapabilityKind::Observation,
+        CapabilityMaturity::Partial,
+        adapter,
+        &[operation],
+        if active {
+            CapabilityState::Active
+        } else if runtime_available {
+            CapabilityState::Idle
+        } else {
+            CapabilityState::Degraded
+        },
+        CapabilityRisk::High,
+        &[effect, CapabilityEffect::ProcessLaunch],
+        &[data_scope],
+        &[
+            "Grant session R2 vigente",
+            "Indicador persistente y control Detener",
+        ],
+        permission(
+            CapabilityPermissionMode::SessionOptIn,
+            CapabilityPermissionEnforcer::Native,
+            "El Gateway nativo congela dispositivo y duración antes de abrir el hardware.",
+        ),
+        health(
+            if runtime_available {
+                CapabilityHealthStatus::Healthy
+            } else {
+                CapabilityHealthStatus::Degraded
+            },
+            probe_summary,
+            Some(checked_at),
+        ),
+    )
 }
 
 #[tauri::command]
 pub(crate) fn capability_registry_status(
     app: AppHandle,
     observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
 ) -> Result<CapabilityRegistrySnapshot, String> {
     let data_root = alice_data_root_path(&app)?;
-    let probes = CapabilityProbeSnapshot::collect(&data_root, &observation_store);
+    let probes = CapabilityProbeSnapshot::collect(&data_root, &observation_store, &sensor_store);
     capability_registry_from_probes(current_utc_timestamp()?, &probes)
 }
 
@@ -1293,6 +1387,7 @@ mod tests {
                 available: false,
                 size_bytes: 0,
             }),
+            sensory: Err("runtime sensorial no disponible en fixture".into()),
         }
     }
 
@@ -1602,7 +1697,7 @@ mod tests {
             .iter()
             .filter(|capability| capability.maturity == CapabilityMaturity::Planned)
             .collect::<Vec<_>>();
-        assert_eq!(planned.len(), 12);
+        assert_eq!(planned.len(), 10);
         assert!(planned.iter().all(|capability| {
             capability.state == CapabilityState::Unavailable
                 && capability.adapter == "none"
@@ -1612,8 +1707,6 @@ mod tests {
 
         for id in [
             "perception.screen.observe",
-            "perception.camera.observe",
-            "perception.microphone.observe",
             "perception.media.inspect",
             "perception.desktop.observe",
             "perception.gesture.derive",
@@ -1625,6 +1718,27 @@ mod tests {
             assert_eq!(
                 capability.permission.mode,
                 CapabilityPermissionMode::SessionOptIn
+            );
+        }
+
+        for (id, effect) in [
+            ("perception.camera.observe", CapabilityEffect::CameraObserve),
+            (
+                "perception.microphone.observe",
+                CapabilityEffect::MicrophoneObserve,
+            ),
+        ] {
+            let capability = registered(&snapshot, id);
+            assert_eq!(capability.maturity, CapabilityMaturity::Partial);
+            assert_eq!(capability.state, CapabilityState::Degraded);
+            assert_eq!(capability.health.status, CapabilityHealthStatus::Degraded);
+            assert_eq!(
+                capability.permission.enforced_by,
+                CapabilityPermissionEnforcer::Native
+            );
+            assert_eq!(
+                capability.effects,
+                vec![effect, CapabilityEffect::ProcessLaunch]
             );
         }
     }
@@ -1722,7 +1836,11 @@ mod tests {
         ));
         assert!(!root.exists());
 
-        let probes = CapabilityProbeSnapshot::collect(&root, &ObservationStore::default());
+        let probes = CapabilityProbeSnapshot::collect(
+            &root,
+            &ObservationStore::default(),
+            &SensorLeaseStore::default(),
+        );
         let snapshot = registry(&probes);
 
         assert_eq!(snapshot.capabilities.len(), 24);

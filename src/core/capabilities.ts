@@ -13,7 +13,9 @@ export type CapabilityEffect =
   | "processLaunch"
   | "windowMetadataRead"
   | "credentialPresenceRead"
-  | "assetRender";
+  | "assetRender"
+  | "cameraObserve"
+  | "microphoneObserve";
 export type CapabilityHealthStatus = "unchecked" | "healthy" | "degraded" | "unavailable" | "error";
 export type CapabilityPermissionMode = "implicitRead" | "sessionOptIn" | "explicitPreview" | "explicitConfirmation";
 export type CapabilityPermissionEnforcer = "native" | "currentUi" | "operatingSystem" | "none";
@@ -68,7 +70,7 @@ const kinds = ["observation", "query", "mutation", "export", "process", "present
 const maturities = ["implemented", "partial", "planned"] as const;
 const states = ["unavailable", "disabled", "idle", "active", "degraded", "error"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
-const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "credentialPresenceRead", "assetRender"] as const;
+const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "credentialPresenceRead", "assetRender", "cameraObserve", "microphoneObserve"] as const;
 const healthStatuses = ["unchecked", "healthy", "degraded", "unavailable", "error"] as const;
 const permissionModes = ["implicitRead", "sessionOptIn", "explicitPreview", "explicitConfirmation"] as const;
 const permissionEnforcers = ["native", "currentUi", "operatingSystem", "none"] as const;
