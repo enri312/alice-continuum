@@ -107,7 +107,7 @@ Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](do
 
 ## Matriz cognitivo-afectiva
 
-El volumen neuronal distingue ahora estructura disponible de actividad real: los circuitos inactivos permanecen tenues y solamente los nodos activados brillan o pulsan. El núcleo central representa identidad técnica y correlación R3, no conciencia.
+El volumen neuronal distingue ahora estructura disponible de actividad real: los circuitos inactivos permanecen tenues y solamente los nodos activados brillan o pulsan. La visualización es una nube continua de nodos corticales y asociaciones internas; no dibuja un objeto central ni representa conciencia.
 
 La paleta futura incluye Alegría amarilla, Tristeza azul, Ira roja, Temor violeta, Desagrado verde, Ansiedad naranja, Envidia turquesa, Aburrimiento índigo, Vergüenza rosa y Nostalgia gris rosado. Los diez valores siguen en `0.00` y `planned`; todavía no existe simulación emocional. Consulta el [diseño afectivo](docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md), [ADR-P-046](docs/decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md) y el [informe visual](docs/testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md).
 

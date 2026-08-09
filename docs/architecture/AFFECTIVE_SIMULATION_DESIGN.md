@@ -34,6 +34,7 @@ Nostalgia usa gris rosado para separarse del rosa vivo de Vergüenza.
 - Cada canal permanece actualmente en `0.00` y estado `planned`.
 - La interfaz muestra `CAPA AFECTIVA · EN ESPERA · SIN DOMINANTE` mientras no exista evidencia.
 - La densidad de memoria y la activación cognitiva continúan siendo métricas separadas.
+- Las asociaciones internas enlazan la nube completa sin un objeto central superpuesto.
 
 ## Evidencia necesaria para el motor
 

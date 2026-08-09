@@ -9,7 +9,7 @@ El volumen anterior utilizaba tres colores para entrada, memoria y salida y ocul
 
 ## Decisión
 
-- Rediseñar el volumen como matriz cognitivo-afectiva de dos lóbulos y un núcleo de identidad.
+- Rediseñar el volumen como una nube cognitivo-afectiva continua, formada por regiones corticales y asociaciones internas distribuidas.
 - Mantener visible la estructura completa con baja intensidad.
 - Reservar brillo, tamaño y pulso para actividad calculada desde datos reales.
 - Definir diez canales cromáticos propios inspirados en asociaciones de *Intensamente 2*.

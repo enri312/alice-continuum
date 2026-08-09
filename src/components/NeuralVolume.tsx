@@ -13,7 +13,7 @@ type NeuralVolumeProps = {
   snapshot: BrainSnapshot;
 };
 
-type Point = { x: number; y: number; z: number; group: BrainGroup; phase: number; reveal: number; affectIndex: number; layer: "cortex" | "core" };
+type Point = { x: number; y: number; z: number; group: BrainGroup; phase: number; reveal: number; affectIndex: number; layer: "cortex" | "association"; prominence: number };
 type Edge = { from: number; to: number; kind: "local" | "association" | "bridge" };
 type InteractionMode = "rotate" | "pan";
 type Camera = { yaw: number; pitch: number; zoom: number; panX: number; panY: number };
@@ -36,7 +36,7 @@ function createVolume() {
   const random = randomGenerator(0xa11ce);
   const points: Point[] = [];
   const hemisphereIndices: number[][] = [[], []];
-  const coreIndices: number[] = [];
+  const associationIndices: number[] = [];
   const pointsPerHemisphere = 520;
 
   for (let sideIndex = 0; sideIndex < 2; sideIndex += 1) {
@@ -62,25 +62,27 @@ function createVolume() {
         reveal: random(),
         affectIndex: Math.floor((((theta / (Math.PI * 2)) + vertical * .13 + sideIndex * .19 + 2) % 1) * affectPalette.length),
         layer: "cortex",
+        prominence: random() > .965 ? 2.5 + random() * 1.6 : 1,
       });
     }
   }
 
-  for (let index = 0; index < 180; index += 1) {
-    const radius = .06 + Math.pow(random(), .6) * .38;
+  for (let index = 0; index < 280; index += 1) {
+    const radius = .05 + Math.pow(random(), .58) * .54;
     const theta = random() * Math.PI * 2;
     const vertical = random() * 2 - 1;
     const radial = Math.sqrt(1 - vertical * vertical);
-    coreIndices.push(points.length);
+    associationIndices.push(points.length);
     points.push({
-      x: Math.cos(theta) * radial * radius * .68,
-      y: vertical * radius * 1.25,
-      z: Math.sin(theta) * radial * radius,
+      x: Math.cos(theta) * radial * radius * 1.08,
+      y: vertical * radius * 1.18,
+      z: Math.sin(theta) * radial * radius * 1.08,
       group: "memory",
       phase: random() * Math.PI * 2,
       reveal: random() * .86,
       affectIndex: Math.floor(random() * affectPalette.length),
-      layer: "core",
+      layer: "association",
+      prominence: random() > .91 ? 2.7 + random() * 1.9 : 1.18,
     });
   }
 
@@ -116,10 +118,10 @@ function createVolume() {
     }
   }
 
-  for (let index = 0; index < coreIndices.length; index += 1) {
-    const from = coreIndices[index];
+  for (let index = 0; index < associationIndices.length; index += 1) {
+    const from = associationIndices[index];
     const origin = points[from];
-    const nearest = coreIndices
+    const nearest = associationIndices
       .filter((candidate) => candidate !== from)
       .map((candidate) => {
         const target = points[candidate];
@@ -132,11 +134,11 @@ function createVolume() {
     nearest.slice(0, 4).forEach((neighbor) => addEdge(from, neighbor.candidate, "local"));
   }
 
-  for (let index = 0; index < 110; index += 1) {
-    const core = coreIndices[Math.floor(random() * coreIndices.length)];
+  for (let index = 0; index < 180; index += 1) {
+    const association = associationIndices[Math.floor(random() * associationIndices.length)];
     const side = index % 2;
     const cortex = hemisphereIndices[side][Math.floor(random() * hemisphereIndices[side].length)];
-    addEdge(core, cortex, "bridge");
+    addEdge(association, cortex, "bridge");
   }
 
   const leftBridge = hemisphereIndices[0].filter((index) => Math.abs(points[index].x) < .38);
@@ -330,22 +332,6 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       context.fillStyle = glow;
       context.fillRect(0, 0, width, height);
 
-      const coreX = width / 2 + cameraRef.current.panX;
-      const coreY = height / 2 + cameraRef.current.panY;
-      context.save();
-      context.translate(coreX, coreY);
-      context.rotate(automaticYaw * .32);
-      for (let ring = 0; ring < 4; ring += 1) {
-        context.beginPath();
-        context.ellipse(0, 0, width * (.052 + ring * .018) * cameraRef.current.zoom, height * (.12 + ring * .027) * cameraRef.current.zoom, ring * .44, 0, Math.PI * 2);
-        context.strokeStyle = ring % 2
-          ? `rgba(125,211,252,${.13 - ring * .018})`
-          : `rgba(216,180,254,${.16 - ring * .02})`;
-        context.lineWidth = ring === 0 ? 1.2 : .65;
-        context.stroke();
-      }
-      context.restore();
-
       context.globalCompositeOperation = "lighter";
       for (const edge of volume.edges) {
         const fromPoint = volume.points[edge.from];
@@ -380,12 +366,12 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
         const pulse = !isActive || reduceMotion ? 1 : .72 + Math.sin(time * (busy ? .006 : .0022) + point.phase) * .28;
         const zoomScale = Math.sqrt(clamp(cameraRef.current.zoom, .7, 1.9));
-        const layerScale = point.layer === "core" ? 1.42 : 1;
-        const radius = (isActive ? 1.82 : .72) * layerScale * screen.perspective * (busy ? 1.08 : 1) * pulse * zoomScale * (1 + affectActivation * .38);
-        const alpha = isActive ? Math.min(.98, .5 + (screen.z + 1) * .22) : point.layer === "core" ? .18 : .095;
-        if (isActive && (index % 17 === 0 || point.layer === "core" && index % 7 === 0)) {
+        const layerScale = point.layer === "association" ? 1.12 : 1;
+        const radius = (isActive ? 1.82 : .72) * layerScale * point.prominence * screen.perspective * (busy ? 1.08 : 1) * pulse * zoomScale * (1 + affectActivation * .38);
+        const alpha = isActive ? Math.min(.98, .5 + (screen.z + 1) * .22) : point.layer === "association" ? .16 : .095;
+        if (isActive && (point.prominence > 1 || index % 17 === 0)) {
           context.shadowColor = `rgba(${red},${green},${blue},.8)`;
-          context.shadowBlur = point.layer === "core" ? 12 : 8;
+          context.shadowBlur = point.prominence > 1 ? 13 : 8;
         }
         context.fillStyle = `rgba(${red},${green},${blue},${alpha})`;
         context.beginPath();
@@ -394,17 +380,6 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         context.shadowBlur = 0;
       }
       context.globalCompositeOperation = "source-over";
-
-      const corePulse = reduceMotion ? 1 : .92 + Math.sin(time * .0014) * .08;
-      const coreGradient = context.createRadialGradient(coreX, coreY, 0, coreX, coreY, 34 * cameraRef.current.zoom * corePulse);
-      coreGradient.addColorStop(0, "rgba(248,250,252,.96)");
-      coreGradient.addColorStop(.12, "rgba(216,180,254,.72)");
-      coreGradient.addColorStop(.48, "rgba(56,189,248,.22)");
-      coreGradient.addColorStop(1, "rgba(2,6,23,0)");
-      context.fillStyle = coreGradient;
-      context.beginPath();
-      context.arc(coreX, coreY, 35 * cameraRef.current.zoom * corePulse, 0, Math.PI * 2);
-      context.fill();
 
       if (!reduceMotion) animationFrame = window.requestAnimationFrame(draw);
     };
@@ -433,7 +408,6 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
       <span className="volume-growth">ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVACIÓN {Math.round(snapshot.neuralDensity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
       <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "EN ESPERA · SIN DOMINANTE"}</small></span></div>
-      <div className="volume-core-label"><span>ALICE</span><strong>SELF MODEL</strong><small>R3 SIGNAL CORE</small></div>
       <div className="volume-affect-palette" aria-label="Paleta de canales afectivos planificados">
         <header><strong>PALETA AFECTIVA</strong><span>COLOR = CIRCUITO · BRILLO = ACTIVIDAD</span></header>
         <div>{snapshot.affectChannels.map((channel) => <span key={channel.id} title={`${channel.label}: ${channel.role}. Estado ${channel.availability === "ready" ? "disponible" : "planificado"}.`} style={{ "--affect-color": channel.color } as CSSProperties}><i />{channel.label}<small>{channel.value.toFixed(2)}</small></span>)}</div>

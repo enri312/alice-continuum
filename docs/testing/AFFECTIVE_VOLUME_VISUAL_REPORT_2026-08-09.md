@@ -6,7 +6,7 @@ Alcance: presentación y contrato de canales; motor afectivo no implementado
 
 ## Cambios verificados
 
-- Dos lóbulos cognitivos conectados a un núcleo central `ALICE / SELF MODEL`.
+- Una nube cognitiva continua: dos regiones corticales enlazadas por asociaciones internas, sin objeto central superpuesto.
 - Estructura completa tenue, independiente de la fracción activa.
 - Nodos activos con mayor brillo, tamaño y pulso.
 - Diez circuitos cromáticos identificables.
@@ -24,7 +24,7 @@ Se capturaron la página completa y el componente enfocado fuera del repositorio
 
 - ausencia de solapamiento entre ayuda, controles y paleta;
 - lectura completa de los diez canales;
-- núcleo central distinguible;
+- asociaciones internas densas y nodos jerárquicos integrados en la nube;
 - estructura inactiva visible sin confundirse con pulsos activos;
 - distribución multicolor estable durante la rotación;
 - ninguna imagen de personajes o recurso de Disney/Pixar incluido.
