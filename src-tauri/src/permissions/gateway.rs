@@ -4,7 +4,7 @@ use super::{
     PermissionMode, PermissionRequestDraft, PermissionRequestState, PreparedPermissionRequest,
     UtcInstant, MAX_SESSION_DURATION_SECONDS, PERMISSION_GATEWAY_SCHEMA_VERSION,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard};
@@ -46,6 +46,34 @@ pub(crate) struct AuthorizedExecution {
 pub(crate) struct ExpirationSummary {
     pub(crate) requests: usize,
     pub(crate) grants: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PermissionGatewayStatus {
+    pub(crate) schema_version: u32,
+    pub(crate) generated_at: String,
+    pub(crate) policy: PermissionGatewayPolicy,
+    pub(crate) limits: PermissionGatewayLimits,
+    pub(crate) requests: Vec<PreparedPermissionRequest>,
+    pub(crate) grants: Vec<PermissionGrant>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PermissionGatewayPolicy {
+    pub(crate) deny_by_default: bool,
+    pub(crate) persistent_grants: bool,
+    pub(crate) r2_decision_commands_exposed: bool,
+    pub(crate) r2_execution_commands_exposed: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PermissionGatewayLimits {
+    pub(crate) high_risk_decision_ttl_seconds: u64,
+    pub(crate) standard_decision_ttl_seconds: u64,
+    pub(crate) maximum_session_duration_seconds: u32,
 }
 
 #[derive(Serialize)]
@@ -153,6 +181,10 @@ impl PermissionGateway {
 
     pub(crate) fn expire(&self) -> Result<ExpirationSummary, String> {
         self.expire_at(current_utc_instant()?)
+    }
+
+    pub(crate) fn status(&self) -> Result<PermissionGatewayStatus, String> {
+        self.status_at(current_utc_instant()?)
     }
 
     pub(crate) fn request(&self, request_id: &str) -> Result<PreparedPermissionRequest, String> {
@@ -409,6 +441,42 @@ impl PermissionGateway {
             }
         }
         Ok(summary)
+    }
+
+    fn status_at(&self, now: UtcInstant) -> Result<PermissionGatewayStatus, String> {
+        self.expire_at(now)?;
+        let store = self.lock_store()?;
+        for stored in store.requests.values() {
+            verify_stored_request(stored)?;
+        }
+        for grant in store.grants.values() {
+            grant.validate()?;
+        }
+        let mut requests: Vec<_> = store
+            .requests
+            .values()
+            .map(|stored| stored.preview.clone())
+            .collect();
+        requests.sort_by(|left, right| left.request_id.cmp(&right.request_id));
+        let mut grants: Vec<_> = store.grants.values().cloned().collect();
+        grants.sort_by(|left, right| left.grant_id.cmp(&right.grant_id));
+        Ok(PermissionGatewayStatus {
+            schema_version: PERMISSION_GATEWAY_SCHEMA_VERSION,
+            generated_at: format_utc_timestamp(now)?,
+            policy: PermissionGatewayPolicy {
+                deny_by_default: true,
+                persistent_grants: false,
+                r2_decision_commands_exposed: false,
+                r2_execution_commands_exposed: false,
+            },
+            limits: PermissionGatewayLimits {
+                high_risk_decision_ttl_seconds: super::HIGH_RISK_DECISION_TTL_SECONDS,
+                standard_decision_ttl_seconds: super::STANDARD_DECISION_TTL_SECONDS,
+                maximum_session_duration_seconds: MAX_SESSION_DURATION_SECONDS,
+            },
+            requests,
+            grants,
+        })
     }
 
     fn lock_store(&self) -> Result<MutexGuard<'_, PermissionGatewayStore>, String> {
@@ -891,6 +959,49 @@ mod tests {
             .collect();
         assert_eq!(ids.len(), 1);
         assert_eq!(gateway.lock_store().unwrap().requests.len(), 1);
+    }
+
+    #[test]
+    fn status_is_native_read_only_and_reports_the_fixed_policy() {
+        let gateway = PermissionGateway::default();
+        let status = gateway.status_at(at("2026-08-09T14:00:00Z")).unwrap();
+
+        assert_eq!(status.schema_version, PERMISSION_GATEWAY_SCHEMA_VERSION);
+        assert_eq!(status.generated_at, "2026-08-09T14:00:00Z");
+        assert!(status.policy.deny_by_default);
+        assert!(!status.policy.persistent_grants);
+        assert!(!status.policy.r2_decision_commands_exposed);
+        assert!(!status.policy.r2_execution_commands_exposed);
+        assert_eq!(status.limits.high_risk_decision_ttl_seconds, 60);
+        assert_eq!(status.limits.standard_decision_ttl_seconds, 300);
+        assert_eq!(status.limits.maximum_session_duration_seconds, 300);
+        assert!(status.requests.is_empty());
+        assert!(status.grants.is_empty());
+    }
+
+    #[test]
+    fn status_exposes_preview_digests_but_never_private_parameters() {
+        let gateway = PermissionGateway::default();
+        prepare_one_shot(&gateway, "gateway-status-0001");
+        let status = gateway.status_at(at("2026-08-09T14:00:10Z")).unwrap();
+        let serialized = serde_json::to_string(&status).unwrap();
+
+        assert_eq!(status.requests.len(), 1);
+        assert!(status.grants.is_empty());
+        assert!(serialized.contains("executionPlanDigest"));
+        assert!(!serialized.contains("foregroundWindow"));
+        assert!(!serialized.contains("\"enabled\""));
+    }
+
+    #[test]
+    fn status_expires_pending_requests_before_returning_them() {
+        let gateway = PermissionGateway::default();
+        let request = prepare_one_shot(&gateway, "gateway-status-exp1");
+        let status = gateway.status_at(at("2026-08-09T14:01:00Z")).unwrap();
+
+        assert_eq!(status.requests.len(), 1);
+        assert_eq!(status.requests[0].request_id, request.request_id);
+        assert_eq!(status.requests[0].state, PermissionRequestState::Expired);
     }
 
     #[test]

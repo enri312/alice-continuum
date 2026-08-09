@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · tipos y almacén efímero nativos validados  
+**Estado:** en curso · consulta y preparación nativas validadas; decisión pendiente  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 ya dispone de tipos, digest SHA-256, planes privados congelados, almacén efímero y máquina de estados nativos, con 24 pruebas específicas. El siguiente incremento permitido es exponer únicamente consulta de estado y preparación mediante comandos Tauri, sin capacidad de aprobar, ejecutar ni abrir dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
+La **Fase R1 — Registro de capacidades** está completada. R2 ya expone consulta de estado y preparación limitada a `context.foreground.control`, con contrato TypeScript defensivo y fallback web vacío. El siguiente incremento permitido es exponer decisión, cancelación y revocación y construir su diálogo accesible; todavía no se migrará el comando de observación ni se abrirán dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
 
 ## Identidad adoptada — Alice Cognitive Core
 

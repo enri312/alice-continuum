@@ -5,7 +5,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 mod gateway;
 
-pub(crate) use gateway::PermissionGateway;
+pub(crate) use gateway::{PermissionGateway, PermissionGatewayStatus};
+use serde_json::json;
+use tauri::State;
 
 pub(crate) const PERMISSION_GATEWAY_SCHEMA_VERSION: u32 = 1;
 pub(crate) const HIGH_RISK_DECISION_TTL_SECONDS: u64 = 60;
@@ -18,6 +20,93 @@ const MAX_PURPOSE_LENGTH: usize = 280;
 const MAX_SUMMARY_LENGTH: usize = 320;
 const MAX_WARNING_LENGTH: usize = 240;
 const MAX_RESOURCE_LABEL_LENGTH: usize = 160;
+
+const FOREGROUND_CONTROL_CAPABILITY: &str = "context.foreground.control";
+const FOREGROUND_CONTROL_OPERATION: &str = "setContextObservationEnabled";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PreparePermissionRequestInput {
+    pub(crate) idempotency_key: String,
+    pub(crate) capability_id: String,
+    pub(crate) operation: String,
+    pub(crate) purpose: String,
+    pub(crate) parameters: ForegroundControlParameters,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ForegroundControlParameters {
+    pub(crate) enabled: bool,
+}
+
+#[tauri::command]
+pub(crate) fn permission_gateway_status(
+    gateway: State<'_, PermissionGateway>,
+) -> Result<PermissionGatewayStatus, String> {
+    gateway.status()
+}
+
+#[tauri::command]
+pub(crate) fn prepare_permission_request(
+    input: PreparePermissionRequestInput,
+    gateway: State<'_, PermissionGateway>,
+) -> Result<PreparedPermissionRequest, String> {
+    prepare_supported_permission_request(&gateway, input)
+}
+
+fn prepare_supported_permission_request(
+    gateway: &PermissionGateway,
+    input: PreparePermissionRequestInput,
+) -> Result<PreparedPermissionRequest, String> {
+    if input.capability_id != FOREGROUND_CONTROL_CAPABILITY
+        || input.operation != FOREGROUND_CONTROL_OPERATION
+    {
+        return Err(
+            "R2 solo permite preparar context.foreground.control/setContextObservationEnabled en este incremento"
+                .into(),
+        );
+    }
+
+    let enabled = input.parameters.enabled;
+    let draft = PermissionRequestDraft {
+        schema_version: PERMISSION_GATEWAY_SCHEMA_VERSION,
+        request_id: "assigned_by_gateway".into(),
+        idempotency_key: input.idempotency_key,
+        capability_id: input.capability_id,
+        capability_version: 1,
+        operation: input.operation,
+        mode: if enabled {
+            PermissionMode::Session
+        } else {
+            PermissionMode::OneShot
+        },
+        purpose: input.purpose,
+        resource: PermissionResource {
+            kind: PermissionResourceKind::Window,
+            stable_id: "foreground-window".into(),
+            label: "Ventana en primer plano".into(),
+        },
+        data_scopes: vec!["windowMetadata".into()],
+        effects: vec![PermissionEffect::WindowMetadataRead],
+        risk: PermissionRisk::Medium,
+        created_at: "1970-01-01T00:00:00Z".into(),
+        decision_expires_at: "1970-01-01T00:00:01Z".into(),
+        requested_duration_seconds: enabled.then_some(MAX_SESSION_DURATION_SECONDS),
+        maximum_duration_seconds: enabled.then_some(MAX_SESSION_DURATION_SECONDS),
+        summary: if enabled {
+            "Alice solicita observar temporalmente los metadatos de la ventana activa.".into()
+        } else {
+            "Alice solicita detener la observación de la ventana activa.".into()
+        },
+        warnings: if enabled {
+            vec!["El título y proceso de la aplicación activa serán visibles localmente.".into()]
+        } else {
+            Vec::new()
+        },
+    };
+    gateway.prepare_request(draft, json!({ "enabled": enabled }))
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -1049,6 +1138,125 @@ mod tests {
         session.state = PermissionGrantState::Active;
         session.remaining_uses = None;
         session.validate().unwrap();
+    }
+
+    #[test]
+    fn supported_preparation_builds_a_pending_session_without_a_grant() {
+        let gateway = PermissionGateway::default();
+        let request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "prepare-context-001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Observar la aplicación activa durante esta sesión.".into(),
+                parameters: ForegroundControlParameters { enabled: true },
+            },
+        )
+        .unwrap();
+        let status = gateway.status().unwrap();
+
+        assert_eq!(request.mode, PermissionMode::Session);
+        assert_eq!(request.state, PermissionRequestState::AwaitingDecision);
+        assert_eq!(request.requested_duration_seconds, Some(300));
+        assert_eq!(status.requests, vec![request]);
+        assert!(status.grants.is_empty());
+    }
+
+    #[test]
+    fn supported_stop_preparation_is_one_shot_and_does_not_execute() {
+        let gateway = PermissionGateway::default();
+        let request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "prepare-context-002".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Detener la observación de la aplicación activa.".into(),
+                parameters: ForegroundControlParameters { enabled: false },
+            },
+        )
+        .unwrap();
+
+        assert_eq!(request.mode, PermissionMode::OneShot);
+        assert_eq!(request.requested_duration_seconds, None);
+        assert_eq!(request.maximum_duration_seconds, None);
+        assert!(gateway.status().unwrap().grants.is_empty());
+    }
+
+    #[test]
+    fn preparation_rejects_unmigrated_capabilities_without_storing_anything() {
+        let gateway = PermissionGateway::default();
+        let error = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "prepare-camera-0001".into(),
+                capability_id: "perception.camera.observe".into(),
+                operation: "observeAuthorizedCamera".into(),
+                purpose: "Intento que todavía no está autorizado.".into(),
+                parameters: ForegroundControlParameters { enabled: true },
+            },
+        )
+        .unwrap_err();
+
+        assert!(error.contains("solo permite preparar"));
+        assert!(gateway.status().unwrap().requests.is_empty());
+    }
+
+    #[test]
+    fn preparation_input_rejects_unknown_top_level_and_parameter_fields() {
+        let input = json!({
+            "idempotencyKey": "prepare-context-003",
+            "capabilityId": FOREGROUND_CONTROL_CAPABILITY,
+            "operation": FOREGROUND_CONTROL_OPERATION,
+            "purpose": "Preparar sin ejecutar.",
+            "parameters": { "enabled": true }
+        });
+        serde_json::from_value::<PreparePermissionRequestInput>(input.clone()).unwrap();
+
+        let mut unknown_top = input.clone();
+        unknown_top["executeNow"] = json!(true);
+        assert!(
+            serde_json::from_value::<PreparePermissionRequestInput>(unknown_top)
+                .unwrap_err()
+                .to_string()
+                .contains("unknown field")
+        );
+
+        let mut unknown_parameter = input;
+        unknown_parameter["parameters"]["deviceId"] = json!("camera");
+        assert!(
+            serde_json::from_value::<PreparePermissionRequestInput>(unknown_parameter)
+                .unwrap_err()
+                .to_string()
+                .contains("unknown field")
+        );
+    }
+
+    #[test]
+    fn repeated_status_and_preparation_do_not_create_a_data_directory() {
+        let gateway = PermissionGateway::default();
+        let absent =
+            std::env::temp_dir().join(format!("alice-r2-no-write-{}", uuid::Uuid::new_v4()));
+        assert!(!absent.exists());
+        for _ in 0..5 {
+            let request = prepare_supported_permission_request(
+                &gateway,
+                PreparePermissionRequestInput {
+                    idempotency_key: "prepare-no-write-01".into(),
+                    capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                    operation: FOREGROUND_CONTROL_OPERATION.into(),
+                    purpose: "Comprobar preparación efímera sin archivos.".into(),
+                    parameters: ForegroundControlParameters { enabled: false },
+                },
+            )
+            .unwrap();
+            assert_eq!(request.state, PermissionRequestState::AwaitingDecision);
+            gateway.status().unwrap();
+        }
+        assert!(!absent.exists());
+        assert_eq!(gateway.status().unwrap().requests.len(), 1);
+        assert!(gateway.status().unwrap().grants.is_empty());
     }
 
     #[test]

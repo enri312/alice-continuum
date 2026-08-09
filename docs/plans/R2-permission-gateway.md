@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; pasos 1 y 2 completados  
+Estado: implementación en curso; pasos 1 a 3 completados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -30,7 +30,7 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** completado en `src-tauri/src/permissions/gateway.rs`. El almacén vive en `State<PermissionGateway>`, retiene el plan JSON congelado, usa UUID v4, resuelve idempotencia bajo `Mutex` y elimina todo al terminar el proceso. Doce pruebas nuevas cubren transiciones, integridad, 12 reintentos concurrentes y un lote real de 1.000 IDs sin repeticiones; la batería Rust alcanza 60 pruebas. No hay comandos R2 registrados.
 
-## Paso 3 — Consulta y preparación
+## Paso 3 — Consulta y preparación ✅
 
 - Registrar `permission_gateway_status`.
 - Registrar `prepare_permission_request` sin capacidad de ejecutar.
@@ -38,6 +38,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - Crear fallback web vacío y marcado como desarrollo.
 
 **Puerta:** llamadas repetidas no escriben `data/`, no abren dispositivos y no crean grants.
+
+**Resultado 2026-08-09:** `permission_gateway_status` y `prepare_permission_request` registrados. La preparación solo acepta el perfil nativo de `context.foreground.control`; cualquier capacidad no migrada se rechaza antes del almacén. El estado omite parámetros privados y declara ejecución deshabilitada. Ocho pruebas Rust nuevas y ocho TypeScript elevan las baterías a 68 y 53 respectivamente; no se crean grants ni archivos.
 
 ## Paso 4 — Decisión y revocación
 

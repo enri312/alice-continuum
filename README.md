@@ -2,9 +2,9 @@
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
-![R2](https://img.shields.io/badge/R2-almac%C3%A9n%20validado-d97706?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-45%2F45%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-60%2F60%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R2](https://img.shields.io/badge/R2-consulta%20%2B%20preparaci%C3%B3n-d97706?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-53%2F53%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-68%2F68%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
 ![Windows](https://img.shields.io/badge/plataforma-Windows-0078d4?style=flat-square&logo=windows11&logoColor=white)
@@ -25,11 +25,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
-| Gateway de permisos R2 | Tipos y almacén efímero nativos aprobados; comandos todavía no registrados |
+| Gateway de permisos R2 | Consulta y preparación nativas; aprobación y ejecución todavía no expuestas |
 | Capacidades implementadas o parciales | 12 |
 | Capacidades planificadas | 12, todas sin adaptador y no disponibles |
-| Pruebas TypeScript | 45/45 aprobadas |
-| Pruebas Rust | 60/60 aprobadas |
+| Pruebas TypeScript | 53/53 aprobadas |
+| Pruebas Rust | 68/68 aprobadas |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Memoria real | Nueve archivos preservados durante consultas repetidas del registro |
 | Avatar privado | Preservado y excluido de Git |
@@ -136,7 +136,7 @@ La memoria es visible, editable, exportable y respaldable. Las auditorías conse
 src/
 ├── Page/                 pantallas React
 ├── components/           paneles, iconos y visualizaciones
-└── core/                 contratos y lógica TypeScript comprobable
+└── core/                 contratos R1/R2 y lógica TypeScript comprobable
 
 src-tauri/src/
 ├── capabilities.rs       registro R1 y sondas pasivas

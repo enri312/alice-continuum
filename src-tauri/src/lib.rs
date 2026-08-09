@@ -3,8 +3,8 @@ mod capabilities;
 mod cloud;
 mod memory;
 mod observation;
-// R2 comienza por un contrato nativo aislado. Los comandos se registrarán en un
-// incremento posterior, después de probar el almacén y la máquina de estados.
+// Solo consulta y preparación están expuestas en este incremento de R2. Las
+// decisiones, grants y ejecuciones continúan aisladas dentro del backend.
 #[allow(dead_code)]
 mod permissions;
 mod util;
@@ -19,7 +19,7 @@ use observation::{
     get_foreground_context, set_context_observation_enabled, spawn_observer_thread,
     ObservationStore,
 };
-use permissions::PermissionGateway;
+use permissions::{permission_gateway_status, prepare_permission_request, PermissionGateway};
 use tauri::Manager;
 
 pub fn run() {
@@ -37,6 +37,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             capability_registry_status,
+            permission_gateway_status,
+            prepare_permission_request,
             set_context_observation_enabled,
             get_foreground_context,
             load_memory,
