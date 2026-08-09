@@ -1,3 +1,6 @@
+import { createPlannedAffectChannels } from "./affect";
+import type { AffectChannel } from "./affect";
+
 export type BrainGroup = "input" | "memory" | "output";
 
 export type BrainNode = {
@@ -48,6 +51,7 @@ export type BrainSnapshot = {
   flowNodes: BrainFlowNode[];
   stateMetrics: InternalStateMetric[];
   behaviorControls: BehaviorControl[];
+  affectChannels: AffectChannel[];
 };
 
 type BrainInputs = {
@@ -133,5 +137,6 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
       { id: "control-anticipation", label: "Anticipación", value: 0, detail: "Control planificado para preparar transiciones de respuesta; no predice el futuro ni acciones del usuario.", availability: "planned", locked: true },
       { id: "control-speed", label: "Velocidad de estilo", value: 0, detail: "Control planificado para el ritmo expresivo de futuras salidas; no modifica todavía el procesamiento.", availability: "planned", locked: true },
     ],
+    affectChannels: createPlannedAffectChannels(),
   };
 }

@@ -16,7 +16,7 @@ export function Nucleo({ snapshot }: NucleoProps) {
   const [selectedId, setSelectedId] = useState(initialView === "flow" ? "flow-input" : initialView === "state" ? "state-curiosity" : initialView === "planner" ? "planner-response" : "volume-summary");
   const plannerSelected = plannerInspectorItems[selectedId];
   const selected = selectedId === "volume-summary"
-    ? { label: "Volumen neuronal", value: `${snapshot.persistentMemoryCount} recuerdos`, detail: "Vista conjunta de los nodos y conexiones disponibles. Los detalles por módulo se consultan en Flujo cognitivo." }
+    ? { label: "Matriz cognitivo-afectiva", value: `${snapshot.persistentMemoryCount} recuerdos`, detail: "La estructura tenue representa circuitos disponibles; únicamente el brillo y los pulsos representan actividad actual. Los colores identifican canales afectivos todavía apagados." }
     : plannerSelected
       ?? snapshot.nodes.find((node) => node.id === selectedId)
       ?? snapshot.flowNodes.find((node) => node.id === selectedId)
@@ -47,7 +47,7 @@ export function Nucleo({ snapshot }: NucleoProps) {
         </div>
         <aside className="neuro-inspector"><p className="eyebrow">INSPECTOR</p><h3>{selected.label}</h3><span className="inspector-value">{selectedValue}</span><p>{selected.detail}</p><small>Este indicador representa datos implementados o una capacidad futura claramente marcada; no prueba emociones ni conciencia.</small></aside>
       </div>
-      <p className="neuro-footnote">{view === "volume" ? "La red persistente crece con recuerdos locales autorizados. Podés girar, mover y ampliar la vista sin alterar los recuerdos ni sus métricas. El modelo de nube y la conversación actual solo generan actividad temporal; sus puntos son una simulación funcional, no neuronas biológicas ni conocimiento copiado del proveedor." : view === "flow" ? "El flujo muestra por separado qué módulos participaron. Un valor 0.000 significa que no existe actividad registrada; los módulos futuros permanecen apagados." : view === "state" ? "Las señales internas comienzan en cero. Los controles son de solo lectura y no se activarán hasta que su comportamiento esté realmente conectado al sistema." : "El Planificador comienza vacío. No mostrará intención, utilidad, riesgo, novedad ni una traza hasta que cada dato provenga de un cálculo implementado y auditable."}</p>
+      <p className="neuro-footnote">{view === "volume" ? "La red persistente crece con recuerdos locales autorizados. Podés girar, mover y ampliar la vista sin alterar sus datos. La paleta afectiva identifica futuros circuitos de Alegría, Tristeza, Ira, Temor, Desagrado, Ansiedad, Envidia, Aburrimiento, Vergüenza y Nostalgia; todos continúan en 0.00 hasta que exista un simulador auditable. La estructura visible no equivale a actividad ni a conciencia." : view === "flow" ? "El flujo muestra por separado qué módulos participaron. Un valor 0.000 significa que no existe actividad registrada; los módulos futuros permanecen apagados." : view === "state" ? "Las señales internas comienzan en cero. Los controles son de solo lectura y no se activarán hasta que su comportamiento esté realmente conectado al sistema." : "El Planificador comienza vacío. No mostrará intención, utilidad, riesgo, novedad ni una traza hasta que cada dato provenga de un cálculo implementado y auditable."}</p>
     </section>
   );
 }

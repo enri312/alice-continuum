@@ -22,6 +22,8 @@ describe("buildBrainSnapshot", () => {
     expect(snapshot.persistentMemoryCount).toBe(0);
     expect(snapshot.focusStatus).toBe("en espera");
     expect(snapshot.nodes.find((node) => node.id === "memory")?.value).toBe("0 recuerdos");
+    expect(snapshot.affectChannels).toHaveLength(10);
+    expect(snapshot.affectChannels.every((channel) => channel.value === 0 && channel.availability === "planned")).toBe(true);
   });
 
   it("no confunde un proveedor configurado con aprendizaje o actividad", () => {

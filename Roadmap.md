@@ -112,6 +112,15 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 - [ ] El diagnóstico es de solo lectura y no expone secretos.
 - [x] La rotación o crecimiento de auditorías tiene una política documentada.
 
+### Línea transversal — Simulación afectiva explicable
+
+**Estado:** contrato visual implementado; motor pendiente  
+**Dependencia:** R3 para evidencia; R6 para memoria por capas; R9 para expresión
+
+Alice tendrá diez canales funcionales: Alegría, Tristeza, Ira, Temor, Desagrado, Ansiedad, Envidia, Aburrimiento, Vergüenza y Nostalgia. Los colores identifican circuitos y el brillo representa actividad; actualmente todos los canales permanecen en `0.00`, sin emoción dominante.
+
+El futuro motor deberá explicar qué señal modificó cada canal, aplicar decaimiento, separar estado efímero de memoria y permitir desactivar su influencia sobre comportamiento y avatar. No se presentará como conciencia, sentimiento biológico ni diagnóstico del usuario. El diseño completo está en `docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md`.
+
 ### Fase R4 — Taller de habilidades
 
 **Estado:** pendiente  

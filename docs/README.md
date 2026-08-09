@@ -32,6 +32,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 26. [ADR-P-045: auditoría unificada local](decisions/ADR-P-045-auditoria-unificada-local.md)
 27. [Plan de implementación R3](plans/R3-unified-audit.md)
 28. [Informe de la base de auditoría R3](testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md)
+29. [Diseño de simulación afectiva explicable](architecture/AFFECTIVE_SIMULATION_DESIGN.md)
+30. [ADR-P-046: paleta afectiva y volumen cognitivo](decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md)
+31. [Informe visual de la matriz cognitivo-afectiva](testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md)
 
 ## Secciones
 

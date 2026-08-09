@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { BrainGroup, BrainSnapshot } from "../core/brain";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 import rotateIcon from "../../icons/view-rotate.svg?raw";
@@ -6,24 +7,19 @@ import panIcon from "../../icons/view-pan.svg?raw";
 import zoomInIcon from "../../icons/view-zoom-in.svg?raw";
 import zoomOutIcon from "../../icons/view-zoom-out.svg?raw";
 import resetIcon from "../../icons/view-reset.svg?raw";
+import { affectPalette } from "../core/affect";
 
 type NeuralVolumeProps = {
   snapshot: BrainSnapshot;
 };
 
-type Point = { x: number; y: number; z: number; group: BrainGroup; phase: number; reveal: number };
+type Point = { x: number; y: number; z: number; group: BrainGroup; phase: number; reveal: number; affectIndex: number; layer: "cortex" | "core" };
 type Edge = { from: number; to: number; kind: "local" | "association" | "bridge" };
 type InteractionMode = "rotate" | "pan";
 type Camera = { yaw: number; pitch: number; zoom: number; panX: number; panY: number };
 
 const initialCamera: Camera = { yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 };
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
-
-const colors: Record<Point["group"], [number, number, number]> = {
-  input: [45, 212, 191],
-  memory: [56, 189, 248],
-  output: [251, 191, 36],
-};
 
 function randomGenerator(seed: number) {
   let value = seed >>> 0;
@@ -40,7 +36,8 @@ function createVolume() {
   const random = randomGenerator(0xa11ce);
   const points: Point[] = [];
   const hemisphereIndices: number[][] = [[], []];
-  const pointsPerHemisphere = 480;
+  const coreIndices: number[] = [];
+  const pointsPerHemisphere = 520;
 
   for (let sideIndex = 0; sideIndex < 2; sideIndex += 1) {
     const side = sideIndex === 0 ? -1 : 1;
@@ -63,8 +60,28 @@ function createVolume() {
         group,
         phase: random() * Math.PI * 2,
         reveal: random(),
+        affectIndex: Math.floor((((theta / (Math.PI * 2)) + vertical * .13 + sideIndex * .19 + 2) % 1) * affectPalette.length),
+        layer: "cortex",
       });
     }
+  }
+
+  for (let index = 0; index < 180; index += 1) {
+    const radius = .06 + Math.pow(random(), .6) * .38;
+    const theta = random() * Math.PI * 2;
+    const vertical = random() * 2 - 1;
+    const radial = Math.sqrt(1 - vertical * vertical);
+    coreIndices.push(points.length);
+    points.push({
+      x: Math.cos(theta) * radial * radius * .68,
+      y: vertical * radius * 1.25,
+      z: Math.sin(theta) * radial * radius,
+      group: "memory",
+      phase: random() * Math.PI * 2,
+      reveal: random() * .86,
+      affectIndex: Math.floor(random() * affectPalette.length),
+      layer: "core",
+    });
   }
 
   const edges: Edge[] = [];
@@ -99,6 +116,29 @@ function createVolume() {
     }
   }
 
+  for (let index = 0; index < coreIndices.length; index += 1) {
+    const from = coreIndices[index];
+    const origin = points[from];
+    const nearest = coreIndices
+      .filter((candidate) => candidate !== from)
+      .map((candidate) => {
+        const target = points[candidate];
+        const dx = origin.x - target.x;
+        const dy = origin.y - target.y;
+        const dz = origin.z - target.z;
+        return { candidate, distance: dx * dx + dy * dy + dz * dz };
+      })
+      .sort((left, right) => left.distance - right.distance);
+    nearest.slice(0, 4).forEach((neighbor) => addEdge(from, neighbor.candidate, "local"));
+  }
+
+  for (let index = 0; index < 110; index += 1) {
+    const core = coreIndices[Math.floor(random() * coreIndices.length)];
+    const side = index % 2;
+    const cortex = hemisphereIndices[side][Math.floor(random() * hemisphereIndices[side].length)];
+    addEdge(core, cortex, "bridge");
+  }
+
   const leftBridge = hemisphereIndices[0].filter((index) => Math.abs(points[index].x) < .38);
   const rightBridge = hemisphereIndices[1].filter((index) => Math.abs(points[index].x) < .38);
   for (let index = 0; index < Math.min(210, leftBridge.length); index += 1) {
@@ -125,6 +165,9 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
   const redrawRef = useRef<() => void>(() => undefined);
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("rotate");
   const [zoomPercent, setZoomPercent] = useState(100);
+  const affectSignature = snapshot.affectChannels.map((channel) => channel.value.toFixed(4)).join(":");
+  const dominantAffect = snapshot.affectChannels.reduce((dominant, channel) => channel.value > dominant.value ? channel : dominant, snapshot.affectChannels[0]);
+  const hasAffectActivity = Boolean(dominantAffect && dominantAffect.value > 0);
 
   const updateCameraHud = () => {
     const container = containerRef.current;
@@ -273,31 +316,55 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       const busy = snapshot.focusStatus.includes("nube");
       const automaticYaw = reduceMotion ? .12 : time * (busy ? .00011 : .000035);
       const projected = volume.points.map((point) => project(point, automaticYaw));
-      const visible = volume.points.map((point) => point.reveal <= snapshot.neuralDensity);
+      const active = volume.points.map((point) => {
+        const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
+        return point.reveal <= Math.min(1, snapshot.neuralDensity + affectActivation * .18);
+      });
 
       const glow = context.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width * .34);
-      glow.addColorStop(0, busy ? "rgba(244,114,182,.16)" : "rgba(56,189,248,.09)");
+      const dominantColor = dominantAffect?.rgb ?? [125, 211, 252];
+      glow.addColorStop(0, hasAffectActivity
+        ? `rgba(${dominantColor[0]},${dominantColor[1]},${dominantColor[2]},.18)`
+        : busy ? "rgba(244,114,182,.14)" : "rgba(125,211,252,.085)");
       glow.addColorStop(1, "rgba(2,6,23,0)");
       context.fillStyle = glow;
       context.fillRect(0, 0, width, height);
 
+      const coreX = width / 2 + cameraRef.current.panX;
+      const coreY = height / 2 + cameraRef.current.panY;
+      context.save();
+      context.translate(coreX, coreY);
+      context.rotate(automaticYaw * .32);
+      for (let ring = 0; ring < 4; ring += 1) {
+        context.beginPath();
+        context.ellipse(0, 0, width * (.052 + ring * .018) * cameraRef.current.zoom, height * (.12 + ring * .027) * cameraRef.current.zoom, ring * .44, 0, Math.PI * 2);
+        context.strokeStyle = ring % 2
+          ? `rgba(125,211,252,${.13 - ring * .018})`
+          : `rgba(216,180,254,${.16 - ring * .02})`;
+        context.lineWidth = ring === 0 ? 1.2 : .65;
+        context.stroke();
+      }
+      context.restore();
+
       context.globalCompositeOperation = "lighter";
       for (const edge of volume.edges) {
-        if (!visible[edge.from] || !visible[edge.to]) continue;
         const fromPoint = volume.points[edge.from];
         const toPoint = volume.points[edge.to];
         const from = projected[edge.from];
         const to = projected[edge.to];
-        const depth = Math.max(.08, Math.min(.42, (from.z + to.z + 2) * .1));
-        const fromColor = colors[fromPoint.group];
-        const toColor = colors[toPoint.group];
+        const edgeActive = active[edge.from] && active[edge.to];
+        if (!edgeActive && edge.kind === "association" && (edge.from + edge.to) % 3 !== 0) continue;
+        const depth = Math.max(.06, Math.min(.42, (from.z + to.z + 2) * .1));
+        const fromColor = affectPalette[fromPoint.affectIndex].rgb;
+        const toColor = affectPalette[toPoint.affectIndex].rgb;
         const red = Math.round((fromColor[0] + toColor[0]) * .5);
         const green = Math.round((fromColor[1] + toColor[1]) * .5);
         const blue = Math.round((fromColor[2] + toColor[2]) * .5);
-        const alpha = edge.kind === "bridge" ? depth * 1.05 : edge.kind === "association" ? depth * .62 : depth * .9;
-        context.lineWidth = edge.kind === "bridge" ? 1 : edge.kind === "association" ? .52 : .72;
+        const activeAlpha = edge.kind === "bridge" ? depth * 1.2 : edge.kind === "association" ? depth * .76 : depth;
+        const alpha = edgeActive ? activeAlpha : edge.kind === "bridge" ? .09 : .025;
+        context.lineWidth = edgeActive ? edge.kind === "bridge" ? 1.15 : edge.kind === "association" ? .62 : .78 : .42;
         context.strokeStyle = edge.kind === "bridge"
-          ? `rgba(216,180,254,${alpha})`
+          ? `rgba(${edgeActive ? "216,180,254" : "100,116,139"},${alpha})`
           : `rgba(${red},${green},${blue},${alpha})`;
         context.beginPath();
         context.moveTo(from.x, from.y);
@@ -305,17 +372,20 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         context.stroke();
       }
 
-      const ordered = volume.points.map((point, index) => ({ point, index })).filter(({ index }) => visible[index]).sort((a, b) => projected[a.index].z - projected[b.index].z);
+      const ordered = volume.points.map((point, index) => ({ point, index })).sort((a, b) => projected[a.index].z - projected[b.index].z);
       for (const { point, index } of ordered) {
         const screen = projected[index];
-        const [red, green, blue] = colors[point.group];
-        const pulse = reduceMotion ? 1 : .72 + Math.sin(time * (busy ? .006 : .0022) + point.phase) * .28;
+        const [red, green, blue] = affectPalette[point.affectIndex].rgb;
+        const isActive = active[index];
+        const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
+        const pulse = !isActive || reduceMotion ? 1 : .72 + Math.sin(time * (busy ? .006 : .0022) + point.phase) * .28;
         const zoomScale = Math.sqrt(clamp(cameraRef.current.zoom, .7, 1.9));
-        const radius = 1.68 * screen.perspective * (busy ? 1.12 : 1) * pulse * zoomScale;
-        const alpha = Math.min(.98, .42 + (screen.z + 1) * .25);
-        if (index % 19 === 0) {
+        const layerScale = point.layer === "core" ? 1.42 : 1;
+        const radius = (isActive ? 1.82 : .72) * layerScale * screen.perspective * (busy ? 1.08 : 1) * pulse * zoomScale * (1 + affectActivation * .38);
+        const alpha = isActive ? Math.min(.98, .5 + (screen.z + 1) * .22) : point.layer === "core" ? .18 : .095;
+        if (isActive && (index % 17 === 0 || point.layer === "core" && index % 7 === 0)) {
           context.shadowColor = `rgba(${red},${green},${blue},.8)`;
-          context.shadowBlur = 8;
+          context.shadowBlur = point.layer === "core" ? 12 : 8;
         }
         context.fillStyle = `rgba(${red},${green},${blue},${alpha})`;
         context.beginPath();
@@ -324,6 +394,17 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         context.shadowBlur = 0;
       }
       context.globalCompositeOperation = "source-over";
+
+      const corePulse = reduceMotion ? 1 : .92 + Math.sin(time * .0014) * .08;
+      const coreGradient = context.createRadialGradient(coreX, coreY, 0, coreX, coreY, 34 * cameraRef.current.zoom * corePulse);
+      coreGradient.addColorStop(0, "rgba(248,250,252,.96)");
+      coreGradient.addColorStop(.12, "rgba(216,180,254,.72)");
+      coreGradient.addColorStop(.48, "rgba(56,189,248,.22)");
+      coreGradient.addColorStop(1, "rgba(2,6,23,0)");
+      context.fillStyle = coreGradient;
+      context.beginPath();
+      context.arc(coreX, coreY, 35 * cameraRef.current.zoom * corePulse, 0, Math.PI * 2);
+      context.fill();
 
       if (!reduceMotion) animationFrame = window.requestAnimationFrame(draw);
     };
@@ -342,16 +423,22 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       canvas.removeEventListener("dblclick", doubleClick);
       canvas.removeEventListener("keydown", keyDown);
     };
-  }, [snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity]);
+  }, [affectSignature, dominantAffect?.rgb, hasAffectActivity, snapshot.affectChannels, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity]);
 
-  return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Volumen neuronal abstracto de dos hemisferios conectado al estado real de Alice">
-    <div className="nucleus-panel-label"><span>[01]</span><strong>3D NEURAL VOLUME</strong><small>LOCAL VISUALIZATION</small></div>
+  return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Matriz cognitivo-afectiva tridimensional de Alice conectada a datos locales reales">
+    <div className="nucleus-panel-label"><span>[01]</span><strong>ALICE COGNITIVE VOLUME</strong><small>AFFECTIVE ROUTING MAP</small></div>
     <canvas ref={canvasRef} tabIndex={snapshot.hasActivity ? 0 : -1} aria-label="Vista 3D del volumen neuronal. Arrastra para girar o mover, usa la rueda para acercar y alejar, y pulsa cero para restablecer." />
     {snapshot.hasActivity ? <>
-      <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA</span>
-      <span className="hemisphere-label right">RESPUESTA · ACCIONES</span>
-      <span className="volume-growth">RED PROPIA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVA {Math.round(snapshot.neuralDensity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
-      <div className="volume-legend"><span className="input">entrada</span><span className="memory">memoria</span><span className="output">salida</span></div>
+      <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
+      <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
+      <span className="volume-growth">ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVACIÓN {Math.round(snapshot.neuralDensity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
+      <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "EN ESPERA · SIN DOMINANTE"}</small></span></div>
+      <div className="volume-core-label"><span>ALICE</span><strong>SELF MODEL</strong><small>R3 SIGNAL CORE</small></div>
+      <div className="volume-affect-palette" aria-label="Paleta de canales afectivos planificados">
+        <header><strong>PALETA AFECTIVA</strong><span>COLOR = CIRCUITO · BRILLO = ACTIVIDAD</span></header>
+        <div>{snapshot.affectChannels.map((channel) => <span key={channel.id} title={`${channel.label}: ${channel.role}. Estado ${channel.availability === "ready" ? "disponible" : "planificado"}.`} style={{ "--affect-color": channel.color } as CSSProperties}><i />{channel.label}<small>{channel.value.toFixed(2)}</small></span>)}</div>
+      </div>
+      <div className="volume-signal-legend"><span className="structure">estructura</span><span className="active">actividad real</span><span className="bridge">correlación</span></div>
       <div className="volume-camera-controls" aria-label="Controles de cámara del volumen neuronal">
         <div className="volume-camera-modes" role="group" aria-label="Modo de arrastre">
           <button className={interactionMode === "rotate" ? "selected" : ""} type="button" title="Girar al arrastrar" aria-pressed={interactionMode === "rotate"} onClick={() => chooseMode("rotate")}><InlineSvgIcon markup={rotateIcon} className="camera-control-icon" /><span>Girar</span></button>
@@ -365,6 +452,6 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         </div>
       </div>
       <p className="volume-camera-help">RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; SHIFT + ARRASTRAR · MOVER&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</p>
-    </> : <div className="volume-empty"><span>000</span><strong>SIN ACTIVIDAD REGISTRADA</strong><small>El volumen aparecerá después de una interacción real.</small></div>}
+    </> : <div className="volume-empty"><span>000</span><strong>SIN ACTIVIDAD REGISTRADA</strong><small>La matriz aparecerá después de una interacción real. Los diez canales afectivos permanecen en 0.00.</small></div>}
   </div>;
 }

@@ -4,7 +4,7 @@
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-64%2F64%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-66%2F66%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-86%2F86%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -31,7 +31,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Auditoría unificada R3 | En curso: esquema v1, almacenamiento acotado, inicio real y lectura nativa |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 64/64 aprobadas |
+| Pruebas TypeScript | 66/66 aprobadas |
 | Pruebas Rust | 86/86 normales; prueba viva CAM+MIC aprobada explícitamente |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -104,6 +104,12 @@ El primer incremento de R3 incorpora un sobre de eventos nativo v1, cerrado a ca
 La auditoría vive en `data/audit/events-v1.jsonl`, limita el archivo actual a 5 MiB y conserva una sola rotación anterior. Limpiar la consola temporal de React no borra evidencia nativa. Gateway, memoria y nube todavía deben migrarse como productores correlacionados antes de cerrar R3.
 
 Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), el [plan incremental](docs/plans/R3-unified-audit.md) y el [informe de la prueba real](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md).
+
+## Matriz cognitivo-afectiva
+
+El volumen neuronal distingue ahora estructura disponible de actividad real: los circuitos inactivos permanecen tenues y solamente los nodos activados brillan o pulsan. El núcleo central representa identidad técnica y correlación R3, no conciencia.
+
+La paleta futura incluye Alegría amarilla, Tristeza azul, Ira roja, Temor violeta, Desagrado verde, Ansiedad naranja, Envidia turquesa, Aburrimiento índigo, Vergüenza rosa y Nostalgia gris rosado. Los diez valores siguen en `0.00` y `planned`; todavía no existe simulación emocional. Consulta el [diseño afectivo](docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md), [ADR-P-046](docs/decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md) y el [informe visual](docs/testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md).
 
 ## Iniciar Alice
 
