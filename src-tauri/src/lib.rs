@@ -3,6 +3,10 @@ mod capabilities;
 mod cloud;
 mod memory;
 mod observation;
+// R2 comienza por un contrato nativo aislado. Los comandos se registrarán en un
+// incremento posterior, después de probar el almacén y la máquina de estados.
+#[allow(dead_code)]
+mod permissions;
 mod util;
 
 use avatar::avatar_status;

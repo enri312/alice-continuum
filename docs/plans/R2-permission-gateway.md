@@ -1,13 +1,13 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: contrato definido; implementación pendiente  
+Estado: implementación en curso; paso 1 completado  
 Fecha: 2026-08-09
 
 ## Objetivo
 
 Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micrófono ni herramientas antes de que la frontera nativa esté probada.
 
-## Paso 1 — Tipos y validación Rust
+## Paso 1 — Tipos y validación Rust ✅
 
 - Crear `src-tauri/src/permissions.rs`.
 - Definir solicitud preparada, recurso, decisión, grant, modo, estado y límites.
@@ -15,6 +15,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - Canonicalizar la previsualización y calcular SHA-256 en Rust.
 
 **Puerta:** tests de serialización, campos desconocidos, duración, digest e invariantes; `fmt` y `clippy` limpios. No registrar comandos todavía.
+
+**Resultado 2026-08-09:** completado en `src-tauri/src/permissions.rs` con 12 pruebas específicas y 48 pruebas Rust totales. El módulo no registra comandos, no crea grants reales y no abre dispositivos.
 
 ## Paso 2 — Almacén efímero y máquina de estados
 
