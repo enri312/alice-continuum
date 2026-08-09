@@ -96,7 +96,7 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 
-**Estado:** en curso · incrementos 1 a 3 implementados; Gateway R2, memoria y nube correlacionados  
+**Estado:** en curso · incrementos 1 a 4 implementados; diagnóstico pasivo aprobado  
 **Dependencia:** Fase R2  
 **Objetivo:** demostrar qué solicitó Alice, qué política se aplicó y cuál fue el resultado.
 
@@ -110,7 +110,7 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 - [x] Actividad diferencia solicitud, autorización, ejecución, bloqueo y error.
 - [x] Los eventos correlacionados comparten un identificador de operación.
 - [x] Memoria y nube producen eventos mínimos sin copiar contenido privado.
-- [ ] El diagnóstico es de solo lectura y no expone secretos.
+- [x] El diagnóstico es de solo lectura y no expone secretos.
 - [x] La rotación o crecimiento de auditorías tiene una política documentada.
 
 ### Línea transversal — Simulación afectiva explicable
@@ -287,7 +287,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** los incrementos 1 a 3 aportan esquema v1 cerrado, JSONL acotado, lectura nativa y productores correlacionados para el Gateway R2, memoria y nube. El siguiente incremento será el diagnóstico pasivo de rutas, versiones, proveedores, adaptadores y permisos. La actividad futura del volumen neuronal se derivará de estas señales reales. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** los incrementos 1 a 4 aportan esquema v1 cerrado, JSONL acotado, productores correlacionados y diagnóstico pasivo de rutas, versiones, proveedores, adaptadores y permisos. El siguiente incremento derivará actividad del Núcleo desde estas señales reales, manteniendo toda heurística etiquetada. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

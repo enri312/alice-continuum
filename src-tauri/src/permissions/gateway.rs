@@ -76,6 +76,14 @@ pub(crate) struct PermissionGatewayStatus {
     pub(crate) grants: Vec<PermissionGrant>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct PermissionDiagnosticProbe {
+    pub(crate) deny_by_default: bool,
+    pub(crate) persistent_grants: bool,
+    pub(crate) request_count: usize,
+    pub(crate) grant_count: usize,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct PermissionGatewayPolicy {
@@ -223,6 +231,22 @@ impl PermissionGateway {
     pub(crate) fn status(&self) -> Result<PermissionGatewayStatus, String> {
         let _transition = self.lock_adapter_transition()?;
         self.status_at(current_utc_instant()?)
+    }
+
+    pub(crate) fn diagnostic_probe(&self) -> Result<PermissionDiagnosticProbe, String> {
+        let store = self.lock_store()?;
+        for stored in store.requests.values() {
+            verify_stored_request(stored)?;
+        }
+        for grant in store.grants.values() {
+            grant.validate()?;
+        }
+        Ok(PermissionDiagnosticProbe {
+            deny_by_default: true,
+            persistent_grants: false,
+            request_count: store.requests.len(),
+            grant_count: store.grants.len(),
+        })
     }
 
     pub(crate) fn with_adapter_transition<T>(

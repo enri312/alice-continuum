@@ -16,8 +16,8 @@ use crate::sensory::{
     CAMERA_CAPABILITY, CAMERA_OPERATION, MICROPHONE_CAPABILITY, MICROPHONE_OPERATION,
 };
 pub(crate) use gateway::{
-    AuthorizedExecution, PermissionAuditContext, PermissionGateway, PermissionGatewayStatus,
-    PreparedPermissionTrace,
+    AuthorizedExecution, PermissionAuditContext, PermissionDiagnosticProbe, PermissionGateway,
+    PermissionGatewayStatus, PreparedPermissionTrace,
 };
 use serde_json::json;
 use tauri::{AppHandle, State};

@@ -164,6 +164,33 @@ pub(crate) fn cloud_capability_probe() -> CloudCapabilityProbe {
     }
 }
 
+pub(crate) fn cloud_configuration_probe() -> Vec<(String, String, Result<bool, String>)> {
+    let compatible_url = std::env::var("ALICE_COMPATIBLE_BASE_URL")
+        .ok()
+        .filter(|value| !value.trim().is_empty());
+    cloud_status()
+        .providers
+        .into_iter()
+        .map(|provider| {
+            let configured = if provider.id == "compatible" && provider.configured {
+                let value = compatible_url.as_deref().unwrap_or_default().trim();
+                validate_compatible_probe_url(value).map(|_| true)
+            } else {
+                Ok(provider.configured)
+            };
+            (provider.id, provider.label, configured)
+        })
+        .collect()
+}
+
+fn validate_compatible_probe_url(value: &str) -> Result<(), String> {
+    if !value.starts_with("https://") || value.contains('?') || value.contains('#') {
+        Err("La URL compatible debe usar HTTPS y no contener parámetros".into())
+    } else {
+        Ok(())
+    }
+}
+
 fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
     if request.message.trim().is_empty() || request.payload.trim().is_empty() {
         return Err("El mensaje está vacío".into());
@@ -598,6 +625,13 @@ mod tests {
             validate_cloud_request(&google_path),
             Err("El modelo de Google no puede contener '/' ni ':'".into())
         );
+    }
+
+    #[test]
+    fn passive_compatible_probe_distinguishes_invalid_configuration() {
+        assert!(validate_compatible_probe_url("https://local.example/v1").is_ok());
+        assert!(validate_compatible_probe_url("http://local.example/v1").is_err());
+        assert!(validate_compatible_probe_url("https://local.example/v1?key=private").is_err());
     }
 
     #[test]

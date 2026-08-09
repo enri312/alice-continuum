@@ -369,24 +369,7 @@ impl SensorLeaseStore {
 
     pub(crate) fn capability_probe(&self) -> Result<SensorCapabilityProbe, String> {
         let status = self.status()?;
-        let mut command = Command::new("python");
-        command
-            .args([
-                "-c",
-                "import cv2, sounddevice, numpy, shutil; assert shutil.which('ffmpeg')",
-            ])
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null());
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            command.creation_flags(0x0800_0000);
-        }
-        let runtime = command
-            .status()
-            .map_err(|error| format!("No se pudo sondear el runtime sensorial local: {error}"))?;
-        let runtime_available = runtime.success();
+        let runtime_available = sensor_runtime_available()?;
         Ok(SensorCapabilityProbe {
             runtime_available,
             camera_active: status
@@ -406,9 +389,39 @@ impl SensorLeaseStore {
         })
     }
 
+    pub(crate) fn diagnostic_activity_probe(&self) -> Result<(bool, bool), String> {
+        let store = self.lock()?;
+        Ok((
+            store.active.contains_key(&SensorKind::Camera),
+            store.active.contains_key(&SensorKind::Microphone),
+        ))
+    }
+
     fn weak(&self) -> Weak<Mutex<SensorProcesses>> {
         Arc::downgrade(&self.inner)
     }
+}
+
+pub(crate) fn sensor_runtime_available() -> Result<bool, String> {
+    let mut command = Command::new("python");
+    command
+        .args([
+            "-c",
+            "import cv2, sounddevice, numpy, shutil; assert shutil.which('ffmpeg')",
+        ])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .env("PYTHONDONTWRITEBYTECODE", "1");
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x0800_0000);
+    }
+    command
+        .status()
+        .map(|status| status.success())
+        .map_err(|error| format!("No se pudo sondear el runtime sensorial local: {error}"))
 }
 
 fn spawn_helper(kind: SensorKind, duration_seconds: u32) -> Result<Child, String> {

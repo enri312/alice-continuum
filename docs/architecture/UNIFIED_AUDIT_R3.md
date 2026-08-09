@@ -1,7 +1,7 @@
 # Auditoría unificada y diagnóstico R3
 
 Versión del contrato: 1  
-Estado: incrementos 1 a 3 implementados  
+Estado: incrementos 1 a 4 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -57,8 +57,12 @@ Durante R3 continúa la escritura dual de `memory/audit/memory-events.jsonl` y `
 
 Actividad incorpora `[08] NATIVE AUDIT R3`. La vista es de solo lectura, muestra integridad, tamaño, rotación, líneas inválidas, origen, etapa, resultado y prefijo del identificador de correlación. Limpiar los eventos temporales de React no elimina la auditoría nativa.
 
+`[09] PASSIVE DIAGNOSTIC` consume un snapshot cerrado e independiente de la auditoría. Cada comprobación pertenece a `path`, `dataVersion`, `provider`, `adapter` o `permission` y termina en `healthy`, `configurationPending`, `unavailable` o `error`. El estado general es saludable, atención o error y sus conteos deben coincidir exactamente con la lista.
+
+El diagnóstico puede leer metadatos y contenido estructural necesario para validar JSON, pero solo devuelve etiquetas, estados, rutas locales técnicas y resúmenes acotados. Nunca devuelve claves, valores de variables, mensajes, recuerdos, títulos de ventana o señal. La sonda de Python deshabilita escritura de bytecode; no abre hardware. La sonda del Gateway valida integridad bajo bloqueo de lectura sin ejecutar expiraciones.
+
 ## Próximo incremento
 
-1. Diagnóstico pasivo de rutas, versiones, proveedores y adaptadores.
+1. Derivar actividad del Núcleo desde eventos R3 y estado real, etiquetando toda heurística.
 
 El volumen neuronal solo aumentará su actividad cuando estos productores entreguen eventos reales. No se fabricarán nodos, pulsos o porcentajes para aparentar vida.

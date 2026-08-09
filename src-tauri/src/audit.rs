@@ -84,6 +84,15 @@ pub(crate) struct AuditSnapshot {
     events: Vec<AuditEvent>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AuditDiagnosticProbe {
+    pub(crate) exists: bool,
+    pub(crate) current_bytes: u64,
+    pub(crate) rotated_bytes: u64,
+    pub(crate) valid_events: usize,
+    pub(crate) invalid_lines: usize,
+}
+
 impl AuditEvent {
     pub(crate) fn process_started() -> Result<Self, String> {
         let event_id = Uuid::new_v4().to_string();
@@ -405,6 +414,18 @@ fn snapshot_at(data_root: &Path) -> Result<AuditSnapshot, String> {
         total_valid_events,
         invalid_lines,
         events,
+    })
+}
+
+pub(crate) fn audit_diagnostic_probe(data_root: &Path) -> Result<AuditDiagnosticProbe, String> {
+    let (current, _) = audit_paths(data_root);
+    let snapshot = snapshot_at(data_root)?;
+    Ok(AuditDiagnosticProbe {
+        exists: current.is_file(),
+        current_bytes: snapshot.current_bytes,
+        rotated_bytes: snapshot.rotated_bytes,
+        valid_events: snapshot.total_valid_events,
+        invalid_lines: snapshot.invalid_lines,
     })
 }
 

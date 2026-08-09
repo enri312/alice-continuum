@@ -1,6 +1,6 @@
 # Plan de implementación R3 — Auditoría unificada y diagnóstico
 
-Estado: en curso; incrementos 1 a 3 implementados  
+Estado: en curso; incrementos 1 a 4 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -32,11 +32,13 @@ Implementado con UUID v4 interno estable por solicitud, digest de previsualizaci
 
 Implementado mediante escritura dual compatible: `memory-events.jsonl` y `cloud-audit.jsonl` permanecen vigentes, mientras cada operación nueva emite también un flujo R3 mínimo. Guardar, exportar, restaurar y migrar memoria comparten un UUID v4 entre solicitud y resultado. Nube registra el digest del contexto aceptado antes de la red y el digest de la respuesta al finalizar; no registra proveedor, modelo, identificador externo, texto ni credencial. Si el evento inicial no puede escribirse, la mutación o solicitud no comienza.
 
-## Incremento 4 — Diagnóstico pasivo
+## Incremento 4 — Diagnóstico pasivo ✅
 
 - Revisar rutas, versiones de datos, proveedores configurados, adaptadores y permisos.
 - No abrir dispositivos, no enviar red y no corregir automáticamente.
 - Mostrar diferencia entre indisponibilidad, configuración pendiente y fallo real.
+
+Implementado con un snapshot nativo v1 y la vista `[09] PASSIVE DIAGNOSTIC`. Clasifica 19 comprobaciones potenciales en rutas, versiones, proveedores, adaptadores y permisos. La ruta sensorial importa Python y sus dependencias con bytecode deshabilitado, sin abrir hardware. El Gateway usa una sonda nueva que no vence ni modifica solicitudes. Una prueba viva comparó SHA-256 de todos los archivos canónicos antes y después y confirmó cero cambios.
 
 ## Incremento 5 — Actividad del núcleo
 

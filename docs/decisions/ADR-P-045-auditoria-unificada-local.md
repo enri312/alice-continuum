@@ -15,6 +15,7 @@ Alice posee auditorías separadas para memoria y nube y eventos temporales en Re
 - Rechazar campos desconocidos y combinaciones incoherentes de etapa y resultado.
 - Limitar el archivo actual a 5 MiB y conservar una sola rotación anterior.
 - Mantener la vista Actividad como lectora: no podrá editar ni borrar la evidencia persistente.
+- Separar el diagnóstico pasivo del archivo de auditoría y rechazar cualquier sonda que abra hardware, envíe red o modifique estado.
 - Registrar primero el inicio real del proceso y migrar los demás productores uno por uno.
 - Mantener escritura dual para memoria y nube durante R3; no transformar ni eliminar auditorías históricas.
 - Exigir el evento inicial antes de una mutación de memoria o solicitud de red. Un fallo posterior de telemetría no repite ni revierte automáticamente un efecto ya completado.
@@ -29,7 +30,7 @@ Alice posee auditorías separadas para memoria y nube y eventos temporales en Re
 
 ## Costos y límites
 
-- `process.startup`, el Gateway R2, memoria y nube producen eventos R3; diagnóstico continúa pendiente.
+- `process.startup`, el Gateway R2, memoria y nube producen eventos R3; el diagnóstico pasivo inspecciona su entorno sin convertirse en productor ni alterar evidencia.
 - Las auditorías históricas de memoria y nube no se reescriben ni migran automáticamente.
 - Una sola rotación prioriza el uso acotado de disco sobre retención indefinida.
 - La actividad observable no prueba conciencia ni reemplaza las pruebas funcionales.
