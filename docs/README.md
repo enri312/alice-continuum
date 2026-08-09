@@ -25,6 +25,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 19. [Informe de validación R1](testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md)
 20. [Decisión de aprendizaje sensorial gobernado](decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md)
 21. [Informe real de cámara y micrófono](testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md)
+22. [Contrato del Gateway de permisos R2](architecture/PERMISSION_GATEWAY_R2.md)
+23. [ADR-P-044: Gateway nativo de permisos](decisions/ADR-P-044-gateway-permisos-nativo.md)
+24. [Plan de implementación R2](plans/R2-permission-gateway.md)
 
 ## Secciones
 

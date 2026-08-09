@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** pendiente  
+**Estado:** en curso · contrato v1 y ADR definidos; implementación pendiente  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada con evidencia del proceso, los archivos y el hardware reales, además de un checkpoint Git acotado. El siguiente incremento permitido es diseñar el contrato del **Gateway de permisos R2**. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap hasta aprobar ese contrato.
+La **Fase R1 — Registro de capacidades** está completada y el contrato del **Gateway de permisos R2** quedó definido en `docs/architecture/PERMISSION_GATEWAY_R2.md`, ADR-P-044 y su plan incremental. El siguiente incremento permitido es implementar tipos y validaciones en `permissions.rs` sin registrar comandos ni abrir dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
 
 ## Identidad adoptada — Alice Cognitive Core
 

@@ -2,6 +2,7 @@
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
+![R2](https://img.shields.io/badge/R2-contrato%20definido-d97706?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-45%2F45%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-36%2F36%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -24,6 +25,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
+| Gateway de permisos R2 | Contrato v1 definido; implementación todavía no iniciada |
 | Capacidades implementadas o parciales | 12 |
 | Capacidades planificadas | 12, todas sin adaptador y no disponibles |
 | Pruebas TypeScript | 45/45 aprobadas |
@@ -146,7 +148,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-El contrato del registro está en [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md) y [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
 
 ## Pruebas
 
