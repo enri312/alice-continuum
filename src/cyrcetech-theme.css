@@ -265,3 +265,11 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 /* El volumen es una nube continua; el centro no constituye un objeto visual separado. */
 .neural-volume { background:radial-gradient(ellipse at 50% 48%,rgba(125,211,252,.075),transparent 42%),radial-gradient(ellipse at 22% 46%,rgba(74,168,255,.055),transparent 40%),radial-gradient(ellipse at 78% 46%,rgba(255,138,61,.05),transparent 40%),linear-gradient(180deg,#06101d 0%,#030812 58%,#050914 100%); }
 .neural-volume::before { background:linear-gradient(rgba(56,189,248,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.028) 1px,transparent 1px); background-size:22px 22px; }
+
+/* El escritorio panorámico distribuye información útil; los textos conservan sus límites de lectura. */
+@media(min-width:1280px) {
+  .core-system-content { padding:18px; }
+  .conversation-layout { grid-template-columns:minmax(0,1fr) 340px; }
+  .neuro-layout { grid-template-columns:minmax(0,1fr) 260px; }
+  .bridge-layout { grid-template-columns:minmax(0,1fr) 320px; }
+}

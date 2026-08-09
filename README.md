@@ -6,6 +6,7 @@
 ![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-68%2F68%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-88%2F88%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
@@ -191,6 +192,19 @@ src-tauri/src/
 ```
 
 Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md) y [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+
+### Arquitectura políglota controlada
+
+Alice utiliza varios lenguajes porque cada uno tiene una responsabilidad distinta, no para aumentar el *stack* sin necesidad:
+
+| Tecnología | Responsabilidad actual | Límite de autoridad |
+|---|---|---|
+| TypeScript + React | Interfaz, visualizaciones, contratos defensivos y estado visible | No concede permisos nativos ni conserva credenciales |
+| Rust + Tauri | Fuente de verdad local para permisos, auditoría, memoria, rutas y acceso gobernado al sistema | No delega decisiones de seguridad a la interfaz |
+| Python | Proceso auxiliar local para señal efímera de cámara y micrófono; futuro lugar natural para visión, audio y evaluación de modelos | Se inicia desde Rust, no decide permisos y no persiste contenido crudo |
+| HTML + CSS + SVG/WebGL | Presentación adaptable, iconografía y volumen neuronal interactivo | No contiene lógica de autoridad |
+
+Python ya participa en `sensory.rs`: OpenCV comprueba señal real de cámara y `sounddevice`/NumPy comprueban señal real del micrófono. Su siguiente ampliación útil será percepción local comprobable; la UI, las credenciales y las decisiones finales de permiso seguirán fuera de Python.
 
 ## Pruebas
 
