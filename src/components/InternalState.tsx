@@ -11,6 +11,7 @@ export function InternalState({ snapshot, selectedId, onSelect }: InternalStateP
   const localRecords = snapshot.nodes.find((node) => node.id === "memory")?.value ?? "0 recuerdos";
 
   return <div className={`internal-state ${snapshot.hasActivity ? "has-activity" : "is-empty"}`}>
+    <div className="nucleus-panel-label"><span>[03]</span><strong>REPLY + AFFECT + DRIVE STATE</strong><small>READ ONLY</small></div>
     <header className="state-header">
       <div><span className="state-monogram">ALI</span><strong>ALICE</strong><small>MODELO INTERNO · SOLO LECTURA</small></div>
       <span className="state-records">{localRecords.toUpperCase()}</span>
@@ -30,7 +31,7 @@ export function InternalState({ snapshot, selectedId, onSelect }: InternalStateP
     <section className="state-section retrieved-memory" aria-labelledby="retrieved-title">
       <div className="state-section-title"><span id="retrieved-title">MEMORIA RECUPERADA</span><small>{snapshot.retrievedMemoryCount ? `${snapshot.retrievedMemoryCount} COINCIDENCIAS LOCALES` : memory?.value ? "REGISTROS DISPONIBLES, NO UTILIZADOS" : "0 RECUPERACIONES"}</small></div>
       <button className="retrieved-row" onClick={() => onSelect("state-memory")}>
-        <span>EPISÓDICA</span><strong>{snapshot.retrievedMemoryCount ? snapshot.retrievedMemoryTop : "NINGUNA MEMORIA RECUPERADA PARA UNA RESPUESTA"}</strong><em>{memory?.value.toFixed(3) ?? "0.000"}</em>
+        <span>{snapshot.retrievedMemoryCount ? "TIPO NO EXPUESTO" : "SIN TIPO"}</span><strong>{snapshot.retrievedMemoryCount ? snapshot.retrievedMemoryTop : "NINGUNA MEMORIA RECUPERADA PARA UNA RESPUESTA"}</strong><em>{memory?.value.toFixed(3) ?? "0.000"}</em>
       </button>
     </section>
 

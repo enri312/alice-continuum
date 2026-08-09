@@ -11,6 +11,13 @@ pub(crate) fn timestamp_ms() -> Result<u128, String> {
 }
 
 pub(crate) fn alice_data_root(app: &AppHandle) -> Result<PathBuf, String> {
+    let directory = alice_data_root_path(app)?;
+    fs::create_dir_all(&directory)
+        .map_err(|error| format!("No se pudo crear la carpeta de datos de Alice: {error}"))?;
+    Ok(directory)
+}
+
+pub(crate) fn alice_data_root_path(app: &AppHandle) -> Result<PathBuf, String> {
     let directory = match std::env::var_os("ALICE_DATA_DIR") {
         Some(value) if !value.is_empty() => {
             let configured = PathBuf::from(value);
@@ -24,7 +31,5 @@ pub(crate) fn alice_data_root(app: &AppHandle) -> Result<PathBuf, String> {
             .app_data_dir()
             .map_err(|error| error.to_string())?,
     };
-    fs::create_dir_all(&directory)
-        .map_err(|error| format!("No se pudo crear la carpeta de datos de Alice: {error}"))?;
     Ok(directory)
 }

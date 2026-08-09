@@ -22,6 +22,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 16. [Decisión de identidad Alice Cognitive Core](decisions/ADR-P-042-identidad-alice-cognitive-core.md)
 17. [Plan de migración de identidad](plans/identity-migration.md)
 18. [Informe de migración Alice Cognitive Core](testing/IDENTITY_MIGRATION_REPORT_2026-08-08.md)
+19. [Informe de validación R1](testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md)
+20. [Decisión de aprendizaje sensorial gobernado](decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md)
+21. [Informe real de cámara y micrófono](testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md)
 
 ## Secciones
 

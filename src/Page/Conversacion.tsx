@@ -41,6 +41,8 @@ type ConversacionProps = {
   desktopApp: boolean;
   draft: string;
   status: CloudStatus;
+  provider: string;
+  model: string;
   messages: ConversationMessage[];
   memories: MemoryExcerpt[];
   observationEnabled: boolean;
@@ -48,6 +50,7 @@ type ConversacionProps = {
   onToggleObservation: () => Promise<void>;
   onDraftChange: (value: string) => void;
   onMemoryRetrieval: (state: { count: number; top: string }) => void;
+  onOpenSettings: () => void;
   onSend: (request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) => Promise<CloudResponse>;
 };
 
@@ -55,9 +58,7 @@ function messageTime(iso: string) {
   return new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
 
-export function Conversacion({ desktopApp, draft, status, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onSend }: ConversacionProps) {
-  const [provider, setProvider] = useState("");
-  const [model, setModel] = useState("");
+export function Conversacion({ desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onOpenSettings, onSend }: ConversacionProps) {
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
@@ -73,15 +74,6 @@ export function Conversacion({ desktopApp, draft, status, messages, memories, ob
   const retrievedMemories = memoryMatches.map((match) => match.memory);
   const selectedProvider = status.providers.find((option) => option.id === provider) ?? status.providers[0];
   const configuredCount = status.providers.filter((option) => option.configured).length;
-
-  useEffect(() => {
-    if (provider || !status.providers.length) return;
-    const initialProvider = status.providers.find((option) => option.configured)
-      ?? (!desktopApp ? status.providers[0] : undefined);
-    if (!initialProvider) return;
-    setProvider(initialProvider.id);
-    setModel(initialProvider.defaultModel);
-  }, [desktopApp, provider, status.providers]);
 
   useEffect(() => {
     onMemoryRetrieval({ count: memoryMatches.length, top: memoryMatches[0]?.memory.intention ?? "" });
@@ -131,7 +123,7 @@ export function Conversacion({ desktopApp, draft, status, messages, memories, ob
 
   return <section className="conversation-page" aria-labelledby="conversation-title">
     <div className="conversation-heading">
-      <div><p className="eyebrow">CANAL AUTORIZADO · MULTIPROVEEDOR</p><h2 id="conversation-title">Conversación con Alice</h2><p>Escribí normalmente. Elegí el proveedor y el modelo; antes de salir de tu computadora, el contenido pasa por una revisión visible.</p></div>
+      <div><p className="eyebrow">CANAL AUTORIZADO · CONVERSACIÓN</p><h2 id="conversation-title">Conversación con Alice</h2><p>Escribí normalmente. Antes de salir de tu computadora, el contenido pasa por una revisión visible y requiere tu autorización.</p></div>
       <div className={`cloud-status ${configuredCount ? "ready" : "offline"}`}><i />{configuredCount ? `${configuredCount} PROVEEDOR${configuredCount > 1 ? "ES" : ""} DISPONIBLE${configuredCount > 1 ? "S" : ""}` : "FALTA API KEY"}</div>
     </div>
 
@@ -150,8 +142,6 @@ export function Conversacion({ desktopApp, draft, status, messages, memories, ob
       <aside className="cloud-control">
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
         <h3>Qué puede salir</h3>
-        <div className="provider-picker">{status.providers.map((option) => <button key={option.id} className={provider === option.id ? "selected" : ""} onClick={() => { setProvider(option.id); setModel(option.defaultModel); setReviewing(false); }}><strong>{option.label}</strong><span>{option.configured ? "LISTO" : "SIN CLAVE"}</span></button>)}</div>
-        <label className="model-field">MODELO<input value={model} onChange={(event) => { setModel(event.target.value); setReviewing(false); }} placeholder="Identificador del modelo" /></label>
         <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles</small></span></label>
         <label className="context-toggle"><input type="checkbox" checked={includeMemory} disabled={!memoryMatches.length} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>Recuerdos relevantes</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos relacionados. No se adjuntará memoria.</p>}</div>}
@@ -159,6 +149,7 @@ export function Conversacion({ desktopApp, draft, status, messages, memories, ob
         {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Detener observación" : "Activar observación de ventana"}</button>}
         <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Recordar localmente</strong><small>Guarda pregunta y respuesta en tu JSON privado</small></span></label>
         <div className="cloud-rule"><strong>POLÍTICA FIJA</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens · sin herramientas</span></div>
+        <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Abrir configuración del sistema</button>
       </aside>
     </div>
 

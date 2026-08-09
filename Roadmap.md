@@ -1,7 +1,7 @@
 # Roadmap de Alice
 
 Autor y propietario: Carlos Nuñez  
-Última revisión: 2026-08-08  
+Última revisión: 2026-08-09  
 Estado: vigente
 
 ## Propósito
@@ -40,7 +40,7 @@ Las fases `R1` a `R10` forman el nuevo ciclo de capacidades gobernadas. El prefi
 
 ### Fase R1 — Registro de capacidades
 
-**Estado:** en curso · contrato e inventario aprobados; implementación pendiente  
+**Estado:** completada el 2026-08-09 · evidencia real y checkpoint Git aprobados  
 **Objetivo:** crear una fuente de verdad sobre lo que Alice realmente puede observar o hacer.
 
 Cada capacidad tendrá como mínimo:
@@ -56,18 +56,18 @@ Cada capacidad tendrá como mínimo:
 - comprobación de salud;
 - fecha y resultado de la última ejecución real.
 
-**Primer alcance:** registrar solamente capacidades que ya existen, como conversación de nube, memoria local, observación autorizada de ventana y visor VRM. Los futuros puentes de voz, rostro, cuerpo o archivos aparecerán como no configurados, sin telemetría simulada.
+**Primer alcance:** registrar capacidades que ya existen, como conversación de nube, memoria local, observación autorizada de ventana y visor VRM. Los futuros puentes de voz, rostro, cuerpo o archivos y las entradas sensoriales definidas en ADR-P-043 aparecerán como planificadas y no disponibles, sin abrir dispositivos ni producir telemetría simulada.
 
 **No incluye:** ejecutar comandos, modificar archivos, navegar automáticamente ni instalar habilidades.
 
 **Criterios de aceptación:**
 
-- [ ] Existe un contrato tipado y versionado para describir capacidades.
-- [ ] El backend produce el estado; React no lo inventa ni duplica.
-- [ ] La pestaña Puentes consume el registro y distingue disponibilidad de activación.
-- [ ] Una capacidad desconocida o mal formada queda rechazada.
-- [ ] Hay pruebas de serialización, estados y compatibilidad.
-- [ ] El documento maestro y una ADR describen el contrato adoptado.
+- [x] Existe un contrato tipado y versionado para describir capacidades.
+- [x] El backend produce el estado; React no lo inventa ni duplica.
+- [x] La pestaña Puentes consume el registro y distingue disponibilidad de activación.
+- [x] Una capacidad desconocida o mal formada queda rechazada.
+- [x] Hay pruebas de serialización, estados y compatibilidad.
+- [x] El documento maestro y una ADR describen el contrato adoptado.
 
 ### Fase R2 — Gateway de permisos
 
@@ -175,6 +175,8 @@ Capas previstas:
 
 La consolidación detectará duplicados, contradicciones, datos posiblemente obsoletos y candidatos a promoción. En su primera entrega será iniciada y confirmada manualmente. La frecuencia de recuperación, importancia, confianza, procedencia y recencia serán métricas independientes.
 
+Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
+
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
 
 **Criterios de aceptación:**
@@ -275,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-El contrato, el inventario y la ADR de la **Fase R1 — Registro de capacidades** ya están definidos. El siguiente incremento permitido es implementar primero los tipos y validaciones de `capabilities.rs`, siguiendo `docs/plans/R1-capability-registry.md`. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap.
+La **Fase R1 — Registro de capacidades** está completada con evidencia del proceso, los archivos y el hardware reales, además de un checkpoint Git acotado. El siguiente incremento permitido es diseñar el contrato del **Gateway de permisos R2**. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado por este Roadmap hasta aprobar ese contrato.
 
 ## Identidad adoptada — Alice Cognitive Core
 

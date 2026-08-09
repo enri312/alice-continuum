@@ -10,7 +10,7 @@ const channels = ["eyeBlinkLeft", "eyeBlinkRight", "jawOpen", "mouthSmileLeft", 
 
 export function FaceTrackingPanel() {
   return <div className="face-diagnostic">
-    <header className="face-diagnostic-header"><div><span>[06]</span><strong>FACIAL RETARGET DIAGNOSTIC</strong></div><p><i />SIN SEÑAL</p></header>
+    <header className="face-diagnostic-header"><div><span>[FACE]</span><strong>FACIAL RETARGET DIAGNOSTIC</strong></div><p><i />SIN SEÑAL</p></header>
 
     <div className="face-diagnostic-layout">
       <section className="face-device-tree" aria-labelledby="face-devices-title">

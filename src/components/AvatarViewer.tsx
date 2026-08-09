@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
+import { VRMHumanBoneName, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 
 export type AvatarTelemetry = {
@@ -20,6 +20,7 @@ export type AvatarTelemetry = {
 };
 
 type ViewerState = "loading" | "ready" | "error";
+type PoseMode = "idle" | "reference";
 type AvatarViewerProps = {
   sourceUrl: string;
   onTelemetry: (telemetry: AvatarTelemetry | null) => void;
@@ -43,10 +44,30 @@ function readTelemetry(vrm: VRM): AvatarTelemetry {
   };
 }
 
+function poseRotation(x: number, y: number, z: number) {
+  return new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z, "XYZ")).toArray();
+}
+
+function applyPose(vrm: VRM, mode: PoseMode) {
+  if (mode === "reference") {
+    vrm.humanoid.resetNormalizedPose();
+  } else {
+    vrm.humanoid.setNormalizedPose({
+      [VRMHumanBoneName.LeftUpperArm]: { rotation: poseRotation(0, 0, -1.30) },
+      [VRMHumanBoneName.RightUpperArm]: { rotation: poseRotation(0, 0, 1.30) },
+      [VRMHumanBoneName.LeftLowerArm]: { rotation: poseRotation(0, -0.10, -0.08) },
+      [VRMHumanBoneName.RightLowerArm]: { rotation: poseRotation(0, 0.10, 0.08) },
+    });
+  }
+  vrm.humanoid.update();
+}
+
 export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const resetRef = useRef<() => void>(() => undefined);
+  const poseRef = useRef<(mode: PoseMode) => void>(() => undefined);
   const [viewerState, setViewerState] = useState<ViewerState>("loading");
+  const [poseMode, setPoseMode] = useState<PoseMode>("idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -144,6 +165,9 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
         const vrm = gltf.userData.vrm as VRM | undefined;
         if (!vrm) throw new Error("El archivo no contiene una extensión VRM reconocible");
         currentVrm = vrm;
+        applyPose(vrm, "idle");
+        poseRef.current = (mode) => applyPose(vrm, mode);
+        setPoseMode("idle");
         vrm.scene.traverse((object) => { object.frustumCulled = false; });
         scene.add(vrm.scene);
 
@@ -183,6 +207,7 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
       resizeObserver.disconnect();
       controls.dispose();
       resetRef.current = () => undefined;
+      poseRef.current = () => undefined;
       if (currentVrm) {
         scene.remove(currentVrm.scene);
         VRMUtils.deepDispose(currentVrm.scene);
@@ -200,8 +225,8 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
     <div className={`avatar-viewer-state state-${viewerState}`} aria-live="polite">
       <i />{viewerState === "loading" ? "CARGANDO VRM LOCAL" : viewerState === "ready" ? "VRM LISTO" : "ERROR DE VISOR"}
     </div>
-    {viewerState === "ready" && <button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button>}
+    {viewerState === "ready" && <div className="avatar-viewer-actions"><button className="avatar-pose" type="button" onClick={() => { const next = poseMode === "idle" ? "reference" : "idle"; poseRef.current(next); setPoseMode(next); }}>{poseMode === "idle" ? "Ver pose de referencia" : "Volver a postura de reposo"}</button><button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button></div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
-    <p className="avatar-viewer-help">ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</p>
+    <p className="avatar-viewer-help">POSTURA · {poseMode === "idle" ? "REPOSO LOCAL" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</p>
   </div>;
 }

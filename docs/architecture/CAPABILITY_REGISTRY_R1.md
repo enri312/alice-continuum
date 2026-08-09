@@ -1,6 +1,6 @@
 # Contrato e inventario del Registro de Capacidades R1
 
-Estado: contrato aprobado para implementación; código no iniciado  
+Estado: implementado y validado con aplicación y archivos reales  
 Versión del contrato: 1  
 Fecha: 2026-08-08  
 Propietario: Carlos Nuñez
@@ -69,7 +69,7 @@ Cada `CapabilityDescriptor` tendrá:
 | `version` | entero | Versión del contrato particular de la capacidad; empieza en 1. |
 | `label` | cadena | Nombre breve y comprensible en español. |
 | `description` | cadena | Explica el resultado real sin prometer autonomía. |
-| `domain` | enumeración | `cloud`, `context`, `memory`, `avatar` u `output`. |
+| `domain` | enumeración | `cloud`, `context`, `perception`, `memory`, `avatar` u `output`. |
 | `kind` | enumeración | `observation`, `query`, `mutation`, `export`, `process` o `presentation`. |
 | `maturity` | enumeración | `implemented`, `partial` o `planned`. |
 | `adapter` | cadena | Módulo responsable; `none` si todavía no existe. |
@@ -158,6 +158,19 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `avatar.vrm.inspect` | Comprueba ruta, extensión, existencia y tamaño del VRM. | `avatar_status` | Implementada | Bajo | Lectura implícita al abrir Avatar. | La sonda no carga el modelo ni modifica el archivo. |
 | `avatar.vrm.render` | Carga y presenta el VRM privado en el visor local. | `AvatarViewer` | Implementada | Bajo | Abrir la pestaña Avatar. | `idle` con archivo válido y `unavailable` sin él; renderizar no conecta rostro ni cuerpo. |
 
+### Entradas sensoriales planificadas, sin adaptador
+
+| ID estable | Representación futura | Estado obligatorio en R1 |
+|---|---|---|
+| `perception.screen.observe` | Analizar fotogramas efímeros de una pantalla elegida. | `planned` + `unavailable` |
+| `perception.camera.observe` | Analizar una cámara durante una sesión visible. | `planned` + `unavailable` |
+| `perception.microphone.observe` | Detectar voz o sonido durante una sesión revocable. | `planned` + `unavailable` |
+| `perception.media.inspect` | Consultar metadatos del reproductor actual. | `planned` + `unavailable` |
+| `perception.desktop.observe` | Recibir eventos accesibles de interfaz sin registrar teclas. | `planned` + `unavailable` |
+| `perception.gesture.derive` | Derivar landmarks y gestos desde una cámara autorizada. | `planned` + `unavailable` |
+
+Estas entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos.
+
 ### Puentes planificados, sin adaptador
 
 | ID estable | Representación futura | Estado obligatorio en R1 |
@@ -169,7 +182,7 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `output.avatar.body` | Entregar poses o acciones corporales. | `planned` + `unavailable` |
 | `output.external.adapter` | Conectar VRChat u otro destino revisado. | `planned` + `unavailable` |
 
-Fish Audio, cámara, micrófono, Mocap y Active Ragdoll no se registran como implementados. Podrán añadirse con identificadores nuevos cuando exista un adaptador real, requisitos verificables y una ADR propia.
+Fish Audio, cámara, micrófono, captura de pantalla, Mocap y Active Ragdoll no se registran como implementados. Las entradas sensoriales aparecen únicamente como planificadas y no podrán pasar a `partial` o `implemented` sin adaptador real, requisitos verificables y Gateway de permisos.
 
 ## Funciones internas fuera del registro
 
@@ -197,17 +210,17 @@ Si una de estas funciones comienza a observar datos nuevos, persistir informaci�
 9. React puede traducir etiquetas visuales, pero no cambiar riesgo, madurez, efectos ni estado.
 10. Un identificador publicado no cambia de significado; una ruptura exige nueva versión o nuevo ID.
 
-## Diferencias detectadas entre el tablero y la realidad
+## Diferencias resueltas entre el tablero y la realidad
 
-- `Puentes.tsx` contiene hoy seis definiciones estáticas de salidas futuras y no representa las capacidades reales de nube, memoria, observación o avatar.
-- El contador de puentes está fijado en cero. Es honesto para adaptadores de salida, pero no es un contador general de capacidades.
+- `Puentes.tsx` consume ahora las 24 capacidades del snapshot nativo y las agrupa por dominio.
+- Los contadores se calculan desde estado y madurez reales; no existe un total fijado en React.
 - La pestaña Actividad conserva eventos únicamente durante la sesión; no sustituye las auditorías JSONL.
-- Las confirmaciones de envío, restauración y borrado se realizan en React. R1 las declarará como `currentUi`; R2 diseñará la puerta nativa.
-- `load_memory` mezcla lectura, inicialización y migración. La futura sonda del registro deberá inspeccionar rutas sin reutilizar ese comando.
-- El modo web contiene datos predeterminados para desarrollo. Cualquier fallback de R1 deberá marcarse como `webDevelopment` y no simular disponibilidad nativa.
+- Las confirmaciones de envío, restauración y borrado se realizan en React. R1 las declara como `currentUi`; R2 diseñará la puerta nativa.
+- `load_memory` mezcla lectura, inicialización y migración; la sonda R1 inspecciona rutas mediante un helper pasivo que no crea archivos.
+- El fallback web está marcado como `webDevelopment` y presenta un registro vacío, sin simular disponibilidad nativa.
 
-## Resultado esperado de la implementación posterior
+## Resultado implementado
 
-R1 añadirá un módulo Rust `capabilities.rs` y un único comando Tauri tentativo llamado `capability_registry_status`. Puentes consumirá su snapshot en escritorio y mostrará un estado explícito de desarrollo en navegador. Ningún comando existente cambiará de nombre o comportamiento durante esta fase.
+R1 añadió el módulo Rust `capabilities.rs` y el comando Tauri `capability_registry_status`. Capacidades y Puentes consume su snapshot en escritorio y muestra un estado explícito de desarrollo en navegador. Ningún comando anterior cambió de nombre o comportamiento durante esta fase.
 
 El plan de implementación y migración está en `docs/plans/R1-capability-registry.md` y la decisión adoptada en `docs/decisions/ADR-P-041-registro-de-capacidades.md`.

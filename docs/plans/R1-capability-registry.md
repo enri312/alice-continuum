@@ -1,7 +1,7 @@
 # Plan de implementación R1 — Registro de capacidades
 
-Estado: diseño aprobado; implementación pendiente  
-Fecha: 2026-08-08
+Estado: completado y validado con aplicación y archivos reales  
+Fecha: 2026-08-09
 
 ## Objetivo
 
@@ -33,6 +33,7 @@ Materializar el contrato de `docs/architecture/CAPABILITY_REGISTRY_R1.md` sin a�
 - Memoria: inspeccionar existencia y estructura sin crear carpetas, manifiestos o migraciones.
 - Avatar: reutilizar validación de ruta y metadatos sin cargar Three.js ni modificar el VRM.
 - Salidas futuras: producir descriptores `planned` y `unavailable` sin métricas.
+- Entradas sensoriales futuras: producir descriptores `planned` y `unavailable` sin abrir pantalla, cámara, micrófono ni modelos.
 
 **Puerta:** una prueba con raíz temporal inexistente confirma que la sonda de memoria no crea ningún archivo.
 

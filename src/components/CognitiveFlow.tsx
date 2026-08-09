@@ -32,6 +32,7 @@ export function CognitiveFlow({ snapshot, selectedId, onSelect }: CognitiveFlowP
   const byId = new Map(snapshot.flowNodes.map((node) => [node.id, node]));
 
   return <div className={`cognitive-flow ${snapshot.hasActivity ? "has-activity" : "is-empty"}`}>
+    <div className="nucleus-panel-label"><span>[02]</span><strong>COGNITIVE GRAPH / GLOBAL WORKSPACE</strong><small>FUNCTIONAL FLOW</small></div>
     <div className="flow-state">
       <span>{snapshot.hasActivity ? "SEÑAL REGISTRADA" : "SIN ACTIVIDAD COGNITIVA REGISTRADA"}</span>
       <strong>{snapshot.hasActivity ? snapshot.focusStatus : "0 eventos"}</strong>

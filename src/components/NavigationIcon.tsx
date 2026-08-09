@@ -4,9 +4,11 @@ import memorySvg from "../../icons/nav-memory.svg?raw";
 import activitySvg from "../../icons/nav-activity.svg?raw";
 import bridgesSvg from "../../icons/nav-bridges.svg?raw";
 import avatarSvg from "../../icons/nav-avatar.svg?raw";
+import identificationSvg from "../../icons/nav-identification.svg?raw";
+import settingsSvg from "../../icons/nav-settings.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar";
+export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -20,6 +22,8 @@ const sources: Record<NavigationIconKind, string> = {
   activity: activitySvg,
   bridges: bridgesSvg,
   avatar: avatarSvg,
+  identification: identificationSvg,
+  settings: settingsSvg,
 };
 
 export function NavigationIcon({ kind, active }: NavigationIconProps) {

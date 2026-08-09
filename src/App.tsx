@@ -6,6 +6,8 @@ import { Nucleo } from "./Page/Nucleo";
 import { Memoria } from "./Page/Memoria";
 import { Actividad } from "./Page/Actividad";
 import { Puentes } from "./Page/Puentes";
+import { Identificacion } from "./Page/Identificacion";
+import { Configuracion } from "./Page/Configuracion";
 import { buildBrainSnapshot } from "./core/brain";
 import { createCognitiveEvent } from "./core/cognitive-events";
 import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive-events";
@@ -40,11 +42,21 @@ type Session = {
 
 type ForegroundContext = { windowTitle: string; processName: string };
 type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boolean };
-type Screen = "conversacion" | "nucleo" | "memoria" | "actividad" | "puentes" | "avatar";
+type Screen = "conversacion" | "nucleo" | "identificacion" | "memoria" | "actividad" | "configuracion" | "puentes" | "avatar";
 
 const storageKey = "alice-cognitive-core-sessions-v1";
 const legacyStorageKeys = ["proyecto-p-sessions-v1"];
+const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
 const Avatar = lazy(() => import("./Page/Avatar").then((module) => ({ default: module.Avatar })));
+
+function loadCloudSelection() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(cloudSelectionKey) ?? "null") as { provider?: unknown; model?: unknown } | null;
+    return { provider: typeof parsed?.provider === "string" ? parsed.provider : "", model: typeof parsed?.model === "string" ? parsed.model : "" };
+  } catch {
+    return { provider: "", model: "" };
+  }
+}
 
 function loadSessions(): Session[] {
   return loadCompatibleArray<Session>(localStorage, storageKey, legacyStorageKeys);
@@ -61,7 +73,7 @@ export function App() {
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
     const requested = new URLSearchParams(window.location.search).get("screen");
-    return (["conversacion", "nucleo", "memoria", "actividad", "puentes", "avatar"] as Screen[]).includes(requested as Screen) ? requested as Screen : "conversacion";
+    return (["conversacion", "nucleo", "identificacion", "memoria", "actividad", "configuracion", "puentes", "avatar"] as Screen[]).includes(requested as Screen) ? requested as Screen : "conversacion";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
@@ -75,6 +87,7 @@ export function App() {
     { id: "xai", label: "xAI", configured: false, defaultModel: "grok-4.5", protocol: "Responses API", retentionMode: "store: false" },
     { id: "compatible", label: "Compatible", configured: false, defaultModel: "", protocol: "Chat Completions", retentionMode: "definida por el servicio" },
   ] });
+  const [cloudSelection, setCloudSelection] = useState(loadCloudSelection);
   const [cognitiveEvents, setCognitiveEvents] = useState<CognitiveEvent[]>([]);
   const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
   const [memoryPath, setMemoryPath] = useState("");
@@ -112,6 +125,28 @@ export function App() {
     if (!desktopApp) return;
     invoke<CloudStatus>("cloud_status").then(setCloudStatus).catch((error) => recordEvent("SECURITY", "CLOUD_STATUS_ERROR", String(error), "WARN"));
   }, [desktopApp]);
+
+  useEffect(() => {
+    const selected = cloudStatus.providers.find((provider) => provider.id === cloudSelection.provider);
+    if (!selected) {
+      const fallback = cloudStatus.providers.find((provider) => provider.configured) ?? cloudStatus.providers[0];
+      if (fallback) setCloudSelection({ provider: fallback.id, model: fallback.defaultModel });
+      return;
+    }
+    if (!cloudSelection.model.trim() && selected.defaultModel) setCloudSelection((current) => ({ ...current, model: selected.defaultModel }));
+  }, [cloudSelection.model, cloudSelection.provider, cloudStatus.providers]);
+
+  useEffect(() => {
+    if (!cloudSelection.provider) return;
+    localStorage.setItem(cloudSelectionKey, JSON.stringify(cloudSelection));
+  }, [cloudSelection]);
+
+  function selectCloudProvider(providerId: string) {
+    const selected = cloudStatus.providers.find((provider) => provider.id === providerId);
+    if (!selected) return;
+    setCloudSelection({ provider: selected.id, model: selected.defaultModel });
+    recordEvent("SYSTEM", "INFERENCE_ROUTE_SELECTED", `${selected.label} · ${selected.defaultModel || "sin modelo"}`);
+  }
 
   useEffect(() => {
     if (!desktopApp || memoryLoadStarted.current) return;
@@ -245,26 +280,54 @@ export function App() {
     recordEvent("MEMORY", outcome === "confirmed" ? "MEMORY_REVIEW_CONFIRMED" : "MEMORY_REVIEW_CONFLICT", `${outcome === "confirmed" ? "Vigencia confirmada" : "Corrección solicitada"}: ${memory.intention}`, outcome === "confirmed" ? "INFO" : "WARN");
   }
 
+  const workspace = screen === "puentes" || screen === "avatar" ? "body" : "cognitive";
+
   return <main className="shell">
     <header className="hero">
       <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE · NÚCLEO OBSERVABLE</p><span className="privacy-badge"><i />Local-first</span></div>
       <h1>Una presencia digital,<br /><em>bajo tu control.</em></h1>
     </header>
 
-    <nav className="screen-tabs" aria-label="Pantallas de Alice">
-      <button className={screen === "conversacion" ? "selected" : ""} aria-label="Conversación" data-tooltip="Conversación" aria-current={screen === "conversacion" ? "page" : undefined} onClick={() => setScreen("conversacion")}><NavigationIcon kind="conversation" active={screen === "conversacion"} /><span className="screen-tab-label">Conversación</span></button>
-      <button className={screen === "nucleo" ? "selected" : ""} aria-label="Núcleo" data-tooltip="Núcleo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="nucleus" active={screen === "nucleo"} /><span className="screen-tab-label">Núcleo</span></button>
-      <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${remembered.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{remembered.length}</span></button>
-      <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
-      <button className={screen === "puentes" ? "selected" : ""} aria-label="Puentes de salida, cero conectados" data-tooltip="Puentes de salida" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Puentes de salida</span><span className="screen-count">0</span></button>
-      <button className={screen === "avatar" ? "selected" : ""} aria-label="Avatar local" data-tooltip="Avatar" aria-current={screen === "avatar" ? "page" : undefined} onClick={() => setScreen("avatar")}><NavigationIcon kind="avatar" active={screen === "avatar"} /><span className="screen-tab-label">Avatar</span></button>
+    <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
+      <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("conversacion")}>
+        <span>SYS 01 · PERCEPCIÓN Y MEMORIA</span><strong>COGNITIVE CORE</strong><small>7 paneles diagnósticos · conversación · memoria</small>
+      </button>
+      <button type="button" role="tab" aria-selected={workspace === "body"} className={workspace === "body" ? "selected body" : "body"} onClick={() => setScreen("puentes")}>
+        <span>SYS 02 · EXPRESIÓN FÍSICA</span><strong>EMBODIMENT CORE</strong><small>4 áreas · puentes · rostro · cuerpo · avatar</small>
+      </button>
     </nav>
 
-    {screen === "conversacion" && <Conversacion desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onSend={sendCloudMessage} />}
+    <section className={`core-system-frame system-${workspace}`} aria-labelledby="active-system-title">
+      <header className="core-system-heading">
+        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : "[SYS.02] EMBODIMENT WORKSPACE"}</span><h2 id="active-system-title">ALICE_NEURAL_CORE <em>// {workspace === "cognitive" ? "COGNITIVE IDENTIFICATION" : "BODY SOLVER"}</em></h2></div>
+        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : "PHYSICAL OUTPUT · SAFE OFF"}</p>
+      </header>
+
+    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas de Cognitive Identification" : "Pantallas de Body Solver"}>
+      {workspace === "cognitive" && <>
+      <button className={screen === "conversacion" ? "selected" : ""} aria-label="Conversación" data-tooltip="Conversación" aria-current={screen === "conversacion" ? "page" : undefined} onClick={() => setScreen("conversacion")}><NavigationIcon kind="conversation" active={screen === "conversacion"} /><span className="screen-tab-label">Conversación</span></button>
+      <button className={screen === "nucleo" ? "selected" : ""} aria-label="Núcleo" data-tooltip="Núcleo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="nucleus" active={screen === "nucleo"} /><span className="screen-tab-label">Núcleo</span></button>
+      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Identificación cognitiva" data-tooltip="Identificación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Identificación</span></button>
+      <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${remembered.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{remembered.length}</span></button>
+      <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
+      <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
+      </>}
+      {workspace === "body" && <>
+      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y puentes" data-tooltip="Capacidades y puentes" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y puentes</span><span className="screen-count">R1</span></button>
+      <button className={screen === "avatar" ? "selected" : ""} aria-label="Avatar local" data-tooltip="Avatar" aria-current={screen === "avatar" ? "page" : undefined} onClick={() => setScreen("avatar")}><NavigationIcon kind="avatar" active={screen === "avatar"} /><span className="screen-tab-label">Avatar</span></button>
+      </>}
+    </nav>
+
+    <div className="core-system-content">
+    {screen === "conversacion" && <Conversacion desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />}
     {screen === "nucleo" && <Nucleo snapshot={brainSnapshot} />}
-    {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} onConverse={() => setScreen("conversacion")} />}
+    {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
+    {screen === "configuracion" && <Configuracion desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
     {screen === "puentes" && <Puentes />}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
+    </div>
+    </section>
   </main>;
 }

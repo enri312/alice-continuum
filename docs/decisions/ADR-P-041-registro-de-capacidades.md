@@ -1,7 +1,7 @@
 # ADR-P-041 — Registro nativo y declarativo de capacidades
 
 Fecha: 2026-08-08  
-Estado: aceptada para implementación
+Estado: implementada y validada
 
 ## Contexto
 
@@ -17,6 +17,7 @@ Además, algunas protecciones actuales viven en la interfaz. El backend valida s
 - Separar madurez, estado operativo, salud y riesgo para no mezclar conceptos.
 - Declarar dónde se aplica actualmente cada permiso: backend, interfaz, sistema operativo o ningún lugar.
 - Incluir capacidades reales de nube, contexto, memoria y avatar.
+- Incluir las seis entradas sensoriales de ADR-P-043 como `planned` y `unavailable`, sin sondas ni apertura de dispositivos.
 - Mantener voz, rostro, mirada, cuerpo y adaptadores externos como `planned` y `unavailable` hasta que exista código real.
 - Derivar estados mediante sondas locales sin efectos secundarios. Consultar el registro no crea archivos, no migra memoria, no lanza Explorer, no carga el VRM completo y no usa la red.
 - Mantener `lastExecution: null` hasta que la auditoría unificada de R3 pueda respaldar ese dato.

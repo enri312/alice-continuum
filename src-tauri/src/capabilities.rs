@@ -2,9 +2,12 @@ use crate::avatar::{avatar_capability_probe, AvatarCapabilityProbe};
 use crate::cloud::{cloud_capability_probe, CloudCapabilityProbe};
 use crate::memory::{memory_capability_probe, MemoryCapabilityProbe, MemoryResourceState};
 use crate::observation::{ObservationCapabilityProbe, ObservationStore};
+use crate::util::alice_data_root_path;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::{AppHandle, State};
 
 pub(crate) const CAPABILITY_REGISTRY_SCHEMA_VERSION: u32 = 1;
 
@@ -62,6 +65,7 @@ pub(crate) enum CapabilityLastExecution {}
 pub(crate) enum CapabilityDomain {
     Cloud,
     Context,
+    Perception,
     Memory,
     Avatar,
     Output,
@@ -171,11 +175,12 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(18);
+    let mut capabilities = Vec::with_capacity(24);
     capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
     capabilities.extend(memory_capabilities(&generated_at, &probes.memory));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
+    capabilities.extend(planned_sensory_capabilities());
     capabilities.extend(planned_output_capabilities());
 
     let snapshot = CapabilityRegistrySnapshot {
@@ -185,6 +190,133 @@ pub(crate) fn capability_registry_from_probes(
     };
     snapshot.validate()?;
     Ok(snapshot)
+}
+
+fn planned_sensory_capabilities() -> Vec<CapabilityDescriptor> {
+    [
+        (
+            "perception.screen.observe",
+            "Observar pantalla seleccionada",
+            "Representa una futura sesión de fotogramas efímeros elegida con el selector seguro de Windows.",
+            "observeSelectedScreen",
+            "screenPixels",
+            "Gateway R2 y selector Windows Graphics Capture",
+        ),
+        (
+            "perception.camera.observe",
+            "Observar cámara local",
+            "Representa una futura vista previa visible para análisis local sin conservar video por defecto.",
+            "observeAuthorizedCamera",
+            "cameraFrames",
+            "Gateway R2, permiso de cámara y vista previa visible",
+        ),
+        (
+            "perception.microphone.observe",
+            "Escuchar micrófono local",
+            "Representa una futura sesión de audio revocable con detección de voz y descarte del búfer crudo.",
+            "observeAuthorizedMicrophone",
+            "microphoneAudio",
+            "Gateway R2, permiso de micrófono e indicador visible",
+        ),
+        (
+            "perception.media.inspect",
+            "Inspeccionar reproductor multimedia",
+            "Representa una futura consulta de título, artista, aplicación y estado sin copiar el audio.",
+            "inspectCurrentMediaSession",
+            "mediaSessionMetadata",
+            "Gateway R2 y sesión multimedia compatible",
+        ),
+        (
+            "perception.desktop.observe",
+            "Observar acciones accesibles",
+            "Representa futuros eventos estructurados de interfaz sin registrar teclas ni campos protegidos.",
+            "observeAccessibleUiEvents",
+            "uiAutomationEvents",
+            "Gateway R2, alcance de aplicación y exclusión de datos protegidos",
+        ),
+        (
+            "perception.gesture.derive",
+            "Derivar gestos y landmarks",
+            "Representa un futuro análisis local de manos, rostro y pose a partir de una cámara autorizada.",
+            "deriveAuthorizedLandmarks",
+            "gestureLandmarks",
+            "Cámara autorizada, modelo local revisado y Gateway R2",
+        ),
+    ]
+    .into_iter()
+    .map(|(id, label, description, operation, data_scope, requirement)| {
+        capability(
+            id,
+            label,
+            description,
+            CapabilityDomain::Perception,
+            CapabilityKind::Observation,
+            CapabilityMaturity::Planned,
+            "none",
+            &[operation],
+            CapabilityState::Unavailable,
+            CapabilityRisk::High,
+            &[CapabilityEffect::None],
+            &[data_scope],
+            &[requirement],
+            permission(
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityPermissionEnforcer::None,
+                "No existe permiso aplicable porque la capacidad sensorial no está implementada.",
+            ),
+            health(
+                CapabilityHealthStatus::Unavailable,
+                "Capacidad sensorial planificada sin adaptador; no se abrió ningún dispositivo.",
+                None,
+            ),
+        )
+    })
+    .collect()
+}
+
+#[tauri::command]
+pub(crate) fn capability_registry_status(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+) -> Result<CapabilityRegistrySnapshot, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let probes = CapabilityProbeSnapshot::collect(&data_root, &observation_store);
+    capability_registry_from_probes(current_utc_timestamp()?, &probes)
+}
+
+fn current_utc_timestamp() -> Result<String, String> {
+    let seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_secs();
+    let seconds =
+        i64::try_from(seconds).map_err(|_| "La fecha del sistema excede el rango admitido")?;
+    Ok(format_utc_timestamp(seconds))
+}
+
+fn format_utc_timestamp(seconds: i64) -> String {
+    let days = seconds.div_euclid(86_400);
+    let seconds_of_day = seconds.rem_euclid(86_400);
+    let (year, month, day) = civil_date_from_unix_days(days);
+    let hour = seconds_of_day / 3_600;
+    let minute = seconds_of_day % 3_600 / 60;
+    let second = seconds_of_day % 60;
+    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
+}
+
+fn civil_date_from_unix_days(days: i64) -> (i64, i64, i64) {
+    let days = days + 719_468;
+    let era = if days >= 0 { days } else { days - 146_096 } / 146_097;
+    let day_of_era = days - era * 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let mut year = year_of_era + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let month_prime = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * month_prime + 2) / 5 + 1;
+    let month = month_prime + if month_prime < 10 { 3 } else { -9 };
+    year += i64::from(month <= 2);
+    (year, month, day)
 }
 
 fn cloud_capabilities(checked_at: &str, probe: &CloudCapabilityProbe) -> Vec<CapabilityDescriptor> {
@@ -1204,12 +1336,20 @@ mod tests {
             serde_json::to_value([
                 CapabilityDomain::Cloud,
                 CapabilityDomain::Context,
+                CapabilityDomain::Perception,
                 CapabilityDomain::Memory,
                 CapabilityDomain::Avatar,
                 CapabilityDomain::Output,
             ])
             .unwrap(),
-            json!(["cloud", "context", "memory", "avatar", "output"])
+            json!([
+                "cloud",
+                "context",
+                "perception",
+                "memory",
+                "avatar",
+                "output"
+            ])
         );
         assert_eq!(
             serde_json::to_value([
@@ -1435,7 +1575,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 18);
+        assert_eq!(snapshot.capabilities.len(), 24);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1462,13 +1602,31 @@ mod tests {
             .iter()
             .filter(|capability| capability.maturity == CapabilityMaturity::Planned)
             .collect::<Vec<_>>();
-        assert_eq!(planned.len(), 6);
+        assert_eq!(planned.len(), 12);
         assert!(planned.iter().all(|capability| {
             capability.state == CapabilityState::Unavailable
                 && capability.adapter == "none"
                 && capability.last_execution.is_none()
                 && capability.health.checked_at.is_none()
         }));
+
+        for id in [
+            "perception.screen.observe",
+            "perception.camera.observe",
+            "perception.microphone.observe",
+            "perception.media.inspect",
+            "perception.desktop.observe",
+            "perception.gesture.derive",
+        ] {
+            let capability = registered(&snapshot, id);
+            assert_eq!(capability.domain, CapabilityDomain::Perception);
+            assert_eq!(capability.risk, CapabilityRisk::High);
+            assert_eq!(capability.effects, vec![CapabilityEffect::None]);
+            assert_eq!(
+                capability.permission.mode,
+                CapabilityPermissionMode::SessionOptIn
+            );
+        }
     }
 
     #[test]
@@ -1553,7 +1711,21 @@ mod tests {
         let probes = CapabilityProbeSnapshot::collect(&root, &ObservationStore::default());
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 18);
+        assert_eq!(snapshot.capabilities.len(), 24);
         assert!(!root.exists());
+    }
+
+    #[test]
+    fn registry_generation_is_idempotent_for_the_same_timestamp_and_probes() {
+        let probes = unavailable_probes();
+
+        assert_eq!(registry(&probes), registry(&probes));
+    }
+
+    #[test]
+    fn utc_timestamp_formatter_handles_epoch_leap_day_and_day_boundary() {
+        assert_eq!(format_utc_timestamp(0), "1970-01-01T00:00:00Z");
+        assert_eq!(format_utc_timestamp(951_782_400), "2000-02-29T00:00:00Z");
+        assert_eq!(format_utc_timestamp(1_704_067_199), "2023-12-31T23:59:59Z");
     }
 }

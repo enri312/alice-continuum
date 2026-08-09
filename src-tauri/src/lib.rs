@@ -1,6 +1,4 @@
 mod avatar;
-// R1 compila y prueba primero el contrato, antes de registrar su comando de consulta.
-#[allow(dead_code)]
 mod capabilities;
 mod cloud;
 mod memory;
@@ -8,6 +6,7 @@ mod observation;
 mod util;
 
 use avatar::avatar_status;
+use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
 use memory::{
     export_memory, load_memory, open_memory_directory, restore_memory_backup, save_memory,
@@ -31,6 +30,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            capability_registry_status,
             set_context_observation_enabled,
             get_foreground_context,
             load_memory,

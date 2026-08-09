@@ -130,6 +130,8 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
       { id: "control-inhibition", label: "Inhibición", value: hasActivity ? .58 : 0, detail: "Indicador de las restricciones aplicadas, no un control editable en esta fase.", availability: "ready", locked: true },
       { id: "control-stability", label: "Estabilidad de estilo", value: 0, detail: "Control planificado para mantener coherencia de tono y conducta.", availability: "planned", locked: true },
       { id: "control-memory", label: "Influencia de memoria", value: 0, detail: "Permanece en cero hasta que el usuario seleccione recuerdos durante la revisión de un envío.", availability: "ready", locked: true },
+      { id: "control-anticipation", label: "Anticipación", value: 0, detail: "Control planificado para preparar transiciones de respuesta; no predice el futuro ni acciones del usuario.", availability: "planned", locked: true },
+      { id: "control-speed", label: "Velocidad de estilo", value: 0, detail: "Control planificado para el ritmo expresivo de futuras salidas; no modifica todavía el procesamiento.", availability: "planned", locked: true },
     ],
   };
 }

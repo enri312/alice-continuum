@@ -1,11 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <style>.q-scan{animation:qScan 3s ease-in-out infinite}.q-dash{animation:qDash 3.2s linear infinite}.q-led{animation:qLed 1.3s steps(2,end) infinite}@keyframes qScan{0%,100%{transform:translateY(-35px);opacity:.08}50%{transform:translateY(45px);opacity:.85}}@keyframes qDash{to{stroke-dashoffset:-36}}@keyframes qLed{50%{opacity:.25}}@media(prefers-reduced-motion:reduce){.q-scan,.q-dash,.q-led{animation:none}}</style>
-  <defs><linearGradient id="q-f" x1="10" y1="8" x2="190" y2="192"><stop stop-color="#334155"/><stop offset=".5" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient><filter id="q-g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><pattern id="q-grid" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M14 0H0v14" fill="none" stroke="#164e63" stroke-width=".7"/></pattern></defs>
-  <path d="M100 7c79 0 93 14 93 93s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#q-f)" stroke="#0891b2" stroke-width="3"/><path d="M100 14c72 0 86 14 86 86s-14 86-86 86-86-14-86-86 14-86 86-86Z" fill="url(#q-grid)" opacity=".42" stroke="#67e8f9"/>
-  <text x="27" y="32" fill="#67e8f9" font-family="Consolas,monospace" font-size="14" font-weight="900">06</text><text x="170" y="30" fill="#64748b" font-family="Consolas,monospace" font-size="7" text-anchor="end">FACE_INPUT</text><g fill="#475569" stroke="#111827" stroke-width="2"><circle cx="28" cy="28" r="5"/><circle cx="172" cy="28" r="5"/><circle cx="28" cy="172" r="5"/><circle cx="172" cy="172" r="5"/></g>
-  <g fill="#071521" stroke="#67e8f9" stroke-width="2" filter="url(#q-g)"><path d="M100 43c-35 0-54 25-50 65 4 36 26 58 50 58s46-22 50-58c4-40-15-65-50-65Z"/></g>
-  <g fill="none" stroke="#38bdf8" stroke-width="1.4" opacity=".82"><path d="M100 44c-19 17-19 102 0 121M100 44c19 17 19 102 0 121M60 68c24 13 56 13 80 0M52 96c28 11 68 11 96 0M54 126c27-9 65-9 92 0M67 149c20-7 46-7 66 0"/><path class="q-dash" d="M71 87c9-8 19-8 27 0-9 8-19 8-27 0Zm31 0c8-8 18-8 27 0-8 8-18 8-27 0ZM86 134c9 7 19 7 28 0" stroke-dasharray="4 3"/></g>
-  <g fill="#34d399" filter="url(#q-g)"><circle cx="84" cy="87" r="3"/><circle cx="116" cy="87" r="3"/><circle cx="100" cy="109" r="2.5"/><circle cx="100" cy="136" r="2.5"/></g><path class="q-scan" d="M53 87h94" stroke="#34d399" stroke-width="1.5" filter="url(#q-g)"/>
-  <g fill="#071521" stroke="#38bdf8" stroke-width="1.2" font-family="Consolas,monospace" font-size="5" font-weight="900"><path d="M17 54h18v31H17Z"/><text x="26" y="63" fill="#bae6fd" stroke="none" text-anchor="middle">CAM</text><path d="M21 70h10m-10 6h7" stroke="#64748b"/><path d="M165 54h18v31h-18Z"/><text x="174" y="63" fill="#bae6fd" stroke="none" text-anchor="middle">PTS</text><path d="M169 70h10m-7 6h7" stroke="#64748b"/></g><circle class="q-led" cx="174" cy="94" r="3" fill="#64748b"/>
-  <g transform="translate(58 177)"><rect width="84" height="8" rx="4" fill="#020617" stroke="#334155"/><rect x="3" y="2.5" width="28" height="3" rx="1.5" fill="#38bdf8" filter="url(#q-g)"/><circle cx="70" cy="4" r="2" fill="#64748b"/><circle cx="78" cy="4" r="2" fill="#fbbf24"/></g>
+  <style>
+    .bf-scan{animation:bfScan 3.1s ease-in-out infinite}.bf-ring{transform-box:fill-box;transform-origin:center;animation:bfRing 10s linear infinite}.bf-dash{animation:bfDash 3s linear infinite}.bf-point{animation:bfPoint 1.9s steps(2,end) infinite}.bf-point.b{animation-delay:-.65s}.bf-point.c{animation-delay:-1.3s}
+    @keyframes bfScan{0%,100%{transform:translateY(-47px);opacity:.08}50%{transform:translateY(57px);opacity:.9}}@keyframes bfRing{to{transform:rotate(360deg)}}@keyframes bfDash{to{stroke-dashoffset:-36}}@keyframes bfPoint{50%{opacity:.28}}@media(prefers-reduced-motion:reduce){.bf-scan,.bf-ring,.bf-dash,.bf-point{animation:none}}
+  </style>
+  <defs>
+    <linearGradient id="bf-frame" x1="10" y1="8" x2="190" y2="192"><stop stop-color="#324157"/><stop offset=".48" stop-color="#0b1626"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <radialGradient id="bf-field"><stop stop-color="#0e7490" stop-opacity=".34"/><stop offset=".6" stop-color="#312e81" stop-opacity=".12"/><stop offset="1" stop-color="#020617" stop-opacity="0"/></radialGradient>
+    <linearGradient id="bf-face" x1="68" y1="54" x2="130" y2="151"><stop stop-color="#0e7490" stop-opacity=".55"/><stop offset=".48" stop-color="#172554" stop-opacity=".5"/><stop offset="1" stop-color="#4c1d95" stop-opacity=".32"/></linearGradient>
+    <linearGradient id="bf-scanline" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#22d3ee" stop-opacity="0"/><stop offset=".5" stop-color="#67e8f9"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></linearGradient>
+    <filter id="bf-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bf-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000" flood-opacity=".86"/></filter>
+    <pattern id="bf-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#164e63" stroke-width=".55" opacity=".55"/></pattern>
+  </defs>
+  <path d="M100 7c79 0 93 14 93 93s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#bf-frame)" stroke="#0e7490" stroke-width="3"/>
+  <path d="M100 13c73 0 87 14 87 87s-14 87-87 87-87-14-87-87 14-87 87-87Z" fill="url(#bf-grid)" opacity=".5" stroke="#67e8f9"/>
+  <g fill="#475569" stroke="#111827" stroke-width="2"><circle cx="28" cy="28" r="5"/><circle cx="172" cy="28" r="5"/><circle cx="28" cy="172" r="5"/><circle cx="172" cy="172" r="5"/></g>
+  <text x="100" y="27" fill="#bae6fd" font-family="Consolas,monospace" font-size="8" font-weight="900" text-anchor="middle" letter-spacing="1.45">FACIAL RETARGET</text>
+
+  <path d="M31 43h138l8 8v97l-8 8H31l-8-8V51Z" fill="#030a14" stroke="#155e75" stroke-width="2" filter="url(#bf-shadow)"/>
+  <ellipse cx="100" cy="100" rx="63" ry="59" fill="url(#bf-field)"/>
+  <ellipse class="bf-ring" cx="100" cy="101" rx="51" ry="57" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4 7" opacity=".62"/>
+
+  <g fill="url(#bf-face)" stroke="#67e8f9" stroke-width="2" filter="url(#bf-glow)"><path d="M100 46C67 46 56 72 61 108c5 35 20 52 39 52s34-17 39-52c5-36-6-62-39-62Z"/></g>
+  <g fill="none" stroke="#38bdf8" stroke-width="1.15" opacity=".76">
+    <path d="M100 47c-19 23-18 91 0 112M100 47c19 23 18 91 0 112M69 63c18 12 44 12 62 0M62 83c23 11 53 11 76 0M61 105c24 9 54 9 78 0M66 129c21-8 47-8 68 0M78 148c14-6 30-6 44 0"/>
+    <path class="bf-dash" d="M70 91c8-7 18-7 25 0-8 7-18 7-25 0Zm35 0c7-7 17-7 25 0-7 7-17 7-25 0M83 130c11 9 23 9 34 0" stroke="#e879f9" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <path d="M100 91c-6 14-8 27 0 32 8-5 6-18 0-32" stroke="#5eead4"/>
+  </g>
+  <g fill="#34d399" filter="url(#bf-glow)">
+    <circle class="bf-point" cx="77" cy="91" r="2.8"/><circle class="bf-point b" cx="89" cy="88" r="2.8"/><circle class="bf-point c" cx="111" cy="88" r="2.8"/><circle class="bf-point" cx="123" cy="91" r="2.8"/>
+    <circle class="bf-point b" cx="100" cy="104" r="2.6"/><circle class="bf-point c" cx="100" cy="122" r="2.6"/><circle class="bf-point" cx="87" cy="131" r="2.6"/><circle class="bf-point b" cx="100" cy="136" r="2.6"/><circle class="bf-point c" cx="113" cy="131" r="2.6"/>
+  </g>
+  <path class="bf-scan" d="M54 98h92" stroke="url(#bf-scanline)" stroke-width="2.2" filter="url(#bf-glow)"/>
+
+  <g fill="none" stroke="#fbbf24" stroke-width="1.6"><path d="M49 69V52h18m84 17V52h-18M49 131v17h18m84-17v17h-18"/></g>
+  <g font-family="Consolas,monospace" font-size="4.4" font-weight="900">
+    <g transform="translate(28 57)"><rect width="20" height="37" fill="#07131f" stroke="#164e63"/><text x="10" y="8" fill="#7dd3fc" text-anchor="middle">PTS</text><path d="M5 15h10M5 21h7M5 27h10" stroke="#2dd4bf"/><text x="10" y="34" fill="#475569" text-anchor="middle">000</text></g>
+    <g transform="translate(152 57)"><rect width="20" height="37" fill="#07131f" stroke="#164e63"/><text x="10" y="8" fill="#7dd3fc" text-anchor="middle">BLS</text><path d="M5 15h10M5 21h5M5 27h8" stroke="#e879f9"/><text x="10" y="34" fill="#475569" text-anchor="middle">000</text></g>
+  </g>
+
+  <g transform="translate(37 163)" font-family="Consolas,monospace" font-size="4.3" font-weight="900"><rect width="126" height="13" rx="3" fill="#020617" stroke="#334155"/><circle cx="8" cy="6.5" r="2.4" fill="#64748b"/><text x="15" y="8.2" fill="#94a3b8">CAM OFF</text><rect x="48" y="4" width="33" height="5" fill="#082f49"/><rect x="48" y="4" width="8" height="5" fill="#38bdf8"/><text x="88" y="8.2" fill="#fbbf24">RETARGET</text><text x="120" y="8.2" fill="#64748b" text-anchor="end">OFF</text></g>
+  <g fill="none" stroke="#38bdf8" stroke-width="1" opacity=".7"><path d="M15 69h8v-8m-8 69h8v8m162-69h-8v-8m8 69h-8v8"/></g>
 </svg>

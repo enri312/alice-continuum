@@ -345,6 +345,7 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
   }, [snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity]);
 
   return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Volumen neuronal abstracto de dos hemisferios conectado al estado real de Alice">
+    <div className="nucleus-panel-label"><span>[01]</span><strong>3D NEURAL VOLUME</strong><small>LOCAL VISUALIZATION</small></div>
     <canvas ref={canvasRef} tabIndex={snapshot.hasActivity ? 0 : -1} aria-label="Vista 3D del volumen neuronal. Arrastra para girar o mover, usa la rueda para acercar y alejar, y pulsa cero para restablecer." />
     {snapshot.hasActivity ? <>
       <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA</span>
