@@ -96,7 +96,7 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 
-**Estado:** pendiente  
+**Estado:** en curso · contrato v1, almacenamiento acotado y lectura nativa implementados  
 **Dependencia:** Fase R2  
 **Objetivo:** demostrar qué solicitó Alice, qué política se aplicó y cuál fue el resultado.
 
@@ -106,11 +106,11 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 
 **Criterios de aceptación:**
 
-- [ ] Existe un esquema versionado de eventos.
+- [x] Existe un esquema versionado de eventos.
 - [ ] Actividad diferencia solicitud, autorización, ejecución, bloqueo y error.
 - [ ] Los eventos correlacionados comparten un identificador de operación.
 - [ ] El diagnóstico es de solo lectura y no expone secretos.
-- [ ] La rotación o crecimiento de auditorías tiene una política documentada.
+- [x] La rotación o crecimiento de auditorías tiene una política documentada.
 
 ### Fase R4 — Taller de habilidades
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 y R2** están completadas en su alcance inicial. R2 protege `context.foreground.control` y leases separados de cámara y micrófono; la prueba viva recibió señal de `ACER HD User Facing` y del arreglo Intel sin crear ni modificar archivos multimedia. El control de Conversación separa ahora salida a nube, almacenamiento local y destino de solo lectura. Envío de nube y mutaciones de memoria conservan por ahora sus controles actuales declarados por R1 y se migrarán individualmente, sin fingir protección nativa. El siguiente incremento autorizado es **R3 — Auditoría unificada y diagnóstico**. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** su primer incremento aporta esquema v1 cerrado, JSONL local acotado, evento real de inicio y lectura nativa desde Actividad. El siguiente incremento autorizado conectará el Gateway R2 como productor correlacionado; hasta entonces no se declara que solicitud, autorización, ejecución, bloqueo y error estén completamente auditados. La actividad futura del volumen neuronal se derivará de estas señales reales. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

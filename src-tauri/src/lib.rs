@@ -1,3 +1,4 @@
+mod audit;
 mod avatar;
 mod capabilities;
 mod cloud;
@@ -10,6 +11,7 @@ mod permissions;
 mod sensory;
 mod util;
 
+use audit::{audit_snapshot, record_process_started};
 use avatar::avatar_status;
 use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
@@ -38,6 +40,9 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 window.set_icon(window_icon)?;
             }
+            if let Err(error) = record_process_started(app.handle()) {
+                eprintln!("Auditoría R3 no disponible al iniciar: {error}");
+            }
             spawn_observer_thread(observation_store.clone(), permission_gateway.clone());
             spawn_sensor_reaper_thread(sensor_store.clone(), permission_gateway.clone());
             Ok(())
@@ -53,6 +58,7 @@ pub fn run() {
             execute_sensor_lease_grant,
             stop_sensor_lease,
             sensor_lease_status,
+            audit_snapshot,
             get_foreground_context,
             load_memory,
             save_memory,

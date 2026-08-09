@@ -20,3 +20,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-042](ADR-P-042-identidad-alice-cognitive-core.md) | Identidad técnica, ruta y repositorio privado de Alice Cognitive Core |
 | [ADR-P-043](ADR-P-043-aprendizaje-sensorial-gobernado.md) | Aprendizaje sensorial local, efímero y sujeto a confirmación |
 | [ADR-P-044](ADR-P-044-gateway-permisos-nativo.md) | Gateway nativo, efímero e idempotente para permisos R2 |
+| [ADR-P-045](ADR-P-045-auditoria-unificada-local.md) | Auditoría R3 local, correlacionada, privada y acotada |

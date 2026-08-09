@@ -3,8 +3,9 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-61%2F61%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-80%2F80%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-64%2F64%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-86%2F86%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
@@ -27,10 +28,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
+| Auditoría unificada R3 | En curso: esquema v1, almacenamiento acotado, inicio real y lectura nativa |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 61/61 aprobadas |
-| Pruebas Rust | 80/80 normales; prueba viva CAM+MIC aprobada explícitamente |
+| Pruebas TypeScript | 64/64 aprobadas |
+| Pruebas Rust | 86/86 normales; prueba viva CAM+MIC aprobada explícitamente |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -60,7 +62,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 | Núcleo | Volumen neuronal, flujo cognitivo, estado interno, planificador y línea temporal |
 | Identificación | Analizar entrada diagnóstica, tokens, intención e hipótesis explicables |
 | Memoria | Recuerdos, aprendizaje planificado, enseñanza, repaso y respaldo |
-| Actividad | Eventos cognitivos y de seguridad producidos durante la sesión |
+| Actividad | Eventos de sesión y auditoría R3 persistente de metadatos reales |
 | Configuración | Proveedor, modelo, privacidad y estado de dispositivos externos |
 | Capacidades y puentes | Snapshot nativo agrupado por Nube, Contexto, Percepción, Memoria, Avatar y Salidas |
 | Avatar | Visor privado del VRM con pose relajada predeterminada y pose de referencia opcional |
@@ -94,6 +96,14 @@ El panel lateral de Conversación es la última revisión antes de una solicitud
 - el botón de ventana abre el Gateway R2: no activa ni detiene directamente.
 
 El informe completo del alcance inicial está en [R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md](docs/testing/R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md).
+
+## Auditoría unificada R3
+
+El primer incremento de R3 incorpora un sobre de eventos nativo v1, cerrado a campos desconocidos y sin propiedades para mensajes, imágenes, audio, parámetros o claves. Al iniciar el proceso se registra un evento real `process.startup`; Actividad lo lee en `[08] NATIVE AUDIT R3` sin modificar el archivo.
+
+La auditoría vive en `data/audit/events-v1.jsonl`, limita el archivo actual a 5 MiB y conserva una sola rotación anterior. Limpiar la consola temporal de React no borra evidencia nativa. Gateway, memoria y nube todavía deben migrarse como productores correlacionados antes de cerrar R3.
+
+Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), el [plan incremental](docs/plans/R3-unified-audit.md) y el [informe de la prueba real](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md).
 
 ## Iniciar Alice
 
@@ -135,6 +145,9 @@ Las variables se configuran en el perfil de Windows y requieren reiniciar Alice.
 
 ```text
 data/
+├── audit/
+│   ├── events-v1.jsonl
+│   └── events-v1.previous.jsonl
 ├── cloud/cloud-audit.jsonl
 └── memory/
     ├── manifest.json
@@ -157,6 +170,7 @@ src/
 └── core/                 contratos R1/R2 y lógica TypeScript comprobable
 
 src-tauri/src/
+├── audit.rs              esquema, persistencia acotada y lectura R3
 ├── capabilities.rs       registro R1 y sondas pasivas
 ├── cloud.rs              proveedores y solicitudes autorizadas
 ├── memory.rs             persistencia, respaldo y auditoría
@@ -170,7 +184,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md) y [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md) y [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
 
 ## Pruebas
 

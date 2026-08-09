@@ -28,6 +28,10 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 22. [Contrato del Gateway de permisos R2](architecture/PERMISSION_GATEWAY_R2.md)
 23. [ADR-P-044: Gateway nativo de permisos](decisions/ADR-P-044-gateway-permisos-nativo.md)
 24. [Plan de implementación R2](plans/R2-permission-gateway.md)
+25. [Contrato de auditoría unificada R3](architecture/UNIFIED_AUDIT_R3.md)
+26. [ADR-P-045: auditoría unificada local](decisions/ADR-P-045-auditoria-unificada-local.md)
+27. [Plan de implementación R3](plans/R3-unified-audit.md)
+28. [Informe de la base de auditoría R3](testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md)
 
 ## Secciones
 
