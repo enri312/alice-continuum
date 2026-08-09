@@ -3,8 +3,8 @@ mod capabilities;
 mod cloud;
 mod memory;
 mod observation;
-// Solo consulta y preparación están expuestas en este incremento de R2. Las
-// decisiones, grants y ejecuciones continúan aisladas dentro del backend.
+// R2 expone consulta, preparación y decisión humana. La ejecución de grants y
+// los adaptadores de capacidades continúan aislados dentro del backend.
 #[allow(dead_code)]
 mod permissions;
 mod util;
@@ -19,7 +19,10 @@ use observation::{
     get_foreground_context, set_context_observation_enabled, spawn_observer_thread,
     ObservationStore,
 };
-use permissions::{permission_gateway_status, prepare_permission_request, PermissionGateway};
+use permissions::{
+    cancel_permission_request, decide_permission_request, permission_gateway_status,
+    prepare_permission_request, revoke_permission_grant, PermissionGateway,
+};
 use tauri::Manager;
 
 pub fn run() {
@@ -39,6 +42,9 @@ pub fn run() {
             capability_registry_status,
             permission_gateway_status,
             prepare_permission_request,
+            decide_permission_request,
+            cancel_permission_request,
+            revoke_permission_grant,
             set_context_observation_enabled,
             get_foreground_context,
             load_memory,

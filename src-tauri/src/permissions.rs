@@ -40,6 +40,18 @@ pub(crate) struct ForegroundControlParameters {
     pub(crate) enabled: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct CancelPermissionRequestInput {
+    pub(crate) request_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct RevokePermissionGrantInput {
+    pub(crate) grant_id: String,
+}
+
 #[tauri::command]
 pub(crate) fn permission_gateway_status(
     gateway: State<'_, PermissionGateway>,
@@ -53,6 +65,32 @@ pub(crate) fn prepare_permission_request(
     gateway: State<'_, PermissionGateway>,
 ) -> Result<PreparedPermissionRequest, String> {
     prepare_supported_permission_request(&gateway, input)
+}
+
+#[tauri::command]
+pub(crate) fn decide_permission_request(
+    input: PermissionDecisionInput,
+    gateway: State<'_, PermissionGateway>,
+) -> Result<Option<PermissionGrant>, String> {
+    gateway.decide(input)
+}
+
+#[tauri::command]
+pub(crate) fn cancel_permission_request(
+    input: CancelPermissionRequestInput,
+    gateway: State<'_, PermissionGateway>,
+) -> Result<PreparedPermissionRequest, String> {
+    input.validate()?;
+    gateway.cancel_request(&input.request_id)
+}
+
+#[tauri::command]
+pub(crate) fn revoke_permission_grant(
+    input: RevokePermissionGrantInput,
+    gateway: State<'_, PermissionGateway>,
+) -> Result<PermissionGrant, String> {
+    input.validate()?;
+    gateway.revoke_grant(&input.grant_id)
 }
 
 fn prepare_supported_permission_request(
@@ -489,6 +527,18 @@ impl PermissionDecisionInput {
     pub(crate) fn validate(&self) -> Result<(), String> {
         validate_opaque_id("requestId", &self.request_id)?;
         validate_digest(&self.preview_digest)
+    }
+}
+
+impl CancelPermissionRequestInput {
+    fn validate(&self) -> Result<(), String> {
+        validate_opaque_id("requestId", &self.request_id)
+    }
+}
+
+impl RevokePermissionGrantInput {
+    fn validate(&self) -> Result<(), String> {
+        validate_opaque_id("grantId", &self.grant_id)
     }
 }
 
@@ -1257,6 +1307,120 @@ mod tests {
         assert!(!absent.exists());
         assert_eq!(gateway.status().unwrap().requests.len(), 1);
         assert!(gateway.status().unwrap().grants.is_empty());
+    }
+
+    #[test]
+    fn approval_creates_a_grant_but_does_not_activate_the_real_observer() {
+        let gateway = PermissionGateway::default();
+        let observation = crate::observation::ObservationStore::default();
+        let request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "decision-context-001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Revisar una aprobación sin ejecutar observación.".into(),
+                parameters: ForegroundControlParameters { enabled: true },
+            },
+        )
+        .unwrap();
+        let grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: request.request_id,
+                preview_digest: request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(grant.state, PermissionGrantState::Approved);
+        assert!(!observation.capability_probe().unwrap().enabled);
+        let status = gateway.status().unwrap();
+        assert!(status.policy.r2_decision_commands_exposed);
+        assert!(!status.policy.r2_execution_commands_exposed);
+        assert_eq!(status.grants, vec![grant]);
+    }
+
+    #[test]
+    fn cancellation_and_revocation_are_terminal_without_execution() {
+        let gateway = PermissionGateway::default();
+        let cancelled_request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "cancel-context-0001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Cancelar esta solicitud pendiente.".into(),
+                parameters: ForegroundControlParameters { enabled: false },
+            },
+        )
+        .unwrap();
+        let cancelled = gateway
+            .cancel_request(&cancelled_request.request_id)
+            .unwrap();
+        assert_eq!(cancelled.state, PermissionRequestState::Cancelled);
+
+        let approved_request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "revoke-context-0001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Crear y revocar un grant sin usarlo.".into(),
+                parameters: ForegroundControlParameters { enabled: false },
+            },
+        )
+        .unwrap();
+        let grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: approved_request.request_id,
+                preview_digest: approved_request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+        let revoked = gateway.revoke_grant(&grant.grant_id).unwrap();
+        assert_eq!(revoked.state, PermissionGrantState::Revoked);
+        assert_eq!(revoked.remaining_uses, Some(0));
+    }
+
+    #[test]
+    fn decision_cancel_and_revoke_inputs_reject_unknown_fields() {
+        let decision = json!({
+            "requestId": "request_0123456789",
+            "previewDigest": format!("sha256:{}", "a".repeat(64)),
+            "decision": "approve",
+            "execute": true
+        });
+        assert!(serde_json::from_value::<PermissionDecisionInput>(decision)
+            .unwrap_err()
+            .to_string()
+            .contains("unknown field"));
+
+        let cancel = json!({ "requestId": "request_0123456789", "approve": true });
+        assert!(
+            serde_json::from_value::<CancelPermissionRequestInput>(cancel)
+                .unwrap_err()
+                .to_string()
+                .contains("unknown field")
+        );
+
+        let revoke = json!({ "grantId": "grant_01234567890", "execute": true });
+        assert!(serde_json::from_value::<RevokePermissionGrantInput>(revoke)
+            .unwrap_err()
+            .to_string()
+            .contains("unknown field"));
+
+        assert!(CancelPermissionRequestInput {
+            request_id: "short".into()
+        }
+        .validate()
+        .is_err());
+        assert!(RevokePermissionGrantInput {
+            grant_id: "grant with spaces".into()
+        }
+        .validate()
+        .is_err());
     }
 
     #[test]

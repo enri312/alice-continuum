@@ -25,6 +25,7 @@ export type PermissionResourceKind =
   | "other";
 export type PermissionRequestState = "awaitingDecision" | "approved" | "denied" | "cancelled" | "expired";
 export type PermissionGrantState = "approved" | "consuming" | "completed" | "error" | "active" | "stopped" | "revoked" | "expired";
+export type PermissionDecision = "approve" | "deny";
 
 export type PermissionResource = {
   kind: PermissionResourceKind;
@@ -74,10 +75,10 @@ export type PermissionGatewayStatus = {
   schemaVersion: typeof PERMISSION_GATEWAY_SCHEMA_VERSION;
   generatedAt: string;
   policy: {
-    denyByDefault: true;
-    persistentGrants: false;
-    r2DecisionCommandsExposed: false;
-    r2ExecutionCommandsExposed: false;
+    denyByDefault: boolean;
+    persistentGrants: boolean;
+    r2DecisionCommandsExposed: boolean;
+    r2ExecutionCommandsExposed: boolean;
   };
   limits: {
     highRiskDecisionTtlSeconds: 60;
@@ -101,6 +102,15 @@ export type PrepareForegroundControlPermissionInput = {
   purpose: string;
   parameters: { enabled: boolean };
 };
+
+export type PermissionDecisionInput = {
+  requestId: string;
+  previewDigest: string;
+  decision: PermissionDecision;
+};
+
+export type CancelPermissionRequestInput = { requestId: string };
+export type RevokePermissionGrantInput = { grantId: string };
 
 const modes = ["implicitRead", "oneShot", "session"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
@@ -204,7 +214,7 @@ function parseResource(value: unknown): PermissionResource {
   };
 }
 
-function parsePreparedRequest(value: unknown): PreparedPermissionRequest {
+export function parsePreparedPermissionRequest(value: unknown): PreparedPermissionRequest {
   const input = record(value, "request");
   exactKeys(input, requestKeys, "request");
   if (input.schemaVersion !== PERMISSION_GATEWAY_SCHEMA_VERSION) fail("request.schemaVersion debe ser 1");
@@ -253,7 +263,7 @@ function parsePreparedRequest(value: unknown): PreparedPermissionRequest {
   };
 }
 
-function parseGrant(value: unknown): PermissionGrant {
+export function parsePermissionGrant(value: unknown): PermissionGrant {
   const input = record(value, "grant");
   exactKeys(input, grantKeys, "grant");
   if (input.schemaVersion !== PERMISSION_GATEWAY_SCHEMA_VERSION) fail("grant.schemaVersion debe ser 1");
@@ -261,6 +271,10 @@ function parseGrant(value: unknown): PermissionGrant {
   if (mode === "implicitRead") fail("implicitRead no crea grants");
   const state = enumValue(input.state, grantStates, "grant.state");
   const remainingUses = input.remainingUses === null ? null : nonNegativeInteger(input.remainingUses, "grant.remainingUses");
+  const issuedAt = utcTimestamp(input.issuedAt, "grant.issuedAt");
+  const expiresAt = utcTimestamp(input.expiresAt, "grant.expiresAt");
+  const grantTtl = Date.parse(expiresAt) - Date.parse(issuedAt);
+  if (grantTtl <= 0 || grantTtl > 300_000) fail("grant.expiresAt excede el límite R2");
   if (mode === "session") {
     if (remainingUses !== null) fail("grant.session requiere remainingUses=null");
     if (state === "consuming" || state === "completed") fail("grant.session contiene un estado oneShot");
@@ -277,8 +291,8 @@ function parseGrant(value: unknown): PermissionGrant {
     capabilityId: capabilityId(input.capabilityId),
     operation: identifier(input.operation, "grant.operation"),
     mode,
-    issuedAt: utcTimestamp(input.issuedAt, "grant.issuedAt"),
-    expiresAt: utcTimestamp(input.expiresAt, "grant.expiresAt"),
+    issuedAt,
+    expiresAt,
     remainingUses,
     state,
   };
@@ -290,7 +304,7 @@ export function parsePermissionGatewayStatus(value: unknown): PermissionGatewayS
   if (input.schemaVersion !== PERMISSION_GATEWAY_SCHEMA_VERSION) fail("status.schemaVersion debe ser 1");
   const policy = record(input.policy, "status.policy");
   exactKeys(policy, ["denyByDefault", "persistentGrants", "r2DecisionCommandsExposed", "r2ExecutionCommandsExposed"], "status.policy");
-  if (policy.denyByDefault !== true || policy.persistentGrants !== false || policy.r2DecisionCommandsExposed !== false || policy.r2ExecutionCommandsExposed !== false) {
+  if (policy.denyByDefault !== true || policy.persistentGrants !== false || policy.r2DecisionCommandsExposed !== true || policy.r2ExecutionCommandsExposed !== false) {
     fail("status.policy contradice los límites de R2");
   }
   const limits = record(input.limits, "status.limits");
@@ -299,14 +313,14 @@ export function parsePermissionGatewayStatus(value: unknown): PermissionGatewayS
     fail("status.limits no coincide con el contrato R2");
   }
   if (!Array.isArray(input.requests) || !Array.isArray(input.grants)) fail("status requiere listas de requests y grants");
-  const requests = input.requests.map(parsePreparedRequest);
-  const grants = input.grants.map(parseGrant);
+  const requests = input.requests.map(parsePreparedPermissionRequest);
+  const grants = input.grants.map(parsePermissionGrant);
   if (new Set(requests.map((request) => request.requestId)).size !== requests.length) fail("requestId repetido");
   if (new Set(grants.map((grant) => grant.grantId)).size !== grants.length) fail("grantId repetido");
   return {
     schemaVersion: PERMISSION_GATEWAY_SCHEMA_VERSION,
     generatedAt: utcTimestamp(input.generatedAt, "status.generatedAt"),
-    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: false, r2ExecutionCommandsExposed: false },
+    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: true, r2ExecutionCommandsExposed: false },
     limits: { highRiskDecisionTtlSeconds: 60, standardDecisionTtlSeconds: 300, maximumSessionDurationSeconds: 300 },
     requests,
     grants,
@@ -341,4 +355,23 @@ export function createForegroundControlPreparation(
     purpose,
     parameters: { enabled },
   };
+}
+
+export function createPermissionDecisionInput(
+  request: PreparedPermissionRequest,
+  decision: PermissionDecision,
+): PermissionDecisionInput {
+  return {
+    requestId: opaqueId(request.requestId, "requestId"),
+    previewDigest: digest(request.previewDigest, "previewDigest"),
+    decision,
+  };
+}
+
+export function createCancelPermissionInput(requestId: string): CancelPermissionRequestInput {
+  return { requestId: opaqueId(requestId, "requestId") };
+}
+
+export function createRevokePermissionInput(grantId: string): RevokePermissionGrantInput {
+  return { grantId: opaqueId(grantId, "grantId") };
 }

@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; pasos 1 a 3 completados  
+Estado: implementación en curso; pasos 1 a 4 completados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -41,7 +41,7 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** `permission_gateway_status` y `prepare_permission_request` registrados. La preparación solo acepta el perfil nativo de `context.foreground.control`; cualquier capacidad no migrada se rechaza antes del almacén. El estado omite parámetros privados y declara ejecución deshabilitada. Ocho pruebas Rust nuevas y ocho TypeScript elevan las baterías a 68 y 53 respectivamente; no se crean grants ni archivos.
 
-## Paso 4 — Decisión y revocación
+## Paso 4 — Decisión y revocación ✅
 
 - Registrar decisión, cancelación y revocación.
 - Implementar diálogo accesible con Aprobar, Rechazar y cierre equivalente a cancelar.
@@ -49,6 +49,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - No ofrecer “recordar permiso”.
 
 **Puerta:** interacción real de teclado y ratón, expiración visible y ausencia de aprobación implícita.
+
+**Resultado 2026-08-09:** `decide_permission_request`, `cancel_permission_request` y `revoke_permission_grant` quedaron registrados junto con un diálogo nativo accesible en Puentes. La previsualización muestra propósito, recurso, datos, efectos, riesgo, vencimiento y digest; Escape cancela y el foco inicial recae en Rechazar, nunca en Aprobar. Las pruebas comprueban contra el `ObservationStore` real que aprobar crea un grant sin activar la observación, y que cancelar o revocar son terminales sin ejecución. La batería alcanza 71 pruebas Rust y 56 TypeScript; el build web aprueba. No existe un comando R2 para consumir grants o iniciar sesiones.
 
 ## Paso 5 — Primera migración real
 

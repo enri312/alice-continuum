@@ -3,6 +3,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { BridgeViewIcon } from "../components/BridgeViewIcon";
 import { FaceTrackingPanel } from "../components/FaceTrackingPanel";
 import { BodySolverPanel } from "../components/BodySolverPanel";
+import { PermissionGatewayPanel } from "../components/PermissionGatewayPanel";
 import {
   createWebDevelopmentCapabilityRegistry,
   parseCapabilityRegistrySnapshot,
@@ -100,6 +101,8 @@ export function Puentes() {
         <div><span>PLANIFICADAS</span><strong>{String(summary.planned).padStart(2, "0")}</strong><small>sin adaptador</small></div>
         <div><span>ERROR / DEGRADADA</span><strong>{String(summary.unhealthy).padStart(2, "0")}</strong><small>salud real</small></div>
       </div>
+
+      <PermissionGatewayPanel />
 
       <div className="bridge-layout">
         <div className="bridge-workspace">

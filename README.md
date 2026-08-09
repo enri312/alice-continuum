@@ -2,9 +2,9 @@
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
-![R2](https://img.shields.io/badge/R2-consulta%20%2B%20preparaci%C3%B3n-d97706?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-53%2F53%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-68%2F68%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R2](https://img.shields.io/badge/R2-decisi%C3%B3n%20%2B%20revocaci%C3%B3n-d97706?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-56%2F56%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-71%2F71%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
 ![Windows](https://img.shields.io/badge/plataforma-Windows-0078d4?style=flat-square&logo=windows11&logoColor=white)
@@ -25,11 +25,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
-| Gateway de permisos R2 | Consulta y preparación nativas; aprobación y ejecución todavía no expuestas |
+| Gateway de permisos R2 | Consulta, preparación, decisión, cancelación y revocación nativas; ejecución todavía no expuesta |
 | Capacidades implementadas o parciales | 12 |
 | Capacidades planificadas | 12, todas sin adaptador y no disponibles |
-| Pruebas TypeScript | 53/53 aprobadas |
-| Pruebas Rust | 68/68 aprobadas |
+| Pruebas TypeScript | 56/56 aprobadas |
+| Pruebas Rust | 71/71 aprobadas |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Memoria real | Nueve archivos preservados durante consultas repetidas del registro |
 | Avatar privado | Preservado y excluido de Git |
@@ -46,6 +46,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - Pantalla, cámara, micrófono, reproductores, acciones accesibles y gestos figuran como capacidades planificadas hasta implementar R2.
 - Voz, rostro, mirada, cuerpo y adaptadores externos permanecen desconectados.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
+- R2 permite crear y revocar grants efímeros desde un diálogo explícito, pero todavía no permite consumirlos ni iniciar una sesión.
 
 ## Pantallas
 

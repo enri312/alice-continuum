@@ -466,7 +466,7 @@ impl PermissionGateway {
             policy: PermissionGatewayPolicy {
                 deny_by_default: true,
                 persistent_grants: false,
-                r2_decision_commands_exposed: false,
+                r2_decision_commands_exposed: true,
                 r2_execution_commands_exposed: false,
             },
             limits: PermissionGatewayLimits {
@@ -970,7 +970,7 @@ mod tests {
         assert_eq!(status.generated_at, "2026-08-09T14:00:00Z");
         assert!(status.policy.deny_by_default);
         assert!(!status.policy.persistent_grants);
-        assert!(!status.policy.r2_decision_commands_exposed);
+        assert!(status.policy.r2_decision_commands_exposed);
         assert!(!status.policy.r2_execution_commands_exposed);
         assert_eq!(status.limits.high_risk_decision_ttl_seconds, 60);
         assert_eq!(status.limits.standard_decision_ttl_seconds, 300);

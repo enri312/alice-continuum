@@ -169,11 +169,11 @@ El usuario puede solicitar menos tiempo, nunca ampliar el máximo desde React.
 |---|---|---|
 | `permission_gateway_status` | Expuesto | Consulta solicitudes, grants y límites sin exponer parámetros privados |
 | `prepare_permission_request` | Expuesto | Prepara solo `context.foreground.control`; no concede ni ejecuta |
-| `decide_permission_request` | No expuesto | Aprobará o rechazará una previsualización vigente en el siguiente incremento |
-| `cancel_permission_request` | No expuesto | Cancelará una solicitud pendiente en el siguiente incremento |
-| `revoke_permission_grant` | No expuesto | Invalidará un grant o lease activo en el siguiente incremento |
+| `decide_permission_request` | Expuesto | Aprueba o rechaza una previsualización vigente; aprobar solo crea un grant efímero |
+| `cancel_permission_request` | Expuesto | Cancela una solicitud pendiente sin crear un grant |
+| `revoke_permission_grant` | Expuesto | Invalida un grant antes de su futura ejecución |
 
-La presencia en esta tabla no autoriza un comando. Solamente los dos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: false` y `r2ExecutionCommandsExposed: false`. El control de observación anterior continúa expuesto fuera del Gateway hasta su migración obligatoria en el paso 5, por lo que R1 todavía declara `enforcedBy: currentUi`.
+La presencia en esta tabla no autoriza ejecución. Los cinco comandos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: true` y `r2ExecutionCommandsExposed: false`. Ningún comando permite consumir un grant, iniciar una sesión o acceder a dispositivos. El control de observación anterior continúa expuesto fuera del Gateway hasta su migración obligatoria en el paso 5, por lo que R1 todavía declara `enforcedBy: currentUi`.
 
 ## Migración de capacidades existentes
 

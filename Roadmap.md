@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · consulta y preparación nativas validadas; decisión pendiente  
+**Estado:** en curso · consulta, preparación, decisión, cancelación, revocación e interfaz validadas; primera migración pendiente  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -88,11 +88,11 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 
 **Criterios de aceptación:**
 
-- [ ] La política predeterminada es denegar.
-- [ ] Las previsualizaciones son inmutables entre aprobación y ejecución.
-- [ ] Los permisos son específicos, revocables y tienen vencimiento cuando corresponde.
-- [ ] Cancelar o cerrar la solicitud no produce efectos secundarios.
-- [ ] Las pruebas cubren autorización, rechazo, expiración, revocación y duplicados.
+- [x] La política predeterminada es denegar.
+- [x] Las previsualizaciones son inmutables entre aprobación y ejecución.
+- [x] Los permisos son específicos, revocables y tienen vencimiento cuando corresponde.
+- [x] Cancelar o cerrar la solicitud no produce efectos secundarios.
+- [x] Las pruebas cubren autorización, rechazo, expiración, revocación y duplicados.
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 ya expone consulta de estado y preparación limitada a `context.foreground.control`, con contrato TypeScript defensivo y fallback web vacío. El siguiente incremento permitido es exponer decisión, cancelación y revocación y construir su diálogo accesible; todavía no se migrará el comando de observación ni se abrirán dispositivos. Ninguna herramienta de ejecución ni permiso nuevo queda autorizado hasta aprobar esa puerta.
+La **Fase R1 — Registro de capacidades** está completada. R2 ya expone consulta, preparación, decisión, cancelación y revocación para `context.foreground.control`; el diálogo accesible muestra la previsualización nativa completa y aprobar solamente crea un grant efímero. El siguiente incremento permitido es migrar el comando real de observación al Gateway, rechazar su ruta directa sin grant y comprobar activación, detención y revocación en la aplicación. Cámara, micrófono y demás dispositivos continúan fuera de alcance hasta superar esa puerta.
 
 ## Identidad adoptada — Alice Cognitive Core
 
