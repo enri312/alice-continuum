@@ -7,14 +7,15 @@ use super::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 use uuid::Uuid;
 
 const EMPTY_EXECUTION_PLAN: &[u8] = b"{}";
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct PermissionGateway {
-    store: Mutex<PermissionGatewayStore>,
+    store: Arc<Mutex<PermissionGatewayStore>>,
+    adapter_transition: Arc<Mutex<()>>,
 }
 
 #[derive(Default)]
@@ -124,6 +125,15 @@ impl PermissionGateway {
         self.revoke_grant_at(grant_id, current_utc_instant()?)
     }
 
+    pub(crate) fn session_is_active(&self, grant_id: &str) -> Result<bool, String> {
+        let _transition = self.lock_adapter_transition()?;
+        self.expire_at(current_utc_instant()?)?;
+        let store = self.lock_store()?;
+        Ok(store.grants.get(grant_id).is_some_and(|grant| {
+            grant.mode == PermissionMode::Session && grant.state == PermissionGrantState::Active
+        }))
+    }
+
     pub(crate) fn authorize_one_shot(&self, grant_id: &str) -> Result<AuthorizedExecution, String> {
         self.authorize_one_shot_at(grant_id, current_utc_instant()?)
     }
@@ -180,11 +190,21 @@ impl PermissionGateway {
     }
 
     pub(crate) fn expire(&self) -> Result<ExpirationSummary, String> {
+        let _transition = self.lock_adapter_transition()?;
         self.expire_at(current_utc_instant()?)
     }
 
     pub(crate) fn status(&self) -> Result<PermissionGatewayStatus, String> {
+        let _transition = self.lock_adapter_transition()?;
         self.status_at(current_utc_instant()?)
+    }
+
+    pub(crate) fn with_adapter_transition<T>(
+        &self,
+        operation: impl FnOnce() -> Result<T, String>,
+    ) -> Result<T, String> {
+        let _transition = self.lock_adapter_transition()?;
+        operation()
     }
 
     pub(crate) fn request(&self, request_id: &str) -> Result<PreparedPermissionRequest, String> {
@@ -412,13 +432,20 @@ impl PermissionGateway {
             .cloned()
             .ok_or_else(|| "Grant desconocido".to_string())?;
         expire_grant_if_needed(&mut grant, now)?;
-        if grant.mode != PermissionMode::Session || grant.state != PermissionGrantState::Approved {
+        if grant.mode != PermissionMode::Session
+            || !matches!(
+                grant.state,
+                PermissionGrantState::Approved | PermissionGrantState::Active
+            )
+        {
             return Err("El grant session no está disponible para iniciar".into());
         }
         let parameters = authorized_parameters(&store, &grant)?;
-        grant.state = PermissionGrantState::Active;
-        grant.validate()?;
-        store.grants.insert(grant_id.to_string(), grant.clone());
+        if grant.state == PermissionGrantState::Approved {
+            grant.state = PermissionGrantState::Active;
+            grant.validate()?;
+            store.grants.insert(grant_id.to_string(), grant.clone());
+        }
         Ok(AuthorizedExecution { grant, parameters })
     }
 
@@ -467,7 +494,7 @@ impl PermissionGateway {
                 deny_by_default: true,
                 persistent_grants: false,
                 r2_decision_commands_exposed: true,
-                r2_execution_commands_exposed: false,
+                r2_execution_commands_exposed: true,
             },
             limits: PermissionGatewayLimits {
                 high_risk_decision_ttl_seconds: super::HIGH_RISK_DECISION_TTL_SECONDS,
@@ -483,6 +510,12 @@ impl PermissionGateway {
         self.store
             .lock()
             .map_err(|_| "El almacén de permisos quedó bloqueado por un fallo interno".into())
+    }
+
+    fn lock_adapter_transition(&self) -> Result<MutexGuard<'_, ()>, String> {
+        self.adapter_transition
+            .lock()
+            .map_err(|_| "El control de transición del Gateway está bloqueado".to_string())
     }
 }
 
@@ -893,7 +926,7 @@ mod tests {
     }
 
     #[test]
-    fn session_starts_once_and_stop_is_idempotent() {
+    fn session_start_and_stop_are_idempotent() {
         let gateway = PermissionGateway::default();
         let request = gateway
             .prepare_request_at(
@@ -907,10 +940,12 @@ mod tests {
             .start_session_at(&grant.grant_id, at("2026-08-09T14:00:20Z"))
             .unwrap();
         assert_eq!(active.grant.state, PermissionGrantState::Active);
-        assert!(gateway
-            .start_session_at(&grant.grant_id, at("2026-08-09T14:00:21Z"))
-            .unwrap_err()
-            .contains("no está disponible"));
+        assert_eq!(
+            gateway
+                .start_session_at(&grant.grant_id, at("2026-08-09T14:00:21Z"))
+                .unwrap(),
+            active
+        );
 
         let stopped = gateway.stop_session(&grant.grant_id).unwrap();
         assert_eq!(stopped.state, PermissionGrantState::Stopped);
@@ -971,7 +1006,7 @@ mod tests {
         assert!(status.policy.deny_by_default);
         assert!(!status.policy.persistent_grants);
         assert!(status.policy.r2_decision_commands_exposed);
-        assert!(!status.policy.r2_execution_commands_exposed);
+        assert!(status.policy.r2_execution_commands_exposed);
         assert_eq!(status.limits.high_risk_decision_ttl_seconds, 60);
         assert_eq!(status.limits.standard_decision_ttl_seconds, 300);
         assert_eq!(status.limits.maximum_session_duration_seconds, 300);

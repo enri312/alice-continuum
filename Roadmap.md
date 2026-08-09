@@ -71,7 +71,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** en curso · consulta, preparación, decisión, cancelación, revocación e interfaz validadas; primera migración pendiente  
+**Estado:** en curso · primera capacidad real protegida; sesiones sensoriales pendientes  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -277,7 +277,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-La **Fase R1 — Registro de capacidades** está completada. R2 ya expone consulta, preparación, decisión, cancelación y revocación para `context.foreground.control`; el diálogo accesible muestra la previsualización nativa completa y aprobar solamente crea un grant efímero. El siguiente incremento permitido es migrar el comando real de observación al Gateway, rechazar su ruta directa sin grant y comprobar activación, detención y revocación en la aplicación. Cámara, micrófono y demás dispositivos continúan fuera de alcance hasta superar esa puerta.
+La **Fase R1 — Registro de capacidades** está completada. R2 protege de extremo a extremo `context.foreground.control`: la ruta directa fue eliminada, Rust rechaza ejecución sin grant, el inicio conserva un grant de sesión activo y la detención consume un grant `oneShot`; revocar o vencer apaga el observador y descarta el contexto. El siguiente incremento permitido es preparar leases separados para cámara y micrófono con dispositivo exacto, indicador persistente y control Detener. No se abrirá hardware ni se procesará señal hasta validar primero esas puertas.
 
 ## Identidad adoptada — Alice Cognitive Core
 

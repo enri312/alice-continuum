@@ -147,7 +147,7 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 |---|---|---|---|---|---|---|
 | `cloud.providers.inspect` | Indica qué proveedores tienen configuración y su modelo inicial. | `cloud_status` | Implementada | Bajo | Lectura implícita; Rust no devuelve claves. | Estado `idle`; solo expone presencia de configuración. |
 | `cloud.conversation.send` | Envía el contexto previsualizado al proveedor elegido y audita metadatos. | `send_cloud_message` | Implementada | Medio | Previsualización y confirmación en React. | `idle` si existe proveedor configurado; `unavailable` en caso contrario. La puerta todavía no es nativa. |
-| `context.foreground.control` | Activa o detiene la observación de título y proceso de la ventana externa actual. | `set_context_observation_enabled` | Implementada | Medio | Opción visible de sesión en React. | Empieza `disabled`; pasa a `active` solo cuando el estado nativo está encendido. |
+| `context.foreground.control` | Activa o detiene la observación de título y proceso de la ventana externa actual. | `execute_context_observation_grant` | Implementada | Medio | Grant R2 específico consumido en Rust; `enforcedBy: native`. | Empieza `disabled`; pasa a `active` solo con un grant de sesión vigente. |
 | `context.foreground.read` | Devuelve el último título y proceso observados si el control está encendido. | `get_foreground_context` | Implementada | Medio | Depende del opt-in de sesión. | No registra teclas, pantalla ni contenido de archivos. |
 | `memory.records.read` | Lee y valida los registros locales. | `load_memory` | Parcial | Medio | Arranque de la aplicación. | El comando actual también crea estructura y puede migrar; la sonda R1 no debe invocarlo. |
 | `memory.records.write` | Crea, edita o elimina registros mediante sustitución validada y respaldo. | `save_memory` | Implementada | Medio | Acciones visibles; eliminar confirma en React. | Agrupa varias mutaciones; R2 podrá separarlas si necesitan permisos distintos. |
@@ -215,7 +215,7 @@ Si una de estas funciones comienza a observar datos nuevos, persistir informaci�
 - `Puentes.tsx` consume ahora las 24 capacidades del snapshot nativo y las agrupa por dominio.
 - Los contadores se calculan desde estado y madurez reales; no existe un total fijado en React.
 - La pestaña Actividad conserva eventos únicamente durante la sesión; no sustituye las auditorías JSONL.
-- Las confirmaciones de envío, restauración y borrado se realizan en React. R1 las declara como `currentUi`; R2 diseñará la puerta nativa.
+- La observación de ventana ya usa `enforcedBy: native`. Las confirmaciones de envío, restauración y borrado aún se realizan en React y permanecen `currentUi` hasta su migración individual.
 - `load_memory` mezcla lectura, inicialización y migración; la sonda R1 inspecciona rutas mediante un helper pasivo que no crea archivos.
 - El fallback web está marcado como `webDevelopment` y presenta un registro vacío, sin simular disponibilidad nativa.
 

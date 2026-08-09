@@ -49,7 +49,7 @@ graph LR
 
 ## Contratos que no pueden cambiar
 
-- Comandos: `set_context_observation_enabled`, `get_foreground_context`, `load_memory`, `save_memory`, `export_memory`, `restore_memory_backup`, `open_memory_directory`, `avatar_status`, `cloud_status`, `send_cloud_message`.
+- Comandos: `execute_context_observation_grant`, `get_foreground_context`, comandos del Gateway R2, `load_memory`, `save_memory`, `export_memory`, `restore_memory_backup`, `open_memory_directory`, `avatar_status`, `cloud_status`, `send_cloud_message`.
 - Serialización `camelCase` y campo de evento `type`.
 - Variables de entorno y proveedores registrados.
 - `ALICE_DATA_DIR`, estructura `memory/` y auditoría `cloud/cloud-audit.jsonl`.

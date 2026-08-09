@@ -15,6 +15,7 @@ import { NavigationIcon } from "./components/NavigationIcon";
 import { applyMemoryRetrieval, applyMemoryReview, selectReinforceableMemoryIds } from "./core/memory-consolidation";
 import type { ReviewOutcome } from "./core/memory-consolidation";
 import { loadCompatibleArray } from "./core/storage-migration";
+import { parsePermissionGatewayStatus } from "./core/permissions";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -115,7 +116,21 @@ export function App() {
 
   useEffect(() => {
     if (!desktopApp || !observationEnabled) return;
-    const refresh = () => invoke<ForegroundContext | null>("get_foreground_context").then(setForegroundContext).catch(() => setForegroundContext(null));
+    const refresh = async () => {
+      try {
+        const [context, rawGateway] = await Promise.all([
+          invoke<ForegroundContext | null>("get_foreground_context"),
+          invoke<unknown>("permission_gateway_status"),
+        ]);
+        const gateway = parsePermissionGatewayStatus(rawGateway);
+        const active = gateway.grants.some((grant) => grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active");
+        setObservationEnabled(active);
+        setForegroundContext(active ? context : null);
+      } catch {
+        setObservationEnabled(false);
+        setForegroundContext(null);
+      }
+    };
     refresh();
     const timer = window.setInterval(refresh, 2000);
     return () => window.clearInterval(timer);
@@ -198,16 +213,10 @@ export function App() {
 
   async function toggleObservation() {
     if (!desktopApp) return;
-    try {
-      const enabled = await invoke<boolean>("set_context_observation_enabled", { enabled: !observationEnabled });
-      setObservationEnabled(enabled);
-      if (!enabled) setForegroundContext(null);
-      recordEvent(enabled ? "PERCEPTION" : "SECURITY", "WINDOW_OBSERVER", enabled ? "Observación de ventana activada" : "Observación detenida y contexto descartado");
-    } catch (error) {
-      setObservationEnabled(false);
-      setForegroundContext(null);
-      recordEvent("SECURITY", "WINDOW_OBSERVER_ERROR", String(error), "WARN");
-    }
+    setScreen("puentes");
+    recordEvent("SECURITY", "PERMISSION_REQUIRED", observationEnabled
+      ? "La detención requiere un grant oneShot en el Gateway R2"
+      : "La activación requiere un grant de sesión en el Gateway R2");
   }
 
   async function sendCloudMessage(request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) {
@@ -325,7 +334,7 @@ export function App() {
     {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "configuracion" && <Configuracion desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
-    {screen === "puentes" && <Puentes />}
+    {screen === "puentes" && <Puentes onObservationStateChange={setObservationEnabled} />}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
     </div>
     </section>

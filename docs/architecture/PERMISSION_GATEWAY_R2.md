@@ -171,9 +171,10 @@ El usuario puede solicitar menos tiempo, nunca ampliar el máximo desde React.
 | `prepare_permission_request` | Expuesto | Prepara solo `context.foreground.control`; no concede ni ejecuta |
 | `decide_permission_request` | Expuesto | Aprueba o rechaza una previsualización vigente; aprobar solo crea un grant efímero |
 | `cancel_permission_request` | Expuesto | Cancela una solicitud pendiente sin crear un grant |
-| `revoke_permission_grant` | Expuesto | Invalida un grant antes de su futura ejecución |
+| `revoke_permission_grant` | Expuesto | Invalida un grant y apaga la observación si esa sesión estaba activa |
+| `execute_context_observation_grant` | Expuesto | Consume únicamente un grant válido para activar o detener los metadatos de ventana |
 
-La presencia en esta tabla no autoriza ejecución. Los cinco comandos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: true` y `r2ExecutionCommandsExposed: false`. Ningún comando permite consumir un grant, iniciar una sesión o acceder a dispositivos. El control de observación anterior continúa expuesto fuera del Gateway hasta su migración obligatoria en el paso 5, por lo que R1 todavía declara `enforcedBy: currentUi`.
+La presencia en esta tabla no concede autoridad general. Los seis comandos marcados **Expuesto** están registrados; el estado nativo publica `r2DecisionCommandsExposed: true` y `r2ExecutionCommandsExposed: true`. La única ejecución admitida es `context.foreground.control`, cuyo plan permanece privado en Rust. El antiguo `set_context_observation_enabled` dejó de estar registrado y R1 declara `enforcedBy: native`. Cámara, micrófono, shell y las demás capacidades continúan sin comando de ejecución R2.
 
 ## Migración de capacidades existentes
 
@@ -181,7 +182,7 @@ La migración será individual. Una capacidad no puede declarar `permission.enfo
 
 Orden propuesto:
 
-1. `context.foreground.control`, porque es local, reversible y ya tiene estado real.
+1. ✅ `context.foreground.control`, migrada y verificada sin bypass.
 2. exportación, restauración y apertura de la carpeta de memoria.
 3. envío de conversación de nube.
 4. escrituras de memoria.

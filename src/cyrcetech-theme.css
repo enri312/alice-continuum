@@ -206,6 +206,7 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .permission-ledger article strong { color:#8ba7b3; font-size:.47rem; }
 .permission-ledger article small { margin-top:3px; color:#456777; font-size:.4rem; }
 .permission-ledger article>span { color:#fbbf24; font-size:.41rem; font-weight:900; }
+.permission-ledger .permission-grant-actions { display:flex; flex:0 0 auto; gap:5px; }
 .permission-dialog { width:min(680px,calc(100vw - 24px)); max-height:calc(100vh - 24px); overflow:auto; border:1px solid #0e7490; border-radius:0; padding:0; background:#020817; color:#94a3b8; box-shadow:0 25px 90px rgba(0,0,0,.75),0 0 30px rgba(34,211,238,.08); font-family:Consolas,monospace; }
 .permission-dialog::backdrop { background:rgba(0,5,12,.82); backdrop-filter:blur(2px); }
 .permission-dialog>div>header { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border-bottom:1px solid #164e63; background:#07131f; color:#67e8f9; font-size:.47rem; }

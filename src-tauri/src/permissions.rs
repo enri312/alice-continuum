@@ -5,7 +5,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 mod gateway;
 
-pub(crate) use gateway::{PermissionGateway, PermissionGatewayStatus};
+use crate::observation::ObservationStore;
+pub(crate) use gateway::{AuthorizedExecution, PermissionGateway, PermissionGatewayStatus};
 use serde_json::json;
 use tauri::State;
 
@@ -52,6 +53,19 @@ pub(crate) struct RevokePermissionGrantInput {
     pub(crate) grant_id: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ExecutePermissionGrantInput {
+    pub(crate) grant_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ContextObservationExecutionResult {
+    pub(crate) grant: PermissionGrant,
+    pub(crate) enabled: bool,
+}
+
 #[tauri::command]
 pub(crate) fn permission_gateway_status(
     gateway: State<'_, PermissionGateway>,
@@ -88,9 +102,143 @@ pub(crate) fn cancel_permission_request(
 pub(crate) fn revoke_permission_grant(
     input: RevokePermissionGrantInput,
     gateway: State<'_, PermissionGateway>,
+    observation: State<'_, ObservationStore>,
+) -> Result<PermissionGrant, String> {
+    revoke_permission_grant_impl(&gateway, &observation, input)
+}
+
+#[tauri::command]
+pub(crate) fn execute_context_observation_grant(
+    input: ExecutePermissionGrantInput,
+    gateway: State<'_, PermissionGateway>,
+    observation: State<'_, ObservationStore>,
+) -> Result<ContextObservationExecutionResult, String> {
+    execute_context_observation_grant_impl(&gateway, &observation, input)
+}
+
+fn revoke_permission_grant_impl(
+    gateway: &PermissionGateway,
+    observation: &ObservationStore,
+    input: RevokePermissionGrantInput,
 ) -> Result<PermissionGrant, String> {
     input.validate()?;
-    gateway.revoke_grant(&input.grant_id)
+    gateway.with_adapter_transition(|| revoke_permission_grant_locked(gateway, observation, &input))
+}
+
+fn revoke_permission_grant_locked(
+    gateway: &PermissionGateway,
+    observation: &ObservationStore,
+    input: &RevokePermissionGrantInput,
+) -> Result<PermissionGrant, String> {
+    let previous = gateway.grant(&input.grant_id)?;
+    let revoked = gateway.revoke_grant(&input.grant_id)?;
+    if previous.capability_id == FOREGROUND_CONTROL_CAPABILITY
+        && previous.operation == FOREGROUND_CONTROL_OPERATION
+        && previous.mode == PermissionMode::Session
+        && previous.state == PermissionGrantState::Active
+    {
+        observation.disable_for_grant(&input.grant_id)?;
+    }
+    Ok(revoked)
+}
+
+fn execute_context_observation_grant_impl(
+    gateway: &PermissionGateway,
+    observation: &ObservationStore,
+    input: ExecutePermissionGrantInput,
+) -> Result<ContextObservationExecutionResult, String> {
+    input.validate()?;
+    gateway.with_adapter_transition(|| {
+        execute_context_observation_grant_locked(gateway, observation, &input)
+    })
+}
+
+fn execute_context_observation_grant_locked(
+    gateway: &PermissionGateway,
+    observation: &ObservationStore,
+    input: &ExecutePermissionGrantInput,
+) -> Result<ContextObservationExecutionResult, String> {
+    let grant = gateway.grant(&input.grant_id)?;
+    if grant.capability_id != FOREGROUND_CONTROL_CAPABILITY
+        || grant.operation != FOREGROUND_CONTROL_OPERATION
+    {
+        return Err("El grant no autoriza context.foreground.control".into());
+    }
+
+    match grant.mode {
+        PermissionMode::Session => {
+            if let Some(active_grant_id) = observation.active_grant_id()? {
+                if active_grant_id != input.grant_id {
+                    return Err(
+                        "Ya existe una sesión de observación activa; deténgala o revóquela primero"
+                            .into(),
+                    );
+                }
+            }
+            let execution = gateway.start_session(&input.grant_id)?;
+            let enabled = foreground_execution_enabled(&execution)?;
+            if !enabled {
+                let _ = gateway.revoke_grant(&input.grant_id);
+                return Err("Un grant session de observación debe activar la capacidad".into());
+            }
+            if let Err(error) = observation.apply_authorized_state(true, Some(&input.grant_id)) {
+                let _ = gateway.revoke_grant(&input.grant_id);
+                return Err(error);
+            }
+            Ok(ContextObservationExecutionResult {
+                grant: execution.grant,
+                enabled: true,
+            })
+        }
+        PermissionMode::OneShot => {
+            let execution = gateway.authorize_one_shot(&input.grant_id)?;
+            let enabled = match foreground_execution_enabled(&execution) {
+                Ok(enabled) => enabled,
+                Err(error) => {
+                    let _ = gateway.complete_one_shot(&input.grant_id, false);
+                    return Err(error);
+                }
+            };
+            if enabled {
+                let _ = gateway.complete_one_shot(&input.grant_id, false);
+                return Err(
+                    "Un grant oneShot de observación solo puede detener la capacidad".into(),
+                );
+            }
+
+            if let Some(active_grant_id) = observation.active_grant_id()? {
+                if let Err(error) = gateway.stop_session(&active_grant_id) {
+                    let _ = observation.disable_for_grant(&active_grant_id);
+                    let _ = gateway.complete_one_shot(&input.grant_id, false);
+                    return Err(error);
+                }
+            }
+            if let Err(error) = observation.apply_authorized_state(false, None) {
+                let _ = gateway.complete_one_shot(&input.grant_id, false);
+                return Err(error);
+            }
+            let completed = gateway.complete_one_shot(&input.grant_id, true)?;
+            Ok(ContextObservationExecutionResult {
+                grant: completed,
+                enabled: false,
+            })
+        }
+        PermissionMode::ImplicitRead => Err("implicitRead no crea grants ejecutables".into()),
+    }
+}
+
+fn foreground_execution_enabled(execution: &AuthorizedExecution) -> Result<bool, String> {
+    let object = execution
+        .parameters
+        .as_object()
+        .ok_or_else(|| "El plan privado de observación no es un objeto".to_string())?;
+    if object.len() != 1 || !object.contains_key("enabled") {
+        return Err("El plan privado de observación contiene campos inesperados".into());
+    }
+    object
+        .get("enabled")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| "El plan privado de observación no contiene enabled booleano".to_string())
 }
 
 fn prepare_supported_permission_request(
@@ -542,6 +690,12 @@ impl RevokePermissionGrantInput {
     }
 }
 
+impl ExecutePermissionGrantInput {
+    fn validate(&self) -> Result<(), String> {
+        validate_opaque_id("grantId", &self.grant_id)
+    }
+}
+
 impl PermissionGrant {
     pub(crate) fn validate(&self) -> Result<(), String> {
         validate_schema(self.schema_version)?;
@@ -918,6 +1072,8 @@ fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::sync::{Arc, Barrier};
+    use std::thread;
 
     fn draft() -> PermissionRequestDraft {
         PermissionRequestDraft {
@@ -1337,8 +1493,215 @@ mod tests {
         assert!(!observation.capability_probe().unwrap().enabled);
         let status = gateway.status().unwrap();
         assert!(status.policy.r2_decision_commands_exposed);
-        assert!(!status.policy.r2_execution_commands_exposed);
+        assert!(status.policy.r2_execution_commands_exposed);
         assert_eq!(status.grants, vec![grant]);
+    }
+
+    #[test]
+    fn migrated_observation_rejects_bypass_and_consumes_real_start_and_stop_grants() {
+        let gateway = PermissionGateway::default();
+        let observation = ObservationStore::default();
+        let bypass = execute_context_observation_grant_impl(
+            &gateway,
+            &observation,
+            ExecutePermissionGrantInput {
+                grant_id: "grant_without_permission".into(),
+            },
+        )
+        .unwrap_err();
+        assert!(bypass.contains("Grant desconocido"));
+        assert!(!observation.capability_probe().unwrap().enabled);
+
+        let start_request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "execute-context-start-001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Activar observación mediante un grant real.".into(),
+                parameters: ForegroundControlParameters { enabled: true },
+            },
+        )
+        .unwrap();
+        let start_grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: start_request.request_id,
+                preview_digest: start_request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+        let started = execute_context_observation_grant_impl(
+            &gateway,
+            &observation,
+            ExecutePermissionGrantInput {
+                grant_id: start_grant.grant_id.clone(),
+            },
+        )
+        .unwrap();
+        assert!(started.enabled);
+        assert_eq!(started.grant.state, PermissionGrantState::Active);
+        assert!(observation.capability_probe().unwrap().enabled);
+        assert_eq!(
+            observation.active_grant_id().unwrap().as_deref(),
+            Some(start_grant.grant_id.as_str())
+        );
+
+        let repeated = execute_context_observation_grant_impl(
+            &gateway,
+            &observation,
+            ExecutePermissionGrantInput {
+                grant_id: start_grant.grant_id.clone(),
+            },
+        )
+        .unwrap();
+        assert_eq!(repeated, started);
+
+        let stop_request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "execute-context-stop-0001".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Detener observación mediante un grant real.".into(),
+                parameters: ForegroundControlParameters { enabled: false },
+            },
+        )
+        .unwrap();
+        let stop_grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: stop_request.request_id,
+                preview_digest: stop_request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+        let stopped = execute_context_observation_grant_impl(
+            &gateway,
+            &observation,
+            ExecutePermissionGrantInput {
+                grant_id: stop_grant.grant_id,
+            },
+        )
+        .unwrap();
+        assert!(!stopped.enabled);
+        assert_eq!(stopped.grant.state, PermissionGrantState::Completed);
+        assert!(!observation.capability_probe().unwrap().enabled);
+        assert_eq!(
+            gateway.grant(&start_grant.grant_id).unwrap().state,
+            PermissionGrantState::Stopped
+        );
+    }
+
+    #[test]
+    fn revoking_an_active_foreground_grant_stops_the_real_observer() {
+        let gateway = PermissionGateway::default();
+        let observation = ObservationStore::default();
+        let request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "execute-revoke-active-01".into(),
+                capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                operation: FOREGROUND_CONTROL_OPERATION.into(),
+                purpose: "Activar y revocar observación real.".into(),
+                parameters: ForegroundControlParameters { enabled: true },
+            },
+        )
+        .unwrap();
+        let grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: request.request_id,
+                preview_digest: request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+        execute_context_observation_grant_impl(
+            &gateway,
+            &observation,
+            ExecutePermissionGrantInput {
+                grant_id: grant.grant_id.clone(),
+            },
+        )
+        .unwrap();
+
+        let revoked = revoke_permission_grant_impl(
+            &gateway,
+            &observation,
+            RevokePermissionGrantInput {
+                grant_id: grant.grant_id,
+            },
+        )
+        .unwrap();
+        assert_eq!(revoked.state, PermissionGrantState::Revoked);
+        assert!(!observation.capability_probe().unwrap().enabled);
+        assert_eq!(observation.active_grant_id(), Ok(None));
+    }
+
+    #[test]
+    fn concurrent_session_execution_leaves_exactly_one_active_grant() {
+        let gateway = PermissionGateway::default();
+        let observation = ObservationStore::default();
+        let grants: Vec<_> = ["concurrent-session-start-01", "concurrent-session-start-02"]
+            .into_iter()
+            .map(|idempotency_key| {
+                let request = prepare_supported_permission_request(
+                    &gateway,
+                    PreparePermissionRequestInput {
+                        idempotency_key: idempotency_key.into(),
+                        capability_id: FOREGROUND_CONTROL_CAPABILITY.into(),
+                        operation: FOREGROUND_CONTROL_OPERATION.into(),
+                        purpose: "Competir por una única sesión autorizada.".into(),
+                        parameters: ForegroundControlParameters { enabled: true },
+                    },
+                )
+                .unwrap();
+                gateway
+                    .decide(PermissionDecisionInput {
+                        request_id: request.request_id,
+                        preview_digest: request.preview_digest,
+                        decision: PermissionDecision::Approve,
+                    })
+                    .unwrap()
+                    .unwrap()
+            })
+            .collect();
+        let barrier = Arc::new(Barrier::new(3));
+        let handles: Vec<_> = grants
+            .iter()
+            .map(|grant| {
+                let gateway = gateway.clone();
+                let observation = observation.clone();
+                let barrier = Arc::clone(&barrier);
+                let grant_id = grant.grant_id.clone();
+                thread::spawn(move || {
+                    barrier.wait();
+                    execute_context_observation_grant_impl(
+                        &gateway,
+                        &observation,
+                        ExecutePermissionGrantInput { grant_id },
+                    )
+                })
+            })
+            .collect();
+        barrier.wait();
+        let results: Vec<_> = handles
+            .into_iter()
+            .map(|handle| handle.join().unwrap())
+            .collect();
+
+        assert_eq!(results.iter().filter(|result| result.is_ok()).count(), 1);
+        assert_eq!(results.iter().filter(|result| result.is_err()).count(), 1);
+        assert!(observation.capability_probe().unwrap().enabled);
+        let status = gateway.status().unwrap();
+        assert_eq!(
+            status
+                .grants
+                .iter()
+                .filter(|grant| grant.state == PermissionGrantState::Active)
+                .count(),
+            1
+        );
     }
 
     #[test]
@@ -1385,7 +1748,7 @@ mod tests {
     }
 
     #[test]
-    fn decision_cancel_and_revoke_inputs_reject_unknown_fields() {
+    fn decision_cancel_revoke_and_execute_inputs_reject_unknown_fields() {
         let decision = json!({
             "requestId": "request_0123456789",
             "previewDigest": format!("sha256:{}", "a".repeat(64)),
@@ -1411,6 +1774,14 @@ mod tests {
             .to_string()
             .contains("unknown field"));
 
+        let execute = json!({ "grantId": "grant_01234567890", "enabled": true });
+        assert!(
+            serde_json::from_value::<ExecutePermissionGrantInput>(execute)
+                .unwrap_err()
+                .to_string()
+                .contains("unknown field")
+        );
+
         assert!(CancelPermissionRequestInput {
             request_id: "short".into()
         }
@@ -1418,6 +1789,11 @@ mod tests {
         .is_err());
         assert!(RevokePermissionGrantInput {
             grant_id: "grant with spaces".into()
+        }
+        .validate()
+        .is_err());
+        assert!(ExecutePermissionGrantInput {
+            grant_id: "short".into()
         }
         .validate()
         .is_err());

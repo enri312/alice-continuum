@@ -432,7 +432,7 @@ fn observation_capabilities(
             CapabilityKind::Mutation,
             CapabilityMaturity::Implemented,
             "observation",
-            &["set_context_observation_enabled"],
+            &["execute_context_observation_grant"],
             control_state,
             CapabilityRisk::Medium,
             &[CapabilityEffect::WindowMetadataRead],
@@ -440,8 +440,8 @@ fn observation_capabilities(
             &["Opt-in visible durante la sesión"],
             permission(
                 CapabilityPermissionMode::SessionOptIn,
-                CapabilityPermissionEnforcer::CurrentUi,
-                "La opción visible de React controla el estado nativo durante la sesión.",
+                CapabilityPermissionEnforcer::Native,
+                "Rust exige y consume un grant R2 específico antes de cambiar el estado.",
             ),
             health(status, control_summary, Some(checked_at)),
         ),
@@ -461,8 +461,8 @@ fn observation_capabilities(
             &["Observación de ventana encendida"],
             permission(
                 CapabilityPermissionMode::SessionOptIn,
-                CapabilityPermissionEnforcer::CurrentUi,
-                "La lectura depende del opt-in vigente de la interfaz.",
+                CapabilityPermissionEnforcer::Native,
+                "Rust entrega contexto solo mientras el grant de sesión continúa activo.",
             ),
             health(status, read_summary, Some(checked_at)),
         ),
@@ -1665,6 +1665,20 @@ mod tests {
         }
         let observation = registered(&snapshot, "context.foreground.control");
         assert_eq!(observation.state, CapabilityState::Active);
+        assert_eq!(
+            observation.permission.enforced_by,
+            CapabilityPermissionEnforcer::Native
+        );
+        assert_eq!(
+            observation.operations,
+            vec!["execute_context_observation_grant"]
+        );
+        assert_eq!(
+            registered(&snapshot, "context.foreground.read")
+                .permission
+                .enforced_by,
+            CapabilityPermissionEnforcer::Native
+        );
         assert_eq!(
             observation.health.checked_at.as_deref(),
             Some("2026-08-08T18:00:00-03:00")

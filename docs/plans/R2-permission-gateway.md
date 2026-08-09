@@ -1,6 +1,6 @@
 # Plan de implementación R2 — Gateway de permisos
 
-Estado: implementación en curso; pasos 1 a 4 completados  
+Estado: implementación en curso; pasos 1 a 5 completados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -52,7 +52,7 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 
 **Resultado 2026-08-09:** `decide_permission_request`, `cancel_permission_request` y `revoke_permission_grant` quedaron registrados junto con un diálogo nativo accesible en Puentes. La previsualización muestra propósito, recurso, datos, efectos, riesgo, vencimiento y digest; Escape cancela y el foco inicial recae en Rechazar, nunca en Aprobar. Las pruebas comprueban contra el `ObservationStore` real que aprobar crea un grant sin activar la observación, y que cancelar o revocar son terminales sin ejecución. La batería alcanza 71 pruebas Rust y 56 TypeScript; el build web aprueba. No existe un comando R2 para consumir grants o iniciar sesiones.
 
-## Paso 5 — Primera migración real
+## Paso 5 — Primera migración real ✅
 
 - Migrar `context.foreground.control` al Gateway.
 - Rechazar el comando protegido sin grant válido.
@@ -60,6 +60,8 @@ Implementar `docs/architecture/PERMISSION_GATEWAY_R2.md` sin abrir cámara, micr
 - Actualizar R1 para declarar `enforcedBy: native` solamente después de probar el rechazo del bypass.
 
 **Puerta:** activar y detener observación desde la aplicación real; cerrar o revocar elimina el contexto y no modifica memoria.
+
+**Resultado 2026-08-09:** `set_context_observation_enabled` fue retirado del handler Tauri y sustituido por `execute_context_observation_grant`. Rust extrae `enabled` exclusivamente del plan privado congelado, rechaza IDs sin grant, inicia una sesión ligada al grant y consume una autorización `oneShot` para detenerla. Revocar un grant activo apaga el `ObservationStore`; el hilo nativo reconcilia vencimientos y descarta el contexto. R1 declara ahora `context.foreground.control` y su lectura como `enforcedBy: native`. Pruebas de integración con el almacén y observador reales cubren bypass, inicio idempotente, detención, revocación, limpieza y dos inicios concurrentes; la batería alcanza 76 Rust y 58 TypeScript. Una prueba viva opcional confirmó además que Win32 devuelve metadatos reales de la ventana en primer plano sin imprimirlos ni persistirlos. Cámara, micrófono y archivos multimedia no fueron abiertos ni creados.
 
 ## Paso 6 — Preparación de sesiones sensoriales
 

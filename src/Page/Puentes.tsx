@@ -48,7 +48,7 @@ const maturityLabels: Record<CapabilityDescriptor["maturity"], string> = {
   planned: "PLANIFICADA",
 };
 
-export function Puentes() {
+export function Puentes({ onObservationStateChange }: { onObservationStateChange: (enabled: boolean) => void }) {
   const requestedView = new URLSearchParams(window.location.search).get("bridgeView");
   const [view, setView] = useState<"overview" | "face" | "body">(requestedView === "face" || requestedView === "body" ? requestedView : "overview");
   const [registry, setRegistry] = useState<CapabilityRegistryResult>(() => createWebDevelopmentCapabilityRegistry());
@@ -102,7 +102,7 @@ export function Puentes() {
         <div><span>ERROR / DEGRADADA</span><strong>{String(summary.unhealthy).padStart(2, "0")}</strong><small>salud real</small></div>
       </div>
 
-      <PermissionGatewayPanel />
+      <PermissionGatewayPanel onObservationStateChange={onObservationStateChange} />
 
       <div className="bridge-layout">
         <div className="bridge-workspace">

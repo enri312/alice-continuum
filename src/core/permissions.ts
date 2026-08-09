@@ -111,6 +111,12 @@ export type PermissionDecisionInput = {
 
 export type CancelPermissionRequestInput = { requestId: string };
 export type RevokePermissionGrantInput = { grantId: string };
+export type ExecutePermissionGrantInput = { grantId: string };
+
+export type ContextObservationExecutionResult = {
+  grant: PermissionGrant;
+  enabled: boolean;
+};
 
 const modes = ["implicitRead", "oneShot", "session"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
@@ -304,7 +310,7 @@ export function parsePermissionGatewayStatus(value: unknown): PermissionGatewayS
   if (input.schemaVersion !== PERMISSION_GATEWAY_SCHEMA_VERSION) fail("status.schemaVersion debe ser 1");
   const policy = record(input.policy, "status.policy");
   exactKeys(policy, ["denyByDefault", "persistentGrants", "r2DecisionCommandsExposed", "r2ExecutionCommandsExposed"], "status.policy");
-  if (policy.denyByDefault !== true || policy.persistentGrants !== false || policy.r2DecisionCommandsExposed !== true || policy.r2ExecutionCommandsExposed !== false) {
+  if (policy.denyByDefault !== true || policy.persistentGrants !== false || policy.r2DecisionCommandsExposed !== true || policy.r2ExecutionCommandsExposed !== true) {
     fail("status.policy contradice los límites de R2");
   }
   const limits = record(input.limits, "status.limits");
@@ -320,7 +326,7 @@ export function parsePermissionGatewayStatus(value: unknown): PermissionGatewayS
   return {
     schemaVersion: PERMISSION_GATEWAY_SCHEMA_VERSION,
     generatedAt: utcTimestamp(input.generatedAt, "status.generatedAt"),
-    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: true, r2ExecutionCommandsExposed: false },
+    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: true, r2ExecutionCommandsExposed: true },
     limits: { highRiskDecisionTtlSeconds: 60, standardDecisionTtlSeconds: 300, maximumSessionDurationSeconds: 300 },
     requests,
     grants,
@@ -374,4 +380,25 @@ export function createCancelPermissionInput(requestId: string): CancelPermission
 
 export function createRevokePermissionInput(grantId: string): RevokePermissionGrantInput {
   return { grantId: opaqueId(grantId, "grantId") };
+}
+
+export function createExecutePermissionInput(grantId: string): ExecutePermissionGrantInput {
+  return { grantId: opaqueId(grantId, "grantId") };
+}
+
+export function parseContextObservationExecutionResult(value: unknown): ContextObservationExecutionResult {
+  const input = record(value, "execution");
+  exactKeys(input, ["grant", "enabled"], "execution");
+  if (typeof input.enabled !== "boolean") fail("execution.enabled debe ser booleano");
+  const grant = parsePermissionGrant(input.grant);
+  if (grant.capabilityId !== "context.foreground.control" || grant.operation !== "setContextObservationEnabled") {
+    fail("execution.grant no corresponde a context.foreground.control");
+  }
+  if (input.enabled && (grant.mode !== "session" || grant.state !== "active")) {
+    fail("execution activa requiere un grant session activo");
+  }
+  if (!input.enabled && (grant.mode !== "oneShot" || grant.state !== "completed")) {
+    fail("execution detenida requiere un grant oneShot completado");
+  }
+  return { grant, enabled: input.enabled };
 }

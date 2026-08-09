@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import {
   createCancelPermissionInput,
+  createExecutePermissionInput,
   createForegroundControlPreparation,
   createPermissionDecisionInput,
   createRevokePermissionInput,
   createWebDevelopmentPermissionGateway,
   parsePermissionGrant,
+  parseContextObservationExecutionResult,
   parsePermissionGatewayStatus,
   parsePreparedPermissionRequest,
 } from "../core/permissions";
@@ -17,7 +19,7 @@ import type {
   PreparedPermissionRequest,
 } from "../core/permissions";
 
-type GatewayAction = "prepare-start" | "prepare-stop" | "approve" | "deny" | "cancel" | "revoke";
+type GatewayAction = "prepare-start" | "prepare-stop" | "approve" | "deny" | "cancel" | "revoke" | "execute";
 
 const requestStateLabels: Record<PermissionRequestState, string> = {
   awaitingDecision: "ESPERA DECISIÓN",
@@ -35,7 +37,7 @@ function shortDigest(value: string) {
   return `${value.slice(0, 15)}…${value.slice(-8)}`;
 }
 
-export function PermissionGatewayPanel() {
+export function PermissionGatewayPanel({ onObservationStateChange }: { onObservationStateChange: (enabled: boolean) => void }) {
   const nativeRuntime = isTauri();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [gateway, setGateway] = useState<PermissionGatewayResult>(() => createWebDevelopmentPermissionGateway());
@@ -48,12 +50,13 @@ export function PermissionGatewayPanel() {
     if (!nativeRuntime) return;
     const snapshot = parsePermissionGatewayStatus(await invoke<unknown>("permission_gateway_status"));
     setGateway({ source: "native", snapshot });
-  }, [nativeRuntime]);
+    onObservationStateChange(snapshot.grants.some((grant) => grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active"));
+  }, [nativeRuntime, onObservationStateChange]);
 
   useEffect(() => {
     let active = true;
     refresh()
-      .then(() => { if (active) setMessage("Gateway R2 conectado · ejecución bloqueada"); })
+      .then(() => { if (active) setMessage("Gateway R2 conectado · observación protegida por grants"); })
       .catch((reason) => {
         if (!active) return;
         setError(String(reason));
@@ -128,7 +131,19 @@ export function PermissionGatewayPanel() {
     parsePermissionGrant(await invoke<unknown>("revoke_permission_grant", {
       input: createRevokePermissionInput(grant.grantId),
     }));
-    setMessage("Grant revocado. No se ejecutó ninguna capacidad.");
+    if (grant.mode === "session" && grant.state === "active") onObservationStateChange(false);
+    setMessage(grant.state === "active" ? "Grant revocado y observación detenida." : "Grant revocado antes de su ejecución.");
+    await refresh();
+  });
+
+  const execute = (grant: PermissionGrant) => run("execute", async () => {
+    const result = parseContextObservationExecutionResult(await invoke<unknown>("execute_context_observation_grant", {
+      input: createExecutePermissionInput(grant.grantId),
+    }));
+    onObservationStateChange(result.enabled);
+    setMessage(result.enabled
+      ? "Grant consumido: observación de ventana activa durante la sesión autorizada."
+      : "Grant consumido: observación detenida y contexto descartado.");
     await refresh();
   });
 
@@ -138,15 +153,15 @@ export function PermissionGatewayPanel() {
 
   return <section className="permission-gateway" aria-labelledby="permission-gateway-title">
     <header>
-      <div><p className="eyebrow">[R2] PERMISSION GATEWAY · DECISIÓN HUMANA</p><h3 id="permission-gateway-title">Control de permisos</h3><p>Prepara, inspecciona y decide solicitudes verificadas. Aprobar no ejecuta la capacidad en este incremento.</p></div>
-      <span className={commandsAvailable ? "is-native" : ""}><i />{commandsAvailable ? "DECISIONES ACTIVAS" : "SOLO LECTURA"}</span>
+      <div><p className="eyebrow">[R2] PERMISSION GATEWAY · EJECUCIÓN GOBERNADA</p><h3 id="permission-gateway-title">Control de permisos</h3><p>Prepara, decide y consume grants específicos. La ruta directa sin grant fue eliminada.</p></div>
+      <span className={commandsAvailable ? "is-native" : ""}><i />{commandsAvailable ? "GATEWAY NATIVO" : "SOLO LECTURA"}</span>
     </header>
 
     <div className="permission-policy" aria-label="Política del Gateway">
       <div><span>DENY BY DEFAULT</span><strong>{gateway.snapshot.policy.denyByDefault ? "ON" : "OFF"}</strong></div>
       <div><span>GRANTS PERSISTENTES</span><strong>{gateway.snapshot.policy.persistentGrants ? "ON" : "OFF"}</strong></div>
       <div><span>DECISIÓN R2</span><strong>{gateway.snapshot.policy.r2DecisionCommandsExposed ? "EXPUESTA" : "BLOQUEADA"}</strong></div>
-      <div><span>EJECUCIÓN R2</span><strong className="is-blocked">BLOQUEADA</strong></div>
+      <div><span>EJECUCIÓN R2</span><strong>{gateway.snapshot.policy.r2ExecutionCommandsExposed ? "PROTEGIDA" : "BLOQUEADA"}</strong></div>
     </div>
 
     <div className="permission-actions">
@@ -171,7 +186,10 @@ export function PermissionGatewayPanel() {
         <header><strong id="permission-grants-title">GRANTS EFÍMEROS</strong><span>{grants.length}</span></header>
         {grants.length === 0 ? <p>SIN GRANTS REALES</p> : grants.map((grant) => <article key={grant.grantId}>
           <div><strong>{grant.capabilityId}</strong><small>{grant.state.toUpperCase()} · vence {formatTimestamp(grant.expiresAt)}</small></div>
-          {grant.state === "approved" || grant.state === "active" ? <button type="button" disabled={busy !== null} onClick={() => revoke(grant)}>REVOCAR</button> : <span>{grant.mode}</span>}
+          <div className="permission-grant-actions">
+            {grant.state === "approved" ? <button type="button" disabled={busy !== null} onClick={() => execute(grant)}>{grant.mode === "session" ? "ACTIVAR" : "DETENER"}</button> : null}
+            {grant.state === "approved" || grant.state === "active" ? <button type="button" disabled={busy !== null} onClick={() => revoke(grant)}>REVOCAR</button> : <span>{grant.mode}</span>}
+          </div>
         </article>)}
       </section>
     </div>
@@ -193,7 +211,7 @@ export function PermissionGatewayPanel() {
           <div><dt>Digest inmutable</dt><dd title={pending.previewDigest}>{shortDigest(pending.previewDigest)}</dd></div>
         </dl>
         {pending.warnings.length > 0 ? <div className="permission-warnings"><strong>ADVERTENCIAS</strong>{pending.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div> : null}
-        <p className="permission-dialog-note">Aprobar crea un grant efímero. La ejecución sigue bloqueada hasta el siguiente incremento de R2.</p>
+        <p className="permission-dialog-note">Aprobar crea el grant efímero. La ejecución se realiza después con un control separado y solamente si el grant continúa vigente.</p>
         <footer>
           <button type="button" disabled={busy !== null} onClick={() => void cancel()}>CANCELAR</button>
           <button type="button" className="is-deny" autoFocus disabled={busy !== null} onClick={() => void decide("deny")}>RECHAZAR</button>

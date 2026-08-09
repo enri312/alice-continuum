@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   createCancelPermissionInput,
+  createExecutePermissionInput,
   createForegroundControlPreparation,
   createPermissionDecisionInput,
   createRevokePermissionInput,
   createWebDevelopmentPermissionGateway,
   parsePermissionGrant,
+  parseContextObservationExecutionResult,
   parsePermissionGatewayStatus,
   parsePreparedPermissionRequest,
 } from "./permissions";
@@ -42,7 +44,7 @@ function status(requests: unknown[] = [request()]) {
   return {
     schemaVersion: 1,
     generatedAt: "2026-08-09T15:00:01Z",
-    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: true, r2ExecutionCommandsExposed: false },
+    policy: { denyByDefault: true, persistentGrants: false, r2DecisionCommandsExposed: true, r2ExecutionCommandsExposed: true },
     limits: { highRiskDecisionTtlSeconds: 60, standardDecisionTtlSeconds: 300, maximumSessionDurationSeconds: 300 },
     requests,
     grants: [],
@@ -126,6 +128,7 @@ describe("permission gateway contract", () => {
     });
     expect(createCancelPermissionInput(parsedRequest.requestId)).toEqual({ requestId: parsedRequest.requestId });
     expect(createRevokePermissionInput("grant_0123456789")).toEqual({ grantId: "grant_0123456789" });
+    expect(createExecutePermissionInput("grant_0123456789")).toEqual({ grantId: "grant_0123456789" });
   });
 
   it("valida un grant de sesión aprobado sin convertirlo en ejecución", () => {
@@ -165,5 +168,46 @@ describe("permission gateway contract", () => {
     expect(() => parsePermissionGrant({ ...baseGrant, state: "active" })).toThrow(/estado session/);
     expect(() => parsePermissionGrant({ ...baseGrant, remainingUses: 0 })).toThrow(/remainingUses=1/);
     expect(() => parsePermissionGrant({ ...baseGrant, expiresAt: "2026-08-09T15:00:01Z" })).toThrow(/límite R2/);
+  });
+
+  it("valida el resultado ejecutado de una sesión de observación", () => {
+    const result = parseContextObservationExecutionResult({
+      enabled: true,
+      grant: {
+        schemaVersion: 1,
+        grantId: "grant_0123456789",
+        requestId: "request_0123456789",
+        previewDigest: digest,
+        capabilityId: "context.foreground.control",
+        operation: "setContextObservationEnabled",
+        mode: "session",
+        issuedAt: "2026-08-09T15:00:02Z",
+        expiresAt: "2026-08-09T15:05:02Z",
+        remainingUses: null,
+        state: "active",
+      },
+    });
+
+    expect(result.enabled).toBe(true);
+    expect(result.grant.state).toBe("active");
+  });
+
+  it("rechaza una ejecución que contradiga el modo o estado del grant", () => {
+    expect(() => parseContextObservationExecutionResult({
+      enabled: false,
+      grant: {
+        schemaVersion: 1,
+        grantId: "grant_0123456789",
+        requestId: "request_0123456789",
+        previewDigest: digest,
+        capabilityId: "context.foreground.control",
+        operation: "setContextObservationEnabled",
+        mode: "session",
+        issuedAt: "2026-08-09T15:00:02Z",
+        expiresAt: "2026-08-09T15:05:02Z",
+        remainingUses: null,
+        state: "active",
+      },
+    })).toThrow(/oneShot completado/);
   });
 });
