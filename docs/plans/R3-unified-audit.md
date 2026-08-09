@@ -1,6 +1,6 @@
 # Plan de implementación R3 — Auditoría unificada y diagnóstico
 
-Estado: en curso; incrementos 1 y 2 implementados  
+Estado: en curso; incrementos 1 a 3 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -24,11 +24,13 @@ Crear una fuente persistente, privada y correlacionada para la actividad real de
 
 Implementado con UUID v4 interno estable por solicitud, digest de previsualización y política diferenciada: iniciar acceso falla de forma cerrada; detener, revocar o vencer nunca se revierte aunque falle la telemetría.
 
-## Incremento 3 — Memoria y nube
+## Incremento 3 — Memoria y nube ✅
 
 - Sustituir gradualmente auditorías aisladas por eventos R3 o mantener compatibilidad explícita.
 - Correlacionar previsualización y resultado sin texto completo.
 - Mantener huellas solo cuando aporten integridad verificable.
+
+Implementado mediante escritura dual compatible: `memory-events.jsonl` y `cloud-audit.jsonl` permanecen vigentes, mientras cada operación nueva emite también un flujo R3 mínimo. Guardar, exportar, restaurar y migrar memoria comparten un UUID v4 entre solicitud y resultado. Nube registra el digest del contexto aceptado antes de la red y el digest de la respuesta al finalizar; no registra proveedor, modelo, identificador externo, texto ni credencial. Si el evento inicial no puede escribirse, la mutación o solicitud no comienza.
 
 ## Incremento 4 — Diagnóstico pasivo
 

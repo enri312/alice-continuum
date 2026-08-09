@@ -1,10 +1,13 @@
+use crate::audit::{
+    new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
+};
 use crate::util::{alice_data_root, timestamp_ms};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tauri::AppHandle;
 
 const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Carlos Nuñez. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
@@ -236,6 +239,69 @@ pub(crate) async fn send_cloud_message(
 ) -> Result<CloudResponse, String> {
     validate_cloud_request(&request)?;
 
+    let operation_id = new_operation_id();
+    let request_digest = format!("sha256:{:x}", Sha256::digest(request.payload.as_bytes()));
+    record_producer_audit(
+        &app,
+        operation_id.clone(),
+        AuditSource::Cloud,
+        "cloud.conversation.send".into(),
+        "cloud.send".into(),
+        AuditStage::Request,
+        AuditOutcome::Pending,
+        None,
+        Some(request_digest.clone()),
+        "OUTBOUND_REQUEST_ACCEPTED",
+    )?;
+
+    let started = Instant::now();
+    let result = send_cloud_message_inner(&app, &request).await;
+    let duration_ms = u64::try_from(started.elapsed().as_millis())
+        .unwrap_or(86_400_000)
+        .min(86_400_000);
+    match result {
+        Ok(response) => {
+            let response_digest = format!("sha256:{:x}", Sha256::digest(response.text.as_bytes()));
+            if let Err(error) = record_producer_audit(
+                &app,
+                operation_id,
+                AuditSource::Cloud,
+                "cloud.conversation.send".into(),
+                "cloud.send".into(),
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(duration_ms),
+                Some(response_digest),
+                "CLOUD_RESPONSE_RECEIVED",
+            ) {
+                eprintln!("La respuesta de nube llegó, pero R3 no registró el resultado: {error}");
+            }
+            Ok(response)
+        }
+        Err(error) => {
+            if let Err(audit_error) = record_producer_audit(
+                &app,
+                operation_id,
+                AuditSource::Cloud,
+                "cloud.conversation.send".into(),
+                "cloud.send".into(),
+                AuditStage::Error,
+                AuditOutcome::Error,
+                Some(duration_ms),
+                Some(request_digest),
+                "CLOUD_REQUEST_FAILED",
+            ) {
+                eprintln!("R3 no registró el fallo de nube: {audit_error}");
+            }
+            Err(error)
+        }
+    }
+}
+
+async fn send_cloud_message_inner(
+    app: &AppHandle,
+    request: &CloudRequest,
+) -> Result<CloudResponse, String> {
     let required_key = |name: &str| {
         std::env::var(name)
             .ok()
@@ -414,7 +480,7 @@ pub(crate) async fn send_cloud_message(
         .unwrap_or(0);
 
     append_cloud_audit(
-        &app,
+        app,
         &CloudAuditEntry {
             timestamp_ms: timestamp_ms()?,
             provider: provider_label.into(),

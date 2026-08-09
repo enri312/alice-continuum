@@ -139,6 +139,41 @@ impl AuditEvent {
         Ok(event)
     }
 
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn producer(
+        operation_id: String,
+        source: AuditSource,
+        capability_id: String,
+        operation: String,
+        stage: AuditStage,
+        outcome: AuditOutcome,
+        duration_ms: Option<u64>,
+        subject_digest: Option<String>,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        if !matches!(source, AuditSource::Memory | AuditSource::Cloud) {
+            return Err("El productor R3 debe ser memory o cloud".into());
+        }
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source,
+            capability_id: Some(capability_id),
+            operation,
+            stage,
+            decision: None,
+            outcome,
+            duration_ms,
+            subject_digest,
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -252,7 +287,11 @@ fn audit_paths(data_root: &Path) -> (PathBuf, PathBuf) {
     )
 }
 
-fn append_event_at(data_root: &Path, event: &AuditEvent, maximum_bytes: u64) -> Result<(), String> {
+pub(crate) fn append_event_at(
+    data_root: &Path,
+    event: &AuditEvent,
+    maximum_bytes: u64,
+) -> Result<(), String> {
     event.validate()?;
     let mut line = serde_json::to_vec(event).map_err(|error| error.to_string())?;
     line.push(b'\n');
@@ -292,6 +331,39 @@ fn append_event_at(data_root: &Path, event: &AuditEvent, maximum_bytes: u64) -> 
 
 pub(crate) fn append_audit_event(app: &AppHandle, event: &AuditEvent) -> Result<(), String> {
     append_event_at(&alice_data_root(app)?, event, AUDIT_MAX_BYTES)
+}
+
+pub(crate) fn new_operation_id() -> String {
+    Uuid::new_v4().to_string()
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn record_producer_audit(
+    app: &AppHandle,
+    operation_id: String,
+    source: AuditSource,
+    capability_id: String,
+    operation: String,
+    stage: AuditStage,
+    outcome: AuditOutcome,
+    duration_ms: Option<u64>,
+    subject_digest: Option<String>,
+    reason_code: impl Into<String>,
+) -> Result<(), String> {
+    append_audit_event(
+        app,
+        &AuditEvent::producer(
+            operation_id,
+            source,
+            capability_id,
+            operation,
+            stage,
+            outcome,
+            duration_ms,
+            subject_digest,
+            reason_code,
+        )?,
+    )
 }
 
 pub(crate) fn record_process_started(app: &AppHandle) -> Result<(), String> {
@@ -479,6 +551,104 @@ mod tests {
         assert!(!json.contains("parameters"));
         assert!(!json.contains("deviceStableId"));
         fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn correlated_memory_and_cloud_flows_persist_real_minimal_jsonl() {
+        let root = temp_root();
+        let memory_operation_id = Uuid::new_v4().to_string();
+        let cloud_operation_id = Uuid::new_v4().to_string();
+        let events = [
+            AuditEvent::producer(
+                memory_operation_id.clone(),
+                AuditSource::Memory,
+                "memory.records.write".into(),
+                "memory.save".into(),
+                AuditStage::Request,
+                AuditOutcome::Pending,
+                None,
+                Some(format!("sha256:{}", "c".repeat(64))),
+                "MEMORY_OPERATION_ACCEPTED",
+            )
+            .unwrap(),
+            AuditEvent::producer(
+                memory_operation_id.clone(),
+                AuditSource::Memory,
+                "memory.records.write".into(),
+                "memory.save".into(),
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(4),
+                Some(format!("sha256:{}", "c".repeat(64))),
+                "MEMORY_SAVED",
+            )
+            .unwrap(),
+            AuditEvent::producer(
+                cloud_operation_id.clone(),
+                AuditSource::Cloud,
+                "cloud.conversation.send".into(),
+                "cloud.send".into(),
+                AuditStage::Request,
+                AuditOutcome::Pending,
+                None,
+                Some(format!("sha256:{}", "d".repeat(64))),
+                "OUTBOUND_REQUEST_ACCEPTED",
+            )
+            .unwrap(),
+            AuditEvent::producer(
+                cloud_operation_id.clone(),
+                AuditSource::Cloud,
+                "cloud.conversation.send".into(),
+                "cloud.send".into(),
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(25),
+                Some(format!("sha256:{}", "e".repeat(64))),
+                "CLOUD_RESPONSE_RECEIVED",
+            )
+            .unwrap(),
+        ];
+        for event in &events {
+            append_event_at(&root, event, AUDIT_MAX_BYTES).unwrap();
+        }
+
+        let snapshot = snapshot_at(&root).unwrap();
+        assert_eq!(snapshot.events, events);
+        assert_eq!(snapshot.events[0].operation_id, memory_operation_id);
+        assert_eq!(snapshot.events[2].operation_id, cloud_operation_id);
+        let json = fs::read_to_string(audit_paths(&root).0).unwrap();
+        for private_field in [
+            "message",
+            "payload",
+            "provider",
+            "model",
+            "responseId",
+            "sessions",
+            "apiKey",
+        ] {
+            assert!(!json.contains(private_field));
+        }
+        assert_eq!(json.lines().count(), 4);
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn producer_constructor_rejects_sources_outside_memory_and_cloud() {
+        let result = AuditEvent::producer(
+            Uuid::new_v4().to_string(),
+            AuditSource::System,
+            "memory.records.write".into(),
+            "memory.save".into(),
+            AuditStage::Execution,
+            AuditOutcome::Success,
+            None,
+            None,
+            "MEMORY_SAVED",
+        );
+        assert_eq!(
+            result,
+            Err("El productor R3 debe ser memory o cloud".into())
+        );
     }
 
     #[test]

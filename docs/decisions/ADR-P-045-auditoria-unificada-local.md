@@ -5,7 +5,7 @@ Estado: aceptada para R3
 
 ## Contexto
 
-Alice posee auditorías separadas para memoria y nube y eventos temporales en React. El Gateway R2 ya persiste su secuencia correlacionada; memoria y nube siguen pendientes de migración. Sin esta fuente sería fácil confundir animación con evidencia real.
+Alice posee auditorías separadas para memoria y nube y eventos temporales en React. El Gateway R2 ya persistía su secuencia correlacionada; el incremento 3 incorporó memoria y nube sin borrar el historial ni romper compatibilidad. Sin esta fuente sería fácil confundir animación con evidencia real.
 
 ## Decisión
 
@@ -16,6 +16,8 @@ Alice posee auditorías separadas para memoria y nube y eventos temporales en Re
 - Limitar el archivo actual a 5 MiB y conservar una sola rotación anterior.
 - Mantener la vista Actividad como lectora: no podrá editar ni borrar la evidencia persistente.
 - Registrar primero el inicio real del proceso y migrar los demás productores uno por uno.
+- Mantener escritura dual para memoria y nube durante R3; no transformar ni eliminar auditorías históricas.
+- Exigir el evento inicial antes de una mutación de memoria o solicitud de red. Un fallo posterior de telemetría no repite ni revierte automáticamente un efecto ya completado.
 - Alimentar las visualizaciones cognitivas únicamente con eventos verificables.
 
 ## Consecuencias positivas
@@ -27,7 +29,7 @@ Alice posee auditorías separadas para memoria y nube y eventos temporales en Re
 
 ## Costos y límites
 
-- `process.startup` y el Gateway R2 producen eventos R3; memoria, nube y diagnóstico continúan pendientes.
+- `process.startup`, el Gateway R2, memoria y nube producen eventos R3; diagnóstico continúa pendiente.
 - Las auditorías históricas de memoria y nube no se reescriben ni migran automáticamente.
 - Una sola rotación prioriza el uso acotado de disco sobre retención indefinida.
 - La actividad observable no prueba conciencia ni reemplaza las pruebas funcionales.

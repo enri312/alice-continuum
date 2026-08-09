@@ -1,7 +1,7 @@
 # Auditoría unificada y diagnóstico R3
 
 Versión del contrato: 1  
-Estado: incrementos 1 y 2 implementados  
+Estado: incrementos 1 a 3 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -47,14 +47,18 @@ El Gateway R2 registra sus flujos con un UUID v4 interno compartido. Una repetic
 
 Si no puede escribirse el inicio de una capacidad sensible, el adaptador se detiene y el grant se revoca. Las operaciones que reducen acceso —detener, revocar o vencer— nunca se revierten por un fallo de telemetría.
 
+Memoria registra `memory.save`, `memory.export`, `memory.restore` y `memory.migrate` con sus capacidades canónicas R1. La solicitud se persiste antes de modificar el registro o crear una exportación. Solicitud y resultado comparten `operationId` y una huella SHA-256 del documento validado, pero no incluyen sesiones, títulos, resúmenes, fuentes ni cantidades.
+
+Nube registra `cloud.send` bajo `cloud.conversation.send`. El evento inicial acredita que Rust recibió un contexto ya confirmado por la UI y debe escribirse antes de iniciar la red; no convierte la confirmación React actual en una autorización nativa. El resultado exitoso utiliza la huella de la respuesta y un fallo utiliza la huella de la solicitud. Proveedor, modelo, identificador remoto, tokens, texto y credenciales quedan fuera del sobre R3.
+
+Durante R3 continúa la escritura dual de `memory/audit/memory-events.jsonl` y `cloud/cloud-audit.jsonl`. No se reescriben archivos históricos. Si el resultado R3 falla después de un efecto ya completado, Alice no repite ni revierte automáticamente la operación: conserva el evento inicial pendiente, mantiene la auditoría heredada cuando fue posible e informa el fallo técnico por stderr.
+
 ## Interfaz
 
 Actividad incorpora `[08] NATIVE AUDIT R3`. La vista es de solo lectura, muestra integridad, tamaño, rotación, líneas inválidas, origen, etapa, resultado y prefijo del identificador de correlación. Limpiar los eventos temporales de React no elimina la auditoría nativa.
 
-## Próximos productores
+## Próximo incremento
 
-1. Escrituras, respaldos, restauraciones y exportaciones de memoria.
-2. Previsualización y resultado de nube sin texto ni credenciales.
-3. Diagnóstico pasivo de rutas, versiones, proveedores y adaptadores.
+1. Diagnóstico pasivo de rutas, versiones, proveedores y adaptadores.
 
 El volumen neuronal solo aumentará su actividad cuando estos productores entreguen eventos reales. No se fabricarán nodos, pulsos o porcentajes para aparentar vida.

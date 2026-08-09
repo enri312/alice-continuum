@@ -1,10 +1,15 @@
+use crate::audit::{
+    new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
+};
 use crate::util::{alice_data_root, timestamp_ms};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
 use tauri::AppHandle;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -179,7 +184,6 @@ fn append_memory_audit(
     session_count: usize,
     content: &str,
 ) -> Result<(), String> {
-    use sha2::{Digest, Sha256};
     let directory = path
         .parent()
         .ok_or("No se encontró el directorio de memoria")?;
@@ -199,6 +203,101 @@ fn append_memory_audit(
         .open(audit_directory.join("memory-events.jsonl"))
         .map_err(|error| format!("No se pudo abrir la auditoría de memoria: {error}"))?;
     writeln!(file, "{line}").map_err(|error| format!("No se pudo registrar la auditoría: {error}"))
+}
+
+fn memory_subject_digest(content: &str) -> String {
+    format!("sha256:{:x}", Sha256::digest(content.as_bytes()))
+}
+
+fn elapsed_ms(started: Instant) -> u64 {
+    u64::try_from(started.elapsed().as_millis())
+        .unwrap_or(86_400_000)
+        .min(86_400_000)
+}
+
+fn audited_memory_operation<T>(
+    app: &AppHandle,
+    capability_id: &str,
+    operation: &str,
+    subject_digest: &str,
+    success_reason: &str,
+    execute: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    audited_memory_operation_with(
+        subject_digest,
+        success_reason,
+        |operation_id, stage, outcome, duration_ms, digest, reason_code| {
+            record_producer_audit(
+                app,
+                operation_id,
+                AuditSource::Memory,
+                capability_id.into(),
+                operation.into(),
+                stage,
+                outcome,
+                duration_ms,
+                digest,
+                reason_code,
+            )
+        },
+        execute,
+    )
+}
+
+fn audited_memory_operation_with<T>(
+    subject_digest: &str,
+    success_reason: &str,
+    mut record: impl FnMut(
+        String,
+        AuditStage,
+        AuditOutcome,
+        Option<u64>,
+        Option<String>,
+        String,
+    ) -> Result<(), String>,
+    execute: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    let operation_id = new_operation_id();
+    record(
+        operation_id.clone(),
+        AuditStage::Request,
+        AuditOutcome::Pending,
+        None,
+        Some(subject_digest.into()),
+        "MEMORY_OPERATION_ACCEPTED".into(),
+    )?;
+
+    let started = Instant::now();
+    match execute() {
+        Ok(value) => {
+            if let Err(error) = record(
+                operation_id,
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(elapsed_ms(started)),
+                Some(subject_digest.into()),
+                success_reason.into(),
+            ) {
+                eprintln!(
+                    "La operación de memoria terminó, pero R3 no registró el resultado: {error}"
+                );
+            }
+            Ok(value)
+        }
+        Err(error) => {
+            if let Err(audit_error) = record(
+                operation_id,
+                AuditStage::Error,
+                AuditOutcome::Error,
+                Some(elapsed_ms(started)),
+                Some(subject_digest.into()),
+                "MEMORY_OPERATION_FAILED".into(),
+            ) {
+                eprintln!("R3 no registró el fallo de memoria: {audit_error}");
+            }
+            Err(error)
+        }
+    }
 }
 
 fn memory_directory(app: &AppHandle) -> Result<PathBuf, String> {
@@ -241,13 +340,24 @@ fn memory_file(app: &AppHandle) -> Result<PathBuf, String> {
         let sessions = serde_json::from_str::<Vec<MemorySession>>(&content)
             .map_err(|error| format!("sessions.json no es una memoria válida: {error}"))?;
         validate_memory_sessions(&sessions)?;
-        fs::write(&current, &content)
-            .map_err(|error| format!("No se pudo migrar la memoria a records.json: {error}"))?;
-        append_memory_audit(
-            &current,
-            "migrate-sessions-to-records",
-            sessions.len(),
-            &content,
+        let digest = memory_subject_digest(&content);
+        audited_memory_operation(
+            app,
+            "memory.records.write",
+            "memory.migrate",
+            &digest,
+            "MEMORY_MIGRATED",
+            || {
+                fs::write(&current, &content).map_err(|error| {
+                    format!("No se pudo migrar la memoria a records.json: {error}")
+                })?;
+                append_memory_audit(
+                    &current,
+                    "migrate-sessions-to-records",
+                    sessions.len(),
+                    &content,
+                )
+            },
         )?;
     }
     Ok(current)
@@ -282,19 +392,29 @@ pub(crate) fn save_memory(app: AppHandle, sessions: Vec<MemorySession>) -> Resul
         .ok_or("No se encontró el directorio de memoria")?
         .join("backups")
         .join("records.backup.json");
-    if path.exists() {
-        fs::copy(&path, &backup)
-            .map_err(|error| format!("No se pudo respaldar la memoria: {error}"))?;
-    }
     let temporary = path.with_extension("tmp");
     let content = serde_json::to_string_pretty(&sessions).map_err(|error| error.to_string())?;
-    fs::write(&temporary, &content)
-        .map_err(|error| format!("No se pudo preparar la memoria: {error}"))?;
-    fs::copy(&temporary, &path)
-        .map_err(|error| format!("No se pudo guardar la memoria: {error}"))?;
-    fs::remove_file(&temporary)
-        .map_err(|error| format!("No se pudo limpiar el archivo temporal: {error}"))?;
-    append_memory_audit(&path, "save", sessions.len(), &content)?;
+    let digest = memory_subject_digest(&content);
+    audited_memory_operation(
+        &app,
+        "memory.records.write",
+        "memory.save",
+        &digest,
+        "MEMORY_SAVED",
+        || {
+            if path.exists() {
+                fs::copy(&path, &backup)
+                    .map_err(|error| format!("No se pudo respaldar la memoria: {error}"))?;
+            }
+            fs::write(&temporary, &content)
+                .map_err(|error| format!("No se pudo preparar la memoria: {error}"))?;
+            fs::copy(&temporary, &path)
+                .map_err(|error| format!("No se pudo guardar la memoria: {error}"))?;
+            fs::remove_file(&temporary)
+                .map_err(|error| format!("No se pudo limpiar el archivo temporal: {error}"))?;
+            append_memory_audit(&path, "save", sessions.len(), &content)
+        },
+    )?;
     Ok(path.display().to_string())
 }
 
@@ -313,10 +433,22 @@ pub(crate) fn export_memory(app: AppHandle) -> Result<String, String> {
         .ok_or("No se encontró el directorio de memoria")?
         .join("exports");
     fs::create_dir_all(&export_directory).map_err(|error| error.to_string())?;
-    let export_path = export_directory.join(format!("alice-memory-{}.json", timestamp_ms()?));
-    fs::write(&export_path, &content)
-        .map_err(|error| format!("No se pudo exportar la memoria: {error}"))?;
-    append_memory_audit(&path, "export", sessions.len(), &content)?;
+    let digest = memory_subject_digest(&content);
+    let export_path = audited_memory_operation(
+        &app,
+        "memory.records.export",
+        "memory.export",
+        &digest,
+        "MEMORY_EXPORTED",
+        || {
+            let export_path =
+                export_directory.join(format!("alice-memory-{}.json", timestamp_ms()?));
+            fs::write(&export_path, &content)
+                .map_err(|error| format!("No se pudo exportar la memoria: {error}"))?;
+            append_memory_audit(&path, "export", sessions.len(), &content)?;
+            Ok(export_path)
+        },
+    )?;
     Ok(export_path.display().to_string())
 }
 
@@ -335,13 +467,23 @@ pub(crate) fn restore_memory_backup(app: AppHandle) -> Result<MemorySnapshot, St
     let sessions: Vec<MemorySession> = serde_json::from_str(&content)
         .map_err(|error| format!("El respaldo no es válido: {error}"))?;
     validate_memory_sessions(&sessions)?;
-    if path.exists() {
-        fs::copy(&path, backup_directory.join("records.pre-restore.json"))
-            .map_err(|error| format!("No se pudo proteger la memoria actual: {error}"))?;
-    }
-    fs::write(&path, &content)
-        .map_err(|error| format!("No se pudo restaurar la memoria: {error}"))?;
-    append_memory_audit(&path, "restore", sessions.len(), &content)?;
+    let digest = memory_subject_digest(&content);
+    audited_memory_operation(
+        &app,
+        "memory.records.restore",
+        "memory.restore",
+        &digest,
+        "MEMORY_RESTORED",
+        || {
+            if path.exists() {
+                fs::copy(&path, backup_directory.join("records.pre-restore.json"))
+                    .map_err(|error| format!("No se pudo proteger la memoria actual: {error}"))?;
+            }
+            fs::write(&path, &content)
+                .map_err(|error| format!("No se pudo restaurar la memoria: {error}"))?;
+            append_memory_audit(&path, "restore", sessions.len(), &content)
+        },
+    )?;
     Ok(MemorySnapshot {
         sessions,
         storage_path: path.display().to_string(),
@@ -365,6 +507,7 @@ pub(crate) fn open_memory_directory(app: AppHandle) -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::audit::{append_event_at, AuditEvent, AUDIT_MAX_BYTES};
 
     fn temporary_probe_root(label: &str) -> PathBuf {
         let unique = std::time::SystemTime::now()
@@ -444,6 +587,58 @@ mod tests {
 
         let duplicate = vec![legacy.clone(), legacy];
         assert!(validate_memory_sessions(&duplicate).is_err());
+    }
+
+    #[test]
+    fn audited_memory_wrapper_writes_real_correlated_jsonl_without_content() {
+        let root = temporary_probe_root("r3-write");
+        let memory = root.join("memory");
+        fs::create_dir_all(&memory).expect("create isolated memory directory");
+        let records = memory.join("records.json");
+        let private_content = "recuerdo privado que no debe aparecer en auditoría";
+        let digest = memory_subject_digest(private_content);
+
+        audited_memory_operation_with(
+            &digest,
+            "MEMORY_SAVED",
+            |operation_id, stage, outcome, duration_ms, subject_digest, reason_code| {
+                let event = AuditEvent::producer(
+                    operation_id,
+                    AuditSource::Memory,
+                    "memory.records.write".into(),
+                    "memory.save".into(),
+                    stage,
+                    outcome,
+                    duration_ms,
+                    subject_digest,
+                    reason_code,
+                )?;
+                append_event_at(&root, &event, AUDIT_MAX_BYTES)
+            },
+            || fs::write(&records, private_content).map_err(|error| error.to_string()),
+        )
+        .expect("execute audited memory write");
+
+        assert_eq!(
+            fs::read_to_string(&records).expect("read isolated memory"),
+            private_content
+        );
+        let audit_json = fs::read_to_string(root.join("audit").join("events-v1.jsonl"))
+            .expect("read real R3 JSONL");
+        let events = audit_json
+            .lines()
+            .map(|line| serde_json::from_str::<AuditEvent>(line).expect("parse R3 event"))
+            .collect::<Vec<_>>();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].stage, AuditStage::Request);
+        assert_eq!(events[1].stage, AuditStage::Execution);
+        assert_eq!(events[0].operation_id, events[1].operation_id);
+        assert!(events.iter().all(|event| {
+            event.subject_digest.as_deref() == Some(digest.as_str())
+                && event.source == AuditSource::Memory
+        }));
+        assert!(!audit_json.contains(private_content));
+        fs::remove_dir_all(root).expect("remove isolated R3 memory fixture");
     }
 
     #[test]

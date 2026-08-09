@@ -4,8 +4,8 @@
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-68%2F68%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-88%2F88%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-70%2F70%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-91%2F91%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -29,15 +29,15 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
-| Auditoría unificada R3 | En curso: base v1 y Gateway R2 correlacionado implementados |
+| Auditoría unificada R3 | En curso: base v1, Gateway R2, memoria y nube correlacionados |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 68/68 aprobadas |
-| Pruebas Rust | 88/88 normales; prueba viva CAM+MIC aprobada explícitamente |
+| Pruebas TypeScript | 70/70 aprobadas |
+| Pruebas Rust | 91/91 normales; prueba viva CAM+MIC aprobada explícitamente |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
-| Memoria real | Nueve archivos preservados durante consultas repetidas del registro |
+| Datos privados preservados | Nueve archivos base intactos; R3 añade `audit/events-v1.jsonl` como décimo archivo gobernado |
 | Avatar privado | Preservado y excluido de Git |
 
 La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md).
@@ -100,11 +100,11 @@ El informe completo del alcance inicial está en [R2_PERMISSION_GATEWAY_REPORT_2
 
 ## Auditoría unificada R3
 
-Los dos primeros incrementos de R3 incorporan un sobre nativo v1 cerrado y conectan el Gateway R2 como productor correlacionado. Solicitud, autorización, ejecución, detención, revocación, bloqueo, error y vencimiento comparten un `operationId`; no existen propiedades para mensajes, imágenes, audio, parámetros o claves.
+Los tres primeros incrementos de R3 incorporan un sobre nativo v1 cerrado y conectan el Gateway R2, las operaciones de memoria y las solicitudes de nube como productores correlacionados. Solicitud, autorización, ejecución, detención, revocación, bloqueo, error y vencimiento comparten un `operationId`; no existen propiedades para mensajes, recuerdos, imágenes, audio, parámetros o claves.
 
-La auditoría vive en `data/audit/events-v1.jsonl`, limita el archivo actual a 5 MiB y conserva una sola rotación anterior. Si no puede escribirse el inicio de una capacidad sensible, el adaptador se detiene y el grant se revoca; detener o revocar nunca se deshace por un fallo de telemetría. Memoria y nube todavía deben migrarse antes de cerrar R3.
+La auditoría vive en `data/audit/events-v1.jsonl`, limita el archivo actual a 5 MiB y conserva una sola rotación anterior. Guardar, exportar, restaurar o migrar memoria registra una solicitud antes del efecto y un resultado con la misma correlación. Una solicitud de nube no sale si R3 no puede registrar su inicio; el resultado conserva únicamente una huella de integridad. Las auditorías heredadas de memoria y nube continúan en escritura dual durante esta fase de compatibilidad.
 
-Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), el [plan incremental](docs/plans/R3-unified-audit.md), el [informe de la base](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md) y el [informe del Gateway correlacionado](docs/testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md).
+Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), el [plan incremental](docs/plans/R3-unified-audit.md), [el informe de la base](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md), [el informe del Gateway correlacionado](docs/testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md) y [el informe de memoria y nube](docs/testing/R3_MEMORY_CLOUD_AUDIT_REPORT_2026-08-09.md).
 
 ## Matriz cognitivo-afectiva
 

@@ -36,6 +36,10 @@ const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const capabilityId = /^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+$/;
+const operationId = /^[A-Za-z0-9._-]{1,96}$/;
+const subjectDigest = /^sha256:[0-9a-fA-F]{64}$/;
+const reasonCode = /^[A-Z0-9_]{1,64}$/;
 const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
 const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
@@ -65,14 +69,18 @@ export function parseAuditEvent(value: unknown): AuditEvent {
     || typeof value.operationId !== "string" || !uuidV4.test(value.operationId)
     || !finiteNonNegative(value.timestampMs) || value.timestampMs === 0
     || !sources.includes(value.source as AuditSource)
-    || !nullableString(value.capabilityId)
-    || typeof value.operation !== "string" || !value.operation
+    || !nullableString(value.capabilityId) || (typeof value.capabilityId === "string" && !capabilityId.test(value.capabilityId))
+    || typeof value.operation !== "string" || !operationId.test(value.operation)
     || !stages.includes(value.stage as AuditStage)
     || !(value.decision === null || decisions.includes(value.decision as AuditDecision))
     || !outcomes.includes(value.outcome as AuditOutcome)
-    || !(value.durationMs === null || finiteNonNegative(value.durationMs))
-    || !nullableString(value.subjectDigest)
-    || typeof value.reasonCode !== "string" || !value.reasonCode) {
+    || !(value.durationMs === null || (finiteNonNegative(value.durationMs) && value.durationMs <= 86_400_000))
+    || !nullableString(value.subjectDigest) || (typeof value.subjectDigest === "string" && !subjectDigest.test(value.subjectDigest))
+    || typeof value.reasonCode !== "string" || !reasonCode.test(value.reasonCode)
+    || (value.stage === "request" && value.outcome !== "pending")
+    || (value.stage === "authorization" && value.decision === null)
+    || (value.stage === "block" && value.outcome !== "blocked")
+    || (value.stage === "error" && value.outcome !== "error")) {
     throw new Error("Evento de auditoría R3 inválido");
   }
   return value as AuditEvent;

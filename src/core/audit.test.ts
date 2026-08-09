@@ -55,6 +55,31 @@ describe("parseAuditSnapshot", () => {
     expect(parsed.every((item) => item.subjectDigest === null)).toBe(true);
   });
 
+  it("acepta flujos correlacionados de memoria y nube sin contenido privado", () => {
+    const memoryOperationId = "123e4567-e89b-42d3-a456-426614174090";
+    const cloudOperationId = "123e4567-e89b-42d3-a456-426614174091";
+    const digest = `sha256:${"a".repeat(64)}`;
+    const events = [
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174020", operationId: memoryOperationId, source: "memory", capabilityId: "memory.records.write", operation: "memory.save", stage: "request", outcome: "pending", subjectDigest: digest, reasonCode: "MEMORY_OPERATION_ACCEPTED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174021", operationId: memoryOperationId, source: "memory", capabilityId: "memory.records.write", operation: "memory.save", subjectDigest: digest, durationMs: 4, reasonCode: "MEMORY_SAVED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174022", operationId: cloudOperationId, source: "cloud", capabilityId: "cloud.conversation.send", operation: "cloud.send", stage: "request", outcome: "pending", subjectDigest: digest, reasonCode: "OUTBOUND_REQUEST_ACCEPTED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174023", operationId: cloudOperationId, source: "cloud", capabilityId: "cloud.conversation.send", operation: "cloud.send", subjectDigest: digest, durationMs: 25, reasonCode: "CLOUD_RESPONSE_RECEIVED" },
+    ];
+
+    const parsed = events.map(parseAuditEvent);
+    expect(parsed.map((item) => item.source)).toEqual(["memory", "memory", "cloud", "cloud"]);
+    expect(new Set(parsed.slice(0, 2).map((item) => item.operationId))).toEqual(new Set([memoryOperationId]));
+    expect(new Set(parsed.slice(2).map((item) => item.operationId))).toEqual(new Set([cloudOperationId]));
+  });
+
+  it("rechaza digests, etapas y capacidades que el contrato Rust rechaza", () => {
+    expect(() => parseAuditEvent({ ...event, subjectDigest: "mensaje privado" })).toThrow();
+    expect(() => parseAuditEvent({ ...event, capabilityId: "Memory Records" })).toThrow();
+    expect(() => parseAuditEvent({ ...event, stage: "request", outcome: "success" })).toThrow();
+    expect(() => parseAuditEvent({ ...event, stage: "error", outcome: "success" })).toThrow();
+    expect(() => parseAuditEvent({ ...event, durationMs: 86_400_001 })).toThrow();
+  });
+
   it("formatea límites sin ocultar la unidad", () => {
     expect(auditSizeLabel(512)).toBe("512 B");
     expect(auditSizeLabel(1536)).toBe("1.5 KiB");
