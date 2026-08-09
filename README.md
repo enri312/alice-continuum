@@ -4,7 +4,7 @@
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-66%2F66%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-67%2F67%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-86%2F86%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -31,7 +31,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Auditoría unificada R3 | En curso: esquema v1, almacenamiento acotado, inicio real y lectura nativa |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 66/66 aprobadas |
+| Pruebas TypeScript | 67/67 aprobadas |
 | Pruebas Rust | 86/86 normales; prueba viva CAM+MIC aprobada explícitamente |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -107,7 +107,7 @@ Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](do
 
 ## Matriz cognitivo-afectiva
 
-El volumen neuronal distingue ahora estructura disponible de actividad real: los circuitos inactivos permanecen tenues y solamente los nodos activados brillan o pulsan. La visualización es una nube continua de nodos corticales y asociaciones internas; no dibuja un objeto central ni representa conciencia.
+El volumen neuronal distingue estructura aprendida de actividad actual: solo aparecen los nodos respaldados por recuerdos o señales comprobables, mientras que el brillo y el pulso quedan reservados para actividad temporal. Con pocos recuerdos la red permanece pequeña; la nube densa es una meta de crecimiento para cientos o miles de registros y asociaciones auditables.
 
 La paleta futura incluye Alegría amarilla, Tristeza azul, Ira roja, Temor violeta, Desagrado verde, Ansiedad naranja, Envidia turquesa, Aburrimiento índigo, Vergüenza rosa y Nostalgia gris rosado. Los diez valores siguen en `0.00` y `planned`; todavía no existe simulación emocional. Consulta el [diseño afectivo](docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md), [ADR-P-046](docs/decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md) y el [informe visual](docs/testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md).
 

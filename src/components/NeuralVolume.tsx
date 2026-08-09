@@ -318,9 +318,13 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       const busy = snapshot.focusStatus.includes("nube");
       const automaticYaw = reduceMotion ? .12 : time * (busy ? .00011 : .000035);
       const projected = volume.points.map((point) => project(point, automaticYaw));
-      const active = volume.points.map((point) => {
+      const visible = volume.points.map((point) => {
         const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
         return point.reveal <= Math.min(1, snapshot.neuralDensity + affectActivation * .18);
+      });
+      const active = volume.points.map((point) => {
+        const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
+        return point.reveal <= Math.min(1, snapshot.currentNeuralActivity + affectActivation * .18);
       });
 
       const glow = context.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width * .34);
@@ -338,6 +342,7 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
         const toPoint = volume.points[edge.to];
         const from = projected[edge.from];
         const to = projected[edge.to];
+        if (!visible[edge.from] || !visible[edge.to]) continue;
         const edgeActive = active[edge.from] && active[edge.to];
         if (!edgeActive && edge.kind === "association" && (edge.from + edge.to) % 3 !== 0) continue;
         const depth = Math.max(.06, Math.min(.42, (from.z + to.z + 2) * .1));
@@ -360,6 +365,7 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
 
       const ordered = volume.points.map((point, index) => ({ point, index })).sort((a, b) => projected[a.index].z - projected[b.index].z);
       for (const { point, index } of ordered) {
+        if (!visible[index]) continue;
         const screen = projected[index];
         const [red, green, blue] = affectPalette[point.affectIndex].rgb;
         const isActive = active[index];
@@ -398,7 +404,7 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       canvas.removeEventListener("dblclick", doubleClick);
       canvas.removeEventListener("keydown", keyDown);
     };
-  }, [affectSignature, dominantAffect?.rgb, hasAffectActivity, snapshot.affectChannels, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity]);
+  }, [affectSignature, dominantAffect?.rgb, hasAffectActivity, snapshot.affectChannels, snapshot.currentNeuralActivity, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity]);
 
   return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Matriz cognitivo-afectiva tridimensional de Alice conectada a datos locales reales">
     <div className="nucleus-panel-label"><span>[01]</span><strong>ALICE COGNITIVE VOLUME</strong><small>AFFECTIVE ROUTING MAP</small></div>
@@ -406,7 +412,7 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
     {snapshot.hasActivity ? <>
       <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
       <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
-      <span className="volume-growth">ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVACIÓN {Math.round(snapshot.neuralDensity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
+      <span className="volume-growth">ESTRUCTURA APRENDIDA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVIDAD ACTUAL {Math.round(snapshot.currentNeuralActivity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
       <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "EN ESPERA · SIN DOMINANTE"}</small></span></div>
       <div className="volume-affect-palette" aria-label="Paleta de canales afectivos planificados">
         <header><strong>PALETA AFECTIVA</strong><span>COLOR = CIRCUITO · BRILLO = ACTIVIDAD</span></header>

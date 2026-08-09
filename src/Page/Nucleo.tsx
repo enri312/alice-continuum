@@ -16,7 +16,7 @@ export function Nucleo({ snapshot }: NucleoProps) {
   const [selectedId, setSelectedId] = useState(initialView === "flow" ? "flow-input" : initialView === "state" ? "state-curiosity" : initialView === "planner" ? "planner-response" : "volume-summary");
   const plannerSelected = plannerInspectorItems[selectedId];
   const selected = selectedId === "volume-summary"
-    ? { label: "Matriz cognitivo-afectiva", value: `${snapshot.persistentMemoryCount} recuerdos`, detail: "La estructura tenue representa circuitos disponibles; únicamente el brillo y los pulsos representan actividad actual. Los colores identifican canales afectivos todavía apagados." }
+    ? { label: "Matriz cognitivo-afectiva", value: `${snapshot.persistentMemoryCount} recuerdos`, detail: "Solo se dibuja la fracción de estructura respaldada por recuerdos o actividad real. El brillo y los pulsos representan actividad temporal; los colores identifican canales afectivos todavía apagados." }
     : plannerSelected
       ?? snapshot.nodes.find((node) => node.id === selectedId)
       ?? snapshot.flowNodes.find((node) => node.id === selectedId)

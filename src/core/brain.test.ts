@@ -19,6 +19,7 @@ describe("buildBrainSnapshot", () => {
     expect(snapshot.hasActivity).toBe(false);
     expect(snapshot.neuralDensity).toBe(0);
     expect(snapshot.persistentNeuralDensity).toBe(0);
+    expect(snapshot.currentNeuralActivity).toBe(0);
     expect(snapshot.persistentMemoryCount).toBe(0);
     expect(snapshot.focusStatus).toBe("en espera");
     expect(snapshot.nodes.find((node) => node.id === "memory")?.value).toBe("0 recuerdos");
@@ -36,11 +37,12 @@ describe("buildBrainSnapshot", () => {
 
   it("hace depender la densidad persistente únicamente de recuerdos locales", () => {
     const snapshot = buildBrainSnapshot({ ...emptyInputs, memoryCount: 6 });
-    const expectedDensity = .06 + Math.log2(7) * .12;
+    const expectedDensity = .015 + .845 * 6 / 186;
 
     expect(snapshot.hasActivity).toBe(true);
     expect(snapshot.persistentNeuralDensity).toBeCloseTo(expectedDensity, 6);
     expect(snapshot.neuralDensity).toBeCloseTo(expectedDensity, 6);
+    expect(snapshot.currentNeuralActivity).toBe(0);
     expect(snapshot.persistentMemoryCount).toBe(6);
   });
 
@@ -51,6 +53,7 @@ describe("buildBrainSnapshot", () => {
     expect(snapshot.focusStatus).toBe("conversación activa");
     expect(snapshot.persistentNeuralDensity).toBe(0);
     expect(snapshot.neuralDensity).toBeCloseTo(.035, 6);
+    expect(snapshot.currentNeuralActivity).toBeCloseTo(.035, 6);
     expect(snapshot.nodes.find((node) => node.id === "chat")?.value).toBe("mensaje recibido");
   });
 
@@ -63,6 +66,7 @@ describe("buildBrainSnapshot", () => {
 
     expect(snapshot.hasActivity).toBe(true);
     expect(snapshot.neuralDensity).toBeCloseTo(.025, 6);
+    expect(snapshot.currentNeuralActivity).toBeCloseTo(.025, 6);
     expect(snapshot.nodes.find((node) => node.id === "window")?.value).toBe("Code");
   });
 
@@ -79,6 +83,7 @@ describe("buildBrainSnapshot", () => {
     expect(snapshot.focusDetail).toContain("2 recuerdos relacionados");
     expect(snapshot.focusDetail).toContain("Preferencia por documentación previa");
     expect(snapshot.neuralDensity).toBeGreaterThan(snapshot.persistentNeuralDensity);
+    expect(snapshot.currentNeuralActivity).toBeCloseTo(.05, 6);
   });
 
   it("marca una consulta de nube sin convertirla en memoria persistente", () => {
@@ -91,7 +96,17 @@ describe("buildBrainSnapshot", () => {
     expect(snapshot.hasActivity).toBe(true);
     expect(snapshot.focusStatus).toBe("consultando la nube");
     expect(snapshot.neuralDensity).toBeCloseTo(.055, 6);
+    expect(snapshot.currentNeuralActivity).toBeCloseTo(.055, 6);
     expect(snapshot.persistentNeuralDensity).toBe(0);
     expect(snapshot.nodes.find((node) => node.id === "reply")?.value).toBe("esperando");
+  });
+
+  it("mantiene una red inicial pequeña y reserva la nube densa para aprendizaje acumulado", () => {
+    const initial = buildBrainSnapshot({ ...emptyInputs, memoryCount: 10 });
+    const mature = buildBrainSnapshot({ ...emptyInputs, memoryCount: 1_000 });
+
+    expect(initial.persistentNeuralDensity).toBeLessThan(.07);
+    expect(mature.persistentNeuralDensity).toBeGreaterThan(.72);
+    expect(mature.persistentNeuralDensity).toBeLessThanOrEqual(.86);
   });
 });

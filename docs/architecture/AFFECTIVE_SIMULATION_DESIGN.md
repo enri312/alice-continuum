@@ -30,11 +30,12 @@ Nostalgia usa gris rosado para separarse del rosa vivo de Vergüenza.
 
 - El color identifica un circuito afectivo posible.
 - El brillo y el pulso representarán activación calculada.
-- Un punto tenue representa estructura disponible, no actividad.
+- Un punto tenue representa estructura ya respaldada por memoria local, no actividad actual.
 - Cada canal permanece actualmente en `0.00` y estado `planned`.
 - La interfaz muestra `CAPA AFECTIVA · EN ESPERA · SIN DOMINANTE` mientras no exista evidencia.
 - La densidad de memoria y la activación cognitiva continúan siendo métricas separadas.
 - Las asociaciones internas enlazan la nube completa sin un objeto central superpuesto.
+- La estructura usa una curva de crecimiento saturada: diez recuerdos permanecen por debajo de 7%; alrededor de mil recuerdos superan 72%. La apariencia densa es un estado futuro, no el estado inicial de Alice.
 
 ## Evidencia necesaria para el motor
 

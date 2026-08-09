@@ -7,7 +7,7 @@ Alcance: presentación y contrato de canales; motor afectivo no implementado
 ## Cambios verificados
 
 - Una nube cognitiva continua: dos regiones corticales enlazadas por asociaciones internas, sin objeto central superpuesto.
-- Estructura completa tenue, independiente de la fracción activa.
+- Estructura aprendida tenue y proporcional a recuerdos reales.
 - Nodos activos con mayor brillo, tamaño y pulso.
 - Diez circuitos cromáticos identificables.
 - Capa afectiva visible como `EN ESPERA · SIN DOMINANTE`.
@@ -18,14 +18,15 @@ Alcance: presentación y contrato de canales; motor afectivo no implementado
 
 ## Revisión visual real
 
-Se compiló el frontend y se abrió en Microsoft Edge mediante Playwright a 1440 × 1000. La prueba de disposición usó diez registros controlados en `localStorage` del navegador aislado para producir la misma densidad visible de diez recuerdos sin leer ni copiar la memoria privada de Alice.
+Se compiló el frontend y se abrió en Microsoft Edge mediante Playwright a 1440 × 1000. La prueba de disposición usó diez registros controlados en `localStorage` del navegador aislado para reproducir una etapa inicial con diez recuerdos, sin leer ni copiar la memoria privada de Alice.
 
 Se capturaron la página completa y el componente enfocado fuera del repositorio. La inspección confirmó:
 
 - ausencia de solapamiento entre ayuda, controles y paleta;
 - lectura completa de los diez canales;
-- asociaciones internas densas y nodos jerárquicos integrados en la nube;
+- pocas asociaciones visibles con diez recuerdos, sin rellenar la nube potencial;
 - estructura inactiva visible sin confundirse con pulsos activos;
+- densidad inicial inferior a 7% con diez recuerdos y densidad madura superior a 72% con mil;
 - distribución multicolor estable durante la rotación;
 - ninguna imagen de personajes o recurso de Disney/Pixar incluido.
 
@@ -35,7 +36,7 @@ Las capturas de prueba permanecen en el directorio privado de visualizaciones de
 
 | Puerta | Resultado |
 |---|---|
-| TypeScript / Vitest | 66/66 |
+| TypeScript / Vitest | 67/67 |
 | Pruebas de paleta | 2/2 |
 | Canales únicos | 10/10 |
 | Coherencia hexadecimal/RGB | aprobada |

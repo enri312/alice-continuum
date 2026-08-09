@@ -41,6 +41,7 @@ export type BrainSnapshot = {
   hasActivity: boolean;
   neuralDensity: number;
   persistentNeuralDensity: number;
+  currentNeuralActivity: number;
   persistentMemoryCount: number;
   retrievedMemoryCount: number;
   retrievedMemoryTop: string;
@@ -79,15 +80,19 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
   const responseActivation = hasConversation ? Math.min(.94, .48 + inputs.conversationCount * .035) : 0;
   // La densidad duradera depende solo de memoria local. Una interacción actual
   // añade un pulso pequeño, pero disponer de una IA de nube no hace crecer la red.
-  const persistentDensity = hasMemory ? Math.min(.86, .06 + Math.log2(inputs.memoryCount + 1) * .12) : 0;
+  // La estructura crece lentamente: unos pocos recuerdos no deben parecer una
+  // red madura. La curva se aproxima a 86% solo con cientos o miles de registros.
+  const persistentDensity = hasMemory ? Math.min(.86, .015 + .845 * inputs.memoryCount / (inputs.memoryCount + 180)) : 0;
   const activityPulse = inputs.cloudPending ? .055 : inputs.lastUserMessage ? .035 : hasWindow ? .025 : hasConversation ? .02 : 0;
   const recallPulse = hasRetrievedMemory ? Math.min(.09, inputs.retrievedMemoryCount * .025) : 0;
-  const neuralDensity = hasActivity ? Math.min(.96, persistentDensity + activityPulse + recallPulse) : 0;
+  const currentNeuralActivity = hasActivity ? Math.min(.18, activityPulse + recallPulse) : 0;
+  const neuralDensity = hasActivity ? Math.min(.96, persistentDensity + currentNeuralActivity) : 0;
 
   return {
     hasActivity,
     neuralDensity,
     persistentNeuralDensity: persistentDensity,
+    currentNeuralActivity,
     persistentMemoryCount: inputs.memoryCount,
     retrievedMemoryCount: inputs.retrievedMemoryCount,
     retrievedMemoryTop: inputs.retrievedMemoryTop,

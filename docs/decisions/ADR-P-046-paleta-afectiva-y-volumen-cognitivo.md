@@ -10,7 +10,7 @@ El volumen anterior utilizaba tres colores para entrada, memoria y salida y ocul
 ## Decisión
 
 - Rediseñar el volumen como una nube cognitivo-afectiva continua, formada por regiones corticales y asociaciones internas distribuidas.
-- Mantener visible la estructura completa con baja intensidad.
+- Mostrar únicamente la fracción de estructura respaldada por memoria o actividad comprobable.
 - Reservar brillo, tamaño y pulso para actividad calculada desde datos reales.
 - Definir diez canales cromáticos propios inspirados en asociaciones de *Intensamente 2*.
 - Usar Nostalgia en gris rosado y Vergüenza en rosa vivo.
@@ -20,7 +20,7 @@ El volumen anterior utilizaba tres colores para entrada, memoria y salida y ocul
 
 ## Consecuencias
 
-- La red parece estructuralmente completa sin fingir más actividad.
+- La red inicial permanece deliberadamente pequeña y crece con aprendizaje local auditable.
 - El futuro motor dispone de identificadores y colores estables.
 - Una emoción dominante no puede aparecer solamente por motivos estéticos.
 - El volumen admite crecimiento gradual mediante R3, memoria y asociaciones reales.
