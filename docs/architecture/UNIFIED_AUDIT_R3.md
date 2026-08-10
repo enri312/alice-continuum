@@ -1,7 +1,7 @@
 # Auditoría unificada y diagnóstico R3
 
 Versión del contrato: 1  
-Estado: incrementos 1 a 4 implementados  
+Estado: incrementos 1 a 5 implementados; alcance R3 completado  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -61,8 +61,35 @@ Actividad incorpora `[08] NATIVE AUDIT R3`. La vista es de solo lectura, muestra
 
 El diagnóstico puede leer metadatos y contenido estructural necesario para validar JSON, pero solo devuelve etiquetas, estados, rutas locales técnicas y resúmenes acotados. Nunca devuelve claves, valores de variables, mensajes, recuerdos, títulos de ventana o señal. La sonda de Python deshabilita escritura de bytecode; no abre hardware. La sonda del Gateway valida integridad bajo bloqueo de lectura sin ejecutar expiraciones.
 
-## Próximo incremento
+## Actividad derivada del Núcleo
 
-1. Derivar actividad del Núcleo desde eventos R3 y estado real, etiquetando toda heurística.
+`core_activity_snapshot` lee el mismo conjunto válido de hasta 200 eventos R3 visibles y devuelve un contrato v1 cerrado. No escribe, rota, corrige ni crea archivos. Sus campos principales son:
 
-El volumen neuronal solo aumentará su actividad cuando estos productores entreguen eventos reales. No se fabricarán nodos, pulsos o porcentajes para aparentar vida.
+| Campo | Regla |
+|---|---|
+| `method` | valor fijo `r3-recency-v1` |
+| `heuristic` | siempre `true`; impide presentar la señal como observación directa |
+| `windowMs` | 300.000 ms, equivalentes a cinco minutos |
+| `visibleEventCount` | eventos válidos disponibles para evaluar |
+| `windowEventCount` | eventos dentro de la ventana temporal |
+| `overallSignal` | intensidad normalizada entre 0 y 1 |
+| `regions` | percepción, permisos, memoria, lenguaje, contexto y salida |
+| `links` | cinco rutas funcionales cerradas con cantidad de evidencia |
+
+Cada evento dentro de la ventana recibe un peso reproducible:
+
+```text
+peso = recencia lineal × peso de etapa × peso de resultado
+señal de región o enlace = limitar(suma de pesos / 3, 0, 1)
+señal general = limitar(suma de pesos por evento / 4, 0, 1)
+```
+
+La etapa distingue solicitud, autorización, ejecución, detención, revocación, bloqueo y error. El resultado distingue pendiente, éxito, bloqueo y error. La fórmula no analiza mensajes, imágenes, audio o significado emocional.
+
+El mapeo es explícito: `system` activa contexto; `memory` activa memoria→contexto; `cloud` activa lenguaje→contexto→salida; y un evento `permission` o `capability` de `perception.*` o `context.*` activa permisos→percepción→contexto. Las rutas sin evidencia permanecen en cero.
+
+En el Núcleo, la memoria local determina estructura persistente. La señal R3 determina únicamente brillo temporal, intensidades de regiones y enlaces. Los diez canales afectivos continúan en `0.00` porque R3 no es un simulador emocional.
+
+## Cierre del alcance R3
+
+Los cinco incrementos previstos están implementados: contrato y almacenamiento, Gateway correlacionado, productores de memoria/nube, diagnóstico pasivo y actividad derivada del Núcleo. La siguiente fase del Roadmap deberá consumir estos contratos sin ampliar sus permisos ni reinterpretar la telemetría como conciencia.

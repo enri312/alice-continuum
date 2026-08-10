@@ -2,6 +2,7 @@ mod audit;
 mod avatar;
 mod capabilities;
 mod cloud;
+mod core_activity;
 mod diagnostics;
 mod memory;
 mod observation;
@@ -16,6 +17,7 @@ use audit::{audit_snapshot, record_process_started};
 use avatar::avatar_status;
 use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
+use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
 use memory::{
     export_memory, load_memory, open_memory_directory, restore_memory_backup, save_memory,
@@ -69,6 +71,7 @@ pub fn run() {
             stop_sensor_lease,
             sensor_lease_status,
             audit_snapshot,
+            core_activity_snapshot,
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,

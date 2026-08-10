@@ -1,6 +1,6 @@
 # Plan de implementación R3 — Auditoría unificada y diagnóstico
 
-Estado: en curso; incrementos 1 a 4 implementados  
+Estado: completado; incrementos 1 a 5 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -40,11 +40,15 @@ Implementado mediante escritura dual compatible: `memory-events.jsonl` y `cloud-
 
 Implementado con un snapshot nativo v1 y la vista `[09] PASSIVE DIAGNOSTIC`. Clasifica 19 comprobaciones potenciales en rutas, versiones, proveedores, adaptadores y permisos. La ruta sensorial importa Python y sus dependencias con bytecode deshabilitado, sin abrir hardware. El Gateway usa una sonda nueva que no vence ni modifica solicitudes. Una prueba viva comparó SHA-256 de todos los archivos canónicos antes y después y confirmó cero cambios.
 
-## Incremento 5 — Actividad del núcleo
+## Incremento 5 — Actividad del núcleo ✅
 
 - Derivar intensidad, regiones y enlaces del volumen desde eventos R3 y estado real.
 - Mantener señal efímera separada de memoria persistente.
 - Etiquetar cualquier inferencia o heurística; nunca presentarla como observación directa.
+
+Implementado mediante el snapshot nativo cerrado `core_activity_snapshot` y el método `r3-recency-v1`. Solo considera los 200 eventos visibles del archivo actual y da señal a los eventos ocurridos en los últimos cinco minutos. La recencia, etapa y resultado determinan una intensidad acotada; seis regiones y cinco enlaces declaran su cantidad de evidencia. El frontend vuelve a validar topología, conteos y ausencia de campos desconocidos antes de iluminar el volumen o el flujo.
+
+La densidad persistente continúa dependiendo exclusivamente de recuerdos locales. Los eventos R3 solo producen señal efímera y nunca modifican memoria, auditoría, permisos o canales afectivos. Un archivo vacío, un evento antiguo o un snapshot no disponible mantienen la actividad en cero.
 
 ## Puertas obligatorias
 

@@ -36,6 +36,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 30. [ADR-P-046: paleta afectiva y volumen cognitivo](decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md)
 31. [Informe visual de la matriz cognitivo-afectiva](testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md)
 32. [Informe R3 del Gateway correlacionado](testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md)
+33. [ADR-P-047: actividad efímera del Núcleo](decisions/ADR-P-047-actividad-efimera-del-nucleo-desde-r3.md)
+34. [Informe de cierre R3 y actividad del Núcleo](testing/R3_CORE_ACTIVITY_REPORT_2026-08-09.md)
 
 ## Secciones
 

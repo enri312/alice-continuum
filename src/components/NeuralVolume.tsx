@@ -8,9 +8,11 @@ import zoomInIcon from "../../icons/view-zoom-in.svg?raw";
 import zoomOutIcon from "../../icons/view-zoom-out.svg?raw";
 import resetIcon from "../../icons/view-reset.svg?raw";
 import { affectPalette } from "../core/affect";
+import type { CoreActivitySnapshot } from "../core/core-activity";
 
 type NeuralVolumeProps = {
   snapshot: BrainSnapshot;
+  activity: CoreActivitySnapshot | null;
 };
 
 type Point = { x: number; y: number; z: number; group: BrainGroup; phase: number; reveal: number; affectIndex: number; layer: "cortex" | "association"; prominence: number };
@@ -159,7 +161,7 @@ function createVolume() {
   return { points, edges };
 }
 
-export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
+export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<Camera>({ ...initialCamera });
@@ -318,13 +320,14 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
       const busy = snapshot.focusStatus.includes("nube");
       const automaticYaw = reduceMotion ? .12 : time * (busy ? .00011 : .000035);
       const projected = volume.points.map((point) => project(point, automaticYaw));
+      const visualActivity = Math.min(.24, snapshot.currentNeuralActivity * .24);
       const visible = volume.points.map((point) => {
         const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
         return point.reveal <= Math.min(1, snapshot.neuralDensity + affectActivation * .18);
       });
       const active = volume.points.map((point) => {
         const affectActivation = snapshot.affectChannels[point.affectIndex]?.value ?? 0;
-        return point.reveal <= Math.min(1, snapshot.currentNeuralActivity + affectActivation * .18);
+        return point.reveal <= Math.min(1, visualActivity + affectActivation * .18);
       });
 
       const glow = context.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width * .34);
@@ -412,13 +415,13 @@ export function NeuralVolume({ snapshot }: NeuralVolumeProps) {
     {snapshot.hasActivity ? <>
       <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
       <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
-      <span className="volume-growth">ESTRUCTURA APRENDIDA {Math.round(snapshot.persistentNeuralDensity * 100)}% · ACTIVIDAD ACTUAL {Math.round(snapshot.currentNeuralActivity * 100)}% · {snapshot.persistentMemoryCount} RECUERDOS</span>
+      <span className="volume-growth">ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · SEÑAL R3 {Math.round(snapshot.currentNeuralActivity * 100)}% · {activity?.windowEventCount ?? 0} EVENTOS / 5 MIN · {snapshot.persistentMemoryCount} RECUERDOS</span>
       <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "EN ESPERA · SIN DOMINANTE"}</small></span></div>
       <div className="volume-affect-palette" aria-label="Paleta de canales afectivos planificados">
         <header><strong>PALETA AFECTIVA</strong><span>COLOR = CIRCUITO · BRILLO = ACTIVIDAD</span></header>
         <div>{snapshot.affectChannels.map((channel) => <span key={channel.id} title={`${channel.label}: ${channel.role}. Estado ${channel.availability === "ready" ? "disponible" : "planificado"}.`} style={{ "--affect-color": channel.color } as CSSProperties}><i />{channel.label}<small>{channel.value.toFixed(2)}</small></span>)}</div>
       </div>
-      <div className="volume-signal-legend"><span className="structure">estructura</span><span className="active">actividad real</span><span className="bridge">correlación</span></div>
+      <div className="volume-signal-legend"><span className="structure">memoria persistente</span><span className="active">señal R3 heurística</span><span className="bridge">correlación R3</span></div>
       <div className="volume-camera-controls" aria-label="Controles de cámara del volumen neuronal">
         <div className="volume-camera-modes" role="group" aria-label="Modo de arrastre">
           <button className={interactionMode === "rotate" ? "selected" : ""} type="button" title="Girar al arrastrar" aria-pressed={interactionMode === "rotate"} onClick={() => chooseMode("rotate")}><InlineSvgIcon markup={rotateIcon} className="camera-control-icon" /><span>Girar</span></button>

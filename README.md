@@ -3,9 +3,9 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
-![R3](https://img.shields.io/badge/R3-en%20curso-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-74%2F74%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-95%2F95%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-79%2F79%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-100%2F100%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -29,11 +29,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
-| Auditoría unificada R3 | En curso: base v1, productores correlacionados y diagnóstico pasivo implementados |
+| Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 74/74 aprobadas |
-| Pruebas Rust | 95/95 normales; sondas vivas CAM+MIC y diagnóstico pasivo aprobadas explícitamente |
+| Pruebas TypeScript | 79/79 aprobadas |
+| Pruebas Rust | 100/100 normales; cuatro sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -100,13 +100,15 @@ El informe completo del alcance inicial está en [R2_PERMISSION_GATEWAY_REPORT_2
 
 ## Auditoría unificada R3
 
-Los cuatro primeros incrementos de R3 incorporan un sobre nativo v1 cerrado, conectan Gateway R2, memoria y nube como productores correlacionados y añaden `[09] PASSIVE DIAGNOSTIC`. Solicitud, autorización, ejecución, detención, revocación, bloqueo, error y vencimiento comparten un `operationId`; no existen propiedades para mensajes, recuerdos, imágenes, audio, parámetros o claves.
+Los cinco incrementos de R3 incorporan un sobre nativo v1 cerrado, conectan Gateway R2, memoria y nube como productores correlacionados, añaden `[09] PASSIVE DIAGNOSTIC` y derivan la actividad efímera del Núcleo. Solicitud, autorización, ejecución, detención, revocación, bloqueo, error y vencimiento comparten un `operationId`; no existen propiedades para mensajes, recuerdos, imágenes, audio, parámetros o claves.
 
 La auditoría vive en `data/audit/events-v1.jsonl`, limita el archivo actual a 5 MiB y conserva una sola rotación anterior. Guardar, exportar, restaurar o migrar memoria registra una solicitud antes del efecto y un resultado con la misma correlación. Una solicitud de nube no sale si R3 no puede registrar su inicio; el resultado conserva únicamente una huella de integridad. Las auditorías heredadas de memoria y nube continúan en escritura dual durante esta fase de compatibilidad.
 
 El diagnóstico clasifica cada comprobación como saludable, configuración pendiente, no disponible o error. Lee rutas y versiones, comprueba presencia de configuración sin revelar valores, importa el runtime sensorial sin abrir dispositivos y valida el Gateway sin vencer ni modificar solicitudes. No envía red, solicita permisos, crea carpetas, rota auditorías ni corrige archivos.
 
-Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), el [plan incremental](docs/plans/R3-unified-audit.md), [el informe de la base](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md), [el informe del Gateway correlacionado](docs/testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md), [el informe de memoria y nube](docs/testing/R3_MEMORY_CLOUD_AUDIT_REPORT_2026-08-09.md) y [el informe del diagnóstico](docs/testing/R3_PASSIVE_DIAGNOSTIC_REPORT_2026-08-09.md).
+El comando `core_activity_snapshot` evalúa los eventos R3 visibles dentro de una ventana de cinco minutos. `r3-recency-v1` pondera recencia, etapa y resultado, y produce seis regiones y cinco enlaces con conteos verificables. La interfaz lo marca siempre como heurística técnica. Los eventos sólo controlan brillo temporal; la memoria local sigue siendo la única fuente de densidad persistente y los diez canales afectivos permanecen en `0.00`.
+
+Consulta el [contrato R3](docs/architecture/UNIFIED_AUDIT_R3.md), [ADR-P-045](docs/decisions/ADR-P-045-auditoria-unificada-local.md), [ADR-P-047](docs/decisions/ADR-P-047-actividad-efimera-del-nucleo-desde-r3.md), el [plan incremental](docs/plans/R3-unified-audit.md), [el informe de la base](docs/testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md), [el informe del Gateway correlacionado](docs/testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md), [el informe de memoria y nube](docs/testing/R3_MEMORY_CLOUD_AUDIT_REPORT_2026-08-09.md), [el informe del diagnóstico](docs/testing/R3_PASSIVE_DIAGNOSTIC_REPORT_2026-08-09.md) y [el cierre de actividad del Núcleo](docs/testing/R3_CORE_ACTIVITY_REPORT_2026-08-09.md).
 
 ## Matriz cognitivo-afectiva
 
@@ -182,6 +184,7 @@ src-tauri/src/
 ├── audit.rs              esquema, persistencia acotada y lectura R3
 ├── capabilities.rs       registro R1 y sondas pasivas
 ├── cloud.rs              proveedores y solicitudes autorizadas
+├── core_activity.rs      señal efímera del Núcleo derivada de eventos R3
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
 ├── memory.rs             persistencia, respaldo y auditoría
 ├── observation.rs        metadatos autorizados de ventana

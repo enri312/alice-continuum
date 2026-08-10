@@ -417,6 +417,13 @@ fn snapshot_at(data_root: &Path) -> Result<AuditSnapshot, String> {
     })
 }
 
+pub(crate) fn validated_visible_events_at(
+    data_root: &Path,
+) -> Result<(bool, Vec<AuditEvent>), String> {
+    let snapshot = snapshot_at(data_root)?;
+    Ok((snapshot.healthy, snapshot.events))
+}
+
 pub(crate) fn audit_diagnostic_probe(data_root: &Path) -> Result<AuditDiagnosticProbe, String> {
     let (current, _) = audit_paths(data_root);
     let snapshot = snapshot_at(data_root)?;

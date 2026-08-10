@@ -96,7 +96,7 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 
-**Estado:** en curso · incrementos 1 a 4 implementados; diagnóstico pasivo aprobado  
+**Estado:** completada · cinco incrementos implementados y validados  
 **Dependencia:** Fase R2  
 **Objetivo:** demostrar qué solicitó Alice, qué política se aplicó y cuál fue el resultado.
 
@@ -112,6 +112,7 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 - [x] Memoria y nube producen eventos mínimos sin copiar contenido privado.
 - [x] El diagnóstico es de solo lectura y no expone secretos.
 - [x] La rotación o crecimiento de auditorías tiene una política documentada.
+- [x] El Núcleo deriva regiones, enlaces e intensidad de eventos R3 recientes y etiqueta la heurística.
 
 ### Línea transversal — Simulación afectiva explicable
 
@@ -287,7 +288,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 y R2** están completadas en su alcance inicial. **R3 está en curso:** los incrementos 1 a 4 aportan esquema v1 cerrado, JSONL acotado, productores correlacionados y diagnóstico pasivo de rutas, versiones, proveedores, adaptadores y permisos. El siguiente incremento derivará actividad del Núcleo desde estas señales reales, manteniendo toda heurística etiquetada. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1, R2 y R3** están completadas en su alcance aprobado. R3 aporta esquema v1 cerrado, JSONL acotado, productores correlacionados, diagnóstico pasivo y actividad efímera del Núcleo derivada mediante `r3-recency-v1`. El siguiente paso serio es definir el primer incremento de **R4 — Taller de habilidades** sin activar ejecución autónoma. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 
