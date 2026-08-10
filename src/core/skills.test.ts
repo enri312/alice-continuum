@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CapabilityRegistrySnapshot } from "./capabilities";
-import { parseNewSkillDraft, parseSkillManifest } from "./skills";
+import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillManifest } from "./skills";
 import type { SkillManifest } from "./skills";
 
 const registry: CapabilityRegistrySnapshot = {
@@ -72,5 +72,40 @@ describe("R4 skill manifest", () => {
     path.inputs = [{ id: "folder", label: "Carpeta", description: "Ruta local.", kind: "path", required: true, sensitive: false }];
     expect(() => parseSkillManifest(path, registry)).toThrow(/sensitive/);
     expect(() => parseNewSkillDraft({ ...manifest(), status: "approved" }, registry)).toThrow(/draft/);
+  });
+
+  it("valida el snapshot cerrado del almacén de borradores", () => {
+    const parsed = parseSkillDraftStoreSnapshot({
+      schemaVersion: 1,
+      storagePath: "E:\\AliceData\\skills",
+      existed: true,
+      drafts: [{
+        skillId: "local.revisar-memoria",
+        title: "Revisar memoria local",
+        version: 1,
+        revisionId: manifest().revisionId,
+        updatedAt: manifest().provenance.updatedAt,
+        declaredRisk: "medium",
+        sha256: "a".repeat(64),
+        backupAvailable: false,
+      }],
+    });
+    expect(parsed.drafts[0].skillId).toBe("local.revisar-memoria");
+  });
+
+  it("rechaza índices ambiguos o con integridad inválida", () => {
+    const summary = {
+      skillId: "local.revisar-memoria", title: "Revisar memoria local", version: 1,
+      revisionId: manifest().revisionId, updatedAt: manifest().provenance.updatedAt,
+      declaredRisk: "medium", sha256: "a".repeat(64), backupAvailable: false,
+    };
+    expect(() => parseSkillDraftStoreSnapshot({ schemaVersion: 1, storagePath: "E:\\skills", existed: true, drafts: [summary, summary] })).toThrow(/repetidos/);
+    expect(() => parseSkillDraftStoreSnapshot({ schemaVersion: 1, storagePath: "E:\\skills", existed: true, drafts: [{ ...summary, sha256: "fake" }] })).toThrow(/sha256/);
+  });
+
+  it("acepta registros draft y rechaza estados activables", () => {
+    const record = { manifest: manifest(), sha256: "b".repeat(64), storagePath: "E:\\skills\\draft.json", backupAvailable: true };
+    expect(parseSkillDraftRecord(record, registry).backupAvailable).toBe(true);
+    expect(() => parseSkillDraftRecord({ ...record, manifest: { ...manifest(), status: "approved" } }, registry)).toThrow(/status draft/);
   });
 });

@@ -373,8 +373,16 @@ pub(crate) fn capability_registry_status(
     observation_store: State<ObservationStore>,
     sensor_store: State<SensorLeaseStore>,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let data_root = alice_data_root_path(&app)?;
-    let probes = CapabilityProbeSnapshot::collect(&data_root, &observation_store, &sensor_store);
+    current_capability_registry(&app, &observation_store, &sensor_store)
+}
+
+pub(crate) fn current_capability_registry(
+    app: &AppHandle,
+    observation_store: &ObservationStore,
+    sensor_store: &SensorLeaseStore,
+) -> Result<CapabilityRegistrySnapshot, String> {
+    let data_root = alice_data_root_path(app)?;
+    let probes = CapabilityProbeSnapshot::collect(&data_root, observation_store, sensor_store);
     capability_registry_from_probes(current_utc_timestamp()?, &probes)
 }
 

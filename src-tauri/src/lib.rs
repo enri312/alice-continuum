@@ -11,9 +11,7 @@ mod observation;
 #[allow(dead_code)]
 mod permissions;
 mod sensory;
-// R4.1 define manifiestos cerrados y validaciones contra R1. Todavía no
-// registra comandos, persiste habilidades ni ejecuta sus pasos.
-#[allow(dead_code)]
+// R4 conserva borradores locales verificables; ningún comando ejecuta pasos.
 mod skills;
 mod util;
 
@@ -33,16 +31,19 @@ use permissions::{
     revoke_permission_grant, stop_sensor_lease, PermissionGateway,
 };
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
+use skills::{read_skill_draft, save_skill_draft, skill_draft_store_status, SkillDraftStore};
 use tauri::Manager;
 
 pub fn run() {
     let observation_store = ObservationStore::default();
     let permission_gateway = PermissionGateway::default();
     let sensor_store = SensorLeaseStore::default();
+    let skill_store = SkillDraftStore::default();
     tauri::Builder::default()
         .manage(observation_store.clone())
         .manage(permission_gateway.clone())
         .manage(sensor_store.clone())
+        .manage(skill_store)
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
@@ -65,6 +66,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             capability_registry_status,
+            skill_draft_store_status,
+            read_skill_draft,
+            save_skill_draft,
             permission_gateway_status,
             prepare_permission_request,
             decide_permission_request,

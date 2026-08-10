@@ -42,6 +42,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 36. [ADR-P-048: manifiesto local sin código ejecutable](decisions/ADR-P-048-manifiesto-local-de-habilidades.md)
 37. [Plan incremental R4](plans/R4-skill-workshop.md)
 38. [Informe R4.1 del contrato de habilidades](testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md)
+39. [ADR-P-049: almacén local verificable de borradores](decisions/ADR-P-049-almacen-local-borradores.md)
+40. [Informe R4.2 del almacén de borradores](testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md)
 
 ## Secciones
 

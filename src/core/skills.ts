@@ -27,6 +27,31 @@ export type SkillManifest = {
   successChecks: { id: string; label: string; description: string; kind: SkillSuccessCheckKind; reference: string }[];
 };
 
+export const SKILL_DRAFT_STORE_SCHEMA_VERSION = 1 as const;
+export type SkillDraftSummary = {
+  skillId: string;
+  title: string;
+  version: number;
+  revisionId: string;
+  updatedAt: string;
+  declaredRisk: CapabilityRisk;
+  sha256: string;
+  backupAvailable: boolean;
+};
+export type SkillDraftStoreSnapshot = {
+  schemaVersion: typeof SKILL_DRAFT_STORE_SCHEMA_VERSION;
+  storagePath: string;
+  existed: boolean;
+  drafts: SkillDraftSummary[];
+};
+export type SkillDraftRecord = {
+  manifest: SkillManifest;
+  sha256: string;
+  storagePath: string;
+  backupAvailable: boolean;
+};
+export type SkillDraftSaveInput = { manifest: SkillManifest; expectedRevisionId: string | null };
+
 const manifestKeys = ["schemaVersion", "skillId", "version", "revisionId", "title", "description", "purpose", "provenance", "status", "declaredRisk", "execution", "requiredCapabilities", "inputs", "outputs", "preconditions", "steps", "successChecks"];
 const statuses: SkillStatus[] = ["draft", "inReview", "approved", "disabled", "retired"];
 const risks: CapabilityRisk[] = ["none", "low", "medium", "high", "critical"];
@@ -37,6 +62,7 @@ const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const localId = /^[a-z](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 const skillId = /^local\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?(?:\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?)*$/;
 const operationId = /^[A-Za-z0-9._-]{1,96}$/;
+const sha256 = /^[0-9a-f]{64}$/;
 
 function fail(message: string): never {
   throw new Error(`Manifiesto de habilidad inválido: ${message}`);
@@ -262,4 +288,56 @@ export function parseNewSkillDraft(value: unknown, registry: CapabilityRegistryS
   const manifest = parseSkillManifest(value, registry);
   if (manifest.version !== 1 || manifest.status !== "draft" || manifest.provenance.parentRevisionId !== null) fail("una habilidad nueva debe comenzar como draft versión 1 sin padre");
   return manifest;
+}
+
+function parseSkillDraftSummary(value: unknown, index: number): SkillDraftSummary {
+  const item = record(value, `drafts[${index}]`);
+  exactKeys(item, ["skillId", "title", "version", "revisionId", "updatedAt", "declaredRisk", "sha256", "backupAvailable"], `drafts[${index}]`);
+  if (typeof item.skillId !== "string" || !skillId.test(item.skillId) || item.skillId.length > 96) fail(`drafts[${index}].skillId no es canónico`);
+  if (!Number.isInteger(item.version) || (item.version as number) < 1) fail(`drafts[${index}].version no es válida`);
+  if (typeof item.revisionId !== "string" || !uuidV4.test(item.revisionId)) fail(`drafts[${index}].revisionId debe ser UUID v4`);
+  if (typeof item.sha256 !== "string" || !sha256.test(item.sha256)) fail(`drafts[${index}].sha256 no es válido`);
+  if (typeof item.backupAvailable !== "boolean") fail(`drafts[${index}].backupAvailable debe ser booleano`);
+  return {
+    skillId: item.skillId,
+    title: visibleText(item.title, `drafts[${index}].title`, 120),
+    version: item.version as number,
+    revisionId: item.revisionId,
+    updatedAt: timestamp(item.updatedAt, `drafts[${index}].updatedAt`),
+    declaredRisk: enumValue(item.declaredRisk, risks, `drafts[${index}].declaredRisk`),
+    sha256: item.sha256,
+    backupAvailable: item.backupAvailable,
+  };
+}
+
+export function parseSkillDraftStoreSnapshot(value: unknown): SkillDraftStoreSnapshot {
+  const item = record(value, "skillDraftStore");
+  exactKeys(item, ["schemaVersion", "storagePath", "existed", "drafts"], "skillDraftStore");
+  if (item.schemaVersion !== SKILL_DRAFT_STORE_SCHEMA_VERSION) fail("skillDraftStore.schemaVersion no es compatible");
+  if (typeof item.existed !== "boolean") fail("skillDraftStore.existed debe ser booleano");
+  if (!Array.isArray(item.drafts) || item.drafts.length > 128) fail("skillDraftStore.drafts debe contener hasta 128 elementos");
+  const drafts = item.drafts.map(parseSkillDraftSummary);
+  unique(drafts, (draft) => draft.skillId, "skillDraftStore.drafts");
+  if (!item.existed && drafts.length) fail("un almacén inexistente no puede declarar borradores");
+  return {
+    schemaVersion: SKILL_DRAFT_STORE_SCHEMA_VERSION,
+    storagePath: visibleText(item.storagePath, "skillDraftStore.storagePath", 1024),
+    existed: item.existed,
+    drafts,
+  };
+}
+
+export function parseSkillDraftRecord(value: unknown, registry: CapabilityRegistrySnapshot): SkillDraftRecord {
+  const item = record(value, "skillDraftRecord");
+  exactKeys(item, ["manifest", "sha256", "storagePath", "backupAvailable"], "skillDraftRecord");
+  const manifest = parseSkillManifest(item.manifest, registry);
+  if (manifest.status !== "draft") fail("skillDraftRecord sólo admite status draft");
+  if (typeof item.sha256 !== "string" || !sha256.test(item.sha256)) fail("skillDraftRecord.sha256 no es válido");
+  if (typeof item.backupAvailable !== "boolean") fail("skillDraftRecord.backupAvailable debe ser booleano");
+  return {
+    manifest,
+    sha256: item.sha256,
+    storagePath: visibleText(item.storagePath, "skillDraftRecord.storagePath", 1024),
+    backupAvailable: item.backupAvailable,
+  };
 }

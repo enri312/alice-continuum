@@ -1,6 +1,6 @@
 # Plan de implementación R4 — Taller de habilidades
 
-Estado: en curso; incremento 1 implementado  
+Estado: en curso; incrementos 1 y 2 implementados  
 Fecha: 2026-08-09
 
 ## Objetivo
@@ -15,14 +15,16 @@ Permitir que Carlos Nuñez enseñe procedimientos reutilizables, inspeccionables
 - Validación real contra IDs, operaciones, madurez y riesgo de R1.
 - Menor privilegio: todo requisito debe ser utilizado por un paso.
 - Política fija `simulationOnly`, desactivada y sin red, procesos o escritura.
-- Sin comandos Tauri, almacenamiento o cambios de estado.
+- En R4.1 aún no existían comandos, almacenamiento o cambios de estado.
 
-## Incremento 2 — Almacén local de borradores
+## Incremento 2 — Almacén local de borradores ✅
 
 - Definir `data/skills/manifest.json` y archivos por habilidad con crecimiento acotado.
 - Crear, leer y editar únicamente borradores mediante comandos nativos.
 - Escritura atómica, respaldo y rechazo de rutas fuera de la raíz.
 - No permitir `approved`, activación o ejecución.
+
+**Resultado 2026-08-09:** tres comandos nativos permiten listar, leer y guardar sólo borradores bajo `data/skills`. El índice cerrado enlaza borrador y respaldo anterior mediante SHA-256; las ediciones exigen la revisión previa y los reemplazos sincronizados intentan restaurar el estado anterior ante fallos. Las lecturas no crean carpetas y no existe comando de aprobación o ejecución.
 
 ## Incremento 3 — Simulador de planes
 

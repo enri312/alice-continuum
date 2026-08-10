@@ -1,11 +1,100 @@
 use crate::capabilities::{
-    validate_timestamp, CapabilityMaturity, CapabilityRegistrySnapshot, CapabilityRisk,
+    current_capability_registry, validate_timestamp, CapabilityMaturity,
+    CapabilityRegistrySnapshot, CapabilityRisk,
 };
+use crate::observation::ObservationStore;
+use crate::sensory::SensorLeaseStore;
+use crate::util::{alice_data_root_path, timestamp_ms};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, MutexGuard};
+use tauri::{AppHandle, State};
 use uuid::Uuid;
 
 pub(crate) const SKILL_MANIFEST_SCHEMA_VERSION: u32 = 1;
+pub(crate) const SKILL_DRAFT_STORE_SCHEMA_VERSION: u32 = 1;
+const SKILL_DRAFT_STORE_FORMAT: &str = "alice-skill-drafts";
+const MAX_SKILL_DRAFTS: usize = 128;
+const MAX_SKILL_FILE_BYTES: usize = 256 * 1024;
+
+#[derive(Clone, Default)]
+pub(crate) struct SkillDraftStore(Arc<Mutex<()>>);
+
+impl SkillDraftStore {
+    fn lock(&self) -> Result<MutexGuard<'_, ()>, String> {
+        self.0
+            .lock()
+            .map_err(|_| "El almacén de borradores quedó bloqueado por un fallo anterior".into())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SkillDraftReadInput {
+    pub(crate) skill_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SkillDraftSaveInput {
+    pub(crate) manifest: SkillManifest,
+    pub(crate) expected_revision_id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SkillDraftStoreIndex {
+    schema_version: u32,
+    format: String,
+    updated_at_ms: u64,
+    drafts: Vec<SkillDraftIndexEntry>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SkillDraftIndexEntry {
+    skill_id: String,
+    version: u32,
+    revision_id: String,
+    file_name: String,
+    sha256: String,
+    backup_sha256: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SkillDraftSummary {
+    skill_id: String,
+    title: String,
+    version: u32,
+    revision_id: String,
+    updated_at: String,
+    declared_risk: CapabilityRisk,
+    sha256: String,
+    backup_available: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SkillDraftStoreSnapshot {
+    schema_version: u32,
+    storage_path: String,
+    existed: bool,
+    drafts: Vec<SkillDraftSummary>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SkillDraftRecord {
+    manifest: SkillManifest,
+    sha256: String,
+    storage_path: String,
+    backup_available: bool,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -567,6 +656,567 @@ fn validate_uuid_v4(field: &str, value: &str) -> Result<(), String> {
     }
 }
 
+#[derive(Clone)]
+struct LoadedSkillDraft {
+    manifest: SkillManifest,
+    bytes: Vec<u8>,
+    sha256: String,
+    path: PathBuf,
+    backup_available: bool,
+}
+
+#[tauri::command]
+pub(crate) fn skill_draft_store_status(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    skill_store: State<SkillDraftStore>,
+) -> Result<SkillDraftStoreSnapshot, String> {
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let _guard = skill_store.lock()?;
+    skill_draft_store_status_at(&alice_data_root_path(&app)?, &registry)
+}
+
+#[tauri::command]
+pub(crate) fn read_skill_draft(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    skill_store: State<SkillDraftStore>,
+    input: SkillDraftReadInput,
+) -> Result<SkillDraftRecord, String> {
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let _guard = skill_store.lock()?;
+    read_skill_draft_at(&alice_data_root_path(&app)?, &registry, &input.skill_id)
+}
+
+#[tauri::command]
+pub(crate) fn save_skill_draft(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    skill_store: State<SkillDraftStore>,
+    input: SkillDraftSaveInput,
+) -> Result<SkillDraftRecord, String> {
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    save_skill_draft_guarded_at(&skill_store, &alice_data_root_path(&app)?, &registry, input)
+}
+
+fn save_skill_draft_guarded_at(
+    store: &SkillDraftStore,
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    input: SkillDraftSaveInput,
+) -> Result<SkillDraftRecord, String> {
+    let _guard = store.lock()?;
+    save_skill_draft_at(data_root, registry, input)
+}
+
+fn skill_draft_store_status_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+) -> Result<SkillDraftStoreSnapshot, String> {
+    let skills_root = data_root.join("skills");
+    let (index, existed) = read_skill_index(&skills_root)?;
+    let loaded = load_indexed_drafts(&skills_root, registry, &index)?;
+    let mut drafts = loaded
+        .into_iter()
+        .map(|draft| SkillDraftSummary {
+            skill_id: draft.manifest.skill_id,
+            title: draft.manifest.title,
+            version: draft.manifest.version,
+            revision_id: draft.manifest.revision_id,
+            updated_at: draft.manifest.provenance.updated_at,
+            declared_risk: draft.manifest.declared_risk,
+            sha256: draft.sha256,
+            backup_available: draft.backup_available,
+        })
+        .collect::<Vec<_>>();
+    drafts.sort_by(|left, right| left.skill_id.cmp(&right.skill_id));
+    Ok(SkillDraftStoreSnapshot {
+        schema_version: SKILL_DRAFT_STORE_SCHEMA_VERSION,
+        storage_path: skills_root.display().to_string(),
+        existed,
+        drafts,
+    })
+}
+
+fn read_skill_draft_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    skill_id: &str,
+) -> Result<SkillDraftRecord, String> {
+    validate_skill_id(skill_id)?;
+    let skills_root = data_root.join("skills");
+    let (index, existed) = read_skill_index(&skills_root)?;
+    if !existed {
+        return Err("Todavía no existe un almacén local de borradores".into());
+    }
+    let entry = index
+        .drafts
+        .iter()
+        .find(|entry| entry.skill_id == skill_id)
+        .ok_or_else(|| format!("No existe el borrador '{skill_id}'"))?;
+    let loaded = load_indexed_draft(&skills_root, registry, entry)?;
+    Ok(skill_draft_record(loaded))
+}
+
+fn save_skill_draft_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    input: SkillDraftSaveInput,
+) -> Result<SkillDraftRecord, String> {
+    registry.validate()?;
+    validate_skill_id(&input.manifest.skill_id)?;
+    if let Some(expected) = &input.expected_revision_id {
+        validate_uuid_v4("expectedRevisionId", expected)?;
+    }
+
+    let skills_root = data_root.join("skills");
+    let (mut index, index_existed) = read_skill_index(&skills_root)?;
+    let loaded = load_indexed_drafts(&skills_root, registry, &index)?;
+    let existing = loaded
+        .iter()
+        .find(|draft| draft.manifest.skill_id == input.manifest.skill_id)
+        .cloned();
+
+    match &existing {
+        None => {
+            if input.expected_revision_id.is_some() {
+                return Err(
+                    "expectedRevisionId sólo puede usarse al editar un borrador existente".into(),
+                );
+            }
+            if index.drafts.len() >= MAX_SKILL_DRAFTS {
+                return Err(format!(
+                    "El almacén admite como máximo {MAX_SKILL_DRAFTS} borradores"
+                ));
+            }
+            input.manifest.validate_new_draft(registry)?;
+        }
+        Some(previous) => {
+            let expected = input
+                .expected_revision_id
+                .as_deref()
+                .ok_or("Editar un borrador exige expectedRevisionId para evitar sobreescrituras")?;
+            if expected != previous.manifest.revision_id {
+                return Err(
+                    "Conflicto de revisión: el borrador cambió desde la última lectura".into(),
+                );
+            }
+            validate_edited_draft(&input.manifest, &previous.manifest, registry)?;
+        }
+    }
+
+    let draft_bytes = serialize_json(&input.manifest)?;
+    if draft_bytes.len() > MAX_SKILL_FILE_BYTES {
+        return Err(format!(
+            "El manifiesto excede el límite de {MAX_SKILL_FILE_BYTES} bytes"
+        ));
+    }
+    let digest = sha256_hex(&draft_bytes);
+    let file_name = skill_file_name(&input.manifest.skill_id);
+    let draft_path = skills_root.join("drafts").join(&file_name);
+    let backup_path = skills_root
+        .join("backups")
+        .join(skill_backup_file_name(&input.manifest.skill_id));
+
+    let new_entry = SkillDraftIndexEntry {
+        skill_id: input.manifest.skill_id.clone(),
+        version: input.manifest.version,
+        revision_id: input.manifest.revision_id.clone(),
+        file_name,
+        sha256: digest.clone(),
+        backup_sha256: existing.as_ref().map(|previous| previous.sha256.clone()),
+    };
+    if let Some(position) = index
+        .drafts
+        .iter()
+        .position(|entry| entry.skill_id == new_entry.skill_id)
+    {
+        index.drafts[position] = new_entry;
+    } else {
+        index.drafts.push(new_entry);
+    }
+    index
+        .drafts
+        .sort_by(|left, right| left.skill_id.cmp(&right.skill_id));
+    index.updated_at_ms = u64::try_from(timestamp_ms()?)
+        .map_err(|_| "La fecha del sistema excede el rango admitido")?;
+    validate_skill_index(&index)?;
+    let index_path = skills_root.join("manifest.json");
+    let previous_index = if index_existed {
+        Some(read_bounded(&index_path, MAX_SKILL_FILE_BYTES)?)
+    } else {
+        None
+    };
+    let index_bytes = serialize_json(&index)?;
+    let manifest_backup_path = skills_root.join("backups").join("manifest.backup.json");
+    let previous_skill_backup = read_optional_bounded(&backup_path, MAX_SKILL_FILE_BYTES)?;
+    let previous_manifest_backup =
+        read_optional_bounded(&manifest_backup_path, MAX_SKILL_FILE_BYTES)?;
+    let previous_draft = existing.as_ref().map(|draft| draft.bytes.as_slice());
+
+    fs::create_dir_all(skills_root.join("drafts"))
+        .map_err(|error| format!("No se pudo crear data/skills/drafts: {error}"))?;
+    fs::create_dir_all(skills_root.join("backups"))
+        .map_err(|error| format!("No se pudo crear data/skills/backups: {error}"))?;
+
+    let write_result = (|| {
+        if let Some(previous) = &existing {
+            atomic_replace(&backup_path, &previous.bytes)?;
+        }
+        if let Some(bytes) = &previous_index {
+            atomic_replace(&manifest_backup_path, bytes)?;
+        }
+        atomic_replace(&draft_path, &draft_bytes)?;
+        atomic_replace(&index_path, &index_bytes)
+    })();
+    if let Err(error) = write_result {
+        let rollback = rollback_skill_transaction(
+            &draft_path,
+            previous_draft,
+            &backup_path,
+            previous_skill_backup.as_deref(),
+            &manifest_backup_path,
+            previous_manifest_backup.as_deref(),
+            &index_path,
+            previous_index.as_deref(),
+        );
+        return match rollback {
+            Ok(()) => Err(format!(
+                "No se pudo completar el guardado; se restauró el estado anterior: {error}"
+            )),
+            Err(rollback) => Err(format!(
+                "No se pudo completar el guardado ({error}) ni restaurar todo el estado ({rollback})"
+            )),
+        };
+    }
+
+    Ok(SkillDraftRecord {
+        manifest: input.manifest,
+        sha256: digest,
+        storage_path: draft_path.display().to_string(),
+        backup_available: existing.is_some(),
+    })
+}
+
+fn validate_edited_draft(
+    candidate: &SkillManifest,
+    previous: &SkillManifest,
+    registry: &CapabilityRegistrySnapshot,
+) -> Result<(), String> {
+    candidate.validate_against_registry(registry)?;
+    if candidate.status != SkillStatus::Draft {
+        return Err("R4.2 sólo permite guardar manifiestos con status draft".into());
+    }
+    if candidate.skill_id != previous.skill_id
+        || candidate.version != previous.version
+        || candidate.provenance.author != previous.provenance.author
+        || candidate.provenance.created_at != previous.provenance.created_at
+    {
+        return Err(
+            "Una edición no puede cambiar skillId, version, author ni provenance.createdAt".into(),
+        );
+    }
+    if candidate.provenance.updated_at == previous.provenance.updated_at {
+        return Err("Una edición debe actualizar provenance.updatedAt".into());
+    }
+    if candidate.revision_id == previous.revision_id
+        || candidate.provenance.parent_revision_id.as_deref() != Some(previous.revision_id.as_str())
+    {
+        return Err("Una edición requiere un revisionId nuevo y parentRevisionId anterior".into());
+    }
+    Ok(())
+}
+
+fn read_skill_index(skills_root: &Path) -> Result<(SkillDraftStoreIndex, bool), String> {
+    let path = skills_root.join("manifest.json");
+    if !path.exists() {
+        let drafts = skills_root.join("drafts");
+        if drafts.exists()
+            && fs::read_dir(&drafts)
+                .map_err(|error| format!("No se pudo inspeccionar data/skills/drafts: {error}"))?
+                .next()
+                .is_some()
+        {
+            return Err("data/skills contiene borradores sin un manifest.json verificable".into());
+        }
+        return Ok((empty_skill_index(), false));
+    }
+    let bytes = read_bounded(&path, MAX_SKILL_FILE_BYTES)?;
+    let index: SkillDraftStoreIndex = serde_json::from_slice(&bytes)
+        .map_err(|error| format!("data/skills/manifest.json no es válido: {error}"))?;
+    validate_skill_index(&index)?;
+    Ok((index, true))
+}
+
+fn empty_skill_index() -> SkillDraftStoreIndex {
+    SkillDraftStoreIndex {
+        schema_version: SKILL_DRAFT_STORE_SCHEMA_VERSION,
+        format: SKILL_DRAFT_STORE_FORMAT.into(),
+        updated_at_ms: 0,
+        drafts: Vec::new(),
+    }
+}
+
+fn validate_skill_index(index: &SkillDraftStoreIndex) -> Result<(), String> {
+    if index.schema_version != SKILL_DRAFT_STORE_SCHEMA_VERSION
+        || index.format != SKILL_DRAFT_STORE_FORMAT
+    {
+        return Err("El índice de habilidades no usa el formato R4.2 esperado".into());
+    }
+    if index.updated_at_ms == 0 {
+        return Err("El índice de habilidades no tiene una fecha de actualización válida".into());
+    }
+    if index.drafts.len() > MAX_SKILL_DRAFTS {
+        return Err("El índice de habilidades excede el límite de borradores".into());
+    }
+    let mut ids = HashSet::new();
+    let mut files = HashSet::new();
+    for entry in &index.drafts {
+        validate_skill_id(&entry.skill_id)?;
+        validate_uuid_v4("draft.revisionId", &entry.revision_id)?;
+        if entry.version == 0
+            || entry.file_name != skill_file_name(&entry.skill_id)
+            || !valid_sha256(&entry.sha256)
+            || entry
+                .backup_sha256
+                .as_deref()
+                .is_some_and(|digest| !valid_sha256(digest))
+            || !ids.insert(entry.skill_id.as_str())
+            || !files.insert(entry.file_name.as_str())
+        {
+            return Err("El índice de habilidades contiene una entrada inválida o repetida".into());
+        }
+    }
+    Ok(())
+}
+
+fn load_indexed_drafts(
+    skills_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    index: &SkillDraftStoreIndex,
+) -> Result<Vec<LoadedSkillDraft>, String> {
+    index
+        .drafts
+        .iter()
+        .map(|entry| load_indexed_draft(skills_root, registry, entry))
+        .collect()
+}
+
+fn load_indexed_draft(
+    skills_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    entry: &SkillDraftIndexEntry,
+) -> Result<LoadedSkillDraft, String> {
+    let path = skills_root.join("drafts").join(&entry.file_name);
+    let bytes = read_bounded(&path, MAX_SKILL_FILE_BYTES)?;
+    let digest = sha256_hex(&bytes);
+    if digest != entry.sha256 {
+        return Err(format!(
+            "La integridad SHA-256 del borrador '{}' no coincide con el índice",
+            entry.skill_id
+        ));
+    }
+    let manifest: SkillManifest = serde_json::from_slice(&bytes).map_err(|error| {
+        format!(
+            "El borrador '{}' no es JSON válido: {error}",
+            entry.skill_id
+        )
+    })?;
+    manifest.validate_against_registry(registry)?;
+    if manifest.status != SkillStatus::Draft
+        || manifest.skill_id != entry.skill_id
+        || manifest.version != entry.version
+        || manifest.revision_id != entry.revision_id
+    {
+        return Err(format!(
+            "El borrador '{}' no coincide con su entrada del índice",
+            entry.skill_id
+        ));
+    }
+    let backup_path = skills_root
+        .join("backups")
+        .join(skill_backup_file_name(&entry.skill_id));
+    let backup_available = if let Some(expected) = &entry.backup_sha256 {
+        let backup_bytes = read_bounded(&backup_path, MAX_SKILL_FILE_BYTES)?;
+        if sha256_hex(&backup_bytes) != *expected {
+            return Err(format!(
+                "La integridad SHA-256 del respaldo de '{}' no coincide con el índice",
+                entry.skill_id
+            ));
+        }
+        true
+    } else {
+        if backup_path.exists() {
+            return Err(format!(
+                "El borrador '{}' tiene un respaldo no declarado por el índice",
+                entry.skill_id
+            ));
+        }
+        false
+    };
+    Ok(LoadedSkillDraft {
+        manifest,
+        bytes,
+        sha256: digest,
+        path,
+        backup_available,
+    })
+}
+
+fn skill_draft_record(draft: LoadedSkillDraft) -> SkillDraftRecord {
+    SkillDraftRecord {
+        manifest: draft.manifest,
+        sha256: draft.sha256,
+        storage_path: draft.path.display().to_string(),
+        backup_available: draft.backup_available,
+    }
+}
+
+fn skill_file_name(skill_id: &str) -> String {
+    format!("{skill_id}.json")
+}
+
+fn skill_backup_file_name(skill_id: &str) -> String {
+    format!("{skill_id}.backup.json")
+}
+
+fn serialize_json<T: Serialize>(value: &T) -> Result<Vec<u8>, String> {
+    let mut bytes = serde_json::to_vec_pretty(value).map_err(|error| error.to_string())?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
+fn read_bounded(path: &Path, maximum: usize) -> Result<Vec<u8>, String> {
+    let metadata = fs::metadata(path)
+        .map_err(|error| format!("No se pudo inspeccionar '{}': {error}", path.display()))?;
+    if metadata.len() > maximum as u64 {
+        return Err(format!("'{}' excede el límite de tamaño", path.display()));
+    }
+    fs::read(path).map_err(|error| format!("No se pudo leer '{}': {error}", path.display()))
+}
+
+fn read_optional_bounded(path: &Path, maximum: usize) -> Result<Option<Vec<u8>>, String> {
+    if path.exists() {
+        read_bounded(path, maximum).map(Some)
+    } else {
+        Ok(None)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn rollback_skill_transaction(
+    draft_path: &Path,
+    previous_draft: Option<&[u8]>,
+    backup_path: &Path,
+    previous_backup: Option<&[u8]>,
+    manifest_backup_path: &Path,
+    previous_manifest_backup: Option<&[u8]>,
+    index_path: &Path,
+    previous_index: Option<&[u8]>,
+) -> Result<(), String> {
+    let targets = [
+        (draft_path, previous_draft),
+        (backup_path, previous_backup),
+        (manifest_backup_path, previous_manifest_backup),
+        (index_path, previous_index),
+    ];
+    let mut errors = Vec::new();
+    for (path, previous) in targets {
+        if let Err(error) = restore_optional_file(path, previous) {
+            errors.push(error);
+        }
+    }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("; "))
+    }
+}
+
+fn restore_optional_file(path: &Path, previous: Option<&[u8]>) -> Result<(), String> {
+    match previous {
+        Some(bytes) => atomic_replace(path, bytes),
+        None if path.exists() => fs::remove_file(path)
+            .map_err(|error| format!("No se pudo retirar '{}': {error}", path.display())),
+        None => Ok(()),
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .chars()
+            .all(|character| character.is_ascii_digit() || ('a'..='f').contains(&character))
+}
+
+fn atomic_replace(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("'{}' no tiene directorio padre", path.display()))?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("No se pudo crear '{}': {error}", parent.display()))?;
+    let token = Uuid::new_v4();
+    let temporary = parent.join(format!(".alice-{token}.tmp"));
+    let displaced = parent.join(format!(".alice-{token}.previous"));
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&temporary)
+        .map_err(|error| format!("No se pudo preparar '{}': {error}", path.display()))?;
+    if let Err(error) = file.write_all(bytes).and_then(|_| file.sync_all()) {
+        let _ = fs::remove_file(&temporary);
+        return Err(format!(
+            "No se pudo sincronizar '{}': {error}",
+            path.display()
+        ));
+    }
+    drop(file);
+
+    let had_previous = path.exists();
+    if had_previous {
+        if let Err(error) = fs::rename(path, &displaced) {
+            let _ = fs::remove_file(&temporary);
+            return Err(format!("No se pudo proteger '{}': {error}", path.display()));
+        }
+    }
+    if let Err(error) = fs::rename(&temporary, path) {
+        let _ = fs::remove_file(&temporary);
+        if had_previous {
+            let _ = fs::rename(&displaced, path);
+        }
+        return Err(format!(
+            "No se pudo reemplazar '{}': {error}",
+            path.display()
+        ));
+    }
+    if had_previous {
+        if let Err(error) = fs::remove_file(&displaced) {
+            let failed_new = parent.join(format!(".alice-{token}.failed-new"));
+            let rollback = fs::rename(path, &failed_new)
+                .and_then(|_| fs::rename(&displaced, path))
+                .and_then(|_| fs::remove_file(&failed_new));
+            return match rollback {
+                Ok(()) => Err(format!(
+                    "No se pudo completar el reemplazo de '{}'; se restauró el archivo anterior: {error}",
+                    path.display()
+                )),
+                Err(rollback) => Err(format!(
+                    "No se pudo limpiar ni restaurar completamente '{}': {error}; {rollback}",
+                    path.display()
+                )),
+            };
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -692,6 +1342,21 @@ mod tests {
         let mut unknown = value;
         unknown["script"] = serde_json::json!("powershell");
         assert!(serde_json::from_value::<SkillManifest>(unknown).is_err());
+        assert!(
+            serde_json::from_value::<SkillDraftReadInput>(serde_json::json!({
+                "skillId": "local.revisar-memoria",
+                "path": "E:/escape"
+            }))
+            .is_err()
+        );
+        assert!(
+            serde_json::from_value::<SkillDraftSaveInput>(serde_json::json!({
+                "manifest": manifest(),
+                "expectedRevisionId": null,
+                "execute": true
+            }))
+            .is_err()
+        );
     }
 
     #[test]
@@ -787,5 +1452,308 @@ mod tests {
         assert_eq!(parsed, expected);
         assert!(!parsed.execution.enabled);
         fs::remove_dir_all(root).unwrap();
+    }
+
+    struct SkillStoreFixture {
+        root: PathBuf,
+    }
+
+    impl SkillStoreFixture {
+        fn new() -> Self {
+            Self {
+                root: std::env::temp_dir().join(format!("alice-r4-store-{}", Uuid::new_v4())),
+            }
+        }
+    }
+
+    impl Drop for SkillStoreFixture {
+        fn drop(&mut self) {
+            if self.root.exists() {
+                fs::remove_dir_all(&self.root).expect("remove controlled skill fixture");
+            }
+        }
+    }
+
+    fn save_new(fixture: &SkillStoreFixture) -> SkillDraftRecord {
+        save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: manifest(),
+                expected_revision_id: None,
+            },
+        )
+        .expect("save a valid skill draft")
+    }
+
+    #[test]
+    fn passive_status_does_not_create_the_skills_directory() {
+        let fixture = SkillStoreFixture::new();
+        let snapshot = skill_draft_store_status_at(&fixture.root, &registry()).unwrap();
+        assert!(!snapshot.existed);
+        assert!(snapshot.drafts.is_empty());
+        assert!(!fixture.root.exists());
+    }
+
+    #[test]
+    fn new_draft_is_written_to_real_files_with_verified_sha256() {
+        let fixture = SkillStoreFixture::new();
+        let saved = save_new(&fixture);
+        let draft_path = fixture
+            .root
+            .join("skills/drafts/local.revisar-memoria.json");
+        let bytes = fs::read(&draft_path).expect("read stored draft");
+        assert_eq!(saved.sha256, sha256_hex(&bytes));
+        assert!(!saved.backup_available);
+        assert!(fixture.root.join("skills/manifest.json").is_file());
+        assert!(!fixture
+            .root
+            .join("skills/backups/local.revisar-memoria.backup.json")
+            .exists());
+
+        let loaded =
+            read_skill_draft_at(&fixture.root, &registry(), "local.revisar-memoria").unwrap();
+        assert_eq!(loaded.manifest, manifest());
+        assert_eq!(loaded.sha256, saved.sha256);
+    }
+
+    #[test]
+    fn editing_requires_parent_revision_and_preserves_the_previous_file() {
+        let fixture = SkillStoreFixture::new();
+        let first = save_new(&fixture);
+        let first_bytes = fs::read(&first.storage_path).unwrap();
+        let mut edited = first.manifest.clone();
+        edited.revision_id = "5c848f83-37df-4b32-8124-6b06402dd195".into();
+        edited.provenance.parent_revision_id = Some(first.manifest.revision_id.clone());
+        edited.provenance.updated_at = "2026-08-09T22:00:00-03:00".into();
+        edited.description =
+            "Prepara una lectura visible y resumida sin modificar registros.".into();
+
+        let saved = save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: edited.clone(),
+                expected_revision_id: Some(first.manifest.revision_id),
+            },
+        )
+        .unwrap();
+        assert!(saved.backup_available);
+        assert_eq!(saved.manifest, edited);
+        assert_eq!(
+            fs::read(
+                fixture
+                    .root
+                    .join("skills/backups/local.revisar-memoria.backup.json")
+            )
+            .unwrap(),
+            first_bytes
+        );
+        assert!(fixture
+            .root
+            .join("skills/backups/manifest.backup.json")
+            .is_file());
+    }
+
+    #[test]
+    fn stale_revision_is_rejected_without_changing_disk_bytes() {
+        let fixture = SkillStoreFixture::new();
+        let first = save_new(&fixture);
+        let before_draft = fs::read(&first.storage_path).unwrap();
+        let before_index = fs::read(fixture.root.join("skills/manifest.json")).unwrap();
+        let mut edited = first.manifest;
+        edited.revision_id = "5c848f83-37df-4b32-8124-6b06402dd195".into();
+        edited.provenance.parent_revision_id = Some(edited.revision_id.clone());
+
+        let error = save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: edited,
+                expected_revision_id: Some("6dcb4379-9057-4cad-a1d0-570c29f426fd".into()),
+            },
+        )
+        .unwrap_err();
+        assert!(error.contains("Conflicto de revisión"));
+        assert_eq!(fs::read(&first.storage_path).unwrap(), before_draft);
+        assert_eq!(
+            fs::read(fixture.root.join("skills/manifest.json")).unwrap(),
+            before_index
+        );
+    }
+
+    #[test]
+    fn non_draft_status_never_creates_storage() {
+        let fixture = SkillStoreFixture::new();
+        let mut invalid = manifest();
+        invalid.status = SkillStatus::Approved;
+        let error = save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: invalid,
+                expected_revision_id: None,
+            },
+        )
+        .unwrap_err();
+        assert!(error.contains("draft"));
+        assert!(!fixture.root.exists());
+    }
+
+    #[test]
+    fn traversal_like_skill_id_is_rejected_without_touching_disk() {
+        let fixture = SkillStoreFixture::new();
+        let error = read_skill_draft_at(&fixture.root, &registry(), "local.../escape").unwrap_err();
+        assert!(error.contains("formato canónico"));
+        assert!(!fixture.root.exists());
+    }
+
+    #[test]
+    fn tampered_draft_is_detected_by_the_index_digest() {
+        let fixture = SkillStoreFixture::new();
+        let saved = save_new(&fixture);
+        fs::write(&saved.storage_path, b"{}\n").unwrap();
+        let error = skill_draft_store_status_at(&fixture.root, &registry()).unwrap_err();
+        assert!(error.contains("integridad SHA-256"));
+        assert_eq!(fs::read(&saved.storage_path).unwrap(), b"{}\n");
+    }
+
+    #[test]
+    fn tampered_previous_backup_is_also_detected() {
+        let fixture = SkillStoreFixture::new();
+        let first = save_new(&fixture);
+        let mut edited = first.manifest.clone();
+        edited.revision_id = "5c848f83-37df-4b32-8124-6b06402dd195".into();
+        edited.provenance.parent_revision_id = Some(first.manifest.revision_id.clone());
+        edited.provenance.updated_at = "2026-08-09T22:00:00-03:00".into();
+        save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: edited,
+                expected_revision_id: Some(first.manifest.revision_id),
+            },
+        )
+        .unwrap();
+        fs::write(
+            fixture
+                .root
+                .join("skills/backups/local.revisar-memoria.backup.json"),
+            b"{}\n",
+        )
+        .unwrap();
+        let error = skill_draft_store_status_at(&fixture.root, &registry()).unwrap_err();
+        assert!(error.contains("integridad SHA-256 del respaldo"));
+    }
+
+    #[test]
+    fn transaction_rollback_restores_draft_backup_and_both_indexes() {
+        let fixture = SkillStoreFixture::new();
+        let first = save_new(&fixture);
+        let mut edited = first.manifest.clone();
+        edited.revision_id = "5c848f83-37df-4b32-8124-6b06402dd195".into();
+        edited.provenance.parent_revision_id = Some(first.manifest.revision_id.clone());
+        edited.provenance.updated_at = "2026-08-09T22:00:00-03:00".into();
+        save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: edited,
+                expected_revision_id: Some(first.manifest.revision_id),
+            },
+        )
+        .unwrap();
+
+        let draft = fixture
+            .root
+            .join("skills/drafts/local.revisar-memoria.json");
+        let backup = fixture
+            .root
+            .join("skills/backups/local.revisar-memoria.backup.json");
+        let manifest_backup = fixture.root.join("skills/backups/manifest.backup.json");
+        let index = fixture.root.join("skills/manifest.json");
+        let originals = [
+            fs::read(&draft).unwrap(),
+            fs::read(&backup).unwrap(),
+            fs::read(&manifest_backup).unwrap(),
+            fs::read(&index).unwrap(),
+        ];
+        for path in [&draft, &backup, &manifest_backup, &index] {
+            atomic_replace(path, b"partial transaction\n").unwrap();
+        }
+
+        rollback_skill_transaction(
+            &draft,
+            Some(&originals[0]),
+            &backup,
+            Some(&originals[1]),
+            &manifest_backup,
+            Some(&originals[2]),
+            &index,
+            Some(&originals[3]),
+        )
+        .unwrap();
+        for (path, expected) in [&draft, &backup, &manifest_backup, &index]
+            .into_iter()
+            .zip(originals)
+        {
+            assert_eq!(fs::read(path).unwrap(), expected);
+        }
+        skill_draft_store_status_at(&fixture.root, &registry()).unwrap();
+    }
+
+    #[test]
+    fn concurrent_edits_accept_exactly_one_revision_and_reject_the_stale_one() {
+        let fixture = SkillStoreFixture::new();
+        let store = SkillDraftStore::default();
+        let first = save_skill_draft_guarded_at(
+            &store,
+            &fixture.root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: manifest(),
+                expected_revision_id: None,
+            },
+        )
+        .unwrap();
+        let mut left = first.manifest.clone();
+        left.revision_id = "5c848f83-37df-4b32-8124-6b06402dd195".into();
+        left.provenance.parent_revision_id = Some(first.manifest.revision_id.clone());
+        left.provenance.updated_at = "2026-08-09T22:00:00-03:00".into();
+        let mut right = left.clone();
+        right.revision_id = "6dcb4379-9057-4cad-a1d0-570c29f426fd".into();
+
+        let expected = first.manifest.revision_id;
+        let run = |candidate: SkillManifest| {
+            let root = fixture.root.clone();
+            let store = store.clone();
+            let registry = registry();
+            let expected = expected.clone();
+            std::thread::spawn(move || {
+                save_skill_draft_guarded_at(
+                    &store,
+                    &root,
+                    &registry,
+                    SkillDraftSaveInput {
+                        manifest: candidate,
+                        expected_revision_id: Some(expected),
+                    },
+                )
+            })
+        };
+        let left_handle = run(left);
+        let right_handle = run(right);
+        let outcomes = [left_handle.join().unwrap(), right_handle.join().unwrap()];
+        assert_eq!(outcomes.iter().filter(|result| result.is_ok()).count(), 1);
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|result| result
+                    .as_ref()
+                    .is_err_and(|error| error.contains("Conflicto de revisión")))
+                .count(),
+            1
+        );
+        skill_draft_store_status_at(&fixture.root, &registry()).unwrap();
     }
 }
