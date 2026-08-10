@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CapabilityRegistrySnapshot } from "./capabilities";
-import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillManifest } from "./skills";
+import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillManifest, parseSkillSimulationResult } from "./skills";
 import type { SkillManifest } from "./skills";
 
 const registry: CapabilityRegistrySnapshot = {
@@ -30,6 +30,35 @@ function manifest(): SkillManifest {
     preconditions: [{ id: "confirm-review", label: "Confirmar", description: "Confirmación del usuario.", kind: "manualConfirmation", reference: "user" }],
     steps: [{ id: "read-memory", title: "Preparar lectura", description: "Paso simulado y visible.", kind: "capability", capabilityId: "memory.records.read", operation: "load_memory", inputIds: [] }],
     successChecks: [{ id: "summary-present", label: "Resumen preparado", description: "Comprueba el resultado esperado.", kind: "outputPresent", reference: "summary" }],
+  };
+}
+
+function simulation() {
+  return {
+    schemaVersion: 1,
+    method: "r4-static-plan-v1",
+    generatedAt: "2026-08-10T00:00:00-03:00",
+    registrySchemaVersion: 1,
+    manifestSha256: "a".repeat(64),
+    planSha256: "b".repeat(64),
+    skill: { skillId: manifest().skillId, version: 1, revisionId: manifest().revisionId, title: manifest().title, status: "draft", declaredRisk: "medium" },
+    inputs: [{ id: "query", label: "Consulta privada", kind: "text", required: true, sensitive: true }],
+    outputs: [{ id: "summary", label: "Resumen", kind: "text", sensitive: true }],
+    requiredCapabilities: [{
+      capabilityId: "memory.records.read", label: "Leer memoria local", maturity: "partial", state: "idle", health: "healthy", risk: "medium",
+      operations: ["load_memory"], effects: ["localRead"], dataScopes: ["memoryRecords"], requirements: ["Memoria válida"],
+      permission: { mode: "implicitRead", enforcedBy: "currentUi", requiresUserDecision: false, summary: "Lectura local." },
+    }],
+    preconditions: [{ id: "confirm-review", label: "Confirmar", kind: "manualConfirmation", reference: "user", evaluated: false }],
+    steps: [{ position: 1, stepId: "read-memory", title: "Preparar lectura", kind: "capability", capabilityId: "memory.records.read", operation: "load_memory", inputIds: ["query"], readiness: "available", blockCodes: [] }],
+    successChecks: [{ id: "summary-present", label: "Resumen preparado", kind: "outputPresent", reference: "summary", evaluated: false }],
+    blocks: [
+      { code: "executionDisabled", capabilityId: null, stepId: null, summary: "La ejecución está deshabilitada." },
+      { code: "statusNotApproved", capabilityId: null, stepId: null, summary: "El borrador no está aprobado." },
+    ],
+    canExecute: false,
+    adapterInvocationCount: 0,
+    sideEffectsApplied: false,
   };
 }
 
@@ -107,5 +136,30 @@ describe("R4 skill manifest", () => {
     const record = { manifest: manifest(), sha256: "b".repeat(64), storagePath: "E:\\skills\\draft.json", backupAvailable: true };
     expect(parseSkillDraftRecord(record, registry).backupAvailable).toBe(true);
     expect(() => parseSkillDraftRecord({ ...record, manifest: { ...manifest(), status: "approved" } }, registry)).toThrow(/status draft/);
+  });
+
+  it("valida un plan R4.3 cerrado sin ejecución ni valores sensibles", () => {
+    const parsed = parseSkillSimulationResult(simulation());
+    expect(parsed.canExecute).toBe(false);
+    expect(parsed.adapterInvocationCount).toBe(0);
+    expect(parsed.inputs[0]).toEqual({ id: "query", label: "Consulta privada", kind: "text", required: true, sensitive: true });
+  });
+
+  it("rechaza resultados que aparentan ejecución o efectos", () => {
+    expect(() => parseSkillSimulationResult({ ...simulation(), canExecute: true })).toThrow(/no puede declarar ejecución/);
+    expect(() => parseSkillSimulationResult({ ...simulation(), sideEffectsApplied: true })).toThrow(/efectos/);
+    expect(() => parseSkillSimulationResult({ ...simulation(), adapterInvocationCount: 1 })).toThrow(/adaptadores/);
+  });
+
+  it("exige el bloqueo global y coherencia por paso", () => {
+    expect(() => parseSkillSimulationResult({ ...simulation(), blocks: simulation().blocks.slice(1) })).toThrow(/bloqueo global/);
+    const badStep = { ...simulation().steps[0], readiness: "blocked", blockCodes: [] };
+    expect(() => parseSkillSimulationResult({ ...simulation(), steps: [badStep] })).toThrow(/bloqueos/);
+  });
+
+  it("rechaza campos que podrían introducir contenido no contratado", () => {
+    expect(() => parseSkillSimulationResult({ ...simulation(), inputValues: { query: "secreto" } })).toThrow(/campos/);
+    const input = { ...simulation().inputs[0], value: "secreto" };
+    expect(() => parseSkillSimulationResult({ ...simulation(), inputs: [input] })).toThrow(/campos/);
   });
 });

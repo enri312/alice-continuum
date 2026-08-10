@@ -15,6 +15,9 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::{AppHandle, State};
 use uuid::Uuid;
 
+mod simulation;
+pub(crate) use simulation::simulate_skill_plan;
+
 pub(crate) const SKILL_MANIFEST_SCHEMA_VERSION: u32 = 1;
 pub(crate) const SKILL_DRAFT_STORE_SCHEMA_VERSION: u32 = 1;
 const SKILL_DRAFT_STORE_FORMAT: &str = "alice-skill-drafts";

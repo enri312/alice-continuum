@@ -1,12 +1,12 @@
 # Contrato de manifiesto de habilidades R4
 
 Versión del esquema: 1  
-Estado: incrementos R4.1 y R4.2 implementados  
-Fecha: 2026-08-09
+Estado: incrementos R4.1, R4.2 y R4.3 implementados  
+Fecha: 2026-08-10
 
 ## Objetivo
 
-Una habilidad describe un procedimiento local, visible y versionado. El manifiesto no contiene código ejecutable: declara qué pasos se pretenden realizar, qué capacidades R1 serían necesarias y cómo se comprobaría el resultado. R4.2 conserva únicamente borradores verificables; no los aprueba, activa, simula operativamente ni ejecuta.
+Una habilidad describe un procedimiento local, visible y versionado. El manifiesto no contiene código ejecutable: declara qué pasos se pretenden realizar, qué capacidades R1 serían necesarias y cómo se comprobaría el resultado. R4.2 conserva únicamente borradores verificables y R4.3 permite analizarlos estáticamente; ninguno los aprueba, activa o ejecuta.
 
 ## Reglas obligatorias
 
@@ -65,6 +65,20 @@ Las transiciones de estado y su auditoría se implementarán en incrementos post
 - R3 registrará creación, revisión, simulación, activación, desactivación y retiro en incrementos posteriores.
 - R4 no amplía el inventario R1 ni permite shell, PowerShell, ejecutables o código arbitrario.
 
+## Simulación estática R4.3
+
+El comando `simulate_skill_plan` vuelve a validar el manifiesto contra el registro R1 vigente y produce un resultado cerrado con:
+
+- identidad y digests SHA-256 del manifiesto y del plan;
+- entradas y resultados como metadatos, nunca valores;
+- capacidades, operaciones, riesgo, madurez, estado y salud;
+- efectos, alcances de datos, requisitos y política de permisos;
+- pasos consecutivos con disponibilidad estática o bloqueos explícitos;
+- precondiciones y comprobaciones marcadas `evaluated: false`;
+- `canExecute: false`, `adapterInvocationCount: 0` y `sideEffectsApplied: false`.
+
+`available` no equivale a permiso ni ejecución: sólo indica que el descriptor R1 vigente no presenta un bloqueo estático. El bloqueo global `executionDisabled` siempre está presente. La misma combinación de manifiesto y snapshot produce el mismo digest del plan.
+
 ## Límites del incremento
 
-Existen comandos Tauri exclusivamente para estado, lectura y guardado de borradores. No existe editor visible, eliminación, descarga, instalación, transición de estado, simulador operativo ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y el inventario de 24 descriptores generado por el código R1. No se usa la memoria personal como fixture.
+Existen comandos Tauri para estado, lectura, guardado de borradores y simulación estática. No existe editor visible, eliminación, descarga, instalación, transición de estado, simulación con adaptadores ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y una aceptación pasiva contra los datos canónicos. No se usa la memoria personal como fixture destructivo.

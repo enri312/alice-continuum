@@ -44,6 +44,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 38. [Informe R4.1 del contrato de habilidades](testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md)
 39. [ADR-P-049: almacén local verificable de borradores](decisions/ADR-P-049-almacen-local-borradores.md)
 40. [Informe R4.2 del almacén de borradores](testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md)
+41. [ADR-P-050: simulación estática de habilidades](decisions/ADR-P-050-simulacion-estatica-de-habilidades.md)
+42. [Informe R4.3 del simulador de planes](testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md)
 
 ## Secciones
 

@@ -1,4 +1,13 @@
-import type { CapabilityRegistrySnapshot, CapabilityRisk } from "./capabilities";
+import type {
+  CapabilityEffect,
+  CapabilityHealthStatus,
+  CapabilityMaturity,
+  CapabilityPermissionEnforcer,
+  CapabilityPermissionMode,
+  CapabilityRegistrySnapshot,
+  CapabilityRisk,
+  CapabilityState,
+} from "./capabilities";
 
 export const SKILL_MANIFEST_SCHEMA_VERSION = 1 as const;
 export type SkillStatus = "draft" | "inReview" | "approved" | "disabled" | "retired";
@@ -52,6 +61,40 @@ export type SkillDraftRecord = {
 };
 export type SkillDraftSaveInput = { manifest: SkillManifest; expectedRevisionId: string | null };
 
+export const SKILL_SIMULATION_SCHEMA_VERSION = 1 as const;
+export type SkillSimulationBlockCode = "executionDisabled" | "statusNotApproved" | "inputsNotProvided" | "preconditionsUnevaluated" | "capabilityPlanned" | "capabilityUnavailable" | "capabilityUnhealthy" | "permissionUnavailable";
+export type SkillSimulationResult = {
+  schemaVersion: typeof SKILL_SIMULATION_SCHEMA_VERSION;
+  method: "r4-static-plan-v1";
+  generatedAt: string;
+  registrySchemaVersion: number;
+  manifestSha256: string;
+  planSha256: string;
+  skill: { skillId: string; version: number; revisionId: string; title: string; status: SkillStatus; declaredRisk: CapabilityRisk };
+  inputs: { id: string; label: string; kind: SkillValueKind; required: boolean; sensitive: boolean }[];
+  outputs: { id: string; label: string; kind: SkillValueKind; sensitive: boolean }[];
+  requiredCapabilities: {
+    capabilityId: string;
+    label: string;
+    maturity: CapabilityMaturity;
+    state: CapabilityState;
+    health: CapabilityHealthStatus;
+    risk: CapabilityRisk;
+    operations: string[];
+    effects: CapabilityEffect[];
+    dataScopes: string[];
+    requirements: string[];
+    permission: { mode: CapabilityPermissionMode; enforcedBy: CapabilityPermissionEnforcer; requiresUserDecision: boolean; summary: string };
+  }[];
+  preconditions: { id: string; label: string; kind: SkillPreconditionKind; reference: string; evaluated: false }[];
+  steps: { position: number; stepId: string; title: string; kind: SkillStepKind; capabilityId: string | null; operation: string | null; inputIds: string[]; readiness: "available" | "manualReview" | "blocked"; blockCodes: SkillSimulationBlockCode[] }[];
+  successChecks: { id: string; label: string; kind: SkillSuccessCheckKind; reference: string; evaluated: false }[];
+  blocks: { code: SkillSimulationBlockCode; capabilityId: string | null; stepId: string | null; summary: string }[];
+  canExecute: false;
+  adapterInvocationCount: 0;
+  sideEffectsApplied: false;
+};
+
 const manifestKeys = ["schemaVersion", "skillId", "version", "revisionId", "title", "description", "purpose", "provenance", "status", "declaredRisk", "execution", "requiredCapabilities", "inputs", "outputs", "preconditions", "steps", "successChecks"];
 const statuses: SkillStatus[] = ["draft", "inReview", "approved", "disabled", "retired"];
 const risks: CapabilityRisk[] = ["none", "low", "medium", "high", "critical"];
@@ -63,6 +106,13 @@ const localId = /^[a-z](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 const skillId = /^local\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?(?:\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?)*$/;
 const operationId = /^[A-Za-z0-9._-]{1,96}$/;
 const sha256 = /^[0-9a-f]{64}$/;
+const capabilityMaturities: CapabilityMaturity[] = ["implemented", "partial", "planned"];
+const capabilityStates: CapabilityState[] = ["unavailable", "disabled", "idle", "active", "degraded", "error"];
+const capabilityHealth: CapabilityHealthStatus[] = ["unchecked", "healthy", "degraded", "unavailable", "error"];
+const capabilityEffects: CapabilityEffect[] = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "credentialPresenceRead", "assetRender", "cameraObserve", "microphoneObserve"];
+const permissionModes: CapabilityPermissionMode[] = ["implicitRead", "sessionOptIn", "explicitPreview", "explicitConfirmation"];
+const permissionEnforcers: CapabilityPermissionEnforcer[] = ["native", "currentUi", "operatingSystem", "none"];
+const simulationBlockCodes: SkillSimulationBlockCode[] = ["executionDisabled", "statusNotApproved", "inputsNotProvided", "preconditionsUnevaluated", "capabilityPlanned", "capabilityUnavailable", "capabilityUnhealthy", "permissionUnavailable"];
 
 function fail(message: string): never {
   throw new Error(`Manifiesto de habilidad inválido: ${message}`);
@@ -339,5 +389,147 @@ export function parseSkillDraftRecord(value: unknown, registry: CapabilityRegist
     sha256: item.sha256,
     storagePath: visibleText(item.storagePath, "skillDraftRecord.storagePath", 1024),
     backupAvailable: item.backupAvailable,
+  };
+}
+
+function parseSimulationFields(value: unknown, output: false): SkillSimulationResult["inputs"];
+function parseSimulationFields(value: unknown, output: true): SkillSimulationResult["outputs"];
+function parseSimulationFields(value: unknown, output: boolean): SkillSimulationResult["inputs"] | SkillSimulationResult["outputs"] {
+  const field = output ? "outputs" : "inputs";
+  if (!Array.isArray(value) || value.length > 32) fail(`simulation.${field} excede el límite`);
+  const parsed = value.map((raw, index) => {
+    const item = record(raw, `simulation.${field}[${index}]`);
+    exactKeys(item, output ? ["id", "label", "kind", "sensitive"] : ["id", "label", "kind", "required", "sensitive"], `simulation.${field}[${index}]`);
+    if (typeof item.sensitive !== "boolean" || (!output && typeof item.required !== "boolean")) fail(`simulation.${field}[${index}] requiere booleanos`);
+    const common = { id: identifier(item.id, `simulation.${field}[${index}].id`), label: visibleText(item.label, `simulation.${field}[${index}].label`, 120), kind: enumValue(item.kind, valueKinds, `simulation.${field}[${index}].kind`), sensitive: item.sensitive };
+    return output ? common : { ...common, required: item.required as boolean };
+  });
+  unique(parsed, (item) => item.id, `simulation.${field}`);
+  return parsed as SkillSimulationResult["inputs"] | SkillSimulationResult["outputs"];
+}
+
+function parseSimulatedCapabilities(value: unknown): SkillSimulationResult["requiredCapabilities"] {
+  if (!Array.isArray(value) || value.length > 24) fail("simulation.requiredCapabilities excede el límite");
+  const parsed = value.map((raw, index) => {
+    const field = `simulation.requiredCapabilities[${index}]`;
+    const item = record(raw, field);
+    exactKeys(item, ["capabilityId", "label", "maturity", "state", "health", "risk", "operations", "effects", "dataScopes", "requirements", "permission"], field);
+    const permission = record(item.permission, `${field}.permission`);
+    exactKeys(permission, ["mode", "enforcedBy", "requiresUserDecision", "summary"], `${field}.permission`);
+    if (typeof permission.requiresUserDecision !== "boolean") fail(`${field}.permission.requiresUserDecision debe ser booleano`);
+    if (!Array.isArray(item.effects)) fail(`${field}.effects debe ser una lista`);
+    const effects = item.effects.map((effect) => enumValue(effect, capabilityEffects, `${field}.effects`));
+    const operations = textList(item.operations, `${field}.operations`);
+    if (!operations.length || operations.some((operation) => !operationId.test(operation))) fail(`${field}.operations no es válida`);
+    return {
+      capabilityId: visibleText(item.capabilityId, `${field}.capabilityId`, 128),
+      label: visibleText(item.label, `${field}.label`, 120),
+      maturity: enumValue(item.maturity, capabilityMaturities, `${field}.maturity`),
+      state: enumValue(item.state, capabilityStates, `${field}.state`),
+      health: enumValue(item.health, capabilityHealth, `${field}.health`),
+      risk: enumValue(item.risk, risks, `${field}.risk`),
+      operations,
+      effects,
+      dataScopes: textList(item.dataScopes, `${field}.dataScopes`),
+      requirements: textList(item.requirements, `${field}.requirements`),
+      permission: {
+        mode: enumValue(permission.mode, permissionModes, `${field}.permission.mode`),
+        enforcedBy: enumValue(permission.enforcedBy, permissionEnforcers, `${field}.permission.enforcedBy`),
+        requiresUserDecision: permission.requiresUserDecision,
+        summary: visibleText(permission.summary, `${field}.permission.summary`, 600),
+      },
+    };
+  });
+  unique(parsed, (capability) => capability.capabilityId, "simulation.requiredCapabilities");
+  return parsed;
+}
+
+function parseSimulatedConditions<K extends SkillPreconditionKind | SkillSuccessCheckKind>(value: unknown, field: string, kinds: readonly K[]): { id: string; label: string; kind: K; reference: string; evaluated: false }[] {
+  if (!Array.isArray(value) || value.length > 32) fail(`simulation.${field} excede el límite`);
+  const parsed = value.map((raw, index) => {
+    const item = record(raw, `simulation.${field}[${index}]`);
+    exactKeys(item, ["id", "label", "kind", "reference", "evaluated"], `simulation.${field}[${index}]`);
+    if (item.evaluated !== false) fail(`simulation.${field}[${index}] no puede aparentar evaluación`);
+    return { id: identifier(item.id, `simulation.${field}[${index}].id`), label: visibleText(item.label, `simulation.${field}[${index}].label`, 120), kind: enumValue(item.kind, kinds, `simulation.${field}[${index}].kind`), reference: visibleText(item.reference, `simulation.${field}[${index}].reference`, 128), evaluated: false as const };
+  });
+  unique(parsed, (condition) => condition.id, `simulation.${field}`);
+  return parsed;
+}
+
+function parseSimulatedSteps(value: unknown, capabilities: SkillSimulationResult["requiredCapabilities"], inputs: SkillSimulationResult["inputs"]): SkillSimulationResult["steps"] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 64) fail("simulation.steps debe contener entre 1 y 64 pasos");
+  const capabilityIds = new Set(capabilities.map((capability) => capability.capabilityId));
+  const inputIds = new Set(inputs.map((input) => input.id));
+  const parsed = value.map((raw, index) => {
+    const field = `simulation.steps[${index}]`;
+    const item = record(raw, field);
+    exactKeys(item, ["position", "stepId", "title", "kind", "capabilityId", "operation", "inputIds", "readiness", "blockCodes"], field);
+    if (item.position !== index + 1) fail(`${field}.position no es consecutiva`);
+    const kind = enumValue(item.kind, ["manual", "capability"] as const, `${field}.kind`);
+    const capabilityId = item.capabilityId === null ? null : visibleText(item.capabilityId, `${field}.capabilityId`, 128);
+    const operation = item.operation === null ? null : visibleText(item.operation, `${field}.operation`, 96);
+    if ((kind === "manual" && (capabilityId !== null || operation !== null)) || (kind === "capability" && (!capabilityId || !operation || !capabilityIds.has(capabilityId)))) fail(`${field} no resuelve una capacidad declarada`);
+    const referencedInputs = textList(item.inputIds, `${field}.inputIds`);
+    if (referencedInputs.some((id) => !inputIds.has(id))) fail(`${field}.inputIds contiene referencias desconocidas`);
+    if (!Array.isArray(item.blockCodes)) fail(`${field}.blockCodes debe ser una lista`);
+    const blockCodes = item.blockCodes.map((code) => enumValue(code, simulationBlockCodes, `${field}.blockCodes`));
+    const readiness = enumValue(item.readiness, ["available", "manualReview", "blocked"] as const, `${field}.readiness`);
+    if ((readiness === "blocked") !== (blockCodes.length > 0)) fail(`${field} no coincide con sus bloqueos`);
+    return { position: item.position as number, stepId: identifier(item.stepId, `${field}.stepId`), title: visibleText(item.title, `${field}.title`, 120), kind, capabilityId, operation, inputIds: referencedInputs, readiness, blockCodes };
+  });
+  unique(parsed, (step) => step.stepId, "simulation.steps");
+  return parsed;
+}
+
+function parseSimulationBlocks(value: unknown): SkillSimulationResult["blocks"] {
+  if (!Array.isArray(value) || !value.length || value.length > 256) fail("simulation.blocks debe contener bloqueos explícitos");
+  return value.map((raw, index) => {
+    const field = `simulation.blocks[${index}]`;
+    const item = record(raw, field);
+    exactKeys(item, ["code", "capabilityId", "stepId", "summary"], field);
+    return {
+      code: enumValue(item.code, simulationBlockCodes, `${field}.code`),
+      capabilityId: item.capabilityId === null ? null : visibleText(item.capabilityId, `${field}.capabilityId`, 128),
+      stepId: item.stepId === null ? null : identifier(item.stepId, `${field}.stepId`),
+      summary: visibleText(item.summary, `${field}.summary`, 600),
+    };
+  });
+}
+
+export function parseSkillSimulationResult(value: unknown): SkillSimulationResult {
+  const item = record(value, "simulation");
+  exactKeys(item, ["schemaVersion", "method", "generatedAt", "registrySchemaVersion", "manifestSha256", "planSha256", "skill", "inputs", "outputs", "requiredCapabilities", "preconditions", "steps", "successChecks", "blocks", "canExecute", "adapterInvocationCount", "sideEffectsApplied"], "simulation");
+  if (item.schemaVersion !== SKILL_SIMULATION_SCHEMA_VERSION || item.method !== "r4-static-plan-v1" || item.registrySchemaVersion !== 1) fail("simulation usa una versión o método incompatible");
+  if (typeof item.manifestSha256 !== "string" || !sha256.test(item.manifestSha256) || typeof item.planSha256 !== "string" || !sha256.test(item.planSha256)) fail("simulation requiere digests SHA-256 canónicos");
+  if (item.canExecute !== false || item.adapterInvocationCount !== 0 || item.sideEffectsApplied !== false) fail("R4.3 no puede declarar ejecución, adaptadores ni efectos");
+  const skill = record(item.skill, "simulation.skill");
+  exactKeys(skill, ["skillId", "version", "revisionId", "title", "status", "declaredRisk"], "simulation.skill");
+  if (typeof skill.skillId !== "string" || !skillId.test(skill.skillId) || !Number.isInteger(skill.version) || (skill.version as number) < 1 || typeof skill.revisionId !== "string" || !uuidV4.test(skill.revisionId)) fail("simulation.skill no tiene identidad canónica");
+  const inputs = parseSimulationFields(item.inputs, false);
+  const outputs = parseSimulationFields(item.outputs, true);
+  const requiredCapabilities = parseSimulatedCapabilities(item.requiredCapabilities);
+  const preconditions = parseSimulatedConditions(item.preconditions, "preconditions", preconditionKinds);
+  const successChecks = parseSimulatedConditions(item.successChecks, "successChecks", successKinds);
+  const steps = parseSimulatedSteps(item.steps, requiredCapabilities, inputs);
+  const blocks = parseSimulationBlocks(item.blocks);
+  if (!blocks.some((block) => block.code === "executionDisabled" && block.capabilityId === null && block.stepId === null)) fail("simulation debe conservar el bloqueo global de ejecución");
+  return {
+    schemaVersion: SKILL_SIMULATION_SCHEMA_VERSION,
+    method: "r4-static-plan-v1",
+    generatedAt: timestamp(item.generatedAt, "simulation.generatedAt"),
+    registrySchemaVersion: 1,
+    manifestSha256: item.manifestSha256,
+    planSha256: item.planSha256,
+    skill: { skillId: skill.skillId, version: skill.version as number, revisionId: skill.revisionId, title: visibleText(skill.title, "simulation.skill.title", 120), status: enumValue(skill.status, statuses, "simulation.skill.status"), declaredRisk: enumValue(skill.declaredRisk, risks, "simulation.skill.declaredRisk") },
+    inputs,
+    outputs,
+    requiredCapabilities,
+    preconditions,
+    steps,
+    successChecks,
+    blocks,
+    canExecute: false,
+    adapterInvocationCount: 0,
+    sideEffectsApplied: false,
   };
 }

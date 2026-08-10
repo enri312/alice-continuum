@@ -1,7 +1,7 @@
 # Plan de implementación R4 — Taller de habilidades
 
-Estado: en curso; incrementos 1 y 2 implementados  
-Fecha: 2026-08-09
+Estado: en curso; incrementos 1, 2 y 3 implementados  
+Fecha: 2026-08-10
 
 ## Objetivo
 
@@ -26,11 +26,13 @@ Permitir que Carlos Nuñez enseñe procedimientos reutilizables, inspeccionables
 
 **Resultado 2026-08-09:** tres comandos nativos permiten listar, leer y guardar sólo borradores bajo `data/skills`. El índice cerrado enlaza borrador y respaldo anterior mediante SHA-256; las ediciones exigen la revisión previa y los reemplazos sincronizados intentan restaurar el estado anterior ante fallos. Las lecturas no crean carpetas y no existe comando de aprobación o ejecución.
 
-## Incremento 3 — Simulador de planes
+## Incremento 3 — Simulador de planes ✅
 
 - Resolver el manifiesto contra el snapshot R1 vigente.
 - Mostrar pasos, datos, permisos, efectos y bloqueos sin llamar adaptadores.
 - Producir un resultado de simulación cerrado, reconstruible y sin contenido sensible.
+
+**Resultado 2026-08-10:** `simulate_skill_plan` realiza análisis estático contra R1 y devuelve el método cerrado `r4-static-plan-v1`, digests SHA-256, pasos, permisos, efectos, alcances y bloqueos. No recibe valores, no llama adaptadores y fija ejecución y efectos en `false`. Una prueba viva construyó el registro desde los datos canónicos sin modificarlos.
 
 ## Incremento 4 — Versionado, ciclo de vida y auditoría
 
