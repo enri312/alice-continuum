@@ -1,6 +1,6 @@
 # Plan de implementación R4 — Taller de habilidades
 
-Estado: en curso; incrementos 1, 2 y 3 implementados  
+Estado: en curso; incrementos 1, 2, 3 y 4 implementados  
 Fecha: 2026-08-10
 
 ## Objetivo
@@ -40,6 +40,8 @@ Permitir que Carlos Nuñez enseñe procedimientos reutilizables, inspeccionables
 - Crear revisiones inmutables; nunca sobrescribir una versión aprobada.
 - Emitir eventos R3 correlacionados para cada transición y simulación.
 - Mantener ejecución real desactivada.
+
+**Resultado 2026-08-10:** las decisiones se ligan a revisión y SHA-256 confirmados por el propietario local. `lifecycle.json` referencia revisiones inmutables; aprobar, desactivar, restaurar y retirar crean archivos nuevos y conservan los aprobados. Cada transición y simulación emite solicitud y cierre R3 correlacionados sin contenido ni motivo privado. `approved` continúa siendo `simulationOnly` y no invoca adaptadores.
 
 ## Incremento 5 — Taller visible y habilidad local de solo lectura
 

@@ -168,6 +168,7 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
                 add_link(&mut links, "language-workspace", weight);
                 add_link(&mut links, "workspace-output", weight);
             }
+            AuditSource::Skill => add_region(&mut regions, "workspace", event, weight),
             AuditSource::Permission | AuditSource::Capability => {
                 add_region(&mut regions, "permission", event, weight);
                 if relevant_perception_capability(event) {

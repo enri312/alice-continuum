@@ -18,7 +18,7 @@ Cada línea de `data/audit/events-v1.jsonl` es un objeto JSON independiente con 
 | `eventId` | UUID v4 canónico y único |
 | `operationId` | UUID v4 compartido por eventos correlacionados |
 | `timestampMs` | tiempo Unix positivo en milisegundos |
-| `source` | `system`, `permission`, `capability`, `memory` o `cloud` |
+| `source` | `system`, `permission`, `capability`, `memory`, `cloud` o `skill` |
 | `capabilityId` | identificador canónico opcional del registro R1 |
 | `operation` | identificador ASCII de la operación, máximo 96 caracteres |
 | `stage` | `request`, `authorization`, `execution`, `stop`, `revocation`, `block` o `error` |
@@ -50,6 +50,8 @@ Si no puede escribirse el inicio de una capacidad sensible, el adaptador se deti
 Memoria registra `memory.save`, `memory.export`, `memory.restore` y `memory.migrate` con sus capacidades canónicas R1. La solicitud se persiste antes de modificar el registro o crear una exportación. Solicitud y resultado comparten `operationId` y una huella SHA-256 del documento validado, pero no incluyen sesiones, títulos, resúmenes, fuentes ni cantidades.
 
 Nube registra `cloud.send` bajo `cloud.conversation.send`. El evento inicial acredita que Rust recibió un contexto ya confirmado por la UI y debe escribirse antes de iniciar la red; no convierte la confirmación React actual en una autorización nativa. El resultado exitoso utiliza la huella de la respuesta y un fallo utiliza la huella de la solicitud. Proveedor, modelo, identificador remoto, tokens, texto y credenciales quedan fuera del sobre R3.
+
+R4.4 registra simulaciones y transiciones de habilidades con `source=skill`. Una transición no comienza si falla su evento inicial. Solicitud y cierre comparten `operationId`; sólo guardan la huella del manifiesto o plan, nunca títulos, pasos, motivos de confirmación, entradas ni resultados.
 
 Durante R3 continúa la escritura dual de `memory/audit/memory-events.jsonl` y `cloud/cloud-audit.jsonl`. No se reescriben archivos históricos. Si el resultado R3 falla después de un efecto ya completado, Alice no repite ni revierte automáticamente la operación: conserva el evento inicial pendiente, mantiene la auditoría heredada cuando fue posible e informa el fallo técnico por stderr.
 
@@ -86,7 +88,7 @@ señal general = limitar(suma de pesos por evento / 4, 0, 1)
 
 La etapa distingue solicitud, autorización, ejecución, detención, revocación, bloqueo y error. El resultado distingue pendiente, éxito, bloqueo y error. La fórmula no analiza mensajes, imágenes, audio o significado emocional.
 
-El mapeo es explícito: `system` activa contexto; `memory` activa memoria→contexto; `cloud` activa lenguaje→contexto→salida; y un evento `permission` o `capability` de `perception.*` o `context.*` activa permisos→percepción→contexto. Las rutas sin evidencia permanecen en cero.
+El mapeo es explícito: `system` y `skill` activan contexto; `memory` activa memoria→contexto; `cloud` activa lenguaje→contexto→salida; y un evento `permission` o `capability` de `perception.*` o `context.*` activa permisos→percepción→contexto. Las rutas sin evidencia permanecen en cero.
 
 En el Núcleo, la memoria local determina estructura persistente. La señal R3 determina únicamente brillo temporal, intensidades de regiones y enlaces. Los diez canales afectivos continúan en `0.00` porque R3 no es un simulador emocional.
 

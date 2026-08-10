@@ -125,7 +125,7 @@ El futuro motor deberá explicar qué señal modificó cada canal, aplicar decai
 
 ### Fase R4 — Taller de habilidades
 
-**Estado:** en curso · incremento 1 de contrato y validaciones implementado  
+**Estado:** en curso · incrementos 1 a 4 implementados  
 **Dependencia:** Fase R3  
 **Objetivo:** permitir que Carlos enseñe procedimientos reutilizables sin dar autonomía irrestricta al modelo.
 
@@ -146,8 +146,8 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 **Criterios de aceptación:**
 
 - [x] El esquema rechaza pasos, operaciones o capacidades no registradas.
-- [ ] La simulación muestra el plan sin ejecutar efectos.
-- [ ] Activar, desactivar y versionar queda auditado.
+- [x] La simulación muestra el plan sin ejecutar efectos.
+- [x] Aprobar, desactivar, restaurar, retirar y versionar queda auditado.
 - [ ] Una habilidad conserva el principio de menor privilegio.
 - [ ] Hay al menos una habilidad local de solo lectura validada de extremo a extremo.
 

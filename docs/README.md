@@ -46,6 +46,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 40. [Informe R4.2 del almacén de borradores](testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md)
 41. [ADR-P-050: simulación estática de habilidades](decisions/ADR-P-050-simulacion-estatica-de-habilidades.md)
 42. [Informe R4.3 del simulador de planes](testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md)
+43. [ADR-P-051: ciclo de vida inmutable de habilidades](decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md)
+44. [Informe R4.4 de ciclo de vida y auditoría](testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md)
+45. [Revisión técnica de OpenClaw y TencentDB Agent Memory](research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md)
 
 ## Secciones
 
@@ -54,6 +57,7 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 | `architecture/` | Arquitectura, datos y límites del sistema |
 | `decisions/` | Decisiones que deben conservarse durante el desarrollo |
 | `plans/` | Planes de ingeniería aprobados y contratos de migración |
+| `research/` | Revisiones de fuentes externas; inspiran decisiones pero no son contratos |
 | `runbooks/` | Procedimientos repetibles de ejecución y recuperación |
 | `testing/` | Informes verificables de pruebas funcionales y regresión |
 

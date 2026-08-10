@@ -61,6 +61,41 @@ export type SkillDraftRecord = {
 };
 export type SkillDraftSaveInput = { manifest: SkillManifest; expectedRevisionId: string | null };
 
+export const SKILL_LIFECYCLE_SCHEMA_VERSION = 1 as const;
+export type SkillLifecycleAction = "submitReview" | "approve" | "disable" | "restore" | "retire";
+export type SkillLifecycleTransitionInput = {
+  skillId: string;
+  expectedRevisionId: string;
+  action: SkillLifecycleAction;
+  confirmation: { actor: "localOwner"; confirmed: true; expectedSha256: string; reason: string };
+};
+export type SkillLifecycleSummary = {
+  skillId: string;
+  title: string;
+  version: number;
+  revisionId: string;
+  status: Exclude<SkillStatus, "draft">;
+  updatedAt: string;
+  sha256: string;
+  revisionCount: number;
+  executionEnabled: false;
+};
+export type SkillLifecycleSnapshot = {
+  schemaVersion: typeof SKILL_LIFECYCLE_SCHEMA_VERSION;
+  storagePath: string;
+  existed: boolean;
+  skills: SkillLifecycleSummary[];
+};
+export type SkillLifecycleTransitionResult = {
+  operationId: string;
+  action: SkillLifecycleAction;
+  manifest: SkillManifest;
+  sha256: string;
+  storagePath: string;
+  revisionCount: number;
+  executionEnabled: false;
+};
+
 export const SKILL_SIMULATION_SCHEMA_VERSION = 1 as const;
 export type SkillSimulationBlockCode = "executionDisabled" | "statusNotApproved" | "inputsNotProvided" | "preconditionsUnevaluated" | "capabilityPlanned" | "capabilityUnavailable" | "capabilityUnhealthy" | "permissionUnavailable";
 export type SkillSimulationResult = {
@@ -113,6 +148,7 @@ const capabilityEffects: CapabilityEffect[] = ["none", "localRead", "localWrite"
 const permissionModes: CapabilityPermissionMode[] = ["implicitRead", "sessionOptIn", "explicitPreview", "explicitConfirmation"];
 const permissionEnforcers: CapabilityPermissionEnforcer[] = ["native", "currentUi", "operatingSystem", "none"];
 const simulationBlockCodes: SkillSimulationBlockCode[] = ["executionDisabled", "statusNotApproved", "inputsNotProvided", "preconditionsUnevaluated", "capabilityPlanned", "capabilityUnavailable", "capabilityUnhealthy", "permissionUnavailable"];
+const lifecycleActions: SkillLifecycleAction[] = ["submitReview", "approve", "disable", "restore", "retire"];
 
 function fail(message: string): never {
   throw new Error(`Manifiesto de habilidad inválido: ${message}`);
@@ -389,6 +425,61 @@ export function parseSkillDraftRecord(value: unknown, registry: CapabilityRegist
     sha256: item.sha256,
     storagePath: visibleText(item.storagePath, "skillDraftRecord.storagePath", 1024),
     backupAvailable: item.backupAvailable,
+  };
+}
+
+function parseSkillLifecycleSummary(value: unknown, index: number): SkillLifecycleSummary {
+  const field = `skillLifecycle.skills[${index}]`;
+  const item = record(value, field);
+  exactKeys(item, ["skillId", "title", "version", "revisionId", "status", "updatedAt", "sha256", "revisionCount", "executionEnabled"], field);
+  if (typeof item.skillId !== "string" || !skillId.test(item.skillId) || item.skillId.length > 96) fail(`${field}.skillId no es canónico`);
+  if (!Number.isInteger(item.version) || (item.version as number) < 1) fail(`${field}.version no es válida`);
+  if (typeof item.revisionId !== "string" || !uuidV4.test(item.revisionId)) fail(`${field}.revisionId debe ser UUID v4`);
+  if (typeof item.sha256 !== "string" || !sha256.test(item.sha256)) fail(`${field}.sha256 no es válido`);
+  if (!Number.isInteger(item.revisionCount) || (item.revisionCount as number) < 2 || (item.revisionCount as number) > 512) fail(`${field}.revisionCount no es válido`);
+  if (item.executionEnabled !== false) fail(`${field} no puede habilitar ejecución`);
+  const status = enumValue(item.status, statuses, `${field}.status`);
+  if (status === "draft") fail(`${field}.status no puede ser draft`);
+  return {
+    skillId: item.skillId,
+    title: visibleText(item.title, `${field}.title`, 120),
+    version: item.version as number,
+    revisionId: item.revisionId,
+    status,
+    updatedAt: timestamp(item.updatedAt, `${field}.updatedAt`),
+    sha256: item.sha256,
+    revisionCount: item.revisionCount as number,
+    executionEnabled: false,
+  };
+}
+
+export function parseSkillLifecycleSnapshot(value: unknown): SkillLifecycleSnapshot {
+  const item = record(value, "skillLifecycle");
+  exactKeys(item, ["schemaVersion", "storagePath", "existed", "skills"], "skillLifecycle");
+  if (item.schemaVersion !== SKILL_LIFECYCLE_SCHEMA_VERSION || typeof item.existed !== "boolean" || !Array.isArray(item.skills) || item.skills.length > 128) fail("skillLifecycle no es compatible");
+  const skills = item.skills.map(parseSkillLifecycleSummary);
+  unique(skills, (skill) => skill.skillId, "skillLifecycle.skills");
+  if (!item.existed && skills.length) fail("un ciclo inexistente no puede declarar habilidades");
+  return { schemaVersion: 1, storagePath: visibleText(item.storagePath, "skillLifecycle.storagePath", 1024), existed: item.existed, skills };
+}
+
+export function parseSkillLifecycleTransitionResult(value: unknown, registry: CapabilityRegistrySnapshot): SkillLifecycleTransitionResult {
+  const item = record(value, "skillLifecycleTransition");
+  exactKeys(item, ["operationId", "action", "manifest", "sha256", "storagePath", "revisionCount", "executionEnabled"], "skillLifecycleTransition");
+  if (typeof item.operationId !== "string" || !uuidV4.test(item.operationId)) fail("skillLifecycleTransition.operationId debe ser UUID v4");
+  const action = enumValue(item.action, lifecycleActions, "skillLifecycleTransition.action");
+  const manifest = parseSkillManifest(item.manifest, registry);
+  if (manifest.status === "draft" || manifest.execution.enabled || item.executionEnabled !== false) fail("la transición no puede devolver un borrador ni ejecución habilitada");
+  if (typeof item.sha256 !== "string" || !sha256.test(item.sha256)) fail("skillLifecycleTransition.sha256 no es válido");
+  if (!Number.isInteger(item.revisionCount) || (item.revisionCount as number) < 2 || (item.revisionCount as number) > 512) fail("skillLifecycleTransition.revisionCount no es válido");
+  return {
+    operationId: item.operationId,
+    action,
+    manifest,
+    sha256: item.sha256,
+    storagePath: visibleText(item.storagePath, "skillLifecycleTransition.storagePath", 1024),
+    revisionCount: item.revisionCount as number,
+    executionEnabled: false,
   };
 }
 

@@ -386,7 +386,7 @@ pub(crate) fn current_capability_registry(
     capability_registry_from_probes(current_utc_timestamp()?, &probes)
 }
 
-fn current_utc_timestamp() -> Result<String, String> {
+pub(crate) fn current_utc_timestamp() -> Result<String, String> {
     let seconds = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| error.to_string())?

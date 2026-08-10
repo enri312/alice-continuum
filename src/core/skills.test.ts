@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CapabilityRegistrySnapshot } from "./capabilities";
-import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillManifest, parseSkillSimulationResult } from "./skills";
+import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillLifecycleSnapshot, parseSkillLifecycleTransitionResult, parseSkillManifest, parseSkillSimulationResult } from "./skills";
 import type { SkillManifest } from "./skills";
 
 const registry: CapabilityRegistrySnapshot = {
@@ -136,6 +136,42 @@ describe("R4 skill manifest", () => {
     const record = { manifest: manifest(), sha256: "b".repeat(64), storagePath: "E:\\skills\\draft.json", backupAvailable: true };
     expect(parseSkillDraftRecord(record, registry).backupAvailable).toBe(true);
     expect(() => parseSkillDraftRecord({ ...record, manifest: { ...manifest(), status: "approved" } }, registry)).toThrow(/status draft/);
+  });
+
+  it("valida snapshots R4.4 sin ejecución y con revisiones inmutables", () => {
+    const parsed = parseSkillLifecycleSnapshot({
+      schemaVersion: 1,
+      storagePath: "E:\\AliceData\\skills",
+      existed: true,
+      skills: [{
+        skillId: manifest().skillId,
+        title: manifest().title,
+        version: 1,
+        revisionId: "5c848f83-37df-4b32-8124-6b06402dd195",
+        status: "approved",
+        updatedAt: "2026-08-10T12:00:00Z",
+        sha256: "c".repeat(64),
+        revisionCount: 3,
+        executionEnabled: false,
+      }],
+    });
+    expect(parsed.skills[0].status).toBe("approved");
+    expect(() => parseSkillLifecycleSnapshot({ ...parsed, skills: [{ ...parsed.skills[0], executionEnabled: true }] })).toThrow(/ejecución/);
+  });
+
+  it("valida el resultado correlacionado de una transición R4.4", () => {
+    const approved = { ...manifest(), revisionId: "5c848f83-37df-4b32-8124-6b06402dd195", status: "approved" as const, provenance: { ...manifest().provenance, updatedAt: "2026-08-10T12:00:00Z", parentRevisionId: manifest().revisionId } };
+    const parsed = parseSkillLifecycleTransitionResult({
+      operationId: "123e4567-e89b-42d3-a456-426614174001",
+      action: "approve",
+      manifest: approved,
+      sha256: "d".repeat(64),
+      storagePath: "E:\\AliceData\\skills\\revisions\\approved.json",
+      revisionCount: 3,
+      executionEnabled: false,
+    }, registry);
+    expect(parsed.manifest.execution.enabled).toBe(false);
+    expect(() => parseSkillLifecycleTransitionResult({ ...parsed, executionEnabled: true }, registry)).toThrow(/ejecución/);
   });
 
   it("valida un plan R4.3 cerrado sin ejecución ni valores sensibles", () => {

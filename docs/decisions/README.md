@@ -26,3 +26,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-048](ADR-P-048-manifiesto-local-de-habilidades.md) | Manifiesto local R4, validado contra R1 y sin código ejecutable |
 | [ADR-P-049](ADR-P-049-almacen-local-borradores.md) | Almacén R4.2 de borradores confinados, versionados y verificables por SHA-256 |
 | [ADR-P-050](ADR-P-050-simulacion-estatica-de-habilidades.md) | Simulación R4.3 explicable, determinista y sin llamadas a adaptadores |
+| [ADR-P-051](ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md) | Ciclo R4.4 con confirmación ligada por SHA-256, revisiones inmutables y auditoría correlacionada |

@@ -33,7 +33,7 @@ use permissions::{
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
 use skills::{
     read_skill_draft, save_skill_draft, simulate_skill_plan, skill_draft_store_status,
-    SkillDraftStore,
+    skill_lifecycle_status, transition_skill_lifecycle, SkillDraftStore,
 };
 use tauri::Manager;
 
@@ -73,6 +73,8 @@ pub fn run() {
             read_skill_draft,
             save_skill_draft,
             simulate_skill_plan,
+            skill_lifecycle_status,
+            transition_skill_lifecycle,
             permission_gateway_status,
             prepare_permission_request,
             decide_permission_request,

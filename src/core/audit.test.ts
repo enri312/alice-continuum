@@ -72,6 +72,17 @@ describe("parseAuditSnapshot", () => {
     expect(new Set(parsed.slice(2).map((item) => item.operationId))).toEqual(new Set([cloudOperationId]));
   });
 
+  it("acepta auditoría de habilidades sin parámetros ni contenido", () => {
+    const operationId = "123e4567-e89b-42d3-a456-426614174092";
+    const digest = `sha256:${"e".repeat(64)}`;
+    const parsed = [
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174030", operationId, source: "skill", operation: "skill.lifecycle.approve", stage: "request", outcome: "pending", subjectDigest: digest, reasonCode: "SKILL_TRANSITION_ACCEPTED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174031", operationId, source: "skill", operation: "skill.lifecycle.approve", subjectDigest: digest, reasonCode: "SKILL_TRANSITION_COMPLETED" },
+    ].map(parseAuditEvent);
+    expect(parsed.map((item) => item.source)).toEqual(["skill", "skill"]);
+    expect(new Set(parsed.map((item) => item.operationId))).toEqual(new Set([operationId]));
+  });
+
   it("rechaza digests, etapas y capacidades que el contrato Rust rechaza", () => {
     expect(() => parseAuditEvent({ ...event, subjectDigest: "mensaje privado" })).toThrow();
     expect(() => parseAuditEvent({ ...event, capabilityId: "Memory Records" })).toThrow();

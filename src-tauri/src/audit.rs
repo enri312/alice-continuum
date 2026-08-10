@@ -21,6 +21,7 @@ pub(crate) enum AuditSource {
     Capability,
     Memory,
     Cloud,
+    Skill,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -171,6 +172,36 @@ impl AuditEvent {
                 .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
             source,
             capability_id: Some(capability_id),
+            operation,
+            stage,
+            decision: None,
+            outcome,
+            duration_ms,
+            subject_digest,
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn skill(
+        operation_id: String,
+        operation: String,
+        stage: AuditStage,
+        outcome: AuditOutcome,
+        duration_ms: Option<u64>,
+        subject_digest: Option<String>,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Skill,
+            capability_id: None,
             operation,
             stage,
             decision: None,

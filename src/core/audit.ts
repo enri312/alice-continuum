@@ -1,4 +1,4 @@
-export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud";
+export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill";
 export type AuditStage = "request" | "authorization" | "execution" | "stop" | "revocation" | "block" | "error";
 export type AuditDecision = "allow" | "deny" | "cancel";
 export type AuditOutcome = "pending" | "success" | "blocked" | "error";
@@ -31,7 +31,7 @@ export type AuditSnapshot = {
   events: AuditEvent[];
 };
 
-const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud"];
+const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill"];
 const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "revocation", "block", "error"];
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];

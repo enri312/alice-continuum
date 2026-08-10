@@ -1,4 +1,5 @@
 use super::*;
+use crate::audit::{append_audit_event, new_operation_id, AuditEvent, AuditOutcome, AuditStage};
 use crate::capabilities::{
     current_capability_registry, CapabilityEffect, CapabilityHealthStatus, CapabilityMaturity,
     CapabilityPermissionEnforcer, CapabilityPermissionMode, CapabilityState,
@@ -7,6 +8,7 @@ use crate::observation::ObservationStore;
 use crate::sensory::SensorLeaseStore;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::time::Instant;
 use tauri::{AppHandle, State};
 
 pub(crate) const SKILL_SIMULATION_SCHEMA_VERSION: u32 = 1;
@@ -167,7 +169,72 @@ pub(crate) fn simulate_skill_plan(
     input: SkillSimulationInput,
 ) -> Result<SkillSimulationResult, String> {
     let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
-    simulate_skill_plan_against_registry(&input.manifest, &registry)
+    audited_simulation_against_registry(&input.manifest, &registry, |event| {
+        append_audit_event(&app, event)
+    })
+}
+
+fn audited_simulation_against_registry<F>(
+    manifest: &SkillManifest,
+    registry: &CapabilityRegistrySnapshot,
+    mut record: F,
+) -> Result<SkillSimulationResult, String>
+where
+    F: FnMut(&AuditEvent) -> Result<(), String>,
+{
+    let manifest_sha256 = sha256_hex(
+        &serde_json::to_vec(manifest)
+            .map_err(|error| format!("No se pudo canonicalizar el manifiesto: {error}"))?,
+    );
+    let operation_id = new_operation_id();
+    let operation = "skill.plan.simulate".to_string();
+    record(&AuditEvent::skill(
+        operation_id.clone(),
+        operation.clone(),
+        AuditStage::Request,
+        AuditOutcome::Pending,
+        None,
+        Some(format!("sha256:{manifest_sha256}")),
+        "SKILL_SIMULATION_ACCEPTED",
+    )?)?;
+    let started = Instant::now();
+    match simulate_skill_plan_against_registry(manifest, registry) {
+        Ok(result) => {
+            let duration = u64::try_from(started.elapsed().as_millis())
+                .unwrap_or(u64::MAX)
+                .min(86_400_000);
+            record(&AuditEvent::skill(
+                operation_id,
+                operation,
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(duration),
+                Some(format!("sha256:{}", result.plan_sha256)),
+                "SKILL_SIMULATION_COMPLETED",
+            )?)?;
+            Ok(result)
+        }
+        Err(error) => {
+            let duration = u64::try_from(started.elapsed().as_millis())
+                .unwrap_or(u64::MAX)
+                .min(86_400_000);
+            let close = record(&AuditEvent::skill(
+                operation_id.clone(),
+                operation,
+                AuditStage::Block,
+                AuditOutcome::Blocked,
+                Some(duration),
+                Some(format!("sha256:{manifest_sha256}")),
+                "SKILL_SIMULATION_BLOCKED",
+            )?);
+            match close {
+                Ok(()) => Err(format!("{error} (operación {operation_id})")),
+                Err(audit_error) => Err(format!(
+                    "{error}; además falló el cierre R3 de {operation_id}: {audit_error}"
+                )),
+            }
+        }
+    }
 }
 
 fn simulate_skill_plan_against_registry(
@@ -439,6 +506,7 @@ impl SkillSimulationResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::audit::{append_event_at, AuditSource, AUDIT_MAX_BYTES};
     use crate::avatar::AvatarCapabilityProbe;
     use crate::capabilities::{capability_registry_from_probes, CapabilityProbeSnapshot};
     use crate::cloud::CloudCapabilityProbe;
@@ -623,6 +691,35 @@ mod tests {
         simulate_skill_plan_against_registry(&manifest(), &registry()).unwrap();
         assert_eq!(fs::read(&sentinel).unwrap(), before);
         assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn audited_simulation_writes_real_correlated_jsonl_without_private_values() {
+        let root =
+            std::env::temp_dir().join(format!("alice-r4-simulation-audit-{}", Uuid::new_v4()));
+        let private_marker = "valor-privado-que-no-debe-aparecer";
+        let audit_root = root.clone();
+        let result = audited_simulation_against_registry(&manifest(), &registry(), move |event| {
+            append_event_at(&audit_root, event, AUDIT_MAX_BYTES)
+        })
+        .unwrap();
+        let json = fs::read_to_string(root.join("audit/events-v1.jsonl")).unwrap();
+        let events = json
+            .lines()
+            .map(|line| serde_json::from_str::<AuditEvent>(line).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].operation_id, events[1].operation_id);
+        assert_eq!(events[0].source, AuditSource::Skill);
+        assert_eq!(events[0].stage, AuditStage::Request);
+        assert_eq!(events[1].stage, AuditStage::Execution);
+        assert_eq!(
+            events[1].subject_digest,
+            Some(format!("sha256:{}", result.plan_sha256))
+        );
+        assert!(!json.contains(private_marker));
+        assert!(!json.contains(&manifest().description));
         fs::remove_dir_all(root).unwrap();
     }
 

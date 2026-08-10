@@ -1,7 +1,7 @@
 # Contrato de manifiesto de habilidades R4
 
 Versión del esquema: 1  
-Estado: incrementos R4.1, R4.2 y R4.3 implementados  
+Estado: incrementos R4.1, R4.2, R4.3 y R4.4 implementados  
 Fecha: 2026-08-10
 
 ## Objetivo
@@ -44,7 +44,9 @@ Una habilidad describe un procedimiento local, visible y versionado. El manifies
 
 Los cinco estados forman parte del contrato para que las revisiones futuras puedan representarse sin cambiar el esquema. Los comandos R4.2 sólo aceptan `draft`. Aceptar un JSON con otro estado en el parser general no lo activa: el almacén lo rechaza, `execution.enabled` continúa obligatoriamente en `false` y ningún comando ejecuta pasos.
 
-Las transiciones de estado y su auditoría se implementarán en incrementos posteriores. La aprobación será una decisión de Carlos Nuñez y deberá crear evidencia R3; nunca será inferida desde conversación o memoria.
+R4.4 implementa las transiciones `submitReview`, `approve`, `disable`, `restore` y `retire`. La decisión se vincula a una revisión y SHA-256 concretos, actor `localOwner` y confirmación explícita. La aprobación nunca se infiere desde conversación o memoria.
+
+Cada estado nuevo es una revisión inmutable bajo `data/skills/revisions/<skillId>/<revisionId>.json`; `data/skills/lifecycle.json` conserva el puntero actual y los digests del historial. Una revisión aprobada no se sobrescribe. Someter cambios después de aprobar incrementa la versión y conserva la aprobación anterior.
 
 ## Persistencia de borradores R4.2
 
@@ -62,7 +64,7 @@ Las transiciones de estado y su auditoría se implementarán en incrementos post
 
 - R1 es la fuente de verdad para capacidad, operación y riesgo.
 - R2 seguirá siendo obligatorio para cualquier permiso cuando exista ejecución real.
-- R3 registrará creación, revisión, simulación, activación, desactivación y retiro en incrementos posteriores.
+- R3 registra simulación, revisión, aprobación, desactivación, restauración y retiro mediante pares correlacionados sin contenido privado.
 - R4 no amplía el inventario R1 ni permite shell, PowerShell, ejecutables o código arbitrario.
 
 ## Simulación estática R4.3
@@ -81,4 +83,4 @@ El comando `simulate_skill_plan` vuelve a validar el manifiesto contra el regist
 
 ## Límites del incremento
 
-Existen comandos Tauri para estado, lectura, guardado de borradores y simulación estática. No existe editor visible, eliminación, descarga, instalación, transición de estado, simulación con adaptadores ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y una aceptación pasiva contra los datos canónicos. No se usa la memoria personal como fixture destructivo.
+Existen comandos Tauri para estado, lectura, guardado de borradores, simulación estática, consulta del ciclo y transiciones gobernadas. No existe editor visible, eliminación, descarga, instalación, simulación con adaptadores ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y una aceptación pasiva contra los datos canónicos. No se usa la memoria personal como fixture destructivo.

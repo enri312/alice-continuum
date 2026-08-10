@@ -15,7 +15,9 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::{AppHandle, State};
 use uuid::Uuid;
 
+mod lifecycle;
 mod simulation;
+pub(crate) use lifecycle::{skill_lifecycle_status, transition_skill_lifecycle};
 pub(crate) use simulation::simulate_skill_plan;
 
 pub(crate) const SKILL_MANIFEST_SCHEMA_VERSION: u32 = 1;
@@ -1230,7 +1232,7 @@ mod tests {
     use crate::observation::ObservationCapabilityProbe;
     use std::fs;
 
-    fn registry() -> CapabilityRegistrySnapshot {
+    pub(super) fn registry() -> CapabilityRegistrySnapshot {
         capability_registry_from_probes(
             "2026-08-09T21:00:00-03:00".into(),
             &CapabilityProbeSnapshot {
@@ -1258,7 +1260,7 @@ mod tests {
         .unwrap()
     }
 
-    fn manifest() -> SkillManifest {
+    pub(super) fn manifest() -> SkillManifest {
         SkillManifest {
             schema_version: 1,
             skill_id: "local.revisar-memoria".into(),
