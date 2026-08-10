@@ -125,7 +125,7 @@ El futuro motor deberá explicar qué señal modificó cada canal, aplicar decai
 
 ### Fase R4 — Taller de habilidades
 
-**Estado:** pendiente  
+**Estado:** en curso · incremento 1 de contrato y validaciones implementado  
 **Dependencia:** Fase R3  
 **Objetivo:** permitir que Carlos enseñe procedimientos reutilizables sin dar autonomía irrestricta al modelo.
 
@@ -145,7 +145,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 **Criterios de aceptación:**
 
-- [ ] El esquema rechaza pasos o capacidades no registradas.
+- [x] El esquema rechaza pasos, operaciones o capacidades no registradas.
 - [ ] La simulación muestra el plan sin ejecutar efectos.
 - [ ] Activar, desactivar y versionar queda auditado.
 - [ ] Una habilidad conserva el principio de menor privilegio.
@@ -288,7 +288,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2 y R3** están completadas en su alcance aprobado. R3 aporta esquema v1 cerrado, JSONL acotado, productores correlacionados, diagnóstico pasivo y actividad efímera del Núcleo derivada mediante `r3-recency-v1`. El siguiente paso serio es definir el primer incremento de **R4 — Taller de habilidades** sin activar ejecución autónoma. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1, R2 y R3** están completadas. **R4 está en curso:** el primer incremento define un manifiesto JSON cerrado, valida capacidad, operación y riesgo contra R1 y fuerza `simulationOnly` sin efectos. El siguiente incremento autorizado es el almacén local de borradores; seguirá sin aprobación, activación o ejecución. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

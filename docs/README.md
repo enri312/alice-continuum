@@ -38,6 +38,10 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 32. [Informe R3 del Gateway correlacionado](testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md)
 33. [ADR-P-047: actividad efímera del Núcleo](decisions/ADR-P-047-actividad-efimera-del-nucleo-desde-r3.md)
 34. [Informe de cierre R3 y actividad del Núcleo](testing/R3_CORE_ACTIVITY_REPORT_2026-08-09.md)
+35. [Contrato del manifiesto de habilidades R4](architecture/SKILL_MANIFEST_R4.md)
+36. [ADR-P-048: manifiesto local sin código ejecutable](decisions/ADR-P-048-manifiesto-local-de-habilidades.md)
+37. [Plan incremental R4](plans/R4-skill-workshop.md)
+38. [Informe R4.1 del contrato de habilidades](testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md)
 
 ## Secciones
 

@@ -23,3 +23,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-045](ADR-P-045-auditoria-unificada-local.md) | Auditoría R3 local, correlacionada, privada y acotada |
 | [ADR-P-046](ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md) | Paleta afectiva propia y separación visual entre estructura y actividad |
 | [ADR-P-047](ADR-P-047-actividad-efimera-del-nucleo-desde-r3.md) | Señal efímera del Núcleo derivada de eventos R3 mediante heurística explícita |
+| [ADR-P-048](ADR-P-048-manifiesto-local-de-habilidades.md) | Manifiesto local R4, validado contra R1 y sin código ejecutable |

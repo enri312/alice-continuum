@@ -11,6 +11,10 @@ mod observation;
 #[allow(dead_code)]
 mod permissions;
 mod sensory;
+// R4.1 define manifiestos cerrados y validaciones contra R1. Todavía no
+// registra comandos, persiste habilidades ni ejecuta sus pasos.
+#[allow(dead_code)]
+mod skills;
 mod util;
 
 use audit::{audit_snapshot, record_process_started};

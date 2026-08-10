@@ -4,8 +4,9 @@
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-79%2F79%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-100%2F100%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R4](https://img.shields.io/badge/R4-en%20curso-f59e0b?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-84%2F84%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-107%2F107%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -30,10 +31,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
+| Taller de habilidades R4 | En curso: contrato v1 y validación contra el Registro R1; sin comandos ni ejecución |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 79/79 aprobadas |
-| Pruebas Rust | 100/100 normales; cuatro sondas vivas disponibles por separado |
+| Pruebas TypeScript | 84/84 aprobadas |
+| Pruebas Rust | 107/107 normales; cuatro sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -116,6 +118,12 @@ El volumen neuronal distingue estructura aprendida de actividad actual: solo apa
 
 La paleta futura incluye Alegría amarilla, Tristeza azul, Ira roja, Temor violeta, Desagrado verde, Ansiedad naranja, Envidia turquesa, Aburrimiento índigo, Vergüenza rosa y Nostalgia gris rosado. Los diez valores siguen en `0.00` y `planned`; todavía no existe simulación emocional. Consulta el [diseño afectivo](docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md), [ADR-P-046](docs/decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md) y el [informe visual](docs/testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md).
 
+## Taller de habilidades R4
+
+R4.1 define habilidades como manifiestos JSON cerrados, no como scripts o prompts ejecutables. Cada borrador declara propósito, procedencia, pasos visibles, entradas, resultados, precondiciones, comprobaciones, riesgo y las capacidades/operaciones exactas que necesitaría. Rust y TypeScript contrastan el manifiesto con el Registro R1 y rechazan privilegios sobrantes.
+
+Toda habilidad nueva comienza `draft`, versión 1 y desactivada. La política fija `simulationOnly` mantiene red, procesos y escritura en `false`. Todavía no existen almacenamiento de habilidades, comandos Tauri, editor, simulador operativo, aprobación ni ejecución. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md) y [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md).
+
 ## Iniciar Alice
 
 Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
@@ -193,6 +201,7 @@ src-tauri/src/
 ├── permissions/
 │   └── gateway.rs        almacén efímero y máquina de estados R2
 ├── sensory.rs            leases CAM/MIC y adaptador local de señal efímera
+├── skills.rs             manifiestos R4 cerrados y validación contra R1
 ├── util.rs               rutas y utilidades compartidas
 └── lib.rs                estado y registro de comandos Tauri
 ```

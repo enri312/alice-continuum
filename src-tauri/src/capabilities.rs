@@ -1184,7 +1184,7 @@ fn is_valid_capability_id(value: &str) -> bool {
         })
 }
 
-fn validate_timestamp(field: &str, value: &str) -> Result<(), String> {
+pub(crate) fn validate_timestamp(field: &str, value: &str) -> Result<(), String> {
     if is_iso_8601_timestamp(value) {
         Ok(())
     } else {
