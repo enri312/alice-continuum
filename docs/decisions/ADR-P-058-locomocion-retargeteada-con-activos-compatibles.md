@@ -21,8 +21,9 @@ La licencia vigente de UnityChan indica que reutilizar sus datos para un persona
 ## Consecuencias
 
 - `E:\Avatar` permanece intacta y externa; no forma parte de Git.
-- La marcha procedural actual sigue siendo un diagnóstico reversible.
-- El siguiente prototipo corporal será un reproductor/retargeter gobernado, no una copia del prototipo UnityChan.
+- La marcha procedural quedó como respaldo reversible; el visor usa clips Mixamo privados retargeteados cuando están disponibles.
+- El reproductor separa orientación global, mezcla direccional, estabilización raíz e IK posicional de apoyo.
+- El IK actual usa un plano constante y no representa todavía terreno, colisión, navegación o `output.avatar.body`.
 
 ## Fuentes de licencia verificadas
 

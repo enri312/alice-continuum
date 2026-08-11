@@ -53,4 +53,4 @@ El rig permite retargeting y física secundaria, pero el archivo por sí solo no
 
 ## Límite observado
 
-El retargeting y la mezcla direccional ya están implementados con activos privados compatibles, junto con corrección vertical y un primer estabilizador horizontal. El bloqueo alcanza todavía su límite de 6,5 cm en algunas fases de apoyo. La siguiente mejora de calidad requiere un solver IK de pies o locomoción con movimiento raíz; no se presenta el estabilizador actual como IK terminado.
+El retargeting y la mezcla direccional ya están implementados con activos privados compatibles, junto con corrección vertical, estabilización horizontal e IK posicional de dos huesos. La prueba Tauri aceptada mantuvo el error de apoyo entre 0,0 y 1,9 cm. El siguiente nivel requiere muestreo de terreno, pendientes, límites articulares anatómicos más completos o locomoción con movimiento raíz; este IK local no se presenta como solver físico final.

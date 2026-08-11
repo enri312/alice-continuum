@@ -87,6 +87,6 @@ export function Avatar({ desktopApp }: AvatarProps) {
       <article><span>03</span><strong>Voz y labios</strong><small>Desconectados</small></article>
       <article><span>04</span><strong>Cuerpo y Ragdoll</strong><small>Prueba manual · puente planificado</small></article>
     </div>
-    <p className="avatar-footnote">La entrada PS5 y el ensayo técnico controlan directamente el visor sólo después de activarlos y no representan decisiones de Alice. Los clips Mixamo se retargetean localmente; el IK de pies, la locomoción física, Active Ragdoll y el puente cognitivo continúan desconectados.</p>
+    <p className="avatar-footnote">La entrada PS5 y el ensayo técnico controlan directamente el visor sólo después de activarlos y no representan decisiones de Alice. Los clips Mixamo se retargetean localmente y usan IK posicional de apoyo; terreno irregular, locomoción física, Active Ragdoll y el puente cognitivo continúan desconectados.</p>
   </section>;
 }

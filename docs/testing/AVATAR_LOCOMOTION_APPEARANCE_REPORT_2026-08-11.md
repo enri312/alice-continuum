@@ -8,6 +8,7 @@ Estado: incremento local verificado en la aplicación Tauri real
 - Mezcla direccional y etiquetas explícitas para giro izquierdo y derecho.
 - Telemetría visible de animación, velocidad, pie apoyado, corrección horizontal y corrección de suelo.
 - Consolidación de la corrección horizontal en el movimiento raíz al cambiar o liberar el apoyo.
+- IK posicional de dos huesos sobre muslo y pantorrilla, conservando la orientación mundial animada del pie.
 - Acabado techwear local sobre materiales MToon de ropa, sin modificar piel, ojos, cabello o el archivo VRM.
 - Sombras suaves, anisotropía limitada y luz de relleno cálida para separar capas oscuras.
 
@@ -32,10 +33,21 @@ El VRM contiene materiales diferenciables para chaqueta exterior, prenda interio
 
 `Assets/Alice.vrm` conservó 18.631.596 bytes y SHA-256 `39E7815A3E34D179D431B81421A38F6B1AE2A4DFB4EC48DB336DBDBDCC51EB3B`.
 
+## IK de apoyo
+
+El solver CCD limitado opera después de la mezcla de animación y de la corrección raíz. Orienta la cadena muslo → pantorrilla hacia el punto mundial del pie apoyado, limita cada corrección angular y restaura la orientación mundial previa del zapato.
+
+La primera ejecución real descubrió anclajes laterales fuera del alcance de la pierna, con picos de 17,0–33,9 cm. Esa versión no fue aceptada. El contacto se corrigió para consolidar y renovar cualquier anclaje cuya distancia horizontal supere 7,5 cm. En la repetición completa:
+
+- error IK observado: 0,0–1,9 cm;
+- reposo: IK libre y error 0,0 cm;
+- giros: error observado de 0,1–0,9 cm;
+- no se observaron rodillas invertidas, torsiones o saltos en cuarenta capturas separadas por 250 ms.
+
 ## Verificación
 
 - 21 archivos de pruebas TypeScript aprobados.
-- 129 pruebas TypeScript aprobadas.
+- 133 pruebas TypeScript aprobadas.
 - 143 pruebas Rust aprobadas y 7 pruebas vivas ignoradas por requerir hardware o datos canónicos explícitos.
 - `cargo clippy --all-targets -- -D warnings` aprobado.
 - build TypeScript/Vite aprobado.
@@ -45,4 +57,4 @@ El VRM contiene materiales diferenciables para chaqueta exterior, prenda interio
 
 ## Límite pendiente
 
-El estabilizador evita conservar deuda horizontal al terminar una pisada o entrar en reposo, pero todavía alcanza el límite de 6,5 cm durante algunos contactos. Resolver el deslizamiento restante requiere IK de pies con objetivos de suelo o una locomoción que use movimiento raíz. El canal cognitivo `output.avatar.body` continúa desconectado.
+El IK actual trabaja contra un plano de suelo constante y sólo durante control manual o diagnóstico. No consulta geometría, pendientes, escalones, colisiones ni navegación; tampoco sustituye locomoción física o movimiento raíz. El canal cognitivo `output.avatar.body` continúa desconectado.

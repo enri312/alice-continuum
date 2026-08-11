@@ -26,6 +26,7 @@ import {
   type ManualAvatarMotion,
 } from "../core/manual-avatar-control";
 import { avatarClothingFinish } from "../core/avatar-appearance";
+import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../core/avatar-foot-ik";
 
 const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run", "turn-left", "turn-right"] as const;
 
@@ -57,6 +58,8 @@ type BodyMotionTelemetry = {
   lockedFoot: "left" | "right" | null;
   footOffset: number;
   groundCorrection: number;
+  ikApplied: boolean;
+  ikResidual: number;
 };
 type AvatarViewerProps = {
   sourceUrl: string;
@@ -203,7 +206,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
   const [poseMode, setPoseMode] = useState<PoseMode>("idle");
   const [manualMode, setManualMode] = useState<ManualMode>(diagnosticAutostart ? "diagnostic" : "off");
   const [manualControl, setManualControl] = useState<ManualControlTelemetry>({ state: "off", device: "", input: idleManualInput });
-  const [bodyMotion, setBodyMotion] = useState<BodyMotionTelemetry>({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
+  const [bodyMotion, setBodyMotion] = useState<BodyMotionTelemetry>({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0, ikApplied: false, ikResidual: 0 });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -211,7 +214,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     if (manualMode === "off") {
       manualResetRef.current();
       setManualControl({ state: "off", device: "", input: idleManualInput });
-      setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
+      setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0, ikApplied: false, ikResidual: 0 });
     }
   }, [manualMode]);
 
@@ -231,9 +234,15 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let groundCorrection = 0;
     let referenceFootY: number | null = null;
     let normalizedHips: THREE.Object3D | null = null;
+    let normalizedLeftUpperLeg: THREE.Object3D | null = null;
+    let normalizedLeftLowerLeg: THREE.Object3D | null = null;
     let normalizedLeftFoot: THREE.Object3D | null = null;
+    let normalizedRightUpperLeg: THREE.Object3D | null = null;
+    let normalizedRightLowerLeg: THREE.Object3D | null = null;
     let normalizedRightFoot: THREE.Object3D | null = null;
     let lockedFoot: "left" | "right" | null = null;
+    let ikApplied = false;
+    let ikResidual = 0;
     let footLockOffset = { x: 0, z: 0 };
     let manualMotion: ManualAvatarMotion = { x: 0, z: 0, yaw: 0 };
     let gaitPhase = 0;
@@ -247,6 +256,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     const leftFootWorld = new THREE.Vector3();
     const rightFootWorld = new THREE.Vector3();
     const footLockAnchor = new THREE.Vector2();
+    const footIKTarget = new THREE.Vector3();
 
     const applyLocomotionBlend = (input: ManualAvatarInput) => {
       const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
@@ -419,12 +429,16 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
               lockedFoot,
               footOffset: Math.hypot(footLockOffset.x, footLockOffset.z),
               groundCorrection,
+              ikApplied,
+              ikResidual,
             });
           }
         } else if (performance.now() >= nextManualTelemetryAt) {
           manualMotion = { x: 0, z: 0, yaw: 0 };
           footLockOffset = { x: 0, z: 0 };
           lockedFoot = null;
+          ikApplied = false;
+          ikResidual = 0;
           gaitPhase = 0;
           gaitIntensity = 0;
           smoothedInput = idleManualInput;
@@ -433,13 +447,15 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           restoreIdle();
           nextManualTelemetryAt = performance.now() + 300;
           setManualControl({ state: "waiting", device: "", input: idleManualInput });
-          setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
+          setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0, ikApplied: false, ikResidual: 0 });
         }
       } else if (currentVrm && manualWasEnabled) {
         manualWasEnabled = false;
         manualMotion = { x: 0, z: 0, yaw: 0 };
         footLockOffset = { x: 0, z: 0 };
         lockedFoot = null;
+        ikApplied = false;
+        ikResidual = 0;
         gaitPhase = 0;
         gaitIntensity = 0;
         diagnosticElapsed = 0;
@@ -473,6 +489,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           manualMotion = bakeFootLockOffset(manualMotion, footLockOffset);
           footLockOffset = { x: 0, z: 0 };
           lockedFoot = null;
+          ikApplied = false;
+          ikResidual = 0;
         } else if (!lockedPosition || lockedPosition.y > referenceFootY + .05) {
           const candidate = leftFootWorld.y <= rightFootWorld.y
             ? { id: "left" as const, position: leftFootWorld }
@@ -491,6 +509,16 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           }
         }
 
+        const anchoredPosition = lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null;
+        if (anchoredPosition && footIKTargetNeedsReanchor(
+          anchoredPosition,
+          { x: footLockAnchor.x, z: footLockAnchor.y },
+        )) {
+          manualMotion = bakeFootLockOffset(manualMotion, footLockOffset);
+          footLockOffset = { x: 0, z: 0 };
+          footLockAnchor.set(anchoredPosition.x, anchoredPosition.z);
+        }
+
         const plantedPosition = lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null;
         const previousOffset = footLockOffset;
         footLockOffset = advanceFootLockOffset(
@@ -503,9 +531,24 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         );
         currentVrm.scene.position.x += footLockOffset.x - previousOffset.x;
         currentVrm.scene.position.z += footLockOffset.z - previousOffset.z;
+        const upperLeg = lockedFoot === "left" ? normalizedLeftUpperLeg : lockedFoot === "right" ? normalizedRightUpperLeg : null;
+        const lowerLeg = lockedFoot === "left" ? normalizedLeftLowerLeg : lockedFoot === "right" ? normalizedRightLowerLeg : null;
+        const foot = lockedFoot === "left" ? normalizedLeftFoot : lockedFoot === "right" ? normalizedRightFoot : null;
+        if (upperLeg && lowerLeg && foot) {
+          currentVrm.scene.updateMatrixWorld(true);
+          footIKTarget.set(footLockAnchor.x, referenceFootY, footLockAnchor.y);
+          const result = solveTwoBoneFootIK({ upperLeg, lowerLeg, foot }, footIKTarget);
+          ikApplied = result.applied;
+          ikResidual = result.residual;
+        } else {
+          ikApplied = false;
+          ikResidual = 0;
+        }
       } else {
         groundCorrection = 0;
         lockedFoot = null;
+        ikApplied = false;
+        ikResidual = 0;
         const previousOffset = footLockOffset;
         footLockOffset = advanceFootLockOffset(footLockOffset, { x: 0, z: 0 }, delta, false);
         if (currentVrm) {
@@ -558,7 +601,11 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           }
         }
         normalizedHips = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips);
+        normalizedLeftUpperLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg);
+        normalizedLeftLowerLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg);
         normalizedLeftFoot = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot);
+        normalizedRightUpperLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg);
+        normalizedRightLowerLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg);
         normalizedRightFoot = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot);
         applyLocomotionBlend(idleManualInput);
         animationMixer.update(0);
@@ -661,6 +708,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
       <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
       <code className="avatar-body-motion">ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
+      <code className="avatar-body-motion">IK APOYO · {bodyMotion.ikApplied ? "ACTIVO" : "LIBRE"} · ERROR {(bodyMotion.ikResidual * 100).toFixed(1)} CM</code>
     </div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
     <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 10 S · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
