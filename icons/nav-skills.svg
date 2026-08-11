@@ -1,0 +1,8 @@
+<svg viewBox="0 0 112 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Taller de habilidades">
+  <defs><linearGradient id="s" x1="18" y1="15" x2="93" y2="98" gradientUnits="userSpaceOnUse"><stop stop-color="#38BDF8"/><stop offset="1" stop-color="#2DD4BF"/></linearGradient></defs>
+  <path d="M24 17h64l8 8v62l-8 8H24l-8-8V25l8-8Z" fill="#06131F" stroke="#23506A" stroke-width="2"/>
+  <path d="M29 29h54M29 83h54" stroke="#164E63" stroke-width="2"/>
+  <path d="M35 47h16M35 56h11M35 65h18" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round"/>
+  <path d="m68 43 4 7 8 1-6 6 2 8-8-4-8 4 2-8-6-6 8-1 4-7Z" fill="none" stroke="url(#s)" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="3" fill="#2DD4BF"/><circle cx="88" cy="88" r="3" fill="#38BDF8"/>
+</svg>

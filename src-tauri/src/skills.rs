@@ -17,8 +17,12 @@ use uuid::Uuid;
 
 mod lifecycle;
 mod simulation;
-pub(crate) use lifecycle::{skill_lifecycle_status, transition_skill_lifecycle};
+mod templates;
+pub(crate) use lifecycle::{
+    read_skill_lifecycle, skill_lifecycle_status, transition_skill_lifecycle,
+};
 pub(crate) use simulation::simulate_skill_plan;
+pub(crate) use templates::prepare_read_only_skill_template;
 
 pub(crate) const SKILL_MANIFEST_SCHEMA_VERSION: u32 = 1;
 pub(crate) const SKILL_DRAFT_STORE_SCHEMA_VERSION: u32 = 1;

@@ -86,6 +86,13 @@ export type SkillLifecycleSnapshot = {
   existed: boolean;
   skills: SkillLifecycleSummary[];
 };
+export type SkillLifecycleRecord = {
+  manifest: SkillManifest;
+  sha256: string;
+  storagePath: string;
+  revisionCount: number;
+  executionEnabled: false;
+};
 export type SkillLifecycleTransitionResult = {
   operationId: string;
   action: SkillLifecycleAction;
@@ -461,6 +468,22 @@ export function parseSkillLifecycleSnapshot(value: unknown): SkillLifecycleSnaps
   unique(skills, (skill) => skill.skillId, "skillLifecycle.skills");
   if (!item.existed && skills.length) fail("un ciclo inexistente no puede declarar habilidades");
   return { schemaVersion: 1, storagePath: visibleText(item.storagePath, "skillLifecycle.storagePath", 1024), existed: item.existed, skills };
+}
+
+export function parseSkillLifecycleRecord(value: unknown, registry: CapabilityRegistrySnapshot): SkillLifecycleRecord {
+  const item = record(value, "skillLifecycleRecord");
+  exactKeys(item, ["manifest", "sha256", "storagePath", "revisionCount", "executionEnabled"], "skillLifecycleRecord");
+  const manifest = parseSkillManifest(item.manifest, registry);
+  if (manifest.status === "draft" || manifest.execution.enabled || item.executionEnabled !== false) fail("skillLifecycleRecord no puede contener un borrador ni ejecución habilitada");
+  if (typeof item.sha256 !== "string" || !sha256.test(item.sha256)) fail("skillLifecycleRecord.sha256 no es válido");
+  if (!Number.isInteger(item.revisionCount) || (item.revisionCount as number) < 2 || (item.revisionCount as number) > 512) fail("skillLifecycleRecord.revisionCount no es válido");
+  return {
+    manifest,
+    sha256: item.sha256,
+    storagePath: visibleText(item.storagePath, "skillLifecycleRecord.storagePath", 1024),
+    revisionCount: item.revisionCount as number,
+    executionEnabled: false,
+  };
 }
 
 export function parseSkillLifecycleTransitionResult(value: unknown, registry: CapabilityRegistrySnapshot): SkillLifecycleTransitionResult {

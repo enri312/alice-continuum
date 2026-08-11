@@ -1,6 +1,6 @@
 # Plan de implementación R4 — Taller de habilidades
 
-Estado: en curso; incrementos 1, 2, 3 y 4 implementados  
+Estado: completado; incrementos 1 a 5 implementados y validados  
 Fecha: 2026-08-10
 
 ## Objetivo
@@ -34,7 +34,7 @@ Permitir que Carlos Nuñez enseñe procedimientos reutilizables, inspeccionables
 
 **Resultado 2026-08-10:** `simulate_skill_plan` realiza análisis estático contra R1 y devuelve el método cerrado `r4-static-plan-v1`, digests SHA-256, pasos, permisos, efectos, alcances y bloqueos. No recibe valores, no llama adaptadores y fija ejecución y efectos en `false`. Una prueba viva construyó el registro desde los datos canónicos sin modificarlos.
 
-## Incremento 4 — Versionado, ciclo de vida y auditoría
+## Incremento 4 — Versionado, ciclo de vida y auditoría ✅
 
 - Revisión, aprobación, desactivación y retiro mediante transiciones nativas.
 - Crear revisiones inmutables; nunca sobrescribir una versión aprobada.
@@ -43,12 +43,14 @@ Permitir que Carlos Nuñez enseñe procedimientos reutilizables, inspeccionables
 
 **Resultado 2026-08-10:** las decisiones se ligan a revisión y SHA-256 confirmados por el propietario local. `lifecycle.json` referencia revisiones inmutables; aprobar, desactivar, restaurar y retirar crean archivos nuevos y conservan los aprobados. Cada transición y simulación emite solicitud y cierre R3 correlacionados sin contenido ni motivo privado. `approved` continúa siendo `simulationOnly` y no invoca adaptadores.
 
-## Incremento 5 — Taller visible y habilidad local de solo lectura
+## Incremento 5 — Taller visible y habilidad local de solo lectura ✅
 
 - Editor accesible para manifiestos y simulación.
 - Primera habilidad local de solo lectura validada de extremo a extremo.
 - Permisos R2 visibles si la futura ruta los requiere.
 - Activación y ejecución seguirán fuera de alcance hasta una decisión posterior explícita.
+
+**Resultado 2026-08-10:** la pestaña Taller consume exclusivamente comandos nativos, prepara la plantilla sin escribir, edita y guarda borradores explícitamente, muestra simulación y bloqueos, y solicita confirmación más motivo para cada transición. `local.revisar-proveedores-ia` declara sólo `cloud.providers.inspect/cloud_status`. Su prueba E2E usa archivos temporales reales, recorre guardado, simulación, revisión, aprobación y reapertura, y confirma cero adaptadores, cero efectos y ejecución deshabilitada.
 
 ## Puertas obligatorias
 

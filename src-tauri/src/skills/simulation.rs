@@ -237,7 +237,7 @@ where
     }
 }
 
-fn simulate_skill_plan_against_registry(
+pub(super) fn simulate_skill_plan_against_registry(
     manifest: &SkillManifest,
     registry: &CapabilityRegistrySnapshot,
 ) -> Result<SkillSimulationResult, String> {

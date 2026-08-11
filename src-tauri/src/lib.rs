@@ -32,8 +32,9 @@ use permissions::{
 };
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
 use skills::{
-    read_skill_draft, save_skill_draft, simulate_skill_plan, skill_draft_store_status,
-    skill_lifecycle_status, transition_skill_lifecycle, SkillDraftStore,
+    prepare_read_only_skill_template, read_skill_draft, read_skill_lifecycle, save_skill_draft,
+    simulate_skill_plan, skill_draft_store_status, skill_lifecycle_status,
+    transition_skill_lifecycle, SkillDraftStore,
 };
 use tauri::Manager;
 
@@ -69,8 +70,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             capability_registry_status,
+            prepare_read_only_skill_template,
             skill_draft_store_status,
             read_skill_draft,
+            read_skill_lifecycle,
             save_skill_draft,
             simulate_skill_plan,
             skill_lifecycle_status,

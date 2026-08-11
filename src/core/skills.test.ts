@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CapabilityRegistrySnapshot } from "./capabilities";
-import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillLifecycleSnapshot, parseSkillLifecycleTransitionResult, parseSkillManifest, parseSkillSimulationResult } from "./skills";
+import { parseNewSkillDraft, parseSkillDraftRecord, parseSkillDraftStoreSnapshot, parseSkillLifecycleRecord, parseSkillLifecycleSnapshot, parseSkillLifecycleTransitionResult, parseSkillManifest, parseSkillSimulationResult } from "./skills";
 import type { SkillManifest } from "./skills";
 
 const registry: CapabilityRegistrySnapshot = {
@@ -172,6 +172,20 @@ describe("R4 skill manifest", () => {
     }, registry);
     expect(parsed.manifest.execution.enabled).toBe(false);
     expect(() => parseSkillLifecycleTransitionResult({ ...parsed, executionEnabled: true }, registry)).toThrow(/ejecución/);
+  });
+
+  it("reabre una revisión gobernada sin aceptar ejecución ni una huella alterada", () => {
+    const approved = { ...manifest(), revisionId: "5c848f83-37df-4b32-8124-6b06402dd195", status: "approved" as const, provenance: { ...manifest().provenance, updatedAt: "2026-08-10T12:00:00Z", parentRevisionId: manifest().revisionId } };
+    const record = {
+      manifest: approved,
+      sha256: "e".repeat(64),
+      storagePath: "E:\\AliceData\\skills\\revisions\\approved.json",
+      revisionCount: 3,
+      executionEnabled: false,
+    };
+    expect(parseSkillLifecycleRecord(record, registry).manifest.status).toBe("approved");
+    expect(() => parseSkillLifecycleRecord({ ...record, sha256: "altered" }, registry)).toThrow(/sha256/);
+    expect(() => parseSkillLifecycleRecord({ ...record, executionEnabled: true }, registry)).toThrow(/ejecución/);
   });
 
   it("valida un plan R4.3 cerrado sin ejecución ni valores sensibles", () => {

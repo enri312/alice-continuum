@@ -6,9 +6,10 @@ import bridgesSvg from "../../icons/nav-bridges.svg?raw";
 import avatarSvg from "../../icons/nav-avatar.svg?raw";
 import identificationSvg from "../../icons/nav-identification.svg?raw";
 import settingsSvg from "../../icons/nav-settings.svg?raw";
+import skillsSvg from "../../icons/nav-skills.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings";
+export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -24,6 +25,7 @@ const sources: Record<NavigationIconKind, string> = {
   avatar: avatarSvg,
   identification: identificationSvg,
   settings: settingsSvg,
+  skills: skillsSvg,
 };
 
 export function NavigationIcon({ kind, active }: NavigationIconProps) {

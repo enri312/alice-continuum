@@ -1,7 +1,7 @@
 # Contrato de manifiesto de habilidades R4
 
 Versión del esquema: 1  
-Estado: incrementos R4.1, R4.2, R4.3 y R4.4 implementados  
+Estado: R4.1 a R4.5 implementados; fase completada  
 Fecha: 2026-08-10
 
 ## Objetivo
@@ -81,6 +81,12 @@ El comando `simulate_skill_plan` vuelve a validar el manifiesto contra el regist
 
 `available` no equivale a permiso ni ejecución: sólo indica que el descriptor R1 vigente no presenta un bloqueo estático. El bloqueo global `executionDisabled` siempre está presente. La misma combinación de manifiesto y snapshot produce el mismo digest del plan.
 
-## Límites del incremento
+## Taller visible y primera habilidad R4.5
 
-Existen comandos Tauri para estado, lectura, guardado de borradores, simulación estática, consulta del ciclo y transiciones gobernadas. No existe editor visible, eliminación, descarga, instalación, simulación con adaptadores ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y una aceptación pasiva contra los datos canónicos. No se usa la memoria personal como fixture destructivo.
+La pestaña Taller prepara manifiestos desde una plantilla nativa validada, permite editar únicamente los textos visibles del borrador, guarda por acción expresa, simula y gobierna revisiones. Abrir la pantalla consulta pasivamente los índices y no crea `data/skills`. Las revisiones gobernadas pueden reabrirse con manifiesto y SHA-256 desde Rust.
+
+`local.revisar-proveedores-ia` es la primera habilidad aceptada. Declara exactamente `cloud.providers.inspect/cloud_status`, una consulta implementada de riesgo bajo que expone presencia de configuración y modelos públicos sin credenciales, red, procesos o escritura.
+
+## Límites de la fase
+
+Existen comandos Tauri para estado, lectura, guardado de borradores, simulación estática, consulta y lectura del ciclo, transiciones gobernadas y preparación de la plantilla aprobada. No existe eliminación, descarga, instalación, simulación con adaptadores ni ejecución. Las pruebas usan archivos reales en carpetas temporales aisladas y aceptaciones pasivas contra datos canónicos. No se usa memoria personal como fixture destructivo.

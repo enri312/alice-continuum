@@ -1,7 +1,7 @@
 # Roadmap de Alice
 
 Autor y propietario: Carlos Nuñez  
-Última revisión: 2026-08-09  
+Última revisión: 2026-08-10  
 Estado: vigente
 
 ## Propósito
@@ -125,7 +125,7 @@ El futuro motor deberá explicar qué señal modificó cada canal, aplicar decai
 
 ### Fase R4 — Taller de habilidades
 
-**Estado:** en curso · incrementos 1 a 4 implementados  
+**Estado:** completada el 2026-08-10 · cinco incrementos implementados y validados  
 **Dependencia:** Fase R3  
 **Objetivo:** permitir que Carlos enseñe procedimientos reutilizables sin dar autonomía irrestricta al modelo.
 
@@ -148,8 +148,8 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 - [x] El esquema rechaza pasos, operaciones o capacidades no registradas.
 - [x] La simulación muestra el plan sin ejecutar efectos.
 - [x] Aprobar, desactivar, restaurar, retirar y versionar queda auditado.
-- [ ] Una habilidad conserva el principio de menor privilegio.
-- [ ] Hay al menos una habilidad local de solo lectura validada de extremo a extremo.
+- [x] Una habilidad conserva el principio de menor privilegio.
+- [x] Hay al menos una habilidad local de solo lectura validada de extremo a extremo.
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
@@ -288,7 +288,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2 y R3** están completadas. **R4 está en curso:** el primer incremento define un manifiesto JSON cerrado, valida capacidad, operación y riesgo contra R1 y fuerza `simulationOnly` sin efectos. El siguiente incremento autorizado es el almacén local de borradores; seguirá sin aprobación, activación o ejecución. Análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1, R2, R3 y R4** están completadas. R4 cerró con un Taller nativo visible, gobierno inmutable y la habilidad de solo lectura `local.revisar-proveedores-ia` validada de extremo a extremo sobre archivos reales aislados. `approved` no habilita ejecución: todos los manifiestos conservan `simulationOnly`, cero adaptadores y cero efectos durante esta fase. La siguiente fase es **R5, aprendizaje gobernado de procedimientos**; análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 

@@ -62,19 +62,19 @@ pub(crate) enum SkillLifecycleActor {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct SkillLifecycleConfirmation {
-    actor: SkillLifecycleActor,
-    confirmed: bool,
-    expected_sha256: String,
-    reason: String,
+    pub(super) actor: SkillLifecycleActor,
+    pub(super) confirmed: bool,
+    pub(super) expected_sha256: String,
+    pub(super) reason: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct SkillLifecycleTransitionInput {
-    skill_id: String,
-    expected_revision_id: String,
-    action: SkillLifecycleAction,
-    confirmation: SkillLifecycleConfirmation,
+    pub(super) skill_id: String,
+    pub(super) expected_revision_id: String,
+    pub(super) action: SkillLifecycleAction,
+    pub(super) confirmation: SkillLifecycleConfirmation,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -131,6 +131,16 @@ pub(crate) struct SkillLifecycleSnapshot {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) struct SkillLifecycleRecord {
+    manifest: SkillManifest,
+    sha256: String,
+    storage_path: String,
+    revision_count: usize,
+    execution_enabled: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct SkillLifecycleTransitionResult {
     operation_id: String,
     action: SkillLifecycleAction,
@@ -160,6 +170,48 @@ pub(crate) fn skill_lifecycle_status(
 }
 
 #[tauri::command]
+pub(crate) fn read_skill_lifecycle(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    skill_store: State<SkillDraftStore>,
+    input: super::SkillDraftReadInput,
+) -> Result<SkillLifecycleRecord, String> {
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let _guard = skill_store.lock()?;
+    read_skill_lifecycle_at(&alice_data_root_path(&app)?, &registry, &input.skill_id)
+}
+
+pub(super) fn read_skill_lifecycle_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    skill_id: &str,
+) -> Result<SkillLifecycleRecord, String> {
+    validate_skill_id(skill_id)?;
+    let skills_root = data_root.join("skills");
+    let (index, existed) = read_lifecycle_index(&skills_root)?;
+    if !existed {
+        return Err("La habilidad todavía no tiene un ciclo de vida iniciado".into());
+    }
+    let entry = current_entry(&index, skill_id)?;
+    let revision_entry = revision_entry(&index, entry)?;
+    let storage_path = skills_root.join(&revision_entry.file_name);
+    let loaded = load_revision(&skills_root, registry, revision_entry)?;
+    let revision_count = index
+        .revisions
+        .iter()
+        .filter(|revision| revision.skill_id == skill_id)
+        .count();
+    Ok(SkillLifecycleRecord {
+        manifest: loaded.manifest,
+        sha256: loaded.sha256,
+        storage_path: storage_path.display().to_string(),
+        revision_count,
+        execution_enabled: false,
+    })
+}
+
+#[tauri::command]
 pub(crate) fn transition_skill_lifecycle(
     app: AppHandle,
     observation_store: State<ObservationStore>,
@@ -175,7 +227,7 @@ pub(crate) fn transition_skill_lifecycle(
     })
 }
 
-fn audited_transition_at<F>(
+pub(super) fn audited_transition_at<F>(
     data_root: &Path,
     registry: &CapabilityRegistrySnapshot,
     input: SkillLifecycleTransitionInput,
