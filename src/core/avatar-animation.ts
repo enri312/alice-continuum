@@ -3,7 +3,7 @@ import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { VRMHumanBoneName } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 
-export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump";
+export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump" | "run";
 export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
 export type LocomotionWeights = Record<Exclude<AvatarAnimationId, "jump">, number>;
 
@@ -77,15 +77,21 @@ export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0)
   const movingWeight = Math.max(planarMagnitude, pivotMagnitude);
   const axisTotal = Math.abs(safeX) + Math.abs(safeZ);
   const directionalScale = axisTotal > 1e-6 ? planarMagnitude / axisTotal : 0;
+  const forwardBase = Math.max(0, -safeZ) * directionalScale;
+  const forwardBias = axisTotal > 1e-6 ? Math.max(0, -safeZ) / axisTotal : 0;
+  const runProgress = THREE.MathUtils.clamp((planarMagnitude - 0.72) / 0.24, 0, 1);
+  const smoothRunProgress = runProgress * runProgress * (3 - 2 * runProgress);
+  const run = forwardBase * smoothRunProgress * forwardBias;
   const left = Math.max(0, -safeX) * directionalScale + (safeTurn < 0 ? pivotMagnitude : 0);
   const right = Math.max(0, safeX) * directionalScale + (safeTurn > 0 ? pivotMagnitude : 0);
 
   return {
     idle: Math.max(0, 1 - movingWeight),
-    forward: Math.max(0, -safeZ) * directionalScale,
+    forward: forwardBase - run,
     backward: Math.max(0, safeZ) * directionalScale,
     left,
     right,
+    run,
   };
 }
 
@@ -98,6 +104,26 @@ export function footGroundCorrection(
   if (![leftFootY, rightFootY, referenceFootY, maximumCorrection].every(Number.isFinite)) return 0;
   const penetration = referenceFootY - Math.min(leftFootY, rightFootY);
   return THREE.MathUtils.clamp(penetration, 0, Math.max(0, maximumCorrection));
+}
+
+export function advanceFootLockOffset(
+  current: { x: number; z: number },
+  drift: { x: number; z: number },
+  deltaSeconds: number,
+  contact: boolean,
+  maximumOffset = 0.065,
+) {
+  const delta = THREE.MathUtils.clamp(Number.isFinite(deltaSeconds) ? deltaSeconds : 0, 0, 0.05);
+  const factor = 1 - Math.exp(-delta * (contact ? 24 : 10));
+  let x = contact ? current.x + drift.x * factor : current.x * (1 - factor);
+  let z = contact ? current.z + drift.z * factor : current.z * (1 - factor);
+  const magnitude = Math.hypot(x, z);
+  if (magnitude > maximumOffset && magnitude > 0) {
+    const scale = maximumOffset / magnitude;
+    x *= scale;
+    z *= scale;
+  }
+  return { x, z };
 }
 
 /** Retargeting basado en el ejemplo humanoidAnimation oficial de pixiv/three-vrm. */

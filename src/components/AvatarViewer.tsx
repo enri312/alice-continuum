@@ -5,6 +5,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { VRMHumanBoneName, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 import {
+  advanceFootLockOffset,
   computeLocomotionWeights,
   footGroundCorrection,
   loadMixamoAnimation,
@@ -22,7 +23,7 @@ import {
   type ManualAvatarMotion,
 } from "../core/manual-avatar-control";
 
-const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right"] as const;
+const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run"] as const;
 
 export type AvatarTelemetry = {
   name: string;
@@ -168,6 +169,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let normalizedHips: THREE.Object3D | null = null;
     let normalizedLeftFoot: THREE.Object3D | null = null;
     let normalizedRightFoot: THREE.Object3D | null = null;
+    let lockedFoot: "left" | "right" | null = null;
+    let footLockOffset = { x: 0, z: 0 };
     let manualMotion: ManualAvatarMotion = { x: 0, z: 0, yaw: 0 };
     let gaitPhase = 0;
     let gaitIntensity = 0;
@@ -177,11 +180,14 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let nextManualTelemetryAt = 0;
     const initialAvatarPosition = new THREE.Vector3();
     const initialAvatarQuaternion = new THREE.Quaternion();
+    const leftFootWorld = new THREE.Vector3();
+    const rightFootWorld = new THREE.Vector3();
+    const footLockAnchor = new THREE.Vector2();
 
     const applyLocomotionBlend = (input: ManualAvatarInput) => {
       const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
       const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
-      const cyclesPerSecond = .68 + movement * .58;
+      const cyclesPerSecond = .68 + movement * .90;
       for (const id of locomotionAnimationIds) {
         const action = animationActions[id];
         if (!action) continue;
@@ -302,9 +308,9 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           if (targetGait > .02) gaitPhase += delta * (4.2 + targetGait * 4.8);
           manualMotion = advanceManualAvatarMotion(manualMotion, input, delta);
           currentVrm.scene.position.set(
-            initialAvatarPosition.x + manualMotion.x,
+            initialAvatarPosition.x + manualMotion.x + footLockOffset.x,
             initialAvatarPosition.y + Math.abs(Math.sin(gaitPhase * 2)) * gaitIntensity * .008,
-            initialAvatarPosition.z + manualMotion.z,
+            initialAvatarPosition.z + manualMotion.z + footLockOffset.z,
           );
           currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
           currentVrm.scene.rotateY(manualMotion.yaw);
@@ -315,12 +321,14 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
             nextManualTelemetryAt = performance.now() + 160;
             setManualControl({
               state: "connected",
-              device: activeMode === "diagnostic" ? "SECUENCIA LOCAL · 8 S · SIN PERSISTENCIA" : gamepad!.id,
+              device: activeMode === "diagnostic" ? "SECUENCIA LOCAL · 10 S · SIN PERSISTENCIA" : gamepad!.id,
               input,
             });
           }
         } else if (performance.now() >= nextManualTelemetryAt) {
           manualMotion = { x: 0, z: 0, yaw: 0 };
+          footLockOffset = { x: 0, z: 0 };
+          lockedFoot = null;
           gaitPhase = 0;
           gaitIntensity = 0;
           smoothedInput = idleManualInput;
@@ -333,6 +341,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       } else if (currentVrm && manualWasEnabled) {
         manualWasEnabled = false;
         manualMotion = { x: 0, z: 0, yaw: 0 };
+        footLockOffset = { x: 0, z: 0 };
+        lockedFoot = null;
         gaitPhase = 0;
         gaitIntensity = 0;
         diagnosticElapsed = 0;
@@ -347,14 +357,51 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         && normalizedHips && normalizedLeftFoot && normalizedRightFoot
       ) {
         currentVrm.scene.updateMatrixWorld(true);
-        const leftY = normalizedLeftFoot.getWorldPosition(new THREE.Vector3()).y;
-        const rightY = normalizedRightFoot.getWorldPosition(new THREE.Vector3()).y;
+        normalizedLeftFoot.getWorldPosition(leftFootWorld);
+        normalizedRightFoot.getWorldPosition(rightFootWorld);
+        const leftY = leftFootWorld.y;
+        const rightY = rightFootWorld.y;
         const targetCorrection = footGroundCorrection(leftY, rightY, referenceFootY);
         groundCorrection += (targetCorrection - groundCorrection) * Math.min(1, delta * 18);
         normalizedHips.position.y += groundCorrection;
-        normalizedHips.updateMatrixWorld(true);
+        currentVrm.scene.updateMatrixWorld(true);
+        normalizedLeftFoot.getWorldPosition(leftFootWorld);
+        normalizedRightFoot.getWorldPosition(rightFootWorld);
+
+        const lockedPosition = lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null;
+        if (!lockedPosition || lockedPosition.y > referenceFootY + .05) {
+          const candidate = leftFootWorld.y <= rightFootWorld.y
+            ? { id: "left" as const, position: leftFootWorld }
+            : { id: "right" as const, position: rightFootWorld };
+          if (candidate.position.y <= referenceFootY + .035) {
+            lockedFoot = candidate.id;
+            footLockAnchor.set(candidate.position.x, candidate.position.z);
+          } else {
+            lockedFoot = null;
+          }
+        }
+
+        const plantedPosition = lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null;
+        const previousOffset = footLockOffset;
+        footLockOffset = advanceFootLockOffset(
+          footLockOffset,
+          plantedPosition
+            ? { x: footLockAnchor.x - plantedPosition.x, z: footLockAnchor.y - plantedPosition.z }
+            : { x: 0, z: 0 },
+          delta,
+          Boolean(plantedPosition),
+        );
+        currentVrm.scene.position.x += footLockOffset.x - previousOffset.x;
+        currentVrm.scene.position.z += footLockOffset.z - previousOffset.z;
       } else {
         groundCorrection = 0;
+        lockedFoot = null;
+        const previousOffset = footLockOffset;
+        footLockOffset = advanceFootLockOffset(footLockOffset, { x: 0, z: 0 }, delta, false);
+        if (currentVrm) {
+          currentVrm.scene.position.x += footLockOffset.x - previousOffset.x;
+          currentVrm.scene.position.z += footLockOffset.z - previousOffset.z;
+        }
       }
       currentVrm?.update(delta);
       controls.update();
@@ -421,6 +468,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         };
         manualResetRef.current = () => {
           manualMotion = { x: 0, z: 0, yaw: 0 };
+          footLockOffset = { x: 0, z: 0 };
+          lockedFoot = null;
           gaitPhase = 0;
           gaitIntensity = 0;
           diagnosticElapsed = 0;
@@ -499,6 +548,6 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
     </div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
-    <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 8 S · AVANCE · RETROCESO · LATERAL · GIRO · REPOSO · SIN MEMORIA" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
+    <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 10 S · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
   </div>;
 }

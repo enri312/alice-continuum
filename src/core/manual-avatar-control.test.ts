@@ -3,6 +3,7 @@ import {
   advanceManualAvatarMotion,
   diagnosticManualInputAt,
   manualInputIsActive,
+  manualAvatarSpeed,
   normalizeGamepadAxis,
   readManualAvatarInput,
   selectManualGamepad,
@@ -63,6 +64,12 @@ describe("manual avatar control", () => {
     expect(turned.yaw).toBeLessThan(0);
   });
 
+  it("aumenta velocidad sólo al superar el umbral analógico de carrera", () => {
+    expect(manualAvatarSpeed({ moveX: 0, moveZ: -0.5 })).toBeCloseTo(0.72, 8);
+    expect(manualAvatarSpeed({ moveX: 0, moveZ: -1 })).toBeCloseTo(1.2384, 8);
+    expect(manualAvatarSpeed({ moveX: 0.6, moveZ: -0.6 })).toBeGreaterThan(0.72);
+  });
+
   it("desplaza en el espacio local de Alice después de girar", () => {
     const facingLeft = { x: 0, z: 0, yaw: Math.PI / 2 };
     const forward = { moveX: 0, moveZ: -1, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
@@ -71,19 +78,20 @@ describe("manual avatar control", () => {
     expect(Math.abs(motion.z)).toBeLessThan(0.001);
   });
 
-  it("ofrece un ensayo determinista que cubre avance, retroceso, lateral, giro y reposo", () => {
-    expect(diagnosticManualInputAt(0.5).moveZ).toBeLessThan(0);
-    expect(diagnosticManualInputAt(1.5).moveZ).toBeGreaterThan(0);
-    expect(diagnosticManualInputAt(3).moveX).toBeLessThan(0);
-    expect(diagnosticManualInputAt(4).moveX).toBeGreaterThan(0);
-    expect(diagnosticManualInputAt(5.2).turn).toBeGreaterThan(0);
-    expect(diagnosticManualInputAt(6.4).turn).toBeLessThan(0);
-    expect(manualInputIsActive(diagnosticManualInputAt(7.5))).toBe(false);
-    expect(diagnosticManualInputAt(8.5)).toEqual(diagnosticManualInputAt(0.5));
+  it("ofrece un ensayo determinista que cubre marcha, carrera, retroceso, lateral, giro y reposo", () => {
+    expect(diagnosticManualInputAt(0.5).moveZ).toBeCloseTo(-0.68, 8);
+    expect(diagnosticManualInputAt(1.5).moveZ).toBe(-1);
+    expect(diagnosticManualInputAt(2.8).moveZ).toBeGreaterThan(0);
+    expect(diagnosticManualInputAt(4).moveX).toBeLessThan(0);
+    expect(diagnosticManualInputAt(5.2).moveX).toBeGreaterThan(0);
+    expect(diagnosticManualInputAt(6.4).turn).toBeGreaterThan(0);
+    expect(diagnosticManualInputAt(7.6).turn).toBeLessThan(0);
+    expect(manualInputIsActive(diagnosticManualInputAt(9))).toBe(false);
+    expect(diagnosticManualInputAt(10.5)).toEqual(diagnosticManualInputAt(0.5));
   });
 
   it("suaviza cambios bruscos sin sobrepasar la entrada objetivo", () => {
-    const idle = diagnosticManualInputAt(7.5);
+    const idle = diagnosticManualInputAt(9);
     const target = { ...idle, moveZ: -1, turn: .8, rightTrigger: 1 };
     const first = smoothManualAvatarInput(idle, target, .05);
     expect(first.moveZ).toBeGreaterThan(-1);

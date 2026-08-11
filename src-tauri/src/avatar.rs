@@ -26,13 +26,14 @@ struct AvatarAnimationClipStatus {
     size_bytes: u64,
 }
 
-const AVATAR_ANIMATION_FILES: [(&str, &str); 6] = [
+const AVATAR_ANIMATION_FILES: [(&str, &str); 7] = [
     ("idle", "Idle.fbx"),
     ("forward", "Walking.fbx"),
     ("backward", "Walking Backwards.fbx"),
     ("left", "Left Strafe Walking.fbx"),
     ("right", "Right Strafe Walking.fbx"),
     ("jump", "Jump.fbx"),
+    ("run", "Run Forward.fbx"),
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -202,9 +203,10 @@ mod tests {
 
     #[test]
     fn animation_catalog_declares_the_required_private_clips() {
-        assert_eq!(AVATAR_ANIMATION_FILES.len(), 6);
+        assert_eq!(AVATAR_ANIMATION_FILES.len(), 7);
         assert!(AVATAR_ANIMATION_FILES.contains(&("idle", "Idle.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("jump", "Jump.fbx")));
+        assert!(AVATAR_ANIMATION_FILES.contains(&("run", "Run Forward.fbx")));
         assert!(local_animation_directory().is_ok());
     }
 }

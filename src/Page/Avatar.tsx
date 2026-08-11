@@ -48,7 +48,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
 
   return <section className="avatar-page" aria-labelledby="avatar-title">
     <div className="avatar-heading">
-      <div><p className="eyebrow">AVATAR LOCAL · VRM 1.0</p><h2 id="avatar-title">Cuerpo visible de Alice</h2><p>Esta pantalla inspecciona tu archivo local. Incluye control reversible con gamepad y un ensayo técnico local de ocho segundos; todavía no recibe voz, cámara, emociones, Mocap ni órdenes cognitivas.</p></div>
+      <div><p className="eyebrow">AVATAR LOCAL · VRM 1.0</p><h2 id="avatar-title">Cuerpo visible de Alice</h2><p>Esta pantalla inspecciona tu archivo local. Incluye control reversible con gamepad y un ensayo técnico local de diez segundos; todavía no recibe voz, cámara, emociones, Mocap ni órdenes cognitivas.</p></div>
       <div className={`avatar-file-state ${telemetry ? "ready" : ""}`}><i />{telemetry ? "MODELO CARGADO" : status?.available ? "ARCHIVO ENCONTRADO" : "SIN MODELO"}</div>
     </div>
 
@@ -69,7 +69,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
           <div><dt>Expresiones declaradas</dt><dd>{telemetry?.expressionCount ?? "—"}</dd></div>
           <div><dt>Spring joints</dt><dd>{telemetry?.springJointCount ?? "—"}</dd></div>
           <div><dt>Colliders</dt><dd>{telemetry?.colliderCount ?? "—"}</dd></div>
-          <div><dt>Clips corporales</dt><dd>{animationStatus?.clips.filter((clip) => clip.available).length ?? "—"} / 6</dd></div>
+          <div><dt>Clips corporales</dt><dd>{animationStatus?.clips.filter((clip) => clip.available).length ?? "—"} / 7</dd></div>
         </dl>
         <div className="avatar-license">
           <strong>LICENCIA DEL ARCHIVO</strong>

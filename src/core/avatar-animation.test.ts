@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLocomotionWeights, footGroundCorrection, selectAvatarAnimation } from "./avatar-animation";
+import { advanceFootLockOffset, computeLocomotionWeights, footGroundCorrection, selectAvatarAnimation } from "./avatar-animation";
 
 describe("avatar animation selection", () => {
   it("mantiene reposo dentro del umbral", () => {
@@ -20,7 +20,18 @@ describe("avatar animation selection", () => {
     expect(weights.right).toBeGreaterThan(0);
     expect(weights.left).toBe(0);
     expect(weights.backward).toBe(0);
+    expect(weights.run).toBe(0);
     expect(Object.values(weights).reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 8);
+  });
+
+  it("funde la marcha hacia carrera sólo al empujar hacia delante", () => {
+    const walking = computeLocomotionWeights(0, -0.5);
+    const running = computeLocomotionWeights(0, -1);
+    const backward = computeLocomotionWeights(0, 1);
+    expect(walking.run).toBe(0);
+    expect(running.run).toBe(1);
+    expect(running.forward).toBe(0);
+    expect(backward.run).toBe(0);
   });
 
   it("usa un paso lateral moderado para evitar un giro rígido en el sitio", () => {
@@ -34,5 +45,13 @@ describe("avatar animation selection", () => {
     expect(footGroundCorrection(-0.02, 0.02, 0.01)).toBeCloseTo(0.03, 8);
     expect(footGroundCorrection(-1, 0, 0.01)).toBe(0.08);
     expect(footGroundCorrection(Number.NaN, 0, 0)).toBe(0);
+  });
+
+  it("limita el bloqueo horizontal y lo libera suavemente sin contacto", () => {
+    const locked = advanceFootLockOffset({ x: 0, z: 0 }, { x: 1, z: 0 }, 0.05, true);
+    expect(locked.x).toBeCloseTo(0.065, 8);
+    const released = advanceFootLockOffset(locked, { x: 0, z: 0 }, 0.05, false);
+    expect(released.x).toBeGreaterThan(0);
+    expect(released.x).toBeLessThan(locked.x);
   });
 });

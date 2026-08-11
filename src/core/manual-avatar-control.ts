@@ -27,6 +27,13 @@ const MAX_TRANSLATION = 0.85;
 const LINEAR_SPEED = 0.72;
 const TURN_SPEED = 1.65;
 
+export function manualAvatarSpeed(input: Pick<ManualAvatarInput, "moveX" | "moveZ">) {
+  const magnitude = Math.min(1, Math.hypot(input.moveX, input.moveZ));
+  const runProgress = Math.max(0, Math.min(1, (magnitude - 0.72) / 0.24));
+  const smoothRunProgress = runProgress * runProgress * (3 - 2 * runProgress);
+  return LINEAR_SPEED * (1 + smoothRunProgress * 0.72);
+}
+
 export function normalizeGamepadAxis(value: number, deadZone = DEAD_ZONE) {
   if (!Number.isFinite(value)) return 0;
   const clamped = Math.max(-1, Math.min(1, value));
@@ -69,22 +76,24 @@ export function advanceManualAvatarMotion(
   const sinYaw = Math.sin(current.yaw);
   const worldX = localX * cosYaw + localZ * sinYaw;
   const worldZ = -localX * sinYaw + localZ * cosYaw;
+  const linearSpeed = manualAvatarSpeed(input);
   return {
-    x: Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, current.x + worldX * LINEAR_SPEED * delta)),
-    z: Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, current.z + worldZ * LINEAR_SPEED * delta)),
+    x: Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, current.x + worldX * linearSpeed * delta)),
+    z: Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, current.z + worldZ * linearSpeed * delta)),
     yaw: current.yaw - input.turn * TURN_SPEED * delta,
   };
 }
 
 export function diagnosticManualInputAt(elapsedSeconds: number): ManualAvatarInput {
   const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
-  const phase = elapsed % 8;
-  if (phase < 1.2) return { ...idleManualInput, moveZ: -0.72 };
-  if (phase < 2.4) return { ...idleManualInput, moveZ: 0.72 };
-  if (phase < 3.6) return { ...idleManualInput, moveX: -0.68 };
-  if (phase < 4.8) return { ...idleManualInput, moveX: 0.68 };
-  if (phase < 6) return { ...idleManualInput, turn: 0.62 };
-  if (phase < 7.2) return { ...idleManualInput, turn: -0.62 };
+  const phase = elapsed % 10;
+  if (phase < 1.2) return { ...idleManualInput, moveZ: -0.68 };
+  if (phase < 2.4) return { ...idleManualInput, moveZ: -1 };
+  if (phase < 3.6) return { ...idleManualInput, moveZ: 0.72 };
+  if (phase < 4.8) return { ...idleManualInput, moveX: -0.68 };
+  if (phase < 6) return { ...idleManualInput, moveX: 0.68 };
+  if (phase < 7.2) return { ...idleManualInput, turn: 0.62 };
+  if (phase < 8.4) return { ...idleManualInput, turn: -0.62 };
   return { ...idleManualInput };
 }
 
