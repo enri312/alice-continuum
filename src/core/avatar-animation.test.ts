@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceFootLockOffset, computeLocomotionWeights, footGroundCorrection, selectAvatarAnimation } from "./avatar-animation";
+import { advanceFootLockOffset, bakeFootLockOffset, computeLocomotionWeights, footGroundCorrection, locomotionCycleRate, selectAvatarAnimation } from "./avatar-animation";
 
 describe("avatar animation selection", () => {
   it("mantiene reposo dentro del umbral", () => {
@@ -40,6 +40,20 @@ describe("avatar animation selection", () => {
     expect(rightPivot.idle).toBeCloseTo(0.62, 8);
   });
 
+  it("calibra cada ciclo con la longitud de paso medida en sus FBX", () => {
+    expect(locomotionCycleRate("forward", .68)).toBeCloseTo(.642, 3);
+    expect(locomotionCycleRate("backward", .72)).toBeCloseTo(.787, 3);
+    expect(locomotionCycleRate("left", .68)).toBeCloseTo(.582, 3);
+    expect(locomotionCycleRate("right", .68)).toBeCloseTo(.582, 3);
+    expect(locomotionCycleRate("run", 1)).toBe(1.25);
+    expect(locomotionCycleRate("idle", 1)).toBe(.72);
+  });
+
+  it("sanea la magnitud usada para temporizar clips", () => {
+    expect(locomotionCycleRate("forward", Number.NaN)).toBeCloseTo(.4125, 8);
+    expect(locomotionCycleRate("forward", 10)).toBe(.75);
+  });
+
   it("corrige sólo la penetración del pie y limita la elevación", () => {
     expect(footGroundCorrection(0.01, 0.02, 0.01)).toBe(0);
     expect(footGroundCorrection(-0.02, 0.02, 0.01)).toBeCloseTo(0.03, 8);
@@ -53,5 +67,16 @@ describe("avatar animation selection", () => {
     const released = advanceFootLockOffset(locked, { x: 0, z: 0 }, 0.05, false);
     expect(released.x).toBeGreaterThan(0);
     expect(released.x).toBeLessThan(locked.x);
+  });
+
+  it("incorpora la corrección terminada al movimiento raíz al cambiar de apoyo", () => {
+    const motion = { x: 1.2, z: -.4, yaw: .25 };
+    const baked = bakeFootLockOffset(motion, { x: -.06, z: .02 });
+    expect(baked).toEqual({ x: 1.14, z: -.38, yaw: .25 });
+    expect(motion).toEqual({ x: 1.2, z: -.4, yaw: .25 });
+  });
+
+  it("ignora correcciones no finitas al consolidar una pisada", () => {
+    expect(bakeFootLockOffset({ x: 1, z: 2 }, { x: Number.NaN, z: Number.POSITIVE_INFINITY })).toEqual({ x: 1, z: 2 });
   });
 });

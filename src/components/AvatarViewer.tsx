@@ -6,9 +6,11 @@ import { VRMHumanBoneName, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 import {
   advanceFootLockOffset,
+  bakeFootLockOffset,
   computeLocomotionWeights,
   footGroundCorrection,
   loadMixamoAnimation,
+  locomotionCycleRate,
   type AvatarAnimationId,
   type AvatarAnimationUrls,
 } from "../core/avatar-animation";
@@ -23,6 +25,7 @@ import {
   type ManualAvatarInput,
   type ManualAvatarMotion,
 } from "../core/manual-avatar-control";
+import { avatarClothingFinish } from "../core/avatar-appearance";
 
 const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run"] as const;
 
@@ -60,6 +63,56 @@ type AvatarViewerProps = {
   animationUrls: AvatarAnimationUrls;
   onTelemetry: (telemetry: AvatarTelemetry | null) => void;
 };
+
+type MToonClothingMaterial = THREE.Material & {
+  readonly isMToonMaterial: true;
+  color: THREE.Color;
+  map: THREE.Texture | null;
+  emissive: THREE.Color;
+  emissiveIntensity: number;
+  shadeColorFactor: THREE.Color;
+  shadingToonyFactor: number;
+  parametricRimColorFactor: THREE.Color;
+  rimLightingMixFactor: number;
+  parametricRimFresnelPowerFactor: number;
+  parametricRimLiftFactor: number;
+};
+
+function isMToonClothingMaterial(material: THREE.Material): material is MToonClothingMaterial {
+  return (material as Partial<MToonClothingMaterial>).isMToonMaterial === true
+    && avatarClothingFinish(material.name) !== null;
+}
+
+function enhanceAvatarClothing(root: THREE.Object3D, maximumAnisotropy: number) {
+  const styled = new Set<THREE.Material>();
+  root.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return;
+    object.castShadow = true;
+    object.receiveShadow = true;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if (styled.has(material) || !isMToonClothingMaterial(material)) continue;
+      styled.add(material);
+      const finish = avatarClothingFinish(material.name)!;
+      material.color.lerp(new THREE.Color(finish.tint), finish.tintMix);
+      material.shadeColorFactor.lerp(new THREE.Color(finish.shade), finish.shadeMix);
+      material.parametricRimColorFactor.lerp(new THREE.Color(finish.rim), finish.rimMix);
+      material.shadingToonyFactor = THREE.MathUtils.lerp(material.shadingToonyFactor, finish.toonFactor, .45);
+      material.rimLightingMixFactor = Math.max(material.rimLightingMixFactor, .22);
+      material.parametricRimFresnelPowerFactor = THREE.MathUtils.lerp(material.parametricRimFresnelPowerFactor, finish.rimPower, .45);
+      material.parametricRimLiftFactor = Math.max(material.parametricRimLiftFactor, .015);
+      if (finish.emissive !== undefined) {
+        material.emissive.lerp(new THREE.Color(finish.emissive), .30);
+        material.emissiveIntensity = Math.max(material.emissiveIntensity, finish.emissiveIntensity ?? 0);
+      }
+      if (material.map) {
+        material.map.anisotropy = Math.min(maximumAnisotropy, 8);
+        material.map.needsUpdate = true;
+      }
+      material.needsUpdate = true;
+    }
+  });
+}
 
 function readTelemetry(vrm: VRM): AvatarTelemetry {
   const meta = vrm.meta;
@@ -199,13 +252,12 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
       dominantAnimation = locomotionAnimationIds.reduce((dominant, id) => weights[id] > weights[dominant] ? id : dominant, "idle" as Exclude<AvatarAnimationId, "jump">);
       const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
-      const cyclesPerSecond = .68 + movement * .90;
       for (const id of locomotionAnimationIds) {
         const action = animationActions[id];
         if (!action) continue;
         action.enabled = true;
         action.setEffectiveWeight(weights[id]);
-        action.setEffectiveTimeScale(id === "idle" ? .72 : action.getClip().duration * cyclesPerSecond);
+        action.setEffectiveTimeScale(action.getClip().duration * locomotionCycleRate(id, movement));
         if (!action.isScheduled()) action.play();
       }
       animationPlaybackEnabled = true;
@@ -258,6 +310,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.setAttribute("aria-label", "Visor tridimensional local del avatar Alice");
     renderer.domElement.tabIndex = 0;
     host.appendChild(renderer.domElement);
@@ -272,14 +326,33 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     const ambient = new THREE.HemisphereLight(0xdff6ff, 0x111827, 2.1);
     const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
     keyLight.position.set(2.2, 3.8, 3.2);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(1024, 1024);
+    keyLight.shadow.camera.near = .1;
+    keyLight.shadow.camera.far = 12;
+    keyLight.shadow.camera.left = -3;
+    keyLight.shadow.camera.right = 3;
+    keyLight.shadow.camera.top = 4;
+    keyLight.shadow.camera.bottom = -1;
+    keyLight.shadow.bias = -.00025;
+    keyLight.shadow.normalBias = .012;
     const rimLight = new THREE.DirectionalLight(0x38bdf8, 2.4);
     rimLight.position.set(-3, 2.2, -2.8);
-    scene.add(ambient, keyLight, rimLight);
+    const fabricFill = new THREE.DirectionalLight(0xf8b48a, .62);
+    fabricFill.position.set(-2.4, 1.8, 2.6);
+    scene.add(ambient, keyLight, rimLight, fabricFill);
 
     const grid = new THREE.GridHelper(8, 32, 0x0ea5e9, 0x12324a);
     const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material];
     gridMaterials.forEach((material) => { material.transparent = true; material.opacity = .3; });
     scene.add(grid);
+    const shadowGround = new THREE.Mesh(
+      new THREE.PlaneGeometry(8, 8),
+      new THREE.ShadowMaterial({ color: 0x020617, opacity: .34 }),
+    );
+    shadowGround.rotation.x = -Math.PI / 2;
+    shadowGround.receiveShadow = true;
+    scene.add(shadowGround);
 
     const resize = () => {
       const bounds = host.getBoundingClientRect();
@@ -397,15 +470,23 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           ? lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null
           : null;
         if (!footLockEligible) {
+          manualMotion = bakeFootLockOffset(manualMotion, footLockOffset);
+          footLockOffset = { x: 0, z: 0 };
           lockedFoot = null;
         } else if (!lockedPosition || lockedPosition.y > referenceFootY + .05) {
           const candidate = leftFootWorld.y <= rightFootWorld.y
             ? { id: "left" as const, position: leftFootWorld }
             : { id: "right" as const, position: rightFootWorld };
           if (candidate.position.y <= referenceFootY + .035) {
+            if (candidate.id !== lockedFoot) {
+              manualMotion = bakeFootLockOffset(manualMotion, footLockOffset);
+              footLockOffset = { x: 0, z: 0 };
+            }
             lockedFoot = candidate.id;
             footLockAnchor.set(candidate.position.x, candidate.position.z);
           } else {
+            manualMotion = bakeFootLockOffset(manualMotion, footLockOffset);
+            footLockOffset = { x: 0, z: 0 };
             lockedFoot = null;
           }
         }
@@ -459,6 +540,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         currentVrm = vrm;
         initialAvatarPosition.copy(vrm.scene.position);
         initialAvatarQuaternion.copy(vrm.scene.quaternion);
+        enhanceAvatarClothing(vrm.scene, renderer.capabilities.getMaxAnisotropy());
         applyPose(vrm, "idle");
 
         const loadedAnimations = await Promise.allSettled(
@@ -517,6 +599,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         const verticalDistance = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov * .5)));
         const distance = Math.max(1.3, verticalDistance * 1.08);
         grid.position.y = box.min.y;
+        shadowGround.position.y = box.min.y - .003;
 
         const resetCamera = () => {
           controls.target.copy(center);
@@ -559,6 +642,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       animationActions = {};
       grid.geometry.dispose();
       gridMaterials.forEach((material) => material.dispose());
+      shadowGround.geometry.dispose();
+      (shadowGround.material as THREE.Material).dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();

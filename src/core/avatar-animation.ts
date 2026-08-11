@@ -7,6 +7,14 @@ export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "righ
 export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
 export type LocomotionWeights = Record<Exclude<AvatarAnimationId, "jump">, number>;
 
+const locomotionBaseCycles: Record<Exclude<AvatarAnimationId, "idle" | "jump">, number> = {
+  forward: .75,
+  backward: .90,
+  left: .68,
+  right: .68,
+  run: 1.25,
+};
+
 const mixamoVRMRigMap: Record<string, VRMHumanBoneName> = {
   mixamorigHips: VRMHumanBoneName.Hips,
   mixamorigSpine: VRMHumanBoneName.Spine,
@@ -95,6 +103,15 @@ export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0)
   };
 }
 
+export function locomotionCycleRate(
+  animation: Exclude<AvatarAnimationId, "jump">,
+  movement: number,
+) {
+  if (animation === "idle") return .72;
+  const safeMovement = THREE.MathUtils.clamp(Number.isFinite(movement) ? movement : 0, 0, 1);
+  return locomotionBaseCycles[animation] * (.55 + safeMovement * .45);
+}
+
 export function footGroundCorrection(
   leftFootY: number,
   rightFootY: number,
@@ -124,6 +141,15 @@ export function advanceFootLockOffset(
     z *= scale;
   }
   return { x, z };
+}
+
+export function bakeFootLockOffset<T extends { x: number; z: number }>(
+  motion: T,
+  offset: { x: number; z: number },
+): T {
+  const offsetX = Number.isFinite(offset.x) ? offset.x : 0;
+  const offsetZ = Number.isFinite(offset.z) ? offset.z : 0;
+  return { ...motion, x: motion.x + offsetX, z: motion.z + offsetZ };
 }
 
 /** Retargeting basado en el ejemplo humanoidAnimation oficial de pixiv/three-vrm. */

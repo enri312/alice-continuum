@@ -1,7 +1,7 @@
 # Informe de prueba manual — DualSense y visor de Alice
 
 Fecha: 2026-08-11  
-Estado: entrada real y ensayo visual confirmados; locomoción procedural limitada
+Estado: entrada real, retargeting Mixamo y ensayo visual confirmados; IK completo pendiente
 
 ## Hardware real
 
@@ -31,7 +31,7 @@ Se agregó locomoción procedural limitada:
 
 Stick izquierdo controla desplazamiento, stick derecho giro y L2/R2 brazos. La entrada queda limitada por zona muerta, delta máximo y radio de traslación. Detener restablece la pose.
 
-El visor añade `Ensayar marcha`, una secuencia determinista local de ocho segundos que recorre avance, retroceso, lateral, giro y reposo. Se compiló una variante Tauri temporal con autoensayo exclusivamente para la comprobación visual, se recorrió la interfaz real con mouse y se capturaron ciclos sobre `Alice.vrm`. La primera revisión reveló cruce de pies lateral; se redujeron apertura y elevación, se recompiló y el segundo ciclo quedó estable. Después se cerró esa instancia y se restauró una compilación normal sin autoensayo.
+El visor añade `Ensayar marcha`, una secuencia determinista local de diez segundos que recorre avance, carrera, retroceso, lateral, giro, salto y reposo. La prueba inicial aquí descrita fue posteriormente reemplazada por clips privados de Mixamo retargeteados; el diagnóstico procedural de huesos queda únicamente como respaldo cuando falta un clip. La ampliación y sus mediciones están documentadas en [AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md](AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md).
 
 ## Inventario real del VRM
 
@@ -49,8 +49,8 @@ El rig permite retargeting y física secundaria, pero el archivo por sí solo no
 - Sin persistencia, red, memoria, R5 o auditoría cognitiva.
 - Etiqueta visible `CONTROL HUMANO`.
 - No habilita el puente `output.avatar.body`.
-- Siete pruebas TypeScript validan zona muerta, selección del DualSense, sticks/gatillos, límites, movimiento local, secuencia diagnóstica y suavizado.
+- Las pruebas TypeScript validan zona muerta, selección del DualSense, sticks/gatillos, límites, movimiento local, secuencia diagnóstica, suavizado, mezcla de clips, temporización y estabilización de pies.
 
 ## Límite observado
 
-La corrección evita el deslizamiento completamente rígido y ofrece feedback corporal durante la prueba, pero no bloquea cada pie contra el suelo. La siguiente mejora de calidad requiere clips direccionales con licencia compatible, retargeting al humanoide VRM, crossfade y un solver IK de pies; no se presenta esta marcha procedural como terminada.
+El retargeting y la mezcla direccional ya están implementados con activos privados compatibles, junto con corrección vertical y un primer estabilizador horizontal. El bloqueo alcanza todavía su límite de 6,5 cm en algunas fases de apoyo. La siguiente mejora de calidad requiere un solver IK de pies o locomoción con movimiento raíz; no se presenta el estabilizador actual como IK terminado.
