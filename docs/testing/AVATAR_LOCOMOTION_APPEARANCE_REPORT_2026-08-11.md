@@ -4,7 +4,7 @@ Estado: incremento local verificado en la aplicación Tauri real
 
 ## Alcance
 
-- Retargeting de clips privados Mixamo para `idle`, avance, carrera, retroceso, laterales y salto.
+- Retargeting de nueve clips privados Mixamo para `idle`, avance, carrera, retroceso, laterales, giros izquierdo/derecho y salto.
 - Mezcla direccional y etiquetas explícitas para giro izquierdo y derecho.
 - Telemetría visible de animación, velocidad, pie apoyado, corrección horizontal y corrección de suelo.
 - Consolidación de la corrección horizontal en el movimiento raíz al cambiar o liberar el apoyo.
@@ -14,6 +14,8 @@ Estado: incremento local verificado en la aplicación Tauri real
 ## Calibración desde activos reales
 
 Se inspeccionaron las pistas `mixamorigHips.position` y el recorrido de ambos pies en cada FBX. Los clips activos son esencialmente *in place*: no existe desplazamiento raíz acumulado que deba sumarse al movimiento de la escena. La longitud de paso relativa a la altura de cadera mostró perfiles diferentes para marcha, retroceso, laterales y carrera. Por eso cada acción usa ahora su propia frecuencia base en lugar de una velocidad de reproducción común.
+
+Los clips `Left Turn.fbx` y `Right Turn.fbx` duran 1,167 s, contienen 53 pistas y acumulan aproximadamente +90° y −90° en la cadera. El retargeter elimina sólo ese giro raíz acumulado y conserva inclinación y balance corporal. La orientación global continúa gobernada por el stick derecho; una secuencia real de cuarenta capturas a intervalos de 250 ms confirmó giro progresivo y retorno sin salto al repetir el clip.
 
 Durante el ensayo Tauri de diez segundos se observaron aproximadamente:
 
@@ -33,7 +35,9 @@ El VRM contiene materiales diferenciables para chaqueta exterior, prenda interio
 ## Verificación
 
 - 21 archivos de pruebas TypeScript aprobados.
-- 127 pruebas TypeScript aprobadas.
+- 129 pruebas TypeScript aprobadas.
+- 143 pruebas Rust aprobadas y 7 pruebas vivas ignoradas por requerir hardware o datos canónicos explícitos.
+- `cargo clippy --all-targets -- -D warnings` aprobado.
 - build TypeScript/Vite aprobado.
 - carga real de `Alice.vrm` aprobada dentro de Tauri.
 - secuencia real de diez segundos observada y capturada tras reiniciar el ejecutable.

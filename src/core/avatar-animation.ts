@@ -3,7 +3,7 @@ import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { VRMHumanBoneName } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 
-export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump" | "run";
+export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump" | "run" | "turn-left" | "turn-right";
 export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
 export type LocomotionWeights = Record<Exclude<AvatarAnimationId, "jump">, number>;
 
@@ -13,6 +13,8 @@ const locomotionBaseCycles: Record<Exclude<AvatarAnimationId, "idle" | "jump">, 
   left: .68,
   right: .68,
   run: 1.25,
+  "turn-left": .85,
+  "turn-right": .85,
 };
 
 const mixamoVRMRigMap: Record<string, VRMHumanBoneName> = {
@@ -90,8 +92,8 @@ export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0)
   const runProgress = THREE.MathUtils.clamp((planarMagnitude - 0.72) / 0.24, 0, 1);
   const smoothRunProgress = runProgress * runProgress * (3 - 2 * runProgress);
   const run = forwardBase * smoothRunProgress * forwardBias;
-  const left = Math.max(0, -safeX) * directionalScale + (safeTurn < 0 ? pivotMagnitude : 0);
-  const right = Math.max(0, safeX) * directionalScale + (safeTurn > 0 ? pivotMagnitude : 0);
+  const left = Math.max(0, -safeX) * directionalScale;
+  const right = Math.max(0, safeX) * directionalScale;
 
   return {
     idle: Math.max(0, 1 - movingWeight),
@@ -100,6 +102,8 @@ export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0)
     left,
     right,
     run,
+    "turn-left": safeTurn < 0 ? pivotMagnitude : 0,
+    "turn-right": safeTurn > 0 ? pivotMagnitude : 0,
   };
 }
 
@@ -152,6 +156,26 @@ export function bakeFootLockOffset<T extends { x: number; z: number }>(
   return { ...motion, x: motion.x + offsetX, z: motion.z + offsetZ };
 }
 
+export function stripAccumulatedRootYaw(values: ArrayLike<number>) {
+  const output = Array.from(values);
+  if (output.length < 4 || output.length % 4 !== 0) return output;
+  const initial = new THREE.Quaternion().fromArray(output, 0).normalize();
+  const initialInverse = initial.clone().invert();
+  const rotation = new THREE.Quaternion();
+  const relative = new THREE.Quaternion();
+  const yawless = new THREE.Quaternion();
+  const euler = new THREE.Euler(0, 0, 0, "YXZ");
+  for (let index = 0; index < output.length; index += 4) {
+    rotation.fromArray(output, index).normalize();
+    relative.copy(initialInverse).multiply(rotation);
+    euler.setFromQuaternion(relative, "YXZ");
+    euler.y = 0;
+    yawless.setFromEuler(euler);
+    initial.clone().multiply(yawless).toArray(output, index);
+  }
+  return output;
+}
+
 /** Retargeting basado en el ejemplo humanoidAnimation oficial de pixiv/three-vrm. */
 export async function loadMixamoAnimation(url: string, vrm: VRM, name: string) {
   const asset = await new FBXLoader().loadAsync(url);
@@ -182,7 +206,9 @@ export async function loadMixamoAnimation(url: string, vrm: VRM, name: string) {
     mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
 
     if (track instanceof THREE.QuaternionKeyframeTrack) {
-      const values = Array.from(track.values);
+      const values = vrmBoneName === VRMHumanBoneName.Hips && (name === "turn-left" || name === "turn-right")
+        ? stripAccumulatedRootYaw(track.values)
+        : Array.from(track.values);
       for (let index = 0; index < values.length; index += 4) {
         rotation.fromArray(values, index).premultiply(parentRestWorldRotation).multiply(restRotationInverse);
         rotation.toArray(values, index);

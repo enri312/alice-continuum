@@ -27,7 +27,7 @@ import {
 } from "../core/manual-avatar-control";
 import { avatarClothingFinish } from "../core/avatar-appearance";
 
-const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run"] as const;
+const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run", "turn-left", "turn-right"] as const;
 
 export type AvatarTelemetry = {
   name: string;
@@ -52,7 +52,7 @@ type ManualControlTelemetry = {
   input: ManualAvatarInput;
 };
 type BodyMotionTelemetry = {
-  animation: AvatarAnimationId | "turn-left" | "turn-right";
+  animation: AvatarAnimationId;
   speed: number;
   lockedFoot: "left" | "right" | null;
   footOffset: number;

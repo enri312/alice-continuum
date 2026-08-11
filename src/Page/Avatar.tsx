@@ -69,7 +69,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
           <div><dt>Expresiones declaradas</dt><dd>{telemetry?.expressionCount ?? "—"}</dd></div>
           <div><dt>Spring joints</dt><dd>{telemetry?.springJointCount ?? "—"}</dd></div>
           <div><dt>Colliders</dt><dd>{telemetry?.colliderCount ?? "—"}</dd></div>
-          <div><dt>Clips corporales</dt><dd>{animationStatus?.clips.filter((clip) => clip.available).length ?? "—"} / 7</dd></div>
+          <div><dt>Clips corporales</dt><dd>{animationStatus?.clips.filter((clip) => clip.available).length ?? "—"} / 9</dd></div>
         </dl>
         <div className="avatar-license">
           <strong>LICENCIA DEL ARCHIVO</strong>

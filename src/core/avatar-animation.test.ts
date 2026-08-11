@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { advanceFootLockOffset, bakeFootLockOffset, computeLocomotionWeights, footGroundCorrection, locomotionCycleRate, selectAvatarAnimation } from "./avatar-animation";
+import * as THREE from "three";
+import { advanceFootLockOffset, bakeFootLockOffset, computeLocomotionWeights, footGroundCorrection, locomotionCycleRate, selectAvatarAnimation, stripAccumulatedRootYaw } from "./avatar-animation";
 
 describe("avatar animation selection", () => {
   it("mantiene reposo dentro del umbral", () => {
@@ -36,8 +37,16 @@ describe("avatar animation selection", () => {
 
   it("usa un paso lateral moderado para evitar un giro rígido en el sitio", () => {
     const rightPivot = computeLocomotionWeights(0, 0, 1);
-    expect(rightPivot.right).toBeCloseTo(0.38, 8);
+    expect(rightPivot.right).toBe(0);
+    expect(rightPivot["turn-right"]).toBeCloseTo(0.38, 8);
     expect(rightPivot.idle).toBeCloseTo(0.62, 8);
+  });
+
+  it("separa giros en el sitio de los pasos laterales", () => {
+    const leftPivot = computeLocomotionWeights(0, 0, -1);
+    expect(leftPivot.left).toBe(0);
+    expect(leftPivot["turn-left"]).toBeCloseTo(.38, 8);
+    expect(leftPivot["turn-right"]).toBe(0);
   });
 
   it("calibra cada ciclo con la longitud de paso medida en sus FBX", () => {
@@ -47,6 +56,8 @@ describe("avatar animation selection", () => {
     expect(locomotionCycleRate("right", .68)).toBeCloseTo(.582, 3);
     expect(locomotionCycleRate("run", 1)).toBe(1.25);
     expect(locomotionCycleRate("idle", 1)).toBe(.72);
+    expect(locomotionCycleRate("turn-left", 1)).toBe(.85);
+    expect(locomotionCycleRate("turn-right", 1)).toBe(.85);
   });
 
   it("sanea la magnitud usada para temporizar clips", () => {
@@ -78,5 +89,16 @@ describe("avatar animation selection", () => {
 
   it("ignora correcciones no finitas al consolidar una pisada", () => {
     expect(bakeFootLockOffset({ x: 1, z: 2 }, { x: Number.NaN, z: Number.POSITIVE_INFINITY })).toEqual({ x: 1, z: 2 });
+  });
+
+  it("elimina el giro raíz acumulado sin borrar inclinación corporal", () => {
+    const initial = new THREE.Quaternion().setFromEuler(new THREE.Euler(.08, .12, -.04, "YXZ"));
+    const final = initial.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(.10, Math.PI / 2, -.06, "YXZ")));
+    const stripped = stripAccumulatedRootYaw([...initial.toArray(), ...final.toArray()]);
+    const relative = new THREE.Quaternion().fromArray(stripped, 0).invert().multiply(new THREE.Quaternion().fromArray(stripped, 4));
+    const euler = new THREE.Euler().setFromQuaternion(relative, "YXZ");
+    expect(THREE.MathUtils.radToDeg(euler.y)).toBeCloseTo(0, 6);
+    expect(Math.abs(euler.x)).toBeGreaterThan(.05);
+    expect(Math.abs(euler.z)).toBeGreaterThan(.02);
   });
 });

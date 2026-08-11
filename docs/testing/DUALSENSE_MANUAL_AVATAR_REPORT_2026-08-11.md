@@ -31,7 +31,7 @@ Se agregó locomoción procedural limitada:
 
 Stick izquierdo controla desplazamiento, stick derecho giro y L2/R2 brazos. La entrada queda limitada por zona muerta, delta máximo y radio de traslación. Detener restablece la pose.
 
-El visor añade `Ensayar marcha`, una secuencia determinista local de diez segundos que recorre avance, carrera, retroceso, lateral, giro, salto y reposo. La prueba inicial aquí descrita fue posteriormente reemplazada por clips privados de Mixamo retargeteados; el diagnóstico procedural de huesos queda únicamente como respaldo cuando falta un clip. La ampliación y sus mediciones están documentadas en [AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md](AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md).
+El visor añade `Ensayar marcha`, una secuencia determinista local de diez segundos que recorre avance, carrera, retroceso, lateral, giro y reposo. El salto se comprueba aparte mediante X en el DualSense. La prueba inicial aquí descrita fue posteriormente reemplazada por clips privados de Mixamo retargeteados; el diagnóstico procedural de huesos queda únicamente como respaldo cuando falta un clip. La ampliación y sus mediciones están documentadas en [AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md](AVATAR_LOCOMOTION_APPEARANCE_REPORT_2026-08-11.md).
 
 ## Inventario real del VRM
 
