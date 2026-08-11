@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="Alejar volumen">
-<g stroke="url(#vo)" fill="none" stroke-linecap="round" opacity=".6"><circle cx="21" cy="21" r="18" stroke-width=".45" stroke-dasharray="2 2"/><path d="M21 1v5M1 21h5m30 0h5M21 36v5M8 8l4 4m18 18 4 4m0-26-4 4M12 30l-4 4" stroke-width=".55"/><path d="M4 10V4h6m22 0h6v6M4 32v6h6"/><g fill="url(#vo)" stroke="none"><circle cx="21" cy="1" r=".8"/><circle cx="41" cy="21" r=".8"/><circle cx="21" cy="41" r=".8"/><circle cx="1" cy="21" r=".8"/></g></g>
-<defs><linearGradient id="vo" x1="5" y1="4" x2="43" y2="44"><stop stop-color="#e9d5ff"/><stop offset=".5" stop-color="#b026ff"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
-<g stroke="url(#vo)" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13V5h8m22 0h8v8M5 35v8h8" stroke-width="1.2"/><circle cx="21" cy="21" r="13" stroke-width="1.6"/><circle cx="21" cy="21" r="9" stroke-width=".6" stroke-dasharray="2 2" opacity=".6"/><path d="m30 30 12 12M14 21h14" stroke-width="1.8"/><path d="M21 8V4M8 21H4m17 13v4m13-17h4" stroke-width=".7"/><g fill="url(#vo)" stroke="none"><circle cx="21" cy="8" r="1.2"/><circle cx="34" cy="21" r="1.2"/><circle cx="21" cy="34" r="1.2"/><circle cx="8" cy="21" r="1.2"/></g></g>
-<g stroke="url(#vo)" stroke-linecap="round" opacity=".5"><path d="M10 10h5m12 0h5M10 32h5m12 0h5M36 35l3 3" stroke-width=".55"/><path d="M12 5h7m17 38h7" stroke-width=".45" stroke-dasharray="1 2"/><circle cx="36" cy="35" r=".7"/></g></svg>
+  <title>Alejar volumen</title>
+  <circle cx="21" cy="20" r="12" fill="#2e1065" stroke="#a78bfa" stroke-width="1.7"/>
+  <circle cx="21" cy="20" r="7" stroke="#c4b5fd" stroke-dasharray="2 2"/>
+  <path d="M15 20h12" stroke="#f5f3ff" stroke-width="2" stroke-linecap="round"/>
+  <path d="m30 29 11 11" stroke="#7c3aed" stroke-width="5" stroke-linecap="round"/><path d="m30 29 11 11" stroke="#ddd6fe" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M5 12V5h7M30 5h7M5 31v7h7" stroke="#6d28d9" stroke-width="1"/>
+  <circle cx="37" cy="5" r="1.5" fill="#a78bfa"/>
+</svg>

@@ -1,6 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Memoria">
-<g stroke="url(#mm)" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".6"><path d="M9 13V7h11m24 0h11v6M9 51v6h11m24 0h11v-6" stroke-width=".9"/><path d="M5 18h7l3 3m44-3h-7l-3 3M5 46h7l3-3m44 3h-7l-3-3" stroke-width=".6"/><path d="M4 24h6m-6 4h6m-6 4h6m-6 4h6m44-12h6m-6 4h6m-6 4h6m-6 4h6" stroke-width=".45"/><path d="M21 5v4m5-4v4m12-4v4m5-4v4M21 55v4m22-4v4" stroke-dasharray="1 1"/><g fill="url(#mm)" stroke="none"><circle cx="5" cy="18" r="1"/><circle cx="59" cy="18" r="1"/><circle cx="5" cy="46" r="1"/><circle cx="59" cy="46" r="1"/></g></g>
-<defs><linearGradient id="mm" x1="7" y1="8" x2="57" y2="56"><stop stop-color="#c4b5fd"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient><filter id="mg"><feGaussianBlur stdDeviation=".7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-<style>.bit{animation:bit 2.6s ease-in-out infinite}.bit:nth-child(2){animation-delay:-.8s}.bit:nth-child(3){animation-delay:-1.6s}@keyframes bit{50%{opacity:.25;transform:translateY(-3px)}}@media(prefers-reduced-motion:reduce){.bit{animation:none}}</style>
-<g stroke="url(#mm)" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="15" rx="17" ry="7" stroke-width="1.8"/><path d="M15 15v11c0 4 8 7 17 7s17-3 17-7V15M15 26v11c0 4 8 7 17 7s17-3 17-7V26M15 37v11c0 4 8 7 17 7s17-3 17-7V37" stroke-width="1.5"/><path d="M15 26c0 4 8 7 17 7s17-3 17-7M15 37c0 4 8 7 17 7s17-3 17-7" stroke-width=".7" opacity=".55"/><path d="M15 20H8v9H4m45-9h7v9h4M15 43H8v9H4m45-9h7v9h4" stroke-width=".9" opacity=".7"/><path d="M25 8V5m7 3V3m7 5V5" stroke-width=".8"/><g fill="url(#mm)" stroke="none" filter="url(#mg)"><circle class="bit" cx="25" cy="15" r="1.3"/><circle class="bit" cx="32" cy="17" r="1.3"/><circle class="bit" cx="39" cy="15" r="1.3"/><circle cx="4" cy="29" r="1.5"/><circle cx="60" cy="29" r="1.5"/><circle cx="4" cy="52" r="1.5"/><circle cx="60" cy="52" r="1.5"/></g></g>
-<g stroke="url(#mm)" stroke-linecap="round" opacity=".48"><path d="M20 22h4m2 0h3m3 0h5m2 0h4M20 39h5m3 0h3m3 0h4m2 0h3M20 50h3m3 0h6m3 0h3m2 0h3" stroke-width=".55"/><path d="M10 10v5m4-7v4m36-2v5m4-7v4M10 56v-4m44 4v-4" stroke-width=".7"/><circle cx="10" cy="10" r=".7"/><circle cx="54" cy="8" r=".7"/></g></svg>
+  <title>Memoria</title>
+  <defs><linearGradient id="mm2" x1="14" y1="11" x2="50" y2="54" gradientUnits="userSpaceOnUse"><stop stop-color="#f9a8d4"/><stop offset="1" stop-color="#db2777"/></linearGradient></defs>
+  <path d="M14 12h31l6 6v34H14V12Z" fill="#500724" stroke="url(#mm2)" stroke-width="1.8"/>
+  <path d="M45 12v7h6" fill="#be185d" stroke="#fbcfe8" stroke-width="1.2"/>
+  <path d="M20 21h20M20 27h25" stroke="#fbcfe8" stroke-width="1.4" stroke-linecap="round"/>
+  <rect x="19" y="33" width="27" height="13" rx="2" fill="#831843" stroke="#f472b6"/>
+  <path d="M23 39h19M23 43h12" stroke="#fce7f3" stroke-width="1.3" stroke-linecap="round"/>
+  <path d="M9 17v31M7 21h4M7 29h4M7 37h4M7 45h4M19 57h27" stroke="#9d174d" stroke-width="1.2"/>
+  <g fill="#f472b6"><circle cx="9" cy="17" r="2"/><circle cx="9" cy="48" r="2"/><circle cx="19" cy="57" r="2"/><circle cx="46" cy="57" r="2"/></g>
+  <path d="m26 8 6-4 6 4" stroke="#f9a8d4" stroke-width="1.4"/><circle cx="32" cy="8" r="2.5" fill="#ec4899"/>
+</svg>

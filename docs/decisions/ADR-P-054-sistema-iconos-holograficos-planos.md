@@ -1,6 +1,6 @@
 # ADR-P-054 — Sistema de iconos holográficos planos
 
-- Estado: aceptada
+- Estado: reemplazada por ADR-P-063
 - Fecha: 2026-08-11
 - Reemplaza: ADR-P-053
 

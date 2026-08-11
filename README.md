@@ -6,7 +6,7 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5.4-puente%20R4%20validado-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-151%2F151%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-218%2F218%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-158%20aprobadas%20%7C%209%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
@@ -38,7 +38,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Aprendizaje gobernado R5.4 | Contrato, detector, decisiones y puente a borrador R4 validados; 0 conversiones canónicas |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 151/151 aprobadas |
+| Pruebas TypeScript | 218/218 aprobadas |
 | Pruebas Rust | 158 normales aprobadas; nueve sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -70,11 +70,11 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 | Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
 | Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
 
-### Sistema de iconos holográficos planos
+### Sistema de iconos Cyber Glyph V2
 
-La navegación y los controles visuales usan 21 SVG planos y originales con lenguaje holográfico de ingeniería: degradados por función, geometría concéntrica, nodos, circuitos, marcos parciales y espacio negativo. Cada silueta representa su función sin depender solamente del texto ni de una carcasa repetida. Las animaciones decorativas respetan `prefers-reduced-motion`.
+La navegación y los controles visuales usan 22 SVG planos y originales. Cyber Glyph V2 asigna a cada función una silueta semántica y un color principal propio, combina superficies sólidas con microcircuitos y evita que un marco decorativo común oculte el significado. El catálogo cubre diez destinos de navegación, tres vistas de puentes, cuatro vistas del Núcleo y cinco controles de cámara. Una prueba automática verifica lienzo, accesibilidad, diseños distintos y ausencia de recursos externos o contenido ejecutable.
 
-El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-054](docs/decisions/ADR-P-054-sistema-iconos-holograficos-planos.md) y [el informe del sistema plano](docs/testing/FLAT_HOLOGRAPHIC_ICON_SYSTEM_REPORT_2026-08-11.md). El experimento cyber-isométrico anterior se conserva como decisión reemplazada en [ADR-P-053](docs/decisions/ADR-P-053-sistema-iconos-isometricos-3d.md).
+El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) y [el informe Cyber Glyph V2](docs/testing/CYBER_GLYPH_V2_REPORT_2026-08-11.md). [ADR-P-054](docs/decisions/ADR-P-054-sistema-iconos-holograficos-planos.md) conserva el antecedente plano reemplazado.
 
 ## Cámara, micrófono y aprendizaje sensorial
 
