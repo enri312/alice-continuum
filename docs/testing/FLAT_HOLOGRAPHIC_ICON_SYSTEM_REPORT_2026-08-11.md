@@ -11,6 +11,7 @@ Se reconstruyeron 21 recursos funcionales de `icons/`: nueve iconos de navegaci�
 - 22 SVG del directorio, incluido el emblema, se analizaron como XML válido.
 - Los 21 recursos funcionales se renderizaron juntos en Microsoft Edge desde sus archivos reales.
 - La lámina confirmó 21 piezas cargadas, siluetas diferenciadas, degradados por función y legibilidad sin carcasas 3D.
+- Una segunda pasada añadió microcircuitos, marcas de calibración, nodos secundarios y capas internas específicas; el conjunto volvió a renderizarse para comprobar que el detalle adicional no ocultara la silueta principal.
 - `icons/app-alice.svg` y `src-tauri/icons/` permanecieron fuera del cambio.
 
 ## Pruebas
@@ -24,4 +25,4 @@ Se reconstruyeron 21 recursos funcionales de `icons/`: nueve iconos de navegaci�
 | `cargo clippy --all-targets --all-features -- -D warnings` | aprobado sin advertencias |
 | `tauri build` | ejecutable release generado correctamente |
 
-El paquete JavaScript principal resultó de 433,15 kB, frente a 463,28 kB en el experimento cyber-isométrico. El aviso de Vite corresponde al módulo separado del avatar y no fue introducido por los iconos.
+Después de la segunda pasada de detalle, el paquete JavaScript principal resultó de 439,48 kB, frente a 463,28 kB en el experimento cyber-isométrico. El aviso de Vite corresponde al módulo separado del avatar y no fue introducido por los iconos.
