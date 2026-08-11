@@ -6,10 +6,10 @@ mod core_activity;
 mod diagnostics;
 mod memory;
 mod observation;
-// R5.1 sólo define candidatos reconstruibles desde evidencia R3. No registra
-// comandos, persistencia, aprobación automática ni ejecución de procedimientos.
-#[allow(dead_code)]
 mod procedure_learning;
+// R5.3 conserva decisiones explícitas del propietario en un almacén separado;
+// no crea borradores R4 ni habilita ejecución.
+mod procedure_store;
 // R2 gobierna la primera capacidad migrada. La observación de ventana solo
 // cambia de estado al consumir un grant nativo específico y vigente.
 #[allow(dead_code)]
@@ -35,6 +35,9 @@ use permissions::{
     revoke_permission_grant, stop_sensor_lease, PermissionGateway,
 };
 use procedure_learning::procedure_detection_status;
+use procedure_store::{
+    procedure_candidate_store_status, record_procedure_pattern_decision, ProcedureCandidateStore,
+};
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
 use skills::{
     prepare_read_only_skill_template, read_skill_draft, read_skill_lifecycle, save_skill_draft,
@@ -48,11 +51,13 @@ pub fn run() {
     let permission_gateway = PermissionGateway::default();
     let sensor_store = SensorLeaseStore::default();
     let skill_store = SkillDraftStore::default();
+    let procedure_store = ProcedureCandidateStore::default();
     tauri::Builder::default()
         .manage(observation_store.clone())
         .manage(permission_gateway.clone())
         .manage(sensor_store.clone())
         .manage(skill_store)
+        .manage(procedure_store)
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
@@ -95,6 +100,8 @@ pub fn run() {
             audit_snapshot,
             core_activity_snapshot,
             procedure_detection_status,
+            procedure_candidate_store_status,
+            record_procedure_pattern_decision,
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,

@@ -5,9 +5,9 @@
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
-![R5](https://img.shields.io/badge/R5.2-detector%20validado-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-113%2F113%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-142%2F142%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R5](https://img.shields.io/badge/R5.3-decisiones%20validadas-f59e0b?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-148%2F148%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-152%20aprobadas%20%7C%208%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -35,11 +35,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
-| Aprendizaje gobernado R5.2 | Contrato y detector efímero validados; la auditoría canónica produjo 0 patrones y no fue modificada |
+| Aprendizaje gobernado R5.3 | Contrato, detector y decisiones inmutables validados; 0 patrones y 0 decisiones canónicas, sin crear almacén |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 113/113 aprobadas |
-| Pruebas Rust | 142/142 normales; siete sondas vivas disponibles por separado |
+| Pruebas TypeScript | 148/148 aprobadas |
+| Pruebas Rust | 152 normales aprobadas; ocho sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -144,7 +144,7 @@ R4.5 completa la fase con la pestaña **Taller**, ubicada en `GOVERNANCE CORE` p
 
 La política fija `simulationOnly` mantiene red, procesos y escritura en `false`; `approved` todavía no significa ejecutable. R4 queda cerrada y el siguiente trabajo corresponde a R5: propuestas de procedimientos sustentadas en evidencia auditada. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), [ADR-P-049](docs/decisions/ADR-P-049-almacen-local-borradores.md), [ADR-P-050](docs/decisions/ADR-P-050-simulacion-estatica-de-habilidades.md), [ADR-P-051](docs/decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md), [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md), [el informe R4.2](docs/testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md), [el informe R4.3](docs/testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md), [el informe R4.4](docs/testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md) y [el cierre R4.5](docs/testing/R4_VISIBLE_WORKSHOP_REPORT_2026-08-10.md).
 
-## Aprendizaje gobernado R5.1–R5.2
+## Aprendizaje gobernado R5.1–R5.3
 
 El primer incremento de R5 define qué evidencia sería suficiente para proponer un procedimiento sin afirmar que Alice ya aprendió uno. Un candidato requiere al menos tres operaciones correlacionadas distintas, dos pasos y una evidencia R3 de ejecución exitosa por paso. Capacidad, operación y riesgo se contrastan con R1; eventos de permisos, simulaciones R4, bloqueos o errores no califican.
 
@@ -152,7 +152,11 @@ El contrato no contiene parámetros, mensajes, imágenes ni audio. Las únicas d
 
 R5.2 incorpora `procedure_detection_status`, una lectura efímera de la ventana visible R3. Excluye sistema, permisos, simulaciones, errores, pasos únicos, capacidades planificadas y operaciones cuyo orden no pueda demostrarse a nivel de milisegundo. Agrupa secuencias exactas, exige tres UUID de operación y devuelve huellas y referencias, pero mantiene persistencia, creación de candidato y ejecución en `false`. La sonda canónica real examinó 22 eventos, calificó 0 ejecuciones y devolvió 0 patrones sin alterar ninguno de los 10 archivos de datos.
 
-Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md) y [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md).
+R5.3 añade `procedure_candidate_store_status` y `record_procedure_pattern_decision`. El almacén vive bajo `data/procedures`, separado de memoria y habilidades; consultar no lo crea. Cada huella sólo admite una decisión inmutable del propietario. `retain` reconstruye y valida el candidato contra R1/R3 y conserva su SHA-256; `dismiss` no guarda metadatos del candidato. El motivo nunca se guarda en claro. La nueva pestaña **Procedimientos** está en Governance, no en el Taller. En ambos casos ejecución y creación de borradores R4 siguen en `false`.
+
+La sonda canónica posterior leyó 200 eventos y confirmó 0 patrones, 0 decisiones y almacén inexistente sin modificar datos. Las pruebas controladas sí escribieron archivos JSON/JSONL reales en directorios temporales para demostrar persistencia, SHA-256 e inmutabilidad sin sembrar recuerdos ficticios en Alice.
+
+Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), [ADR-P-061](docs/decisions/ADR-P-061-almacen-decisiones-procedimientos.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md), [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md) y [el informe R5.3](docs/testing/R5_PROCEDURE_DECISION_STORE_REPORT_2026-08-11.md).
 
 ## Iniciar Alice
 
@@ -227,6 +231,7 @@ src-tauri/src/
 ├── memory.rs             persistencia, respaldo y auditoría
 ├── observation.rs        metadatos autorizados de ventana
 ├── procedure_learning.rs contrato y detector R5.2 de secuencias auditadas sin efectos
+├── procedure_store.rs    decisiones R5.3 separadas, inmutables y verificables por SHA-256
 ├── avatar.rs             validación pasiva del VRM
 ├── permissions.rs        tipos, validaciones y digest del Gateway R2
 ├── permissions/

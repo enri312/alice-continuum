@@ -8,6 +8,7 @@ describe("separación de espacios de Alice", () => {
     expect(workspaceForScreen("memoria")).toBe("cognitive");
     expect(workspaceForScreen("cuerpo")).toBe("body");
     expect(workspaceForScreen("habilidades")).toBe("governance");
+    expect(workspaceForScreen("procedimientos")).toBe("governance");
     expect(workspaceForScreen("configuracion")).toBe("governance");
     expect(workspaceForScreen("puentes")).toBe("governance");
     expect(workspaceForScreen("auditoria")).toBe("governance");

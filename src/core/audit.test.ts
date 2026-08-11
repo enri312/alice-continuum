@@ -83,6 +83,17 @@ describe("parseAuditSnapshot", () => {
     expect(new Set(parsed.map((item) => item.operationId))).toEqual(new Set([operationId]));
   });
 
+  it("acepta una decisión R5 correlacionada sin conservar el motivo", () => {
+    const operationId = "123e4567-e89b-42d3-a456-426614174093";
+    const digest = `sha256:${"f".repeat(64)}`;
+    const parsed = [
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174032", operationId, source: "procedure", operation: "procedure.candidate.retain", stage: "request", outcome: "pending", subjectDigest: digest, reasonCode: "PROCEDURE_DECISION_ACCEPTED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174033", operationId, source: "procedure", operation: "procedure.candidate.retain", subjectDigest: digest, reasonCode: "PROCEDURE_DECISION_RECORDED" },
+    ].map(parseAuditEvent);
+    expect(parsed.map((item) => item.source)).toEqual(["procedure", "procedure"]);
+    expect(parsed.every((item) => item.capabilityId === null && item.decision === null)).toBe(true);
+  });
+
   it("acepta una transición motora mínima sin convertirla en decisión cognitiva", () => {
     const parsed = parseAuditEvent({
       ...event,

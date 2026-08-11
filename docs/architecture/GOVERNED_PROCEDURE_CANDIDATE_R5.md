@@ -46,3 +46,17 @@ Los eventos actuales de R4 son simulaciones y transiciones de gobierno, no ejecu
 - El snapshot fija `persistenceApplied`, `candidateCreated` y `executionEnabled` en `false`.
 
 La ejecución canónica más reciente del 11 de agosto examinó 22 eventos válidos y produjo cero patrones. Los 10 archivos de datos permanecieron idénticos. Ese resultado vacío se conserva como evidencia, no se rellena con demostraciones.
+
+## Almacén y decisiones R5.3
+
+`procedure_candidate_store_status` consulta de forma pasiva `data/procedures/candidate-decisions-v1.json`; la ausencia del archivo devuelve una lista vacía sin crear el directorio. `record_procedure_pattern_decision` vuelve a ejecutar R5.2 antes de aceptar una huella y exige confirmación del propietario ligada exactamente a ella.
+
+- Cada huella recibe una sola decisión inmutable: `retain` o `dismiss`.
+- `retain` reconstruye el candidato, lo valida otra vez contra R1/R3 y conserva su SHA-256.
+- `dismiss` no conserva candidato, título, propósito ni pasos.
+- El motivo visible se reduce a SHA-256 antes de escribir; su texto no aparece en el almacén ni en R3.
+- El archivo se publica mediante temporal sincronizado y preservación restaurable de la versión anterior.
+- Los eventos R3 de gobierno usan `source=procedure` y no activan regiones cognitivas.
+- La respuesta fija `executionEnabled=false` y `skillDraftCreated=false`.
+
+La prueba canónica posterior examinó 200 eventos, mantuvo cero patrones y confirmó cero decisiones con el almacén ausente, sin crear contenido. La conversión a borrador R4 sigue fuera de R5.3.

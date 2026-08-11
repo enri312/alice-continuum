@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Procedimientos observados">
+  <defs>
+    <linearGradient id="pr" x1="7" y1="8" x2="57" y2="56"><stop stop-color="#34d399"/><stop offset=".52" stop-color="#22d3ee"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <filter id="gl"><feGaussianBlur stdDeviation=".65" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g stroke="url(#pr)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 17V8h9M47 8h9v9M8 47v9h9m30 0h9v-9" stroke-width=".8" opacity=".55"/>
+    <path d="M13 21h10l5 7h8l5-7h10M13 43h10l5-7h8l5 7h10" stroke-width="1.4"/>
+    <circle cx="13" cy="21" r="3"/><circle cx="51" cy="21" r="3"/><circle cx="13" cy="43" r="3"/><circle cx="51" cy="43" r="3"/>
+    <rect x="24" y="25" width="16" height="14" rx="2" stroke-width="1.4"/>
+    <path d="m28 32 3 3 6-7" stroke-width="1.8" filter="url(#gl)"/>
+    <path d="M5 27h7m40 0h7M5 37h7m40 0h7M27 5v7m10-7v7m-10 40v7m10-7v7" stroke-width=".6" opacity=".45"/>
+    <path d="M18 14h28M18 50h28" stroke-width=".55" stroke-dasharray="2 3" opacity=".45"/>
+  </g>
+  <g fill="url(#pr)"><circle cx="13" cy="21" r="1.1"/><circle cx="51" cy="21" r="1.1"/><circle cx="13" cy="43" r="1.1"/><circle cx="51" cy="43" r="1.1"/><circle cx="32" cy="32" r="1.1"/></g>
+</svg>

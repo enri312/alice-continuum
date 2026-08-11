@@ -23,6 +23,7 @@ pub(crate) enum AuditSource {
     Cloud,
     Skill,
     Avatar,
+    Procedure,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -240,6 +241,34 @@ impl AuditEvent {
         Ok(event)
     }
 
+    pub(crate) fn procedure_decision(
+        operation_id: String,
+        operation: String,
+        stage: AuditStage,
+        outcome: AuditOutcome,
+        subject_digest: String,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Procedure,
+            capability_id: None,
+            operation,
+            stage,
+            decision: None,
+            outcome,
+            duration_ms: None,
+            subject_digest: Some(subject_digest),
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -304,6 +333,31 @@ impl AuditEvent {
                 || !MOTOR_REASONS.contains(&self.reason_code.as_str())
             {
                 return Err("El evento motor del avatar no cumple el contrato R3 cerrado".into());
+            }
+        }
+        if self.source == AuditSource::Procedure {
+            const OPERATIONS: [&str; 2] =
+                ["procedure.candidate.retain", "procedure.candidate.dismiss"];
+            let valid_stage = matches!(
+                (self.stage, self.outcome, self.reason_code.as_str()),
+                (
+                    AuditStage::Request,
+                    AuditOutcome::Pending,
+                    "PROCEDURE_DECISION_ACCEPTED"
+                ) | (
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    "PROCEDURE_DECISION_RECORDED"
+                )
+            );
+            if self.capability_id.is_some()
+                || !OPERATIONS.contains(&self.operation.as_str())
+                || !valid_stage
+                || self.decision.is_some()
+                || self.duration_ms.is_some()
+                || self.subject_digest.is_none()
+            {
+                return Err("El evento de decisión R5 no cumple el contrato R3 cerrado".into());
             }
         }
         Ok(())

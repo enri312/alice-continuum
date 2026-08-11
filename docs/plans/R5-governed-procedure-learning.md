@@ -1,6 +1,6 @@
 # Plan de implementación R5 — Aprendizaje gobernado de procedimientos
 
-Estado: activo; incremento 1 implementado y validado  
+Estado: activo; incrementos 1, 2 y 3 implementados y validados  
 Fecha: 2026-08-11
 
 ## Objetivo
@@ -30,15 +30,19 @@ Permitir que Alice detecte secuencias repetidas únicamente cuando existan ejecu
 
 **Resultado 2026-08-11:** el comando nativo de sólo lectura examina la ventana visible R3, agrupa únicamente secuencias de 2 a 16 pasos con orden temporal inequívoco y exige tres operaciones correlacionadas distintas. El snapshot conserva huella, riesgo, evidencias y variaciones, pero fija persistencia, creación de candidatos y ejecución en `false`. La sonda canónica real más reciente leyó 22 eventos, calificó 0 ejecuciones y devolvió 0 patrones sin modificar ninguno de los 10 archivos de datos.
 
-## Incremento 3 — Almacén y decisiones del propietario
+## Incremento 3 — Almacén y decisiones del propietario ✅
 
-- Persistir candidatos separados de habilidades y memoria.
-- Permitir descartar, corregir o enviar un candidato al Taller.
+- Persistir decisiones y candidatos conservados separados de habilidades y memoria.
+- Permitir conservar o descartar una huella vigente con confirmación explícita.
 - Rechazar o descartar no modifica capacidades, memoria ni manifiestos R4.
-- Toda decisión deja auditoría R3 mínima, sin copiar contenido privado.
+- Toda decisión deja auditoría R3 mínima, sin copiar contenido privado ni el motivo.
+- Consultar no crea almacenamiento; reemplazar preserva el archivo anterior hasta publicar el nuevo.
+
+**Resultado 2026-08-11:** `data/procedures/candidate-decisions-v1.json` conserva una decisión inmutable por huella. `retain` guarda el candidato validado y su SHA-256; `dismiss` guarda sólo la decisión y el digest del motivo. La pestaña **Procedimientos** está en Governance y no se mezcla con el Taller. La sonda canónica real leyó 200 eventos, encontró 0 patrones y 0 decisiones y no creó el almacén. Ejecución y borrador R4 permanecen en `false`.
 
 ## Incremento 4 — Conversión revisable a borrador R4
 
+- Permitir corregir metadatos del candidato antes de una conversión explícita.
 - Convertir un candidato aceptado en un manifiesto `draft`, nunca `approved`.
 - Conservar referencias de evidencia y procedencia R5.
 - Crear una versión nueva si ya existe una habilidad relacionada.

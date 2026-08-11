@@ -35,3 +35,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-057](ADR-P-057-detector-conservador-procedimientos.md) | Detector conservador y sin persistencia de procedimientos repetidos |
 | [ADR-P-058](ADR-P-058-locomocion-retargeteada-con-activos-compatibles.md) | Locomoción retargeteada sólo con activos compatibles |
 | [ADR-P-059](ADR-P-059-maquina-estados-corporal-local.md) | Máquina corporal local y aprendizaje motor separado |
+| [ADR-P-060](ADR-P-060-telemetria-motora-y-detalle-superficial.md) | Telemetría motora humana separada de cognición y detalle superficial reversible del avatar |
+| [ADR-P-061](ADR-P-061-almacen-decisiones-procedimientos.md) | Almacén R5.3 separado, decisiones inmutables y confirmación explícita del propietario |

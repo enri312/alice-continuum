@@ -370,3 +370,24 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .skills-unavailable { padding:24px; }.skills-unavailable span { color:#67e8f9; font-size:.48rem; }.skills-unavailable h2 { color:#e0f2fe; }.skills-unavailable p { max-width:720px; color:#6b8490; font-size:.58rem; line-height:1.6; }
 @media(max-width:900px) { .skills-layout { grid-template-columns:1fr; }.skills-library { border-right:0; border-bottom:1px solid #164e63; }.skills-library section { max-height:145px; overflow:auto; } }
 @media(max-width:680px) { .skills-heading { flex-direction:column; }.skills-metrics,.skills-contract,.skills-simulation-grid { grid-template-columns:1fr 1fr; }.skills-metrics>div:nth-child(2),.skills-contract section:nth-child(2),.skills-simulation-grid div:nth-child(2) { border-right:0; }.skills-metrics>div:nth-child(-n+2),.skills-contract section:nth-child(-n+2),.skills-simulation-grid div:nth-child(-n+2) { border-bottom:1px solid #1e3444; }.skills-primary-actions,.skills-lifecycle-actions { flex-direction:column; }.skills-primary-actions button,.skills-lifecycle-actions button { width:100%; max-width:none; } }
+
+/* R5.3 Procedimientos: detección auditada y decisiones separadas del Taller R4. */
+.procedures-heading { background:linear-gradient(105deg,rgba(5,150,105,.13),rgba(2,6,23,.97) 68%); }
+.procedures-layout { grid-template-columns:340px minmax(0,1fr); }
+.procedure-decision { display:grid; gap:4px; padding:10px; border-bottom:1px solid #182b3b; background:linear-gradient(90deg,rgba(15,118,110,.08),transparent); }
+.procedure-decision strong { overflow:hidden; color:#9cc6bc; font-size:.49rem; text-overflow:ellipsis; white-space:nowrap; }
+.procedure-decision small { overflow:hidden; color:#456f6b; font-size:.4rem; text-overflow:ellipsis; white-space:nowrap; }
+.procedure-steps { display:grid; gap:1px; margin:12px; border:1px solid #1e3444; background:#102333; }
+.procedure-steps article { display:grid; grid-template-columns:36px minmax(0,1fr); align-items:center; gap:9px; padding:8px; background:#030b14; }
+.procedure-steps article>span { display:grid; width:28px; height:25px; place-items:center; border:1px solid #0f766e; color:#5eead4; font-size:.43rem; }
+.procedure-steps strong,.procedure-steps small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.procedure-steps strong { color:#a7c9c5; font-size:.49rem; }.procedure-steps small { margin-top:3px; color:#456777; font-size:.4rem; }
+.procedure-choice { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 12px 12px; }
+.procedure-choice button { border:1px solid #294455; padding:10px; background:#030b14; color:#75929e; text-align:left; font-family:Consolas,monospace; }
+.procedure-choice button strong,.procedure-choice button small { display:block; }.procedure-choice button strong { font-size:.48rem; }.procedure-choice button small { margin-top:5px; color:#456777; font-size:.4rem; line-height:1.45; }
+.procedure-choice button.selected { border-color:#10b981; background:rgba(5,150,105,.09); color:#6ee7b7; box-shadow:inset 2px 0 #10b981; }
+.procedure-choice button.dismiss.selected { border-color:#e11d48; background:rgba(159,18,57,.09); color:#fda4af; box-shadow:inset 2px 0 #e11d48; }
+.procedure-confirmation { margin-top:4px; }
+.procedures-footnote { padding:8px 11px; border-top:1px solid #164e63; color:#3e6770; font-size:.4rem; letter-spacing:.04em; overflow-wrap:anywhere; }
+@media(max-width:900px) { .procedures-layout { grid-template-columns:1fr; } }
+@media(max-width:680px) { .procedure-choice { grid-template-columns:1fr; } }

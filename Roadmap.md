@@ -154,7 +154,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
-**Estado:** activa desde 2026-08-11 · incrementos 1 y 2 validados  
+**Estado:** activa desde 2026-08-11 · incrementos 1, 2 y 3 validados  
 **Dependencia:** Fase R4  
 **Objetivo:** permitir que Alice detecte procedimientos repetidos y proponga convertirlos en habilidades.
 
@@ -164,15 +164,17 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 **Criterios de aceptación:**
 
-- [ ] Una propuesta contiene evidencia suficiente para reconstruir su origen.
-- [ ] La detección evita proponer tareas triviales o de una sola aparición.
+- [x] Una propuesta contiene evidencia suficiente para reconstruir su origen.
+- [x] La detección evita proponer tareas triviales o de una sola aparición.
 - [ ] Aprobar crea una nueva versión; no sobrescribe la anterior.
-- [ ] Rechazar no modifica capacidades ni memoria duradera.
+- [x] Rechazar no modifica capacidades ni memoria duradera.
 - [ ] Existe restauración de una versión anterior.
 
 **Incremento R5.1:** contrato cerrado de candidatos sustentados en R1 y R3. Exige al menos tres ocurrencias, dos pasos, riesgo no reducido y diferencias recalculables; mantiene sólo propuesta, sin comandos, persistencia, memoria duradera, autoactivación ni ejecución.
 
 **Incremento R5.2:** detector efímero y de sólo lectura sobre la ventana visible R3. Excluye eventos no productores, capacidades planificadas, pasos únicos y secuencias con orden temporal ambiguo. La prueba canónica examinó 22 eventos y devolvió 0 ejecuciones calificadas y 0 patrones sin modificar ninguno de los 10 archivos de datos.
+
+**Incremento R5.3:** almacén separado de decisiones bajo `data/procedures`, con una decisión inmutable `retain` o `dismiss` por huella y confirmación explícita del propietario. Conservar guarda un candidato validado y su SHA-256; descartar no guarda metadatos del candidato y el motivo se reduce a digest. La pestaña **Procedimientos** vive en Governance, separada del Taller R4. La sonda canónica real examinó 200 eventos, encontró 0 patrones y 0 decisiones y no creó el almacén; ejecución y borrador R4 continúan deshabilitados.
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
@@ -309,7 +311,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: R5.1 cerró el contrato de candidatos y R5.2 añadió detección conservadora sin persistencia. Los datos canónicos continúan con cero patrones elegibles, que es el estado real esperado. El próximo incremento es R5.3: almacén separado y decisiones explícitas del propietario. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense del visor no alimenta R5 ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: R5.1 cerró el contrato de candidatos, R5.2 añadió detección conservadora y R5.3 incorporó decisiones explícitas en un almacén separado. Los datos canónicos continúan con cero patrones elegibles y cero decisiones, que es el estado real esperado. El próximo incremento es R5.4: conversión explícita y revisable de un candidato conservado a un nuevo borrador R4, nunca a una habilidad aprobada o ejecutable. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense del visor no alimenta R5 ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

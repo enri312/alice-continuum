@@ -1,4 +1,4 @@
-export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill" | "avatar";
+export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill" | "avatar" | "procedure";
 export type AuditStage = "request" | "authorization" | "execution" | "stop" | "revocation" | "block" | "error";
 export type AuditDecision = "allow" | "deny" | "cancel";
 export type AuditOutcome = "pending" | "success" | "blocked" | "error";
@@ -31,7 +31,7 @@ export type AuditSnapshot = {
   events: AuditEvent[];
 };
 
-const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill", "avatar"];
+const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill", "avatar", "procedure"];
 const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "revocation", "block", "error"];
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];
@@ -46,6 +46,7 @@ const avatarMotorOperations = new Set([
   "avatar.motor.standing_up",
 ]);
 const avatarMotorReasons = new Set(["HUMAN_GAMEPAD_TRANSITION", "LOCAL_DIAGNOSTIC_TRANSITION", "HUMAN_POSTURE_TRANSITION"]);
+const procedureOperations = new Set(["procedure.candidate.retain", "procedure.candidate.dismiss"]);
 const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
 const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
@@ -99,6 +100,15 @@ export function parseAuditEvent(value: unknown): AuditEvent {
     || value.subjectDigest !== null
     || !avatarMotorReasons.has(value.reasonCode as string)
   )) throw new Error("Evento motor R3 inválido");
+  if (value.source === "procedure" && (
+    value.capabilityId !== null
+    || !procedureOperations.has(value.operation as string)
+    || value.decision !== null
+    || value.durationMs !== null
+    || value.subjectDigest === null
+    || !((value.stage === "request" && value.outcome === "pending" && value.reasonCode === "PROCEDURE_DECISION_ACCEPTED")
+      || (value.stage === "execution" && value.outcome === "success" && value.reasonCode === "PROCEDURE_DECISION_RECORDED"))
+  )) throw new Error("Evento de decisión R5 inválido");
   return value as AuditEvent;
 }
 

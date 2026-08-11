@@ -9,6 +9,7 @@ import { Puentes } from "./Page/Puentes";
 import { Identificacion } from "./Page/Identificacion";
 import { Configuracion } from "./Page/Configuracion";
 import { Habilidades } from "./Page/Habilidades";
+import { Procedimientos } from "./Page/Procedimientos";
 import { buildBrainSnapshot } from "./core/brain";
 import { createCognitiveEvent } from "./core/cognitive-events";
 import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive-events";
@@ -309,7 +310,7 @@ export function App() {
         <span>SYS 02 · PRESENCIA FÍSICA</span><strong>EMBODIMENT CORE</strong><small>rostro · cuerpo · avatar · entorno futuro</small>
       </button>
       <button type="button" role="tab" aria-selected={workspace === "governance"} className={workspace === "governance" ? "selected governance" : "governance"} onClick={() => setScreen("puentes")}>
-        <span>SYS 00 · CONTROL DEL PROPIETARIO</span><strong>GOVERNANCE CORE</strong><small>capacidades · permisos · habilidades · configuración</small>
+        <span>SYS 00 · CONTROL DEL PROPIETARIO</span><strong>GOVERNANCE CORE</strong><small>capacidades · auditoría · habilidades · procedimientos</small>
       </button>
     </nav>
 
@@ -336,6 +337,7 @@ export function App() {
       <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y permisos" data-tooltip="Capacidades y permisos" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y permisos</span><span className="screen-count">R1/R2</span></button>
       <button className={screen === "auditoria" ? "selected" : ""} aria-label="Auditoría y diagnóstico" data-tooltip="Auditoría y diagnóstico" aria-current={screen === "auditoria" ? "page" : undefined} onClick={() => setScreen("auditoria")}><NavigationIcon kind="activity" active={screen === "auditoria"} /><span className="screen-tab-label">Auditoría y diagnóstico</span><span className="screen-count">R3</span></button>
       <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller</span><span className="screen-count">R4</span></button>
+      <button className={screen === "procedimientos" ? "selected" : ""} aria-label="Procedimientos observados" data-tooltip="Procedimientos" aria-current={screen === "procedimientos" ? "page" : undefined} onClick={() => setScreen("procedimientos")}><NavigationIcon kind="procedures" active={screen === "procedimientos"} /><span className="screen-tab-label">Procedimientos</span><span className="screen-count">R5</span></button>
       <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
       </>}
     </nav>
@@ -348,6 +350,7 @@ export function App() {
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
+    {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
     {screen === "puentes" && <Puentes fixedView="overview" onObservationStateChange={setObservationEnabled} />}
     {screen === "rostro" && <Puentes fixedView="face" onObservationStateChange={setObservationEnabled} />}

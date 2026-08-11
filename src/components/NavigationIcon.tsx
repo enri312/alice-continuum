@@ -7,11 +7,12 @@ import avatarSvg from "../../icons/nav-avatar.svg?raw";
 import identificationSvg from "../../icons/nav-identification.svg?raw";
 import settingsSvg from "../../icons/nav-settings.svg?raw";
 import skillsSvg from "../../icons/nav-skills.svg?raw";
+import proceduresSvg from "../../icons/nav-procedures.svg?raw";
 import faceSvg from "../../icons/bridge-face.svg?raw";
 import bodySvg from "../../icons/bridge-body.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "face" | "body";
+export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -28,6 +29,7 @@ const sources: Record<NavigationIconKind, string> = {
   identification: identificationSvg,
   settings: settingsSvg,
   skills: skillsSvg,
+  procedures: proceduresSvg,
   face: faceSvg,
   body: bodySvg,
 };
