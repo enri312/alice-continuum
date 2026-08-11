@@ -30,3 +30,8 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-052](ADR-P-052-fronteras-mente-cuerpo-gobierno.md) | Separación visible y arquitectónica entre mente, cuerpo, futura sala de observación y gobierno del propietario |
 | [ADR-P-053](ADR-P-053-sistema-iconos-isometricos-3d.md) | Experimento cyber-isométrico 3D, reemplazado por ADR-P-054 |
 | [ADR-P-054](ADR-P-054-sistema-iconos-holograficos-planos.md) | Familia SVG holográfica plana, original y diferenciada por función |
+| [ADR-P-055](ADR-P-055-candidatos-procedimientos-auditados.md) | Candidatos de procedimientos derivados únicamente de auditoría válida |
+| [ADR-P-056](ADR-P-056-prueba-manual-dualsense-avatar.md) | Prueba manual DualSense aislada del control cognitivo |
+| [ADR-P-057](ADR-P-057-detector-conservador-procedimientos.md) | Detector conservador y sin persistencia de procedimientos repetidos |
+| [ADR-P-058](ADR-P-058-locomocion-retargeteada-con-activos-compatibles.md) | Locomoción retargeteada sólo con activos compatibles |
+| [ADR-P-059](ADR-P-059-maquina-estados-corporal-local.md) | Máquina corporal local y aprendizaje motor separado |

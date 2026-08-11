@@ -26,7 +26,7 @@ struct AvatarAnimationClipStatus {
     size_bytes: u64,
 }
 
-const AVATAR_ANIMATION_FILES: [(&str, &str); 9] = [
+const AVATAR_ANIMATION_FILES: [(&str, &str); 12] = [
     ("idle", "Idle.fbx"),
     ("forward", "Walking.fbx"),
     ("backward", "Walking Backwards.fbx"),
@@ -36,6 +36,9 @@ const AVATAR_ANIMATION_FILES: [(&str, &str); 9] = [
     ("run", "Run Forward.fbx"),
     ("turn-left", "Left Turn.fbx"),
     ("turn-right", "Right Turn.fbx"),
+    ("start-walking", "Start Walking.fbx"),
+    ("sitting-idle", "Sitting Idle.fbx"),
+    ("standing-up", "Standing Up.fbx"),
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -205,12 +208,15 @@ mod tests {
 
     #[test]
     fn animation_catalog_declares_the_required_private_clips() {
-        assert_eq!(AVATAR_ANIMATION_FILES.len(), 9);
+        assert_eq!(AVATAR_ANIMATION_FILES.len(), 12);
         assert!(AVATAR_ANIMATION_FILES.contains(&("idle", "Idle.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("jump", "Jump.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("run", "Run Forward.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("turn-left", "Left Turn.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("turn-right", "Right Turn.fbx")));
+        assert!(AVATAR_ANIMATION_FILES.contains(&("start-walking", "Start Walking.fbx")));
+        assert!(AVATAR_ANIMATION_FILES.contains(&("sitting-idle", "Sitting Idle.fbx")));
+        assert!(AVATAR_ANIMATION_FILES.contains(&("standing-up", "Standing Up.fbx")));
         assert!(local_animation_directory().is_ok());
     }
 }

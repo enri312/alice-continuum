@@ -3,11 +3,12 @@ import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { VRMHumanBoneName } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 
-export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump" | "run" | "turn-left" | "turn-right";
+export type LocomotionAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "run" | "turn-left" | "turn-right";
+export type AvatarAnimationId = LocomotionAnimationId | "jump" | "start-walking" | "sitting-idle" | "standing-up";
 export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
-export type LocomotionWeights = Record<Exclude<AvatarAnimationId, "jump">, number>;
+export type LocomotionWeights = Record<LocomotionAnimationId, number>;
 
-const locomotionBaseCycles: Record<Exclude<AvatarAnimationId, "idle" | "jump">, number> = {
+const locomotionBaseCycles: Record<Exclude<LocomotionAnimationId, "idle">, number> = {
   forward: .75,
   backward: .90,
   left: .68,
@@ -108,12 +109,22 @@ export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0)
 }
 
 export function locomotionCycleRate(
-  animation: Exclude<AvatarAnimationId, "jump">,
+  animation: LocomotionAnimationId,
   movement: number,
 ) {
   if (animation === "idle") return .72;
   const safeMovement = THREE.MathUtils.clamp(Number.isFinite(movement) ? movement : 0, 0, 1);
   return locomotionBaseCycles[animation] * (.55 + safeMovement * .45);
+}
+
+export function stripAccumulatedRootTranslation(values: ArrayLike<number>) {
+  const output = Array.from(values);
+  if (output.length < 3 || output.length % 3 !== 0) return output;
+  for (let index = 0; index < output.length; index += 3) {
+    output[index] = 0;
+    output[index + 2] = 0;
+  }
+  return output;
 }
 
 export function footGroundCorrection(
@@ -218,7 +229,10 @@ export async function loadMixamoAnimation(url: string, vrm: VRM, name: string) {
       }
       tracks.push(new THREE.QuaternionKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, values));
     } else if (track instanceof THREE.VectorKeyframeTrack) {
-      const values = Array.from(track.values, (value, index) => {
+      const sourceValues = vrmBoneName === VRMHumanBoneName.Hips && name === "start-walking"
+        ? stripAccumulatedRootTranslation(track.values)
+        : Array.from(track.values);
+      const values = Array.from(sourceValues, (value, index) => {
         const vrm0Sign = vrm.meta.metaVersion === "0" && index % 3 !== 1 ? -1 : 1;
         return value * hipsPositionScale * vrm0Sign;
       });

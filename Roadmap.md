@@ -32,7 +32,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Conversación de nube | Funcional | Proveedores intercambiables, previsualización y autorización expresa. |
 | Memoria enseñable v1 | Funcional en evolución | Registros locales, respaldo, exportación, recuperación lexical y edición. |
 | Consolidación v1 | Funcional en evolución | Repaso manual y refuerzo por recuperación autorizada. |
-| Avatar VRM | Visor funcional | Carga local privada, inspección, prueba manual DualSense y ensayo procedural de marcha; clips retargeteados, IK, voz, decisiones corporales y Ragdoll siguen desconectados. |
+| Avatar VRM | Visor funcional | Carga privada, DualSense, 12 clips retargeteados, IK y máquina de siete estados; voz, aprendizaje, decisiones corporales y Ragdoll siguen desconectados. |
 | Ejecución de acciones | Bloqueada | El modelo no ejecuta comandos ni modifica Windows. |
 
 ## Secuencia de materialización
@@ -244,6 +244,8 @@ SQLite se adoptará solamente cuando las relaciones, transacciones o el volumen 
 **Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
 
 Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, animaciones, entrada facial o corporal y finalmente Active Ragdoll. Fish Audio continúa como candidato de voz sujeto a licencia, privacidad, costo y pruebas. Cada adaptador deberá registrarse como una capacidad independiente.
+
+**Base corporal local ya comprobada:** el visor manual dispone de doce clips privados, mezcla locomotora, IK de apoyo y una FSM de siete estados para reposo, arranque, locomoción, salto, sentarse y levantarse. Esta base no activa el puente cognitivo. El aprendizaje motor futuro deberá correlacionar intención, acción, telemetría y resultado en R3, exigir repeticiones válidas y proponer memoria procedural bajo confirmación; nunca inferir aprendizaje por la sola existencia o reproducción de un clip.
 
 #### Subfase futura — Sala de observación y maduración
 

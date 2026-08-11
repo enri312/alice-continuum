@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
-import { advanceFootLockOffset, bakeFootLockOffset, computeLocomotionWeights, footGroundCorrection, locomotionCycleRate, selectAvatarAnimation, stripAccumulatedRootYaw } from "./avatar-animation";
+import { advanceFootLockOffset, bakeFootLockOffset, computeLocomotionWeights, footGroundCorrection, locomotionCycleRate, selectAvatarAnimation, stripAccumulatedRootTranslation, stripAccumulatedRootYaw } from "./avatar-animation";
 
 describe("avatar animation selection", () => {
   it("mantiene reposo dentro del umbral", () => {
@@ -100,5 +100,9 @@ describe("avatar animation selection", () => {
     expect(THREE.MathUtils.radToDeg(euler.y)).toBeCloseTo(0, 6);
     expect(Math.abs(euler.x)).toBeGreaterThan(.05);
     expect(Math.abs(euler.z)).toBeGreaterThan(.02);
+  });
+
+  it("elimina el desplazamiento horizontal de Start Walking conservando la altura", () => {
+    expect(stripAccumulatedRootTranslation([2, .8, -3, 2.4, .83, -3.6])).toEqual([0, .8, 0, 0, .83, 0]);
   });
 });

@@ -12,10 +12,10 @@ Los archivos binarios de animación se guardan bajo `private/` y quedan excluido
 | `mixamo.strafe.right.in-place.v1` | Adobe Mixamo | `Right Strafe Walking` | FBX sin piel | `680E15042086BFF01B59125C83A0D650A4F6A82AE697B03E765C2DA668A64A63` | Uso dentro de Alice; no redistribuir como activo independiente |
 | `mixamo.jump.in-place.v1` | Adobe Mixamo | `Jump` | FBX sin piel | `F13A31803ABB384C88524D19EE398384FECDB2C974D55A8BDB9BED3E6AB0EF63` | Uso dentro de Alice; no redistribuir como activo independiente |
 | `mixamo.run.forward.in-place.v1` | Adobe Mixamo | `Run Forward` | FBX sin piel | `9EE1BED58AAFFC867DB7B44470B8C9C111E5C172E60CF2710C9FACC4A50EE203` | Uso dentro de Alice; no redistribuir como activo independiente |
-| `mixamo.walk.start.root-motion.v1` | Adobe Mixamo | `Start Walking` | FBX sin piel con desplazamiento de raíz | `D40323E5953B78C345F8F9F0213BA2C99B40BD190A1C8EED3EA26B81FE66BD08` | Reservado hasta separar root motion del controlador; no redistribuir como activo independiente |
-| `mixamo.stand-up.root-motion.v1` | Adobe Mixamo | `Standing Up` | FBX sin piel; transición no cíclica | `DFF9136E31203D4553892E9A5300D351602AA31385466E2AC12A163C14E54E0E` | Reservado para estado sentado/de pie; no redistribuir como activo independiente |
+| `mixamo.walk.start.root-motion.v1` | Adobe Mixamo | `Start Walking` | FBX sin piel con desplazamiento de raíz | `D40323E5953B78C345F8F9F0213BA2C99B40BD190A1C8EED3EA26B81FE66BD08` | Máquina corporal elimina traslación horizontal de cadera; no redistribuir como activo independiente |
+| `mixamo.stand-up.root-motion.v1` | Adobe Mixamo | `Standing Up` | FBX sin piel; transición no cíclica | `DFF9136E31203D4553892E9A5300D351602AA31385466E2AC12A163C14E54E0E` | Levantarse hacia delante y sentarse en reversa; no redistribuir como activo independiente |
 | `mixamo.idle.breathing.v1` | Adobe Mixamo | `Breathing Idle` | FBX sin piel | `97627D8CC0DA4C078BB31C02470389DCD42EF4DD7335EE60E4FCDEFEDA862842` | Uso dentro de Alice; no redistribuir como activo independiente |
-| `mixamo.idle.sitting.v1` | Adobe Mixamo | `Sitting Idle` | FBX sin piel | `0E7DD4B9A82EEB745F82D25443D53959335ADED1316EBC2B04D54DCA8FBCB49B` | Uso dentro de Alice; no redistribuir como activo independiente |
+| `mixamo.idle.sitting.v1` | Adobe Mixamo | `Sitting Idle` | FBX sin piel | `0E7DD4B9A82EEB745F82D25443D53959335ADED1316EBC2B04D54DCA8FBCB49B` | Bucle de reposo sentado dentro de la FSM; no redistribuir como activo independiente |
 | `mixamo.idle.standing.v1` | Adobe Mixamo | `Idle` | FBX sin piel | `01349EA06F0B55961E415732A18AD2EB2A1810E5C00BF20635359320AAB3D288` | Uso dentro de Alice; no redistribuir como activo independiente |
 
 Rutas privadas esperadas: `Assets/Animations/private/mixamo/*.fbx`.

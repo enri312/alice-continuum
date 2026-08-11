@@ -13,6 +13,7 @@ import {
   locomotionCycleRate,
   type AvatarAnimationId,
   type AvatarAnimationUrls,
+  type LocomotionAnimationId,
 } from "../core/avatar-animation";
 import {
   advanceManualAvatarMotion,
@@ -27,6 +28,12 @@ import {
 } from "../core/manual-avatar-control";
 import { avatarClothingFinish } from "../core/avatar-appearance";
 import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../core/avatar-foot-ik";
+import {
+  advanceAvatarBodyState,
+  bodyStateAnimation,
+  isBodyTransition,
+  type AvatarBodyState,
+} from "../core/avatar-body-state";
 
 const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run", "turn-left", "turn-right"] as const;
 
@@ -195,6 +202,16 @@ function applyManualPose(vrm: VRM, input: ManualAvatarInput, gaitPhase: number, 
 
 const idleManualInput: ManualAvatarInput = { moveX: 0, moveZ: 0, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
 
+const bodyStateLabels: Record<AvatarBodyState, string> = {
+  "standing-idle": "DE PIE · REPOSO",
+  "starting-walk": "INICIANDO MARCHA",
+  locomoting: "LOCOMOCIÓN",
+  jumping: "SALTO",
+  "sitting-down": "SENTÁNDOSE",
+  "sitting-idle": "SENTADA · REPOSO",
+  "standing-up": "LEVANTÁNDOSE",
+};
+
 export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarViewerProps) {
   const diagnosticAutostart = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const hostRef = useRef<HTMLDivElement>(null);
@@ -202,11 +219,13 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
   const poseRef = useRef<(mode: PoseMode) => void>(() => undefined);
   const manualModeRef = useRef<ManualMode>(diagnosticAutostart ? "diagnostic" : "off");
   const manualResetRef = useRef<() => void>(() => undefined);
+  const postureToggleRef = useRef(false);
   const [viewerState, setViewerState] = useState<ViewerState>("loading");
   const [poseMode, setPoseMode] = useState<PoseMode>("idle");
   const [manualMode, setManualMode] = useState<ManualMode>(diagnosticAutostart ? "diagnostic" : "off");
   const [manualControl, setManualControl] = useState<ManualControlTelemetry>({ state: "off", device: "", input: idleManualInput });
   const [bodyMotion, setBodyMotion] = useState<BodyMotionTelemetry>({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0, ikApplied: false, ikResidual: 0 });
+  const [bodyStateTelemetry, setBodyStateTelemetry] = useState<AvatarBodyState>("standing-idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -227,10 +246,12 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let currentVrm: VRM | null = null;
     let animationMixer: THREE.AnimationMixer | null = null;
     let animationActions: Partial<Record<AvatarAnimationId, THREE.AnimationAction>> = {};
+    let animationCapabilities = new Set<AvatarAnimationId>();
     let animationPlaybackEnabled = false;
     let dominantAnimation: AvatarAnimationId = "idle";
-    let jumpActive = false;
     let jumpWasPressed = false;
+    let bodyState: AvatarBodyState = "standing-idle";
+    let transitionAction: THREE.AnimationAction | null = null;
     let groundCorrection = 0;
     let referenceFootY: number | null = null;
     let normalizedHips: THREE.Object3D | null = null;
@@ -260,7 +281,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
 
     const applyLocomotionBlend = (input: ManualAvatarInput) => {
       const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
-      dominantAnimation = locomotionAnimationIds.reduce((dominant, id) => weights[id] > weights[dominant] ? id : dominant, "idle" as Exclude<AvatarAnimationId, "jump">);
+      dominantAnimation = locomotionAnimationIds.reduce((dominant, id) => weights[id] > weights[dominant] ? id : dominant, "idle" as LocomotionAnimationId);
       const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
       for (const id of locomotionAnimationIds) {
         const action = animationActions[id];
@@ -273,27 +294,63 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       animationPlaybackEnabled = true;
     };
 
-    const playJump = () => {
-      const jump = animationActions.jump;
-      if (!jump) return false;
-      for (const id of locomotionAnimationIds) animationActions[id]?.setEffectiveWeight(0);
-      jump.enabled = true;
-      jump.setEffectiveWeight(1);
-      jump.setEffectiveTimeScale(1);
-      jump.setLoop(THREE.LoopOnce, 1);
-      jump.clampWhenFinished = true;
-      jump.reset().play();
-      dominantAnimation = "jump";
+    const fadeOtherActions = (selected: THREE.AnimationAction, seconds = .18) => {
+      for (const action of Object.values(animationActions)) {
+        if (action && action !== selected) action.fadeOut(seconds);
+      }
+    };
+
+    const playOneShot = (id: AvatarAnimationId, reverse = false) => {
+      const action = animationActions[id];
+      if (!action) return null;
+      fadeOtherActions(action);
+      action.reset();
+      action.enabled = true;
+      action.setEffectiveWeight(1);
+      action.setEffectiveTimeScale(reverse ? -1 : 1);
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+      if (reverse) action.time = action.getClip().duration;
+      action.fadeIn(.18).play();
+      dominantAnimation = id;
+      animationPlaybackEnabled = true;
+      return action;
+    };
+
+    const playLoop = (id: AvatarAnimationId) => {
+      const action = animationActions[id];
+      if (!action) return false;
+      fadeOtherActions(action, .24);
+      action.reset();
+      action.enabled = true;
+      action.setEffectiveWeight(1);
+      action.setEffectiveTimeScale(1);
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      action.clampWhenFinished = false;
+      action.fadeIn(.24).play();
+      dominantAnimation = id;
       animationPlaybackEnabled = true;
       return true;
     };
 
+    const enterBodyState = (next: AvatarBodyState, input: ManualAvatarInput) => {
+      if (next === bodyState) return;
+      bodyState = next;
+      setBodyStateTelemetry(next);
+      transitionAction = null;
+      if (next === "starting-walk") transitionAction = playOneShot("start-walking");
+      else if (next === "jumping") transitionAction = playOneShot("jump");
+      else if (next === "sitting-down") transitionAction = playOneShot("standing-up", true);
+      else if (next === "standing-up") transitionAction = playOneShot("standing-up");
+      else if (next === "sitting-idle") playLoop("sitting-idle");
+      else applyLocomotionBlend(next === "locomoting" ? input : idleManualInput);
+    };
+
     const restoreIdle = () => {
-      jumpActive = false;
       jumpWasPressed = false;
-      animationActions.jump?.stop();
       dominantAnimation = "idle";
-      if (animationActions.idle) applyLocomotionBlend(idleManualInput);
+      if (bodyState !== "standing-idle") enterBodyState("standing-idle", idleManualInput);
+      else if (animationActions.idle) applyLocomotionBlend(idleManualInput);
       else applyPose(currentVrm!, "idle");
     };
 
@@ -394,16 +451,25 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
             : readManualAvatarInput(gamepad!);
           smoothedInput = smoothManualAvatarInput(smoothedInput, targetInput, delta);
           const input = smoothedInput;
-          if (input.jump && !jumpWasPressed && animationActions.jump) {
-            jumpActive = playJump();
-          }
+          const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
+          const jumpPressed = input.jump && !jumpWasPressed;
           jumpWasPressed = input.jump;
-          if (jumpActive && !animationActions.jump?.isRunning()) jumpActive = false;
-          if (!jumpActive) applyLocomotionBlend(input);
+          const transitionFinished = isBodyTransition(bodyState) && (!transitionAction || !transitionAction.isRunning());
+          const nextBodyState = advanceAvatarBodyState(bodyState, {
+            movement,
+            forward: input.moveZ < -.08 && Math.abs(input.moveZ) >= Math.abs(input.moveX),
+            jumpPressed,
+            togglePosture: postureToggleRef.current,
+            transitionFinished,
+          }, animationCapabilities);
+          postureToggleRef.current = false;
+          if (nextBodyState !== bodyState) enterBodyState(nextBodyState, input);
+          if (bodyState === "locomoting") applyLocomotionBlend(input);
           const targetGait = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .55);
           gaitIntensity += (targetGait - gaitIntensity) * Math.min(1, delta * 8);
           if (targetGait > .02) gaitPhase += delta * (4.2 + targetGait * 4.8);
-          manualMotion = advanceManualAvatarMotion(manualMotion, input, delta);
+          const motionInput = bodyState === "locomoting" || bodyState === "starting-walk" ? input : idleManualInput;
+          manualMotion = advanceManualAvatarMotion(manualMotion, motionInput, delta);
           currentVrm.scene.position.set(
             initialAvatarPosition.x + manualMotion.x + footLockOffset.x,
             initialAvatarPosition.y + Math.abs(Math.sin(gaitPhase * 2)) * gaitIntensity * .008,
@@ -411,8 +477,8 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           );
           currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
           currentVrm.scene.rotateY(manualMotion.yaw);
-          if (!animationMixer || Object.keys(animationActions).length === 0) {
-            applyManualPose(currentVrm, input, gaitPhase, gaitIntensity);
+          if ((!animationMixer || Object.keys(animationActions).length === 0) && (bodyState === "locomoting" || bodyState === "starting-walk")) {
+            applyManualPose(currentVrm, motionInput, gaitPhase, gaitIntensity);
           }
           if (performance.now() >= nextManualTelemetryAt) {
             nextManualTelemetryAt = performance.now() + 160;
@@ -422,7 +488,9 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
               input,
             });
             setBodyMotion({
-              animation: Math.hypot(input.moveX, input.moveZ) <= .08 && Math.abs(input.turn) > .08
+              animation: isBodyTransition(bodyState) || bodyState === "sitting-idle"
+                ? bodyStateAnimation(bodyState)
+                : Math.hypot(input.moveX, input.moveZ) <= .08 && Math.abs(input.turn) > .08
                 ? input.turn > 0 ? "turn-right" : "turn-left"
                 : dominantAnimation,
               speed: manualAvatarSpeed(input) * Math.min(1, Math.hypot(input.moveX, input.moveZ)),
@@ -449,24 +517,38 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           setManualControl({ state: "waiting", device: "", input: idleManualInput });
           setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0, ikApplied: false, ikResidual: 0 });
         }
-      } else if (currentVrm && manualWasEnabled) {
-        manualWasEnabled = false;
-        manualMotion = { x: 0, z: 0, yaw: 0 };
-        footLockOffset = { x: 0, z: 0 };
-        lockedFoot = null;
-        ikApplied = false;
-        ikResidual = 0;
-        gaitPhase = 0;
-        gaitIntensity = 0;
-        diagnosticElapsed = 0;
-        smoothedInput = idleManualInput;
-        currentVrm.scene.position.copy(initialAvatarPosition);
-        currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
-        restoreIdle();
+      } else if (currentVrm) {
+        if (manualWasEnabled) {
+          manualWasEnabled = false;
+          manualMotion = { x: 0, z: 0, yaw: 0 };
+          footLockOffset = { x: 0, z: 0 };
+          lockedFoot = null;
+          ikApplied = false;
+          ikResidual = 0;
+          gaitPhase = 0;
+          gaitIntensity = 0;
+          diagnosticElapsed = 0;
+          smoothedInput = idleManualInput;
+          currentVrm.scene.position.copy(initialAvatarPosition);
+          currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
+          if (bodyState === "locomoting" || bodyState === "starting-walk" || bodyState === "jumping") restoreIdle();
+        }
+        const transitionFinished = isBodyTransition(bodyState) && (!transitionAction || !transitionAction.isRunning());
+        const nextBodyState = advanceAvatarBodyState(bodyState, {
+          movement: 0,
+          forward: false,
+          jumpPressed: false,
+          togglePosture: postureToggleRef.current,
+          transitionFinished,
+        }, animationCapabilities);
+        postureToggleRef.current = false;
+        if (nextBodyState !== bodyState) enterBodyState(nextBodyState, idleManualInput);
       }
       animationMixer?.update(delta);
       if (
-        currentVrm && animationPlaybackEnabled && !jumpActive && referenceFootY != null
+        currentVrm && animationPlaybackEnabled
+        && (bodyState === "standing-idle" || bodyState === "starting-walk" || bodyState === "locomoting")
+        && referenceFootY != null
         && normalizedHips && normalizedLeftFoot && normalizedRightFoot
       ) {
         currentVrm.scene.updateMatrixWorld(true);
@@ -600,6 +682,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
             console.error("No se pudo cargar una animación corporal", result.reason);
           }
         }
+        animationCapabilities = new Set(Object.keys(animationActions) as AvatarAnimationId[]);
         normalizedHips = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips);
         normalizedLeftUpperLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg);
         normalizedLeftLowerLeg = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg);
@@ -687,6 +770,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       animationMixer?.stopAllAction();
       animationMixer = null;
       animationActions = {};
+      animationCapabilities.clear();
       grid.geometry.dispose();
       gridMaterials.forEach((material) => material.dispose());
       shadowGround.geometry.dispose();
@@ -702,15 +786,21 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     <div className={`avatar-viewer-state state-${viewerState}`} aria-live="polite">
       <i />{viewerState === "loading" ? "CARGANDO VRM LOCAL" : viewerState === "ready" ? "VRM LISTO" : "ERROR DE VISOR"}
     </div>
-    {viewerState === "ready" && <div className="avatar-viewer-actions"><button className={`avatar-gamepad ${manualMode === "gamepad" ? "active" : ""}`} type="button" aria-pressed={manualMode === "gamepad"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "gamepad" ? "off" : "gamepad"); }}>{manualMode === "gamepad" ? "Detener control PS5" : "Probar control PS5"}</button><button className={`avatar-gait-test ${manualMode === "diagnostic" ? "active" : ""}`} type="button" aria-pressed={manualMode === "diagnostic"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "diagnostic" ? "off" : "diagnostic"); }}>{manualMode === "diagnostic" ? "Detener ensayo" : "Ensayar marcha"}</button><button className="avatar-pose" type="button" disabled={manualMode !== "off"} onClick={() => { const next = poseMode === "idle" ? "reference" : "idle"; poseRef.current(next); setPoseMode(next); }}>{poseMode === "idle" ? "Ver pose de referencia" : "Volver a postura de reposo"}</button><button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button></div>}
+    {viewerState === "ready" && <div className="avatar-viewer-actions">
+      <button className={`avatar-gamepad ${manualMode === "gamepad" ? "active" : ""}`} type="button" aria-pressed={manualMode === "gamepad"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "gamepad" ? "off" : "gamepad"); }}>{manualMode === "gamepad" ? "Detener control PS5" : "Probar control PS5"}</button>
+      <button className={`avatar-gait-test ${manualMode === "diagnostic" ? "active" : ""}`} type="button" aria-pressed={manualMode === "diagnostic"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "diagnostic" ? "off" : "diagnostic"); }}>{manualMode === "diagnostic" ? "Detener ensayo" : "Ensayar marcha"}</button>
+      <button className="avatar-posture" type="button" disabled={poseMode === "reference" || isBodyTransition(bodyStateTelemetry) || !animationUrls["standing-up"] || !animationUrls["sitting-idle"]} onClick={() => { postureToggleRef.current = true; }}>{bodyStateTelemetry === "sitting-idle" ? "Levantar a Alice" : "Sentar a Alice"}</button>
+      <button className="avatar-pose" type="button" disabled={manualMode !== "off" || bodyStateTelemetry !== "standing-idle"} onClick={() => { const next = poseMode === "idle" ? "reference" : "idle"; poseRef.current(next); setPoseMode(next); }}>{poseMode === "idle" ? "Ver pose de referencia" : "Volver a postura de reposo"}</button>
+      <button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button>
+    </div>}
     {manualMode !== "off" && <div className={`avatar-gamepad-status ${manualControl.state}`} aria-live="polite">
       <strong>{manualMode === "diagnostic" ? "ENSAYO PROCEDURAL · CONTROL TÉCNICO" : manualControl.state === "connected" ? "DUALSENSE · CONTROL HUMANO" : "ESPERANDO ENTRADA GAMEPAD"}</strong>
       <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
       <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
-      <code className="avatar-body-motion">ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
+      <code className="avatar-body-motion">ESTADO {bodyStateLabels[bodyStateTelemetry]} · ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
       <code className="avatar-body-motion">IK APOYO · {bodyMotion.ikApplied ? "ACTIVO" : "LIBRE"} · ERROR {(bodyMotion.ikResidual * 100).toFixed(1)} CM</code>
     </div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
-    <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 10 S · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
+    <p className="avatar-viewer-help">FSM · {bodyStateLabels[bodyStateTelemetry]}&nbsp;&nbsp; {manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO · ARRANQUE · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
   </div>;
 }
