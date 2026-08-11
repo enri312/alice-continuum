@@ -17,6 +17,8 @@ import { applyMemoryRetrieval, applyMemoryReview, selectReinforceableMemoryIds }
 import type { ReviewOutcome } from "./core/memory-consolidation";
 import { loadCompatibleArray } from "./core/storage-migration";
 import { parsePermissionGatewayStatus } from "./core/permissions";
+import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
+import type { Screen } from "./core/workspaces";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -44,8 +46,6 @@ type Session = {
 
 type ForegroundContext = { windowTitle: string; processName: string };
 type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boolean };
-type Screen = "conversacion" | "nucleo" | "identificacion" | "memoria" | "actividad" | "habilidades" | "configuracion" | "puentes" | "avatar";
-
 const storageKey = "alice-cognitive-core-sessions-v1";
 const legacyStorageKeys = ["proyecto-p-sessions-v1"];
 const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
@@ -75,7 +75,8 @@ export function App() {
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
     const requested = new URLSearchParams(window.location.search).get("screen");
-    return (["conversacion", "nucleo", "identificacion", "memoria", "actividad", "configuracion", "puentes", "avatar"] as Screen[]).includes(requested as Screen) ? requested as Screen : "conversacion";
+    const knownScreens = Object.values(workspaceScreens).flat();
+    return knownScreens.includes(requested as Screen) ? requested as Screen : "conversacion";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
@@ -290,7 +291,7 @@ export function App() {
     recordEvent("MEMORY", outcome === "confirmed" ? "MEMORY_REVIEW_CONFIRMED" : "MEMORY_REVIEW_CONFLICT", `${outcome === "confirmed" ? "Vigencia confirmada" : "Corrección solicitada"}: ${memory.intention}`, outcome === "confirmed" ? "INFO" : "WARN");
   }
 
-  const workspace = screen === "puentes" || screen === "avatar" ? "body" : "cognitive";
+  const workspace = workspaceForScreen(screen);
 
   return <main className="shell">
     <header className="hero">
@@ -300,32 +301,40 @@ export function App() {
 
     <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
       <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("conversacion")}>
-        <span>SYS 01 · PERCEPCIÓN Y MEMORIA</span><strong>COGNITIVE CORE</strong><small>7 paneles diagnósticos · conversación · memoria</small>
+        <span>SYS 01 · MENTE Y CONDUCTA</span><strong>COGNITIVE CORE</strong><small>percepción · memoria · estado · actividad</small>
       </button>
-      <button type="button" role="tab" aria-selected={workspace === "body"} className={workspace === "body" ? "selected body" : "body"} onClick={() => setScreen("puentes")}>
-        <span>SYS 02 · EXPRESIÓN FÍSICA</span><strong>EMBODIMENT CORE</strong><small>4 áreas · puentes · rostro · cuerpo · avatar</small>
+      <button type="button" role="tab" aria-selected={workspace === "body"} className={workspace === "body" ? "selected body" : "body"} onClick={() => setScreen("rostro")}>
+        <span>SYS 02 · PRESENCIA FÍSICA</span><strong>EMBODIMENT CORE</strong><small>rostro · cuerpo · avatar · entorno futuro</small>
+      </button>
+      <button type="button" role="tab" aria-selected={workspace === "governance"} className={workspace === "governance" ? "selected governance" : "governance"} onClick={() => setScreen("puentes")}>
+        <span>SYS 00 · CONTROL DEL PROPIETARIO</span><strong>GOVERNANCE CORE</strong><small>capacidades · permisos · habilidades · configuración</small>
       </button>
     </nav>
 
     <section className={`core-system-frame system-${workspace}`} aria-labelledby="active-system-title">
       <header className="core-system-heading">
-        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : "[SYS.02] EMBODIMENT WORKSPACE"}</span><h2 id="active-system-title">ALICE_NEURAL_CORE <em>// {workspace === "cognitive" ? "COGNITIVE IDENTIFICATION" : "BODY SOLVER"}</em></h2></div>
-        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : "PHYSICAL OUTPUT · SAFE OFF"}</p>
+        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SYS.00] OWNER GOVERNANCE"}</span><h2 id="active-system-title">{workspace === "governance" ? "ALICE_LOCAL_CONTROL" : "ALICE_NEURAL_CORE"} <em>// {workspace === "cognitive" ? "COGNITIVE IDENTIFICATION" : workspace === "body" ? "BODY SOLVER" : "GOVERNANCE"}</em></h2></div>
+        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "OWNER CONTROL · LOCAL ONLY"}</p>
       </header>
 
-    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas de Cognitive Identification" : "Pantallas de Body Solver"}>
+    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas de Cognitive Identification" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
       {workspace === "cognitive" && <>
       <button className={screen === "conversacion" ? "selected" : ""} aria-label="Conversación" data-tooltip="Conversación" aria-current={screen === "conversacion" ? "page" : undefined} onClick={() => setScreen("conversacion")}><NavigationIcon kind="conversation" active={screen === "conversacion"} /><span className="screen-tab-label">Conversación</span></button>
       <button className={screen === "nucleo" ? "selected" : ""} aria-label="Núcleo" data-tooltip="Núcleo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="nucleus" active={screen === "nucleo"} /><span className="screen-tab-label">Núcleo</span></button>
       <button className={screen === "identificacion" ? "selected" : ""} aria-label="Identificación cognitiva" data-tooltip="Identificación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Identificación</span></button>
       <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${remembered.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{remembered.length}</span></button>
       <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
-      <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller</span><span className="screen-count">R4</span></button>
-      <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
       </>}
       {workspace === "body" && <>
-      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y puentes" data-tooltip="Capacidades y puentes" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y puentes</span><span className="screen-count">R1</span></button>
+      <button className={screen === "rostro" ? "selected" : ""} aria-label="Control facial" data-tooltip="Rostro" aria-current={screen === "rostro" ? "page" : undefined} onClick={() => setScreen("rostro")}><NavigationIcon kind="face" active={screen === "rostro"} /><span className="screen-tab-label">Rostro</span></button>
+      <button className={screen === "cuerpo" ? "selected" : ""} aria-label="Solucionador corporal" data-tooltip="Cuerpo" aria-current={screen === "cuerpo" ? "page" : undefined} onClick={() => setScreen("cuerpo")}><NavigationIcon kind="body" active={screen === "cuerpo"} /><span className="screen-tab-label">Cuerpo</span></button>
       <button className={screen === "avatar" ? "selected" : ""} aria-label="Avatar local" data-tooltip="Avatar" aria-current={screen === "avatar" ? "page" : undefined} onClick={() => setScreen("avatar")}><NavigationIcon kind="avatar" active={screen === "avatar"} /><span className="screen-tab-label">Avatar</span></button>
+      </>}
+      {workspace === "governance" && <>
+      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y permisos" data-tooltip="Capacidades y permisos" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y permisos</span><span className="screen-count">R1/R2</span></button>
+      <button className={screen === "auditoria" ? "selected" : ""} aria-label="Auditoría y diagnóstico" data-tooltip="Auditoría y diagnóstico" aria-current={screen === "auditoria" ? "page" : undefined} onClick={() => setScreen("auditoria")}><NavigationIcon kind="activity" active={screen === "auditoria"} /><span className="screen-tab-label">Auditoría y diagnóstico</span><span className="screen-count">R3</span></button>
+      <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller</span><span className="screen-count">R4</span></button>
+      <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
       </>}
     </nav>
 
@@ -334,10 +343,13 @@ export function App() {
     {screen === "nucleo" && <Nucleo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} onConverse={() => setScreen("conversacion")} />}
     {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
-    {screen === "actividad" && <Actividad desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
+    {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
+    {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
-    {screen === "puentes" && <Puentes onObservationStateChange={setObservationEnabled} />}
+    {screen === "puentes" && <Puentes fixedView="overview" onObservationStateChange={setObservationEnabled} />}
+    {screen === "rostro" && <Puentes fixedView="face" onObservationStateChange={setObservationEnabled} />}
+    {screen === "cuerpo" && <Puentes fixedView="body" onObservationStateChange={setObservationEnabled} />}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
     </div>
     </section>

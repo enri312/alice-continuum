@@ -5,7 +5,7 @@
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-97%2F97%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-98%2F98%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-131%2F131%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
@@ -17,10 +17,12 @@
 
 Aplicación de escritorio local-first para que **Alice** gestione conversación, memoria, percepción autorizada, estado cognitivo observable y futuras señales de rostro y cuerpo bajo control de Carlos Nuñez.
 
-El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza dos espacios:
+El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
 
-- `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: conversación, núcleo, identificación, memoria, actividad, Taller y configuración.
-- `ALICE_NEURAL_CORE // BODY SOLVER`: registro de capacidades, rostro, cuerpo y avatar.
+- `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: conversación, núcleo, identificación, memoria y actividad cognitiva.
+- `ALICE_NEURAL_CORE // BODY SOLVER`: rostro, cuerpo y avatar.
+- `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
+- `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
 > Los badges de pruebas reflejan la validación local real del 10 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
@@ -34,7 +36,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz organiza
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 97/97 aprobadas |
+| Pruebas TypeScript | 98/98 aprobadas |
 | Pruebas Rust | 131/131 normales; seis sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -59,17 +61,12 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 
 ## Pantallas
 
-| Pantalla | Responsabilidad |
-|---|---|
-| Conversación | Redactar, previsualizar contexto y enviar al proveedor autorizado |
-| Núcleo | Volumen neuronal, flujo cognitivo, estado interno, planificador y línea temporal |
-| Identificación | Analizar entrada diagnóstica, tokens, intención e hipótesis explicables |
-| Memoria | Recuerdos, aprendizaje planificado, enseñanza, repaso y respaldo |
-| Actividad | Eventos, auditoría R3 persistente y diagnóstico pasivo de rutas, datos, proveedores, adaptadores y permisos |
-| Taller | Crear y editar borradores, simular planes y gobernar revisiones ligadas a SHA-256 sin habilitar ejecución |
-| Configuración | Proveedor, modelo, privacidad y estado de dispositivos externos |
-| Capacidades y puentes | Snapshot nativo agrupado por Nube, Contexto, Percepción, Memoria, Avatar y Salidas |
-| Avatar | Visor privado del VRM con pose relajada predeterminada y pose de referencia opcional |
+| Espacio | Pantallas | Responsabilidad |
+|---|---|---|
+| Cognitive Core | Conversación, Núcleo, Identificación, Memoria y Actividad | Percepción interpretada, recuerdos, estado, planificación, flujo y eventos de conducta |
+| Body Solver | Rostro, Cuerpo y Avatar | Expresión y presencia física; sus adaptadores continúan desconectados |
+| Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
+| Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
 
 ## Cámara, micrófono y aprendizaje sensorial
 
@@ -129,7 +126,7 @@ R4.3 incorpora `simulate_skill_plan`, un análisis estático contra el Registro 
 
 R4.4 añade revisión, aprobación, desactivación, restauración y retiro como transiciones nativas. Cada decisión exige confirmación del propietario local ligada a la revisión y su SHA-256; cada estado crea un archivo inmutable y deja un par de eventos R3 correlacionados sin copiar pasos, motivos ni contenido. Una revisión aprobada nunca se sobrescribe.
 
-R4.5 completa la fase con la pestaña **Taller**. Preparar una plantilla no escribe archivos; guardar es una acción visible. La primera habilidad `local.revisar-proveedores-ia` usa únicamente `cloud.providers.inspect/cloud_status`: revela presencia de configuración y modelos públicos, pero no claves, mensajes ni red. La prueba E2E escribió borrador y revisiones en un directorio temporal real, simuló el plan, lo llevó a revisión y aprobación, lo reabrió por SHA-256 y confirmó cero adaptadores, cero efectos y ejecución deshabilitada.
+R4.5 completa la fase con la pestaña **Taller**, ubicada en `GOVERNANCE CORE` porque es una herramienta del propietario y no una función cognitiva de Alice. Preparar una plantilla no escribe archivos; guardar es una acción visible. La primera habilidad `local.revisar-proveedores-ia` usa únicamente `cloud.providers.inspect/cloud_status`: revela presencia de configuración y modelos públicos, pero no claves, mensajes ni red. La prueba E2E escribió borrador y revisiones en un directorio temporal real, simuló el plan, lo llevó a revisión y aprobación, lo reabrió por SHA-256 y confirmó cero adaptadores, cero efectos y ejecución deshabilitada.
 
 La política fija `simulationOnly` mantiene red, procesos y escritura en `false`; `approved` todavía no significa ejecutable. R4 queda cerrada y el siguiente trabajo corresponde a R5: propuestas de procedimientos sustentadas en evidencia auditada. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), [ADR-P-049](docs/decisions/ADR-P-049-almacen-local-borradores.md), [ADR-P-050](docs/decisions/ADR-P-050-simulacion-estatica-de-habilidades.md), [ADR-P-051](docs/decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md), [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md), [el informe R4.2](docs/testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md), [el informe R4.3](docs/testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md), [el informe R4.4](docs/testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md) y [el cierre R4.5](docs/testing/R4_VISIBLE_WORKSHOP_REPORT_2026-08-10.md).
 

@@ -43,7 +43,7 @@ El fixture elimina únicamente su propio directorio temporal UUID al terminar. N
 
 ## Validación completa
 
-- TypeScript/Vitest: 97/97 aprobadas.
+- TypeScript/Vitest: 98/98 aprobadas después de comprobar la separación exclusiva entre Cognitive, Body y Governance.
 - Rust/Cargo: 131/131 aprobadas; 6 sondas vivas ignoradas por defecto.
 - Sondas canónicas R4: 2/2 aprobadas explícitamente contra `data/` real y sin mutación.
 - Build web: aprobado.

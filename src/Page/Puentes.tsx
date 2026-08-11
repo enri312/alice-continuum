@@ -48,16 +48,17 @@ const maturityLabels: Record<CapabilityDescriptor["maturity"], string> = {
   planned: "PLANIFICADA",
 };
 
-export function Puentes({ onObservationStateChange }: { onObservationStateChange: (enabled: boolean) => void }) {
+export function Puentes({ onObservationStateChange, fixedView }: { onObservationStateChange: (enabled: boolean) => void; fixedView?: "overview" | "face" | "body" }) {
   const requestedView = new URLSearchParams(window.location.search).get("bridgeView");
-  const [view, setView] = useState<"overview" | "face" | "body">(requestedView === "face" || requestedView === "body" ? requestedView : "overview");
+  const [selectedView, setSelectedView] = useState<"overview" | "face" | "body">(requestedView === "face" || requestedView === "body" ? requestedView : "overview");
+  const view = fixedView ?? selectedView;
   const [registry, setRegistry] = useState<CapabilityRegistryResult>(() => createWebDevelopmentCapabilityRegistry());
   const [loadState, setLoadState] = useState<RegistryLoadState>(isTauri() ? "loading" : "ready");
   const [loadError, setLoadError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || view !== "overview") return;
     let cancelled = false;
     invoke<unknown>("capability_registry_status")
       .then((value) => {
@@ -73,7 +74,7 @@ export function Puentes({ onObservationStateChange }: { onObservationStateChange
         setLoadError(String(error));
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [view]);
 
   const capabilities = registry.snapshot.capabilities;
   const selected = capabilities.find((capability) => capability.id === selectedId) ?? capabilities[0];
@@ -82,17 +83,17 @@ export function Puentes({ onObservationStateChange }: { onObservationStateChange
     .map((domain) => ({ domain, capabilities: capabilities.filter((capability) => capability.domain === domain) }))
     .filter((group) => group.capabilities.length > 0), [capabilities]);
 
-  return <section className="bridge-page" aria-labelledby="bridge-title">
-    <div className="bridge-heading">
+  return <section className="bridge-page" aria-labelledby={view === "overview" ? "bridge-title" : undefined} aria-label={view === "face" ? "Control facial de Alice" : view === "body" ? "Solucionador corporal de Alice" : undefined}>
+    {view === "overview" && <div className="bridge-heading">
       <div><p className="eyebrow">[R1] CAPABILITY REGISTRY · SOLO CONSULTA</p><h2 id="bridge-title">Registro de capacidades</h2><p>Estado comprobable de lo que Alice puede hacer hoy y de lo que sigue solamente planificado.</p></div>
       <div className={`bridge-offline ${loadState === "ready" && registry.source === "native" ? "is-native" : ""}`}><i />{loadState === "loading" ? "CONSULTANDO" : registry.source === "native" ? `${summary.available} DISPONIBLES` : "DESARROLLO WEB"}</div>
-    </div>
+    </div>}
 
-    <div className="bridge-view-tabs" role="tablist" aria-label="Visualizaciones de Puentes">
-      <button role="tab" aria-label="Registro de capacidades" data-tooltip="Capacidades" aria-selected={view === "overview"} className={view === "overview" ? "selected" : ""} onClick={() => setView("overview")}><BridgeViewIcon kind="overview" active={view === "overview"} /><span>Capacidades</span></button>
-      <button role="tab" aria-label="Diagnóstico de rostro" data-tooltip="Rostro" aria-selected={view === "face"} className={view === "face" ? "selected" : ""} onClick={() => setView("face")}><BridgeViewIcon kind="face" active={view === "face"} /><span>Rostro</span></button>
-      <button role="tab" aria-label="Diagnóstico corporal" data-tooltip="Cuerpo" aria-selected={view === "body"} className={view === "body" ? "selected" : ""} onClick={() => setView("body")}><BridgeViewIcon kind="body" active={view === "body"} /><span>Cuerpo</span></button>
-    </div>
+    {!fixedView && <div className="bridge-view-tabs" role="tablist" aria-label="Visualizaciones de Puentes">
+      <button role="tab" aria-label="Registro de capacidades" data-tooltip="Capacidades" aria-selected={view === "overview"} className={view === "overview" ? "selected" : ""} onClick={() => setSelectedView("overview")}><BridgeViewIcon kind="overview" active={view === "overview"} /><span>Capacidades</span></button>
+      <button role="tab" aria-label="Diagnóstico de rostro" data-tooltip="Rostro" aria-selected={view === "face"} className={view === "face" ? "selected" : ""} onClick={() => setSelectedView("face")}><BridgeViewIcon kind="face" active={view === "face"} /><span>Rostro</span></button>
+      <button role="tab" aria-label="Diagnóstico corporal" data-tooltip="Cuerpo" aria-selected={view === "body"} className={view === "body" ? "selected" : ""} onClick={() => setSelectedView("body")}><BridgeViewIcon kind="body" active={view === "body"} /><span>Cuerpo</span></button>
+    </div>}
 
     {view === "overview" ? <>
       <div className="bridge-metrics" aria-label="Resumen del registro">

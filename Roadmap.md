@@ -21,6 +21,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 - **Reversibilidad:** permisos, recuerdos y habilidades pueden corregirse, desactivarse o restaurarse.
 - **Compatibilidad:** las migraciones preservan los datos existentes, crean respaldo y nunca usan los recuerdos personales como datos de prueba.
 - **Una fase por vez:** no se inicia la fase siguiente hasta cumplir los criterios de aceptación de la fase activa.
+- **Fronteras visibles:** mente, cuerpo, entorno y gobierno del propietario no comparten identidad ni pantallas; toda señal que cruce una frontera usa capacidades, permisos y auditoría.
 
 ## Línea base existente
 
@@ -239,6 +240,20 @@ SQLite se adoptará solamente cuando las relaciones, transacciones o el volumen 
 **Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
 
 Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, animaciones, entrada facial o corporal y finalmente Active Ragdoll. Fish Audio continúa como candidato de voz sujeto a licencia, privacidad, costo y pruebas. Cada adaptador deberá registrarse como una capacidad independiente.
+
+#### Subfase futura — Sala de observación y maduración
+
+Después de conectar de forma segura el cuerpo, Alice podrá entrar en una sala virtual delimitada para observar cómo responde a objetos, estímulos, memoria y consecuencias. La sala será un entorno separado de `COGNITIVE CORE`, `BODY SOLVER` y `GOVERNANCE`; no equivaldrá a acceso libre al escritorio o a Internet.
+
+Cada sesión tendrá línea base, objetivos observables, inicio y fin explícitos, parada inmediata, telemetría real y posibilidad de reinicio. La maduración deberá poder atribuirse a recuerdos, habilidades, parámetros o experiencias concretas y reversibles. No se presentará mayor actividad visual como prueba de conciencia o desarrollo si no existe evidencia persistente que la explique.
+
+**Criterios iniciales:**
+
+- [ ] La sala puede restablecerse sin borrar la memoria durable aprobada.
+- [ ] Cada estímulo y respuesta queda correlacionado por R3.
+- [ ] El cuerpo puede detenerse aunque el núcleo o el entorno fallen.
+- [ ] Las diferencias entre sesiones se explican desde cambios versionados.
+- [ ] Ningún aprendizaje de la sala se consolida sin la política vigente de memoria y habilidades.
 
 **Criterios de aceptación:**
 

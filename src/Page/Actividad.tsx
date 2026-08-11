@@ -7,15 +7,17 @@ import type { AuditSnapshot } from "../core/audit";
 import { parseDiagnosticSnapshot } from "../core/diagnostics";
 import type { DiagnosticCategory, DiagnosticSnapshot, DiagnosticStatus } from "../core/diagnostics";
 
-type ActividadProps = { desktopApp: boolean; events: CognitiveEvent[]; onClear: () => void };
+type ActivityView = "timeline" | "events" | "audit" | "diagnostic";
+type ActividadProps = { desktopApp: boolean; events: CognitiveEvent[]; onClear: () => void; scope?: "cognitive" | "governance" };
 
 function eventTime(iso: string) {
   return new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 }).format(new Date(iso));
 }
 
-export function Actividad({ desktopApp, events, onClear }: ActividadProps) {
+export function Actividad({ desktopApp, events, onClear, scope = "cognitive" }: ActividadProps) {
   const requestedView = new URLSearchParams(window.location.search).get("activityView");
-  const [view, setView] = useState<"timeline" | "events" | "audit" | "diagnostic">(requestedView === "events" || requestedView === "audit" || requestedView === "diagnostic" ? requestedView : "timeline");
+  const allowedViews: ActivityView[] = scope === "cognitive" ? ["timeline", "events"] : ["audit", "diagnostic"];
+  const [view, setView] = useState<ActivityView>(allowedViews.includes(requestedView as ActivityView) ? requestedView as ActivityView : allowedViews[0]);
   const [module, setModule] = useState<CognitiveModule | "ALL">("ALL");
   const [query, setQuery] = useState("");
   const [audit, setAudit] = useState<AuditSnapshot | null>(null);
@@ -42,7 +44,7 @@ export function Actividad({ desktopApp, events, onClear }: ActividadProps) {
     }
   }, [desktopApp]);
 
-  useEffect(() => { void refreshAudit(); }, [refreshAudit]);
+  useEffect(() => { if (scope === "governance") void refreshAudit(); }, [scope, refreshAudit]);
 
   const refreshDiagnostic = useCallback(async () => {
     if (!desktopApp) return;
@@ -65,8 +67,8 @@ export function Actividad({ desktopApp, events, onClear }: ActividadProps) {
   const diagnosticStatusLabel: Record<DiagnosticStatus, string> = { healthy: "SALUDABLE", configurationPending: "CONFIGURACIÓN PENDIENTE", unavailable: "NO DISPONIBLE", error: "ERROR" };
 
   return <section className="activity-page" aria-labelledby="activity-title">
-    <div className="activity-heading"><div><p className="eyebrow">[06—09] ACTIVITY DIAGNOSTICS · LOCAL</p><h2 id="activity-title">Actividad cognitiva</h2><p>Línea temporal, eventos, auditoría persistente y diagnóstico pasivo sin contenido privado.</p></div><div className={`activity-status ${events.length || audit?.totalValidEvents ? "" : "idle"}`}><i />{events.length || audit?.totalValidEvents ? "ACTIVIDAD REAL" : "EN ESPERA"}</div></div>
-    <div className="activity-view-tabs" role="tablist" aria-label="Visualizaciones de actividad"><button type="button" role="tab" aria-selected={view === "timeline"} className={view === "timeline" ? "selected" : ""} onClick={() => setView("timeline")}><span>[06]</span>COGNITIVE TIMELINE</button><button type="button" role="tab" aria-selected={view === "events"} className={view === "events" ? "selected" : ""} onClick={() => setView("events")}><span>[07]</span>EVENT STREAM</button><button type="button" role="tab" aria-selected={view === "audit"} className={view === "audit" ? "selected" : ""} onClick={() => setView("audit")}><span>[08]</span>NATIVE AUDIT R3</button><button type="button" role="tab" aria-selected={view === "diagnostic"} className={view === "diagnostic" ? "selected" : ""} onClick={() => setView("diagnostic")}><span>[09]</span>PASSIVE DIAGNOSTIC</button></div>
+    <div className="activity-heading"><div><p className="eyebrow">{scope === "cognitive" ? "[06—07] COGNITIVE ACTIVITY · LOCAL" : "[08—09] OWNER INSPECTION · LOCAL"}</p><h2 id="activity-title">{scope === "cognitive" ? "Actividad cognitiva" : "Auditoría y diagnóstico"}</h2><p>{scope === "cognitive" ? "Línea temporal y eventos observables de la conducta actual de Alice." : "Evidencia persistente y salud técnica para inspección del propietario."}</p></div><div className={`activity-status ${(scope === "cognitive" ? events.length : audit?.totalValidEvents) ? "" : "idle"}`}><i />{(scope === "cognitive" ? events.length : audit?.totalValidEvents) ? "EVIDENCIA REAL" : "EN ESPERA"}</div></div>
+    <div className="activity-view-tabs" role="tablist" aria-label={scope === "cognitive" ? "Visualizaciones de actividad cognitiva" : "Herramientas de auditoría y diagnóstico"}>{scope === "cognitive" ? <><button type="button" role="tab" aria-selected={view === "timeline"} className={view === "timeline" ? "selected" : ""} onClick={() => setView("timeline")}><span>[06]</span>COGNITIVE TIMELINE</button><button type="button" role="tab" aria-selected={view === "events"} className={view === "events" ? "selected" : ""} onClick={() => setView("events")}><span>[07]</span>EVENT STREAM</button></> : <><button type="button" role="tab" aria-selected={view === "audit"} className={view === "audit" ? "selected" : ""} onClick={() => setView("audit")}><span>[08]</span>NATIVE AUDIT R3</button><button type="button" role="tab" aria-selected={view === "diagnostic"} className={view === "diagnostic" ? "selected" : ""} onClick={() => setView("diagnostic")}><span>[09]</span>PASSIVE DIAGNOSTIC</button></>}</div>
     {view === "timeline" ? <CognitiveTimeline events={events} /> : <>
     {view === "events" ? <>
       <div className="event-console-title"><span>[07]</span><strong>EVENT STREAM / LOCAL CONSOLE</strong><small>{events.length} RECORDS</small></div>
