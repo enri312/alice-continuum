@@ -11,3 +11,6 @@ data/*
 # Avatares privados: se cargan localmente y no se redistribuyen con Alice.
 Assets/*.vrm
 Assets/*.vroid
+
+# Clips corporales privados o sujetos a licencias de terceros.
+Assets/Animations/private/

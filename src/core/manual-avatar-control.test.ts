@@ -42,17 +42,19 @@ describe("manual avatar control", () => {
     const buttons = Array.from({ length: 17 }, () => ({ value: 0, pressed: false }));
     buttons[6] = { value: 0.25, pressed: false };
     buttons[7] = { value: 1, pressed: true };
+    buttons[0] = { value: 1, pressed: true };
     const input = readManualAvatarInput(gamepad({ axes: [0.57, -1, 0.14, 0], buttons }));
     expect(input.moveX).toBeCloseTo(0.5, 5);
     expect(input.moveZ).toBe(-1);
     expect(input.turn).toBe(0);
     expect(input.leftTrigger).toBe(0.25);
     expect(input.rightTrigger).toBe(1);
+    expect(input.jump).toBe(true);
     expect(manualInputIsActive(input)).toBe(true);
   });
 
   it("limita tiempo y desplazamiento para mantener al avatar dentro del visor", () => {
-    const input = { moveX: 1, moveZ: -1, turn: 0, leftTrigger: 0, rightTrigger: 0 };
+    const input = { moveX: 1, moveZ: -1, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
     let motion = { x: 0, z: 0, yaw: 0 };
     for (let index = 0; index < 1000; index += 1) motion = advanceManualAvatarMotion(motion, input, 1);
     expect(motion.x).toBe(0.85);
@@ -63,7 +65,7 @@ describe("manual avatar control", () => {
 
   it("desplaza en el espacio local de Alice después de girar", () => {
     const facingLeft = { x: 0, z: 0, yaw: Math.PI / 2 };
-    const forward = { moveX: 0, moveZ: -1, turn: 0, leftTrigger: 0, rightTrigger: 0 };
+    const forward = { moveX: 0, moveZ: -1, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
     const motion = advanceManualAvatarMotion(facingLeft, forward, 0.05);
     expect(motion.x).toBeLessThan(-0.03);
     expect(Math.abs(motion.z)).toBeLessThan(0.001);

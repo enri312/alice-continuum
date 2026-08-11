@@ -11,6 +11,30 @@ pub(crate) struct AvatarStatus {
     size_bytes: u64,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AvatarAnimationStatus {
+    clips: Vec<AvatarAnimationClipStatus>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AvatarAnimationClipStatus {
+    id: &'static str,
+    path: String,
+    available: bool,
+    size_bytes: u64,
+}
+
+const AVATAR_ANIMATION_FILES: [(&str, &str); 6] = [
+    ("idle", "Idle.fbx"),
+    ("forward", "Walking.fbx"),
+    ("backward", "Walking Backwards.fbx"),
+    ("left", "Left Strafe Walking.fbx"),
+    ("right", "Right Strafe Walking.fbx"),
+    ("jump", "Jump.fbx"),
+];
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct AvatarCapabilityProbe {
     pub(crate) available: bool,
@@ -45,6 +69,25 @@ fn local_avatar_path() -> Result<PathBuf, String> {
     validate_avatar_path(path)
 }
 
+fn local_animation_directory() -> Result<PathBuf, String> {
+    let path = std::env::var_os("ALICE_ANIMATION_DIR")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")))
+                .join("Assets")
+                .join("Animations")
+                .join("private")
+                .join("mixamo")
+        });
+    if !path.is_absolute() {
+        return Err("ALICE_ANIMATION_DIR debe contener una ruta absoluta".into());
+    }
+    Ok(path)
+}
+
 fn avatar_capability_probe_at(path: PathBuf) -> Result<AvatarCapabilityProbe, String> {
     let path = validate_avatar_path(path)?;
     let metadata = fs::metadata(path).ok().filter(|value| value.is_file());
@@ -72,6 +115,25 @@ pub(crate) fn avatar_status() -> Result<AvatarStatus, String> {
         size_bytes: metadata.map(|value| value.len()).unwrap_or(0),
         path: path.display().to_string(),
     })
+}
+
+#[tauri::command]
+pub(crate) fn avatar_animation_status() -> Result<AvatarAnimationStatus, String> {
+    let directory = local_animation_directory()?;
+    let clips = AVATAR_ANIMATION_FILES
+        .iter()
+        .map(|(id, file_name)| {
+            let path = directory.join(file_name);
+            let metadata = fs::metadata(&path).ok().filter(|value| value.is_file());
+            AvatarAnimationClipStatus {
+                id,
+                path: path.display().to_string(),
+                available: metadata.is_some(),
+                size_bytes: metadata.map(|value| value.len()).unwrap_or(0),
+            }
+        })
+        .collect();
+    Ok(AvatarAnimationStatus { clips })
 }
 
 #[cfg(test)]
@@ -136,5 +198,13 @@ mod tests {
         );
 
         fs::remove_file(path).expect("remove controlled avatar fixture");
+    }
+
+    #[test]
+    fn animation_catalog_declares_the_required_private_clips() {
+        assert_eq!(AVATAR_ANIMATION_FILES.len(), 6);
+        assert!(AVATAR_ANIMATION_FILES.contains(&("idle", "Idle.fbx")));
+        assert!(AVATAR_ANIMATION_FILES.contains(&("jump", "Jump.fbx")));
+        assert!(local_animation_directory().is_ok());
     }
 }

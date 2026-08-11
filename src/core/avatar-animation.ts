@@ -1,0 +1,120 @@
+import * as THREE from "three";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+import { VRMHumanBoneName } from "@pixiv/three-vrm";
+import type { VRM } from "@pixiv/three-vrm";
+
+export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump";
+export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
+
+const mixamoVRMRigMap: Record<string, VRMHumanBoneName> = {
+  mixamorigHips: VRMHumanBoneName.Hips,
+  mixamorigSpine: VRMHumanBoneName.Spine,
+  mixamorigSpine1: VRMHumanBoneName.Chest,
+  mixamorigSpine2: VRMHumanBoneName.UpperChest,
+  mixamorigNeck: VRMHumanBoneName.Neck,
+  mixamorigHead: VRMHumanBoneName.Head,
+  mixamorigLeftShoulder: VRMHumanBoneName.LeftShoulder,
+  mixamorigLeftArm: VRMHumanBoneName.LeftUpperArm,
+  mixamorigLeftForeArm: VRMHumanBoneName.LeftLowerArm,
+  mixamorigLeftHand: VRMHumanBoneName.LeftHand,
+  mixamorigLeftHandThumb1: VRMHumanBoneName.LeftThumbMetacarpal,
+  mixamorigLeftHandThumb2: VRMHumanBoneName.LeftThumbProximal,
+  mixamorigLeftHandThumb3: VRMHumanBoneName.LeftThumbDistal,
+  mixamorigLeftHandIndex1: VRMHumanBoneName.LeftIndexProximal,
+  mixamorigLeftHandIndex2: VRMHumanBoneName.LeftIndexIntermediate,
+  mixamorigLeftHandIndex3: VRMHumanBoneName.LeftIndexDistal,
+  mixamorigLeftHandMiddle1: VRMHumanBoneName.LeftMiddleProximal,
+  mixamorigLeftHandMiddle2: VRMHumanBoneName.LeftMiddleIntermediate,
+  mixamorigLeftHandMiddle3: VRMHumanBoneName.LeftMiddleDistal,
+  mixamorigLeftHandRing1: VRMHumanBoneName.LeftRingProximal,
+  mixamorigLeftHandRing2: VRMHumanBoneName.LeftRingIntermediate,
+  mixamorigLeftHandRing3: VRMHumanBoneName.LeftRingDistal,
+  mixamorigLeftHandPinky1: VRMHumanBoneName.LeftLittleProximal,
+  mixamorigLeftHandPinky2: VRMHumanBoneName.LeftLittleIntermediate,
+  mixamorigLeftHandPinky3: VRMHumanBoneName.LeftLittleDistal,
+  mixamorigRightShoulder: VRMHumanBoneName.RightShoulder,
+  mixamorigRightArm: VRMHumanBoneName.RightUpperArm,
+  mixamorigRightForeArm: VRMHumanBoneName.RightLowerArm,
+  mixamorigRightHand: VRMHumanBoneName.RightHand,
+  mixamorigRightHandThumb1: VRMHumanBoneName.RightThumbMetacarpal,
+  mixamorigRightHandThumb2: VRMHumanBoneName.RightThumbProximal,
+  mixamorigRightHandThumb3: VRMHumanBoneName.RightThumbDistal,
+  mixamorigRightHandIndex1: VRMHumanBoneName.RightIndexProximal,
+  mixamorigRightHandIndex2: VRMHumanBoneName.RightIndexIntermediate,
+  mixamorigRightHandIndex3: VRMHumanBoneName.RightIndexDistal,
+  mixamorigRightHandMiddle1: VRMHumanBoneName.RightMiddleProximal,
+  mixamorigRightHandMiddle2: VRMHumanBoneName.RightMiddleIntermediate,
+  mixamorigRightHandMiddle3: VRMHumanBoneName.RightMiddleDistal,
+  mixamorigRightHandRing1: VRMHumanBoneName.RightRingProximal,
+  mixamorigRightHandRing2: VRMHumanBoneName.RightRingIntermediate,
+  mixamorigRightHandRing3: VRMHumanBoneName.RightRingDistal,
+  mixamorigRightHandPinky1: VRMHumanBoneName.RightLittleProximal,
+  mixamorigRightHandPinky2: VRMHumanBoneName.RightLittleIntermediate,
+  mixamorigRightHandPinky3: VRMHumanBoneName.RightLittleDistal,
+  mixamorigLeftUpLeg: VRMHumanBoneName.LeftUpperLeg,
+  mixamorigLeftLeg: VRMHumanBoneName.LeftLowerLeg,
+  mixamorigLeftFoot: VRMHumanBoneName.LeftFoot,
+  mixamorigLeftToeBase: VRMHumanBoneName.LeftToes,
+  mixamorigRightUpLeg: VRMHumanBoneName.RightUpperLeg,
+  mixamorigRightLeg: VRMHumanBoneName.RightLowerLeg,
+  mixamorigRightFoot: VRMHumanBoneName.RightFoot,
+  mixamorigRightToeBase: VRMHumanBoneName.RightToes,
+};
+
+export function selectAvatarAnimation(moveX: number, moveZ: number): AvatarAnimationId {
+  if (Math.hypot(moveX, moveZ) < 0.08) return "idle";
+  if (Math.abs(moveX) > Math.abs(moveZ)) return moveX < 0 ? "left" : "right";
+  return moveZ < 0 ? "forward" : "backward";
+}
+
+/** Retargeting basado en el ejemplo humanoidAnimation oficial de pixiv/three-vrm. */
+export async function loadMixamoAnimation(url: string, vrm: VRM, name: string) {
+  const asset = await new FBXLoader().loadAsync(url);
+  const sourceClip = THREE.AnimationClip.findByName(asset.animations, "mixamo.com") ?? asset.animations[0];
+  const motionHips = asset.getObjectByName("mixamorigHips");
+  if (!sourceClip || !motionHips) throw new Error(`FBX Mixamo inválido: ${name}`);
+
+  const motionHipsHeight = motionHips.position.y;
+  if (!Number.isFinite(motionHipsHeight) || Math.abs(motionHipsHeight) < 1e-6) {
+    throw new Error(`Altura de cadera inválida: ${name}`);
+  }
+  const normalizedHipsPosition = vrm.humanoid.normalizedRestPose.hips?.position;
+  if (!normalizedHipsPosition) throw new Error(`El VRM no declara una cadera normalizada: ${name}`);
+  const hipsPositionScale = normalizedHipsPosition[1] / motionHipsHeight;
+  const tracks: THREE.KeyframeTrack[] = [];
+  const restRotationInverse = new THREE.Quaternion();
+  const parentRestWorldRotation = new THREE.Quaternion();
+  const rotation = new THREE.Quaternion();
+
+  for (const track of sourceClip.tracks) {
+    const [mixamoRigName, propertyName] = track.name.split(".");
+    const vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+    const vrmNodeName = vrmBoneName ? vrm.humanoid.getNormalizedBoneNode(vrmBoneName)?.name : undefined;
+    const mixamoRigNode = asset.getObjectByName(mixamoRigName);
+    if (!vrmNodeName || !mixamoRigNode || !mixamoRigNode.parent) continue;
+
+    mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+    mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
+
+    if (track instanceof THREE.QuaternionKeyframeTrack) {
+      const values = Array.from(track.values);
+      for (let index = 0; index < values.length; index += 4) {
+        rotation.fromArray(values, index).premultiply(parentRestWorldRotation).multiply(restRotationInverse);
+        rotation.toArray(values, index);
+      }
+      if (vrm.meta.metaVersion === "0") {
+        for (let index = 0; index < values.length; index += 2) values[index] *= -1;
+      }
+      tracks.push(new THREE.QuaternionKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, values));
+    } else if (track instanceof THREE.VectorKeyframeTrack) {
+      const values = Array.from(track.values, (value, index) => {
+        const vrm0Sign = vrm.meta.metaVersion === "0" && index % 3 !== 1 ? -1 : 1;
+        return value * hipsPositionScale * vrm0Sign;
+      });
+      tracks.push(new THREE.VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, values));
+    }
+  }
+
+  if (tracks.length === 0) throw new Error(`No se pudieron retargetear pistas: ${name}`);
+  return new THREE.AnimationClip(name, sourceClip.duration, tracks);
+}

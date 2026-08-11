@@ -5,6 +5,12 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { VRMHumanBoneName, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 import {
+  loadMixamoAnimation,
+  selectAvatarAnimation,
+  type AvatarAnimationId,
+  type AvatarAnimationUrls,
+} from "../core/avatar-animation";
+import {
   advanceManualAvatarMotion,
   diagnosticManualInputAt,
   readManualAvatarInput,
@@ -39,6 +45,7 @@ type ManualControlTelemetry = {
 };
 type AvatarViewerProps = {
   sourceUrl: string;
+  animationUrls: AvatarAnimationUrls;
   onTelemetry: (telemetry: AvatarTelemetry | null) => void;
 };
 
@@ -118,9 +125,9 @@ function applyManualPose(vrm: VRM, input: ManualAvatarInput, gaitPhase: number, 
   vrm.humanoid.update();
 }
 
-const idleManualInput: ManualAvatarInput = { moveX: 0, moveZ: 0, turn: 0, leftTrigger: 0, rightTrigger: 0 };
+const idleManualInput: ManualAvatarInput = { moveX: 0, moveZ: 0, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
 
-export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
+export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarViewerProps) {
   const diagnosticAutostart = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const hostRef = useRef<HTMLDivElement>(null);
   const resetRef = useRef<() => void>(() => undefined);
@@ -148,6 +155,11 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
     let disposed = false;
     let frame = 0;
     let currentVrm: VRM | null = null;
+    let animationMixer: THREE.AnimationMixer | null = null;
+    let animationActions: Partial<Record<AvatarAnimationId, THREE.AnimationAction>> = {};
+    let currentAnimation: AvatarAnimationId | null = null;
+    let jumpActive = false;
+    let jumpWasPressed = false;
     let manualMotion: ManualAvatarMotion = { x: 0, z: 0, yaw: 0 };
     let gaitPhase = 0;
     let gaitIntensity = 0;
@@ -157,6 +169,28 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
     let nextManualTelemetryAt = 0;
     const initialAvatarPosition = new THREE.Vector3();
     const initialAvatarQuaternion = new THREE.Quaternion();
+
+    const playAnimation = (id: AvatarAnimationId, restart = false) => {
+      const next = animationActions[id];
+      if (!next || (!restart && currentAnimation === id)) return false;
+      const previous = currentAnimation ? animationActions[currentAnimation] : undefined;
+      if (previous && previous !== next) previous.fadeOut(id === "jump" ? .08 : .18);
+      next.enabled = true;
+      next.setEffectiveTimeScale(1);
+      next.setEffectiveWeight(1);
+      next.setLoop(id === "jump" ? THREE.LoopOnce : THREE.LoopRepeat, id === "jump" ? 1 : Infinity);
+      next.clampWhenFinished = id === "jump";
+      next.reset().fadeIn(id === "jump" ? .08 : .18).play();
+      currentAnimation = id;
+      return true;
+    };
+
+    const restoreIdle = () => {
+      jumpActive = false;
+      jumpWasPressed = false;
+      if (animationActions.idle) playAnimation("idle");
+      else applyPose(currentVrm!, "idle");
+    };
 
     setViewerState("loading");
     setError("");
@@ -234,6 +268,12 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
             : readManualAvatarInput(gamepad!);
           smoothedInput = smoothManualAvatarInput(smoothedInput, targetInput, delta);
           const input = smoothedInput;
+          if (input.jump && !jumpWasPressed && animationActions.jump) {
+            jumpActive = playAnimation("jump", true);
+          }
+          jumpWasPressed = input.jump;
+          if (jumpActive && !animationActions.jump?.isRunning()) jumpActive = false;
+          if (!jumpActive) playAnimation(selectAvatarAnimation(input.moveX, input.moveZ));
           const targetGait = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .55);
           gaitIntensity += (targetGait - gaitIntensity) * Math.min(1, delta * 8);
           if (targetGait > .02) gaitPhase += delta * (4.2 + targetGait * 4.8);
@@ -245,7 +285,9 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
           );
           currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
           currentVrm.scene.rotateY(manualMotion.yaw);
-          applyManualPose(currentVrm, input, gaitPhase, gaitIntensity);
+          if (!animationMixer || Object.keys(animationActions).length === 0) {
+            applyManualPose(currentVrm, input, gaitPhase, gaitIntensity);
+          }
           if (performance.now() >= nextManualTelemetryAt) {
             nextManualTelemetryAt = performance.now() + 160;
             setManualControl({
@@ -261,7 +303,7 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
           smoothedInput = idleManualInput;
           currentVrm.scene.position.copy(initialAvatarPosition);
           currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
-          applyPose(currentVrm, "idle");
+          restoreIdle();
           nextManualTelemetryAt = performance.now() + 300;
           setManualControl({ state: "waiting", device: "", input: idleManualInput });
         }
@@ -274,8 +316,9 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
         smoothedInput = idleManualInput;
         currentVrm.scene.position.copy(initialAvatarPosition);
         currentVrm.scene.quaternion.copy(initialAvatarQuaternion);
-        applyPose(currentVrm, "idle");
+        restoreIdle();
       }
+      animationMixer?.update(delta);
       currentVrm?.update(delta);
       controls.update();
       renderer.render(scene, camera);
@@ -304,7 +347,30 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
         initialAvatarPosition.copy(vrm.scene.position);
         initialAvatarQuaternion.copy(vrm.scene.quaternion);
         applyPose(vrm, "idle");
-        poseRef.current = (mode) => applyPose(vrm, mode);
+
+        const loadedAnimations = await Promise.allSettled(
+          (Object.entries(animationUrls) as [AvatarAnimationId, string][]).map(async ([id, url]) => [id, await loadMixamoAnimation(url, vrm, id)] as const),
+        );
+        if (disposed) return;
+        animationMixer = new THREE.AnimationMixer(vrm.scene);
+        animationActions = {};
+        for (const result of loadedAnimations) {
+          if (result.status === "fulfilled") {
+            const [id, clip] = result.value;
+            animationActions[id] = animationMixer.clipAction(clip);
+          } else {
+            console.error("No se pudo cargar una animación corporal", result.reason);
+          }
+        }
+        playAnimation("idle");
+        poseRef.current = (mode) => {
+          if (mode === "reference") {
+            animationMixer?.stopAllAction();
+            currentAnimation = null;
+            applyPose(vrm, mode);
+          } else if (animationActions.idle) playAnimation("idle");
+          else applyPose(vrm, mode);
+        };
         manualResetRef.current = () => {
           manualMotion = { x: 0, z: 0, yaw: 0 };
           gaitPhase = 0;
@@ -313,7 +379,7 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
           smoothedInput = idleManualInput;
           vrm.scene.position.copy(initialAvatarPosition);
           vrm.scene.quaternion.copy(initialAvatarQuaternion);
-          applyPose(vrm, "idle");
+          restoreIdle();
         };
         setPoseMode("idle");
         vrm.scene.traverse((object) => { object.frustumCulled = false; });
@@ -362,13 +428,16 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
         scene.remove(currentVrm.scene);
         VRMUtils.deepDispose(currentVrm.scene);
       }
+      animationMixer?.stopAllAction();
+      animationMixer = null;
+      animationActions = {};
       grid.geometry.dispose();
       gridMaterials.forEach((material) => material.dispose());
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();
     };
-  }, [onTelemetry, sourceUrl]);
+  }, [animationUrls, onTelemetry, sourceUrl]);
 
   return <div className="avatar-viewer-shell">
     <div ref={hostRef} className="avatar-viewer" />
@@ -379,9 +448,9 @@ export function AvatarViewer({ sourceUrl, onTelemetry }: AvatarViewerProps) {
     {manualMode !== "off" && <div className={`avatar-gamepad-status ${manualControl.state}`} aria-live="polite">
       <strong>{manualMode === "diagnostic" ? "ENSAYO PROCEDURAL · CONTROL TÉCNICO" : manualControl.state === "connected" ? "DUALSENSE · CONTROL HUMANO" : "ESPERANDO ENTRADA GAMEPAD"}</strong>
       <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
-      <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
+      <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
     </div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
-    <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · L2/R2 BRAZOS · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 8 S · AVANCE · RETROCESO · LATERAL · GIRO · REPOSO · SIN MEMORIA" : <>POSTURA · {poseMode === "idle" ? "REPOSO LOCAL" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
+    <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 8 S · AVANCE · RETROCESO · LATERAL · GIRO · REPOSO · SIN MEMORIA" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
   </div>;
 }

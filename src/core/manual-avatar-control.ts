@@ -4,6 +4,7 @@ export type ManualAvatarInput = {
   turn: number;
   leftTrigger: number;
   rightTrigger: number;
+  jump: boolean;
 };
 
 export type ManualAvatarMotion = {
@@ -50,6 +51,7 @@ export function readManualAvatarInput(gamepad: GamepadSnapshot): ManualAvatarInp
     turn: normalizeGamepadAxis(gamepad.axes[2] ?? 0),
     leftTrigger: buttonValue(6),
     rightTrigger: buttonValue(7),
+    jump: Boolean(gamepad.buttons[0]?.pressed),
   };
 }
 
@@ -101,11 +103,12 @@ export function smoothManualAvatarInput(
     turn: approach(current.turn, target.turn, movementFactor),
     leftTrigger: approach(current.leftTrigger, target.leftTrigger, triggerFactor),
     rightTrigger: approach(current.rightTrigger, target.rightTrigger, triggerFactor),
+    jump: target.jump,
   };
 }
 
 export function manualInputIsActive(input: ManualAvatarInput) {
-  return Math.abs(input.moveX) > 0 || Math.abs(input.moveZ) > 0 || Math.abs(input.turn) > 0 || input.leftTrigger > 0.02 || input.rightTrigger > 0.02;
+  return Math.abs(input.moveX) > 0 || Math.abs(input.moveZ) > 0 || Math.abs(input.turn) > 0 || input.leftTrigger > 0.02 || input.rightTrigger > 0.02 || input.jump;
 }
 
-const idleManualInput: ManualAvatarInput = { moveX: 0, moveZ: 0, turn: 0, leftTrigger: 0, rightTrigger: 0 };
+const idleManualInput: ManualAvatarInput = { moveX: 0, moveZ: 0, turn: 0, leftTrigger: 0, rightTrigger: 0, jump: false };
