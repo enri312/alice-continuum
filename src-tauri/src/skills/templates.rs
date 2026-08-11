@@ -35,6 +35,7 @@ pub(super) fn read_only_provider_template(now: &str) -> SkillManifest {
             created_at: now.into(),
             updated_at: now.into(),
             parent_revision_id: None,
+            procedure: None,
         },
         status: SkillStatus::Draft,
         declared_risk: CapabilityRisk::Low,

@@ -1,4 +1,5 @@
-import type { CapabilityRisk } from "./capabilities";
+import type { CapabilityRegistrySnapshot, CapabilityRisk } from "./capabilities";
+import { parseSkillDraftRecord, type SkillDraftRecord } from "./skills";
 
 export type ProcedurePatternDecision = "retain" | "dismiss";
 
@@ -34,12 +35,46 @@ export type ProcedurePatternDecisionResult = {
   skillDraftCreated: false;
 };
 
+export type ProcedureDraftConversionSummary = {
+  fingerprint: string;
+  decisionId: string;
+  candidateId: string;
+  candidateSha256: string;
+  skillId: string;
+  revisionId: string;
+  draftSha256: string;
+  updatedAt: string;
+  executionEnabled: false;
+  approved: false;
+};
+
+export type ProcedureDraftConversionSnapshot = {
+  schemaVersion: 1;
+  conversions: ProcedureDraftConversionSummary[];
+  executionEnabled: false;
+  automaticApproval: false;
+};
+
+export type ProcedureDraftConversionResult = {
+  operationId: string;
+  sourceFingerprint: string;
+  sourceCandidateId: string;
+  sourceCandidateSha256: string;
+  draft: SkillDraftRecord;
+  executionEnabled: false;
+  approved: false;
+};
+
 const snapshotKeys = ["schemaVersion", "storagePath", "existed", "decisions", "executionEnabled", "skillDraftCreated"];
 const decisionKeys = ["decisionId", "fingerprint", "action", "decidedAt", "candidateId", "title", "suggestedSkillId", "declaredRisk", "stepCount", "occurrenceCount", "candidateSha256", "executionEnabled"];
 const resultKeys = ["operationId", "decision", "storagePath", "executionEnabled", "skillDraftCreated"];
+const conversionKeys = ["fingerprint", "decisionId", "candidateId", "candidateSha256", "skillId", "revisionId", "draftSha256", "updatedAt", "executionEnabled", "approved"];
+const conversionSnapshotKeys = ["schemaVersion", "conversions", "executionEnabled", "automaticApproval"];
+const conversionResultKeys = ["operationId", "sourceFingerprint", "sourceCandidateId", "sourceCandidateSha256", "draft", "executionEnabled", "approved"];
 const risks: CapabilityRisk[] = ["none", "low", "medium", "high", "critical"];
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const digest = /^sha256:[0-9a-f]{64}$/;
+const plainDigest = /^[0-9a-f]{64}$/;
 const skillId = /^local\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?(?:\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?)*$/;
 
 function fail(message: string): never {
@@ -111,4 +146,34 @@ export function parseProcedurePatternDecisionResult(value: unknown): ProcedurePa
   exactKeys(result, resultKeys, "result");
   if (typeof result.operationId !== "string" || !uuidV4.test(result.operationId) || typeof result.storagePath !== "string" || !result.storagePath || result.executionEnabled !== false || result.skillDraftCreated !== false) fail("resultado o política no admitida");
   return { operationId: result.operationId, decision: parseProcedureDecisionSummary(result.decision), storagePath: result.storagePath, executionEnabled: false, skillDraftCreated: false };
+}
+
+function parseProcedureDraftConversionSummary(value: unknown): ProcedureDraftConversionSummary {
+  const conversion = record(value, "conversion");
+  exactKeys(conversion, conversionKeys, "conversion");
+  if (typeof conversion.fingerprint !== "string" || !digest.test(conversion.fingerprint) || typeof conversion.candidateSha256 !== "string" || !digest.test(conversion.candidateSha256)) fail("la conversión requiere huellas R5 canónicas");
+  if (typeof conversion.decisionId !== "string" || !uuidV4.test(conversion.decisionId) || typeof conversion.candidateId !== "string" || !uuidV4.test(conversion.candidateId) || typeof conversion.revisionId !== "string" || !uuidV4.test(conversion.revisionId)) fail("la conversión requiere UUID v4");
+  if (typeof conversion.skillId !== "string" || !skillId.test(conversion.skillId) || typeof conversion.draftSha256 !== "string" || !plainDigest.test(conversion.draftSha256)) fail("la conversión no identifica un borrador R4 válido");
+  const updatedAt = timestamp(conversion.updatedAt, "updatedAt");
+  if (conversion.executionEnabled !== false || conversion.approved !== false) fail("la conversión no puede ejecutar ni aprobar");
+  return { fingerprint: conversion.fingerprint, decisionId: conversion.decisionId, candidateId: conversion.candidateId, candidateSha256: conversion.candidateSha256, skillId: conversion.skillId, revisionId: conversion.revisionId, draftSha256: conversion.draftSha256, updatedAt, executionEnabled: false, approved: false };
+}
+
+export function parseProcedureDraftConversionSnapshot(value: unknown): ProcedureDraftConversionSnapshot {
+  const snapshot = record(value, "conversionSnapshot");
+  exactKeys(snapshot, conversionSnapshotKeys, "conversionSnapshot");
+  if (snapshot.schemaVersion !== 1 || !Array.isArray(snapshot.conversions) || snapshot.executionEnabled !== false || snapshot.automaticApproval !== false) fail("snapshot de conversiones no admitido");
+  const conversions = snapshot.conversions.map(parseProcedureDraftConversionSummary);
+  if (new Set(conversions.map((conversion) => conversion.fingerprint)).size !== conversions.length) fail("hay conversiones repetidas para una huella");
+  return { schemaVersion: 1, conversions, executionEnabled: false, automaticApproval: false };
+}
+
+export function parseProcedureDraftConversionResult(value: unknown, registry: CapabilityRegistrySnapshot): ProcedureDraftConversionResult {
+  const result = record(value, "conversionResult");
+  exactKeys(result, conversionResultKeys, "conversionResult");
+  if (typeof result.operationId !== "string" || !uuidV4.test(result.operationId) || typeof result.sourceFingerprint !== "string" || !digest.test(result.sourceFingerprint) || typeof result.sourceCandidateId !== "string" || !uuidV4.test(result.sourceCandidateId) || typeof result.sourceCandidateSha256 !== "string" || !digest.test(result.sourceCandidateSha256) || result.executionEnabled !== false || result.approved !== false) fail("resultado de conversión no admitido");
+  const draft = parseSkillDraftRecord(result.draft, registry);
+  const procedure = draft.manifest.provenance.procedure;
+  if (!procedure || procedure.fingerprint !== result.sourceFingerprint || procedure.candidateId !== result.sourceCandidateId || procedure.candidateSha256 !== result.sourceCandidateSha256 || draft.manifest.status !== "draft") fail("el borrador no conserva la procedencia R5 exacta");
+  return { operationId: result.operationId, sourceFingerprint: result.sourceFingerprint, sourceCandidateId: result.sourceCandidateId, sourceCandidateSha256: result.sourceCandidateSha256, draft, executionEnabled: false, approved: false };
 }

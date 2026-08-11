@@ -4,8 +4,11 @@ import { parseCapabilityRegistrySnapshot, type CapabilityRegistrySnapshot } from
 import { parseProcedureDetectionSnapshot, type ProcedureDetectionSnapshot } from "../core/procedure-learning";
 import {
   parseProcedureCandidateStoreSnapshot,
+  parseProcedureDraftConversionResult,
+  parseProcedureDraftConversionSnapshot,
   parseProcedurePatternDecisionResult,
   type ProcedureCandidateStoreSnapshot,
+  type ProcedureDraftConversionSnapshot,
   type ProcedurePatternDecision,
 } from "../core/procedure-store";
 
@@ -21,29 +24,40 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
   const [registry, setRegistry] = useState<CapabilityRegistrySnapshot | null>(null);
   const [detection, setDetection] = useState<ProcedureDetectionSnapshot | null>(null);
   const [store, setStore] = useState<ProcedureCandidateStoreSnapshot | null>(null);
+  const [conversions, setConversions] = useState<ProcedureDraftConversionSnapshot | null>(null);
   const [selectedFingerprint, setSelectedFingerprint] = useState("");
+  const [conversionFingerprint, setConversionFingerprint] = useState("");
   const [action, setAction] = useState<ProcedurePatternDecision>("retain");
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [suggestedSkillId, setSuggestedSkillId] = useState("");
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [conversionTitle, setConversionTitle] = useState("");
+  const [conversionDescription, setConversionDescription] = useState("");
+  const [conversionPurpose, setConversionPurpose] = useState("");
+  const [conversionSkillId, setConversionSkillId] = useState("");
+  const [conversionReason, setConversionReason] = useState("");
+  const [conversionConfirmed, setConversionConfirmed] = useState(false);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
   const refresh = useCallback(async (knownRegistry?: CapabilityRegistrySnapshot) => {
     const activeRegistry = knownRegistry ?? parseCapabilityRegistrySnapshot(await invoke<unknown>("capability_registry_status"));
-    const [rawDetection, rawStore] = await Promise.all([
+    const [rawDetection, rawStore, rawConversions] = await Promise.all([
       invoke<unknown>("procedure_detection_status"),
       invoke<unknown>("procedure_candidate_store_status"),
+      invoke<unknown>("procedure_draft_conversion_status"),
     ]);
     const nextDetection = parseProcedureDetectionSnapshot(rawDetection, activeRegistry);
     const nextStore = parseProcedureCandidateStoreSnapshot(rawStore);
+    const nextConversions = parseProcedureDraftConversionSnapshot(rawConversions);
     setRegistry(activeRegistry);
     setDetection(nextDetection);
     setStore(nextStore);
-    return { nextDetection, nextStore };
+    setConversions(nextConversions);
+    return { nextDetection, nextStore, nextConversions };
   }, []);
 
   useEffect(() => {
@@ -59,18 +73,37 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
   const decidedFingerprints = useMemo(() => new Set(store?.decisions.map((decision) => decision.fingerprint) ?? []), [store]);
   const pendingPatterns = useMemo(() => detection?.patterns.filter((pattern) => !decidedFingerprints.has(pattern.fingerprint)) ?? [], [detection, decidedFingerprints]);
   const selected = pendingPatterns.find((pattern) => pattern.fingerprint === selectedFingerprint) ?? null;
+  const conversionDecision = store?.decisions.find((decision) => decision.fingerprint === conversionFingerprint && decision.action === "retain") ?? null;
+  const convertedFingerprints = useMemo(() => new Set(conversions?.conversions.map((conversion) => conversion.fingerprint) ?? []), [conversions]);
   const canSubmit = Boolean(selected && confirmed && reason.trim().length >= 12 && (action === "dismiss" || (title.trim() && purpose.trim() && suggestedSkillId.trim())) && !busy);
+  const canConvert = Boolean(conversionDecision?.candidateSha256 && conversionConfirmed && conversionReason.trim().length >= 12 && conversionTitle.trim() && conversionDescription.trim() && conversionPurpose.trim() && conversionSkillId.trim() && !busy);
 
   function selectPattern(fingerprint: string) {
     const pattern = pendingPatterns.find((candidate) => candidate.fingerprint === fingerprint);
     if (!pattern) return;
     setSelectedFingerprint(fingerprint);
+    setConversionFingerprint("");
     setAction("retain");
     setTitle(`Procedimiento observado de ${pattern.steps.length} pasos`);
     setPurpose(`Conservar como propuesta revisable el patrón repetido ${shortDigest(fingerprint)} sin habilitar su ejecución.`);
     setSuggestedSkillId(defaultSkillId(fingerprint));
     setReason("");
     setConfirmed(false);
+    setError("");
+    setNotice("");
+  }
+
+  function selectConversion(fingerprint: string) {
+    const decision = store?.decisions.find((candidate) => candidate.fingerprint === fingerprint && candidate.action === "retain");
+    if (!decision || convertedFingerprints.has(fingerprint)) return;
+    setConversionFingerprint(fingerprint);
+    setSelectedFingerprint("");
+    setConversionTitle(decision.title ?? "Procedimiento observado");
+    setConversionDescription("Borrador derivado de un procedimiento repetido y conservado por el propietario.");
+    setConversionPurpose("Permitir revisión y simulación en el Taller antes de cualquier aprobación futura.");
+    setConversionSkillId(decision.suggestedSkillId ?? defaultSkillId(fingerprint));
+    setConversionReason("");
+    setConversionConfirmed(false);
     setError("");
     setNotice("");
   }
@@ -108,6 +141,41 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
     }
   }
 
+  async function convertToDraft() {
+    if (!conversionDecision?.candidateSha256 || !registry || !canConvert) return;
+    setBusy("Creando borrador R4 con procedencia R5");
+    setError("");
+    setNotice("");
+    try {
+      const result = parseProcedureDraftConversionResult(await invoke<unknown>("convert_procedure_candidate_to_draft", {
+        input: {
+          fingerprint: conversionDecision.fingerprint,
+          expectedCandidateSha256: conversionDecision.candidateSha256,
+          skillId: conversionSkillId.trim(),
+          title: conversionTitle.trim(),
+          description: conversionDescription.trim(),
+          purpose: conversionPurpose.trim(),
+          confirmation: {
+            actor: "localOwner",
+            confirmed: true,
+            expectedFingerprint: conversionDecision.fingerprint,
+            expectedCandidateSha256: conversionDecision.candidateSha256,
+            reason: conversionReason.trim(),
+          },
+        },
+      }), registry);
+      await refresh(registry);
+      setConversionFingerprint("");
+      setConversionConfirmed(false);
+      setConversionReason("");
+      setNotice(`Borrador ${result.draft.manifest.skillId} creado. Sigue sin aprobar y sin ejecutar.`);
+    } catch (reason) {
+      setError(String(reason));
+    } finally {
+      setBusy("");
+    }
+  }
+
   if (!desktopApp) return <section className="skills-page skills-unavailable">
     <span>R5 · GOBIERNO PROCEDIMENTAL</span><h2>Procedimientos observados</h2>
     <p>Esta pantalla requiere la aplicación de escritorio: las decisiones se verifican contra evidencia R3 real y se guardan localmente con SHA-256.</p>
@@ -115,15 +183,15 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
 
   return <section className="skills-page procedures-page" aria-labelledby="procedures-title">
     <header className="skills-heading procedures-heading">
-      <div><p className="eyebrow">[R5.3] AUDITED REPETITION · OWNER DECISION ONLY</p><h2 id="procedures-title">Procedimientos observados</h2><p>Alice puede detectar repeticiones auditadas; sólo vos decidís si conservarlas como candidatos o descartarlas.</p></div>
-      <span className="skills-safety"><i />EJECUCIÓN 0 · BORRADOR R4 0</span>
+      <div><p className="eyebrow">[R5.4] AUDITED REPETITION · GOVERNED DRAFT BRIDGE</p><h2 id="procedures-title">Procedimientos observados</h2><p>Detectá, conservá y convertí evidencia repetida en borradores revisables; ninguna conversión aprueba o ejecuta.</p></div>
+      <span className="skills-safety"><i />EJECUCIÓN 0 · BORRADORES R5→R4 {conversions?.conversions.length ?? 0}</span>
     </header>
 
     <div className="skills-metrics">
       <div><span>EVENTOS R3</span><strong>{detection?.scannedEventCount ?? 0}</strong><small>evidencia visible</small></div>
       <div><span>EJECUCIONES ÚTILES</span><strong>{detection?.qualifyingExecutionCount ?? 0}</strong><small>productoras y exitosas</small></div>
       <div><span>PATRONES PENDIENTES</span><strong>{pendingPatterns.length}</strong><small>mínimo 3 repeticiones</small></div>
-      <div><span>DECISIONES</span><strong>{store?.decisions.length ?? 0}</strong><small>propietario local</small></div>
+      <div><span>CONVERSIONES R4</span><strong>{conversions?.conversions.length ?? 0}</strong><small>{store?.decisions.length ?? 0} decisiones R5</small></div>
     </div>
 
     {(busy || notice || error) && <div className={`skills-message ${error ? "is-error" : notice ? "is-success" : ""}`} role="status"><span>{busy ? "…" : error ? "ERR" : "OK"}</span><strong>{busy || error || notice}</strong></div>}
@@ -143,12 +211,34 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
             <strong>{decision.action === "retain" ? decision.title : "Patrón descartado"}</strong>
             <small>{decision.action.toUpperCase()} · {shortDigest(decision.fingerprint)}</small>
             {decision.candidateSha256 && <small>CANDIDATO {shortDigest(decision.candidateSha256)}</small>}
+            {decision.action === "retain" && (convertedFingerprints.has(decision.fingerprint)
+              ? <em>BORRADOR R4 CREADO · SIN APROBAR</em>
+              : <button type="button" onClick={() => selectConversion(decision.fingerprint)}>Preparar borrador R4</button>)}
           </article>) : <p>El almacén aún no contiene decisiones.</p>}
         </section>
       </aside>
 
       <div className="skills-workbench">
-        {!selected ? <div className="skills-empty"><span>R5</span><strong>{pendingPatterns.length ? "Seleccioná un patrón verificable" : "Todavía no hay un procedimiento para decidir"}</strong><p>La detección es pasiva: no persiste candidatos, no crea habilidades y no ejecuta acciones.</p></div> : <>
+        {conversionDecision ? <>
+          <header className="skills-editor-heading"><div><span>{conversionDecision.suggestedSkillId}</span><strong>PUENTE R5→R4 · {conversionDecision.stepCount} PASOS · {conversionDecision.occurrenceCount} OCURRENCIAS</strong></div><em>SÓLO NUEVO BORRADOR</em></header>
+          <div className="skills-contract">
+            <section><span>DECISIÓN R5</span><strong>{shortDigest(conversionDecision.fingerprint)}</strong><small>retain inmutable</small></section>
+            <section><span>CANDIDATO</span><strong>{shortDigest(conversionDecision.candidateSha256 ?? "")}</strong><small>SHA-256 verificado</small></section>
+            <section><span>RESULTADO</span><strong>DRAFT · V1</strong><small>sin aprobar · sin ejecutar</small></section>
+          </div>
+          <div className="skills-editor">
+            <label>SKILL ID NUEVO<input value={conversionSkillId} maxLength={128} onChange={(event) => setConversionSkillId(event.target.value)} /></label>
+            <label>TÍTULO CORREGIBLE<input value={conversionTitle} maxLength={120} onChange={(event) => setConversionTitle(event.target.value)} /></label>
+            <label>DESCRIPCIÓN<textarea value={conversionDescription} maxLength={600} onChange={(event) => setConversionDescription(event.target.value)} /></label>
+            <label>PROPÓSITO<textarea value={conversionPurpose} maxLength={600} onChange={(event) => setConversionPurpose(event.target.value)} /></label>
+          </div>
+          <section className="skills-governance procedure-confirmation">
+            <header><span>[R5→R4] CONFIRMACIÓN DEL PROPIETARIO</span><strong>NO ACTIVA LA HABILIDAD</strong></header>
+            <label className="skills-confirm"><input type="checkbox" checked={conversionConfirmed} onChange={(event) => setConversionConfirmed(event.target.checked)} /><span>Confirmo la huella del candidato y que deseo crear un borrador nuevo para revisarlo en el Taller.</span></label>
+            <label>MOTIVO (NO SE COPIA AL BORRADOR)<textarea value={conversionReason} maxLength={600} placeholder="Mínimo 12 caracteres." onChange={(event) => setConversionReason(event.target.value)} /></label>
+            <div className="skills-lifecycle-actions"><button type="button" className="is-warning" disabled={!canConvert} onClick={convertToDraft}>Crear borrador R4<small>Conserva procedencia R5; ejecución y aprobación permanecen deshabilitadas.</small></button></div>
+          </section>
+        </> : !selected ? <div className="skills-empty"><span>R5</span><strong>{pendingPatterns.length ? "Seleccioná un patrón verificable" : store?.decisions.some((decision) => decision.action === "retain" && !convertedFingerprints.has(decision.fingerprint)) ? "Hay un candidato retenido listo para convertir" : "Todavía no hay un procedimiento para decidir"}</strong><p>La detección es pasiva: no inventa actividad. Un borrador convertido seguirá esperando revisión humana en el Taller.</p></div> : <>
           <header className="skills-editor-heading"><div><span>{shortDigest(selected.fingerprint)}</span><strong>{selected.occurrences.length} OCURRENCIAS · {selected.steps.length} PASOS · RIESGO {selected.declaredRisk.toUpperCase()}</strong></div><em>EVIDENCIA R3 VIGENTE</em></header>
           <div className="procedure-steps">{selected.steps.map((step) => <article key={step.id}><span>{String(step.position).padStart(2, "0")}</span><div><strong>{step.operation}</strong><small>{step.capabilityId}</small></div></article>)}</div>
           <div className="procedure-choice" role="group" aria-label="Decisión sobre el patrón">

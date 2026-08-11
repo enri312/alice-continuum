@@ -1,6 +1,6 @@
 # Plan de implementación R5 — Aprendizaje gobernado de procedimientos
 
-Estado: activo; incrementos 1, 2 y 3 implementados y validados  
+Estado: activo; incrementos 1, 2, 3 y 4 implementados y validados  
 Fecha: 2026-08-11
 
 ## Objetivo
@@ -40,13 +40,15 @@ Permitir que Alice detecte secuencias repetidas únicamente cuando existan ejecu
 
 **Resultado 2026-08-11:** `data/procedures/candidate-decisions-v1.json` conserva una decisión inmutable por huella. `retain` guarda el candidato validado y su SHA-256; `dismiss` guarda sólo la decisión y el digest del motivo. La pestaña **Procedimientos** está en Governance y no se mezcla con el Taller. La sonda canónica real leyó 200 eventos, encontró 0 patrones y 0 decisiones y no creó el almacén. Ejecución y borrador R4 permanecen en `false`.
 
-## Incremento 4 — Conversión revisable a borrador R4
+## Incremento 4 — Conversión revisable a borrador R4 ✅
 
 - Permitir corregir metadatos del candidato antes de una conversión explícita.
 - Convertir un candidato aceptado en un manifiesto `draft`, nunca `approved`.
 - Conservar referencias de evidencia y procedencia R5.
-- Crear una versión nueva si ya existe una habilidad relacionada.
+- Rechazar identidades ocupadas y no sobrescribir otro borrador.
 - Mantener simulación, revisión humana y restauración de R4.
+
+**Resultado 2026-08-11:** un `retain` puede originar una sola revisión `draft` nueva con enlace cerrado a decisión, candidato, fingerprint y SHA-256. R4 vuelve a validar capacidades, operaciones, riesgo y política `simulationOnly`. La procedencia no puede editarse y sobrevive nuevas revisiones, aprobación, desactivación y restauración; ejecución continúa en `false`. La sonda canónica devolvió 0 conversiones y no modificó datos.
 
 ## Incremento 5 — Interfaz y cierre de fase
 

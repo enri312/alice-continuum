@@ -94,6 +94,16 @@ describe("parseAuditSnapshot", () => {
     expect(parsed.every((item) => item.capabilityId === null && item.decision === null)).toBe(true);
   });
 
+  it("acepta el puente R5 a borrador R4 sin atribuir ejecución", () => {
+    const operationId = "123e4567-e89b-42d3-a456-426614174094";
+    const digest = `sha256:${"d".repeat(64)}`;
+    const parsed = [
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174034", operationId, source: "procedure", operation: "procedure.candidate.convert", stage: "request", outcome: "pending", subjectDigest: digest, reasonCode: "PROCEDURE_CONVERSION_ACCEPTED" },
+      { ...event, eventId: "123e4567-e89b-42d3-a456-426614174035", operationId, source: "procedure", operation: "procedure.candidate.convert", subjectDigest: digest, reasonCode: "PROCEDURE_DRAFT_CREATED" },
+    ].map(parseAuditEvent);
+    expect(parsed.every((item) => item.source === "procedure" && item.capabilityId === null)).toBe(true);
+  });
+
   it("acepta una transición motora mínima sin convertirla en decisión cognitiva", () => {
     const parsed = parseAuditEvent({
       ...event,

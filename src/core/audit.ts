@@ -46,7 +46,7 @@ const avatarMotorOperations = new Set([
   "avatar.motor.standing_up",
 ]);
 const avatarMotorReasons = new Set(["HUMAN_GAMEPAD_TRANSITION", "LOCAL_DIAGNOSTIC_TRANSITION", "HUMAN_POSTURE_TRANSITION"]);
-const procedureOperations = new Set(["procedure.candidate.retain", "procedure.candidate.dismiss"]);
+const procedureOperations = new Set(["procedure.candidate.retain", "procedure.candidate.dismiss", "procedure.candidate.convert"]);
 const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
 const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
@@ -106,8 +106,11 @@ export function parseAuditEvent(value: unknown): AuditEvent {
     || value.decision !== null
     || value.durationMs !== null
     || value.subjectDigest === null
-    || !((value.stage === "request" && value.outcome === "pending" && value.reasonCode === "PROCEDURE_DECISION_ACCEPTED")
-      || (value.stage === "execution" && value.outcome === "success" && value.reasonCode === "PROCEDURE_DECISION_RECORDED"))
+    || !(value.operation === "procedure.candidate.convert"
+      ? ((value.stage === "request" && value.outcome === "pending" && value.reasonCode === "PROCEDURE_CONVERSION_ACCEPTED")
+        || (value.stage === "execution" && value.outcome === "success" && value.reasonCode === "PROCEDURE_DRAFT_CREATED"))
+      : ((value.stage === "request" && value.outcome === "pending" && value.reasonCode === "PROCEDURE_DECISION_ACCEPTED")
+        || (value.stage === "execution" && value.outcome === "success" && value.reasonCode === "PROCEDURE_DECISION_RECORDED")))
   )) throw new Error("Evento de decisión R5 inválido");
   return value as AuditEvent;
 }

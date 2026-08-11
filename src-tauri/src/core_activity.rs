@@ -152,8 +152,10 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
             continue;
         };
         window_event_count += 1;
-        overall_weight += weight;
-        latest_event_at_ms = Some(latest_event_at_ms.unwrap_or(0).max(event.timestamp_ms));
+        if event.source != AuditSource::Procedure {
+            overall_weight += weight;
+            latest_event_at_ms = Some(latest_event_at_ms.unwrap_or(0).max(event.timestamp_ms));
+        }
 
         match event.source {
             AuditSource::System => add_region(&mut regions, "workspace", event, weight),
@@ -365,6 +367,25 @@ mod tests {
         assert!(region(&snapshot, "motor").signal > 0.0);
         assert_eq!(region(&snapshot, "workspace").signal, 0.0);
         assert_eq!(region(&snapshot, "output").signal, 0.0);
+        assert!(snapshot.links.iter().all(|item| item.signal == 0.0));
+    }
+
+    #[test]
+    fn procedure_governance_does_not_invent_cognitive_activity() {
+        let mut conversion = AuditEvent::procedure_decision(
+            Uuid::new_v4().to_string(),
+            "procedure.candidate.convert".into(),
+            AuditStage::Execution,
+            AuditOutcome::Success,
+            format!("sha256:{}", "a".repeat(64)),
+            "PROCEDURE_DRAFT_CREATED",
+        )
+        .unwrap();
+        conversion.timestamp_ms = NOW - 1_000;
+        let snapshot = derive_at(&[conversion], true, NOW);
+        assert_eq!(snapshot.window_event_count, 1);
+        assert_eq!(snapshot.overall_signal, 0.0);
+        assert!(snapshot.regions.iter().all(|item| item.signal == 0.0));
         assert!(snapshot.links.iter().all(|item| item.signal == 0.0));
     }
 

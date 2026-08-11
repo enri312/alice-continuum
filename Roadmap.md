@@ -154,7 +154,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
-**Estado:** activa desde 2026-08-11 · incrementos 1, 2 y 3 validados  
+**Estado:** activa desde 2026-08-11 · incrementos 1, 2, 3 y 4 validados  
 **Dependencia:** Fase R4  
 **Objetivo:** permitir que Alice detecte procedimientos repetidos y proponga convertirlos en habilidades.
 
@@ -166,7 +166,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 - [x] Una propuesta contiene evidencia suficiente para reconstruir su origen.
 - [x] La detección evita proponer tareas triviales o de una sola aparición.
-- [ ] Aprobar crea una nueva versión; no sobrescribe la anterior.
+- [x] Aprobar crea una nueva revisión; no sobrescribe la anterior.
 - [x] Rechazar no modifica capacidades ni memoria duradera.
 - [ ] Existe restauración de una versión anterior.
 
@@ -175,6 +175,8 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 **Incremento R5.2:** detector efímero y de sólo lectura sobre la ventana visible R3. Excluye eventos no productores, capacidades planificadas, pasos únicos y secuencias con orden temporal ambiguo. La prueba canónica examinó 22 eventos y devolvió 0 ejecuciones calificadas y 0 patrones sin modificar ninguno de los 10 archivos de datos.
 
 **Incremento R5.3:** almacén separado de decisiones bajo `data/procedures`, con una decisión inmutable `retain` o `dismiss` por huella y confirmación explícita del propietario. Conservar guarda un candidato validado y su SHA-256; descartar no guarda metadatos del candidato y el motivo se reduce a digest. La pestaña **Procedimientos** vive en Governance, separada del Taller R4. La sonda canónica real examinó 200 eventos, encontró 0 patrones y 0 decisiones y no creó el almacén; ejecución y borrador R4 continúan deshabilitados.
+
+**Incremento R5.4:** conversión explícita y de uso único desde un candidato `retain` a un borrador R4 nuevo. El manifiesto conserva `decisionId`, `candidateId`, fingerprint y SHA-256 como procedencia inmutable; R4 vuelve a validar capacidades, operaciones, riesgo y política `simulationOnly`. Un descarte, digest distinto, huella ya usada o identidad ocupada no escribe ni sobrescribe. La procedencia sobrevivió revisión, aprobación, desactivación y restauración en pruebas físicas temporales. La sonda canónica real devolvió 0 conversiones y no modificó datos.
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
@@ -311,7 +313,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: R5.1 cerró el contrato de candidatos, R5.2 añadió detección conservadora y R5.3 incorporó decisiones explícitas en un almacén separado. Los datos canónicos continúan con cero patrones elegibles y cero decisiones, que es el estado real esperado. El próximo incremento es R5.4: conversión explícita y revisable de un candidato conservado a un nuevo borrador R4, nunca a una habilidad aprobada o ejecutable. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense del visor no alimenta R5 ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: contrato, detector, decisiones y puente a borrador R4 ya están validados. Los datos canónicos continúan con cero patrones, cero decisiones y cero conversiones, que es el estado real esperado. R5.5 cerrará estados visibles y evidencia obsoleta; después comenzará R6, donde memoria de trabajo, episodios y consolidación supervisada empezarán a aportar contenido cognitivo real. Análisis sensorial automático, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

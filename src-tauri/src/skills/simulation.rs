@@ -559,6 +559,7 @@ mod tests {
                 created_at: "2026-08-10T00:00:00-03:00".into(),
                 updated_at: "2026-08-10T00:00:00-03:00".into(),
                 parent_revision_id: None,
+                procedure: None,
             },
             status: SkillStatus::Draft,
             declared_risk: CapabilityRisk::Medium,

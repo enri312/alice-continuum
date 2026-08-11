@@ -336,20 +336,38 @@ impl AuditEvent {
             }
         }
         if self.source == AuditSource::Procedure {
-            const OPERATIONS: [&str; 2] =
-                ["procedure.candidate.retain", "procedure.candidate.dismiss"];
-            let valid_stage = matches!(
-                (self.stage, self.outcome, self.reason_code.as_str()),
-                (
-                    AuditStage::Request,
-                    AuditOutcome::Pending,
-                    "PROCEDURE_DECISION_ACCEPTED"
-                ) | (
-                    AuditStage::Execution,
-                    AuditOutcome::Success,
-                    "PROCEDURE_DECISION_RECORDED"
+            const OPERATIONS: [&str; 3] = [
+                "procedure.candidate.retain",
+                "procedure.candidate.dismiss",
+                "procedure.candidate.convert",
+            ];
+            let valid_stage = if self.operation == "procedure.candidate.convert" {
+                matches!(
+                    (self.stage, self.outcome, self.reason_code.as_str()),
+                    (
+                        AuditStage::Request,
+                        AuditOutcome::Pending,
+                        "PROCEDURE_CONVERSION_ACCEPTED"
+                    ) | (
+                        AuditStage::Execution,
+                        AuditOutcome::Success,
+                        "PROCEDURE_DRAFT_CREATED"
+                    )
                 )
-            );
+            } else {
+                matches!(
+                    (self.stage, self.outcome, self.reason_code.as_str()),
+                    (
+                        AuditStage::Request,
+                        AuditOutcome::Pending,
+                        "PROCEDURE_DECISION_ACCEPTED"
+                    ) | (
+                        AuditStage::Execution,
+                        AuditOutcome::Success,
+                        "PROCEDURE_DECISION_RECORDED"
+                    )
+                )
+            };
             if self.capability_id.is_some()
                 || !OPERATIONS.contains(&self.operation.as_str())
                 || !valid_stage
@@ -643,6 +661,26 @@ mod tests {
             event.validate(),
             Err("Una autorización requiere decision".into())
         );
+    }
+
+    #[test]
+    fn procedure_conversion_audit_is_closed_and_non_cognitive() {
+        let digest = format!("sha256:{}", "c".repeat(64));
+        let request = AuditEvent::procedure_decision(
+            Uuid::new_v4().to_string(),
+            "procedure.candidate.convert".into(),
+            AuditStage::Request,
+            AuditOutcome::Pending,
+            digest,
+            "PROCEDURE_CONVERSION_ACCEPTED",
+        )
+        .unwrap();
+        assert_eq!(request.source, AuditSource::Procedure);
+        assert!(request.capability_id.is_none());
+        assert!(request.decision.is_none());
+        let mut invalid = request;
+        invalid.reason_code = "PROCEDURE_DECISION_ACCEPTED".into();
+        assert!(invalid.validate().is_err());
     }
 
     #[test]

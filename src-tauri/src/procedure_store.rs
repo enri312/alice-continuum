@@ -11,7 +11,14 @@ use crate::procedure_learning::{
     PROCEDURE_CANDIDATE_SCHEMA_VERSION,
 };
 use crate::sensory::SensorLeaseStore;
-use crate::skills::validate_skill_id;
+use crate::skills::{
+    save_procedure_draft_guarded_at, skill_draft_records_guarded_at, validate_skill_id,
+    SkillCapabilityRequirement, SkillDraftRecord, SkillDraftSaveInput, SkillDraftStore,
+    SkillExecutionMode, SkillExecutionPolicy, SkillManifest, SkillOrigin, SkillOutput,
+    SkillPrecondition, SkillPreconditionKind, SkillProcedureProvenance, SkillProvenance,
+    SkillStatus, SkillStep, SkillStepKind, SkillSuccessCheck, SkillSuccessCheckKind,
+    SkillValueKind, SKILL_MANIFEST_SCHEMA_VERSION,
+};
 use crate::util::{alice_data_root_path, timestamp_ms};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -141,6 +148,64 @@ pub(crate) struct ProcedurePatternDecisionResult {
     skill_draft_created: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ProcedureDraftConversionInput {
+    fingerprint: String,
+    expected_candidate_sha256: String,
+    skill_id: String,
+    title: String,
+    description: String,
+    purpose: String,
+    confirmation: ProcedureDraftConversionConfirmation,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ProcedureDraftConversionConfirmation {
+    actor: ProcedureDecisionActor,
+    confirmed: bool,
+    expected_fingerprint: String,
+    expected_candidate_sha256: String,
+    reason: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ProcedureDraftConversionSummary {
+    fingerprint: String,
+    decision_id: String,
+    candidate_id: String,
+    candidate_sha256: String,
+    skill_id: String,
+    revision_id: String,
+    draft_sha256: String,
+    updated_at: String,
+    execution_enabled: bool,
+    approved: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ProcedureDraftConversionSnapshot {
+    schema_version: u32,
+    conversions: Vec<ProcedureDraftConversionSummary>,
+    execution_enabled: bool,
+    automatic_approval: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ProcedureDraftConversionResult {
+    operation_id: String,
+    source_fingerprint: String,
+    source_candidate_id: String,
+    source_candidate_sha256: String,
+    draft: SkillDraftRecord,
+    execution_enabled: bool,
+    approved: bool,
+}
+
 #[tauri::command]
 pub(crate) fn procedure_candidate_store_status(
     app: AppHandle,
@@ -210,6 +275,313 @@ pub(crate) fn record_procedure_pattern_decision(
         storage_path: procedure_store_path(&data_root).display().to_string(),
         execution_enabled: false,
         skill_draft_created: false,
+    })
+}
+
+#[tauri::command]
+pub(crate) fn procedure_draft_conversion_status(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    procedure_store: State<ProcedureCandidateStore>,
+    skill_store: State<SkillDraftStore>,
+) -> Result<ProcedureDraftConversionSnapshot, String> {
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let _guard = procedure_store.lock()?;
+    procedure_draft_conversion_status_at(&alice_data_root_path(&app)?, &registry, &skill_store)
+}
+
+#[tauri::command]
+pub(crate) fn convert_procedure_candidate_to_draft(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+    procedure_store: State<ProcedureCandidateStore>,
+    skill_store: State<SkillDraftStore>,
+    input: ProcedureDraftConversionInput,
+) -> Result<ProcedureDraftConversionResult, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let now = current_utc_timestamp()?;
+    let _guard = procedure_store.lock()?;
+    let prepared = prepare_procedure_draft_at(&data_root, &registry, input, &now)?;
+    let operation_id = new_operation_id();
+    append_audit_event(
+        &app,
+        &AuditEvent::procedure_decision(
+            operation_id.clone(),
+            "procedure.candidate.convert".into(),
+            AuditStage::Request,
+            AuditOutcome::Pending,
+            prepared.source_fingerprint.clone(),
+            "PROCEDURE_CONVERSION_ACCEPTED",
+        )?,
+    )?;
+    let draft = save_procedure_draft_guarded_at(
+        &skill_store,
+        &data_root,
+        &registry,
+        SkillDraftSaveInput {
+            manifest: prepared.manifest,
+            expected_revision_id: None,
+        },
+        &prepared.source_fingerprint,
+    )?;
+    append_audit_event(
+        &app,
+        &AuditEvent::procedure_decision(
+            operation_id.clone(),
+            "procedure.candidate.convert".into(),
+            AuditStage::Execution,
+            AuditOutcome::Success,
+            prepared.source_fingerprint.clone(),
+            "PROCEDURE_DRAFT_CREATED",
+        )?,
+    )?;
+    Ok(ProcedureDraftConversionResult {
+        operation_id,
+        source_fingerprint: prepared.source_fingerprint,
+        source_candidate_id: prepared.source_candidate_id,
+        source_candidate_sha256: prepared.source_candidate_sha256,
+        draft,
+        execution_enabled: false,
+        approved: false,
+    })
+}
+
+struct PreparedProcedureDraft {
+    source_fingerprint: String,
+    source_candidate_id: String,
+    source_candidate_sha256: String,
+    manifest: SkillManifest,
+}
+
+fn prepare_procedure_draft_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    input: ProcedureDraftConversionInput,
+    now: &str,
+) -> Result<PreparedProcedureDraft, String> {
+    validate_conversion_input(&input)?;
+    let path = procedure_store_path(data_root);
+    let (document, existed) = read_store(&path)?;
+    if !existed {
+        return Err("Todavía no existe un almacén de decisiones R5".into());
+    }
+    let decision = document
+        .decisions
+        .iter()
+        .find(|decision| decision.fingerprint == input.fingerprint)
+        .ok_or("No existe una decisión del propietario para esta huella")?;
+    if decision.action != ProcedurePatternDecision::Retain {
+        return Err("Un patrón descartado no puede convertirse en borrador".into());
+    }
+    let candidate = decision
+        .candidate
+        .as_ref()
+        .ok_or("La decisión retain no conserva un candidato válido")?;
+    let candidate_sha256 = decision
+        .candidate_sha256
+        .as_ref()
+        .ok_or("La decisión retain no conserva SHA-256")?;
+    if candidate_sha256 != &input.expected_candidate_sha256
+        || input.confirmation.expected_candidate_sha256 != input.expected_candidate_sha256
+        || input.confirmation.expected_fingerprint != input.fingerprint
+    {
+        return Err("La confirmación no coincide con el candidato R5 conservado".into());
+    }
+
+    let manifest = manifest_from_candidate(decision, candidate, &input, now)?;
+    manifest.validate_new_draft(registry)?;
+    Ok(PreparedProcedureDraft {
+        source_fingerprint: decision.fingerprint.clone(),
+        source_candidate_id: candidate.candidate_id.clone(),
+        source_candidate_sha256: candidate_sha256.clone(),
+        manifest,
+    })
+}
+
+fn validate_conversion_input(input: &ProcedureDraftConversionInput) -> Result<(), String> {
+    validate_digest("fingerprint", &input.fingerprint)?;
+    validate_digest("expectedCandidateSha256", &input.expected_candidate_sha256)?;
+    validate_skill_id(&input.skill_id)?;
+    validate_text("title", &input.title, 1, 120)?;
+    validate_text("description", &input.description, 1, 600)?;
+    validate_text("purpose", &input.purpose, 1, 600)?;
+    if input.confirmation.actor != ProcedureDecisionActor::LocalOwner
+        || !input.confirmation.confirmed
+    {
+        return Err("La conversión exige confirmación explícita del propietario local".into());
+    }
+    validate_digest(
+        "confirmation.expectedFingerprint",
+        &input.confirmation.expected_fingerprint,
+    )?;
+    validate_digest(
+        "confirmation.expectedCandidateSha256",
+        &input.confirmation.expected_candidate_sha256,
+    )?;
+    validate_text("confirmation.reason", &input.confirmation.reason, 12, 600)
+}
+
+fn manifest_from_candidate(
+    decision: &StoredProcedureDecision,
+    candidate: &ProcedureCandidate,
+    input: &ProcedureDraftConversionInput,
+    now: &str,
+) -> Result<SkillManifest, String> {
+    let mut requirements = Vec::<SkillCapabilityRequirement>::new();
+    for step in &candidate.steps {
+        if let Some(requirement) = requirements
+            .iter_mut()
+            .find(|requirement| requirement.capability_id == step.capability_id)
+        {
+            if !requirement.operations.contains(&step.operation) {
+                requirement.operations.push(step.operation.clone());
+            }
+        } else {
+            requirements.push(SkillCapabilityRequirement {
+                capability_id: step.capability_id.clone(),
+                operations: vec![step.operation.clone()],
+                reason: "Operación observada en un procedimiento R5 retenido por el propietario."
+                    .into(),
+            });
+        }
+    }
+    let preconditions = requirements
+        .iter()
+        .enumerate()
+        .map(|(index, requirement)| SkillPrecondition {
+            id: format!("capability-{}", index + 1),
+            label: format!("Capacidad {} disponible", index + 1),
+            description:
+                "La capacidad observada debe continuar registrada antes de cualquier simulación."
+                    .into(),
+            kind: SkillPreconditionKind::CapabilityAvailable,
+            reference: requirement.capability_id.clone(),
+        })
+        .collect();
+    let steps = candidate
+        .steps
+        .iter()
+        .map(|step| SkillStep {
+            id: step.id.clone(),
+            title: format!("Paso {} · {}", step.position, step.operation),
+            description: "Paso observado; el borrador sólo puede inspeccionarse y simularse en R4."
+                .into(),
+            kind: SkillStepKind::Capability,
+            capability_id: Some(step.capability_id.clone()),
+            operation: Some(step.operation.clone()),
+            input_ids: vec![],
+        })
+        .collect();
+    Ok(SkillManifest {
+        schema_version: SKILL_MANIFEST_SCHEMA_VERSION,
+        skill_id: input.skill_id.clone(),
+        version: 1,
+        revision_id: Uuid::new_v4().to_string(),
+        title: input.title.clone(),
+        description: input.description.clone(),
+        purpose: input.purpose.clone(),
+        provenance: SkillProvenance {
+            author: "Propietario local".into(),
+            origin: SkillOrigin::LocalUser,
+            created_at: now.into(),
+            updated_at: now.into(),
+            parent_revision_id: None,
+            procedure: Some(SkillProcedureProvenance {
+                decision_id: decision.decision_id.clone(),
+                candidate_id: candidate.candidate_id.clone(),
+                fingerprint: decision.fingerprint.clone(),
+                candidate_sha256: decision
+                    .candidate_sha256
+                    .clone()
+                    .ok_or("Falta candidateSha256")?,
+            }),
+        },
+        status: SkillStatus::Draft,
+        declared_risk: candidate.declared_risk,
+        execution: SkillExecutionPolicy {
+            mode: SkillExecutionMode::SimulationOnly,
+            enabled: false,
+            allow_network: false,
+            allow_process_launch: false,
+            allow_local_write: false,
+        },
+        required_capabilities: requirements,
+        inputs: vec![],
+        outputs: vec![SkillOutput {
+            id: "procedure-review".into(),
+            label: "Resultado pendiente de revisión".into(),
+            description:
+                "Resultado declarado para inspección; el borrador no ejecuta el procedimiento."
+                    .into(),
+            kind: SkillValueKind::Text,
+            sensitive: true,
+        }],
+        preconditions,
+        steps,
+        success_checks: vec![SkillSuccessCheck {
+            id: "owner-review".into(),
+            label: "Revisión del propietario".into(),
+            description:
+                "El propietario deberá revisar el plan simulado antes de cualquier transición R4."
+                    .into(),
+            kind: SkillSuccessCheckKind::ManualConfirmation,
+            reference: "user".into(),
+        }],
+    })
+}
+
+fn procedure_draft_conversion_status_at(
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    skill_store: &SkillDraftStore,
+) -> Result<ProcedureDraftConversionSnapshot, String> {
+    let (procedure_document, _) = read_store(&procedure_store_path(data_root))?;
+    let mut conversions = skill_draft_records_guarded_at(skill_store, data_root, registry)?
+        .into_iter()
+        .filter_map(|draft| {
+            let procedure = draft.manifest.provenance.procedure.clone()?;
+            Some((draft, procedure))
+        })
+        .map(|(draft, procedure)| {
+            let decision = procedure_document
+                .decisions
+                .iter()
+                .find(|decision| decision.fingerprint == procedure.fingerprint)
+                .ok_or("Un borrador declara procedencia R5 sin decisión verificable")?;
+            let candidate = decision
+                .candidate
+                .as_ref()
+                .ok_or("Un borrador R5 enlaza una decisión sin candidato")?;
+            if decision.action != ProcedurePatternDecision::Retain
+                || decision.decision_id != procedure.decision_id
+                || candidate.candidate_id != procedure.candidate_id
+                || decision.candidate_sha256.as_deref() != Some(&procedure.candidate_sha256)
+            {
+                return Err("La procedencia R5 del borrador no coincide con el almacén".into());
+            }
+            Ok(ProcedureDraftConversionSummary {
+                fingerprint: procedure.fingerprint.clone(),
+                decision_id: procedure.decision_id.clone(),
+                candidate_id: procedure.candidate_id.clone(),
+                candidate_sha256: procedure.candidate_sha256.clone(),
+                skill_id: draft.manifest.skill_id.clone(),
+                revision_id: draft.manifest.revision_id.clone(),
+                draft_sha256: draft.sha256,
+                updated_at: draft.manifest.provenance.updated_at.clone(),
+                execution_enabled: false,
+                approved: false,
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    conversions.sort_by(|left, right| left.skill_id.cmp(&right.skill_id));
+    Ok(ProcedureDraftConversionSnapshot {
+        schema_version: 1,
+        conversions,
+        execution_enabled: false,
+        automatic_approval: false,
     })
 }
 
@@ -603,10 +975,10 @@ mod tests {
     use super::*;
     use crate::audit::{AuditSource, AUDIT_MAX_BYTES};
     use crate::capabilities::{
-        CapabilityDescriptor, CapabilityDomain, CapabilityEffect, CapabilityHealth,
-        CapabilityHealthStatus, CapabilityKind, CapabilityMaturity, CapabilityPermission,
-        CapabilityPermissionEnforcer, CapabilityPermissionMode, CapabilityState,
-        CAPABILITY_REGISTRY_SCHEMA_VERSION,
+        capability_registry_from_probes, CapabilityDescriptor, CapabilityDomain, CapabilityEffect,
+        CapabilityHealth, CapabilityHealthStatus, CapabilityKind, CapabilityMaturity,
+        CapabilityPermission, CapabilityPermissionEnforcer, CapabilityPermissionMode,
+        CapabilityProbeSnapshot, CapabilityState, CAPABILITY_REGISTRY_SCHEMA_VERSION,
     };
 
     fn registry() -> CapabilityRegistrySnapshot {
@@ -716,8 +1088,52 @@ mod tests {
         }
     }
 
+    fn conversion_input(stored: &StoredProcedureDecision) -> ProcedureDraftConversionInput {
+        ProcedureDraftConversionInput {
+            fingerprint: stored.fingerprint.clone(),
+            expected_candidate_sha256: stored.candidate_sha256.clone().unwrap(),
+            skill_id: "local.procedimiento-observado".into(),
+            title: "Procedimiento observado revisable".into(),
+            description: "Borrador derivado de evidencia repetida y conservada por el propietario."
+                .into(),
+            purpose: "Permitir inspección y simulación antes de cualquier aprobación futura."
+                .into(),
+            confirmation: ProcedureDraftConversionConfirmation {
+                actor: ProcedureDecisionActor::LocalOwner,
+                confirmed: true,
+                expected_fingerprint: stored.fingerprint.clone(),
+                expected_candidate_sha256: stored.candidate_sha256.clone().unwrap(),
+                reason: "Convertir la propuesta retenida en un borrador revisable.".into(),
+            },
+        }
+    }
+
     fn temp_root() -> PathBuf {
         std::env::temp_dir().join(format!("alice-r5-store-{}", Uuid::new_v4()))
+    }
+
+    fn tree_snapshot(root: &Path) -> Vec<(PathBuf, String)> {
+        fn visit(base: &Path, current: &Path, files: &mut Vec<(PathBuf, String)>) {
+            if !current.exists() {
+                return;
+            }
+            for entry in fs::read_dir(current).unwrap() {
+                let entry = entry.unwrap();
+                let path = entry.path();
+                if path.is_dir() {
+                    visit(base, &path, files);
+                } else {
+                    files.push((
+                        path.strip_prefix(base).unwrap().to_path_buf(),
+                        sha256_digest(&fs::read(path).unwrap()),
+                    ));
+                }
+            }
+        }
+        let mut files = Vec::new();
+        visit(root, root, &mut files);
+        files.sort_by(|left, right| left.0.cmp(&right.0));
+        files
     }
 
     #[test]
@@ -750,6 +1166,32 @@ mod tests {
             "R5.3 real: {} decisiones, almacén existente={}, ejecución=false, borrador R4=false",
             status.decisions.len(),
             status.existed
+        );
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_conversion_status_is_read_only() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR");
+        let before = tree_snapshot(&root);
+        let probes = CapabilityProbeSnapshot::collect(
+            &root,
+            &ObservationStore::default(),
+            &SensorLeaseStore::default(),
+        );
+        let registry =
+            capability_registry_from_probes("2026-08-11T15:00:00Z".into(), &probes).unwrap();
+        let status =
+            procedure_draft_conversion_status_at(&root, &registry, &SkillDraftStore::default())
+                .unwrap();
+        assert_eq!(tree_snapshot(&root), before);
+        assert!(!status.execution_enabled);
+        assert!(!status.automatic_approval);
+        eprintln!(
+            "R5.4 real: {} conversiones, ejecución=false, aprobación automática=false",
+            status.conversions.len()
         );
     }
 
@@ -838,6 +1280,165 @@ mod tests {
         crate::audit::append_event_at(&root, &event, AUDIT_MAX_BYTES).unwrap();
         let text = fs::read_to_string(root.join("audit").join("events-v1.jsonl")).unwrap();
         assert!(!text.contains("La evidencia repetida merece"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn retained_candidate_creates_real_r4_draft_with_r5_provenance() {
+        let root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        let stored = record_procedure_pattern_decision_at(
+            &root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Retain),
+        )
+        .unwrap();
+        let procedure_bytes = fs::read(procedure_store_path(&root)).unwrap();
+        let prepared = prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            conversion_input(&stored),
+            "2026-08-11T14:00:00Z",
+        )
+        .unwrap();
+        let skill_store = SkillDraftStore::default();
+        let draft = save_procedure_draft_guarded_at(
+            &skill_store,
+            &root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: prepared.manifest,
+                expected_revision_id: None,
+            },
+            &prepared.source_fingerprint,
+        )
+        .unwrap();
+
+        assert_eq!(draft.manifest.status, SkillStatus::Draft);
+        assert!(!draft.manifest.execution.enabled);
+        let provenance = draft.manifest.provenance.procedure.as_ref().unwrap();
+        assert_eq!(provenance.fingerprint, stored.fingerprint);
+        assert_eq!(
+            provenance.candidate_id,
+            stored.candidate.unwrap().candidate_id
+        );
+        assert_eq!(
+            fs::read(procedure_store_path(&root)).unwrap(),
+            procedure_bytes
+        );
+        let status =
+            procedure_draft_conversion_status_at(&root, &registry(), &skill_store).unwrap();
+        assert_eq!(status.conversions.len(), 1);
+        assert!(!status.execution_enabled);
+        assert!(!status.automatic_approval);
+        let path = procedure_store_path(&root);
+        let (mut altered, _) = read_store(&path).unwrap();
+        altered.decisions[0].decision_id = Uuid::new_v4().to_string();
+        atomic_replace(&path, &serialize_json(&altered).unwrap()).unwrap();
+        assert!(procedure_draft_conversion_status_at(&root, &registry(), &skill_store).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn conversion_is_single_use_and_never_overwrites_a_draft() {
+        let root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        let stored = record_procedure_pattern_decision_at(
+            &root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Retain),
+        )
+        .unwrap();
+        let skill_store = SkillDraftStore::default();
+        let first = prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            conversion_input(&stored),
+            "2026-08-11T14:00:00Z",
+        )
+        .unwrap();
+        save_procedure_draft_guarded_at(
+            &skill_store,
+            &root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: first.manifest,
+                expected_revision_id: None,
+            },
+            &first.source_fingerprint,
+        )
+        .unwrap();
+        let index_path = root.join("skills").join("manifest.json");
+        let before = fs::read(&index_path).unwrap();
+        let second = prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            conversion_input(&stored),
+            "2026-08-11T14:01:00Z",
+        )
+        .unwrap();
+        assert!(save_procedure_draft_guarded_at(
+            &skill_store,
+            &root,
+            &registry(),
+            SkillDraftSaveInput {
+                manifest: second.manifest,
+                expected_revision_id: None,
+            },
+            &second.source_fingerprint,
+        )
+        .is_err());
+        assert_eq!(fs::read(index_path).unwrap(), before);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn dismissed_or_mismatched_candidate_never_creates_a_skill_store() {
+        let root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        let dismissed = record_procedure_pattern_decision_at(
+            &root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Dismiss),
+        )
+        .unwrap();
+        let mut request = ProcedureDraftConversionInput {
+            fingerprint: dismissed.fingerprint.clone(),
+            expected_candidate_sha256: format!("sha256:{}", "b".repeat(64)),
+            skill_id: "local.procedimiento-descartado".into(),
+            title: "No debe crearse".into(),
+            description: "Un patrón descartado no puede cruzar la frontera R5 a R4.".into(),
+            purpose: "Demostrar que la conversión falla de forma cerrada.".into(),
+            confirmation: ProcedureDraftConversionConfirmation {
+                actor: ProcedureDecisionActor::LocalOwner,
+                confirmed: true,
+                expected_fingerprint: dismissed.fingerprint,
+                expected_candidate_sha256: format!("sha256:{}", "b".repeat(64)),
+                reason: "Esta solicitud sólo verifica el rechazo controlado.".into(),
+            },
+        };
+        assert!(prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            request.clone(),
+            "2026-08-11T14:00:00Z"
+        )
+        .is_err());
+        request.confirmation.confirmed = false;
+        assert!(
+            prepare_procedure_draft_at(&root, &registry(), request, "2026-08-11T14:00:00Z")
+                .is_err()
+        );
+        assert!(!root.join("skills").exists());
         fs::remove_dir_all(root).unwrap();
     }
 }

@@ -99,10 +99,10 @@ pub(crate) struct SkillDraftStoreSnapshot {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct SkillDraftRecord {
-    manifest: SkillManifest,
-    sha256: String,
-    storage_path: String,
-    backup_available: bool,
+    pub(crate) manifest: SkillManifest,
+    pub(crate) sha256: String,
+    pub(crate) storage_path: String,
+    pub(crate) backup_available: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -135,6 +135,17 @@ pub(crate) struct SkillProvenance {
     pub(crate) created_at: String,
     pub(crate) updated_at: String,
     pub(crate) parent_revision_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) procedure: Option<SkillProcedureProvenance>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SkillProcedureProvenance {
+    pub(crate) decision_id: String,
+    pub(crate) candidate_id: String,
+    pub(crate) fingerprint: String,
+    pub(crate) candidate_sha256: String,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -289,6 +300,15 @@ impl SkillManifest {
             if parent == &self.revision_id {
                 return Err("parentRevisionId no puede ser igual a revisionId".into());
             }
+        }
+        if let Some(procedure) = &self.provenance.procedure {
+            validate_uuid_v4("provenance.procedure.decisionId", &procedure.decision_id)?;
+            validate_uuid_v4("provenance.procedure.candidateId", &procedure.candidate_id)?;
+            validate_sha256("provenance.procedure.fingerprint", &procedure.fingerprint)?;
+            validate_sha256(
+                "provenance.procedure.candidateSha256",
+                &procedure.candidate_sha256,
+            )?;
         }
         self.validate_execution_policy()?;
         if self.steps.is_empty() || self.steps.len() > 64 {
@@ -665,6 +685,19 @@ fn validate_uuid_v4(field: &str, value: &str) -> Result<(), String> {
     }
 }
 
+fn validate_sha256(field: &str, value: &str) -> Result<(), String> {
+    let valid = value.len() == 71
+        && value.starts_with("sha256:")
+        && value[7..]
+            .chars()
+            .all(|character| character.is_ascii_digit() || ('a'..='f').contains(&character));
+    if valid {
+        Ok(())
+    } else {
+        Err(format!("{field} debe ser SHA-256 canónico"))
+    }
+}
+
 #[derive(Clone)]
 struct LoadedSkillDraft {
     manifest: SkillManifest,
@@ -719,6 +752,50 @@ fn save_skill_draft_guarded_at(
 ) -> Result<SkillDraftRecord, String> {
     let _guard = store.lock()?;
     save_skill_draft_at(data_root, registry, input)
+}
+
+pub(crate) fn save_procedure_draft_guarded_at(
+    store: &SkillDraftStore,
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+    input: SkillDraftSaveInput,
+    fingerprint: &str,
+) -> Result<SkillDraftRecord, String> {
+    let _guard = store.lock()?;
+    let skills_root = data_root.join("skills");
+    let (index, _) = read_skill_index(&skills_root)?;
+    let loaded = load_indexed_drafts(&skills_root, registry, &index)?;
+    if loaded.iter().any(|draft| {
+        draft
+            .manifest
+            .provenance
+            .procedure
+            .as_ref()
+            .is_some_and(|procedure| procedure.fingerprint == fingerprint)
+    }) {
+        return Err("Este candidato R5 ya fue convertido en un borrador R4".into());
+    }
+    if loaded
+        .iter()
+        .any(|draft| draft.manifest.skill_id == input.manifest.skill_id)
+    {
+        return Err(
+            "El skillId elegido ya pertenece a otro borrador; elegí una identidad nueva".into(),
+        );
+    }
+    save_skill_draft_at(data_root, registry, input)
+}
+
+pub(crate) fn skill_draft_records_guarded_at(
+    store: &SkillDraftStore,
+    data_root: &Path,
+    registry: &CapabilityRegistrySnapshot,
+) -> Result<Vec<SkillDraftRecord>, String> {
+    let _guard = store.lock()?;
+    let skills_root = data_root.join("skills");
+    let (index, _) = read_skill_index(&skills_root)?;
+    load_indexed_drafts(&skills_root, registry, &index)
+        .map(|drafts| drafts.into_iter().map(skill_draft_record).collect())
 }
 
 fn skill_draft_store_status_at(
@@ -923,9 +1000,10 @@ fn validate_edited_draft(
         || candidate.version != previous.version
         || candidate.provenance.author != previous.provenance.author
         || candidate.provenance.created_at != previous.provenance.created_at
+        || candidate.provenance.procedure != previous.provenance.procedure
     {
         return Err(
-            "Una edición no puede cambiar skillId, version, author ni provenance.createdAt".into(),
+            "Una edición no puede cambiar skillId, version, author, procedencia R5 ni provenance.createdAt".into(),
         );
     }
     if candidate.provenance.updated_at == previous.provenance.updated_at {
@@ -1282,6 +1360,7 @@ mod tests {
                 created_at: "2026-08-09T21:00:00-03:00".into(),
                 updated_at: "2026-08-09T21:00:00-03:00".into(),
                 parent_revision_id: None,
+                procedure: None,
             },
             status: SkillStatus::Draft,
             declared_risk: CapabilityRisk::Medium,

@@ -60,3 +60,13 @@ La ejecución canónica más reciente del 11 de agosto examinó 22 eventos váli
 - La respuesta fija `executionEnabled=false` y `skillDraftCreated=false`.
 
 La prueba canónica posterior examinó 200 eventos, mantuvo cero patrones y confirmó cero decisiones con el almacén ausente, sin crear contenido. La conversión a borrador R4 sigue fuera de R5.3.
+
+## Conversión gobernada R5.4
+
+`convert_procedure_candidate_to_draft` sólo acepta una decisión `retain` existente. La confirmación liga huella y SHA-256 del candidato; el propietario corrige metadatos antes de crear una identidad R4 nueva. Un descarte, un digest distinto, una huella ya convertida o un `skillId` ocupado fallan de forma cerrada.
+
+El manifiesto resultante usa `draft`, versión 1 y `simulationOnly`; declara exactamente las capacidades y operaciones observadas, un resultado sensible y una comprobación manual. `provenance.procedure` conserva `decisionId`, `candidateId`, `fingerprint` y `candidateSha256`. Ese enlace es inmutable durante las ediciones y se copia a cada revisión del ciclo R4.
+
+`procedure_draft_conversion_status` reconstruye conversiones únicamente desde borradores R4 verificados. Consultar es pasivo. La sonda canónica real produjo cero conversiones, ejecución falsa y aprobación automática falsa sin alterar el árbol de datos.
+
+Los eventos R3 de conversión siguen siendo gobierno del propietario: no activan regiones ni señal global del Núcleo. Crear un borrador no significa que Alice recordó, pensó o ejecutó el procedimiento.

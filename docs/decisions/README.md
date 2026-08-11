@@ -37,3 +37,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-059](ADR-P-059-maquina-estados-corporal-local.md) | Máquina corporal local y aprendizaje motor separado |
 | [ADR-P-060](ADR-P-060-telemetria-motora-y-detalle-superficial.md) | Telemetría motora humana separada de cognición y detalle superficial reversible del avatar |
 | [ADR-P-061](ADR-P-061-almacen-decisiones-procedimientos.md) | Almacén R5.3 separado, decisiones inmutables y confirmación explícita del propietario |
+| [ADR-P-062](ADR-P-062-conversion-procedimiento-borrador.md) | Puente R5.4 explícito hacia un borrador R4 con procedencia verificable y ejecución deshabilitada |

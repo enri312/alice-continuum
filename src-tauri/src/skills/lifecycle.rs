@@ -974,6 +974,65 @@ mod tests {
     }
 
     #[test]
+    fn r5_provenance_survives_review_and_new_approved_revision() {
+        let fixture = Fixture::new();
+        let mut source = manifest();
+        source.provenance.procedure = Some(super::super::SkillProcedureProvenance {
+            decision_id: Uuid::new_v4().to_string(),
+            candidate_id: Uuid::new_v4().to_string(),
+            fingerprint: format!("sha256:{}", "a".repeat(64)),
+            candidate_sha256: format!("sha256:{}", "b".repeat(64)),
+        });
+        let draft = super::super::save_skill_draft_at(
+            &fixture.root,
+            &registry(),
+            super::super::SkillDraftSaveInput {
+                manifest: source,
+                expected_revision_id: None,
+            },
+        )
+        .unwrap();
+        let expected = draft.manifest.provenance.procedure.clone();
+        let source_revision_id = draft.manifest.revision_id.clone();
+        let review = fixture
+            .transition(
+                SkillLifecycleAction::SubmitReview,
+                source_revision_id.clone(),
+                draft.sha256,
+            )
+            .unwrap();
+        let approved = fixture
+            .transition(
+                SkillLifecycleAction::Approve,
+                review.manifest.revision_id,
+                review.sha256,
+            )
+            .unwrap();
+        let disabled = fixture
+            .transition(
+                SkillLifecycleAction::Disable,
+                approved.manifest.revision_id.clone(),
+                approved.sha256.clone(),
+            )
+            .unwrap();
+        let restored = fixture
+            .transition(
+                SkillLifecycleAction::Restore,
+                disabled.manifest.revision_id,
+                disabled.sha256,
+            )
+            .unwrap();
+
+        assert_eq!(approved.manifest.version, 1);
+        assert_ne!(approved.manifest.revision_id, source_revision_id);
+        assert_eq!(approved.manifest.provenance.procedure, expected);
+        assert_eq!(restored.manifest.status, SkillStatus::Approved);
+        assert_eq!(restored.manifest.provenance.procedure, expected);
+        assert!(!approved.manifest.execution.enabled);
+        assert!(!restored.manifest.execution.enabled);
+    }
+
+    #[test]
     fn wrong_transition_is_blocked_and_leaves_current_revision_unchanged() {
         let fixture = Fixture::new();
         let draft = fixture.save_draft();

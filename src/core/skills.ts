@@ -24,7 +24,14 @@ export type SkillManifest = {
   title: string;
   description: string;
   purpose: string;
-  provenance: { author: string; origin: "localUser"; createdAt: string; updatedAt: string; parentRevisionId: string | null };
+  provenance: {
+    author: string;
+    origin: "localUser";
+    createdAt: string;
+    updatedAt: string;
+    parentRevisionId: string | null;
+    procedure?: { decisionId: string; candidateId: string; fingerprint: string; candidateSha256: string };
+  };
   status: SkillStatus;
   declaredRisk: CapabilityRisk;
   execution: { mode: "simulationOnly"; enabled: false; allowNetwork: false; allowProcessLaunch: false; allowLocalWrite: false };
@@ -148,6 +155,7 @@ const localId = /^[a-z](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 const skillId = /^local\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?(?:\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?)*$/;
 const operationId = /^[A-Za-z0-9._-]{1,96}$/;
 const sha256 = /^[0-9a-f]{64}$/;
+const prefixedSha256 = /^sha256:[0-9a-f]{64}$/;
 const capabilityMaturities: CapabilityMaturity[] = ["implemented", "partial", "planned"];
 const capabilityStates: CapabilityState[] = ["unavailable", "disabled", "idle", "active", "degraded", "error"];
 const capabilityHealth: CapabilityHealthStatus[] = ["unchecked", "healthy", "degraded", "unavailable", "error"];
@@ -206,16 +214,25 @@ function textList(value: unknown, field: string): string[] {
 
 function parseProvenance(value: unknown): SkillManifest["provenance"] {
   const item = record(value, "provenance");
-  exactKeys(item, ["author", "origin", "createdAt", "updatedAt", "parentRevisionId"], "provenance");
+  const baseKeys = ["author", "origin", "createdAt", "updatedAt", "parentRevisionId"];
+  exactKeys(item, "procedure" in item ? [...baseKeys, "procedure"] : baseKeys, "provenance");
   if (item.origin !== "localUser") fail("provenance.origin debe ser localUser durante R4.1");
   if (item.parentRevisionId !== null && (typeof item.parentRevisionId !== "string" || !uuidV4.test(item.parentRevisionId))) fail("parentRevisionId debe ser UUID v4 o null");
-  return {
+  const parsed: SkillManifest["provenance"] = {
     author: visibleText(item.author, "provenance.author", 120),
     origin: "localUser",
     createdAt: timestamp(item.createdAt, "provenance.createdAt"),
     updatedAt: timestamp(item.updatedAt, "provenance.updatedAt"),
     parentRevisionId: item.parentRevisionId as string | null,
   };
+  if ("procedure" in item) {
+    const procedure = record(item.procedure, "provenance.procedure");
+    exactKeys(procedure, ["decisionId", "candidateId", "fingerprint", "candidateSha256"], "provenance.procedure");
+    if (typeof procedure.decisionId !== "string" || !uuidV4.test(procedure.decisionId) || typeof procedure.candidateId !== "string" || !uuidV4.test(procedure.candidateId)) fail("provenance.procedure requiere UUID v4");
+    if (typeof procedure.fingerprint !== "string" || !prefixedSha256.test(procedure.fingerprint) || typeof procedure.candidateSha256 !== "string" || !prefixedSha256.test(procedure.candidateSha256)) fail("provenance.procedure requiere SHA-256 canónicos");
+    parsed.procedure = { decisionId: procedure.decisionId, candidateId: procedure.candidateId, fingerprint: procedure.fingerprint, candidateSha256: procedure.candidateSha256 };
+  }
+  return parsed;
 }
 
 function parseExecution(value: unknown): SkillManifest["execution"] {

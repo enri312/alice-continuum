@@ -63,6 +63,18 @@ function simulation() {
 }
 
 describe("R4 skill manifest", () => {
+  it("conserva procedencia R5 opcional y cerrada", () => {
+    const candidate = manifest();
+    candidate.provenance.procedure = {
+      decisionId: "11111111-1111-4111-8111-111111111111",
+      candidateId: "22222222-2222-4222-8222-222222222222",
+      fingerprint: `sha256:${"a".repeat(64)}`,
+      candidateSha256: `sha256:${"b".repeat(64)}`,
+    };
+    const parsed = parseSkillManifest(candidate, registry);
+    expect(parsed.provenance.procedure?.candidateId).toBe("22222222-2222-4222-8222-222222222222");
+    expect(() => parseSkillManifest({ ...candidate, provenance: { ...candidate.provenance, procedure: { ...candidate.provenance.procedure, fingerprint: "invalid" } } }, registry)).toThrow(/SHA-256/i);
+  });
   it("acepta un borrador cerrado contra una capacidad R1 real", () => {
     const parsed = parseNewSkillDraft(manifest(), registry);
     expect(parsed.execution.enabled).toBe(false);

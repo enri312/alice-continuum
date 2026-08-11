@@ -36,7 +36,8 @@ use permissions::{
 };
 use procedure_learning::procedure_detection_status;
 use procedure_store::{
-    procedure_candidate_store_status, record_procedure_pattern_decision, ProcedureCandidateStore,
+    convert_procedure_candidate_to_draft, procedure_candidate_store_status,
+    procedure_draft_conversion_status, record_procedure_pattern_decision, ProcedureCandidateStore,
 };
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
 use skills::{
@@ -102,6 +103,8 @@ pub fn run() {
             procedure_detection_status,
             procedure_candidate_store_status,
             record_procedure_pattern_decision,
+            procedure_draft_conversion_status,
+            convert_procedure_candidate_to_draft,
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,
