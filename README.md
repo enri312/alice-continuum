@@ -68,11 +68,11 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 | Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
 | Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
 
-### Sistema de iconos cyber-isométricos
+### Sistema de iconos holográficos planos
 
-La navegación y los controles visuales usan 21 SVG propios con lenguaje cyber/HUD, volumen isométrico, carcasa angular, biseles, superficies sólidas, circuitos asimétricos, códigos de módulo y neón segmentado. Cada función principal tiene un color dominante distinto para que conversación, memoria, actividad, gobierno, rostro, cuerpo y planificación puedan reconocerse sin depender solamente del texto. Las animaciones respetan `prefers-reduced-motion`.
+La navegación y los controles visuales usan 21 SVG planos y originales con lenguaje holográfico de ingeniería: degradados por función, geometría concéntrica, nodos, circuitos, marcos parciales y espacio negativo. Cada silueta representa su función sin depender solamente del texto ni de una carcasa repetida. Las animaciones decorativas respetan `prefers-reduced-motion`.
 
-El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión y la verificación están documentadas en [ADR-P-053](docs/decisions/ADR-P-053-sistema-iconos-isometricos-3d.md) y [el informe del sistema de iconos](docs/testing/ISOMETRIC_ICON_SYSTEM_REPORT_2026-08-11.md).
+El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-054](docs/decisions/ADR-P-054-sistema-iconos-holograficos-planos.md) y [el informe del sistema plano](docs/testing/FLAT_HOLOGRAPHIC_ICON_SYSTEM_REPORT_2026-08-11.md). El experimento cyber-isométrico anterior se conserva como decisión reemplazada en [ADR-P-053](docs/decisions/ADR-P-053-sistema-iconos-isometricos-3d.md).
 
 ## Cámara, micrófono y aprendizaje sensorial
 

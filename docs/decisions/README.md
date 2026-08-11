@@ -28,4 +28,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-050](ADR-P-050-simulacion-estatica-de-habilidades.md) | Simulación R4.3 explicable, determinista y sin llamadas a adaptadores |
 | [ADR-P-051](ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md) | Ciclo R4.4 con confirmación ligada por SHA-256, revisiones inmutables y auditoría correlacionada |
 | [ADR-P-052](ADR-P-052-fronteras-mente-cuerpo-gobierno.md) | Separación visible y arquitectónica entre mente, cuerpo, futura sala de observación y gobierno del propietario |
-| [ADR-P-053](ADR-P-053-sistema-iconos-isometricos-3d.md) | Familia SVG cyber-isométrica 3D con identidad cromática por función y emblema de aplicación congelado |
+| [ADR-P-053](ADR-P-053-sistema-iconos-isometricos-3d.md) | Experimento cyber-isométrico 3D, reemplazado por ADR-P-054 |
+| [ADR-P-054](ADR-P-054-sistema-iconos-holograficos-planos.md) | Familia SVG holográfica plana, original y diferenciada por función |

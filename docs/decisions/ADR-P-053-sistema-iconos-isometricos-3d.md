@@ -1,7 +1,9 @@
 # ADR-P-053 — Sistema de iconos cyber-isométricos 3D
 
-- Estado: aceptada
+- Estado: reemplazada por ADR-P-054
 - Fecha: 2026-08-11
+
+La familia cyber-isométrica fue implementada y verificada, pero se descartó como estilo vigente porque el volumen sólido resultaba más apropiado para otros formatos. Se conserva este documento para registrar el experimento y la razón del cambio.
 
 ## Contexto
 
