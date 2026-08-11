@@ -1,54 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <style>
-    .act-flow{animation:actFlow 2.6s linear infinite}.act-pulse{transform-box:fill-box;transform-origin:center;animation:actPulse 2.2s ease-in-out infinite}.act-scan{animation:actScan 3.8s ease-in-out infinite}.act-led{animation:actLed 1.8s steps(2,end) infinite}
-    @keyframes actFlow{to{stroke-dashoffset:-36}}@keyframes actPulse{50%{transform:scale(1.14);opacity:.72}}@keyframes actScan{0%,100%{transform:translateY(-32px);opacity:0}50%{transform:translateY(43px);opacity:.72}}@keyframes actLed{50%{opacity:.25}}
-    @media (prefers-reduced-motion:reduce){.act-flow,.act-pulse,.act-scan,.act-led{animation:none}}
-  </style>
-  <defs>
-    <linearGradient id="act-frame" x1="10" y1="8" x2="190" y2="192" gradientUnits="userSpaceOnUse"><stop stop-color="#26374d"/><stop offset=".48" stop-color="#0b1423"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="act-panel" x1="44" y1="34" x2="157" y2="168" gradientUnits="userSpaceOnUse"><stop stop-color="#102131"/><stop offset=".52" stop-color="#07111e"/><stop offset="1" stop-color="#030712"/></linearGradient>
-    <linearGradient id="act-spine" x1="100" y1="48" x2="100" y2="156" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset=".28" stop-color="#c084fc"/><stop offset=".62" stop-color="#fbbf24"/><stop offset="1" stop-color="#34d399"/></linearGradient>
-    <radialGradient id="act-field"><stop stop-color="#f59e0b" stop-opacity=".19"/><stop offset=".55" stop-color="#38bdf8" stop-opacity=".08"/><stop offset="1" stop-color="#020617" stop-opacity="0"/></radialGradient>
-    <filter id="act-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="act-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity=".88"/></filter>
-    <pattern id="act-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0v10" fill="none" stroke="#334155" stroke-width=".55" opacity=".52"/></pattern>
-  </defs>
-
-  <path d="M100 7c79 0 93 14 93 93s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#act-frame)" stroke="#d97706" stroke-width="3"/>
-  <path d="M100 13c73 0 87 14 87 87s-14 87-87 87-87-14-87-87 14-87 87-87Z" fill="none" stroke="#fbbf24" stroke-width="1.2" opacity=".58"/>
-  <circle cx="100" cy="104" r="77" fill="url(#act-field)"/><circle cx="100" cy="104" r="70" fill="url(#act-grid)" opacity=".38"/>
-  <g fill="#475569" stroke="#111827" stroke-width="2"><circle cx="29" cy="29" r="5"/><circle cx="171" cy="29" r="5"/><circle cx="29" cy="171" r="5"/><circle cx="171" cy="171" r="5"/></g><g stroke="#020617" stroke-width="2"><path d="m26 26 6 6m136-6 6 6M26 168l6 6m136-6 6 6"/></g>
-  <text x="100" y="27" fill="#fde68a" font-family="Consolas,monospace" font-size="8.5" font-weight="900" text-anchor="middle" letter-spacing="1.7">ACT-04 · TIMELINE</text>
-
-  <path d="M51 39h98l10 10v111l-9 9H50l-9-9V49Z" fill="#020617" stroke="#451a03" stroke-width="7" filter="url(#act-shadow)"/>
-  <path d="M48 34h104l12 12v111l-10 10H46l-10-10V46Z" fill="url(#act-panel)" stroke="#f59e0b" stroke-width="2.4"/>
-  <path d="M42 52h116M42 151h116" stroke="#92400e" stroke-width="1"/><path class="act-scan" d="M44 76h112" stroke="#fbbf24" stroke-width="1.2" filter="url(#act-glow)" opacity=".7"/>
-
-  <path class="act-flow" d="M100 47v108" fill="none" stroke="#0f172a" stroke-width="9"/><path class="act-flow" d="M100 47v108" fill="none" stroke="url(#act-spine)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 4" filter="url(#act-glow)"/>
-  <g fill="#07111e" stroke-width="2.4" filter="url(#act-shadow)">
-    <circle cx="100" cy="54" r="10" stroke="#38bdf8"/><circle cx="100" cy="79" r="10" stroke="#c084fc"/><circle cx="100" cy="104" r="12" stroke="#fbbf24"/><circle cx="100" cy="130" r="10" stroke="#34d399"/><circle cx="100" cy="155" r="9" stroke="#67e8f9"/>
-  </g>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
-    <path d="m95 54 5-5 5 5m-5-5v11" stroke="#7dd3fc"/>
-    <path d="M95 75h10v8H95Zm2-3h6m-6 14h6" stroke="#d8b4fe"/>
-    <path d="m94 104 4-4 4 4-4 4Zm10-6 4 4-4 4" stroke="#fde68a"/>
-    <path d="M94 127h8l4 3-4 3h-8Z" stroke="#6ee7b7"/>
-    <path d="m96 151 4-3 4 3v5l-4 4-4-4Z" stroke="#a5f3fc"/>
-  </g>
-  <circle class="act-pulse" cx="100" cy="104" r="4" fill="#fff7d6" filter="url(#act-glow)"/>
-
-  <g font-family="Consolas,monospace" font-size="5.5" font-weight="900">
-    <path d="M48 48h32l7 6-7 6H48Z" fill="#082f49" stroke="#38bdf8"/><text x="64" y="56" fill="#bae6fd" text-anchor="middle">ENTRADA</text>
-    <path d="M50 73h30l7 6-7 6H50Z" fill="#2e1065" stroke="#c084fc"/><text x="65" y="81" fill="#f3e8ff" text-anchor="middle">MEMORIA</text>
-    <path d="M48 98h32l7 6-7 6H48Z" fill="#451a03" stroke="#fbbf24"/><text x="64" y="106" fill="#fef3c7" text-anchor="middle">LLAMADA</text>
-    <path d="M120 124h31l6 6-6 6h-31l-7-6Z" fill="#052e2b" stroke="#34d399"/><text x="136" y="132" fill="#d1fae5" text-anchor="middle">SALIDA</text>
-    <path d="M121 149h29l6 6-6 6h-29l-7-6Z" fill="#083344" stroke="#67e8f9"/><text x="136" y="157" fill="#cffafe" text-anchor="middle">CONTROL</text>
-  </g>
-  <g fill="none" stroke-width="1.2" opacity=".8"><path d="M87 54H80m7 25H80m7 25H80m33 26h7m-7 25h8" stroke="#94a3b8"/><path class="act-flow" d="M53 116h24" stroke="#f59e0b" stroke-dasharray="3 3"/><path class="act-flow" d="M123 92h24" stroke="#38bdf8" stroke-dasharray="3 3"/></g>
-
-  <g transform="translate(145 75)" filter="url(#act-shadow)"><circle r="19" fill="#07111e" stroke="#f59e0b" stroke-width="2.5"/><circle r="14" fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="2 3"/><path d="M0-11V0l8 5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle r="3" fill="#fbbf24" filter="url(#act-glow)"/><path d="M-13-13-17-17m30 4 4-4" stroke="#fbbf24" stroke-width="2"/></g>
-  <g transform="translate(50 127)" filter="url(#act-shadow)"><path d="m0-13 13 5v10c0 9-6 14-13 18C-7 16-13 11-13 2V-8Z" fill="#07111e" stroke="#67e8f9" stroke-width="2.2"/><path d="m-6 2 4 4 8-10" fill="none" stroke="#34d399" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></g>
-
-  <g fill="none" stroke="#fbbf24" stroke-width="1" opacity=".78"><path d="M14 95h8v-8m-8 36h8v8m164-36h-8v-8m8 36h-8v8"/><path class="act-flow" d="M80 32h40" stroke-dasharray="3 4"/></g>
-  <g transform="translate(63 177)"><rect width="74" height="8" rx="4" fill="#020617" stroke="#334155"/><rect x="3" y="2.5" width="49" height="3" rx="1.5" fill="url(#act-spine)" filter="url(#act-glow)"/><circle class="act-led" cx="62" cy="4" r="2" fill="#34d399"/><circle cx="70" cy="4" r="2" fill="#fbbf24"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Actividad y auditoría">
+<style>svg&gt;path:nth-of-type(2){fill:#1c3b0c;stroke:#4d7c0f}svg&gt;path:nth-of-type(3){fill:#315314;stroke:#84cc16}</style>
+<g aria-hidden="true"><path d="M34 5h132l27 25v123l-27 28H34L7 153V30Z" fill="#071005" stroke="#65a30d" stroke-width="3"/><path d="M40 12h120l24 22v115l-24 24H40l-24-24V34Z" fill="#12220a" stroke="#3f6212" stroke-width="2"/><path d="m8 30 8 4v115l-8 4M192 30l-8 4v115l8 4M34 5l6 7h120l6-7M34 181l6-8h120l6 8" fill="none" stroke="#a3e635" opacity=".78"/><g fill="#263d0c" stroke="#ecfccb"><circle cx="27" cy="24" r="4"/><circle cx="173" cy="24" r="4"/><circle cx="27" cy="160" r="4"/><circle cx="173" cy="160" r="4"/></g><path d="m29 142 71 40 71-40v8l-71 40-71-40Z" fill="#071005" stroke="#4d7c0f"/><path d="M17 50h9v38h-9m166-38h-9v38h9" fill="#263d0c" stroke="#84cc16"/><path d="M20 57v6m0 8v6m160-20v6m0 8v6" stroke="#bef264" stroke-width="2"/></g>
+<defs><linearGradient id="ac-t" x1="20" y1="20" x2="180" y2="155"><stop stop-color="#0f4c5c"/><stop offset="1" stop-color="#030817"/></linearGradient><linearGradient id="ac-l" x1="45" y1="55" x2="155" y2="110"><stop stop-color="#2dd4bf"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#fbbf24"/></linearGradient><filter id="ac-g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<style>.ac-p{stroke-dasharray:12 120;animation:acp 3s linear infinite}@keyframes acp{to{stroke-dashoffset:-132}}@media(prefers-reduced-motion:reduce){.ac-p{animation:none}}</style>
+<path d="M100 13 180 58 100 103 20 58Z" fill="url(#ac-t)" stroke="#22d3ee" stroke-width="2"/><path d="m20 58 80 45v69l-80-45Z" fill="#030b15" stroke="#164e63"/><path d="m180 58-80 45v69l80-45Z" fill="#071725" stroke="#0e7490"/><path d="m41 79 25-14 20 11 25-29 20 11 28-16v53l-59 34-59-34Z" fill="#061521" stroke="#155e75"/><path d="m44 84 23-13 20 12 25-29 19 11 25-14" fill="none" stroke="url(#ac-l)" stroke-width="4" filter="url(#ac-g)"/><path class="ac-p" d="m44 84 23-13 20 12 25-29 19 11 25-14" fill="none" stroke="#fff" stroke-width="2"/><g fill="#a5f3fc"><circle cx="67" cy="71" r="4"/><circle cx="87" cy="83" r="4"/><circle cx="112" cy="54" r="4"/><circle cx="131" cy="65" r="4"/></g><path d="M48 116h104M61 128h78M76 140h48" stroke="#164e63" stroke-dasharray="3 4"/><text x="100" y="190" fill="#67e8f9" font-family="Consolas,monospace" font-size="9" font-weight="900" text-anchor="middle" letter-spacing="2">SIGNAL TRACE</text>
+<g aria-hidden="true" color="#a3e635" fill="none" stroke="currentColor" stroke-linecap="square"><path d="M10 96h13l7 7v24l10 6M190 96h-13l-7 7v24l-10 6" stroke-width="1.5"/><path d="M49 15h20l5 5h52l5-5h20M34 176h28l4-4h68l4 4h28" stroke-dasharray="3 4"/><path d="m13 139 14 8v10l12 7m148-25-14 8v10l-12 7" opacity=".6"/><g fill="currentColor" stroke="none"><path d="m10 96 7-4v8Z"/><path d="m190 96-7-4v8Z"/><rect x="14" y="108" width="3" height="13"/><rect x="183" y="108" width="3" height="13"/></g><text x="12" y="89" fill="currentColor" stroke="none" font-family="Consolas" font-size="6">EVT.05</text></g>
 </svg>

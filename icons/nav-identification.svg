@@ -1,67 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <style>
-    .pid-scan{animation:pidScan 3.1s ease-in-out infinite}.pid-ring{transform-box:fill-box;transform-origin:center;animation:pidRing 11s linear infinite}.pid-dash{animation:pidDash 2.7s linear infinite}.pid-pulse{animation:pidPulse 1.8s steps(2,end) infinite}.pid-token{animation:pidToken 3s ease-in-out infinite}.pid-token.b{animation-delay:-1s}.pid-token.c{animation-delay:-2s}
-    @keyframes pidScan{0%,100%{transform:translateY(-38px);opacity:.08}50%{transform:translateY(48px);opacity:.92}}@keyframes pidRing{to{transform:rotate(360deg)}}@keyframes pidDash{to{stroke-dashoffset:-34}}@keyframes pidPulse{50%{opacity:.25}}@keyframes pidToken{0%,100%{opacity:.3;transform:translateX(-4px)}50%{opacity:1;transform:translateX(5px)}}
-    @media(prefers-reduced-motion:reduce){.pid-scan,.pid-ring,.pid-dash,.pid-pulse,.pid-token{animation:none}}
-  </style>
-  <defs>
-    <linearGradient id="pid-frame" x1="10" y1="8" x2="190" y2="192" gradientUnits="userSpaceOnUse"><stop stop-color="#2a3d52"/><stop offset=".46" stop-color="#0a1726"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="pid-panel" x1="31" y1="45" x2="169" y2="151" gradientUnits="userSpaceOnUse"><stop stop-color="#0c2634"/><stop offset=".52" stop-color="#07131f"/><stop offset="1" stop-color="#050914"/></linearGradient>
-    <radialGradient id="pid-face"><stop stop-color="#a5f3fc"/><stop offset=".18" stop-color="#22d3ee"/><stop offset=".6" stop-color="#0e7490"/><stop offset="1" stop-color="#082f49"/></radialGradient>
-    <linearGradient id="pid-data" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#0891b2"/><stop offset=".52" stop-color="#67e8f9"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>
-    <filter id="pid-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="pid-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000" flood-opacity=".82"/></filter>
-    <pattern id="pid-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0v10" fill="none" stroke="#164e63" stroke-width=".55" opacity=".52"/></pattern>
-    <clipPath id="pid-screen"><path d="M29 43h142l7 7v99l-7 7H29l-7-7V50Z"/></clipPath>
-  </defs>
-
-  <path d="M100 7c79 0 93 14 93 93s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#pid-frame)" stroke="#0891b2" stroke-width="3"/>
-  <path d="M100 13c73 0 87 14 87 87s-14 87-87 87-87-14-87-87 14-87 87-87Z" fill="none" stroke="#67e8f9" stroke-width="1.1" opacity=".58"/>
-  <g fill="#475569" stroke="#111827" stroke-width="2"><circle cx="28" cy="28" r="5"/><circle cx="172" cy="28" r="5"/><circle cx="28" cy="172" r="5"/><circle cx="172" cy="172" r="5"/></g>
-  <g stroke="#020617" stroke-width="2"><path d="m25 25 6 6m138-6 6 6M25 169l6 6m138-6 6 6"/></g>
-  <text x="100" y="27" fill="#a5f3fc" font-family="Consolas,monospace" font-size="8" font-weight="900" text-anchor="middle" letter-spacing="1.45">PERCEPTION · ID</text>
-
-  <path d="M29 43h142l7 7v99l-7 7H29l-7-7V50Z" fill="url(#pid-panel)" stroke="#0e7490" stroke-width="2" filter="url(#pid-shadow)"/>
-  <g clip-path="url(#pid-screen)"><rect x="22" y="43" width="156" height="113" fill="url(#pid-grid)" opacity=".5"/><path d="M22 62h156M22 137h156M54 43v113m91-113v113" stroke="#164e63" stroke-width="1"/></g>
-
-  <g font-family="Consolas,monospace" font-weight="900">
-    <rect x="29" y="49" width="18" height="10" fill="#071722" stroke="#155e75"/><text x="38" y="56.5" fill="#5eead4" font-size="5" text-anchor="middle">00</text>
-    <text x="59" y="56.5" fill="#67e8f9" font-size="5.5">LOCAL INPUT</text><circle class="pid-pulse" cx="168" cy="54" r="2.7" fill="#34d399" filter="url(#pid-glow)"/>
-  </g>
-
-  <g transform="translate(28 69)" font-family="Consolas,monospace" font-size="4.4" font-weight="900">
-    <text x="0" y="0" fill="#64748b">TOKENS</text>
-    <g class="pid-token"><rect y="7" width="18" height="8" rx="1" fill="#082f49" stroke="#0e7490"/><text x="9" y="12.7" fill="#a5f3fc" text-anchor="middle">ESO</text></g>
-    <g class="pid-token b"><rect y="19" width="12" height="8" rx="1" fill="#082f49" stroke="#0e7490"/><text x="6" y="24.7" fill="#a5f3fc" text-anchor="middle">NO</text></g>
-    <g class="pid-token c"><rect y="31" width="22" height="8" rx="1" fill="#082f49" stroke="#0e7490"/><text x="11" y="36.7" fill="#a5f3fc" text-anchor="middle">SALIÓ</text></g>
-    <path class="pid-dash" d="M1 47h20" stroke="#2dd4bf" stroke-width="1.2" stroke-dasharray="3 3"/>
-  </g>
-
-  <g transform="translate(99 99)" filter="url(#pid-glow)">
-    <circle r="33" fill="#020617" stroke="#155e75" stroke-width="1.2"/>
-    <circle class="pid-ring" r="29" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="5 6" opacity=".8"/>
-    <circle r="23" fill="#071722" stroke="#67e8f9" stroke-width="1.5"/>
-    <circle cy="-7" r="8" fill="url(#pid-face)" opacity=".88"/>
-    <path d="M83 119c2-13 30-13 32 0" transform="translate(-99 -99)" fill="#0e7490" stroke="#67e8f9" stroke-width="1.3"/>
-    <g fill="#34d399"><circle cx="-10" cy="-8" r="1.7"/><circle cx="10" cy="-8" r="1.7"/><circle cy="2" r="1.7"/><circle cx="-8" cy="13" r="1.7"/><circle cx="8" cy="13" r="1.7"/></g>
-    <path d="M-18-18h8v-5m28 5h-8v-5M-18 18h8v5m28-5h-8v5" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
-  </g>
-  <path class="pid-scan" d="M64 99h70" stroke="url(#pid-data)" stroke-width="2" filter="url(#pid-glow)"/>
-
-  <g transform="translate(150 69)" font-family="Consolas,monospace" font-size="4.1" font-weight="900">
-    <text x="0" y="0" fill="#64748b">VECTOR</text>
-    <g transform="translate(0 8)"><rect width="20" height="4" fill="#020617" stroke="#164e63"/><rect width="15" height="4" fill="#22d3ee"/></g>
-    <g transform="translate(0 17)"><rect width="20" height="4" fill="#020617" stroke="#164e63"/><rect width="9" height="4" fill="#2dd4bf"/></g>
-    <g transform="translate(0 26)"><rect width="20" height="4" fill="#020617" stroke="#164e63"/><rect width="17" height="4" fill="#67e8f9"/></g>
-    <g transform="translate(0 35)"><rect width="20" height="4" fill="#020617" stroke="#164e63"/><rect width="6" height="4" fill="#fbbf24"/></g>
-    <path class="pid-dash" d="M0 47h20" stroke="#38bdf8" stroke-width="1" stroke-dasharray="2 3"/>
-  </g>
-
-  <g stroke-linecap="round"><path class="pid-dash" d="M53 99h12m69 0h11" stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="3 3"/><path d="m57 95 6 4-6 4m84-8-6 4 6 4" fill="none" stroke="#67e8f9" stroke-width="1.2"/></g>
-  <g fill="#38bdf8" filter="url(#pid-glow)"><circle cx="61" cy="74" r="2"/><circle cx="140" cy="80" r="2"/><circle cx="57" cy="128" r="2"/><circle cx="142" cy="125" r="2"/></g>
-
-  <g transform="translate(29 141)" font-family="Consolas,monospace" font-weight="900"><rect width="142" height="9" fill="#04101a" stroke="#164e63"/><circle cx="7" cy="4.5" r="2" fill="#34d399"/><text x="13" y="6.2" fill="#5eead4" font-size="4.3">OBSERVED</text><circle cx="61" cy="4.5" r="2" fill="#fbbf24"/><text x="67" y="6.2" fill="#fde68a" font-size="4.3">HEURISTIC</text><circle cx="124" cy="4.5" r="2" fill="#64748b"/><text x="130" y="6.2" fill="#94a3b8" font-size="4.3">LOCAL</text></g>
-
-  <g transform="translate(56 166)"><rect width="88" height="11" rx="4" fill="#020617" stroke="#334155"/><rect x="4" y="3.5" width="50" height="4" rx="2" fill="url(#pid-data)" filter="url(#pid-glow)"/><circle cx="68" cy="5.5" r="2.5" fill="#34d399"/><circle cx="79" cy="5.5" r="2.5" fill="#fbbf24"/></g>
-  <g fill="none" stroke="#38bdf8" stroke-width="1" opacity=".7"><path d="M15 68h8v-8m-8 70h8v8m162-70h-8v-8m8 70h-8v8"/><path class="pid-dash" d="M72 34h56" stroke-dasharray="3 4"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Identificación cognitiva">
+<style>svg&gt;path:nth-of-type(2){fill:#073b3a;stroke:#0f766e}svg&gt;path:nth-of-type(3){fill:#0f5f59;stroke:#14b8a6}</style>
+<g aria-hidden="true"><path d="M34 5h132l27 25v123l-27 28H34L7 153V30Z" fill="#020d0d" stroke="#0d9488" stroke-width="3"/><path d="M40 12h120l24 22v115l-24 24H40l-24-24V34Z" fill="#05211f" stroke="#115e59" stroke-width="2"/><path d="m8 30 8 4v115l-8 4M192 30l-8 4v115l8 4M34 5l6 7h120l6-7M34 181l6-8h120l6 8" fill="none" stroke="#5eead4" opacity=".75"/><g fill="#0b3733" stroke="#ccfbf1"><circle cx="27" cy="24" r="4"/><circle cx="173" cy="24" r="4"/><circle cx="27" cy="160" r="4"/><circle cx="173" cy="160" r="4"/></g><path d="m29 142 71 40 71-40v8l-71 40-71-40Z" fill="#020d0d" stroke="#0f766e"/><path d="M17 50h9v38h-9m166-38h-9v38h9" fill="#0b3733" stroke="#14b8a6"/><path d="M20 57v6m0 8v6m160-20v6m0 8v6" stroke="#99f6e4" stroke-width="2"/></g>
+<defs><linearGradient id="id-t" x1="24" y1="23" x2="175" y2="155"><stop stop-color="#12445a"/><stop offset="1" stop-color="#030817"/></linearGradient><linearGradient id="id-b" x1="61" y1="47" x2="138" y2="119"><stop stop-color="#67e8f9"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><filter id="id-g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<style>.id-s{animation:ids 2.4s ease-in-out infinite}@keyframes ids{0%,100%{transform:translateY(-22px);opacity:.2}50%{transform:translateY(24px);opacity:1}}@media(prefers-reduced-motion:reduce){.id-s{animation:none}}</style>
+<path d="M100 13 180 58 100 103 20 58Z" fill="url(#id-t)" stroke="#22d3ee" stroke-width="2"/><path d="m20 58 80 45v69l-80-45Z" fill="#030b15" stroke="#164e63"/><path d="m180 58-80 45v69l80-45Z" fill="#071725" stroke="#0e7490"/><path d="m100 31 44 25v45l-44 25-44-25V56Z" fill="#071521" stroke="url(#id-b)" stroke-width="2.5"/><path d="M82 72c0-15 36-15 36 0v13c0 10-8 20-18 20S82 95 82 85Z" fill="#0b2433" stroke="#a5f3fc"/><path d="m75 105 25 14 25-14c-3-11-12-16-25-16s-22 5-25 16Z" fill="#111b35" stroke="#8b5cf6"/><path class="id-s" d="M65 76h70" stroke="#2dd4bf" stroke-width="2" filter="url(#id-g)"/><path d="M49 50h16v7M151 50h-16v7M49 110h16v-7M151 110h-16v-7" fill="none" stroke="#67e8f9" stroke-width="2"/><g fill="#2dd4bf"><circle cx="90" cy="79" r="2"/><circle cx="110" cy="79" r="2"/></g><path d="m44 124 56 32 56-32" fill="none" stroke="#164e63" stroke-dasharray="4 5"/><text x="100" y="190" fill="#a5f3fc" font-family="Consolas,monospace" font-size="9" font-weight="900" text-anchor="middle" letter-spacing="1.5">IDENTITY SCAN</text>
+<g aria-hidden="true" color="#5eead4" fill="none" stroke="currentColor" stroke-linecap="square"><path d="M10 96h13l7 7v24l10 6M190 96h-13l-7 7v24l-10 6" stroke-width="1.5"/><path d="M49 15h20l5 5h52l5-5h20M34 176h28l4-4h68l4 4h28" stroke-dasharray="3 4"/><path d="m13 139 14 8v10l12 7m148-25-14 8v10l-12 7" opacity=".6"/><g fill="currentColor" stroke="none"><path d="m10 96 7-4v8Z"/><path d="m190 96-7-4v8Z"/><rect x="14" y="108" width="3" height="13"/><rect x="183" y="108" width="3" height="13"/></g><text x="12" y="89" fill="currentColor" stroke="none" font-family="Consolas" font-size="6">ID.03</text></g>
 </svg>
