@@ -1,0 +1,57 @@
+# Plan de implementación R5 — Aprendizaje gobernado de procedimientos
+
+Estado: activo; incremento 1 implementado y validado  
+Fecha: 2026-08-11
+
+## Objetivo
+
+Permitir que Alice detecte secuencias repetidas únicamente cuando existan ejecuciones exitosas y auditadas, y que las presente como candidatos revisables sin convertirlas automáticamente en habilidades, recuerdos o acciones.
+
+## Incremento 1 — Contrato y validación de evidencia ✅
+
+- Contrato Rust cerrado con `deny_unknown_fields` y parser TypeScript defensivo.
+- Método fijo `r5AuditedRepetitionV1`.
+- Mínimo conservador de tres ocurrencias y dos pasos para excluir apariciones únicas y tareas triviales.
+- Cada paso se valida contra una capacidad y operación reales del Registro R1.
+- Cada evidencia debe resolver a un evento R3 de ejecución exitosa producido por `capability`, `memory` o `cloud`.
+- Los UUID de operación y evento no se pueden reutilizar entre ocurrencias.
+- Las variaciones de duración o huella se calculan desde R3 y deben coincidir exactamente con la propuesta.
+- Riesgo declarado igual o mayor al máximo observado.
+- Política fija: sólo propuesta, sin autoactivación, ejecución ni escritura en memoria duradera.
+- Sin comandos Tauri, persistencia o cambios visibles durante este incremento.
+
+## Incremento 2 — Detector local conservador
+
+- Leer una ventana acotada de auditoría R3 sin modificarla.
+- Agrupar secuencias por capacidad y operación, nunca por texto privado.
+- Excluir permisos, simulaciones, bloqueos, errores y eventos incompletos.
+- Aplicar umbrales explícitos de repetición, temporalidad y trivialidad.
+- Devolver cero candidatos cuando la evidencia actual no alcance el contrato.
+
+## Incremento 3 — Almacén y decisiones del propietario
+
+- Persistir candidatos separados de habilidades y memoria.
+- Permitir descartar, corregir o enviar un candidato al Taller.
+- Rechazar o descartar no modifica capacidades, memoria ni manifiestos R4.
+- Toda decisión deja auditoría R3 mínima, sin copiar contenido privado.
+
+## Incremento 4 — Conversión revisable a borrador R4
+
+- Convertir un candidato aceptado en un manifiesto `draft`, nunca `approved`.
+- Conservar referencias de evidencia y procedencia R5.
+- Crear una versión nueva si ya existe una habilidad relacionada.
+- Mantener simulación, revisión humana y restauración de R4.
+
+## Incremento 5 — Interfaz y cierre de fase
+
+- Mostrar evidencia, repeticiones, pasos, diferencias, riesgo y límites.
+- Estados vacío, candidato válido, descartado, bloqueado y evidencia obsoleta.
+- Prueba integral con archivos temporales y eventos R3 generados por código real.
+- Actualizar Roadmap, documento maestro, README e informe final.
+
+## Puertas obligatorias
+
+- Ninguna respuesta de proveedor se interpreta como instrucción confiable.
+- Ningún candidato se activa, ejecuta o consolida automáticamente.
+- Los fixtures permanecen aislados; `data/`, avatar y credenciales no se usan como prueba.
+- Rust, TypeScript, `fmt`, `clippy`, build web y build Tauri deben aprobar.

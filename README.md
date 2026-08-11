@@ -5,8 +5,9 @@
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-98%2F98%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-131%2F131%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R5](https://img.shields.io/badge/R5.1-contrato%20validado-f59e0b?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-102%2F102%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-137%2F137%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -24,7 +25,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 10 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 11 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
@@ -34,10 +35,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
+| Aprendizaje gobernado R5.1 | Contrato validado: mínimo tres ocurrencias y dos pasos sustentados en R1/R3; sin detector, persistencia ni ejecución |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 98/98 aprobadas |
-| Pruebas Rust | 131/131 normales; seis sondas vivas disponibles por separado |
+| Pruebas TypeScript | 102/102 aprobadas |
+| Pruebas Rust | 137/137 normales; seis sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -136,6 +138,14 @@ R4.5 completa la fase con la pestaña **Taller**, ubicada en `GOVERNANCE CORE` p
 
 La política fija `simulationOnly` mantiene red, procesos y escritura en `false`; `approved` todavía no significa ejecutable. R4 queda cerrada y el siguiente trabajo corresponde a R5: propuestas de procedimientos sustentadas en evidencia auditada. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), [ADR-P-049](docs/decisions/ADR-P-049-almacen-local-borradores.md), [ADR-P-050](docs/decisions/ADR-P-050-simulacion-estatica-de-habilidades.md), [ADR-P-051](docs/decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md), [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md), [el informe R4.2](docs/testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md), [el informe R4.3](docs/testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md), [el informe R4.4](docs/testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md) y [el cierre R4.5](docs/testing/R4_VISIBLE_WORKSHOP_REPORT_2026-08-10.md).
 
+## Aprendizaje gobernado R5.1
+
+El primer incremento de R5 define qué evidencia sería suficiente para proponer un procedimiento sin afirmar que Alice ya aprendió uno. Un candidato requiere al menos tres operaciones correlacionadas distintas, dos pasos y una evidencia R3 de ejecución exitosa por paso. Capacidad, operación y riesgo se contrastan con R1; eventos de permisos, simulaciones R4, bloqueos o errores no califican.
+
+El contrato no contiene parámetros, mensajes, imágenes ni audio. Las únicas diferencias admitidas inicialmente son duración y huella SHA-256, recalculadas desde R3. La política es inmutable: sólo propuesta, sin autoactivación, ejecución ni memoria duradera. R5.1 no expone comandos Tauri ni escribe en `data/`; por eso el estado real continúa en cero candidatos hasta implementar el detector conservador y disponer de ejecuciones válidas.
+
+Consulta el [contrato R5.1](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md) y [el informe de validación](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md).
+
 ## Iniciar Alice
 
 Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
@@ -208,6 +218,7 @@ src-tauri/src/
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
 ├── memory.rs             persistencia, respaldo y auditoría
 ├── observation.rs        metadatos autorizados de ventana
+├── procedure_learning.rs contrato R5.1 de candidatos auditados sin efectos
 ├── avatar.rs             validación pasiva del VRM
 ├── permissions.rs        tipos, validaciones y digest del Gateway R2
 ├── permissions/
@@ -221,7 +232,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md) y [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md) y [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
 
 ### Arquitectura políglota controlada
 

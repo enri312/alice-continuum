@@ -6,6 +6,10 @@ mod core_activity;
 mod diagnostics;
 mod memory;
 mod observation;
+// R5.1 sólo define candidatos reconstruibles desde evidencia R3. No registra
+// comandos, persistencia, aprobación automática ni ejecución de procedimientos.
+#[allow(dead_code)]
+mod procedure_learning;
 // R2 gobierna la primera capacidad migrada. La observación de ventana solo
 // cambia de estado al consumir un grant nativo específico y vigente.
 #[allow(dead_code)]

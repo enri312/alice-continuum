@@ -589,7 +589,7 @@ fn validate_references(
     Ok(())
 }
 
-fn validate_skill_id(value: &str) -> Result<(), String> {
+pub(crate) fn validate_skill_id(value: &str) -> Result<(), String> {
     if value.starts_with("local.") && canonical_dotted_id(value) {
         Ok(())
     } else {

@@ -154,7 +154,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
-**Estado:** pendiente  
+**Estado:** activa desde 2026-08-11 · incremento 1 validado  
 **Dependencia:** Fase R4  
 **Objetivo:** permitir que Alice detecte procedimientos repetidos y proponga convertirlos en habilidades.
 
@@ -169,6 +169,8 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 - [ ] Aprobar crea una nueva versión; no sobrescribe la anterior.
 - [ ] Rechazar no modifica capacidades ni memoria duradera.
 - [ ] Existe restauración de una versión anterior.
+
+**Incremento R5.1:** contrato cerrado de candidatos sustentados en R1 y R3. Exige al menos tres ocurrencias, dos pasos, riesgo no reducido y diferencias recalculables; mantiene sólo propuesta, sin comandos, persistencia, memoria duradera, autoactivación ni ejecución.
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
@@ -303,7 +305,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3 y R4** están completadas. R4 cerró con un Taller nativo visible, gobierno inmutable y la habilidad de solo lectura `local.revisar-proveedores-ia` validada de extremo a extremo sobre archivos reales aislados. `approved` no habilita ejecución: todos los manifiestos conservan `simulationOnly`, cero adaptadores y cero efectos durante esta fase. La siguiente fase es **R5, aprendizaje gobernado de procedimientos**; análisis sensorial, transcripción y memoria automática continúan fuera de alcance.
+Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa** y comienza con el contrato de candidatos sustentados en ejecuciones R3 exitosas y operaciones R1 reales. Este primer incremento no detecta ni guarda candidatos: define la evidencia mínima y conserva cero autoridad automática. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance.
 
 ## Identidad adoptada — Alice Cognitive Core
 
