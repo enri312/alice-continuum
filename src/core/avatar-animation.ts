@@ -5,6 +5,7 @@ import type { VRM } from "@pixiv/three-vrm";
 
 export type AvatarAnimationId = "idle" | "forward" | "backward" | "left" | "right" | "jump";
 export type AvatarAnimationUrls = Partial<Record<AvatarAnimationId, string>>;
+export type LocomotionWeights = Record<Exclude<AvatarAnimationId, "jump">, number>;
 
 const mixamoVRMRigMap: Record<string, VRMHumanBoneName> = {
   mixamorigHips: VRMHumanBoneName.Hips,
@@ -65,6 +66,38 @@ export function selectAvatarAnimation(moveX: number, moveZ: number): AvatarAnima
   if (Math.hypot(moveX, moveZ) < 0.08) return "idle";
   if (Math.abs(moveX) > Math.abs(moveZ)) return moveX < 0 ? "left" : "right";
   return moveZ < 0 ? "forward" : "backward";
+}
+
+export function computeLocomotionWeights(moveX: number, moveZ: number, turn = 0): LocomotionWeights {
+  const safeX = Number.isFinite(moveX) ? THREE.MathUtils.clamp(moveX, -1, 1) : 0;
+  const safeZ = Number.isFinite(moveZ) ? THREE.MathUtils.clamp(moveZ, -1, 1) : 0;
+  const safeTurn = Number.isFinite(turn) ? THREE.MathUtils.clamp(turn, -1, 1) : 0;
+  const planarMagnitude = Math.min(1, Math.hypot(safeX, safeZ));
+  const pivotMagnitude = planarMagnitude < 0.08 ? Math.abs(safeTurn) * 0.38 : 0;
+  const movingWeight = Math.max(planarMagnitude, pivotMagnitude);
+  const axisTotal = Math.abs(safeX) + Math.abs(safeZ);
+  const directionalScale = axisTotal > 1e-6 ? planarMagnitude / axisTotal : 0;
+  const left = Math.max(0, -safeX) * directionalScale + (safeTurn < 0 ? pivotMagnitude : 0);
+  const right = Math.max(0, safeX) * directionalScale + (safeTurn > 0 ? pivotMagnitude : 0);
+
+  return {
+    idle: Math.max(0, 1 - movingWeight),
+    forward: Math.max(0, -safeZ) * directionalScale,
+    backward: Math.max(0, safeZ) * directionalScale,
+    left,
+    right,
+  };
+}
+
+export function footGroundCorrection(
+  leftFootY: number,
+  rightFootY: number,
+  referenceFootY: number,
+  maximumCorrection = 0.08,
+) {
+  if (![leftFootY, rightFootY, referenceFootY, maximumCorrection].every(Number.isFinite)) return 0;
+  const penetration = referenceFootY - Math.min(leftFootY, rightFootY);
+  return THREE.MathUtils.clamp(penetration, 0, Math.max(0, maximumCorrection));
 }
 
 /** Retargeting basado en el ejemplo humanoidAnimation oficial de pixiv/three-vrm. */

@@ -5,8 +5,9 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { VRMHumanBoneName, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import type { VRM } from "@pixiv/three-vrm";
 import {
+  computeLocomotionWeights,
+  footGroundCorrection,
   loadMixamoAnimation,
-  selectAvatarAnimation,
   type AvatarAnimationId,
   type AvatarAnimationUrls,
 } from "../core/avatar-animation";
@@ -20,6 +21,8 @@ import {
   type ManualAvatarInput,
   type ManualAvatarMotion,
 } from "../core/manual-avatar-control";
+
+const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right"] as const;
 
 export type AvatarTelemetry = {
   name: string;
@@ -157,9 +160,14 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let currentVrm: VRM | null = null;
     let animationMixer: THREE.AnimationMixer | null = null;
     let animationActions: Partial<Record<AvatarAnimationId, THREE.AnimationAction>> = {};
-    let currentAnimation: AvatarAnimationId | null = null;
+    let animationPlaybackEnabled = false;
     let jumpActive = false;
     let jumpWasPressed = false;
+    let groundCorrection = 0;
+    let referenceFootY: number | null = null;
+    let normalizedHips: THREE.Object3D | null = null;
+    let normalizedLeftFoot: THREE.Object3D | null = null;
+    let normalizedRightFoot: THREE.Object3D | null = null;
     let manualMotion: ManualAvatarMotion = { x: 0, z: 0, yaw: 0 };
     let gaitPhase = 0;
     let gaitIntensity = 0;
@@ -170,25 +178,40 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     const initialAvatarPosition = new THREE.Vector3();
     const initialAvatarQuaternion = new THREE.Quaternion();
 
-    const playAnimation = (id: AvatarAnimationId, restart = false) => {
-      const next = animationActions[id];
-      if (!next || (!restart && currentAnimation === id)) return false;
-      const previous = currentAnimation ? animationActions[currentAnimation] : undefined;
-      if (previous && previous !== next) previous.fadeOut(id === "jump" ? .08 : .18);
-      next.enabled = true;
-      next.setEffectiveTimeScale(1);
-      next.setEffectiveWeight(1);
-      next.setLoop(id === "jump" ? THREE.LoopOnce : THREE.LoopRepeat, id === "jump" ? 1 : Infinity);
-      next.clampWhenFinished = id === "jump";
-      next.reset().fadeIn(id === "jump" ? .08 : .18).play();
-      currentAnimation = id;
+    const applyLocomotionBlend = (input: ManualAvatarInput) => {
+      const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
+      const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
+      const cyclesPerSecond = .68 + movement * .58;
+      for (const id of locomotionAnimationIds) {
+        const action = animationActions[id];
+        if (!action) continue;
+        action.enabled = true;
+        action.setEffectiveWeight(weights[id]);
+        action.setEffectiveTimeScale(id === "idle" ? .72 : action.getClip().duration * cyclesPerSecond);
+        if (!action.isScheduled()) action.play();
+      }
+      animationPlaybackEnabled = true;
+    };
+
+    const playJump = () => {
+      const jump = animationActions.jump;
+      if (!jump) return false;
+      for (const id of locomotionAnimationIds) animationActions[id]?.setEffectiveWeight(0);
+      jump.enabled = true;
+      jump.setEffectiveWeight(1);
+      jump.setEffectiveTimeScale(1);
+      jump.setLoop(THREE.LoopOnce, 1);
+      jump.clampWhenFinished = true;
+      jump.reset().play();
+      animationPlaybackEnabled = true;
       return true;
     };
 
     const restoreIdle = () => {
       jumpActive = false;
       jumpWasPressed = false;
-      if (animationActions.idle) playAnimation("idle");
+      animationActions.jump?.stop();
+      if (animationActions.idle) applyLocomotionBlend(idleManualInput);
       else applyPose(currentVrm!, "idle");
     };
 
@@ -269,11 +292,11 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           smoothedInput = smoothManualAvatarInput(smoothedInput, targetInput, delta);
           const input = smoothedInput;
           if (input.jump && !jumpWasPressed && animationActions.jump) {
-            jumpActive = playAnimation("jump", true);
+            jumpActive = playJump();
           }
           jumpWasPressed = input.jump;
           if (jumpActive && !animationActions.jump?.isRunning()) jumpActive = false;
-          if (!jumpActive) playAnimation(selectAvatarAnimation(input.moveX, input.moveZ));
+          if (!jumpActive) applyLocomotionBlend(input);
           const targetGait = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .55);
           gaitIntensity += (targetGait - gaitIntensity) * Math.min(1, delta * 8);
           if (targetGait > .02) gaitPhase += delta * (4.2 + targetGait * 4.8);
@@ -319,6 +342,20 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         restoreIdle();
       }
       animationMixer?.update(delta);
+      if (
+        currentVrm && animationPlaybackEnabled && !jumpActive && referenceFootY != null
+        && normalizedHips && normalizedLeftFoot && normalizedRightFoot
+      ) {
+        currentVrm.scene.updateMatrixWorld(true);
+        const leftY = normalizedLeftFoot.getWorldPosition(new THREE.Vector3()).y;
+        const rightY = normalizedRightFoot.getWorldPosition(new THREE.Vector3()).y;
+        const targetCorrection = footGroundCorrection(leftY, rightY, referenceFootY);
+        groundCorrection += (targetCorrection - groundCorrection) * Math.min(1, delta * 18);
+        normalizedHips.position.y += groundCorrection;
+        normalizedHips.updateMatrixWorld(true);
+      } else {
+        groundCorrection = 0;
+      }
       currentVrm?.update(delta);
       controls.update();
       renderer.render(scene, camera);
@@ -362,13 +399,24 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
             console.error("No se pudo cargar una animación corporal", result.reason);
           }
         }
-        playAnimation("idle");
+        normalizedHips = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips);
+        normalizedLeftFoot = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot);
+        normalizedRightFoot = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot);
+        applyLocomotionBlend(idleManualInput);
+        animationMixer.update(0);
+        vrm.scene.updateMatrixWorld(true);
+        if (normalizedLeftFoot && normalizedRightFoot) {
+          referenceFootY = Math.min(
+            normalizedLeftFoot.getWorldPosition(new THREE.Vector3()).y,
+            normalizedRightFoot.getWorldPosition(new THREE.Vector3()).y,
+          );
+        }
         poseRef.current = (mode) => {
           if (mode === "reference") {
             animationMixer?.stopAllAction();
-            currentAnimation = null;
+            animationPlaybackEnabled = false;
             applyPose(vrm, mode);
-          } else if (animationActions.idle) playAnimation("idle");
+          } else if (animationActions.idle) applyLocomotionBlend(idleManualInput);
           else applyPose(vrm, mode);
         };
         manualResetRef.current = () => {
