@@ -120,7 +120,7 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
       { id: "flow-workspace", label: "Contexto", value: inputs.cloudPending ? "en uso" : "local", detail: "Espacio temporal donde se prepara el contexto autorizado de una solicitud.", group: "memory", activation: inputs.cloudPending ? .91 : inputs.lastUserMessage ? .42 : 0, availability: "ready", x: 79, y: 50 },
       { id: "flow-response", label: "Respuesta", value: hasConversation ? `${inputs.conversationCount} mensajes` : "sin salida", detail: hasConversation ? "Hay mensajes en la conversación actual." : "Alice todavía no generó ninguna respuesta.", group: "output", activation: responseActivation, availability: "ready", x: 94, y: 23 },
       { id: "flow-face", label: "Rostro", value: "futuro", detail: "Salida facial reservada para una etapa posterior con avatar.", group: "output", activation: 0, availability: "planned", x: 94, y: 50 },
-      { id: "flow-body", label: "Cuerpo", value: "futuro", detail: "Salida corporal reservada para una etapa posterior; no requiere hardware VR en esta fase.", group: "output", activation: 0, availability: "planned", x: 94, y: 78 },
+      { id: "flow-body", label: "Cuerpo manual", value: "repertorio local", detail: "El visor dispone de una máquina corporal manual y diagnóstica. El puente de decisiones output.avatar.body continúa desconectado.", group: "output", activation: 0, availability: "ready", x: 94, y: 78 },
     ],
     stateMetrics: [
       { id: "state-curiosity", label: "Curiosidad", value: 0, detail: "Señal reservada para un futuro modelo motivacional; Alice todavía no calcula curiosidad.", availability: "planned" },

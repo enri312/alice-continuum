@@ -9,6 +9,7 @@ const regions = [
   { id: "language", label: "Lenguaje", eventCount: 0, signal: 0, lastEventAtMs: null },
   { id: "workspace", label: "Contexto", eventCount: 1, signal: 0.3, lastEventAtMs: 1_786_280_000_000 },
   { id: "output", label: "Salida", eventCount: 0, signal: 0, lastEventAtMs: null },
+  { id: "motor", label: "Motor manual", eventCount: 0, signal: 0, lastEventAtMs: null },
 ];
 const links = [
   { id: "permission-perception", from: "permission", to: "perception", evidenceCount: 1, signal: 0.3 },
@@ -18,9 +19,9 @@ const links = [
   { id: "workspace-output", from: "workspace", to: "output", evidenceCount: 0, signal: 0 },
 ];
 const raw = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAtMs: 1_786_280_000_000,
-  method: "r3-recency-v1",
+  method: "r3-recency-motor-v2",
   heuristic: true,
   windowMs: 300_000,
   auditHealthy: true,
@@ -47,7 +48,7 @@ describe("parseCoreActivitySnapshot", () => {
   it("acepta el contrato cerrado y conserva la etiqueta heurística", () => {
     const parsed = parseCoreActivitySnapshot(raw);
     expect(parsed.heuristic).toBe(true);
-    expect(parsed.method).toBe("r3-recency-v1");
+    expect(parsed.method).toBe("r3-recency-motor-v2");
     expect(parsed.regions.find((region) => region.id === "perception")?.signal).toBe(0.3);
   });
 
@@ -87,5 +88,19 @@ describe("applyCoreActivitySnapshot", () => {
     expect(merged.hasActivity).toBe(false);
     expect(merged.currentNeuralActivity).toBe(0);
     expect(merged.flowNodes.every((node) => node.activation === 0)).toBe(true);
+  });
+
+  it("ilumina sólo el cuerpo manual cuando existe evidencia motora", () => {
+    const motorRaw = {
+      ...raw,
+      regions: regions.map((region) => region.id === "motor"
+        ? { ...region, eventCount: 1, signal: .6, lastEventAtMs: raw.generatedAtMs }
+        : { ...region, eventCount: 0, signal: 0, lastEventAtMs: null }),
+      links: links.map((link) => ({ ...link, evidenceCount: 0, signal: 0 })),
+    };
+    const merged = applyCoreActivitySnapshot(buildBrainSnapshot(baseInputs), parseCoreActivitySnapshot(motorRaw));
+    expect(merged.flowNodes.find((node) => node.id === "flow-body")?.activation).toBe(.6);
+    expect(merged.flowNodes.find((node) => node.id === "flow-response")?.activation).toBe(0);
+    expect(merged.flowNodes.find((node) => node.id === "flow-workspace")?.activation).toBe(0);
   });
 });

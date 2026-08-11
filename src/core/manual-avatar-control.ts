@@ -26,6 +26,7 @@ const DEAD_ZONE = 0.14;
 const MAX_TRANSLATION = 0.85;
 const LINEAR_SPEED = 0.72;
 const TURN_SPEED = 1.65;
+export const AVATAR_DIAGNOSTIC_DURATION_SECONDS = 10;
 
 export function manualAvatarSpeed(input: Pick<ManualAvatarInput, "moveX" | "moveZ">) {
   const magnitude = Math.min(1, Math.hypot(input.moveX, input.moveZ));
@@ -86,7 +87,7 @@ export function advanceManualAvatarMotion(
 
 export function diagnosticManualInputAt(elapsedSeconds: number): ManualAvatarInput {
   const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
-  const phase = elapsed % 10;
+  const phase = elapsed % AVATAR_DIAGNOSTIC_DURATION_SECONDS;
   if (phase < 1.2) return { ...idleManualInput, moveZ: -0.68 };
   if (phase < 2.4) return { ...idleManualInput, moveZ: -1 };
   if (phase < 3.6) return { ...idleManualInput, moveZ: 0.72 };

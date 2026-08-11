@@ -1,4 +1,4 @@
-export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill";
+export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill" | "avatar";
 export type AuditStage = "request" | "authorization" | "execution" | "stop" | "revocation" | "block" | "error";
 export type AuditDecision = "allow" | "deny" | "cancel";
 export type AuditOutcome = "pending" | "success" | "blocked" | "error";
@@ -31,7 +31,7 @@ export type AuditSnapshot = {
   events: AuditEvent[];
 };
 
-const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill"];
+const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill", "avatar"];
 const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "revocation", "block", "error"];
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];
@@ -40,6 +40,12 @@ const capabilityId = /^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+$/;
 const operationId = /^[A-Za-z0-9._-]{1,96}$/;
 const subjectDigest = /^sha256:[0-9a-fA-F]{64}$/;
 const reasonCode = /^[A-Z0-9_]{1,64}$/;
+const avatarMotorOperations = new Set([
+  "avatar.motor.standing_idle", "avatar.motor.starting_walk", "avatar.motor.locomoting",
+  "avatar.motor.jumping", "avatar.motor.sitting_down", "avatar.motor.sitting_idle",
+  "avatar.motor.standing_up",
+]);
+const avatarMotorReasons = new Set(["HUMAN_GAMEPAD_TRANSITION", "LOCAL_DIAGNOSTIC_TRANSITION", "HUMAN_POSTURE_TRANSITION"]);
 const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
 const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
@@ -83,6 +89,16 @@ export function parseAuditEvent(value: unknown): AuditEvent {
     || (value.stage === "error" && value.outcome !== "error")) {
     throw new Error("Evento de auditoría R3 inválido");
   }
+  if (value.source === "avatar" && (
+    value.capabilityId !== "avatar.vrm.render"
+    || !avatarMotorOperations.has(value.operation as string)
+    || value.stage !== "execution"
+    || value.decision !== null
+    || value.outcome !== "success"
+    || value.durationMs !== null
+    || value.subjectDigest !== null
+    || !avatarMotorReasons.has(value.reasonCode as string)
+  )) throw new Error("Evento motor R3 inválido");
   return value as AuditEvent;
 }
 

@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export type AvatarClothingRole = "outerwear" | "innerwear" | "harness" | "onepiece" | "shoes" | "accent";
 
 export type AvatarClothingFinish = {
@@ -32,4 +34,49 @@ export function avatarClothingFinish(materialName: string): AvatarClothingFinish
   if (name.includes("N00_002_04_TOPS")) return finishes.harness;
   if (name.includes("N00_005_01_TOPS")) return finishes.innerwear;
   return finishes.outerwear;
+}
+
+type DetailedClothingMaterial = {
+  name: string;
+  map: THREE.Texture | null;
+  normalMap: THREE.Texture | null;
+  normalScale: THREE.Vector2;
+  alphaToCoverage: boolean;
+  userData: Record<string, unknown>;
+  needsUpdate: boolean;
+};
+
+const normalStrength: Record<AvatarClothingRole, number> = {
+  outerwear: 1.16,
+  innerwear: 1.08,
+  harness: 1.24,
+  onepiece: 1.12,
+  shoes: 1.28,
+  accent: 1.18,
+};
+
+function improveTextureSampling(texture: THREE.Texture | null, maximumAnisotropy: number) {
+  if (!texture) return;
+  texture.anisotropy = Math.max(1, Math.min(maximumAnisotropy, 12));
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+}
+
+/**
+ * Refuerza únicamente la lectura de textura y relieve ya presentes en el VRM.
+ * No recibe ni modifica parámetros cromáticos del material.
+ */
+export function applyAvatarClothingSurfaceDetail(material: DetailedClothingMaterial, maximumAnisotropy: number) {
+  const finish = avatarClothingFinish(material.name);
+  if (!finish || material.userData.aliceSurfaceDetailV1 === true) return false;
+  improveTextureSampling(material.map, maximumAnisotropy);
+  improveTextureSampling(material.normalMap, maximumAnisotropy);
+  const strength = normalStrength[finish.role];
+  material.normalScale.set(material.normalScale.x * strength, material.normalScale.y * strength);
+  material.alphaToCoverage = true;
+  material.userData.aliceSurfaceDetailV1 = true;
+  material.needsUpdate = true;
+  return true;
 }

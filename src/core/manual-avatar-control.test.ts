@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AVATAR_DIAGNOSTIC_DURATION_SECONDS,
   advanceManualAvatarMotion,
   diagnosticManualInputAt,
   manualInputIsActive,
@@ -79,6 +80,7 @@ describe("manual avatar control", () => {
   });
 
   it("ofrece un ensayo determinista que cubre marcha, carrera, retroceso, lateral, giro y reposo", () => {
+    expect(AVATAR_DIAGNOSTIC_DURATION_SECONDS).toBe(10);
     expect(diagnosticManualInputAt(0.5).moveZ).toBeCloseTo(-0.68, 8);
     expect(diagnosticManualInputAt(1.5).moveZ).toBe(-1);
     expect(diagnosticManualInputAt(2.8).moveZ).toBeGreaterThan(0);

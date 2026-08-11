@@ -1,6 +1,8 @@
-use serde::Serialize;
+use crate::audit::{append_audit_event, new_operation_id, AuditEvent};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tauri::AppHandle;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +26,95 @@ struct AvatarAnimationClipStatus {
     path: String,
     available: bool,
     size_bytes: u64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum AvatarMotorSource {
+    HumanGamepad,
+    LocalDiagnostic,
+    HumanPosture,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum AvatarBodyState {
+    StandingIdle,
+    StartingWalk,
+    Locomoting,
+    Jumping,
+    SittingDown,
+    SittingIdle,
+    StandingUp,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum AvatarMotorAnimation {
+    Idle,
+    Forward,
+    Backward,
+    Left,
+    Right,
+    Jump,
+    Run,
+    TurnLeft,
+    TurnRight,
+    StartWalking,
+    SittingIdle,
+    StandingUp,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct AvatarMotorTransitionInput {
+    source: AvatarMotorSource,
+    state: AvatarBodyState,
+    animation: AvatarMotorAnimation,
+}
+
+impl AvatarBodyState {
+    fn operation(self) -> &'static str {
+        match self {
+            Self::StandingIdle => "avatar.motor.standing_idle",
+            Self::StartingWalk => "avatar.motor.starting_walk",
+            Self::Locomoting => "avatar.motor.locomoting",
+            Self::Jumping => "avatar.motor.jumping",
+            Self::SittingDown => "avatar.motor.sitting_down",
+            Self::SittingIdle => "avatar.motor.sitting_idle",
+            Self::StandingUp => "avatar.motor.standing_up",
+        }
+    }
+
+    fn accepts(self, animation: AvatarMotorAnimation) -> bool {
+        match self {
+            Self::StandingIdle => animation == AvatarMotorAnimation::Idle,
+            Self::StartingWalk => animation == AvatarMotorAnimation::StartWalking,
+            Self::Locomoting => matches!(
+                animation,
+                AvatarMotorAnimation::Forward
+                    | AvatarMotorAnimation::Backward
+                    | AvatarMotorAnimation::Left
+                    | AvatarMotorAnimation::Right
+                    | AvatarMotorAnimation::Run
+                    | AvatarMotorAnimation::TurnLeft
+                    | AvatarMotorAnimation::TurnRight
+            ),
+            Self::Jumping => animation == AvatarMotorAnimation::Jump,
+            Self::SittingDown | Self::StandingUp => animation == AvatarMotorAnimation::StandingUp,
+            Self::SittingIdle => animation == AvatarMotorAnimation::SittingIdle,
+        }
+    }
+}
+
+impl AvatarMotorSource {
+    fn reason_code(self) -> &'static str {
+        match self {
+            Self::HumanGamepad => "HUMAN_GAMEPAD_TRANSITION",
+            Self::LocalDiagnostic => "LOCAL_DIAGNOSTIC_TRANSITION",
+            Self::HumanPosture => "HUMAN_POSTURE_TRANSITION",
+        }
+    }
 }
 
 const AVATAR_ANIMATION_FILES: [(&str, &str); 12] = [
@@ -142,9 +233,41 @@ pub(crate) fn avatar_animation_status() -> Result<AvatarAnimationStatus, String>
     Ok(AvatarAnimationStatus { clips })
 }
 
+fn build_avatar_motor_event(input: AvatarMotorTransitionInput) -> Result<AuditEvent, String> {
+    if !input.state.accepts(input.animation) {
+        return Err("La animación no corresponde al estado corporal declarado".into());
+    }
+    if input.source == AvatarMotorSource::LocalDiagnostic
+        && matches!(
+            input.state,
+            AvatarBodyState::SittingDown
+                | AvatarBodyState::SittingIdle
+                | AvatarBodyState::StandingUp
+        )
+    {
+        return Err("El ensayo local no declara transiciones sentadas".into());
+    }
+    AuditEvent::avatar_motor(
+        new_operation_id(),
+        input.state.operation().into(),
+        input.source.reason_code(),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn record_avatar_motor_transition(
+    app: AppHandle,
+    input: AvatarMotorTransitionInput,
+) -> Result<(), String> {
+    append_audit_event(&app, &build_avatar_motor_event(input)?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::audit::{
+        append_event_at, validated_visible_events_at, AuditSource, AUDIT_MAX_BYTES,
+    };
 
     #[test]
     fn avatar_path_requires_an_absolute_vrm_file() {
@@ -218,5 +341,60 @@ mod tests {
         assert!(AVATAR_ANIMATION_FILES.contains(&("sitting-idle", "Sitting Idle.fbx")));
         assert!(AVATAR_ANIMATION_FILES.contains(&("standing-up", "Standing Up.fbx")));
         assert!(local_animation_directory().is_ok());
+    }
+
+    #[test]
+    fn motor_transition_contract_accepts_only_matching_state_and_animation() {
+        let valid = AvatarMotorTransitionInput {
+            source: AvatarMotorSource::HumanGamepad,
+            state: AvatarBodyState::StartingWalk,
+            animation: AvatarMotorAnimation::StartWalking,
+        };
+        let event = build_avatar_motor_event(valid).expect("valid motor transition");
+        assert_eq!(event.source, AuditSource::Avatar);
+        assert_eq!(event.operation, "avatar.motor.starting_walk");
+        assert_eq!(event.capability_id.as_deref(), Some("avatar.vrm.render"));
+        assert_eq!(event.reason_code, "HUMAN_GAMEPAD_TRANSITION");
+
+        assert!(build_avatar_motor_event(AvatarMotorTransitionInput {
+            animation: AvatarMotorAnimation::SittingIdle,
+            ..valid
+        })
+        .is_err());
+    }
+
+    #[test]
+    fn diagnostic_cannot_invent_a_seated_transition() {
+        assert!(build_avatar_motor_event(AvatarMotorTransitionInput {
+            source: AvatarMotorSource::LocalDiagnostic,
+            state: AvatarBodyState::SittingIdle,
+            animation: AvatarMotorAnimation::SittingIdle,
+        })
+        .is_err());
+    }
+
+    #[test]
+    fn motor_transition_writes_real_minimal_r3_event_without_private_payload() {
+        let root =
+            std::env::temp_dir().join(format!("alice-avatar-motor-audit-{}", uuid::Uuid::new_v4()));
+        let event = build_avatar_motor_event(AvatarMotorTransitionInput {
+            source: AvatarMotorSource::HumanPosture,
+            state: AvatarBodyState::SittingDown,
+            animation: AvatarMotorAnimation::StandingUp,
+        })
+        .expect("controlled motor event");
+        append_event_at(&root, &event, AUDIT_MAX_BYTES).expect("write controlled R3 event");
+
+        let (healthy, events) =
+            validated_visible_events_at(&root).expect("read controlled R3 event");
+        assert!(healthy);
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].source, AuditSource::Avatar);
+        let bytes = fs::read(root.join("audit").join("events-v1.jsonl")).expect("read audit bytes");
+        let text = String::from_utf8(bytes).expect("utf8 audit");
+        assert!(!text.contains("Alice.vrm"));
+        assert!(!text.contains("Sitting Idle.fbx"));
+
+        fs::remove_dir_all(root).expect("remove controlled motor audit");
     }
 }

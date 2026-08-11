@@ -18,7 +18,7 @@ Cada línea de `data/audit/events-v1.jsonl` es un objeto JSON independiente con 
 | `eventId` | UUID v4 canónico y único |
 | `operationId` | UUID v4 compartido por eventos correlacionados |
 | `timestampMs` | tiempo Unix positivo en milisegundos |
-| `source` | `system`, `permission`, `capability`, `memory`, `cloud` o `skill` |
+| `source` | `system`, `permission`, `capability`, `memory`, `cloud`, `skill` o `avatar` |
 | `capabilityId` | identificador canónico opcional del registro R1 |
 | `operation` | identificador ASCII de la operación, máximo 96 caracteres |
 | `stage` | `request`, `authorization`, `execution`, `stop`, `revocation`, `block` o `error` |
@@ -53,6 +53,8 @@ Nube registra `cloud.send` bajo `cloud.conversation.send`. El evento inicial acr
 
 R4.4 registra simulaciones y transiciones de habilidades con `source=skill`. Una transición no comienza si falla su evento inicial. Solicitud y cierre comparten `operationId`; sólo guardan la huella del manifiesto o plan, nunca títulos, pasos, motivos de confirmación, entradas ni resultados.
 
+El visor corporal registra cambios de estado manuales con `source=avatar`, capacidad fija `avatar.vrm.render`, etapa `execution` y resultado `success`. El vocabulario está cerrado a siete estados y tres procedencias: gamepad humano, ensayo local y postura humana. No persiste sticks, poses, coordenadas, nombres de clips privados, contenido del VRM ni una supuesta decisión cognitiva.
+
 Durante R3 continúa la escritura dual de `memory/audit/memory-events.jsonl` y `cloud/cloud-audit.jsonl`. No se reescriben archivos históricos. Si el resultado R3 falla después de un efecto ya completado, Alice no repite ni revierte automáticamente la operación: conserva el evento inicial pendiente, mantiene la auditoría heredada cuando fue posible e informa el fallo técnico por stderr.
 
 ## Interfaz
@@ -65,17 +67,17 @@ El diagnóstico puede leer metadatos y contenido estructural necesario para vali
 
 ## Actividad derivada del Núcleo
 
-`core_activity_snapshot` lee el mismo conjunto válido de hasta 200 eventos R3 visibles y devuelve un contrato v1 cerrado. No escribe, rota, corrige ni crea archivos. Sus campos principales son:
+`core_activity_snapshot` lee el mismo conjunto válido de hasta 200 eventos R3 visibles y devuelve un contrato v2 cerrado. No escribe, rota, corrige ni crea archivos. Sus campos principales son:
 
 | Campo | Regla |
 |---|---|
-| `method` | valor fijo `r3-recency-v1` |
+| `method` | valor fijo `r3-recency-motor-v2` |
 | `heuristic` | siempre `true`; impide presentar la señal como observación directa |
 | `windowMs` | 300.000 ms, equivalentes a cinco minutos |
 | `visibleEventCount` | eventos válidos disponibles para evaluar |
 | `windowEventCount` | eventos dentro de la ventana temporal |
 | `overallSignal` | intensidad normalizada entre 0 y 1 |
-| `regions` | percepción, permisos, memoria, lenguaje, contexto y salida |
+| `regions` | percepción, permisos, memoria, lenguaje, contexto, salida y motor manual |
 | `links` | cinco rutas funcionales cerradas con cantidad de evidencia |
 
 Cada evento dentro de la ventana recibe un peso reproducible:
@@ -88,7 +90,7 @@ señal general = limitar(suma de pesos por evento / 4, 0, 1)
 
 La etapa distingue solicitud, autorización, ejecución, detención, revocación, bloqueo y error. El resultado distingue pendiente, éxito, bloqueo y error. La fórmula no analiza mensajes, imágenes, audio o significado emocional.
 
-El mapeo es explícito: `system` y `skill` activan contexto; `memory` activa memoria→contexto; `cloud` activa lenguaje→contexto→salida; y un evento `permission` o `capability` de `perception.*` o `context.*` activa permisos→percepción→contexto. Las rutas sin evidencia permanecen en cero.
+El mapeo es explícito: `system` y `skill` activan contexto; `memory` activa memoria→contexto; `cloud` activa lenguaje→contexto→salida; y un evento `permission` o `capability` de `perception.*` o `context.*` activa permisos→percepción→contexto. `avatar` activa únicamente `motor manual`, sin crear un enlace hacia contexto o salida. Las rutas sin evidencia permanecen en cero.
 
 En el Núcleo, la memoria local determina estructura persistente. La señal R3 determina únicamente brillo temporal, intensidades de regiones y enlaces. Los diez canales afectivos continúan en `0.00` porque R3 no es un simulador emocional.
 

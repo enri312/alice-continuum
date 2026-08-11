@@ -6,9 +6,9 @@ use serde::Serialize;
 use std::path::Path;
 use tauri::AppHandle;
 
-const CORE_ACTIVITY_SCHEMA_VERSION: u32 = 1;
+const CORE_ACTIVITY_SCHEMA_VERSION: u32 = 2;
 const CORE_ACTIVITY_WINDOW_MS: u64 = 5 * 60 * 1000;
-const CORE_ACTIVITY_METHOD: &str = "r3-recency-v1";
+const CORE_ACTIVITY_METHOD: &str = "r3-recency-motor-v2";
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,6 +55,7 @@ fn empty_regions() -> Vec<CoreActivityRegion> {
         region("language", "Lenguaje"),
         region("workspace", "Contexto"),
         region("output", "Salida"),
+        region("motor", "Motor manual"),
     ]
 }
 
@@ -169,6 +170,9 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
                 add_link(&mut links, "workspace-output", weight);
             }
             AuditSource::Skill => add_region(&mut regions, "workspace", event, weight),
+            AuditSource::Avatar => {
+                add_region(&mut regions, "motor", event, weight);
+            }
             AuditSource::Permission | AuditSource::Capability => {
                 add_region(&mut regions, "permission", event, weight);
                 if relevant_perception_capability(event) {
@@ -337,6 +341,30 @@ mod tests {
         assert!(link(&snapshot, "memory-workspace").signal > 0.0);
         assert!(link(&snapshot, "language-workspace").signal > 0.0);
         assert!(link(&snapshot, "workspace-output").signal > 0.0);
+    }
+
+    #[test]
+    fn manual_motor_event_activates_only_motor_region_without_cognitive_route() {
+        let motor = AuditEvent {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id: Uuid::new_v4().to_string(),
+            timestamp_ms: NOW - 1_000,
+            source: AuditSource::Avatar,
+            capability_id: Some("avatar.vrm.render".into()),
+            operation: "avatar.motor.starting_walk".into(),
+            stage: AuditStage::Execution,
+            decision: None,
+            outcome: AuditOutcome::Success,
+            duration_ms: None,
+            subject_digest: None,
+            reason_code: "LOCAL_DIAGNOSTIC_TRANSITION".into(),
+        };
+        let snapshot = derive_at(&[motor], true, NOW);
+        assert!(region(&snapshot, "motor").signal > 0.0);
+        assert_eq!(region(&snapshot, "workspace").signal, 0.0);
+        assert_eq!(region(&snapshot, "output").signal, 0.0);
+        assert!(snapshot.links.iter().all(|item| item.signal == 0.0));
     }
 
     #[test]

@@ -22,6 +22,7 @@ pub(crate) enum AuditSource {
     Memory,
     Cloud,
     Skill,
+    Avatar,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -214,6 +215,31 @@ impl AuditEvent {
         Ok(event)
     }
 
+    pub(crate) fn avatar_motor(
+        operation_id: String,
+        operation: String,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Avatar,
+            capability_id: Some("avatar.vrm.render".into()),
+            operation,
+            stage: AuditStage::Execution,
+            decision: None,
+            outcome: AuditOutcome::Success,
+            duration_ms: None,
+            subject_digest: None,
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -252,6 +278,33 @@ impl AuditEvent {
                 return Err("Un error debe tener outcome=error".into());
             }
             _ => {}
+        }
+        if self.source == AuditSource::Avatar {
+            const MOTOR_OPERATIONS: [&str; 7] = [
+                "avatar.motor.standing_idle",
+                "avatar.motor.starting_walk",
+                "avatar.motor.locomoting",
+                "avatar.motor.jumping",
+                "avatar.motor.sitting_down",
+                "avatar.motor.sitting_idle",
+                "avatar.motor.standing_up",
+            ];
+            const MOTOR_REASONS: [&str; 3] = [
+                "HUMAN_GAMEPAD_TRANSITION",
+                "LOCAL_DIAGNOSTIC_TRANSITION",
+                "HUMAN_POSTURE_TRANSITION",
+            ];
+            if self.capability_id.as_deref() != Some("avatar.vrm.render")
+                || !MOTOR_OPERATIONS.contains(&self.operation.as_str())
+                || self.stage != AuditStage::Execution
+                || self.outcome != AuditOutcome::Success
+                || self.decision.is_some()
+                || self.duration_ms.is_some()
+                || self.subject_digest.is_some()
+                || !MOTOR_REASONS.contains(&self.reason_code.as_str())
+            {
+                return Err("El evento motor del avatar no cumple el contrato R3 cerrado".into());
+            }
         }
         Ok(())
     }

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { AvatarViewer } from "../components/AvatarViewer";
 import type { AvatarTelemetry } from "../components/AvatarViewer";
+import type { AvatarMotorTransition } from "../components/AvatarViewer";
 import type { AvatarAnimationId, AvatarAnimationUrls } from "../core/avatar-animation";
 
 type AvatarStatus = {
@@ -32,6 +33,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
   const [status, setStatus] = useState<AvatarStatus | null>(null);
   const [telemetry, setTelemetry] = useState<AvatarTelemetry | null>(null);
   const [animationStatus, setAnimationStatus] = useState<AvatarAnimationStatus | null>(null);
+  const [motorAuditStatus, setMotorAuditStatus] = useState<"idle" | "ready" | "error">("idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -46,6 +48,13 @@ export function Avatar({ desktopApp }: AvatarProps) {
     animationStatus?.clips.filter((clip) => clip.available).map((clip) => [clip.id, convertFileSrc(clip.path)]) ?? [],
   ), [animationStatus]);
 
+  const recordMotorTransition = useCallback((input: AvatarMotorTransition) => {
+    if (!desktopApp) return;
+    invoke("record_avatar_motor_transition", { input })
+      .then(() => setMotorAuditStatus("ready"))
+      .catch((cause) => { console.error("R3 no registró la transición motora", cause); setMotorAuditStatus("error"); });
+  }, [desktopApp]);
+
   return <section className="avatar-page" aria-labelledby="avatar-title">
     <div className="avatar-heading">
       <div><p className="eyebrow">AVATAR LOCAL · VRM 1.0</p><h2 id="avatar-title">Cuerpo visible de Alice</h2><p>Esta pantalla inspecciona tu archivo local. Incluye control reversible con gamepad y un ensayo técnico local de diez segundos; todavía no recibe voz, cámara, emociones, Mocap ni órdenes cognitivas.</p></div>
@@ -57,7 +66,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
     {desktopApp && status && !status.available && <div className="avatar-unavailable"><span>VRM 000</span><strong>No se encontró Alice.vrm</strong><p>Colocá el archivo en <code>{status.path}</code> y reiniciá la aplicación.</p></div>}
 
     {desktopApp && sourceUrl && <div className="avatar-layout">
-      <div className="avatar-stage"><AvatarViewer sourceUrl={sourceUrl} animationUrls={animationUrls} onTelemetry={setTelemetry} /></div>
+      <div className="avatar-stage"><AvatarViewer sourceUrl={sourceUrl} animationUrls={animationUrls} onTelemetry={setTelemetry} onMotorTransition={recordMotorTransition} /></div>
       <aside className="avatar-inspector">
         <p className="eyebrow">INSPECTOR VRM</p>
         <h3>{telemetry?.name ?? status?.fileName ?? "Alice"}</h3>
@@ -85,8 +94,8 @@ export function Avatar({ desktopApp }: AvatarProps) {
       <article><span>01</span><strong>Render local</strong><small>{telemetry ? "Activo y comprobado" : "Esperando carga"}</small></article>
       <article><span>02</span><strong>Expresión dirigida</strong><small>Desconectada</small></article>
       <article><span>03</span><strong>Voz y labios</strong><small>Desconectados</small></article>
-      <article><span>04</span><strong>Cuerpo y Ragdoll</strong><small>Prueba manual · puente planificado</small></article>
+      <article><span>04</span><strong>Cuerpo y Ragdoll</strong><small>{motorAuditStatus === "ready" ? "Telemetría manual R3 · cognición desconectada" : motorAuditStatus === "error" ? "Auditoría motora no disponible" : "Prueba manual · esperando transición"}</small></article>
     </div>
-    <p className="avatar-footnote">La entrada PS5 y el ensayo técnico controlan directamente el visor sólo después de activarlos y no representan decisiones de Alice. Los clips Mixamo se retargetean localmente y usan IK posicional de apoyo; terreno irregular, locomoción física, Active Ragdoll y el puente cognitivo continúan desconectados.</p>
+    <p className="avatar-footnote">La entrada PS5 y el ensayo técnico controlan directamente el visor sólo después de activarlos y no representan decisiones de Alice. Cada cambio de estado guarda únicamente metadatos mínimos R3 con procedencia humana o diagnóstica; no guarda sticks, poses, recuerdos ni contenido del avatar. Terreno irregular, locomoción física, Active Ragdoll y el puente cognitivo continúan desconectados.</p>
   </section>;
 }

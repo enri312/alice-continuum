@@ -46,7 +46,7 @@ Implementado con un snapshot nativo v1 y la vista `[09] PASSIVE DIAGNOSTIC`. Cla
 - Mantener señal efímera separada de memoria persistente.
 - Etiquetar cualquier inferencia o heurística; nunca presentarla como observación directa.
 
-Implementado mediante el snapshot nativo cerrado `core_activity_snapshot` y el método `r3-recency-v1`. Solo considera los 200 eventos visibles del archivo actual y da señal a los eventos ocurridos en los últimos cinco minutos. La recencia, etapa y resultado determinan una intensidad acotada; seis regiones y cinco enlaces declaran su cantidad de evidencia. El frontend vuelve a validar topología, conteos y ausencia de campos desconocidos antes de iluminar el volumen o el flujo.
+Implementado mediante el snapshot nativo cerrado `core_activity_snapshot`, ampliado de forma compatible en frontend al método `r3-recency-motor-v2`. Solo considera los 200 eventos visibles del archivo actual y da señal a los eventos ocurridos en los últimos cinco minutos. La recencia, etapa y resultado determinan una intensidad acotada; siete regiones y cinco enlaces declaran su cantidad de evidencia. `Motor manual` no posee enlace cognitivo. El frontend vuelve a validar topología, conteos y ausencia de campos desconocidos antes de iluminar el volumen o el flujo.
 
 La densidad persistente continúa dependiendo exclusivamente de recuerdos locales. Los eventos R3 solo producen señal efímera y nunca modifican memoria, auditoría, permisos o canales afectivos. Un archivo vacío, un evento antiguo o un snapshot no disponible mantienen la actividad en cero.
 

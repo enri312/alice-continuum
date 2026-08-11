@@ -16,6 +16,7 @@ import {
   type LocomotionAnimationId,
 } from "../core/avatar-animation";
 import {
+  AVATAR_DIAGNOSTIC_DURATION_SECONDS,
   advanceManualAvatarMotion,
   diagnosticManualInputAt,
   manualAvatarSpeed,
@@ -26,7 +27,7 @@ import {
   type ManualAvatarInput,
   type ManualAvatarMotion,
 } from "../core/manual-avatar-control";
-import { avatarClothingFinish } from "../core/avatar-appearance";
+import { applyAvatarClothingSurfaceDetail, avatarClothingFinish } from "../core/avatar-appearance";
 import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../core/avatar-foot-ik";
 import {
   advanceAvatarBodyState,
@@ -51,6 +52,12 @@ export type AvatarTelemetry = {
   modification: string;
 };
 
+export type AvatarMotorTransition = {
+  source: "humanGamepad" | "localDiagnostic" | "humanPosture";
+  state: AvatarBodyState;
+  animation: AvatarAnimationId;
+};
+
 type ViewerState = "loading" | "ready" | "error";
 type PoseMode = "idle" | "reference";
 type ManualMode = "off" | "gamepad" | "diagnostic";
@@ -72,12 +79,17 @@ type AvatarViewerProps = {
   sourceUrl: string;
   animationUrls: AvatarAnimationUrls;
   onTelemetry: (telemetry: AvatarTelemetry | null) => void;
+  onMotorTransition: (transition: AvatarMotorTransition) => void;
 };
 
 type MToonClothingMaterial = THREE.Material & {
   readonly isMToonMaterial: true;
   color: THREE.Color;
   map: THREE.Texture | null;
+  normalMap: THREE.Texture | null;
+  normalScale: THREE.Vector2;
+  alphaToCoverage: boolean;
+  userData: Record<string, unknown>;
   emissive: THREE.Color;
   emissiveIntensity: number;
   shadeColorFactor: THREE.Color;
@@ -115,10 +127,7 @@ function enhanceAvatarClothing(root: THREE.Object3D, maximumAnisotropy: number) 
         material.emissive.lerp(new THREE.Color(finish.emissive), .30);
         material.emissiveIntensity = Math.max(material.emissiveIntensity, finish.emissiveIntensity ?? 0);
       }
-      if (material.map) {
-        material.map.anisotropy = Math.min(maximumAnisotropy, 8);
-        material.map.needsUpdate = true;
-      }
+      applyAvatarClothingSurfaceDetail(material, maximumAnisotropy);
       material.needsUpdate = true;
     }
   });
@@ -212,7 +221,7 @@ const bodyStateLabels: Record<AvatarBodyState, string> = {
   "standing-up": "LEVANTÁNDOSE",
 };
 
-export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarViewerProps) {
+export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry, onMotorTransition }: AvatarViewerProps) {
   const diagnosticAutostart = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const hostRef = useRef<HTMLDivElement>(null);
   const resetRef = useRef<() => void>(() => undefined);
@@ -344,6 +353,13 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       else if (next === "standing-up") transitionAction = playOneShot("standing-up");
       else if (next === "sitting-idle") playLoop("sitting-idle");
       else applyLocomotionBlend(next === "locomoting" ? input : idleManualInput);
+      onMotorTransition({
+        source: manualModeRef.current === "diagnostic"
+          ? "localDiagnostic"
+          : manualModeRef.current === "gamepad" ? "humanGamepad" : "humanPosture",
+        state: next,
+        animation: next === "locomoting" ? dominantAnimation : bodyStateAnimation(next),
+      });
     };
 
     const restoreIdle = () => {
@@ -446,8 +462,13 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         const gamepad = activeMode === "gamepad" ? selectManualGamepad(gamepads) : null;
         if (activeMode === "diagnostic" || gamepad) {
           diagnosticElapsed = activeMode === "diagnostic" ? diagnosticElapsed + delta : 0;
+          const diagnosticComplete = activeMode === "diagnostic" && diagnosticElapsed >= AVATAR_DIAGNOSTIC_DURATION_SECONDS;
+          if (diagnosticComplete) {
+            manualModeRef.current = "off";
+            setManualMode("off");
+          }
           const targetInput = activeMode === "diagnostic"
-            ? diagnosticManualInputAt(diagnosticElapsed)
+            ? diagnosticComplete ? idleManualInput : diagnosticManualInputAt(diagnosticElapsed)
             : readManualAvatarInput(gamepad!);
           smoothedInput = smoothManualAvatarInput(smoothedInput, targetInput, delta);
           const input = smoothedInput;
@@ -779,7 +800,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       renderer.forceContextLoss();
       renderer.domElement.remove();
     };
-  }, [animationUrls, onTelemetry, sourceUrl]);
+  }, [animationUrls, onMotorTransition, onTelemetry, sourceUrl]);
 
   return <div className="avatar-viewer-shell">
     <div ref={hostRef} className="avatar-viewer" />

@@ -83,6 +83,25 @@ describe("parseAuditSnapshot", () => {
     expect(new Set(parsed.map((item) => item.operationId))).toEqual(new Set([operationId]));
   });
 
+  it("acepta una transición motora mínima sin convertirla en decisión cognitiva", () => {
+    const parsed = parseAuditEvent({
+      ...event,
+      source: "avatar",
+      capabilityId: "avatar.vrm.render",
+      operation: "avatar.motor.starting_walk",
+      reasonCode: "HUMAN_GAMEPAD_TRANSITION",
+    });
+    expect(parsed.source).toBe("avatar");
+    expect(parsed.subjectDigest).toBeNull();
+  });
+
+  it("rechaza telemetría motora abierta, privada o atribuida a cognición", () => {
+    const motor = { ...event, source: "avatar", capabilityId: "avatar.vrm.render", operation: "avatar.motor.locomoting", reasonCode: "HUMAN_GAMEPAD_TRANSITION" };
+    expect(() => parseAuditEvent({ ...motor, operation: "avatar.motor.pose.secret" })).toThrow(/motor/);
+    expect(() => parseAuditEvent({ ...motor, subjectDigest: `sha256:${"a".repeat(64)}` })).toThrow(/motor/);
+    expect(() => parseAuditEvent({ ...motor, reasonCode: "COGNITIVE_DECISION" })).toThrow(/motor/);
+  });
+
   it("rechaza digests, etapas y capacidades que el contrato Rust rechaza", () => {
     expect(() => parseAuditEvent({ ...event, subjectDigest: "mensaje privado" })).toThrow();
     expect(() => parseAuditEvent({ ...event, capabilityId: "Memory Records" })).toThrow();

@@ -1,6 +1,6 @@
 import type { BrainSnapshot } from "./brain";
 
-export type CoreActivityRegionId = "perception" | "permission" | "memory" | "language" | "workspace" | "output";
+export type CoreActivityRegionId = "perception" | "permission" | "memory" | "language" | "workspace" | "output" | "motor";
 export type CoreActivityLinkId = "permission-perception" | "perception-workspace" | "memory-workspace" | "language-workspace" | "workspace-output";
 
 export type CoreActivityRegion = {
@@ -20,9 +20,9 @@ export type CoreActivityLink = {
 };
 
 export type CoreActivitySnapshot = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   generatedAtMs: number;
-  method: "r3-recency-v1";
+  method: "r3-recency-motor-v2";
   heuristic: true;
   windowMs: number;
   auditHealthy: boolean;
@@ -34,7 +34,7 @@ export type CoreActivitySnapshot = {
   links: CoreActivityLink[];
 };
 
-const regionIds: CoreActivityRegionId[] = ["perception", "permission", "memory", "language", "workspace", "output"];
+const regionIds: CoreActivityRegionId[] = ["perception", "permission", "memory", "language", "workspace", "output", "motor"];
 const linkDefinitions: Record<CoreActivityLinkId, [CoreActivityRegionId, CoreActivityRegionId]> = {
   "permission-perception": ["permission", "perception"],
   "perception-workspace": ["perception", "workspace"],
@@ -103,9 +103,9 @@ function parseLink(value: unknown): CoreActivityLink {
 export function parseCoreActivitySnapshot(value: unknown): CoreActivitySnapshot {
   if (!isObject(value)
     || !exactKeys(value, snapshotKeys)
-    || value.schemaVersion !== 1
+    || value.schemaVersion !== 2
     || !count(value.generatedAtMs) || value.generatedAtMs === 0
-    || value.method !== "r3-recency-v1"
+    || value.method !== "r3-recency-motor-v2"
     || value.heuristic !== true
     || !count(value.windowMs) || value.windowMs === 0
     || typeof value.auditHealthy !== "boolean"
@@ -146,7 +146,7 @@ export function applyCoreActivitySnapshot(base: BrainSnapshot, activity: CoreAct
     "flow-workspace": "workspace",
     "flow-response": "output",
     "flow-face": null,
-    "flow-body": null,
+    "flow-body": "motor",
   };
   const hasRecentActivity = Boolean(activity?.windowEventCount);
   const hasStructure = base.persistentMemoryCount > 0;

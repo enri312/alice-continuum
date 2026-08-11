@@ -20,7 +20,7 @@ mod skills;
 mod util;
 
 use audit::{audit_snapshot, record_process_started};
-use avatar::{avatar_animation_status, avatar_status};
+use avatar::{avatar_animation_status, avatar_status, record_avatar_motor_transition};
 use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
 use core_activity::core_activity_snapshot;
@@ -104,6 +104,7 @@ pub fn run() {
             open_memory_directory,
             avatar_status,
             avatar_animation_status,
+            record_avatar_motor_transition,
             cloud_status,
             send_cloud_message
         ])

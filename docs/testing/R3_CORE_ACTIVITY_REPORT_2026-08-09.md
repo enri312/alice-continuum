@@ -8,7 +8,7 @@ Resultado: aprobado; alcance R3 completado
 
 Se añadió el comando nativo `core_activity_snapshot`, el contrato TypeScript cerrado y la integración del Núcleo con eventos R3 reales. La señal temporal ya no se deriva de mensajes, conteos o estados pendientes de React.
 
-El método `r3-recency-v1` considera una ventana de cinco minutos y pondera recencia, etapa y resultado. Devuelve:
+El método original `r3-recency-v1` fue ampliado el 2026-08-11 a `r3-recency-motor-v2`. Mantiene la ventana de cinco minutos y la ponderación de recencia, etapa y resultado, y añade una séptima región motora sin enlace hacia la ruta cognitiva. Devuelve:
 
 - seis regiones: percepción, permisos, memoria, lenguaje, contexto y salida;
 - cinco enlaces: permisos→percepción, percepción→contexto, memoria→contexto, lenguaje→contexto y contexto→salida;
