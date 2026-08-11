@@ -70,13 +70,15 @@ function saveSessions(sessions: Session[]) {
 
 export function App() {
   const desktopApp = isTauri();
+  const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
     const requested = new URLSearchParams(window.location.search).get("screen");
     const knownScreens = Object.values(workspaceScreens).flat();
-    return knownScreens.includes(requested as Screen) ? requested as Screen : "conversacion";
+    if (knownScreens.includes(requested as Screen)) return requested as Screen;
+    return avatarDiagnostic ? "avatar" : "conversacion";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);

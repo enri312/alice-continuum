@@ -15,6 +15,7 @@ import {
 import {
   advanceManualAvatarMotion,
   diagnosticManualInputAt,
+  manualAvatarSpeed,
   readManualAvatarInput,
   selectManualGamepad,
   smoothManualAvatarInput,
@@ -46,6 +47,13 @@ type ManualControlTelemetry = {
   state: "off" | "waiting" | "connected";
   device: string;
   input: ManualAvatarInput;
+};
+type BodyMotionTelemetry = {
+  animation: AvatarAnimationId | "turn-left" | "turn-right";
+  speed: number;
+  lockedFoot: "left" | "right" | null;
+  footOffset: number;
+  groundCorrection: number;
 };
 type AvatarViewerProps = {
   sourceUrl: string;
@@ -142,6 +150,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
   const [poseMode, setPoseMode] = useState<PoseMode>("idle");
   const [manualMode, setManualMode] = useState<ManualMode>(diagnosticAutostart ? "diagnostic" : "off");
   const [manualControl, setManualControl] = useState<ManualControlTelemetry>({ state: "off", device: "", input: idleManualInput });
+  const [bodyMotion, setBodyMotion] = useState<BodyMotionTelemetry>({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -149,6 +158,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     if (manualMode === "off") {
       manualResetRef.current();
       setManualControl({ state: "off", device: "", input: idleManualInput });
+      setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
     }
   }, [manualMode]);
 
@@ -162,6 +172,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
     let animationMixer: THREE.AnimationMixer | null = null;
     let animationActions: Partial<Record<AvatarAnimationId, THREE.AnimationAction>> = {};
     let animationPlaybackEnabled = false;
+    let dominantAnimation: AvatarAnimationId = "idle";
     let jumpActive = false;
     let jumpWasPressed = false;
     let groundCorrection = 0;
@@ -186,6 +197,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
 
     const applyLocomotionBlend = (input: ManualAvatarInput) => {
       const weights = computeLocomotionWeights(input.moveX, input.moveZ, input.turn);
+      dominantAnimation = locomotionAnimationIds.reduce((dominant, id) => weights[id] > weights[dominant] ? id : dominant, "idle" as Exclude<AvatarAnimationId, "jump">);
       const movement = Math.min(1, Math.hypot(input.moveX, input.moveZ) + Math.abs(input.turn) * .38);
       const cyclesPerSecond = .68 + movement * .90;
       for (const id of locomotionAnimationIds) {
@@ -209,6 +221,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       jump.setLoop(THREE.LoopOnce, 1);
       jump.clampWhenFinished = true;
       jump.reset().play();
+      dominantAnimation = "jump";
       animationPlaybackEnabled = true;
       return true;
     };
@@ -217,6 +230,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       jumpActive = false;
       jumpWasPressed = false;
       animationActions.jump?.stop();
+      dominantAnimation = "idle";
       if (animationActions.idle) applyLocomotionBlend(idleManualInput);
       else applyPose(currentVrm!, "idle");
     };
@@ -324,6 +338,15 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
               device: activeMode === "diagnostic" ? "SECUENCIA LOCAL · 10 S · SIN PERSISTENCIA" : gamepad!.id,
               input,
             });
+            setBodyMotion({
+              animation: Math.hypot(input.moveX, input.moveZ) <= .08 && Math.abs(input.turn) > .08
+                ? input.turn > 0 ? "turn-right" : "turn-left"
+                : dominantAnimation,
+              speed: manualAvatarSpeed(input) * Math.min(1, Math.hypot(input.moveX, input.moveZ)),
+              lockedFoot,
+              footOffset: Math.hypot(footLockOffset.x, footLockOffset.z),
+              groundCorrection,
+            });
           }
         } else if (performance.now() >= nextManualTelemetryAt) {
           manualMotion = { x: 0, z: 0, yaw: 0 };
@@ -337,6 +360,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
           restoreIdle();
           nextManualTelemetryAt = performance.now() + 300;
           setManualControl({ state: "waiting", device: "", input: idleManualInput });
+          setBodyMotion({ animation: "idle", speed: 0, lockedFoot: null, footOffset: 0, groundCorrection: 0 });
         }
       } else if (currentVrm && manualWasEnabled) {
         manualWasEnabled = false;
@@ -368,8 +392,13 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
         normalizedLeftFoot.getWorldPosition(leftFootWorld);
         normalizedRightFoot.getWorldPosition(rightFootWorld);
 
-        const lockedPosition = lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null;
-        if (!lockedPosition || lockedPosition.y > referenceFootY + .05) {
+        const footLockEligible = Math.hypot(smoothedInput.moveX, smoothedInput.moveZ) + Math.abs(smoothedInput.turn) * .38 > .08;
+        const lockedPosition = footLockEligible
+          ? lockedFoot === "left" ? leftFootWorld : lockedFoot === "right" ? rightFootWorld : null
+          : null;
+        if (!footLockEligible) {
+          lockedFoot = null;
+        } else if (!lockedPosition || lockedPosition.y > referenceFootY + .05) {
           const candidate = leftFootWorld.y <= rightFootWorld.y
             ? { id: "left" as const, position: leftFootWorld }
             : { id: "right" as const, position: rightFootWorld };
@@ -546,6 +575,7 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry }: AvatarVi
       <strong>{manualMode === "diagnostic" ? "ENSAYO PROCEDURAL · CONTROL TÉCNICO" : manualControl.state === "connected" ? "DUALSENSE · CONTROL HUMANO" : "ESPERANDO ENTRADA GAMEPAD"}</strong>
       <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
       <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
+      <code className="avatar-body-motion">ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
     </div>}
     {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
     <p className="avatar-viewer-help">{manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO 10 S · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
