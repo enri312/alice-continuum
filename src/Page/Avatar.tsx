@@ -39,7 +39,7 @@ export function Avatar({ desktopApp }: AvatarProps) {
 
   return <section className="avatar-page" aria-labelledby="avatar-title">
     <div className="avatar-heading">
-      <div><p className="eyebrow">AVATAR LOCAL · VRM 1.0</p><h2 id="avatar-title">Cuerpo visible de Alice</h2><p>Esta pantalla inspecciona tu archivo local. Todavía no recibe voz, cámara, emociones, Mocap ni órdenes corporales.</p></div>
+      <div><p className="eyebrow">AVATAR LOCAL · VRM 1.0</p><h2 id="avatar-title">Cuerpo visible de Alice</h2><p>Esta pantalla inspecciona tu archivo local. Incluye control reversible con gamepad y un ensayo técnico local de ocho segundos; todavía no recibe voz, cámara, emociones, Mocap ni órdenes cognitivas.</p></div>
       <div className={`avatar-file-state ${telemetry ? "ready" : ""}`}><i />{telemetry ? "MODELO CARGADO" : status?.available ? "ARCHIVO ENCONTRADO" : "SIN MODELO"}</div>
     </div>
 
@@ -75,8 +75,8 @@ export function Avatar({ desktopApp }: AvatarProps) {
       <article><span>01</span><strong>Render local</strong><small>{telemetry ? "Activo y comprobado" : "Esperando carga"}</small></article>
       <article><span>02</span><strong>Expresión dirigida</strong><small>Desconectada</small></article>
       <article><span>03</span><strong>Voz y labios</strong><small>Desconectados</small></article>
-      <article><span>04</span><strong>Cuerpo y Ragdoll</strong><small>Planificado</small></article>
+      <article><span>04</span><strong>Cuerpo y Ragdoll</strong><small>Prueba manual · puente planificado</small></article>
     </div>
-    <p className="avatar-footnote">Que el VRM sea visible no significa que el puente corporal esté conectado. Esta fase únicamente comprueba archivo, licencia, esqueleto, expresiones declaradas y renderizado.</p>
+    <p className="avatar-footnote">La entrada PS5 y el ensayo procedural controlan directamente el visor sólo después de activarlos y no representan decisiones de Alice. El puente corporal, los clips retargeteados, el IK de pies, la locomoción física y Active Ragdoll continúan desconectados.</p>
   </section>;
 }

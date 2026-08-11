@@ -5,9 +5,9 @@
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
-![R5](https://img.shields.io/badge/R5.1-contrato%20validado-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-102%2F102%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-137%2F137%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R5](https://img.shields.io/badge/R5.2-detector%20validado-f59e0b?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-113%2F113%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-142%2F142%20pruebas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -35,11 +35,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
-| Aprendizaje gobernado R5.1 | Contrato validado: mínimo tres ocurrencias y dos pasos sustentados en R1/R3; sin detector, persistencia ni ejecución |
+| Aprendizaje gobernado R5.2 | Contrato y detector efímero validados; la auditoría canónica produjo 0 patrones y no fue modificada |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 102/102 aprobadas |
-| Pruebas Rust | 137/137 normales; seis sondas vivas disponibles por separado |
+| Pruebas TypeScript | 113/113 aprobadas |
+| Pruebas Rust | 142/142 normales; siete sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -56,7 +56,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - Una respuesta de nube no se convierte automáticamente en recuerdo o verdad.
 - La observación vigente se limita a metadatos autorizados de la ventana activa; no registra teclas, archivos ni imágenes.
 - Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados.
-- Voz, rostro, mirada, cuerpo y adaptadores externos permanecen desconectados.
+- Voz, rostro, mirada, puente corporal y adaptadores externos permanecen desconectados. El visor posee una prueba manual DualSense que no representa salida de Alice.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
 - R2 consume grants efímeros para ventana, cámara o micrófono. Aprobar no abre hardware: cada sensor exige una activación posterior y ofrece Detener inmediato.
 - El envío a la nube todavía usa previsualización y confirmación en React; R1 lo declara `enforcedBy: currentUi` hasta una migración nativa futura.
@@ -92,6 +92,12 @@ El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada r
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
 Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md) y [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md).
+
+### Prueba manual DualSense
+
+Windows detectó el mando conectado por Bluetooth como `DualSense Wireless Controller`, con interfaz de juego HID Sony `VID 054C / PID 0CE6`, estado `OK`, código de problema 0 y controladores Microsoft firmados. La pestaña **Avatar** ofrece una prueba explícita de control humano: stick izquierdo desplaza el VRM en su orientación local, stick derecho lo gira, L2/R2 elevan brazos y un ciclo procedural mueve piernas, rodillas, brazos y cadera. El botón **Ensayar marcha** reproduce además una secuencia local determinista de ocho segundos para comprobar avance, retroceso, lateral, giro y reposo sin depender del mando.
+
+La entrada se lee sólo mediante Gamepad API mientras la prueba está activada. Existe zona muerta, suavizado, desplazamiento máximo y parada que restablece postura y posición. El archivo privado `Alice.vrm` posee un humanoide completo de 54 huesos, pero no contiene clips de animación; por eso la marcha actual sigue siendo un diagnóstico procedural y no locomoción final. No se transmiten vibración, luces, audio ni micrófono; no se guardan entradas y no se conectan a memoria, R5 o decisiones cognitivas. Esto no habilita `output.avatar.body` ni sustituye el futuro solver R9. Consulta [ADR-P-056](docs/decisions/ADR-P-056-prueba-manual-dualsense-avatar.md), [ADR-P-058](docs/decisions/ADR-P-058-locomocion-retargeteada-con-activos-compatibles.md), [el informe del mando](docs/testing/DUALSENSE_MANUAL_AVATAR_REPORT_2026-08-11.md) y [el análisis de referencias externas](docs/testing/AVATAR_REFERENCE_ANALYSIS_2026-08-11.md).
 
 ## Control de contexto de conversación
 
@@ -138,13 +144,15 @@ R4.5 completa la fase con la pestaña **Taller**, ubicada en `GOVERNANCE CORE` p
 
 La política fija `simulationOnly` mantiene red, procesos y escritura en `false`; `approved` todavía no significa ejecutable. R4 queda cerrada y el siguiente trabajo corresponde a R5: propuestas de procedimientos sustentadas en evidencia auditada. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), [ADR-P-049](docs/decisions/ADR-P-049-almacen-local-borradores.md), [ADR-P-050](docs/decisions/ADR-P-050-simulacion-estatica-de-habilidades.md), [ADR-P-051](docs/decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md), [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md), [el informe R4.2](docs/testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md), [el informe R4.3](docs/testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md), [el informe R4.4](docs/testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md) y [el cierre R4.5](docs/testing/R4_VISIBLE_WORKSHOP_REPORT_2026-08-10.md).
 
-## Aprendizaje gobernado R5.1
+## Aprendizaje gobernado R5.1–R5.2
 
 El primer incremento de R5 define qué evidencia sería suficiente para proponer un procedimiento sin afirmar que Alice ya aprendió uno. Un candidato requiere al menos tres operaciones correlacionadas distintas, dos pasos y una evidencia R3 de ejecución exitosa por paso. Capacidad, operación y riesgo se contrastan con R1; eventos de permisos, simulaciones R4, bloqueos o errores no califican.
 
-El contrato no contiene parámetros, mensajes, imágenes ni audio. Las únicas diferencias admitidas inicialmente son duración y huella SHA-256, recalculadas desde R3. La política es inmutable: sólo propuesta, sin autoactivación, ejecución ni memoria duradera. R5.1 no expone comandos Tauri ni escribe en `data/`; por eso el estado real continúa en cero candidatos hasta implementar el detector conservador y disponer de ejecuciones válidas.
+El contrato no contiene parámetros, mensajes, imágenes ni audio. Las únicas diferencias admitidas inicialmente son duración y huella SHA-256, recalculadas desde R3. La política es inmutable: sólo propuesta, sin autoactivación, ejecución ni memoria duradera.
 
-Consulta el [contrato R5.1](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md) y [el informe de validación](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md).
+R5.2 incorpora `procedure_detection_status`, una lectura efímera de la ventana visible R3. Excluye sistema, permisos, simulaciones, errores, pasos únicos, capacidades planificadas y operaciones cuyo orden no pueda demostrarse a nivel de milisegundo. Agrupa secuencias exactas, exige tres UUID de operación y devuelve huellas y referencias, pero mantiene persistencia, creación de candidato y ejecución en `false`. La sonda canónica real examinó 22 eventos, calificó 0 ejecuciones y devolvió 0 patrones sin alterar ninguno de los 10 archivos de datos.
+
+Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md) y [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md).
 
 ## Iniciar Alice
 
@@ -218,7 +226,7 @@ src-tauri/src/
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
 ├── memory.rs             persistencia, respaldo y auditoría
 ├── observation.rs        metadatos autorizados de ventana
-├── procedure_learning.rs contrato R5.1 de candidatos auditados sin efectos
+├── procedure_learning.rs contrato y detector R5.2 de secuencias auditadas sin efectos
 ├── avatar.rs             validación pasiva del VRM
 ├── permissions.rs        tipos, validaciones y digest del Gateway R2
 ├── permissions/

@@ -33,3 +33,16 @@ Cada ocurrencia conserva un `operationId` distinto y exactamente una referencia 
 
 Los eventos actuales de R4 son simulaciones y transiciones de gobierno, no ejecuciones de procedimientos. Por ello no satisfacen este contrato. Hasta implementar el detector y disponer de evidencia real válida, Alice debe informar cero candidatos.
 
+## Detector R5.2
+
+`procedure_detection_status` lee únicamente la ventana visible vigente de R3 y produce `ProcedureDetectionSnapshot` mediante `r5-audited-sequence-v1`.
+
+- Sólo califica productores `capability`, `memory` o `cloud` con `execution + success`.
+- Capacidad y operación deben existir en R1 y no estar planificadas.
+- Los eventos se agrupan por `operationId` y su secuencia exacta de capacidad/operación.
+- Un grupo con dos eventos en el mismo milisegundo se descarta porque no demuestra su orden.
+- Una firma necesita al menos tres operaciones correlacionadas y dos pasos.
+- La huella SHA-256 representa la secuencia, no contenido privado.
+- El snapshot fija `persistenceApplied`, `candidateCreated` y `executionEnabled` en `false`.
+
+La ejecución canónica más reciente del 11 de agosto examinó 22 eventos válidos y produjo cero patrones. Los 10 archivos de datos permanecieron idénticos. Ese resultado vacío se conserva como evidencia, no se rellena con demostraciones.

@@ -20,13 +20,15 @@ Permitir que Alice detecte secuencias repetidas únicamente cuando existan ejecu
 - Política fija: sólo propuesta, sin autoactivación, ejecución ni escritura en memoria duradera.
 - Sin comandos Tauri, persistencia o cambios visibles durante este incremento.
 
-## Incremento 2 — Detector local conservador
+## Incremento 2 — Detector local conservador ✅
 
 - Leer una ventana acotada de auditoría R3 sin modificarla.
 - Agrupar secuencias por capacidad y operación, nunca por texto privado.
 - Excluir permisos, simulaciones, bloqueos, errores y eventos incompletos.
 - Aplicar umbrales explícitos de repetición, temporalidad y trivialidad.
 - Devolver cero candidatos cuando la evidencia actual no alcance el contrato.
+
+**Resultado 2026-08-11:** el comando nativo de sólo lectura examina la ventana visible R3, agrupa únicamente secuencias de 2 a 16 pasos con orden temporal inequívoco y exige tres operaciones correlacionadas distintas. El snapshot conserva huella, riesgo, evidencias y variaciones, pero fija persistencia, creación de candidatos y ejecución en `false`. La sonda canónica real más reciente leyó 22 eventos, calificó 0 ejecuciones y devolvió 0 patrones sin modificar ninguno de los 10 archivos de datos.
 
 ## Incremento 3 — Almacén y decisiones del propietario
 

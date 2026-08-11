@@ -32,7 +32,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Conversación de nube | Funcional | Proveedores intercambiables, previsualización y autorización expresa. |
 | Memoria enseñable v1 | Funcional en evolución | Registros locales, respaldo, exportación, recuperación lexical y edición. |
 | Consolidación v1 | Funcional en evolución | Repaso manual y refuerzo por recuperación autorizada. |
-| Avatar VRM | Visor funcional | Carga local privada e inspección; voz, rostro, cuerpo y Ragdoll siguen desconectados. |
+| Avatar VRM | Visor funcional | Carga local privada, inspección, prueba manual DualSense y ensayo procedural de marcha; clips retargeteados, IK, voz, decisiones corporales y Ragdoll siguen desconectados. |
 | Ejecución de acciones | Bloqueada | El modelo no ejecuta comandos ni modifica Windows. |
 
 ## Secuencia de materialización
@@ -154,7 +154,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
-**Estado:** activa desde 2026-08-11 · incremento 1 validado  
+**Estado:** activa desde 2026-08-11 · incrementos 1 y 2 validados  
 **Dependencia:** Fase R4  
 **Objetivo:** permitir que Alice detecte procedimientos repetidos y proponga convertirlos en habilidades.
 
@@ -171,6 +171,8 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 - [ ] Existe restauración de una versión anterior.
 
 **Incremento R5.1:** contrato cerrado de candidatos sustentados en R1 y R3. Exige al menos tres ocurrencias, dos pasos, riesgo no reducido y diferencias recalculables; mantiene sólo propuesta, sin comandos, persistencia, memoria duradera, autoactivación ni ejecución.
+
+**Incremento R5.2:** detector efímero y de sólo lectura sobre la ventana visible R3. Excluye eventos no productores, capacidades planificadas, pasos únicos y secuencias con orden temporal ambiguo. La prueba canónica examinó 22 eventos y devolvió 0 ejecuciones calificadas y 0 patrones sin modificar ninguno de los 10 archivos de datos.
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
@@ -305,7 +307,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa** y comienza con el contrato de candidatos sustentados en ejecuciones R3 exitosas y operaciones R1 reales. Este primer incremento no detecta ni guarda candidatos: define la evidencia mínima y conserva cero autoridad automática. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance.
+Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: R5.1 cerró el contrato de candidatos y R5.2 añadió detección conservadora sin persistencia. Los datos canónicos continúan con cero patrones elegibles, que es el estado real esperado. El próximo incremento es R5.3: almacén separado y decisiones explícitas del propietario. Análisis sensorial, transcripción, memoria automática y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense del visor no alimenta R5 ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

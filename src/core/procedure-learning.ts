@@ -37,12 +37,38 @@ export type ProcedureCandidate = {
   }[];
 };
 
+export type ProcedureDetectionSnapshot = {
+  schemaVersion: 1;
+  method: "r5-audited-sequence-v1";
+  generatedAt: string;
+  evidenceWindow: "r3-visible-current-v1";
+  auditHealthy: boolean;
+  scannedEventCount: number;
+  qualifyingExecutionCount: number;
+  excludedEventCount: number;
+  minimumOccurrences: 3;
+  minimumSteps: 2;
+  patterns: {
+    fingerprint: string;
+    declaredRisk: CapabilityRisk;
+    steps: { id: string; position: number; capabilityId: string; operation: string }[];
+    occurrences: { operationId: string; evidenceEventIds: string[] }[];
+    variations: { stepId: string; dimension: ProcedureVariationDimension; distinctValues: number }[];
+  }[];
+  persistenceApplied: false;
+  candidateCreated: false;
+  executionEnabled: false;
+};
+
 const candidateKeys = ["schemaVersion", "candidateId", "generatedAt", "method", "status", "title", "purpose", "suggestedSkillId", "declaredRisk", "policy", "steps", "occurrences", "variations"];
 const policyKeys = ["proposalOnly", "autoActivation", "executionEnabled", "writesDurableMemory"];
 const stepKeys = ["id", "position", "capabilityId", "operation"];
 const occurrenceKeys = ["operationId", "evidence"];
 const evidenceKeys = ["stepId", "eventId"];
 const variationKeys = ["stepId", "dimension", "distinctValues"];
+const detectionKeys = ["schemaVersion", "method", "generatedAt", "evidenceWindow", "auditHealthy", "scannedEventCount", "qualifyingExecutionCount", "excludedEventCount", "minimumOccurrences", "minimumSteps", "patterns", "persistenceApplied", "candidateCreated", "executionEnabled"];
+const patternKeys = ["fingerprint", "declaredRisk", "steps", "occurrences", "variations"];
+const detectedOccurrenceKeys = ["operationId", "evidenceEventIds"];
 const risks: CapabilityRisk[] = ["none", "low", "medium", "high", "critical"];
 const riskRank: Record<CapabilityRisk, number> = { none: 0, low: 1, medium: 2, high: 3, critical: 4 };
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -71,6 +97,11 @@ function visibleText(value: unknown, field: string, maximum: number): string {
 
 function positiveInteger(value: unknown, field: string): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) fail(`${field} debe ser un entero positivo`);
+  return value;
+}
+
+function nonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) fail(`${field} debe ser un entero no negativo`);
   return value;
 }
 
@@ -202,5 +233,104 @@ export function parseProcedureCandidate(
     steps,
     occurrences,
     variations,
+  };
+}
+
+export function parseProcedureDetectionSnapshot(
+  value: unknown,
+  registry: CapabilityRegistrySnapshot,
+): ProcedureDetectionSnapshot {
+  const snapshot = record(value, "detection");
+  exactKeys(snapshot, detectionKeys, "detection");
+  if (snapshot.schemaVersion !== 1
+    || snapshot.method !== "r5-audited-sequence-v1"
+    || snapshot.evidenceWindow !== "r3-visible-current-v1"
+    || snapshot.minimumOccurrences !== 3
+    || snapshot.minimumSteps !== 2
+    || snapshot.persistenceApplied !== false
+    || snapshot.candidateCreated !== false
+    || snapshot.executionEnabled !== false) fail("método, umbrales o política no admitidos");
+  if (typeof snapshot.auditHealthy !== "boolean") fail("auditHealthy debe ser booleano");
+  const generatedAt = parseTimestamp(snapshot.generatedAt);
+  const scannedEventCount = nonNegativeInteger(snapshot.scannedEventCount, "scannedEventCount");
+  const qualifyingExecutionCount = nonNegativeInteger(snapshot.qualifyingExecutionCount, "qualifyingExecutionCount");
+  const excludedEventCount = nonNegativeInteger(snapshot.excludedEventCount, "excludedEventCount");
+  if (scannedEventCount !== qualifyingExecutionCount + excludedEventCount) fail("los conteos de eventos no cierran");
+  if (!Array.isArray(snapshot.patterns)) fail("patterns debe ser una lista");
+
+  const capabilities = new Map(registry.capabilities.map((capability) => [capability.id, capability]));
+  const fingerprints = new Set<string>();
+  const patterns = snapshot.patterns.map((rawPattern, patternIndex) => {
+    const pattern = record(rawPattern, `patterns[${patternIndex}]`);
+    exactKeys(pattern, patternKeys, `patterns[${patternIndex}]`);
+    if (typeof pattern.fingerprint !== "string" || !/^sha256:[0-9a-f]{64}$/.test(pattern.fingerprint) || fingerprints.has(pattern.fingerprint)) fail(`patterns[${patternIndex}].fingerprint es inválido o repetido`);
+    fingerprints.add(pattern.fingerprint);
+    if (!risks.includes(pattern.declaredRisk as CapabilityRisk)) fail(`patterns[${patternIndex}].declaredRisk es desconocido`);
+    const declaredRisk = pattern.declaredRisk as CapabilityRisk;
+    if (!Array.isArray(pattern.steps) || pattern.steps.length < 2 || pattern.steps.length > 16) fail(`patterns[${patternIndex}].steps está fuera de rango`);
+    const stepIds = new Set<string>();
+    let maximumRisk = 0;
+    const steps = pattern.steps.map((rawStep, stepIndex) => {
+      const step = record(rawStep, `patterns[${patternIndex}].steps[${stepIndex}]`);
+      exactKeys(step, stepKeys, `patterns[${patternIndex}].steps[${stepIndex}]`);
+      if (typeof step.id !== "string" || !localId.test(step.id) || stepIds.has(step.id)) fail("el identificador de paso es inválido o repetido");
+      stepIds.add(step.id);
+      if (step.position !== stepIndex + 1) fail("las posiciones detectadas deben ser consecutivas");
+      const capability = typeof step.capabilityId === "string" ? capabilities.get(step.capabilityId) : undefined;
+      if (!capability || capability.maturity === "planned" || typeof step.operation !== "string" || !capability.operations.includes(step.operation)) fail("el patrón usa capacidad u operación no registrada");
+      maximumRisk = Math.max(maximumRisk, riskRank[capability.risk]);
+      return { id: step.id, position: stepIndex + 1, capabilityId: step.capabilityId as string, operation: step.operation };
+    });
+    if (riskRank[declaredRisk] < maximumRisk) fail("el patrón reduce el riesgo observado");
+
+    if (!Array.isArray(pattern.occurrences) || pattern.occurrences.length < 3 || pattern.occurrences.length > 32) fail("el patrón no alcanza el umbral de ocurrencias");
+    const operationIds = new Set<string>();
+    const eventIds = new Set<string>();
+    const occurrences = pattern.occurrences.map((rawOccurrence, occurrenceIndex) => {
+      const occurrence = record(rawOccurrence, `patterns[${patternIndex}].occurrences[${occurrenceIndex}]`);
+      exactKeys(occurrence, detectedOccurrenceKeys, `patterns[${patternIndex}].occurrences[${occurrenceIndex}]`);
+      if (typeof occurrence.operationId !== "string" || !uuidV4.test(occurrence.operationId) || operationIds.has(occurrence.operationId)) fail("operationId detectado es inválido o repetido");
+      operationIds.add(occurrence.operationId);
+      if (!Array.isArray(occurrence.evidenceEventIds) || occurrence.evidenceEventIds.length !== steps.length) fail("cada ocurrencia detectada requiere una evidencia por paso");
+      const evidenceEventIds = occurrence.evidenceEventIds.map((eventId) => {
+        if (typeof eventId !== "string" || !uuidV4.test(eventId) || eventIds.has(eventId)) fail("eventId detectado es inválido o reutilizado");
+        eventIds.add(eventId);
+        return eventId;
+      });
+      return { operationId: occurrence.operationId, evidenceEventIds };
+    });
+
+    if (!Array.isArray(pattern.variations)) fail("variations debe ser una lista");
+    const variationIds = new Set<string>();
+    const variations = pattern.variations.map((rawVariation, variationIndex) => {
+      const variation = record(rawVariation, `patterns[${patternIndex}].variations[${variationIndex}]`);
+      exactKeys(variation, variationKeys, `patterns[${patternIndex}].variations[${variationIndex}]`);
+      if (typeof variation.stepId !== "string" || !stepIds.has(variation.stepId)) fail("variation.stepId es desconocido");
+      if (variation.dimension !== "durationMs" && variation.dimension !== "subjectDigest") fail("variation.dimension es desconocida");
+      const distinctValues = positiveInteger(variation.distinctValues, "variation.distinctValues");
+      if (distinctValues < 2 || distinctValues > occurrences.length) fail("variation.distinctValues está fuera de rango");
+      const key = variationKey(variation.stepId, variation.dimension, distinctValues);
+      if (variationIds.has(key)) fail("variations contiene duplicados");
+      variationIds.add(key);
+      return { stepId: variation.stepId, dimension: variation.dimension, distinctValues } as ProcedureDetectionSnapshot["patterns"][number]["variations"][number];
+    });
+    return { fingerprint: pattern.fingerprint, declaredRisk, steps, occurrences, variations };
+  });
+
+  return {
+    schemaVersion: 1,
+    method: "r5-audited-sequence-v1",
+    generatedAt,
+    evidenceWindow: "r3-visible-current-v1",
+    auditHealthy: snapshot.auditHealthy,
+    scannedEventCount,
+    qualifyingExecutionCount,
+    excludedEventCount,
+    minimumOccurrences: 3,
+    minimumSteps: 2,
+    patterns,
+    persistenceApplied: false,
+    candidateCreated: false,
+    executionEnabled: false,
   };
 }

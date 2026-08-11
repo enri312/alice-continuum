@@ -1,10 +1,18 @@
-use crate::audit::{AuditEvent, AuditOutcome, AuditSource, AuditStage};
-use crate::capabilities::{
-    validate_timestamp, CapabilityMaturity, CapabilityRegistrySnapshot, CapabilityRisk,
+use crate::audit::{
+    validated_visible_events_at, AuditEvent, AuditOutcome, AuditSource, AuditStage,
 };
+use crate::capabilities::{
+    current_capability_registry, current_utc_timestamp, validate_timestamp, CapabilityMaturity,
+    CapabilityRegistrySnapshot, CapabilityRisk,
+};
+use crate::observation::ObservationStore;
+use crate::sensory::SensorLeaseStore;
 use crate::skills::validate_skill_id;
+use crate::util::alice_data_root_path;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
+use tauri::{AppHandle, State};
 use uuid::Uuid;
 
 pub(crate) const PROCEDURE_CANDIDATE_SCHEMA_VERSION: u32 = 1;
@@ -12,6 +20,9 @@ const MIN_OCCURRENCES: usize = 3;
 const MAX_OCCURRENCES: usize = 32;
 const MIN_STEPS: usize = 2;
 const MAX_STEPS: usize = 16;
+pub(crate) const PROCEDURE_DETECTION_SCHEMA_VERSION: u32 = 1;
+const PROCEDURE_DETECTION_METHOD: &str = "r5-audited-sequence-v1";
+const PROCEDURE_EVIDENCE_WINDOW: &str = "r3-visible-current-v1";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -88,6 +99,57 @@ pub(crate) struct ProcedureVariation {
 pub(crate) enum ProcedureVariationDimension {
     DurationMs,
     SubjectDigest,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ProcedureDetectionSnapshot {
+    pub(crate) schema_version: u32,
+    pub(crate) method: String,
+    pub(crate) generated_at: String,
+    pub(crate) evidence_window: String,
+    pub(crate) audit_healthy: bool,
+    pub(crate) scanned_event_count: usize,
+    pub(crate) qualifying_execution_count: usize,
+    pub(crate) excluded_event_count: usize,
+    pub(crate) minimum_occurrences: usize,
+    pub(crate) minimum_steps: usize,
+    pub(crate) patterns: Vec<DetectedProcedurePattern>,
+    pub(crate) persistence_applied: bool,
+    pub(crate) candidate_created: bool,
+    pub(crate) execution_enabled: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct DetectedProcedurePattern {
+    pub(crate) fingerprint: String,
+    pub(crate) declared_risk: CapabilityRisk,
+    pub(crate) steps: Vec<DetectedProcedureStep>,
+    pub(crate) occurrences: Vec<DetectedProcedureOccurrence>,
+    pub(crate) variations: Vec<ProcedureVariation>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct DetectedProcedureStep {
+    pub(crate) id: String,
+    pub(crate) position: u32,
+    pub(crate) capability_id: String,
+    pub(crate) operation: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct DetectedProcedureOccurrence {
+    pub(crate) operation_id: String,
+    pub(crate) evidence_event_ids: Vec<String>,
+}
+
+#[derive(Clone)]
+struct ObservedProcedureRun<'a> {
+    operation_id: &'a str,
+    events: Vec<&'a AuditEvent>,
 }
 
 impl ProcedureCandidate {
@@ -253,6 +315,225 @@ impl ProcedureCandidate {
     }
 }
 
+#[tauri::command]
+pub(crate) fn procedure_detection_status(
+    app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
+) -> Result<ProcedureDetectionSnapshot, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let (audit_healthy, events) = validated_visible_events_at(&data_root)?;
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    detect_procedure_patterns(current_utc_timestamp()?, audit_healthy, &registry, &events)
+}
+
+pub(crate) fn detect_procedure_patterns(
+    generated_at: String,
+    audit_healthy: bool,
+    registry: &CapabilityRegistrySnapshot,
+    audit_events: &[AuditEvent],
+) -> Result<ProcedureDetectionSnapshot, String> {
+    validate_timestamp("generatedAt", &generated_at)?;
+    registry.validate()?;
+    let capabilities = registry
+        .capabilities
+        .iter()
+        .map(|capability| (capability.id.as_str(), capability))
+        .collect::<HashMap<_, _>>();
+
+    let mut runs_by_operation = HashMap::<&str, Vec<&AuditEvent>>::new();
+    let mut qualifying_execution_count = 0;
+    let mut seen_event_ids = HashSet::new();
+    for event in audit_events {
+        event.validate()?;
+        if !seen_event_ids.insert(event.event_id.as_str()) {
+            return Err(format!("El evento R3 '{}' está repetido", event.event_id));
+        }
+        let Some(capability_id) = event.capability_id.as_deref() else {
+            continue;
+        };
+        let Some(capability) = capabilities.get(capability_id) else {
+            continue;
+        };
+        let qualifies = matches!(
+            event.source,
+            AuditSource::Capability | AuditSource::Memory | AuditSource::Cloud
+        ) && event.stage == AuditStage::Execution
+            && event.outcome == AuditOutcome::Success
+            && event.decision.is_none()
+            && capability.maturity != CapabilityMaturity::Planned
+            && capability.operations.contains(&event.operation);
+        if qualifies {
+            qualifying_execution_count += 1;
+            runs_by_operation
+                .entry(event.operation_id.as_str())
+                .or_default()
+                .push(event);
+        }
+    }
+
+    let mut runs_by_signature =
+        HashMap::<Vec<(String, String)>, Vec<ObservedProcedureRun<'_>>>::new();
+    for (operation_id, mut events) in runs_by_operation {
+        events.sort_by_key(|event| (event.timestamp_ms, event.event_id.as_str()));
+        if !(MIN_STEPS..=MAX_STEPS).contains(&events.len()) {
+            continue;
+        }
+        if events
+            .windows(2)
+            .any(|pair| pair[0].timestamp_ms == pair[1].timestamp_ms)
+        {
+            continue;
+        }
+        let signature = events
+            .iter()
+            .map(|event| {
+                (
+                    event
+                        .capability_id
+                        .clone()
+                        .expect("evento calificado con capacidad"),
+                    event.operation.clone(),
+                )
+            })
+            .collect::<Vec<_>>();
+        runs_by_signature
+            .entry(signature)
+            .or_default()
+            .push(ObservedProcedureRun {
+                operation_id,
+                events,
+            });
+    }
+
+    let mut patterns = Vec::new();
+    for (signature, mut runs) in runs_by_signature {
+        if !audit_healthy {
+            continue;
+        }
+        if runs.len() < MIN_OCCURRENCES {
+            continue;
+        }
+        runs.sort_by_key(|run| {
+            (
+                run.events
+                    .first()
+                    .map(|event| event.timestamp_ms)
+                    .unwrap_or_default(),
+                run.operation_id,
+            )
+        });
+        if runs.len() > MAX_OCCURRENCES {
+            runs = runs.split_off(runs.len() - MAX_OCCURRENCES);
+        }
+
+        let steps = signature
+            .iter()
+            .enumerate()
+            .map(
+                |(index, (capability_id, operation))| DetectedProcedureStep {
+                    id: format!("step-{:02}", index + 1),
+                    position: u32::try_from(index + 1).expect("máximo de 16 pasos"),
+                    capability_id: capability_id.clone(),
+                    operation: operation.clone(),
+                },
+            )
+            .collect::<Vec<_>>();
+        let occurrences = runs
+            .iter()
+            .map(|run| DetectedProcedureOccurrence {
+                operation_id: run.operation_id.to_string(),
+                evidence_event_ids: run
+                    .events
+                    .iter()
+                    .map(|event| event.event_id.clone())
+                    .collect(),
+            })
+            .collect::<Vec<_>>();
+        let mut maximum_risk = CapabilityRisk::None;
+        for (capability_id, _) in &signature {
+            maximum_risk = maximum_risk.max_by_rank(
+                capabilities
+                    .get(capability_id.as_str())
+                    .expect("capacidad previamente calificada")
+                    .risk,
+            );
+        }
+        let candidate_steps = steps
+            .iter()
+            .map(|step| ProcedureCandidateStep {
+                id: step.id.clone(),
+                position: step.position,
+                capability_id: step.capability_id.clone(),
+                operation: step.operation.clone(),
+            })
+            .collect::<Vec<_>>();
+        let evidence_by_step = steps
+            .iter()
+            .enumerate()
+            .map(|(step_index, step)| {
+                (
+                    step.id.as_str(),
+                    runs.iter()
+                        .map(|run| run.events[step_index])
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .collect::<HashMap<_, _>>();
+        let mut variations = expected_variations(&candidate_steps, &evidence_by_step)?
+            .into_iter()
+            .collect::<Vec<_>>();
+        variations.sort_by_key(|variation| {
+            (
+                variation.step_id.clone(),
+                variation_dimension_rank(variation.dimension),
+            )
+        });
+        patterns.push(DetectedProcedurePattern {
+            fingerprint: procedure_signature_digest(&signature)?,
+            declared_risk: maximum_risk,
+            steps,
+            occurrences,
+            variations,
+        });
+    }
+    patterns.sort_by(|left, right| left.fingerprint.cmp(&right.fingerprint));
+
+    let scanned_event_count = audit_events.len();
+    Ok(ProcedureDetectionSnapshot {
+        schema_version: PROCEDURE_DETECTION_SCHEMA_VERSION,
+        method: PROCEDURE_DETECTION_METHOD.into(),
+        generated_at,
+        evidence_window: PROCEDURE_EVIDENCE_WINDOW.into(),
+        audit_healthy,
+        scanned_event_count,
+        qualifying_execution_count,
+        excluded_event_count: scanned_event_count.saturating_sub(qualifying_execution_count),
+        minimum_occurrences: MIN_OCCURRENCES,
+        minimum_steps: MIN_STEPS,
+        patterns,
+        persistence_applied: false,
+        candidate_created: false,
+        execution_enabled: false,
+    })
+}
+
+fn procedure_signature_digest(signature: &[(String, String)]) -> Result<String, String> {
+    let canonical = serde_json::to_vec(signature).map_err(|error| error.to_string())?;
+    let mut hasher = Sha256::new();
+    hasher.update(PROCEDURE_DETECTION_METHOD.as_bytes());
+    hasher.update([0]);
+    hasher.update(canonical);
+    Ok(format!("sha256:{:x}", hasher.finalize()))
+}
+
+fn variation_dimension_rank(dimension: ProcedureVariationDimension) -> u8 {
+    match dimension {
+        ProcedureVariationDimension::DurationMs => 0,
+        ProcedureVariationDimension::SubjectDigest => 1,
+    }
+}
+
 fn validate_successful_execution(
     event: &AuditEvent,
     occurrence: &ProcedureOccurrence,
@@ -398,9 +679,10 @@ fn validate_text(field: &str, value: &str, maximum: usize) -> Result<(), String>
 mod tests {
     use super::*;
     use crate::capabilities::{
-        CapabilityDescriptor, CapabilityDomain, CapabilityEffect, CapabilityHealth,
-        CapabilityHealthStatus, CapabilityKind, CapabilityPermission, CapabilityPermissionEnforcer,
-        CapabilityPermissionMode, CapabilityState, CAPABILITY_REGISTRY_SCHEMA_VERSION,
+        capability_registry_from_probes, CapabilityDescriptor, CapabilityDomain, CapabilityEffect,
+        CapabilityHealth, CapabilityHealthStatus, CapabilityKind, CapabilityPermission,
+        CapabilityPermissionEnforcer, CapabilityPermissionMode, CapabilityProbeSnapshot,
+        CapabilityState, CAPABILITY_REGISTRY_SCHEMA_VERSION,
     };
     use serde_json::json;
 
@@ -477,7 +759,7 @@ mod tests {
                 "MEMORY_READ_COMPLETED",
             )
             .expect("evento memory");
-            let cloud = AuditEvent::producer(
+            let mut cloud = AuditEvent::producer(
                 operation_id.clone(),
                 AuditSource::Cloud,
                 "cloud.providers.inspect".into(),
@@ -489,6 +771,7 @@ mod tests {
                 "PROVIDERS_INSPECTED",
             )
             .expect("evento cloud");
+            cloud.timestamp_ms = memory.timestamp_ms + 1;
             occurrences.push(ProcedureOccurrence {
                 operation_id,
                 evidence: vec![
@@ -653,5 +936,149 @@ mod tests {
             .validate_against(&registry(), &events)
             .unwrap_err()
             .contains("riesgo observado"));
+    }
+
+    #[test]
+    fn detector_finds_only_three_matching_multi_step_runs() {
+        let (_, events) = candidate_fixture();
+        let snapshot =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), true, &registry(), &events)
+                .expect("detección R5.2");
+
+        assert_eq!(snapshot.scanned_event_count, 6);
+        assert_eq!(snapshot.qualifying_execution_count, 6);
+        assert_eq!(snapshot.excluded_event_count, 0);
+        assert_eq!(snapshot.patterns.len(), 1);
+        assert_eq!(snapshot.patterns[0].steps.len(), 2);
+        assert_eq!(snapshot.patterns[0].occurrences.len(), 3);
+        assert!(snapshot.patterns[0].fingerprint.starts_with("sha256:"));
+        assert_eq!(snapshot.patterns[0].variations.len(), 1);
+        assert!(!snapshot.persistence_applied);
+        assert!(!snapshot.candidate_created);
+        assert!(!snapshot.execution_enabled);
+    }
+
+    #[test]
+    fn detector_excludes_system_skill_and_single_step_runs() {
+        let mut events = Vec::new();
+        for index in 0..3 {
+            events.push(
+                AuditEvent::producer(
+                    Uuid::new_v4().to_string(),
+                    AuditSource::Memory,
+                    "memory.records.read".into(),
+                    "loadValidatedRecords".into(),
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    Some(index),
+                    None,
+                    "MEMORY_READ_COMPLETED",
+                )
+                .expect("evento de un solo paso"),
+            );
+        }
+        events.push(AuditEvent::process_started().expect("evento sistema"));
+        events.push(
+            AuditEvent::skill(
+                Uuid::new_v4().to_string(),
+                "skill.simulation.plan".into(),
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(1),
+                None,
+                "SKILL_SIMULATION_COMPLETED",
+            )
+            .expect("evento skill"),
+        );
+
+        let snapshot =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), true, &registry(), &events)
+                .expect("detección vacía");
+        assert_eq!(snapshot.scanned_event_count, 5);
+        assert_eq!(snapshot.qualifying_execution_count, 3);
+        assert_eq!(snapshot.excluded_event_count, 2);
+        assert!(snapshot.patterns.is_empty());
+    }
+
+    #[test]
+    fn detection_is_deterministic_and_rejects_unknown_snapshot_fields() {
+        let (_, events) = candidate_fixture();
+        let first =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), true, &registry(), &events)
+                .expect("primera detección");
+        let second =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), true, &registry(), &events)
+                .expect("segunda detección");
+        assert_eq!(first, second);
+
+        let mut value = serde_json::to_value(first).expect("serialización snapshot");
+        value["inventedAutonomy"] = json!(true);
+        assert!(serde_json::from_value::<ProcedureDetectionSnapshot>(value).is_err());
+    }
+
+    #[test]
+    fn detector_rejects_runs_with_ambiguous_millisecond_order() {
+        let (_, mut events) = candidate_fixture();
+        for pair in events.chunks_exact_mut(2) {
+            pair[1].timestamp_ms = pair[0].timestamp_ms;
+        }
+        let snapshot =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), true, &registry(), &events)
+                .expect("detección conservadora");
+        assert!(snapshot.patterns.is_empty());
+        assert!(!snapshot.candidate_created);
+    }
+
+    #[test]
+    fn detector_fails_closed_for_unhealthy_or_duplicate_audit_evidence() {
+        let (_, events) = candidate_fixture();
+        let unhealthy =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), false, &registry(), &events)
+                .expect("auditoría no saludable");
+        assert!(!unhealthy.audit_healthy);
+        assert!(unhealthy.patterns.is_empty());
+
+        let mut duplicated = events;
+        duplicated.push(duplicated[0].clone());
+        assert!(detect_procedure_patterns(
+            "2026-08-11T13:00:00Z".into(),
+            true,
+            &registry(),
+            &duplicated,
+        )
+        .unwrap_err()
+        .contains("está repetido"));
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_detector_reads_without_writes_or_invented_patterns() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(std::path::PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR");
+        let audit_path = root.join("audit").join("events-v1.jsonl");
+        let before = std::fs::read(&audit_path).expect("auditoría canónica antes");
+        let (healthy, events) = validated_visible_events_at(&root).expect("ventana R3");
+        let probes = CapabilityProbeSnapshot::collect(
+            &root,
+            &ObservationStore::default(),
+            &SensorLeaseStore::default(),
+        );
+        let registry = capability_registry_from_probes("2026-08-11T13:00:00Z".into(), &probes)
+            .expect("registro R1 canónico");
+        let snapshot =
+            detect_procedure_patterns("2026-08-11T13:00:00Z".into(), healthy, &registry, &events)
+                .expect("detector canónico");
+        let after = std::fs::read(&audit_path).expect("auditoría canónica después");
+
+        assert_eq!(before, after);
+        assert!(snapshot.patterns.is_empty());
+        assert!(!snapshot.persistence_applied);
+        eprintln!(
+            "R5.2 real: {} eventos, {} ejecuciones calificadas, {} patrones",
+            snapshot.scanned_event_count,
+            snapshot.qualifying_execution_count,
+            snapshot.patterns.len()
+        );
     }
 }

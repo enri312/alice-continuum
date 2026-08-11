@@ -34,6 +34,7 @@ use permissions::{
     execute_sensor_lease_grant, permission_gateway_status, prepare_permission_request,
     revoke_permission_grant, stop_sensor_lease, PermissionGateway,
 };
+use procedure_learning::procedure_detection_status;
 use sensory::{sensor_lease_status, spawn_sensor_reaper_thread, SensorLeaseStore};
 use skills::{
     prepare_read_only_skill_template, read_skill_draft, read_skill_lifecycle, save_skill_draft,
@@ -93,6 +94,7 @@ pub fn run() {
             sensor_lease_status,
             audit_snapshot,
             core_activity_snapshot,
+            procedure_detection_status,
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,

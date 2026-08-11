@@ -791,7 +791,7 @@ fn avatar_capabilities(
         capability(
             "avatar.vrm.render",
             "Renderizar avatar VRM",
-            "Carga y presenta localmente el avatar privado sin conectar rostro ni cuerpo.",
+            "Carga y presenta localmente el avatar privado; admite una prueba manual de visor sin conectar decisiones, rostro ni puente corporal.",
             CapabilityDomain::Avatar,
             CapabilityKind::Presentation,
             CapabilityMaturity::Implemented,
