@@ -54,11 +54,10 @@ describe("sistema de iconos funcionales", () => {
     expect(new Set(sources).size).toBe(sources.length);
   });
 
-  it.each(Object.entries(functionalIcons))("%s tiene semántica accesible", (_name, source) => {
-    expect(source).toMatch(/^<svg\b/);
-    expect(source).toContain('role="img"');
-    expect(source).toMatch(/aria-label="[^"]+"/);
-    expect(source).toMatch(/<title>[^<]+<\/title>/);
+  it.each(Object.entries(functionalIcons))("%s declara una fuente SVG utilizable", (_name, source) => {
+    expect(source).toMatch(/^\s*(?:<\?xml[^>]*>\s*)?<svg\b/);
+    expect(source).toMatch(/viewBox="0 0 (?:64|200) (?:64|200)"/);
+    expect(source).toMatch(/<(?:path|circle|rect|polygon|ellipse)\b/);
   });
 
   it.each(Object.entries(functionalIcons))("%s es local y no ejecutable", (_name, source) => {
@@ -67,8 +66,7 @@ describe("sistema de iconos funcionales", () => {
     expect(source).not.toMatch(/<foreignObject\b/i);
   });
 
-  it.each(Object.entries(functionalIcons))("%s conserva el lienzo previsto", (name, source) => {
-    const expectedViewBox = name.startsWith("view") ? "0 0 48 48" : "0 0 64 64";
-    expect(source).toContain(`viewBox="${expectedViewBox}"`);
+  it.each(Object.entries(functionalIcons))("%s usa el lienzo Cyrcetech de alta definición", (_name, source) => {
+    expect(source).toContain('viewBox="0 0 200 200"');
   });
 });

@@ -65,16 +65,16 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 
 | Espacio | Pantallas | Responsabilidad |
 |---|---|---|
-| Cognitive Core | Conversación, Núcleo, Identificación, Memoria y Actividad | Percepción interpretada, recuerdos, estado, planificación, flujo y eventos de conducta |
+| Cognitive Core | Conversación, Volumen cognitivo, Flujo cognitivo, Estado y controles, Planificador, Identificación, Memoria y Actividad | Percepción interpretada, estructura, flujo, estado, planificación y eventos de conducta |
 | Body Solver | Rostro, Cuerpo y Avatar | Expresión y presencia física; sus adaptadores continúan desconectados |
 | Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
 | Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
 
-### Sistema de iconos Cyber Glyph V2
+### Sistema de iconos Cyber Glyph V3
 
-La navegación y los controles visuales usan 22 SVG planos y originales. Cyber Glyph V2 asigna a cada función una silueta semántica y un color principal propio, combina superficies sólidas con microcircuitos y evita que un marco decorativo común oculte el significado. El catálogo cubre diez destinos de navegación, tres vistas de puentes, cuatro vistas del Núcleo y cinco controles de cámara. Una prueba automática verifica lienzo, accesibilidad, diseños distintos y ausencia de recursos externos o contenido ejecutable.
+La navegación y los controles visuales usan 22 SVG originales de alta definición con estética de insignias técnicas: chasis metálico, vidrio, tornillos, paneles de estado, brillo controlado y acentos propios. El estilo se estudió a partir de la composición de los iconos de Cyrcetech, pero ningún archivo externo se copia ni se incorpora. El catálogo cubre diez destinos de navegación, tres vistas de puentes, cuatro áreas cognitivas independientes y cinco controles de cámara. Una prueba automática verifica catálogo, lienzo, unicidad y ausencia de recursos externos o contenido ejecutable.
 
-El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) y [el informe Cyber Glyph V2](docs/testing/CYBER_GLYPH_V2_REPORT_2026-08-11.md). [ADR-P-054](docs/decisions/ADR-P-054-sistema-iconos-holograficos-planos.md) conserva el antecedente plano reemplazado.
+El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-064](docs/decisions/ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md). [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) conserva el antecedente reemplazado.
 
 ## Cámara, micrófono y aprendizaje sensorial
 

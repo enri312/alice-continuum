@@ -1,10 +1,119 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Solucionador corporal">
-  <title>Solucionador corporal</title>
-  <path d="M7 18V7h11M46 7h11v11M7 46v11h11M46 57h11V46" stroke="#c2410c" stroke-width="1.5"/>
-  <circle cx="32" cy="13" r="6" fill="#7c2d12" stroke="#fdba74" stroke-width="1.5"/>
-  <path d="M25 22h14l4 17-7 5-4-5-4 5-7-5 4-17Z" fill="#9a3412" stroke="#fed7aa" stroke-width="1.4"/>
-  <path d="M25 24 15 34m24-10 10 10M28 44 21 57m15-13 7 13" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M32 19v20M21 28h22M24 47h16" stroke="#ffedd5" stroke-width="1" stroke-dasharray="2 2"/>
-  <g fill="#f97316" stroke="#ffedd5" stroke-width=".8"><circle cx="32" cy="19" r="2.4"/><circle cx="25" cy="24" r="2.2"/><circle cx="39" cy="24" r="2.2"/><circle cx="15" cy="34" r="2.2"/><circle cx="49" cy="34" r="2.2"/><circle cx="32" cy="39" r="2.4"/><circle cx="28" cy="44" r="2.2"/><circle cx="36" cy="44" r="2.2"/><circle cx="21" cy="57" r="2.2"/><circle cx="43" cy="57" r="2.2"/></g>
-  <path d="M5 31h8m38 0h8M9 43h12m22 0h12" stroke="#ea580c" stroke-width="1"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- PREMIUM METALLIC GRADIENTS -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c084fc"/><stop offset="50%" stop-color="#7e22ce"/><stop offset="100%" stop-color="#3b0764"/></radialGradient>
+
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4.5" result="blur" />
+      <feComponentTransfer><feFuncA type="linear" slope="1.8"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="3" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.9"/>
+    </filter>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset dx="0" dy="3"/>
+      <feGaussianBlur stdDeviation="3" result="offset-blur"/>
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+      <feFlood flood-color="black" flood-opacity="0.9" result="color"/>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+    </filter>
+
+    <!-- Micro-details Pattern -->
+    <pattern id="hexPattern" x="0" y="0" width="8" height="13.856" patternUnits="userSpaceOnUse">
+      <path d="M4 0 L8 2.309 L8 6.928 L4 9.237 L0 6.928 L0 2.309 Z M4 13.856 L8 11.547 L4 9.237 L0 11.547 Z" fill="none" stroke="url(#accentGrad)" stroke-width="0.5" opacity="0.15"/>
+    </pattern>
+
+    <!-- Screw Head Template -->
+    <g id="screw">
+      <circle cx="0" cy="0" r="1.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/>
+      <circle cx="0" cy="0" r="1" fill="#020617"/>
+      <line x1="-0.8" y1="-0.8" x2="0.8" y2="0.8" stroke="url(#silverGrad)" stroke-width="0.5"/>
+    </g>
+  </defs>
+
+  <!-- BACKGROUND BADGE -->
+  <g>
+    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2.5"></path>
+    <!-- Heavy base plate for mounting the icon -->
+    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#darkMetal)" filter="url(#innerShadow)"></path>
+    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#hexPattern)"></path>
+
+    <!-- Glowing Breathing Ring -->
+    <path d="M 100 22 Q 165 25 178 100 Q 165 175 100 178 Q 35 175 22 100 Q 35 25 100 22 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" filter="url(#strongGlow)" opacity="0.3">
+      <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Screws -->
+    <use href="#screw" x="22" y="22" /><use href="#screw" x="178" y="22" />
+    <use href="#screw" x="22" y="178" /><use href="#screw" x="178" y="178" />
+  </g>
+
+  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
+  <g transform="translate(100, 100) scale(1.7)" filter="url(#dropShadow)">
+
+      <!-- Animated Exoskeleton Torso -->
+      <path d="M -22 -36 L 22 -36 L 30 -16 L 20 20 L 12 36 L -12 36 L -20 20 L -30 -16 Z" fill="url(#silverDark)" stroke="url(#silverGrad)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M -18 -32 L 18 -32 L 24 -14 L 16 18 L 8 32 L -8 32 L -16 18 L -24 -14 Z" fill="url(#darkMetal)" stroke="#0f172a" stroke-width="1.5" filter="url(#innerShadow)"/>
+      <use href="#screw" x="-16" y="-30" /><use href="#screw" x="16" y="-30" />
+      <use href="#screw" x="-6" y="30" /><use href="#screw" x="6" y="30" />
+
+      <!-- Pulsing Energy Ribs -->
+      <g stroke="url(#accentGrad)" stroke-width="3" stroke-linecap="round" filter="url(#strongGlow)">
+        <path d="M 0 -14 Q 16 -16 22 -10"/><path d="M 0 -14 Q -16 -16 -22 -10"/>
+        <path d="M 0 -2 Q 18 -4 24 2"/><path d="M 0 -2 Q -18 -4 -24 2"/>
+        <path d="M 0 10 Q 14 8 18 14"/><path d="M 0 10 Q -14 8 -18 14"/>
+        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+      </g>
+
+      <rect x="-7" y="-34" width="14" height="66" rx="4" fill="url(#silverGrad)" stroke="#0f172a" stroke-width="1.5" filter="url(#dropShadow)"/>
+      <rect x="-5" y="-32" width="10" height="62" rx="3" fill="url(#goldLight)"/>
+      <g stroke="#0f172a" stroke-width="2.5">
+        <line x1="-7" y1="-24" x2="7" y2="-24"/><line x1="-7" y1="-14" x2="7" y2="-14"/><line x1="-7" y1="-4" x2="7" y2="-4"/><line x1="-7" y1="6" x2="7" y2="6"/><line x1="-7" y1="16" x2="7" y2="16"/><line x1="-7" y1="26" x2="7" y2="26"/>
+      </g>
+
+      <!-- Throbbing Arc Reactor Core -->
+      <g>
+        <circle cx="0" cy="-14" r="11" fill="#020617" stroke="url(#goldGrad)" stroke-width="2.5" filter="url(#dropShadow)"/>
+        <circle cx="0" cy="-14" r="8.5" fill="url(#glassGrad)"/>
+        <circle cx="0" cy="-14" r="6" fill="url(#accentGrad)" filter="url(#strongGlow)">
+          <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="0" cy="-14" r="3" fill="#ffffff">
+           <animate attributeName="r" values="2;4;2" dur="1s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+
+  </g>
 </svg>

@@ -1,11 +1,100 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Avatar">
-  <title>Avatar</title>
-  <path d="M32 7c10 0 18 9 18 20v9c0 12-8 21-18 21s-18-9-18-21v-9C14 16 22 7 32 7Z" fill="#422006" stroke="#fbbf24" stroke-width="1.8"/>
-  <path d="M20 25c1-8 5-12 12-12s11 4 12 12l-4-4-3 3-5-5-5 5-3-3-4 4Z" fill="#b45309" stroke="#fde68a" stroke-width="1.2"/>
-  <path d="M21 29c0 13 4 20 11 20s11-7 11-20" fill="#78350f" stroke="#fcd34d" stroke-width="1.4"/>
-  <path d="M25 31h4m6 0h4M28 40c2 1.5 6 1.5 8 0" stroke="#fef3c7" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M13 35H7v-7h7m37 7h6v-7h-7M18 53l-5 6M46 53l5 6" stroke="#d97706" stroke-width="1.3"/>
-  <circle cx="12" cy="31.5" r="2" fill="#f59e0b"/><circle cx="52" cy="31.5" r="2" fill="#f59e0b"/>
-  <path d="M27 6 32 2l5 4M7 18V8h10M47 8h10v10" stroke="#fbbf24" stroke-width="1.2"/>
-  <path d="M7 46v10h10M47 56h10V46" stroke="#92400e" stroke-width="1.2"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- PREMIUM METALLIC GRADIENTS -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0c4a6e"/></radialGradient>
+
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComponentTransfer><feFuncA type="linear" slope="1.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="5" stdDeviation="3.5" flood-color="#000" flood-opacity="0.85"/>
+    </filter>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset dx="0" dy="3"/>
+      <feGaussianBlur stdDeviation="2.5" result="offset-blur"/>
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+      <feFlood flood-color="black" flood-opacity="0.8" result="color"/>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- BACKGROUND BADGE (Ambient Breathing Animation) -->
+  <g>
+    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2"></path>
+    <!-- Inner glowing edge with breathing animation -->
+    <path d="M100 13 C 171 13 187 29 187 100 C 187 171 171 187 100 187 C 29 187 13 171 13 100 C 13 29 29 13 100 13 Z" fill="none" stroke="url(#accentGrad)" stroke-width="1.5" opacity="0.3">
+      <animate attributeName="opacity" values="0.1;0.4;0.1" dur="4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 100 18 Q 170 22 182 100 Q 170 178 100 182 Q 30 178 18 100 Q 30 22 100 18 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" opacity="0.15"></path>
+    <circle cx="22" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="22" r="1.5" fill="#020617"/>
+    <circle cx="178" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="22" r="1.5" fill="#020617"/>
+    <circle cx="22" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="178" r="1.5" fill="#020617"/>
+    <circle cx="178" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="178" r="1.5" fill="#020617"/>
+  </g>
+
+  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
+  <g transform="translate(100, 100) scale(1.6)" filter="url(#dropShadow)">
+
+      <!-- Animated Holographic ID Profile -->
+      <rect x="-26" y="-38" width="52" height="74" rx="5" fill="url(#solarCellGrad)" stroke="url(#silverGrad)" stroke-width="2"/>
+      <rect x="-22" y="-34" width="44" height="66" rx="3" fill="url(#darkMetal)" stroke="#020617" stroke-width="1.5" filter="url(#innerShadow)"/>
+      <path d="M -12 -38 L -12 -44 A 12 12 0 0 1 12 -44 L 12 -38 Z" fill="none" stroke="url(#silverGrad)" stroke-width="2.5"/>
+      <rect x="-8" y="-40" width="16" height="5" rx="2" fill="url(#goldGrad)" stroke="#0f172a" stroke-width="1"/>
+
+      <rect x="-18" y="-28" width="36" height="36" rx="4" fill="#020617" stroke="url(#accentGrad)" stroke-width="2"/>
+
+      <!-- Pulsing Scanning Overlay -->
+      <line x1="-18" y1="-28" x2="18" y2="-28" stroke="url(#accentGrad)" stroke-width="2" filter="url(#strongGlow)">
+        <animate attributeName="y1" values="-28;8;-28" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="-28;8;-28" dur="3s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- Pulsing Holographic Head -->
+      <g>
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+        <circle cx="0" cy="-16" r="7" fill="none" stroke="url(#accentGrad)" stroke-width="2.5" filter="url(#strongGlow)"/>
+        <path d="M -12 4 C -12 -8 12 -8 12 4" fill="none" stroke="url(#accentGrad)" stroke-width="2.5" filter="url(#strongGlow)"/>
+        <circle cx="0" cy="-16" r="5" fill="url(#accentGrad)" opacity="0.5"/>
+        <path d="M -10 4 C -10 -6 10 -6 10 4" fill="url(#accentGrad)" opacity="0.5"/>
+      </g>
+
+      <rect x="-18" y="14" width="14" height="16" rx="2" fill="url(#goldGrad)" stroke="#b45309" stroke-width="1.5" filter="url(#dropShadow)"/>
+      <rect x="0" y="14" width="18" height="3" rx="1.5" fill="url(#silverGrad)"/>
+      <rect x="0" y="20" width="12" height="3" rx="1.5" fill="url(#silverGrad)"/>
+      <rect x="0" y="26" width="16" height="3" rx="1.5" fill="url(#silverGrad)"/>
+
+  </g>
 </svg>

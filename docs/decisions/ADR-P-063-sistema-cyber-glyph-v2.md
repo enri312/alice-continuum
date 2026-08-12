@@ -1,6 +1,6 @@
 # ADR-P-063 — Sistema Cyber Glyph V2
 
-- Estado: aceptada
+- Estado: reemplazada por ADR-P-064
 - Fecha: 2026-08-11
 - Reemplaza: ADR-P-054
 

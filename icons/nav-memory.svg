@@ -1,12 +1,116 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Memoria">
-  <title>Memoria</title>
-  <defs><linearGradient id="mm2" x1="14" y1="11" x2="50" y2="54" gradientUnits="userSpaceOnUse"><stop stop-color="#f9a8d4"/><stop offset="1" stop-color="#db2777"/></linearGradient></defs>
-  <path d="M14 12h31l6 6v34H14V12Z" fill="#500724" stroke="url(#mm2)" stroke-width="1.8"/>
-  <path d="M45 12v7h6" fill="#be185d" stroke="#fbcfe8" stroke-width="1.2"/>
-  <path d="M20 21h20M20 27h25" stroke="#fbcfe8" stroke-width="1.4" stroke-linecap="round"/>
-  <rect x="19" y="33" width="27" height="13" rx="2" fill="#831843" stroke="#f472b6"/>
-  <path d="M23 39h19M23 43h12" stroke="#fce7f3" stroke-width="1.3" stroke-linecap="round"/>
-  <path d="M9 17v31M7 21h4M7 29h4M7 37h4M7 45h4M19 57h27" stroke="#9d174d" stroke-width="1.2"/>
-  <g fill="#f472b6"><circle cx="9" cy="17" r="2"/><circle cx="9" cy="48" r="2"/><circle cx="19" cy="57" r="2"/><circle cx="46" cy="57" r="2"/></g>
-  <path d="m26 8 6-4 6 4" stroke="#f9a8d4" stroke-width="1.4"/><circle cx="32" cy="8" r="2.5" fill="#ec4899"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- PREMIUM METALLIC GRADIENTS -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0c4a6e"/></radialGradient>
+
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4.5" result="blur" />
+      <feComponentTransfer><feFuncA type="linear" slope="1.8"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="3" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.9"/>
+    </filter>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset dx="0" dy="3"/>
+      <feGaussianBlur stdDeviation="3" result="offset-blur"/>
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+      <feFlood flood-color="black" flood-opacity="0.9" result="color"/>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+    </filter>
+
+    <!-- Micro-details Pattern -->
+    <pattern id="hexPattern" x="0" y="0" width="8" height="13.856" patternUnits="userSpaceOnUse">
+      <path d="M4 0 L8 2.309 L8 6.928 L4 9.237 L0 6.928 L0 2.309 Z M4 13.856 L8 11.547 L4 9.237 L0 11.547 Z" fill="none" stroke="url(#accentGrad)" stroke-width="0.5" opacity="0.15"/>
+    </pattern>
+
+    <!-- Screw Head Template -->
+    <g id="screw">
+      <circle cx="0" cy="0" r="1.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/>
+      <circle cx="0" cy="0" r="1" fill="#020617"/>
+      <line x1="-0.8" y1="-0.8" x2="0.8" y2="0.8" stroke="url(#silverGrad)" stroke-width="0.5"/>
+    </g>
+  </defs>
+
+  <!-- BACKGROUND BADGE -->
+  <g>
+    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2.5"></path>
+    <!-- Heavy base plate for mounting the icon -->
+    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#darkMetal)" filter="url(#innerShadow)"></path>
+    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#hexPattern)"></path>
+
+    <!-- Glowing Breathing Ring -->
+    <path d="M 100 22 Q 165 25 178 100 Q 165 175 100 178 Q 35 175 22 100 Q 35 25 100 22 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" filter="url(#strongGlow)" opacity="0.3">
+      <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Screws -->
+    <use href="#screw" x="22" y="22" /><use href="#screw" x="178" y="22" />
+    <use href="#screw" x="22" y="178" /><use href="#screw" x="178" y="178" />
+  </g>
+
+  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
+  <g transform="translate(100, 100) scale(1.7)" filter="url(#dropShadow)">
+
+      <!-- Animated Processing Node (CPU - Hyper Detailed) -->
+      <rect x="-40" y="-40" width="80" height="80" rx="6" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2.5"/>
+      <rect x="-34" y="-34" width="68" height="68" rx="4" fill="url(#solarCellGrad)" stroke="#020617" stroke-width="2.5" filter="url(#innerShadow)"/>
+      <use href="#screw" x="-34" y="-34" /><use href="#screw" x="34" y="-34" />
+      <use href="#screw" x="-34" y="34" /><use href="#screw" x="34" y="34" />
+
+      <!-- Data traveling across gold traces -->
+      <g stroke="url(#goldGrad)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M -40 -20 L -24 -20 L -20 -16"/><path d="M -40 0 L -20 0"/><path d="M -40 20 L -24 20 L -20 16"/>
+        <path d="M 40 -20 L 24 -20 L 20 -16"/><path d="M 40 0 L 20 0"/><path d="M 40 20 L 24 20 L 20 16"/>
+        <path d="M -20 -40 L -20 -24 L -16 -20"/><path d="M 0 -40 L 0 -20"/><path d="M 20 -40 L 20 -24 L 16 -20"/>
+        <path d="M -20 40 L -20 24 L -16 20"/><path d="M 0 40 L 0 20"/><path d="M 20 40 L 20 24 L 16 20"/>
+        <!-- Animated glowing data bits -->
+        <circle cx="0" cy="0" r="2.5" fill="#fff" filter="url(#strongGlow)"><animateMotion path="M -40 0 L -20 0" dur="0.8s" repeatCount="indefinite"/></circle>
+        <circle cx="0" cy="0" r="2.5" fill="#fff" filter="url(#strongGlow)"><animateMotion path="M 40 0 L 20 0" dur="1s" repeatCount="indefinite"/></circle>
+        <circle cx="0" cy="0" r="2.5" fill="#fff" filter="url(#strongGlow)"><animateMotion path="M 0 -40 L 0 -20" dur="1.2s" repeatCount="indefinite"/></circle>
+      </g>
+
+      <rect x="-20" y="-20" width="40" height="40" rx="4" fill="#020617" stroke="url(#goldGrad)" stroke-width="3" filter="url(#dropShadow)"/>
+      <rect x="-20" y="-20" width="40" height="40" rx="4" fill="url(#glassGrad)"/>
+
+      <!-- Pulsing Core Logic -->
+      <circle cx="0" cy="0" r="10" fill="url(#accentGrad)" filter="url(#strongGlow)">
+        <animate attributeName="r" values="8;12;8" dur="0.6s" repeatCount="indefinite"/>
+      </circle>
+      <rect x="-6" y="-6" width="12" height="12" fill="#fff" rx="2">
+        <animateTransform attributeName="transform" type="rotate" values="0 0 0; 45 0 0; 90 0 0" dur="2s" repeatCount="indefinite"/>
+      </rect>
+
+  </g>
 </svg>

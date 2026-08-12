@@ -1,11 +1,101 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Identificación cognitiva">
-  <title>Identificación cognitiva</title>
-  <defs><linearGradient id="id2" x1="12" y1="9" x2="51" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs>
-  <path d="M12 10h40v44H12V10Z" fill="#042f2e" stroke="url(#id2)" stroke-width="1.8"/>
-  <path d="M18 17h13v13H18V17Z" fill="#115e59" stroke="#99f6e4" stroke-width="1.3"/>
-  <circle cx="24.5" cy="21.5" r="2.5" fill="#ccfbf1"/><path d="M20.5 28c.7-3 7.3-3 8 0" fill="#2dd4bf"/>
-  <path d="M36 18h10M36 23h10M36 28h7M18 36h28M18 41h19M18 46h24" stroke="#99f6e4" stroke-width="1.3" stroke-linecap="round"/>
-  <path d="M8 20H4v8h4m48-8h4v8h-4M8 44H4v-8h4m48 8h4v-8h-4" stroke="#14b8a6" stroke-width="1.4"/>
-  <g fill="#2dd4bf"><circle cx="4" cy="20" r="1.5"/><circle cx="60" cy="20" r="1.5"/><circle cx="4" cy="44" r="1.5"/><circle cx="60" cy="44" r="1.5"/></g>
-  <path d="M25 6h14M25 58h14" stroke="#0f766e" stroke-width="1.3"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- PREMIUM METALLIC GRADIENTS -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#22d3ee"/><stop offset="50%" stop-color="#0891b2"/><stop offset="100%" stop-color="#083344"/></radialGradient>
+
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComponentTransfer><feFuncA type="linear" slope="1.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="5" stdDeviation="3.5" flood-color="#000" flood-opacity="0.85"/>
+    </filter>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset dx="0" dy="3"/>
+      <feGaussianBlur stdDeviation="2.5" result="offset-blur"/>
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+      <feFlood flood-color="black" flood-opacity="0.8" result="color"/>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- BACKGROUND BADGE (Ambient Breathing Animation) -->
+  <g>
+    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2"></path>
+    <!-- Inner glowing edge with breathing animation -->
+    <path d="M100 13 C 171 13 187 29 187 100 C 187 171 171 187 100 187 C 29 187 13 171 13 100 C 13 29 29 13 100 13 Z" fill="none" stroke="url(#accentGrad)" stroke-width="1.5" opacity="0.3">
+      <animate attributeName="opacity" values="0.1;0.4;0.1" dur="4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 100 18 Q 170 22 182 100 Q 170 178 100 182 Q 30 178 18 100 Q 30 22 100 18 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" opacity="0.15"></path>
+    <circle cx="22" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="22" r="1.5" fill="#020617"/>
+    <circle cx="178" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="22" r="1.5" fill="#020617"/>
+    <circle cx="22" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="178" r="1.5" fill="#020617"/>
+    <circle cx="178" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="178" r="1.5" fill="#020617"/>
+  </g>
+
+  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
+  <g transform="translate(100, 100) scale(1.6)" filter="url(#dropShadow)">
+
+      <!-- Animated Biometric Iris -->
+      <path d="M 0 -38 A 38 38 0 0 1 38 0 A 38 38 0 0 1 0 38 A 38 38 0 0 1 -38 0 A 38 38 0 0 1 0 -38" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2"/>
+      <circle cx="0" cy="0" r="32" fill="url(#solarCellGrad)" stroke="#020617" stroke-width="2.5" filter="url(#innerShadow)"/>
+
+      <!-- Rotating Retinal Mesh -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="10s" repeatCount="indefinite"/>
+        <circle cx="0" cy="0" r="26" fill="none" stroke="url(#goldGrad)" stroke-width="1.5" stroke-dasharray="8 6"/>
+        <g stroke="url(#accentGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#strongGlow)">
+          <path d="M -14 -18 C -14 -30 14 -30 14 -18"/>
+          <path d="M -20 -10 C -20 -30 20 -30 20 -10"/>
+          <path d="M -26 -2 C -26 -30 26 -30 26 -2"/>
+        </g>
+      </g>
+
+      <!-- Pulsing Optical Core -->
+      <g>
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+        <circle cx="0" cy="6" r="12" fill="#020617" stroke="url(#accentGrad)" stroke-width="2.5" filter="url(#strongGlow)"/>
+        <circle cx="0" cy="6" r="8" fill="url(#accentGrad)" opacity="0.6"/>
+        <circle cx="0" cy="6" r="4" fill="#fff"/>
+      </g>
+
+      <circle cx="0" cy="6" r="12" fill="url(#glassGrad)"/>
+      <line x1="-38" y1="6" x2="-26" y2="6" stroke="url(#silverGrad)" stroke-width="2.5"/>
+      <line x1="38" y1="6" x2="26" y2="6" stroke="url(#silverGrad)" stroke-width="2.5"/>
+      <line x1="0" y1="38" x2="0" y2="26" stroke="url(#silverGrad)" stroke-width="2.5"/>
+      <line x1="0" y1="-38" x2="0" y2="-26" stroke="url(#silverGrad)" stroke-width="2.5"/>
+
+  </g>
 </svg>

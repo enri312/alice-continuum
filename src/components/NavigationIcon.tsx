@@ -10,9 +10,13 @@ import skillsSvg from "../../icons/nav-skills.svg?raw";
 import proceduresSvg from "../../icons/nav-procedures.svg?raw";
 import faceSvg from "../../icons/bridge-face.svg?raw";
 import bodySvg from "../../icons/bridge-body.svg?raw";
+import volumeSvg from "../../icons/nucleus-volume.svg?raw";
+import flowSvg from "../../icons/nucleus-flow.svg?raw";
+import stateSvg from "../../icons/nucleus-state.svg?raw";
+import plannerSvg from "../../icons/nucleus-planner.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body";
+export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -32,6 +36,10 @@ const sources: Record<NavigationIconKind, string> = {
   procedures: proceduresSvg,
   face: faceSvg,
   body: bodySvg,
+  volume: volumeSvg,
+  flow: flowSvg,
+  state: stateSvg,
+  planner: plannerSvg,
 };
 
 export function NavigationIcon({ kind, active }: NavigationIconProps) {

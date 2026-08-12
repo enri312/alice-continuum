@@ -39,3 +39,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-061](ADR-P-061-almacen-decisiones-procedimientos.md) | Almacén R5.3 separado, decisiones inmutables y confirmación explícita del propietario |
 | [ADR-P-062](ADR-P-062-conversion-procedimiento-borrador.md) | Puente R5.4 explícito hacia un borrador R4 con procedencia verificable y ejecución deshabilitada |
 | [ADR-P-063](ADR-P-063-sistema-cyber-glyph-v2.md) | Familia SVG Cyber Glyph V2 con siluetas semánticas, colores propios y contrato automático |
+| [ADR-P-064](ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md) | Separación de áreas cognitivas y familia SVG técnica inspirada en Cyrcetech |
