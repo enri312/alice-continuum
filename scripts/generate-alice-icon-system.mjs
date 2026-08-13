@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../icons/", import.meta.url));
-const handAuthoredIcons = new Set(["nav-memory.svg", "nav-avatar.svg"]);
+const handAuthoredIcons = new Set(["nav-memory.svg", "nav-avatar.svg", "nav-conversation.svg"]);
 
 const icons = [
   ["nav-conversation.svg", "conversation", "Conversación", "#22d3ee", "#34d399", `

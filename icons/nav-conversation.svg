@@ -1,43 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Conversación">
   <title>Conversación</title>
   <style>
-    .conversation-orbit{animation:conversationOrbit 4s linear infinite}.conversation-pulse{animation:conversationPulse 1.8s ease-in-out infinite}.conversation-scan{animation:conversationScan 3s ease-in-out infinite}
-    @keyframes conversationOrbit{to{stroke-dashoffset:-42}}@keyframes conversationPulse{50%{opacity:.3}}@keyframes conversationScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
-    @media (prefers-reduced-motion:reduce){.conversation-orbit,.conversation-pulse,.conversation-scan{animation:none}}
+    .c-pulse{animation:cPulse 1.8s ease-in-out infinite}.c-dash{animation:cDash 2.4s linear infinite}.c-type{animation:cType 1.4s steps(3,end) infinite}.c-scan{animation:cScan 2.8s ease-in-out infinite}.c-led{animation:cLed 1.2s steps(2,end) infinite}.c-packet{animation:cPacket 2.1s ease-in-out infinite}
+    @keyframes cPulse{50%{opacity:.28;stroke-width:5}}@keyframes cDash{to{stroke-dashoffset:-28}}@keyframes cType{0%,20%{opacity:.2}60%,100%{opacity:1}}@keyframes cScan{0%,100%{transform:translateY(-12px);opacity:.2}50%{transform:translateY(24px);opacity:.9}}@keyframes cLed{50%{opacity:.28}}@keyframes cPacket{0%,100%{transform:translateX(-5px);opacity:.25}50%{transform:translateX(8px);opacity:1}}
+    @media (prefers-reduced-motion:reduce){.c-pulse,.c-dash,.c-type,.c-scan,.c-led,.c-packet{animation:none}}
   </style>
   <defs>
-    <radialGradient id="conversation-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
-    <linearGradient id="conversation-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="conversation-accent" x1="0" x2="1"><stop stop-color="#22d3ee"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#34d399"/></linearGradient>
-    <radialGradient id="conversation-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#22d3ee"/><stop offset=".68" stop-color="#34d399"/><stop offset="1" stop-color="#07111d"/></radialGradient>
-    <pattern id="conversation-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#22d3ee" stroke-width=".45" opacity=".22"/></pattern>
-    <filter id="conversation-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="conversation-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
-    <linearGradient id="conversation-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#22d3ee" stop-opacity=".28"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></linearGradient>
+    <linearGradient id="c-frame" x1="20" y1="12" x2="180" y2="188" gradientUnits="userSpaceOnUse"><stop stop-color="#334155"/><stop offset=".45" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="c-glass" x1="60" y1="48" x2="142" y2="145" gradientUnits="userSpaceOnUse"><stop stop-color="#0f766e" stop-opacity=".92"/><stop offset=".45" stop-color="#042f2e" stop-opacity=".9"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="c-cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#99f6e4"/><stop offset=".5" stop-color="#14b8a6"/><stop offset="1" stop-color="#0f766e"/></linearGradient>
+    <linearGradient id="c-gate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbbf24"/><stop offset=".5" stop-color="#b45309"/><stop offset="1" stop-color="#451a03"/></linearGradient>
+    <radialGradient id="c-field"><stop stop-color="#14b8a6" stop-opacity=".32"/><stop offset="1" stop-color="#0f766e" stop-opacity="0"/></radialGradient>
+    <filter id="c-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="c-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#000" flood-opacity=".85"/></filter>
+    <pattern id="c-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#115e59" stroke-width=".6" opacity=".5"/></pattern>
   </defs>
-  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
-  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#conversation-base)" stroke="#475569" stroke-width="1.5"/>
-  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#conversation-grid)" stroke="#22d3ee" stroke-width=".8" opacity=".78"/>
-  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#conversation-beam)"/>
-  <circle class="conversation-orbit" cx="100" cy="100" r="71" fill="none" stroke="#22d3ee" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="conversation-orbit" cx="100" cy="100" r="62" fill="none" stroke="#34d399" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
-  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#22d3ee" stroke-width="1" opacity=".65"/>
-  <g fill="url(#conversation-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
-  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
-  <g fill="#22d3ee" filter="url(#conversation-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#34d399"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
-  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#22d3ee" font-size="7" text-anchor="middle" letter-spacing="1.5">CONVERSATION · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
-  <g transform="translate(14 65)" fill="#07111e" stroke="#22d3ee" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#22d3ee"/><circle class="conversation-pulse" cx="19" cy="27" r="2" fill="#34d399" stroke="none"/></g>
-  <g transform="translate(160 65)" fill="#07111e" stroke="#34d399" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#34d399"/><circle class="conversation-pulse" cx="8" cy="27" r="2" fill="#22d3ee" stroke="none"/></g>
-  <g transform="translate(100 91)" filter="url(#conversation-shadow)">
-      <path d="M-55-31 0-55 55-31 0-7z" fill="#13283a" stroke="#22d3ee" stroke-width="1.8"/>
-      <path d="M-55-31 0-7v47l-55-24z" fill="#071521" stroke="#164e63"/><path d="M55-31 0-7v47l55-24z" fill="#0b1d29" stroke="#155e75"/>
-      <path d="M-43-29 0-47 43-29 0-11z" fill="#06202b" stroke="#67e8f9"/>
-      <path d="M-31-30h13l7-7 10 16 9-18 9 13h16" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" filter="url(#conversation-glow)"/>
-      <path d="M-33 0h26l8 8 8-8h24v18H9L1 27l-8-9h-26z" fill="#0d2630" stroke="#34d399"/>
-      <circle cx="-19" cy="9" r="2" fill="#34d399"/><circle cx="-9" cy="9" r="2" fill="#34d399"/><circle cx="1" cy="9" r="2" fill="#34d399"/>
-    </g><path d="M76 137q24 12 48 0" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="3 4"/>
-  <g font-family="Consolas,monospace" font-weight="900"><g transform="translate(38 125)"><rect width="42" height="21" rx="3" fill="#061827" stroke="#22d3ee"/><text x="21" y="8" fill="#22d3ee" font-size="5" text-anchor="middle">PRIVACY GATE</text><path d="M6 14h19" stroke="#64748b"/><circle cx="33" cy="14" r="3" fill="#34d399"/></g><g transform="translate(120 125)"><rect width="42" height="21" rx="3" fill="#061827" stroke="#34d399"/><text x="21" y="8" fill="#34d399" font-size="5" text-anchor="middle">CLOUD ROUTE</text><path d="M7 14h10m5 0h13" stroke="#64748b"/><circle cx="18" cy="14" r="2" fill="#22d3ee"/></g><path d="M80 135h40" stroke="#22d3ee" stroke-dasharray="3 2"/><path d="m115 131 6 4-6 4" fill="none" stroke="#22d3ee"/><text x="100" y="154" fill="#94a3b8" font-size="5" text-anchor="middle">REVIEW · AUTHORIZE · SEND</text></g>
-  <g class="conversation-scan" stroke="#34d399" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
-  <g opacity=".65" stroke="#22d3ee" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
-  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#22d3ee"/><circle cx="58" cy="2.5" r="1.5" fill="#34d399"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
+
+  <!-- Chasis y campo local -->
+  <path d="M100 7C179 7 193 21 193 100s-14 93-93 93S7 179 7 100 21 7 100 7Z" fill="url(#c-frame)" stroke="#0d9488" stroke-width="3"/>
+  <path d="M100 13c73 0 87 14 87 87s-14 87-87 87-87-14-87-87 14-87 87-87Z" fill="none" stroke="#2dd4bf" stroke-width="1.2" opacity=".55"/>
+  <circle cx="100" cy="102" r="76" fill="url(#c-field)"/><circle cx="100" cy="102" r="70" fill="url(#c-grid)" opacity=".42"/>
+  <g fill="#475569" stroke="#0f172a" stroke-width="2"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#020617" stroke-width="2"><path d="m27 27 6 6m134-6 6 6M27 167l6 6m134-6 6 6"/></g>
+  <text x="100" y="27" fill="#2dd4bf" font-family="Consolas,monospace" font-size="9" font-weight="900" text-anchor="middle" letter-spacing="2">COM-01 · DIALOGUE</text>
+
+  <!-- Plataforma de estación -->
+  <path d="M42 154c0 25 116 25 116 0v13c0 28-116 28-116 0Z" fill="#04131f" stroke="#0d9488" stroke-width="2"/><ellipse cx="100" cy="154" rx="58" ry="17" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/>
+  <ellipse cx="100" cy="154" rx="42" ry="11" fill="none" stroke="#14b8a6" stroke-dasharray="7 4" filter="url(#c-glow)"/>
+  <path d="m62 147 18-94h40l18 94Z" fill="#14b8a6" opacity=".09"/>
+
+  <!-- Terminal local en perspectiva -->
+  <g transform="translate(101 93) rotate(-5)" filter="url(#c-shadow)">
+    <rect x="-55" y="-50" width="110" height="92" rx="8" fill="#020617" stroke="#115e59" stroke-width="6" transform="translate(6 7)"/>
+    <rect x="-55" y="-50" width="110" height="92" rx="8" fill="url(#c-glass)" stroke="#2dd4bf" stroke-width="3"/>
+    <rect x="-48" y="-43" width="96" height="16" rx="3" fill="#115e59" opacity=".9"/><circle cx="-39" cy="-35" r="3" fill="#f87171"/><circle cx="-29" cy="-35" r="3" fill="#fbbf24"/><circle cx="-19" cy="-35" r="3" fill="#34d399"/>
+    <text x="41" y="-32" fill="#99f6e4" font-family="Consolas,monospace" font-size="6" text-anchor="end">ALICE.CHAT · LOCAL</text>
+    <g transform="translate(-40 -18)"><circle cx="9" cy="9" r="8" fill="#134e4a" stroke="#2dd4bf"/><circle cx="9" cy="7" r="3" fill="#ccfbf1"/><path d="M3 15c1-5 11-5 12 0" fill="#ccfbf1"/></g>
+    <path d="M-17-18h48a7 7 0 0 1 7 7v20a7 7 0 0 1-7 7H6L-8 26V16h-9a7 7 0 0 1-7-7v-20a7 7 0 0 1 7-7Z" fill="#042f2e" stroke="#14b8a6" stroke-width="2"/>
+    <path class="c-dash" d="M-13-9h40M-13-1h32M-13 7h37" stroke="#ccfbf1" stroke-width="3" stroke-linecap="round" stroke-dasharray="12 4" opacity=".9"/>
+    <g class="c-type" fill="#2dd4bf" filter="url(#c-glow)"><circle cx="-13" cy="22" r="2"/><circle cx="-5" cy="22" r="2"/><circle cx="3" cy="22" r="2"/></g>
+    <path class="c-scan" d="M-45-7H39" stroke="#34d399" stroke-width="1.5" opacity=".65"/>
+    <rect x="43" y="-20" width="5" height="47" rx="2.5" fill="#020617"/><rect x="43" y="-10" width="5" height="18" rx="2.5" fill="#14b8a6" filter="url(#c-glow)"/>
+  </g>
+
+  <!-- Micrófono presente pero bloqueado hasta integración de voz -->
+  <g transform="translate(43 111)" filter="url(#c-shadow)">
+    <circle r="25" fill="#07111e" stroke="#475569" stroke-dasharray="4 4"/>
+    <rect x="-10" y="-18" width="20" height="35" rx="9" fill="#071521" stroke="#64748b" stroke-width="2"/><rect x="-5" y="-12" width="10" height="19" rx="5" fill="#1e293b" stroke="#94a3b8"/>
+    <path d="M-15 2a15 15 0 0 0 30 0M0 17v11M-8 28H8" fill="none" stroke="#64748b" stroke-width="2"/>
+    <path d="m-17-17 34 34" stroke="#f87171" stroke-width="3"/><circle cx="16" cy="-16" r="4" fill="#f87171"/>
+  </g>
+  <g transform="translate(13 138)" font-family="Consolas,monospace" font-size="5" font-weight="900"><rect width="55" height="12" rx="2" fill="#1c1013" stroke="#f87171"/><text x="27.5" y="8" fill="#fca5a5" text-anchor="middle">MIC · SAFE OFF</text></g>
+
+  <!-- Compuerta de privacidad y autorización -->
+  <g transform="translate(73 137)" filter="url(#c-shadow)" font-family="Consolas,monospace" font-weight="900">
+    <path d="M0 0h54l9 10-9 10H0L-9 10Z" fill="#111827" stroke="#fbbf24" stroke-width="2"/>
+    <g transform="translate(8 4)"><rect y="5" width="11" height="9" rx="2" fill="url(#c-gate)" stroke="#fde68a"/><path d="M3 5V3a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="#fde68a"/><circle cx="5.5" cy="9" r="1.5" fill="#fff"/></g>
+    <text x="39" y="8" fill="#fcd34d" font-size="5" text-anchor="middle">PRIVACY GATE</text><text x="39" y="15" fill="#fca5a5" font-size="5" text-anchor="middle">AUTH REQUIRED</text>
+  </g>
+
+  <!-- Ruta de contexto y proveedor, sin fingir envío -->
+  <g transform="translate(132 105)" filter="url(#c-shadow)" font-family="Consolas,monospace" font-size="5" font-weight="900">
+    <path d="M0 0h50v38H0l-6-6V6Z" fill="#071521" stroke="#2dd4bf"/>
+    <text x="25" y="8" fill="#99f6e4" text-anchor="middle">CONTEXT OUT</text><path d="M7 13h36M7 20h27M7 27h36" stroke="#475569"/><circle cx="39" cy="20" r="3" fill="#fbbf24"/><text x="25" y="35" fill="#94a3b8" text-anchor="middle">PROVIDER · WAIT</text>
+  </g>
+  <path class="c-packet" d="M125 127h10" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3 2"/><path d="m131 123 6 4-6 4" fill="none" stroke="#fbbf24"/>
+
+  <!-- Teclado de entrada local -->
+  <g transform="translate(73 159) skewX(-10)" filter="url(#c-shadow)"><path d="M0 0h58l8 11H-8Z" fill="#0f172a" stroke="#2dd4bf" stroke-width="1.5"/><g stroke="#475569" stroke-width="1.5"><path d="M5 3h10m4 0h10m4 0h10m4 0h8M2 7h12m4 0h23m4 0h14"/></g></g>
+
+  <!-- Módulos laterales y circuitos -->
+  <g fill="#071521" stroke="#2dd4bf" stroke-width="1.3" font-family="Consolas,monospace" font-size="5" font-weight="900">
+    <path d="M17 50h19v25H17l-4-5V55Z"/><text x="26" y="59" fill="#2dd4bf" stroke="none" text-anchor="middle">TXT</text><path d="M20 65h12m-12 5h8" stroke="#34d399"/>
+    <path d="M166 58h18v31h-18Z"/><text x="175" y="67" fill="#2dd4bf" stroke="none" text-anchor="middle">CTX</text><path d="M170 74h10m-10 5h7m-7 5h10" stroke="#2dd4bf"/>
+  </g>
+  <g fill="none" stroke="#14b8a6" stroke-width="1.2" opacity=".8"><path d="M19 92v16l9 7v15"/><path d="M181 101v17l-8 8v12"/><path d="M42 38h14l5 5m97-5h-14l-5 5"/></g>
+  <g filter="url(#c-glow)"><circle class="c-led" cx="38" cy="72" r="3" fill="#34d399"/><circle class="c-led" cx="165" cy="112" r="3" fill="#fbbf24"/></g>
+  <g fill="none" stroke="#2dd4bf" stroke-width="1" opacity=".75"><path d="M14 98h7v-7m-7 31h7v7m165-31h-7v-7m7 31h-7v7"/><path class="c-dash" d="M74 174h52" stroke-dasharray="3 4"/></g>
+  <g transform="translate(65 181)"><rect width="70" height="8" rx="4" fill="#020617" stroke="#334155"/><rect x="3" y="2.5" width="42" height="3" rx="1.5" fill="url(#c-cyan)" filter="url(#c-glow)"/><circle cx="58" cy="4" r="2" fill="#34d399"/><circle cx="65" cy="4" r="2" fill="#fbbf24"/></g>
 </svg>
