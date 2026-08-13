@@ -76,4 +76,26 @@ describe("sistema de iconos funcionales", () => {
   it.each(Object.entries(functionalIcons))("%s usa el lienzo técnico de alta definición", (_name, source) => {
     expect(source).toContain('viewBox="0 0 200 200"');
   });
+
+  it("conserva Avatar como ficha manual del gemelo digital de Alice", () => {
+    expect(navAvatar).toContain("ALICE · AVATAR");
+    expect(navAvatar).toContain("HAIR ASSET");
+    expect(navAvatar).toContain("TECHWEAR SET");
+    expect(navAvatar).toContain("CLIPS");
+    expect(navAvatar).toContain("WALK");
+    expect(navAvatar).toContain("JUMP");
+    expect(navAvatar).toContain("ALICE.VRM");
+    expect(navAvatar).toContain("LOCAL · PRIVATE");
+    expect(navAvatar).not.toMatch(/transform:\s*translate/i);
+  });
+
+  it("mantiene Rostro como calibrador inactivo y no como tracking ficticio", () => {
+    expect(bridgeFace).toContain("FACE CALIBRATION");
+    expect(bridgeFace).toContain("NO SIGNAL");
+    expect(bridgeFace).toContain("0/5");
+    expect(bridgeFace).toContain("0/8");
+    expect(bridgeFace).toContain("VIDEO");
+    expect(bridgeFace).toContain("NOT STORED");
+  });
+
 });
