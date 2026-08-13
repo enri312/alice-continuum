@@ -56,17 +56,24 @@ describe("sistema de iconos funcionales", () => {
 
   it.each(Object.entries(functionalIcons))("%s declara una fuente SVG utilizable", (_name, source) => {
     expect(source).toMatch(/^\s*(?:<\?xml[^>]*>\s*)?<svg\b/);
-    expect(source).toMatch(/viewBox="0 0 (?:64|200) (?:64|200)"/);
+    expect(source).toContain('viewBox="0 0 200 200"');
+    expect(source).toContain('role="img"');
+    expect(source).toMatch(/aria-label="[^"]+"/);
+    expect(source).toMatch(/<title>[^<]+<\/title>/);
+    expect(source).toMatch(/<defs>/);
+    expect(source).toMatch(/<(?:linearGradient|radialGradient)\b/);
     expect(source).toMatch(/<(?:path|circle|rect|polygon|ellipse)\b/);
   });
 
   it.each(Object.entries(functionalIcons))("%s es local y no ejecutable", (_name, source) => {
     expect(source).not.toMatch(/<script\b/i);
+    expect(source).not.toMatch(/\son[a-z]+\s*=/i);
+    expect(source).not.toMatch(/@import\b/i);
     expect(source).not.toMatch(/(?:href|src)=["'](?:https?:|data:|\/\/)/i);
     expect(source).not.toMatch(/<foreignObject\b/i);
   });
 
-  it.each(Object.entries(functionalIcons))("%s usa el lienzo Cyrcetech de alta definición", (_name, source) => {
+  it.each(Object.entries(functionalIcons))("%s usa el lienzo técnico de alta definición", (_name, source) => {
     expect(source).toContain('viewBox="0 0 200 200"');
   });
 });

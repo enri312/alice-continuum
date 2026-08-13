@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./Page/Conversacion";
 import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage } from "./Page/Conversacion";
-import { Nucleo } from "./Page/Nucleo";
+import { Volumen } from "./Page/Volumen";
 import { Flujo } from "./Page/Flujo";
 import { Estado } from "./Page/Estado";
 import { Planificador } from "./Page/Planificador";
@@ -350,7 +350,7 @@ export function App() {
 
     <div className="core-system-content">
     {screen === "conversacion" && <Conversacion desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />}
-    {screen === "nucleo" && <Nucleo snapshot={brainSnapshot} desktopApp={desktopApp} />}
+    {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}

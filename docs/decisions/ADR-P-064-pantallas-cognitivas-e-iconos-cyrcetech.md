@@ -10,10 +10,10 @@ El panel Núcleo agrupaba cuatro responsabilidades distintas en un selector inte
 
 ## Decisión
 
-- Cada área cognitiva tiene ahora una pantalla y una ruta propias dentro de `src/Page/`: `Nucleo.tsx`, `Flujo.tsx`, `Estado.tsx` y `Planificador.tsx`.
+- Cada área cognitiva tiene ahora una pantalla y una ruta propias dentro de `src/Page/`: `Volumen.tsx`, `Flujo.tsx`, `Estado.tsx` y `Planificador.tsx`. La clave de navegación `nucleo` se conserva únicamente como alias compatible del volumen neuronal.
 - `nucleus-shared.tsx` concentra únicamente la lectura pasiva del snapshot R3 y el marco común; no inventa actividad ni decisiones.
 - Las cuatro rutas permanecen en el espacio `cognitive` y son accesibles desde la navegación principal.
-- Los 22 SVG funcionales adoptan un lienzo de `200 × 200`, chasis metálico, capas de cristal, detalles de fijación, paneles luminosos y acentos de color por función.
+- Veintiún SVG funcionales se generan desde cero mediante `scripts/generate-alice-icon-system.mjs`; `nav-memory.svg` se preserva como fuente manual aportada por el propietario. Los 22 adoptan un lienzo de `200 × 200`, squircle multicapa, retícula, anillos HUD, tornillos ranurados, plataformas isométricas, sombras, reflejos y acentos de color por función.
 - La referencia de Cyrcetech se limita a principios visuales observables. No se copian, importan ni distribuyen sus archivos.
 - `icons/app-alice.svg` y `src-tauri/icons/` permanecen fuera del alcance.
 

@@ -1,118 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Estado interno">
+  <title>Estado interno</title>
+  <style>
+    .state-orbit{animation:stateOrbit 4s linear infinite}.state-pulse{animation:statePulse 1.8s ease-in-out infinite}.state-scan{animation:stateScan 3s ease-in-out infinite}
+    @keyframes stateOrbit{to{stroke-dashoffset:-42}}@keyframes statePulse{50%{opacity:.3}}@keyframes stateScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.state-orbit,.state-pulse,.state-scan{animation:none}}
+  </style>
   <defs>
-    <!-- PREMIUM METALLIC GRADIENTS -->
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
-    </linearGradient>
-    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
-    </linearGradient>
-    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
-    </linearGradient>
-    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
-      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
-    </linearGradient>
-
-    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#34d399"/><stop offset="50%" stop-color="#059669"/><stop offset="100%" stop-color="#022c22"/></radialGradient>
-
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4.5" result="blur" />
-      <feComponentTransfer><feFuncA type="linear" slope="1.8"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="3" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.9"/>
-    </filter>
-    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feOffset dx="0" dy="3"/>
-      <feGaussianBlur stdDeviation="3" result="offset-blur"/>
-      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-      <feFlood flood-color="black" flood-opacity="0.9" result="color"/>
-      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
-    </filter>
-
-    <!-- Micro-details Pattern -->
-    <pattern id="hexPattern" x="0" y="0" width="8" height="13.856" patternUnits="userSpaceOnUse">
-      <path d="M4 0 L8 2.309 L8 6.928 L4 9.237 L0 6.928 L0 2.309 Z M4 13.856 L8 11.547 L4 9.237 L0 11.547 Z" fill="none" stroke="url(#accentGrad)" stroke-width="0.5" opacity="0.15"/>
-    </pattern>
-
-    <!-- Screw Head Template -->
-    <g id="screw">
-      <circle cx="0" cy="0" r="1.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/>
-      <circle cx="0" cy="0" r="1" fill="#020617"/>
-      <line x1="-0.8" y1="-0.8" x2="0.8" y2="0.8" stroke="url(#silverGrad)" stroke-width="0.5"/>
-    </g>
+    <radialGradient id="state-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <linearGradient id="state-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="state-accent" x1="0" x2="1"><stop stop-color="#10b981"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <radialGradient id="state-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#10b981"/><stop offset=".68" stop-color="#f59e0b"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <pattern id="state-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#10b981" stroke-width=".45" opacity=".22"/></pattern>
+    <filter id="state-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="state-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
+    <linearGradient id="state-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#10b981" stop-opacity=".28"/><stop offset="1" stop-color="#10b981" stop-opacity="0"/></linearGradient>
   </defs>
-
-  <!-- BACKGROUND BADGE -->
-  <g>
-    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2.5"></path>
-    <!-- Heavy base plate for mounting the icon -->
-    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#darkMetal)" filter="url(#innerShadow)"></path>
-    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#hexPattern)"></path>
-
-    <!-- Glowing Breathing Ring -->
-    <path d="M 100 22 Q 165 25 178 100 Q 165 175 100 178 Q 35 175 22 100 Q 35 25 100 22 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" filter="url(#strongGlow)" opacity="0.3">
-      <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" repeatCount="indefinite"/>
-    </path>
-
-    <!-- Screws -->
-    <use href="#screw" x="22" y="22" /><use href="#screw" x="178" y="22" />
-    <use href="#screw" x="22" y="178" /><use href="#screw" x="178" y="178" />
-  </g>
-
-  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
-  <g transform="translate(100, 100) scale(1.7)" filter="url(#dropShadow)">
-
-      <!-- Animated Server Stack Mainframe (Hyper-Detailed) -->
-      <path d="M -42 -40 L 42 -40 L 38 40 L -38 40 Z" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linejoin="round"/>
-      <use href="#screw" x="-36" y="-36" /><use href="#screw" x="36" y="-36" />
-      <use href="#screw" x="-32" y="36" /><use href="#screw" x="32" y="36" />
-
-      <!-- Rack 1 -->
-      <rect x="-32" y="-30" width="64" height="20" rx="3" fill="url(#solarCellGrad)" stroke="url(#silverGrad)" stroke-width="2"/>
-      <rect x="-26" y="-26" width="38" height="12" rx="2" fill="#020617" filter="url(#innerShadow)"/>
-      <circle cx="-18" cy="-20" r="3" fill="url(#accentGrad)" filter="url(#strongGlow)"><animate attributeName="opacity" values="0;1;0;1;1;0" dur="1s" repeatCount="indefinite"/></circle>
-      <circle cx="-8" cy="-20" r="3" fill="url(#accentGrad)" filter="url(#strongGlow)"><animate attributeName="opacity" values="1;0;1;0;0;1" dur="0.8s" repeatCount="indefinite"/></circle>
-      <rect x="18" y="-22" width="14" height="3" fill="url(#goldLight)"/><rect x="18" y="-17" width="10" height="3" fill="url(#goldLight)"/>
-
-      <!-- Rack 2 -->
-      <rect x="-33" y="-5" width="66" height="20" rx="3" fill="url(#solarCellGrad)" stroke="url(#silverGrad)" stroke-width="2"/>
-      <rect x="-27" y="-1" width="38" height="12" rx="2" fill="#020617" filter="url(#innerShadow)"/>
-      <circle cx="-19" cy="5" r="3" fill="url(#accentGrad)" filter="url(#strongGlow)"><animate attributeName="opacity" values="1;1;0;1;0;0" dur="1.2s" repeatCount="indefinite"/></circle>
-      <circle cx="-9" cy="5" r="3" fill="url(#accentGrad)" filter="url(#strongGlow)"><animate attributeName="opacity" values="0;0;1;1;0;1" dur="1.4s" repeatCount="indefinite"/></circle>
-      <rect x="19" y="3" width="14" height="3" fill="url(#goldLight)"/><rect x="19" y="8" width="10" height="3" fill="url(#goldLight)"/>
-
-      <!-- Rack 3 -->
-      <rect x="-34" y="20" width="68" height="20" rx="3" fill="url(#solarCellGrad)" stroke="url(#silverGrad)" stroke-width="2"/>
-      <rect x="-28" y="24" width="38" height="12" rx="2" fill="#020617" filter="url(#innerShadow)"/>
-      <!-- Error / Critical Lights -->
-      <circle cx="-20" cy="30" r="3" fill="#ef4444" filter="url(#strongGlow)"><animate attributeName="opacity" values="1;0;1" dur="0.3s" repeatCount="indefinite"/></circle>
-      <circle cx="-10" cy="30" r="3" fill="#334155"/>
-      <rect x="20" y="27" width="14" height="3" fill="url(#goldLight)"/><rect x="20" y="32" width="10" height="3" fill="url(#goldLight)"/>
-
-      <!-- Thick cabling -->
-      <path d="M -36 -20 L -46 -20 L -46 30 L -38 30" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-linejoin="round" filter="url(#dropShadow)"/>
-      <path d="M 36 5 L 44 5 L 44 30 L 38 30" fill="none" stroke="url(#silverGrad)" stroke-width="3" stroke-linejoin="round" filter="url(#dropShadow)"/>
-
-  </g>
+  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
+  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#state-base)" stroke="#475569" stroke-width="1.5"/>
+  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#state-grid)" stroke="#10b981" stroke-width=".8" opacity=".78"/>
+  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#state-beam)"/>
+  <circle class="state-orbit" cx="100" cy="100" r="71" fill="none" stroke="#10b981" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="state-orbit" cx="100" cy="100" r="62" fill="none" stroke="#f59e0b" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
+  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#10b981" stroke-width="1" opacity=".65"/>
+  <g fill="url(#state-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
+  <g fill="#10b981" filter="url(#state-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#f59e0b"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
+  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#10b981" font-size="7" text-anchor="middle" letter-spacing="1.5">STATE · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
+  <g transform="translate(14 65)" fill="#07111e" stroke="#10b981" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#10b981"/><circle class="state-pulse" cx="19" cy="27" r="2" fill="#f59e0b" stroke="none"/></g>
+  <g transform="translate(160 65)" fill="#07111e" stroke="#f59e0b" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#f59e0b"/><circle class="state-pulse" cx="8" cy="27" r="2" fill="#10b981" stroke="none"/></g>
+  <g transform="translate(100 91)" filter="url(#state-shadow)">
+      <path d="M-57-44 48-50 57 43-48 49z" fill="#071b18" stroke="#10b981" stroke-width="2"/>
+      <path d="M-47-27h87l2 21h-87z" fill="#0b2824" stroke="#6ee7b7"/><path d="M-39-16h10l6-8 8 15 10-23 10 21 7-9 6 5h18" fill="none" stroke="#10b981" stroke-width="2.5" filter="url(#state-glow)"/>
+      <g><path d="M-42 8h82" stroke="#1f3c38" stroke-width="8"/><path d="M-42 8h62" stroke="#10b981" stroke-width="8"/><circle cx="20" cy="8" r="7" fill="#d1fae5" stroke="#10b981"/><path d="M-42 29h82" stroke="#3d301e" stroke-width="8"/><path d="M-42 29h39" stroke="#f59e0b" stroke-width="8"/><circle cx="-3" cy="29" r="7" fill="#fef3c7" stroke="#f59e0b"/></g>
+    </g>
+  <g class="state-scan" stroke="#f59e0b" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
+  <g opacity=".65" stroke="#10b981" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
+  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#10b981"/><circle cx="58" cy="2.5" r="1.5" fill="#f59e0b"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
 </svg>

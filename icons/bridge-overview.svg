@@ -1,124 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Resumen de puentes">
+  <title>Resumen de puentes</title>
+  <style>
+    .overview-orbit{animation:overviewOrbit 4s linear infinite}.overview-pulse{animation:overviewPulse 1.8s ease-in-out infinite}.overview-scan{animation:overviewScan 3s ease-in-out infinite}
+    @keyframes overviewOrbit{to{stroke-dashoffset:-42}}@keyframes overviewPulse{50%{opacity:.3}}@keyframes overviewScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.overview-orbit,.overview-pulse,.overview-scan{animation:none}}
+  </style>
   <defs>
-    <!-- PREMIUM METALLIC GRADIENTS -->
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
-    </linearGradient>
-    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
-    </linearGradient>
-    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
-    </linearGradient>
-    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
-      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
-    </linearGradient>
-
-    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0c4a6e"/></radialGradient>
-
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4.5" result="blur" />
-      <feComponentTransfer><feFuncA type="linear" slope="1.8"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="3" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.9"/>
-    </filter>
-    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feOffset dx="0" dy="3"/>
-      <feGaussianBlur stdDeviation="3" result="offset-blur"/>
-      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-      <feFlood flood-color="black" flood-opacity="0.9" result="color"/>
-      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
-    </filter>
-
-    <!-- Micro-details Pattern -->
-    <pattern id="hexPattern" x="0" y="0" width="8" height="13.856" patternUnits="userSpaceOnUse">
-      <path d="M4 0 L8 2.309 L8 6.928 L4 9.237 L0 6.928 L0 2.309 Z M4 13.856 L8 11.547 L4 9.237 L0 11.547 Z" fill="none" stroke="url(#accentGrad)" stroke-width="0.5" opacity="0.15"/>
-    </pattern>
-
-    <!-- Screw Head Template -->
-    <g id="screw">
-      <circle cx="0" cy="0" r="1.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/>
-      <circle cx="0" cy="0" r="1" fill="#020617"/>
-      <line x1="-0.8" y1="-0.8" x2="0.8" y2="0.8" stroke="url(#silverGrad)" stroke-width="0.5"/>
-    </g>
+    <radialGradient id="overview-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <linearGradient id="overview-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="overview-accent" x1="0" x2="1"><stop stop-color="#2dd4bf"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
+    <radialGradient id="overview-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#2dd4bf"/><stop offset=".68" stop-color="#fb923c"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <pattern id="overview-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#2dd4bf" stroke-width=".45" opacity=".22"/></pattern>
+    <filter id="overview-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="overview-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
+    <linearGradient id="overview-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2dd4bf" stop-opacity=".28"/><stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/></linearGradient>
   </defs>
-
-  <!-- BACKGROUND BADGE -->
-  <g>
-    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2.5"></path>
-    <!-- Heavy base plate for mounting the icon -->
-    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#darkMetal)" filter="url(#innerShadow)"></path>
-    <path d="M100 14 C 170 14 186 30 186 100 C 186 170 170 186 100 186 C 30 186 14 170 14 100 C 14 30 30 14 100 14 Z" fill="url(#hexPattern)"></path>
-
-    <!-- Glowing Breathing Ring -->
-    <path d="M 100 22 Q 165 25 178 100 Q 165 175 100 178 Q 35 175 22 100 Q 35 25 100 22 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" filter="url(#strongGlow)" opacity="0.3">
-      <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" repeatCount="indefinite"/>
-    </path>
-
-    <!-- Screws -->
-    <use href="#screw" x="22" y="22" /><use href="#screw" x="178" y="22" />
-    <use href="#screw" x="22" y="178" /><use href="#screw" x="178" y="178" />
-  </g>
-
-  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
-  <g transform="translate(100, 100) scale(1.7)" filter="url(#dropShadow)">
-
-      <!-- Rotating Radar Node (Hyper-Detailed) -->
-      <polygon points="-16,-36 16,-36 36,-16 36,16 16,36 -16,36 -36,16 -36,-16" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linejoin="round"/>
-      <polygon points="-14,-32 14,-32 32,-14 32,14 14,32 -14,32 -32,14 -32,-14" fill="url(#solarCellGrad)" stroke="#0f172a" stroke-width="2" filter="url(#innerShadow)"/>
-
-      <!-- Screws on the octagonal chassis -->
-      <use href="#screw" x="-12" y="-30" /><use href="#screw" x="12" y="-30" />
-      <use href="#screw" x="30" y="-12" /><use href="#screw" x="30" y="12" />
-      <use href="#screw" x="-12" y="30" /><use href="#screw" x="12" y="30" />
-      <use href="#screw" x="-30" y="-12" /><use href="#screw" x="-30" y="12" />
-
-      <circle cx="0" cy="0" r="26" fill="#020617" stroke="url(#accentGrad)" stroke-width="3" filter="url(#innerShadow)"/>
-      <circle cx="0" cy="0" r="26" fill="url(#glassGrad)"/>
-
-      <!-- Static Grid -->
-      <circle cx="0" cy="0" r="18" fill="none" stroke="url(#accentGrad)" stroke-width="1" opacity="0.5"/>
-      <circle cx="0" cy="0" r="9" fill="none" stroke="url(#accentGrad)" stroke-width="1" opacity="0.5"/>
-      <line x1="-26" y1="0" x2="26" y2="0" stroke="url(#accentGrad)" stroke-width="1" opacity="0.3"/>
-      <line x1="0" y1="-26" x2="0" y2="26" stroke="url(#accentGrad)" stroke-width="1" opacity="0.3"/>
-
-      <!-- Rotating Radar Beam and Blips -->
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="3s" repeatCount="indefinite"/>
-        <line x1="0" y1="0" x2="0" y2="-26" stroke="url(#accentGrad)" stroke-width="2"/>
-        <path d="M 0 0 L 20 -18 A 26 26 0 0 0 0 -26 Z" fill="url(#accentGrad)" opacity="0.7" filter="url(#strongGlow)"/>
-      </g>
-
-      <!-- Pulsing Target Blips -->
-      <circle cx="12" cy="-14" r="3.5" fill="#fff" filter="url(#strongGlow)">
-        <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="-16" cy="12" r="3" fill="url(#accentGrad)" filter="url(#strongGlow)">
-        <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="-6" cy="-16" r="2" fill="url(#goldLight)" filter="url(#strongGlow)">
-        <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
-      </circle>
-
-  </g>
+  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
+  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#overview-base)" stroke="#475569" stroke-width="1.5"/>
+  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#overview-grid)" stroke="#2dd4bf" stroke-width=".8" opacity=".78"/>
+  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#overview-beam)"/>
+  <circle class="overview-orbit" cx="100" cy="100" r="71" fill="none" stroke="#2dd4bf" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="overview-orbit" cx="100" cy="100" r="62" fill="none" stroke="#fb923c" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
+  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#2dd4bf" stroke-width="1" opacity=".65"/>
+  <g fill="url(#overview-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
+  <g fill="#2dd4bf" filter="url(#overview-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#fb923c"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
+  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#2dd4bf" font-size="7" text-anchor="middle" letter-spacing="1.5">OVERVIEW · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
+  <g transform="translate(14 65)" fill="#07111e" stroke="#2dd4bf" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#2dd4bf"/><circle class="overview-pulse" cx="19" cy="27" r="2" fill="#fb923c" stroke="none"/></g>
+  <g transform="translate(160 65)" fill="#07111e" stroke="#fb923c" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#fb923c"/><circle class="overview-pulse" cx="8" cy="27" r="2" fill="#2dd4bf" stroke="none"/></g>
+  <g transform="translate(100 91)" filter="url(#overview-shadow)"><ellipse cy="48" rx="55" ry="14" fill="#052e2b" stroke="#2dd4bf" opacity=".55"/>
+      <circle r="54" fill="#071c22" stroke="#2dd4bf" stroke-width="2"/><g fill="none" stroke="#1f5e62"><circle r="39"/><circle r="23"/><path d="M-54 0h108M0-54v108M-38-38l76 76M38-38l-76 76"/></g>
+      <path d="M0 0 39-31A50 50 0 0 1 50 15z" fill="#2dd4bf" opacity=".25"/><path d="M0 0 39-31" stroke="#2dd4bf" stroke-width="3" filter="url(#overview-glow)"/>
+      <g fill="#fff"><circle cx="-26" cy="-31" r="5"/><circle cx="37" cy="-10" r="5"/><circle cx="17" cy="38" r="5"/></g><g fill="#fb923c"><circle cx="-26" cy="-31" r="2"/><circle cx="37" cy="-10" r="2"/><circle cx="17" cy="38" r="2"/></g>
+    </g>
+  <g class="overview-scan" stroke="#fb923c" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
+  <g opacity=".65" stroke="#2dd4bf" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
+  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#2dd4bf"/><circle cx="58" cy="2.5" r="1.5" fill="#fb923c"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
 </svg>

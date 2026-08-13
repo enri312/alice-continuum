@@ -1,101 +1,40 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Volumen cognitivo">
+  <title>Volumen cognitivo</title>
+  <style>
+    .nucleus-orbit{animation:nucleusOrbit 4s linear infinite}.nucleus-pulse{animation:nucleusPulse 1.8s ease-in-out infinite}.nucleus-scan{animation:nucleusScan 3s ease-in-out infinite}
+    @keyframes nucleusOrbit{to{stroke-dashoffset:-42}}@keyframes nucleusPulse{50%{opacity:.3}}@keyframes nucleusScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.nucleus-orbit,.nucleus-pulse,.nucleus-scan{animation:none}}
+  </style>
   <defs>
-    <!-- PREMIUM METALLIC GRADIENTS -->
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
-    </linearGradient>
-    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
-    </linearGradient>
-    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
-    </linearGradient>
-    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
-      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
-    </linearGradient>
-
-    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c084fc"/><stop offset="50%" stop-color="#7e22ce"/><stop offset="100%" stop-color="#3b0764"/></radialGradient>
-
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur" />
-      <feComponentTransfer><feFuncA type="linear" slope="1.5"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="2" dy="5" stdDeviation="3.5" flood-color="#000" flood-opacity="0.85"/>
-    </filter>
-    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feOffset dx="0" dy="3"/>
-      <feGaussianBlur stdDeviation="2.5" result="offset-blur"/>
-      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-      <feFlood flood-color="black" flood-opacity="0.8" result="color"/>
-      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
-    </filter>
+    <radialGradient id="nucleus-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <linearGradient id="nucleus-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="nucleus-accent" x1="0" x2="1"><stop stop-color="#fbbf24"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <radialGradient id="nucleus-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#fbbf24"/><stop offset=".68" stop-color="#22d3ee"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <pattern id="nucleus-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#fbbf24" stroke-width=".45" opacity=".22"/></pattern>
+    <filter id="nucleus-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="nucleus-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
+    <linearGradient id="nucleus-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fbbf24" stop-opacity=".28"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></linearGradient>
   </defs>
-
-  <!-- BACKGROUND BADGE (Ambient Breathing Animation) -->
-  <g>
-    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2"></path>
-    <!-- Inner glowing edge with breathing animation -->
-    <path d="M100 13 C 171 13 187 29 187 100 C 187 171 171 187 100 187 C 29 187 13 171 13 100 C 13 29 29 13 100 13 Z" fill="none" stroke="url(#accentGrad)" stroke-width="1.5" opacity="0.3">
-      <animate attributeName="opacity" values="0.1;0.4;0.1" dur="4s" repeatCount="indefinite"/>
-    </path>
-    <path d="M 100 18 Q 170 22 182 100 Q 170 178 100 182 Q 30 178 18 100 Q 30 22 100 18 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" opacity="0.15"></path>
-    <circle cx="22" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="22" r="1.5" fill="#020617"/>
-    <circle cx="178" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="22" r="1.5" fill="#020617"/>
-    <circle cx="22" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="178" r="1.5" fill="#020617"/>
-    <circle cx="178" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="178" r="1.5" fill="#020617"/>
-  </g>
-
-  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
-  <g transform="translate(100, 100) scale(1.6)" filter="url(#dropShadow)">
-
-      <!-- Animated Quantum Fusion Core -->
-      <path d="M -18 -36 L 18 -36 L 36 -18 L 36 18 L 18 36 L -18 36 L -36 18 L -36 -18 Z" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2" stroke-linejoin="round"/>
-      <circle cx="0" cy="0" r="28" fill="url(#solarCellGrad)" stroke="#020617" stroke-width="2.5" filter="url(#innerShadow)"/>
-      <circle cx="0" cy="0" r="28" fill="url(#glassGrad)"/>
-
-      <!-- Counter-rotating Magnetic Confinement Rings -->
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="4s" repeatCount="indefinite"/>
-        <circle cx="0" cy="0" r="22" fill="none" stroke="url(#silverGrad)" stroke-width="1.5" stroke-dasharray="10 5"/>
-      </g>
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="360 0 0" to="0 0 0" dur="3s" repeatCount="indefinite"/>
-        <circle cx="0" cy="0" r="15" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-dasharray="6 4" filter="url(#dropShadow)"/>
-      </g>
-
-      <!-- Volatile Plasma Core -->
-      <circle cx="0" cy="0" r="9" fill="url(#accentGrad)" filter="url(#strongGlow)">
-        <animate attributeName="r" values="8;11;8" dur="0.5s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="0" cy="0" r="4" fill="#fff"/>
-      <path d="M -12 0 Q 0 -12 12 0 Q 0 12 -12 0 Z" fill="url(#accentGrad)" filter="url(#strongGlow)" opacity="0.7">
-        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="1s" repeatCount="indefinite"/>
-      </path>
-
-      <rect x="-6" y="-36" width="12" height="10" rx="2" fill="url(#silverGrad)" stroke="#0f172a" stroke-width="1"/>
-      <rect x="-6" y="26" width="12" height="10" rx="2" fill="url(#silverGrad)" stroke="#0f172a" stroke-width="1"/>
-      <rect x="-36" y="-6" width="10" height="12" rx="2" fill="url(#silverGrad)" stroke="#0f172a" stroke-width="1"/>
-      <rect x="26" y="-6" width="10" height="12" rx="2" fill="url(#silverGrad)" stroke="#0f172a" stroke-width="1"/>
-
-  </g>
+  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
+  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#nucleus-base)" stroke="#475569" stroke-width="1.5"/>
+  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#nucleus-grid)" stroke="#fbbf24" stroke-width=".8" opacity=".78"/>
+  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#nucleus-beam)"/>
+  <circle class="nucleus-orbit" cx="100" cy="100" r="71" fill="none" stroke="#fbbf24" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="nucleus-orbit" cx="100" cy="100" r="62" fill="none" stroke="#22d3ee" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
+  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#fbbf24" stroke-width="1" opacity=".65"/>
+  <g fill="url(#nucleus-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
+  <g fill="#fbbf24" filter="url(#nucleus-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#22d3ee"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
+  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#fbbf24" font-size="7" text-anchor="middle" letter-spacing="1.5">NUCLEUS · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
+  <g transform="translate(14 65)" fill="#07111e" stroke="#fbbf24" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#fbbf24"/><circle class="nucleus-pulse" cx="19" cy="27" r="2" fill="#22d3ee" stroke="none"/></g>
+  <g transform="translate(160 65)" fill="#07111e" stroke="#22d3ee" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#22d3ee"/><circle class="nucleus-pulse" cx="8" cy="27" r="2" fill="#fbbf24" stroke="none"/></g>
+  <g transform="translate(100 91)" filter="url(#nucleus-shadow)"><ellipse cy="48" rx="52" ry="14" fill="#020617" stroke="#fbbf24" opacity=".9"/>
+      <g fill="none" stroke-width="1.6"><ellipse rx="57" ry="29" stroke="#fbbf24"/><ellipse rx="57" ry="29" stroke="#22d3ee" transform="rotate(60)"/><ellipse rx="57" ry="29" stroke="#f472b6" transform="rotate(120)"/></g>
+      <circle r="29" fill="url(#nucleus-holo)" stroke="#fff7c2" stroke-width="2" filter="url(#nucleus-glow)"/><circle r="15" fill="#fff" opacity=".25"/>
+      <g fill="#fff"><circle cx="-55" cy="-7" r="4"/><circle cx="34" cy="-44" r="4"/><circle cx="31" cy="45" r="4"/></g>
+      <g stroke="#fff8" stroke-width="1"><path d="M-18-8 0-19 20-7 15 15-8 19-18-8z" fill="none"/><path d="M-18-8 15 15M0-19-8 19M20-7-8 19"/></g>
+    </g>
+  <g class="nucleus-scan" stroke="#22d3ee" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
+  <g opacity=".65" stroke="#fbbf24" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
+  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#fbbf24"/><circle cx="58" cy="2.5" r="1.5" fill="#22d3ee"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
 </svg>

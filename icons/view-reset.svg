@@ -1,94 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Restablecer vista">
+  <title>Restablecer vista</title>
+  <style>
+    .reset-orbit{animation:resetOrbit 4s linear infinite}.reset-pulse{animation:resetPulse 1.8s ease-in-out infinite}.reset-scan{animation:resetScan 3s ease-in-out infinite}
+    @keyframes resetOrbit{to{stroke-dashoffset:-42}}@keyframes resetPulse{50%{opacity:.3}}@keyframes resetScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.reset-orbit,.reset-pulse,.reset-scan{animation:none}}
+  </style>
   <defs>
-    <!-- PREMIUM METALLIC GRADIENTS -->
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/><stop offset="20%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#fcd34d"/><stop offset="80%" stop-color="#b45309"/><stop offset="100%" stop-color="#78350f"/>
-    </linearGradient>
-    <linearGradient id="goldLight" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#fffbeb"/>
-    </linearGradient>
-    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="60%" stop-color="#f1f5f9"/><stop offset="90%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>
-    </linearGradient>
-    <linearGradient id="silverDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-    <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#334155"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="solarCellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0ea5e9"/><stop offset="15%" stop-color="#0369a1"/><stop offset="85%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.1"/>
-      <stop offset="60%" stop-color="#000000" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
-    </linearGradient>
-
-    <radialGradient id="accentGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fb7185"/><stop offset="50%" stop-color="#e11d48"/><stop offset="100%" stop-color="#4c0519"/></radialGradient>
-
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
-      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur" />
-      <feComponentTransfer><feFuncA type="linear" slope="1.5"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic" /></feMerge>
-    </filter>
-    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="2" dy="5" stdDeviation="3.5" flood-color="#000" flood-opacity="0.85"/>
-    </filter>
-    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feOffset dx="0" dy="3"/>
-      <feGaussianBlur stdDeviation="2.5" result="offset-blur"/>
-      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-      <feFlood flood-color="black" flood-opacity="0.8" result="color"/>
-      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
-    </filter>
+    <radialGradient id="reset-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <linearGradient id="reset-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="reset-accent" x1="0" x2="1"><stop stop-color="#a78bfa"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#f472b6"/></linearGradient>
+    <radialGradient id="reset-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#a78bfa"/><stop offset=".68" stop-color="#f472b6"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <pattern id="reset-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#a78bfa" stroke-width=".45" opacity=".22"/></pattern>
+    <filter id="reset-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="reset-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
+    <linearGradient id="reset-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a78bfa" stop-opacity=".28"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></linearGradient>
   </defs>
-
-  <!-- BACKGROUND BADGE (Ambient Breathing Animation) -->
-  <g>
-    <path d="M100 10 C 175 10 190 25 190 100 C 190 175 175 190 100 190 C 25 190 10 175 10 100 C 10 25 25 10 100 10 Z" fill="#0f172a" stroke="url(#silverGrad)" stroke-width="2"></path>
-    <!-- Inner glowing edge with breathing animation -->
-    <path d="M100 13 C 171 13 187 29 187 100 C 187 171 171 187 100 187 C 29 187 13 171 13 100 C 13 29 29 13 100 13 Z" fill="none" stroke="url(#accentGrad)" stroke-width="1.5" opacity="0.3">
-      <animate attributeName="opacity" values="0.1;0.4;0.1" dur="4s" repeatCount="indefinite"/>
-    </path>
-    <path d="M 100 18 Q 170 22 182 100 Q 170 178 100 182 Q 30 178 18 100 Q 30 22 100 18 Z" fill="none" stroke="url(#accentGrad)" stroke-width="2" opacity="0.15"></path>
-    <circle cx="22" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="22" r="1.5" fill="#020617"/>
-    <circle cx="178" cy="22" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="22" r="1.5" fill="#020617"/>
-    <circle cx="22" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="22" cy="178" r="1.5" fill="#020617"/>
-    <circle cx="178" cy="178" r="3.5" fill="url(#silverGrad)" filter="url(#dropShadow)"/><circle cx="178" cy="178" r="1.5" fill="#020617"/>
-  </g>
-
-  <!-- MAIN SCALED GROUP - DYNAMIC ANIMATED INTERNALS -->
-  <g transform="translate(100, 100) scale(1.6)" filter="url(#dropShadow)">
-
-      <!-- Animated Orbital Reset Engine -->
-      <circle cx="0" cy="0" r="36" fill="url(#darkMetal)" stroke="url(#silverGrad)" stroke-width="2"/>
-      <circle cx="0" cy="0" r="28" fill="#020617" stroke="url(#goldGrad)" stroke-width="2" filter="url(#innerShadow)"/>
-
-      <!-- Continuous Rotating Reload Arrow -->
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="2s" repeatCount="indefinite"/>
-        <path d="M 0 -22 A 22 22 0 1 1 -22 0" fill="none" stroke="url(#accentGrad)" stroke-width="8" stroke-linecap="round" filter="url(#strongGlow)"/>
-        <path d="M 0 -22 A 22 22 0 1 1 -22 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-        <polygon points="-22,0 -36,-18 -8,-18" fill="url(#accentGrad)" stroke="#fff" stroke-width="2" stroke-linejoin="round" filter="url(#strongGlow)"/>
-      </g>
-
-      <circle cx="0" cy="0" r="12" fill="url(#solarCellGrad)" stroke="url(#silverGrad)" stroke-width="2.5" filter="url(#dropShadow)"/>
-      <circle cx="0" cy="0" r="6" fill="#fff" filter="url(#strongGlow)"/>
-
-      <g stroke="url(#silverGrad)" stroke-width="3" stroke-linecap="round">
-        <line x1="0" y1="-36" x2="0" y2="-44"/><line x1="0" y1="36" x2="0" y2="44"/>
-        <line x1="-36" y1="0" x2="-44" y2="0"/><line x1="36" y1="0" x2="44" y2="0"/>
-        <line x1="-25" y1="-25" x2="-31" y2="-31"/><line x1="25" y1="25" x2="31" y2="31"/>
-        <line x1="-25" y1="25" x2="-31" y2="31"/><line x1="25" y1="-25" x2="31" y2="-31"/>
-      </g>
-
-  </g>
+  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
+  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#reset-base)" stroke="#475569" stroke-width="1.5"/>
+  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#reset-grid)" stroke="#a78bfa" stroke-width=".8" opacity=".78"/>
+  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#reset-beam)"/>
+  <circle class="reset-orbit" cx="100" cy="100" r="71" fill="none" stroke="#a78bfa" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="reset-orbit" cx="100" cy="100" r="62" fill="none" stroke="#f472b6" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
+  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#a78bfa" stroke-width="1" opacity=".65"/>
+  <g fill="url(#reset-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
+  <g fill="#a78bfa" filter="url(#reset-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#f472b6"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
+  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#a78bfa" font-size="7" text-anchor="middle" letter-spacing="1.5">RESET · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
+  <g transform="translate(14 65)" fill="#07111e" stroke="#a78bfa" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#a78bfa"/><circle class="reset-pulse" cx="19" cy="27" r="2" fill="#f472b6" stroke="none"/></g>
+  <g transform="translate(160 65)" fill="#07111e" stroke="#f472b6" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#f472b6"/><circle class="reset-pulse" cx="8" cy="27" r="2" fill="#a78bfa" stroke="none"/></g>
+  <g transform="translate(100 91)" filter="url(#reset-shadow)"><ellipse cy="51" rx="51" ry="13" fill="#2e1065" stroke="#a78bfa" opacity=".45"/>
+      <path d="M41-26A49 49 0 1 0 46 25" fill="none" stroke="#a78bfa" stroke-width="10" stroke-linecap="round" filter="url(#reset-glow)"/><path d="m38-49 7 26-27-5z" fill="#a78bfa" stroke="#ede9fe"/>
+      <path d="M-22-23 0-35l22 12L0-11z" fill="#4c1d95" stroke="#f472b6"/><path d="M-22-23 0-11v29l-22-12z" fill="#2e1065"/><path d="M22-23 0-11v29L22 6z" fill="#3b0764"/><circle cy="-11" r="5" fill="#fef08a"/>
+    </g>
+  <g class="reset-scan" stroke="#f472b6" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
+  <g opacity=".65" stroke="#a78bfa" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
+  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#a78bfa"/><circle cx="58" cy="2.5" r="1.5" fill="#f472b6"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
 </svg>
