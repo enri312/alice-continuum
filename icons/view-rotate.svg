@@ -33,6 +33,7 @@
       <path d="M-48-9a50 50 0 0 1 75-34" fill="none" stroke="#22d3ee" stroke-width="7" stroke-linecap="round" filter="url(#rotate-glow)"/><path d="m35-47-7 22-17-15z" fill="#22d3ee"/>
       <path d="M48 9a50 50 0 0 1-75 34" fill="none" stroke="#fb923c" stroke-width="7" stroke-linecap="round"/><path d="m-35 47 7-22 17 15z" fill="#fb923c"/>
     </g>
+  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><rect x="43" y="134" width="114" height="22" rx="3" fill="#071521" stroke="#22d3ee"/><text x="50" y="143" fill="#94a3b8">ORBIT</text><text x="74" y="143" fill="#22d3ee">X 0°</text><text x="101" y="143" fill="#fb923c">Y 0°</text><path d="M50 151h99" stroke="#334155"/><path d="M88 151h24" stroke="#22d3ee" stroke-width="3"/></g>
   <g class="rotate-scan" stroke="#fb923c" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
   <g opacity=".65" stroke="#22d3ee" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
   <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#22d3ee"/><circle cx="58" cy="2.5" r="1.5" fill="#fb923c"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>

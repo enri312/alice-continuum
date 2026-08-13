@@ -32,6 +32,7 @@
       <path d="M41-26A49 49 0 1 0 46 25" fill="none" stroke="#a78bfa" stroke-width="10" stroke-linecap="round" filter="url(#reset-glow)"/><path d="m38-49 7 26-27-5z" fill="#a78bfa" stroke="#ede9fe"/>
       <path d="M-22-23 0-35l22 12L0-11z" fill="#4c1d95" stroke="#f472b6"/><path d="M-22-23 0-11v29l-22-12z" fill="#2e1065"/><path d="M22-23 0-11v29L22 6z" fill="#3b0764"/><circle cy="-11" r="5" fill="#fef08a"/>
     </g>
+  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><rect x="43" y="134" width="114" height="22" rx="3" fill="#130d20" stroke="#a78bfa"/><text x="50" y="143" fill="#94a3b8">CAMERA HOME</text><text x="50" y="151" fill="#f472b6">POS 0 · ROT 0 · ZOOM 100%</text><circle cx="146" cy="145" r="5" fill="#4ade80"/></g>
   <g class="reset-scan" stroke="#f472b6" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
   <g opacity=".65" stroke="#a78bfa" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
   <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#a78bfa"/><circle cx="58" cy="2.5" r="1.5" fill="#f472b6"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>

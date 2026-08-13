@@ -34,6 +34,7 @@
       <g fill="#fff"><circle cx="-55" cy="-7" r="4"/><circle cx="34" cy="-44" r="4"/><circle cx="31" cy="45" r="4"/></g>
       <g stroke="#fff8" stroke-width="1"><path d="M-18-8 0-19 20-7 15 15-8 19-18-8z" fill="none"/><path d="M-18-8 15 15M0-19-8 19M20-7-8 19"/></g>
     </g>
+  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><g fill="#071521" stroke="#fbbf24"><rect x="34" y="121" width="35" height="18" rx="3"/><rect x="131" y="121" width="35" height="18" rx="3"/></g><text x="51" y="129" fill="#fbbf24" text-anchor="middle">MEMORY</text><text x="148" y="129" fill="#22d3ee" text-anchor="middle">OUTPUT</text><path d="M40 134h20m77 0h22" stroke="#64748b"/><circle cx="51" cy="134" r="2" fill="#22d3ee"/><circle cx="148" cy="134" r="2" fill="#fbbf24"/><path d="M69 130h18m26 0h18" stroke="#22d3ee" stroke-dasharray="3 2"/><text x="100" y="151" fill="#fef3c7" text-anchor="middle">R3 SIGNAL · 5 MIN WINDOW</text></g>
   <g class="nucleus-scan" stroke="#22d3ee" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
   <g opacity=".65" stroke="#fbbf24" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
   <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#fbbf24"/><circle cx="58" cy="2.5" r="1.5" fill="#22d3ee"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>

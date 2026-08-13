@@ -35,6 +35,7 @@
       <g fill="none" stroke="#f472b6" stroke-width="2"><path d="M-50-40v-14h14M50-40v-14H36M-50 35v14h14M50 35v14H36"/><path d="M-44-17h20M24-17h20M-44 7h20M24 7h20"/></g>
       <circle cy="-5" r="3" fill="#fff"/>
     </g>
+  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><g transform="translate(35 126)"><rect width="130" height="30" rx="3" fill="#1a0b18" stroke="#f472b6"/><text x="7" y="9" fill="#94a3b8">DEPENDENCIES</text><text x="58" y="9" fill="#ef4444">0 / 3</text><text x="7" y="18" fill="#94a3b8">CHANNELS</text><text x="58" y="18" fill="#22d3ee">0 / 8</text><text x="7" y="27" fill="#94a3b8">PACKETS</text><text x="58" y="27" fill="#e2e8f0">0 · SAFE</text><g transform="translate(91 5)" stroke="#f472b6"><path d="M0 0h29v20H0zM5 5h19M5 10h13M5 15h21" fill="none"/><circle cx="24" cy="15" r="2" fill="#22d3ee"/></g></g><text x="100" y="163" fill="#f9a8d4" text-anchor="middle">GAZE · SPEECH · EMOTION · BLINK</text></g>
   <g class="face-scan" stroke="#22d3ee" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
   <g opacity=".65" stroke="#f472b6" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
   <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#f472b6"/><circle cx="58" cy="2.5" r="1.5" fill="#22d3ee"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
