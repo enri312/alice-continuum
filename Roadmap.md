@@ -182,7 +182,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** siguiente fase autorizada; diseño de R6.1 pendiente  
+**Estado:** en curso · R6.1 implementado y validado el 2026-08-13  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -197,6 +197,8 @@ Capas previstas:
 
 La consolidación detectará duplicados, contradicciones, datos posiblemente obsoletos y candidatos a promoción. En su primera entrega será iniciada y confirmada manualmente. La frecuencia de recuperación, importancia, confianza, procedencia y recencia serán métricas independientes.
 
+**Incremento R6.1:** `records.json` continúa como fuente histórica y una proyección separada `layer-index-v2.json` conserva sólo IDs, clasificación, revisiones y SHA-256. La vista previa no escribe; activar exige coincidencia de huella confirmada y releída por Rust; revertir desactiva sin borrar. La clasificación explícita envía conversaciones a episodios, enseñanzas semánticas a hechos enseñados y conserva procedimientos o preferencias como no clasificados. La sonda canónica leyó 10 recuerdos: 9 episodios, 0 hechos enseñados, 1 procedimiento pendiente y 0 memoria de trabajo; los 10 archivos mantuvieron sus SHA-256.
+
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
@@ -208,6 +210,8 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 - [ ] La consolidación ofrece vista previa y respaldo.
 - [ ] La memoria de trabajo puede descartarse sin borrar memoria duradera.
 - [ ] Los índices derivados pueden reconstruirse desde la fuente de verdad.
+
+R6.1 satisface la base de capa, procedencia y reconstrucción para registros existentes; los criterios permanecen abiertos hasta incorporar memoria de trabajo y consolidación manual.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -315,7 +319,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3, R4 y R5** están completadas. Los datos canónicos continúan con cero patrones, cero decisiones y cero conversiones, que es el estado real esperado. La próxima fase autorizada es **R6 — Memoria por capas y consolidación v2**. R6.1 deberá comenzar por contratos y migración reversible de memoria de trabajo, episodios y hechos enseñados; no por extracción automática ni “dreaming”. Análisis sensorial automático, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 ya estableció una proyección reversible y sin contenido privado sobre la memoria v1; no se activa automáticamente sobre los datos canónicos. El siguiente incremento es **R6.2 — memoria de trabajo efímera y presupuesto de contexto**, antes de consolidación. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

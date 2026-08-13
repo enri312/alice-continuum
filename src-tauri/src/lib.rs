@@ -26,7 +26,8 @@ use cloud::{cloud_status, send_cloud_message};
 use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
 use memory::{
-    export_memory, load_memory, open_memory_directory, restore_memory_backup, save_memory,
+    activate_layered_memory, export_memory, layered_memory_status, load_memory,
+    open_memory_directory, restore_memory_backup, rollback_layered_memory, save_memory,
 };
 use observation::{get_foreground_context, spawn_observer_thread, ObservationStore};
 use permissions::{
@@ -108,6 +109,9 @@ pub fn run() {
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,
+            layered_memory_status,
+            activate_layered_memory,
+            rollback_layered_memory,
             save_memory,
             export_memory,
             restore_memory_backup,

@@ -1,7 +1,7 @@
 # Sistema de memoria de Alice
 
-Estado: almacenamiento, repaso local y refuerzo por recuperación v1 implementados  
-Fecha: 2026-08-07
+Estado: almacenamiento v1 vigente; proyección por capas R6.1 implementada  
+Fecha: 2026-08-13
 
 ## Propósito
 
@@ -15,6 +15,7 @@ El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese
 memory/
 |-- manifest.json                 # Versión y contrato del almacenamiento
 |-- records.json                  # Recuerdos y enseñanzas vigentes
+|-- layer-index-v2.json           # Revisiones R6.1 derivadas, sin contenido privado
 |-- backups/
 |   |-- records.backup.json       # Respaldo automático anterior
 |   `-- records.pre-restore.json  # Estado protegido antes de restaurar
@@ -49,6 +50,19 @@ Campos principales: identificador, clase de registro, intención o título, cont
 
 La fuerza de almacenamiento no es una certeza científica. Es una métrica de ingeniería explicable para visualizar consolidación y programar repasos.
 
+## Proyección por capas R6.1
+
+`records.json` continúa siendo la fuente editable. La pestaña **Capas R6** genera una vista previa de sólo lectura y clasifica únicamente referencias explícitas:
+
+- conversaciones y experiencias declaradas como episodios;
+- enseñanzas semánticas como hechos enseñados;
+- procedimientos y preferencias como elementos todavía sin clasificar;
+- memoria de trabajo vacía y no persistente.
+
+Activar exige confirmar el SHA-256 exacto mostrado. Rust relee la fuente antes de escribir `layer-index-v2.json`; si cambió, rechaza la operación. El índice conserva revisiones inmutables y no copia títulos, resúmenes, fuentes o conversaciones. Revertir elimina sólo el puntero de revisión activa y mantiene toda la evidencia.
+
+El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la decisión en [ADR-P-066](../decisions/ADR-P-066-proyeccion-memoria-por-capas.md).
+
 ## Consolidación y repaso v1
 
 La cola de repaso acepta únicamente registros de clase `Enseñanza`, porque fueron escritos y confirmados directamente por Carlos Nuñez. Las conversaciones guardadas permanecen consultables, pero no aumentan su fuerza ni se convierten automáticamente en conocimiento propio.
@@ -66,3 +80,4 @@ No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruy
 - Incluir recuerdos en una consulta requiere selección y previsualización.
 - Respaldos, exportaciones y auditorías permanecen locales.
 - Los índices futuros serán derivados: deben poder regenerarse desde `records.json`.
+- R6.1 no extrae hechos, no persiste memoria de trabajo y no accede a carpetas de proyectos.

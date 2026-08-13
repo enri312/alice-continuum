@@ -41,3 +41,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-063](ADR-P-063-sistema-cyber-glyph-v2.md) | Familia SVG Cyber Glyph V2 con siluetas semánticas, colores propios y contrato automático |
 | [ADR-P-064](ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md) | Separación de áreas cognitivas y familia SVG técnica inspirada en Cyrcetech |
 | [ADR-P-065](ADR-P-065-cierre-r5-vigencia-evidencia.md) | Cierre R5.5 con vigencia, obsolescencia, bloqueo y conversión nativamente gobernados |
+| [ADR-P-066](ADR-P-066-proyeccion-memoria-por-capas.md) | Proyección R6.1 por capas, ligada a SHA-256, inmutable y reversible |

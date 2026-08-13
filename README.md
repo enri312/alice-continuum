@@ -6,8 +6,9 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-221%2F221%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-160%20aprobadas%20%7C%209%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R6](https://img.shields.io/badge/R6.1-validado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-224%2F224%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-164%20aprobadas%20%7C%2010%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -36,10 +37,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
+| Memoria por capas R6 | R6.1 validado: proyección reversible, revisiones inmutables y cero contenido copiado; activación canónica pendiente del propietario |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 221/221 aprobadas |
-| Pruebas Rust | 160 normales aprobadas; nueve sondas vivas disponibles por separado |
+| Pruebas TypeScript | 224/224 aprobadas |
+| Pruebas Rust | 164 normales aprobadas; diez sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -162,6 +164,12 @@ R5.5 cierra la fase clasificando cada decisión como evidencia vigente, obsoleta
 
 Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), [ADR-P-061](docs/decisions/ADR-P-061-almacen-decisiones-procedimientos.md), [ADR-P-062](docs/decisions/ADR-P-062-conversion-procedimiento-borrador.md), [ADR-P-065](docs/decisions/ADR-P-065-cierre-r5-vigencia-evidencia.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md), [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md), [el informe R5.3](docs/testing/R5_PROCEDURE_DECISION_STORE_REPORT_2026-08-11.md), [el informe R5.4](docs/testing/R5_PROCEDURE_DRAFT_CONVERSION_REPORT_2026-08-11.md) y [el cierre R5.5](docs/testing/R5_CLOSEOUT_REPORT_2026-08-13.md).
 
+## Memoria por capas R6.1
+
+La pestaña **Memoria → Capas R6** relee `records.json` y muestra una proyección explicable antes de escribir. El índice `layer-index-v2.json` conserva solamente IDs de registros, clasificación, revisiones y SHA-256: no duplica conversaciones, títulos, fuentes ni resúmenes. Activar exige confirmar la huella visible y Rust vuelve a comprobarla. Revertir desactiva la revisión sin borrar la memoria ni el historial.
+
+La sonda real clasificó los 10 registros actuales como 9 episodios, 0 hechos semánticos enseñados y 1 procedimiento pendiente de vínculo R5. No activó la migración y mantuvo intactos los 10 archivos canónicos. Consulta el [contrato R6](docs/architecture/LAYERED_MEMORY_R6.md), [ADR-P-066](docs/decisions/ADR-P-066-proyeccion-memoria-por-capas.md), el [plan R6](docs/plans/R6-layered-memory.md) y el [informe R6.1](docs/testing/R6_LAYERED_MEMORY_REPORT_2026-08-13.md).
+
 ## Iniciar Alice
 
 Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
@@ -232,7 +240,7 @@ src-tauri/src/
 ├── cloud.rs              proveedores y solicitudes autorizadas
 ├── core_activity.rs      señal efímera del Núcleo derivada de eventos R3
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
-├── memory.rs             persistencia, respaldo y auditoría
+├── memory.rs             persistencia v1 y proyección R6.1 reversible, respaldada y auditada
 ├── observation.rs        metadatos autorizados de ventana
 ├── procedure_learning.rs contrato y detector R5.2 de secuencias auditadas sin efectos
 ├── procedure_store.rs    decisiones R5.3 separadas, inmutables y verificables por SHA-256
@@ -249,7 +257,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md) y [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md), [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md) y [LAYERED_MEMORY_R6.md](docs/architecture/LAYERED_MEMORY_R6.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
 
 Las investigaciones externas son referencias, no autoridad de implementación. Están revisadas en [OpenClaw + Tencent](docs/research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md) y [Project AIRI](docs/research/REVIEW_AIRI_2026-08-13.md). AIRI aporta patrones útiles para el futuro puente de voz y VRM de R9, pero no sustituye el núcleo Tauri/Rust ni el diseño propio de memoria R6.
 
