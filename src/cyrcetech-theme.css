@@ -378,6 +378,10 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .procedure-decision strong { overflow:hidden; color:#9cc6bc; font-size:.49rem; text-overflow:ellipsis; white-space:nowrap; }
 .procedure-decision small { overflow:hidden; color:#456f6b; font-size:.4rem; text-overflow:ellipsis; white-space:nowrap; }
 .procedure-decision em { color:#34d399; font-size:.4rem; font-style:normal; }
+.procedure-decision.evidence-stale { border-left:2px solid #f59e0b; background:linear-gradient(90deg,rgba(245,158,11,.09),transparent); }.procedure-decision.evidence-stale em { color:#fbbf24; }
+.procedure-decision.evidence-blocked { border-left:2px solid #ef4444; background:linear-gradient(90deg,rgba(239,68,68,.08),transparent); }.procedure-decision.evidence-blocked em { color:#fca5a5; }
+.procedure-decision.evidence-dismissed { opacity:.72; }.procedure-decision.evidence-dismissed em { color:#94a3b8; }
+.procedure-decision.evidence-converted { border-left:2px solid #38bdf8; }.procedure-decision.evidence-converted em { color:#7dd3fc; }
 .procedure-decision button { width:max-content; margin-top:3px; border:1px solid #0f766e; padding:5px 7px; background:#05201d; color:#6ee7b7; font:800 .42rem Consolas,monospace; }
 .procedure-decision button:hover { border-color:#2dd4bf; color:#ccfbf1; }
 .procedure-steps { display:grid; gap:1px; margin:12px; border:1px solid #1e3444; background:#102333; }
@@ -385,6 +389,8 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .procedure-steps article>span { display:grid; width:28px; height:25px; place-items:center; border:1px solid #0f766e; color:#5eead4; font-size:.43rem; }
 .procedure-steps strong,.procedure-steps small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .procedure-steps strong { color:#a7c9c5; font-size:.49rem; }.procedure-steps small { margin-top:3px; color:#456777; font-size:.4rem; }
+.procedure-evidence-summary { margin:0 12px 12px; border:1px solid #1e3444; background:#030b14; }.procedure-evidence-summary>header { display:flex; justify-content:space-between; gap:12px; padding:7px 9px; border-bottom:1px solid #1e3444; color:#67e8f9; font-size:.42rem; }.procedure-evidence-summary>header strong { color:#94a3b8; }
+.procedure-occurrences,.procedure-variations { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-bottom:1px solid #1e3444; }.procedure-occurrences article,.procedure-variations article { min-width:0; padding:7px 8px; border-right:1px solid #152738; }.procedure-occurrences article:nth-child(3n),.procedure-variations article:nth-child(3n) { border-right:0; }.procedure-occurrences span,.procedure-occurrences strong,.procedure-occurrences small,.procedure-variations span,.procedure-variations strong,.procedure-variations small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.procedure-occurrences span,.procedure-variations span { color:#456777; font-size:.38rem; }.procedure-occurrences strong,.procedure-variations strong { margin-top:3px; color:#a7c9c5; font-size:.43rem; }.procedure-occurrences small,.procedure-variations small { margin-top:3px; color:#55727e; font-size:.38rem; }.procedure-variations p { grid-column:1/-1; margin:0; padding:8px; color:#6b8490; font-size:.42rem; }.procedure-evidence-summary>footer { padding:7px 9px; color:#456777; font-size:.38rem; line-height:1.45; }
 .procedure-choice { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 12px 12px; }
 .procedure-choice button { border:1px solid #294455; padding:10px; background:#030b14; color:#75929e; text-align:left; font-family:Consolas,monospace; }
 .procedure-choice button strong,.procedure-choice button small { display:block; }.procedure-choice button strong { font-size:.48rem; }.procedure-choice button small { margin-top:5px; color:#456777; font-size:.4rem; line-height:1.45; }
@@ -393,4 +399,4 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .procedure-confirmation { margin-top:4px; }
 .procedures-footnote { padding:8px 11px; border-top:1px solid #164e63; color:#3e6770; font-size:.4rem; letter-spacing:.04em; overflow-wrap:anywhere; }
 @media(max-width:900px) { .procedures-layout { grid-template-columns:1fr; } }
-@media(max-width:680px) { .procedure-choice { grid-template-columns:1fr; } }
+@media(max-width:680px) { .procedure-choice,.procedure-occurrences,.procedure-variations { grid-template-columns:1fr; }.procedure-occurrences article,.procedure-variations article { border-right:0; border-bottom:1px solid #152738; } }

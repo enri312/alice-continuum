@@ -70,3 +70,9 @@ El manifiesto resultante usa `draft`, versión 1 y `simulationOnly`; declara exa
 `procedure_draft_conversion_status` reconstruye conversiones únicamente desde borradores R4 verificados. Consultar es pasivo. La sonda canónica real produjo cero conversiones, ejecución falsa y aprobación automática falsa sin alterar el árbol de datos.
 
 Los eventos R3 de conversión siguen siendo gobierno del propietario: no activan regiones ni señal global del Núcleo. Crear un borrador no significa que Alice recordó, pensó o ejecutó el procedimiento.
+
+## Cierre y vigencia R5.5
+
+El estado de una decisión se deriva sin reescribirla: `current` cuando R5.2 reconstruye la huella, `stale` cuando R3 está saludable pero la huella salió de la ventana, `blocked` cuando R3 no permite una conclusión, `dismissed` para descartes y `converted` cuando existe un borrador R4 con procedencia verificable.
+
+La conversión vuelve a leer el registro R1 y la ventana R3 dentro del comando nativo. Una evidencia `stale` o `blocked` se rechaza antes de escribir R4. La interfaz muestra los estados y las variaciones, pero no constituye la frontera de seguridad.

@@ -2,6 +2,7 @@ import type { CapabilityRegistrySnapshot, CapabilityRisk } from "./capabilities"
 import { parseSkillDraftRecord, type SkillDraftRecord } from "./skills";
 
 export type ProcedurePatternDecision = "retain" | "dismiss";
+export type ProcedureDecisionEvidenceState = "current" | "stale" | "dismissed" | "converted" | "blocked";
 
 export type ProcedureDecisionSummary = {
   decisionId: string;
@@ -15,6 +16,7 @@ export type ProcedureDecisionSummary = {
   stepCount: number;
   occurrenceCount: number;
   candidateSha256: string | null;
+  evidenceState: ProcedureDecisionEvidenceState;
   executionEnabled: false;
 };
 
@@ -23,6 +25,10 @@ export type ProcedureCandidateStoreSnapshot = {
   storagePath: string;
   existed: boolean;
   decisions: ProcedureDecisionSummary[];
+  auditHealthy: boolean;
+  currentPatternCount: number;
+  staleDecisionCount: number;
+  blocked: boolean;
   executionEnabled: false;
   skillDraftCreated: false;
 };
@@ -65,8 +71,8 @@ export type ProcedureDraftConversionResult = {
   approved: false;
 };
 
-const snapshotKeys = ["schemaVersion", "storagePath", "existed", "decisions", "executionEnabled", "skillDraftCreated"];
-const decisionKeys = ["decisionId", "fingerprint", "action", "decidedAt", "candidateId", "title", "suggestedSkillId", "declaredRisk", "stepCount", "occurrenceCount", "candidateSha256", "executionEnabled"];
+const snapshotKeys = ["schemaVersion", "storagePath", "existed", "decisions", "auditHealthy", "currentPatternCount", "staleDecisionCount", "blocked", "executionEnabled", "skillDraftCreated"];
+const decisionKeys = ["decisionId", "fingerprint", "action", "decidedAt", "candidateId", "title", "suggestedSkillId", "declaredRisk", "stepCount", "occurrenceCount", "candidateSha256", "evidenceState", "executionEnabled"];
 const resultKeys = ["operationId", "decision", "storagePath", "executionEnabled", "skillDraftCreated"];
 const conversionKeys = ["fingerprint", "decisionId", "candidateId", "candidateSha256", "skillId", "revisionId", "draftSha256", "updatedAt", "executionEnabled", "approved"];
 const conversionSnapshotKeys = ["schemaVersion", "conversions", "executionEnabled", "automaticApproval"];
@@ -76,6 +82,7 @@ const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const digest = /^sha256:[0-9a-f]{64}$/;
 const plainDigest = /^[0-9a-f]{64}$/;
 const skillId = /^local\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?(?:\.[a-z](?:[a-z0-9-]{0,46}[a-z0-9])?)*$/;
+const evidenceStates: ProcedureDecisionEvidenceState[] = ["current", "stale", "dismissed", "converted", "blocked"];
 
 function fail(message: string): never {
   throw new Error(`Almacén R5 inválido: ${message}`);
@@ -122,23 +129,30 @@ export function parseProcedureDecisionSummary(value: unknown): ProcedureDecision
   const stepCount = count(decision.stepCount, "stepCount");
   const occurrenceCount = count(decision.occurrenceCount, "occurrenceCount");
   const candidateSha256 = decision.candidateSha256 === null ? null : typeof decision.candidateSha256 === "string" && digest.test(decision.candidateSha256) ? decision.candidateSha256 : fail("candidateSha256 no es válido");
+  if (!evidenceStates.includes(decision.evidenceState as ProcedureDecisionEvidenceState)) fail("evidenceState es desconocido");
+  const evidenceState = decision.evidenceState as ProcedureDecisionEvidenceState;
   if (decision.executionEnabled !== false) fail("executionEnabled debe permanecer deshabilitado");
   const retained = decision.action === "retain";
   if (retained !== Boolean(candidateId && title && suggestedSkillId && declaredRisk && candidateSha256 && stepCount >= 2 && occurrenceCount >= 3)) fail("los metadatos no coinciden con la decisión");
   if (!retained && (stepCount !== 0 || occurrenceCount !== 0)) fail("dismiss no puede conservar conteos del candidato");
-  return { decisionId: decision.decisionId, fingerprint: decision.fingerprint, action: decision.action, decidedAt, candidateId, title, suggestedSkillId, declaredRisk, stepCount, occurrenceCount, candidateSha256, executionEnabled: false };
+  if (decision.action === "dismiss" && evidenceState !== "dismissed") fail("una decisión dismiss debe permanecer descartada");
+  if (decision.action === "retain" && evidenceState === "dismissed") fail("una decisión retain no puede figurar descartada");
+  return { decisionId: decision.decisionId, fingerprint: decision.fingerprint, action: decision.action, decidedAt, candidateId, title, suggestedSkillId, declaredRisk, stepCount, occurrenceCount, candidateSha256, evidenceState, executionEnabled: false };
 }
 
 export function parseProcedureCandidateStoreSnapshot(value: unknown): ProcedureCandidateStoreSnapshot {
   const snapshot = record(value, "snapshot");
   exactKeys(snapshot, snapshotKeys, "snapshot");
-  if (snapshot.schemaVersion !== 1 || typeof snapshot.storagePath !== "string" || !snapshot.storagePath || typeof snapshot.existed !== "boolean" || snapshot.executionEnabled !== false || snapshot.skillDraftCreated !== false) fail("cabecera o política no admitida");
+  if (snapshot.schemaVersion !== 1 || typeof snapshot.storagePath !== "string" || !snapshot.storagePath || typeof snapshot.existed !== "boolean" || typeof snapshot.auditHealthy !== "boolean" || typeof snapshot.blocked !== "boolean" || snapshot.blocked !== !snapshot.auditHealthy || snapshot.executionEnabled !== false || snapshot.skillDraftCreated !== false) fail("cabecera o política no admitida");
   if (!Array.isArray(snapshot.decisions) || snapshot.decisions.length > 128) fail("decisions debe ser una lista acotada");
   const decisions = snapshot.decisions.map(parseProcedureDecisionSummary);
+  const currentPatternCount = count(snapshot.currentPatternCount, "currentPatternCount");
+  const staleDecisionCount = count(snapshot.staleDecisionCount, "staleDecisionCount");
+  if (staleDecisionCount !== decisions.filter((decision) => decision.evidenceState === "stale").length) fail("staleDecisionCount no coincide con decisions");
   const fingerprints = new Set(decisions.map((decision) => decision.fingerprint));
   if (fingerprints.size !== decisions.length) fail("hay decisiones repetidas para un mismo patrón");
   if (!snapshot.existed && decisions.length) fail("un almacén inexistente no puede contener decisiones");
-  return { schemaVersion: 1, storagePath: snapshot.storagePath, existed: snapshot.existed, decisions, executionEnabled: false, skillDraftCreated: false };
+  return { schemaVersion: 1, storagePath: snapshot.storagePath, existed: snapshot.existed, decisions, auditHealthy: snapshot.auditHealthy, currentPatternCount, staleDecisionCount, blocked: snapshot.blocked, executionEnabled: false, skillDraftCreated: false };
 }
 
 export function parseProcedurePatternDecisionResult(value: unknown): ProcedurePatternDecisionResult {

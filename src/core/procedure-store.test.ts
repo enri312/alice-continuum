@@ -17,6 +17,7 @@ function retainedDecision() {
     stepCount: 2,
     occurrenceCount: 3,
     candidateSha256,
+    evidenceState: "current",
     executionEnabled: false,
   };
 }
@@ -28,6 +29,10 @@ describe("almacén separado de decisiones R5", () => {
       storagePath: "E:\\AliceData\\procedures\\candidate-decisions-v1.json",
       existed: true,
       decisions: [retainedDecision()],
+      auditHealthy: true,
+      currentPatternCount: 1,
+      staleDecisionCount: 0,
+      blocked: false,
       executionEnabled: false,
       skillDraftCreated: false,
     });
@@ -37,7 +42,7 @@ describe("almacén separado de decisiones R5", () => {
   });
 
   it("acepta dismiss sólo cuando no filtra metadatos del candidato", () => {
-    const dismissed = { ...retainedDecision(), action: "dismiss", candidateId: null, title: null, suggestedSkillId: null, declaredRisk: null, stepCount: 0, occurrenceCount: 0, candidateSha256: null };
+    const dismissed = { ...retainedDecision(), action: "dismiss", candidateId: null, title: null, suggestedSkillId: null, declaredRisk: null, stepCount: 0, occurrenceCount: 0, candidateSha256: null, evidenceState: "dismissed" };
     const parsed = parseProcedurePatternDecisionResult({
       operationId: "33333333-3333-4333-8333-333333333333",
       decision: dismissed,
@@ -50,9 +55,19 @@ describe("almacén separado de decisiones R5", () => {
   });
 
   it("rechaza campos desconocidos, ejecución o decisiones duplicadas", () => {
-    expect(() => parseProcedureCandidateStoreSnapshot({ schemaVersion: 1, storagePath: "x", existed: false, decisions: [], executionEnabled: true, skillDraftCreated: false })).toThrow(/política/i);
-    expect(() => parseProcedureCandidateStoreSnapshot({ schemaVersion: 1, storagePath: "x", existed: true, decisions: [retainedDecision(), retainedDecision()], executionEnabled: false, skillDraftCreated: false })).toThrow(/repetidas/i);
-    expect(() => parseProcedureCandidateStoreSnapshot({ schemaVersion: 1, storagePath: "x", existed: false, decisions: [], executionEnabled: false, skillDraftCreated: false, hidden: true })).toThrow(/desconocidos/i);
+    const empty = { schemaVersion: 1, storagePath: "x", existed: false, decisions: [], auditHealthy: true, currentPatternCount: 0, staleDecisionCount: 0, blocked: false, executionEnabled: false, skillDraftCreated: false };
+    expect(() => parseProcedureCandidateStoreSnapshot({ ...empty, executionEnabled: true })).toThrow(/política/i);
+    expect(() => parseProcedureCandidateStoreSnapshot({ ...empty, existed: true, decisions: [retainedDecision(), retainedDecision()], currentPatternCount: 1 })).toThrow(/repetidas/i);
+    expect(() => parseProcedureCandidateStoreSnapshot({ ...empty, hidden: true })).toThrow(/desconocidos/i);
+  });
+
+  it("clasifica evidencia vigente, obsoleta, bloqueada y descartada sin inventar actividad", () => {
+    const base = { schemaVersion: 1, storagePath: "x", existed: true, auditHealthy: true, currentPatternCount: 0, executionEnabled: false, skillDraftCreated: false };
+    const stale = parseProcedureCandidateStoreSnapshot({ ...base, decisions: [{ ...retainedDecision(), evidenceState: "stale" }], staleDecisionCount: 1, blocked: false });
+    expect(stale.decisions[0].evidenceState).toBe("stale");
+    const blocked = parseProcedureCandidateStoreSnapshot({ ...base, auditHealthy: false, decisions: [{ ...retainedDecision(), evidenceState: "blocked" }], staleDecisionCount: 0, blocked: true });
+    expect(blocked.blocked).toBe(true);
+    expect(() => parseProcedureCandidateStoreSnapshot({ ...base, decisions: [{ ...retainedDecision(), evidenceState: "dismissed" }], staleDecisionCount: 0, blocked: false })).toThrow(/retain/i);
   });
 
   it("valida conversiones R5→R4 sin aprobación ni ejecución", () => {

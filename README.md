@@ -5,9 +5,9 @@
 ![R2](https://img.shields.io/badge/R2-alcance%20inicial%20validado-16a34a?style=flat-square)
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
-![R5](https://img.shields.io/badge/R5.4-puente%20R4%20validado-f59e0b?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-218%2F218%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-158%20aprobadas%20%7C%209%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-221%2F221%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-160%20aprobadas%20%7C%209%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -25,7 +25,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 11 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 13 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
@@ -35,11 +35,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
-| Aprendizaje gobernado R5.4 | Contrato, detector, decisiones y puente a borrador R4 validados; 0 conversiones canónicas |
+| Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
 | Capacidades implementadas o parciales | 14 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 218/218 aprobadas |
-| Pruebas Rust | 158 normales aprobadas; nueve sondas vivas disponibles por separado |
+| Pruebas TypeScript | 221/221 aprobadas |
+| Pruebas Rust | 160 normales aprobadas; nueve sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -144,7 +144,7 @@ R4.5 completa la fase con la pestaña **Taller**, ubicada en `GOVERNANCE CORE` p
 
 La política fija `simulationOnly` mantiene red, procesos y escritura en `false`; `approved` todavía no significa ejecutable. R4 queda cerrada y el siguiente trabajo corresponde a R5: propuestas de procedimientos sustentadas en evidencia auditada. Consulta el [contrato R4](docs/architecture/SKILL_MANIFEST_R4.md), [ADR-P-048](docs/decisions/ADR-P-048-manifiesto-local-de-habilidades.md), [ADR-P-049](docs/decisions/ADR-P-049-almacen-local-borradores.md), [ADR-P-050](docs/decisions/ADR-P-050-simulacion-estatica-de-habilidades.md), [ADR-P-051](docs/decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md), el [plan](docs/plans/R4-skill-workshop.md), [el informe R4.1](docs/testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md), [el informe R4.2](docs/testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md), [el informe R4.3](docs/testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md), [el informe R4.4](docs/testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md) y [el cierre R4.5](docs/testing/R4_VISIBLE_WORKSHOP_REPORT_2026-08-10.md).
 
-## Aprendizaje gobernado R5.1–R5.4
+## Aprendizaje gobernado R5.1–R5.5
 
 El primer incremento de R5 define qué evidencia sería suficiente para proponer un procedimiento sin afirmar que Alice ya aprendió uno. Un candidato requiere al menos tres operaciones correlacionadas distintas, dos pasos y una evidencia R3 de ejecución exitosa por paso. Capacidad, operación y riesgo se contrastan con R1; eventos de permisos, simulaciones R4, bloqueos o errores no califican.
 
@@ -158,7 +158,9 @@ La sonda canónica posterior leyó 200 eventos y confirmó 0 patrones, 0 decisio
 
 R5.4 incorpora un puente de uso único desde `retain` hacia un borrador R4 nuevo. El propietario revisa identidad, título, descripción y propósito; el manifiesto conserva decisión, candidato, fingerprint y SHA-256 de origen. Descartes, digests incorrectos, identidades ocupadas y segundos intentos fallan sin sobrescribir. El borrador mantiene `simulationOnly`, aprobación falsa y ejecución falsa incluso al recorrer revisión, aprobación, desactivación y restauración. Los eventos administrativos R5 se auditan, pero ya no elevan la señal global del Núcleo.
 
-Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), [ADR-P-061](docs/decisions/ADR-P-061-almacen-decisiones-procedimientos.md), [ADR-P-062](docs/decisions/ADR-P-062-conversion-procedimiento-borrador.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md), [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md), [el informe R5.3](docs/testing/R5_PROCEDURE_DECISION_STORE_REPORT_2026-08-11.md) y [el informe R5.4](docs/testing/R5_PROCEDURE_DRAFT_CONVERSION_REPORT_2026-08-11.md).
+R5.5 cierra la fase clasificando cada decisión como evidencia vigente, obsoleta, descartada, convertida o bloqueada. Una auditoría no saludable bloquea la evaluación en lugar de fingir obsolescencia. La pestaña muestra ocurrencias, eventos correlacionados, pasos y diferencias de duración o huella. El backend vuelve a resolver R1/R3 antes de convertir: una huella obsoleta no cruza a R4 aunque la interfaz fuese eludida. Pruebas con archivos temporales y eventos R3 generados por los constructores reales verifican los cinco estados y que el rechazo no crea `skills/` ni modifica hashes existentes.
+
+Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [ADR-P-055](docs/decisions/ADR-P-055-candidatos-procedimientos-auditados.md), [ADR-P-057](docs/decisions/ADR-P-057-detector-conservador-procedimientos.md), [ADR-P-061](docs/decisions/ADR-P-061-almacen-decisiones-procedimientos.md), [ADR-P-062](docs/decisions/ADR-P-062-conversion-procedimiento-borrador.md), [ADR-P-065](docs/decisions/ADR-P-065-cierre-r5-vigencia-evidencia.md), el [plan R5](docs/plans/R5-governed-procedure-learning.md), [el informe R5.1](docs/testing/R5_PROCEDURE_CANDIDATE_REPORT_2026-08-11.md), [el informe R5.2](docs/testing/R5_PROCEDURE_DETECTOR_REPORT_2026-08-11.md), [el informe R5.3](docs/testing/R5_PROCEDURE_DECISION_STORE_REPORT_2026-08-11.md), [el informe R5.4](docs/testing/R5_PROCEDURE_DRAFT_CONVERSION_REPORT_2026-08-11.md) y [el cierre R5.5](docs/testing/R5_CLOSEOUT_REPORT_2026-08-13.md).
 
 ## Iniciar Alice
 

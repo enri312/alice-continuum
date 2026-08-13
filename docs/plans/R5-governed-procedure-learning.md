@@ -1,7 +1,7 @@
 # Plan de implementación R5 — Aprendizaje gobernado de procedimientos
 
-Estado: activo; incrementos 1, 2, 3 y 4 implementados y validados  
-Fecha: 2026-08-11
+Estado: completado; incrementos 1 a 5 implementados y validados  
+Fecha: 2026-08-13
 
 ## Objetivo
 
@@ -52,10 +52,13 @@ Permitir que Alice detecte secuencias repetidas únicamente cuando existan ejecu
 
 ## Incremento 5 — Interfaz y cierre de fase
 
-- Mostrar evidencia, repeticiones, pasos, diferencias, riesgo y límites.
-- Estados vacío, candidato válido, descartado, bloqueado y evidencia obsoleta.
-- Prueba integral con archivos temporales y eventos R3 generados por código real.
-- Actualizar Roadmap, documento maestro, README e informe final.
+- [x] Mostrar evidencia, repeticiones, pasos, diferencias, riesgo y límites.
+- [x] Estados vacío, candidato válido, descartado, convertido, bloqueado y evidencia obsoleta.
+- [x] Prueba integral con archivos temporales y eventos R3 generados por código real.
+- [x] Bloquear nativamente la conversión cuando R3 no está saludable o la evidencia está obsoleta.
+- [x] Actualizar Roadmap, documento maestro, README, ADR e informe final.
+
+**Resultado 2026-08-13:** las decisiones exponen `current`, `stale`, `dismissed`, `converted` o `blocked` sin alterar su inmutabilidad. La UI muestra ocurrencias, eventos correlacionados, pasos y variaciones. Dos pruebas físicas temporales verifican la clasificación completa y que una evidencia obsoleta no crea `skills/` ni modifica hashes existentes. R5 termina sin ejecución, autoaprobación o memoria duradera.
 
 ## Puertas obligatorias
 

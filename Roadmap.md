@@ -154,7 +154,7 @@ La primera versión permitirá crear, editar, validar y simular habilidades. Tod
 
 ### Fase R5 — Aprendizaje gobernado de procedimientos
 
-**Estado:** activa desde 2026-08-11 · incrementos 1, 2, 3 y 4 validados  
+**Estado:** completada el 2026-08-13 · cinco incrementos implementados y validados  
 **Dependencia:** Fase R4  
 **Objetivo:** permitir que Alice detecte procedimientos repetidos y proponga convertirlos en habilidades.
 
@@ -168,7 +168,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 - [x] La detección evita proponer tareas triviales o de una sola aparición.
 - [x] Aprobar crea una nueva revisión; no sobrescribe la anterior.
 - [x] Rechazar no modifica capacidades ni memoria duradera.
-- [ ] Existe restauración de una versión anterior.
+- [x] Existe restauración de una versión anterior mediante el ciclo R4 del borrador derivado.
 
 **Incremento R5.1:** contrato cerrado de candidatos sustentados en R1 y R3. Exige al menos tres ocurrencias, dos pasos, riesgo no reducido y diferencias recalculables; mantiene sólo propuesta, sin comandos, persistencia, memoria duradera, autoactivación ni ejecución.
 
@@ -178,9 +178,11 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 **Incremento R5.4:** conversión explícita y de uso único desde un candidato `retain` a un borrador R4 nuevo. El manifiesto conserva `decisionId`, `candidateId`, fingerprint y SHA-256 como procedencia inmutable; R4 vuelve a validar capacidades, operaciones, riesgo y política `simulationOnly`. Un descarte, digest distinto, huella ya usada o identidad ocupada no escribe ni sobrescribe. La procedencia sobrevivió revisión, aprobación, desactivación y restauración en pruebas físicas temporales. La sonda canónica real devolvió 0 conversiones y no modificó datos.
 
+**Incremento R5.5:** cierre de vigencia y evidencia. Cada decisión se clasifica como vigente, obsoleta, descartada, convertida o bloqueada. La auditoría no saludable produce bloqueo, no una falsa obsolescencia. La pantalla expone ocurrencias, eventos, pasos, variaciones, riesgo y límites. El backend vuelve a resolver R1/R3 antes de convertir y rechaza una huella obsoleta. Pruebas físicas temporales generaron eventos R3 mediante código real, escribieron un `retain`, recorrieron los cinco estados y verificaron por SHA-256 que el rechazo obsoleto no creó `skills/` ni modificó archivos existentes.
+
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** pendiente  
+**Estado:** siguiente fase autorizada; diseño de R6.1 pendiente  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -313,7 +315,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1, R2, R3 y R4** están completadas. **R5 está activa**: contrato, detector, decisiones y puente a borrador R4 ya están validados. Los datos canónicos continúan con cero patrones, cero decisiones y cero conversiones, que es el estado real esperado. R5.5 cerrará estados visibles y evidencia obsoleta; después comenzará R6, donde memoria de trabajo, episodios y consolidación supervisada empezarán a aportar contenido cognitivo real. Análisis sensorial automático, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1, R2, R3, R4 y R5** están completadas. Los datos canónicos continúan con cero patrones, cero decisiones y cero conversiones, que es el estado real esperado. La próxima fase autorizada es **R6 — Memoria por capas y consolidación v2**. R6.1 deberá comenzar por contratos y migración reversible de memoria de trabajo, episodios y hechos enseñados; no por extracción automática ni “dreaming”. Análisis sensorial automático, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

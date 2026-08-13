@@ -20,6 +20,19 @@ function defaultSkillId(fingerprint: string) {
   return `local.alice.procedure-${fingerprint.slice(7, 19)}`;
 }
 
+const evidenceStateLabels = {
+  current: "EVIDENCIA VIGENTE",
+  stale: "EVIDENCIA OBSOLETA",
+  dismissed: "DESCARTADO",
+  converted: "BORRADOR R4 CREADO",
+  blocked: "VERIFICACIÓN BLOQUEADA",
+} as const;
+
+const variationDimensionLabels = {
+  durationMs: "duración",
+  subjectDigest: "huella del recurso",
+} as const;
+
 export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
   const [registry, setRegistry] = useState<CapabilityRegistrySnapshot | null>(null);
   const [detection, setDetection] = useState<ProcedureDetectionSnapshot | null>(null);
@@ -73,7 +86,7 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
   const decidedFingerprints = useMemo(() => new Set(store?.decisions.map((decision) => decision.fingerprint) ?? []), [store]);
   const pendingPatterns = useMemo(() => detection?.patterns.filter((pattern) => !decidedFingerprints.has(pattern.fingerprint)) ?? [], [detection, decidedFingerprints]);
   const selected = pendingPatterns.find((pattern) => pattern.fingerprint === selectedFingerprint) ?? null;
-  const conversionDecision = store?.decisions.find((decision) => decision.fingerprint === conversionFingerprint && decision.action === "retain") ?? null;
+  const conversionDecision = store?.decisions.find((decision) => decision.fingerprint === conversionFingerprint && decision.action === "retain" && decision.evidenceState === "current") ?? null;
   const convertedFingerprints = useMemo(() => new Set(conversions?.conversions.map((conversion) => conversion.fingerprint) ?? []), [conversions]);
   const canSubmit = Boolean(selected && confirmed && reason.trim().length >= 12 && (action === "dismiss" || (title.trim() && purpose.trim() && suggestedSkillId.trim())) && !busy);
   const canConvert = Boolean(conversionDecision?.candidateSha256 && conversionConfirmed && conversionReason.trim().length >= 12 && conversionTitle.trim() && conversionDescription.trim() && conversionPurpose.trim() && conversionSkillId.trim() && !busy);
@@ -95,7 +108,7 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
 
   function selectConversion(fingerprint: string) {
     const decision = store?.decisions.find((candidate) => candidate.fingerprint === fingerprint && candidate.action === "retain");
-    if (!decision || convertedFingerprints.has(fingerprint)) return;
+    if (!decision || decision.evidenceState !== "current" || convertedFingerprints.has(fingerprint)) return;
     setConversionFingerprint(fingerprint);
     setSelectedFingerprint("");
     setConversionTitle(decision.title ?? "Procedimiento observado");
@@ -183,15 +196,15 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
 
   return <section className="skills-page procedures-page" aria-labelledby="procedures-title">
     <header className="skills-heading procedures-heading">
-      <div><p className="eyebrow">[R5.4] AUDITED REPETITION · GOVERNED DRAFT BRIDGE</p><h2 id="procedures-title">Procedimientos observados</h2><p>Detectá, conservá y convertí evidencia repetida en borradores revisables; ninguna conversión aprueba o ejecuta.</p></div>
+      <div><p className="eyebrow">[R5.5] AUDITED REPETITION · EVIDENCE CLOSEOUT</p><h2 id="procedures-title">Procedimientos observados</h2><p>Clasifica evidencia vigente, obsoleta, descartada, convertida o bloqueada; ninguna conversión aprueba o ejecuta.</p></div>
       <span className="skills-safety"><i />EJECUCIÓN 0 · BORRADORES R5→R4 {conversions?.conversions.length ?? 0}</span>
     </header>
 
     <div className="skills-metrics">
       <div><span>EVENTOS R3</span><strong>{detection?.scannedEventCount ?? 0}</strong><small>evidencia visible</small></div>
       <div><span>EJECUCIONES ÚTILES</span><strong>{detection?.qualifyingExecutionCount ?? 0}</strong><small>productoras y exitosas</small></div>
-      <div><span>PATRONES PENDIENTES</span><strong>{pendingPatterns.length}</strong><small>mínimo 3 repeticiones</small></div>
-      <div><span>CONVERSIONES R4</span><strong>{conversions?.conversions.length ?? 0}</strong><small>{store?.decisions.length ?? 0} decisiones R5</small></div>
+      <div><span>PATRONES PENDIENTES</span><strong>{pendingPatterns.length}</strong><small>{store?.staleDecisionCount ?? 0} evidencias obsoletas</small></div>
+      <div><span>CONVERSIONES R4</span><strong>{conversions?.conversions.length ?? 0}</strong><small>{store?.blocked ? "R3 bloqueado" : `${store?.decisions.length ?? 0} decisiones R5`}</small></div>
     </div>
 
     {(busy || notice || error) && <div className={`skills-message ${error ? "is-error" : notice ? "is-success" : ""}`} role="status"><span>{busy ? "…" : error ? "ERR" : "OK"}</span><strong>{busy || error || notice}</strong></div>}
@@ -207,13 +220,12 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
         </section>
         <header><span>[02] DECISIONES INMUTABLES</span><strong>{store?.decisions.length ?? 0} REGISTROS</strong></header>
         <section>
-          {store?.decisions.length ? store.decisions.map((decision) => <article className="procedure-decision" key={decision.decisionId}>
+          {store?.decisions.length ? store.decisions.map((decision) => <article className={`procedure-decision evidence-${decision.evidenceState}`} key={decision.decisionId}>
             <strong>{decision.action === "retain" ? decision.title : "Patrón descartado"}</strong>
             <small>{decision.action.toUpperCase()} · {shortDigest(decision.fingerprint)}</small>
             {decision.candidateSha256 && <small>CANDIDATO {shortDigest(decision.candidateSha256)}</small>}
-            {decision.action === "retain" && (convertedFingerprints.has(decision.fingerprint)
-              ? <em>BORRADOR R4 CREADO · SIN APROBAR</em>
-              : <button type="button" onClick={() => selectConversion(decision.fingerprint)}>Preparar borrador R4</button>)}
+            <em>{evidenceStateLabels[decision.evidenceState]}</em>
+            {decision.action === "retain" && decision.evidenceState === "current" && !convertedFingerprints.has(decision.fingerprint) && <button type="button" onClick={() => selectConversion(decision.fingerprint)}>Preparar borrador R4</button>}
           </article>) : <p>El almacén aún no contiene decisiones.</p>}
         </section>
       </aside>
@@ -241,6 +253,15 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
         </> : !selected ? <div className="skills-empty"><span>R5</span><strong>{pendingPatterns.length ? "Seleccioná un patrón verificable" : store?.decisions.some((decision) => decision.action === "retain" && !convertedFingerprints.has(decision.fingerprint)) ? "Hay un candidato retenido listo para convertir" : "Todavía no hay un procedimiento para decidir"}</strong><p>La detección es pasiva: no inventa actividad. Un borrador convertido seguirá esperando revisión humana en el Taller.</p></div> : <>
           <header className="skills-editor-heading"><div><span>{shortDigest(selected.fingerprint)}</span><strong>{selected.occurrences.length} OCURRENCIAS · {selected.steps.length} PASOS · RIESGO {selected.declaredRisk.toUpperCase()}</strong></div><em>EVIDENCIA R3 VIGENTE</em></header>
           <div className="procedure-steps">{selected.steps.map((step) => <article key={step.id}><span>{String(step.position).padStart(2, "0")}</span><div><strong>{step.operation}</strong><small>{step.capabilityId}</small></div></article>)}</div>
+          <section className="procedure-evidence-summary" aria-label="Resumen de evidencia y diferencias">
+            <header><span>[EVIDENCE] {selected.occurrences.length} EJECUCIONES CORRELACIONADAS</span><strong>{selected.occurrences.length * selected.steps.length} EVENTOS R3</strong></header>
+            <div className="procedure-occurrences">{selected.occurrences.map((occurrence, index) => <article key={occurrence.operationId}><span>RUN {String(index + 1).padStart(2, "0")}</span><strong>{shortDigest(occurrence.operationId)}</strong><small>{occurrence.evidenceEventIds.length} evidencias · orden verificable</small></article>)}</div>
+            <div className="procedure-variations">{selected.variations.length ? selected.variations.map((variation) => {
+              const step = selected.steps.find((candidate) => candidate.id === variation.stepId);
+              return <article key={`${variation.stepId}-${variation.dimension}`}><span>{step?.operation ?? variation.stepId}</span><strong>{variationDimensionLabels[variation.dimension]}</strong><small>{variation.distinctValues} valores distintos en {selected.occurrences.length} ejecuciones</small></article>;
+            }) : <p>Sin diferencias de duración ni huella entre las ejecuciones observadas.</p>}</div>
+            <footer>Ventana {detection?.evidenceWindow} · mínimo {detection?.minimumOccurrences} repeticiones y {detection?.minimumSteps} pasos · persistencia automática OFF · ejecución OFF</footer>
+          </section>
           <div className="procedure-choice" role="group" aria-label="Decisión sobre el patrón">
             <button type="button" className={action === "retain" ? "selected" : ""} onClick={() => setAction("retain")}><strong>CONSERVAR CANDIDATO</strong><small>Guarda propuesta cerrada y su SHA-256; no la ejecuta.</small></button>
             <button type="button" className={action === "dismiss" ? "selected dismiss" : "dismiss"} onClick={() => setAction("dismiss")}><strong>DESCARTAR PATRÓN</strong><small>Guarda sólo la decisión y digest del motivo.</small></button>
@@ -259,6 +280,6 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
         </>}
       </div>
     </div>
-    <footer className="procedures-footnote">ALMACÉN: {store?.storagePath ?? "consultando…"} · {store?.existed ? "EXISTENTE" : "NO CREADO"} · AUDITORÍA {detection?.auditHealthy ? "SALUDABLE" : "NO DISPONIBLE"}</footer>
+    <footer className="procedures-footnote">ALMACÉN: {store?.storagePath ?? "consultando…"} · {store?.existed ? "EXISTENTE" : "NO CREADO"} · AUDITORÍA {store?.auditHealthy ? "SALUDABLE" : "NO DISPONIBLE"} · VIGENTES {store?.currentPatternCount ?? 0} · OBSOLETAS {store?.staleDecisionCount ?? 0}</footer>
   </section>;
 }

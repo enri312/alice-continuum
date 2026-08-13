@@ -54,6 +54,16 @@ pub(crate) enum ProcedurePatternDecision {
     Dismiss,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ProcedureDecisionEvidenceState {
+    Current,
+    Stale,
+    Dismissed,
+    Converted,
+    Blocked,
+}
+
 impl ProcedurePatternDecision {
     fn operation(self) -> &'static str {
         match self {
@@ -124,6 +134,7 @@ pub(crate) struct ProcedureDecisionSummary {
     step_count: usize,
     occurrence_count: usize,
     candidate_sha256: Option<String>,
+    evidence_state: ProcedureDecisionEvidenceState,
     execution_enabled: bool,
 }
 
@@ -134,6 +145,10 @@ pub(crate) struct ProcedureCandidateStoreSnapshot {
     storage_path: String,
     existed: bool,
     decisions: Vec<ProcedureDecisionSummary>,
+    audit_healthy: bool,
+    current_pattern_count: usize,
+    stale_decision_count: usize,
+    blocked: bool,
     execution_enabled: bool,
     skill_draft_created: bool,
 }
@@ -209,10 +224,34 @@ pub(crate) struct ProcedureDraftConversionResult {
 #[tauri::command]
 pub(crate) fn procedure_candidate_store_status(
     app: AppHandle,
+    observation_store: State<ObservationStore>,
+    sensor_store: State<SensorLeaseStore>,
     store: State<ProcedureCandidateStore>,
+    skill_store: State<SkillDraftStore>,
 ) -> Result<ProcedureCandidateStoreSnapshot, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let (audit_healthy, events) = crate::audit::validated_visible_events_at(&data_root)?;
+    let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let detection =
+        detect_procedure_patterns(current_utc_timestamp()?, audit_healthy, &registry, &events)?;
     let _guard = store.lock()?;
-    procedure_candidate_store_status_at(&alice_data_root_path(&app)?)
+    let conversions = procedure_draft_conversion_status_at(&data_root, &registry, &skill_store)?;
+    let current_fingerprints = detection
+        .patterns
+        .iter()
+        .map(|pattern| pattern.fingerprint.clone())
+        .collect::<HashSet<_>>();
+    let converted_fingerprints = conversions
+        .conversions
+        .iter()
+        .map(|conversion| conversion.fingerprint.clone())
+        .collect::<HashSet<_>>();
+    procedure_candidate_store_status_at(
+        &data_root,
+        audit_healthy,
+        &current_fingerprints,
+        &converted_fingerprints,
+    )
 }
 
 #[tauri::command]
@@ -271,7 +310,7 @@ pub(crate) fn record_procedure_pattern_decision(
     )?;
     Ok(ProcedurePatternDecisionResult {
         operation_id,
-        decision: decision_summary(&decision),
+        decision: decision_summary(&decision, ProcedureDecisionEvidenceState::Current),
         storage_path: procedure_store_path(&data_root).display().to_string(),
         execution_enabled: false,
         skill_draft_created: false,
@@ -302,9 +341,25 @@ pub(crate) fn convert_procedure_candidate_to_draft(
 ) -> Result<ProcedureDraftConversionResult, String> {
     let data_root = alice_data_root_path(&app)?;
     let registry = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    let (audit_healthy, events) = crate::audit::validated_visible_events_at(&data_root)?;
+    if !audit_healthy {
+        return Err("R3 no está saludable; la conversión R5 permanece bloqueada".into());
+    }
+    let detection = detect_procedure_patterns(current_utc_timestamp()?, true, &registry, &events)?;
+    let current_fingerprints = detection
+        .patterns
+        .iter()
+        .map(|pattern| pattern.fingerprint.clone())
+        .collect::<HashSet<_>>();
     let now = current_utc_timestamp()?;
     let _guard = procedure_store.lock()?;
-    let prepared = prepare_procedure_draft_at(&data_root, &registry, input, &now)?;
+    let prepared = prepare_procedure_draft_at(
+        &data_root,
+        &registry,
+        input,
+        &now,
+        Some(&current_fingerprints),
+    )?;
     let operation_id = new_operation_id();
     append_audit_event(
         &app,
@@ -361,6 +416,7 @@ fn prepare_procedure_draft_at(
     registry: &CapabilityRegistrySnapshot,
     input: ProcedureDraftConversionInput,
     now: &str,
+    current_fingerprints: Option<&HashSet<String>>,
 ) -> Result<PreparedProcedureDraft, String> {
     validate_conversion_input(&input)?;
     let path = procedure_store_path(data_root);
@@ -375,6 +431,11 @@ fn prepare_procedure_draft_at(
         .ok_or("No existe una decisión del propietario para esta huella")?;
     if decision.action != ProcedurePatternDecision::Retain {
         return Err("Un patrón descartado no puede convertirse en borrador".into());
+    }
+    if current_fingerprints.is_some_and(|fingerprints| !fingerprints.contains(&input.fingerprint)) {
+        return Err(
+            "La evidencia R3 del candidato quedó obsoleta; no puede convertirse en borrador".into(),
+        );
     }
     let candidate = decision
         .candidate
@@ -587,20 +648,41 @@ fn procedure_draft_conversion_status_at(
 
 fn procedure_candidate_store_status_at(
     data_root: &Path,
+    audit_healthy: bool,
+    current_fingerprints: &HashSet<String>,
+    converted_fingerprints: &HashSet<String>,
 ) -> Result<ProcedureCandidateStoreSnapshot, String> {
     let path = procedure_store_path(data_root);
     let (document, existed) = read_store(&path)?;
     let mut decisions = document
         .decisions
         .iter()
-        .map(decision_summary)
+        .map(|decision| {
+            decision_summary(
+                decision,
+                decision_evidence_state(
+                    decision,
+                    audit_healthy,
+                    current_fingerprints,
+                    converted_fingerprints,
+                ),
+            )
+        })
         .collect::<Vec<_>>();
     decisions.sort_by(|left, right| right.decided_at.cmp(&left.decided_at));
+    let stale_decision_count = decisions
+        .iter()
+        .filter(|decision| decision.evidence_state == ProcedureDecisionEvidenceState::Stale)
+        .count();
     Ok(ProcedureCandidateStoreSnapshot {
         schema_version: PROCEDURE_STORE_SCHEMA_VERSION,
         storage_path: data_root.join("procedures").display().to_string(),
         existed,
         decisions,
+        audit_healthy,
+        current_pattern_count: current_fingerprints.len(),
+        stale_decision_count,
+        blocked: !audit_healthy,
         execution_enabled: false,
         skill_draft_created: false,
     })
@@ -762,7 +844,29 @@ fn candidate_from_pattern(
     })
 }
 
-fn decision_summary(decision: &StoredProcedureDecision) -> ProcedureDecisionSummary {
+fn decision_evidence_state(
+    decision: &StoredProcedureDecision,
+    audit_healthy: bool,
+    current_fingerprints: &HashSet<String>,
+    converted_fingerprints: &HashSet<String>,
+) -> ProcedureDecisionEvidenceState {
+    if decision.action == ProcedurePatternDecision::Dismiss {
+        ProcedureDecisionEvidenceState::Dismissed
+    } else if converted_fingerprints.contains(&decision.fingerprint) {
+        ProcedureDecisionEvidenceState::Converted
+    } else if !audit_healthy {
+        ProcedureDecisionEvidenceState::Blocked
+    } else if current_fingerprints.contains(&decision.fingerprint) {
+        ProcedureDecisionEvidenceState::Current
+    } else {
+        ProcedureDecisionEvidenceState::Stale
+    }
+}
+
+fn decision_summary(
+    decision: &StoredProcedureDecision,
+    evidence_state: ProcedureDecisionEvidenceState,
+) -> ProcedureDecisionSummary {
     ProcedureDecisionSummary {
         decision_id: decision.decision_id.clone(),
         fingerprint: decision.fingerprint.clone(),
@@ -795,6 +899,7 @@ fn decision_summary(decision: &StoredProcedureDecision) -> ProcedureDecisionSumm
             .map(|candidate| candidate.occurrences.len())
             .unwrap_or(0),
         candidate_sha256: decision.candidate_sha256.clone(),
+        evidence_state,
         execution_enabled: false,
     }
 }
@@ -1139,7 +1244,9 @@ mod tests {
     #[test]
     fn passive_status_does_not_create_storage() {
         let root = temp_root();
-        let status = procedure_candidate_store_status_at(&root).unwrap();
+        let status =
+            procedure_candidate_store_status_at(&root, true, &HashSet::new(), &HashSet::new())
+                .unwrap();
         assert!(!status.existed);
         assert!(status.decisions.is_empty());
         assert!(!root.exists());
@@ -1154,7 +1261,9 @@ mod tests {
         let path = procedure_store_path(&root);
         let parent_existed = path.parent().is_some_and(Path::exists);
         let before = fs::read(&path).ok();
-        let status = procedure_candidate_store_status_at(&root).expect("estado R5.3 canónico");
+        let status =
+            procedure_candidate_store_status_at(&root, true, &HashSet::new(), &HashSet::new())
+                .expect("estado R5.5 canónico");
         let after = fs::read(&path).ok();
 
         assert_eq!(after, before);
@@ -1209,7 +1318,13 @@ mod tests {
         )
         .unwrap();
         assert!(stored.candidate.is_some());
-        let status = procedure_candidate_store_status_at(&root).unwrap();
+        let status = procedure_candidate_store_status_at(
+            &root,
+            true,
+            &HashSet::from([pattern.fingerprint.clone()]),
+            &HashSet::new(),
+        )
+        .unwrap();
         assert_eq!(status.decisions.len(), 1);
         assert!(!status.decisions[0].execution_enabled);
         assert!(!status.skill_draft_created);
@@ -1220,7 +1335,10 @@ mod tests {
             "Revisar memoria y proveedores alterados",
         );
         fs::write(procedure_store_path(&root), tampered).unwrap();
-        assert!(procedure_candidate_store_status_at(&root).is_err());
+        assert!(
+            procedure_candidate_store_status_at(&root, true, &HashSet::new(), &HashSet::new(),)
+                .is_err()
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1264,6 +1382,83 @@ mod tests {
     }
 
     #[test]
+    fn r5_closeout_classifies_current_stale_dismissed_converted_and_blocked() {
+        let root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        let retained = record_procedure_pattern_decision_at(
+            &root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Retain),
+        )
+        .unwrap();
+
+        let current = HashSet::from([retained.fingerprint.clone()]);
+        let status =
+            procedure_candidate_store_status_at(&root, true, &current, &HashSet::new()).unwrap();
+        assert_eq!(
+            status.decisions[0].evidence_state,
+            ProcedureDecisionEvidenceState::Current
+        );
+        assert_eq!(status.current_pattern_count, 1);
+        assert_eq!(status.stale_decision_count, 0);
+        assert!(!status.blocked);
+
+        let stale =
+            procedure_candidate_store_status_at(&root, true, &HashSet::new(), &HashSet::new())
+                .unwrap();
+        assert_eq!(
+            stale.decisions[0].evidence_state,
+            ProcedureDecisionEvidenceState::Stale
+        );
+        assert_eq!(stale.stale_decision_count, 1);
+
+        let blocked =
+            procedure_candidate_store_status_at(&root, false, &HashSet::new(), &HashSet::new())
+                .unwrap();
+        assert_eq!(
+            blocked.decisions[0].evidence_state,
+            ProcedureDecisionEvidenceState::Blocked
+        );
+        assert!(blocked.blocked);
+
+        let converted = HashSet::from([retained.fingerprint]);
+        let converted_status =
+            procedure_candidate_store_status_at(&root, true, &HashSet::new(), &converted).unwrap();
+        assert_eq!(
+            converted_status.decisions[0].evidence_state,
+            ProcedureDecisionEvidenceState::Converted
+        );
+        fs::remove_dir_all(root).unwrap();
+
+        let dismissed_root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        record_procedure_pattern_decision_at(
+            &dismissed_root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Dismiss),
+        )
+        .unwrap();
+        let dismissed = procedure_candidate_store_status_at(
+            &dismissed_root,
+            true,
+            &HashSet::from([pattern.fingerprint]),
+            &HashSet::new(),
+        )
+        .unwrap();
+        assert_eq!(
+            dismissed.decisions[0].evidence_state,
+            ProcedureDecisionEvidenceState::Dismissed
+        );
+        fs::remove_dir_all(dismissed_root).unwrap();
+    }
+
+    #[test]
     fn procedure_audit_is_real_and_contains_no_reason_text() {
         let root = temp_root();
         let fingerprint = format!("sha256:{}", "a".repeat(64));
@@ -1302,6 +1497,7 @@ mod tests {
             &registry(),
             conversion_input(&stored),
             "2026-08-11T14:00:00Z",
+            None,
         )
         .unwrap();
         let skill_store = SkillDraftStore::default();
@@ -1361,6 +1557,7 @@ mod tests {
             &registry(),
             conversion_input(&stored),
             "2026-08-11T14:00:00Z",
+            None,
         )
         .unwrap();
         save_procedure_draft_guarded_at(
@@ -1381,6 +1578,7 @@ mod tests {
             &registry(),
             conversion_input(&stored),
             "2026-08-11T14:01:00Z",
+            None,
         )
         .unwrap();
         assert!(save_procedure_draft_guarded_at(
@@ -1430,14 +1628,49 @@ mod tests {
             &root,
             &registry(),
             request.clone(),
-            "2026-08-11T14:00:00Z"
+            "2026-08-11T14:00:00Z",
+            None,
         )
         .is_err());
         request.confirmation.confirmed = false;
-        assert!(
-            prepare_procedure_draft_at(&root, &registry(), request, "2026-08-11T14:00:00Z")
-                .is_err()
-        );
+        assert!(prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            request,
+            "2026-08-11T14:00:00Z",
+            None,
+        )
+        .is_err());
+        assert!(!root.join("skills").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn stale_retained_evidence_cannot_cross_into_r4() {
+        let root = temp_root();
+        let (events, pattern) = evidence_and_pattern();
+        let stored = record_procedure_pattern_decision_at(
+            &root,
+            &registry(),
+            &events,
+            &pattern,
+            "2026-08-11T13:00:00Z".into(),
+            input(&pattern, ProcedurePatternDecision::Retain),
+        )
+        .unwrap();
+        let before = tree_snapshot(&root);
+        let error = match prepare_procedure_draft_at(
+            &root,
+            &registry(),
+            conversion_input(&stored),
+            "2026-08-11T14:00:00Z",
+            Some(&HashSet::new()),
+        ) {
+            Ok(_) => panic!("la evidencia obsoleta no puede producir un borrador"),
+            Err(error) => error,
+        };
+        assert!(error.contains("obsoleta"));
+        assert_eq!(tree_snapshot(&root), before);
         assert!(!root.join("skills").exists());
         fs::remove_dir_all(root).unwrap();
     }
