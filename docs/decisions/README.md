@@ -45,3 +45,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-067](ADR-P-067-memoria-trabajo-y-panel-entrada.md) | Memoria de trabajo R6.2 en RAM y conversación integrada en el panel `[00]` |
 | [ADR-P-068](ADR-P-068-vista-previa-consolidacion-manual.md) | Vista previa nativa y sin escritura antes de consolidar memoria |
 | [ADR-P-069](ADR-P-069-resolucion-mantener-separados.md) | Resolución humana mantener-separados con respaldo, SHA-256 y auditoría |
+| [ADR-P-070](ADR-P-070-volumen-neural-compacto-evolutivo.md) | Volumen neural compacto, anclas reales y color afectivo condicionado a señal |

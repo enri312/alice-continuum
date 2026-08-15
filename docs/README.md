@@ -49,6 +49,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 43. [ADR-P-051: ciclo de vida inmutable de habilidades](decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md)
 44. [Informe R4.4 de ciclo de vida y auditoría](testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md)
 45. [Revisión técnica de OpenClaw y TencentDB Agent Memory](research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md)
+46. [ADR-P-070: volumen neural compacto y evolutivo](decisions/ADR-P-070-volumen-neural-compacto-evolutivo.md)
+47. [Informe visual del volumen neural compacto](testing/NEURAL_VOLUME_COMPACT_REPORT_2026-08-15.md)
 
 ## Secciones
 

@@ -1,7 +1,7 @@
 # Roadmap de Alice
 
 Autor y propietario: Carlos Nuñez  
-Última revisión: 2026-08-10  
+Última revisión: 2026-08-15  
 Estado: vigente
 
 ## Propósito
@@ -28,7 +28,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Bloque | Estado | Evidencia actual |
 |---|---|---|
 | Contrato y límites | Completo | Documento maestro, decisiones y diagramas de ingeniería. |
-| Núcleo observable | Base completa | Volumen neuronal, flujo, estado, planificador, actividad y puentes por pestañas. |
+| Núcleo observable | Base completa | Volumen compacto con anclas de memoria, pulso R3 separado y afecto apagado sin señal; flujo, estado, planificador y actividad por pestañas. |
 | Conversación de nube | Funcional | Proveedores intercambiables, previsualización y autorización expresa. |
 | Memoria enseñable v1 | Funcional en evolución | Registros locales, respaldo, exportación, recuperación lexical y edición. |
 | Consolidación v1 | Funcional en evolución | Repaso manual y refuerzo por recuperación autorizada. |

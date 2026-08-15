@@ -42,8 +42,8 @@ label { display: grid; gap: 8px; margin-top: 17px; color: #d8e0d3; font-size: .8
 @media(max-width:720px) { .teaching-panel header,.teaching-panel footer,.teaching-starters>div:first-child { flex-direction:column; align-items:stretch; }.teaching-grid { grid-template-columns:1fr; }.teaching-content { grid-column:auto; }.teaching-panel footer .primary { width:100%; }.teaching-starter-buttons { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 .nucleus-page-description { max-width:580px; margin:7px 0 0; color:#aebcab; font-size:.8rem; line-height:1.45; }
-.nucleus-page-stage { min-height:530px; overflow:hidden; border:1px solid #3e513d; border-radius:16px; background:#07101b; }
-.nucleus-page-stage .neural-volume { min-height:530px; border:0; border-radius:0; }
+.nucleus-page-stage { min-height:450px; overflow:hidden; border:1px solid #3e513d; border-radius:16px; background:#07101b; }
+.nucleus-page-stage .neural-volume { min-height:450px; border:0; border-radius:0; }
 .screen-tabs.grouped { flex-wrap:wrap; gap:8px; }
 .screen-tabs.grouped button { flex:0 0 108px; width:108px; height:112px; padding:5px; }
 .screen-tabs.grouped .screen-tab-icon { width:98px; height:98px; }

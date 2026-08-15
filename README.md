@@ -7,7 +7,7 @@
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6.3--B-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-239%2F239%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-243%2F243%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-175%20aprobadas%20%7C%2012%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
@@ -26,7 +26,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 14 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 15 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
@@ -40,7 +40,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Memoria por capas R6 | R6.1, R6.2-C y R6.3-B validados: RAM acotada, candidatos deterministas y decisión humana mantener-separados |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 239/239 aprobadas |
+| Pruebas TypeScript | 243/243 aprobadas |
 | Pruebas Rust | 175 normales aprobadas; doce sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -71,6 +71,8 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 | Body Solver | Puente rostro/cuerpo `[05]`, Rostro, Cuerpo y Avatar | Traduce decisiones a expresión y presencia física; sus adaptadores continúan desconectados |
 | Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
 | Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
+
+El volumen `[01]` es una semilla 3D evolutiva: crece desde el centro, representa cada recuerdo persistente mediante un ancla y mantiene la señal R3 reciente como un pulso temporal separado. Los colores afectivos no decoran la red: sólo pueden aparecer cuando el canal correspondiente esté disponible y aporte un valor real mayor que cero. Con poca evidencia, la red permanece deliberadamente compacta. Consulta [ADR-P-070](docs/decisions/ADR-P-070-volumen-neural-compacto-evolutivo.md) y [el informe visual](docs/testing/NEURAL_VOLUME_COMPACT_REPORT_2026-08-15.md).
 
 ### Sistema de insignias técnicas Alice
 
