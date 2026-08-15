@@ -45,6 +45,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
+| Preparación facial por webcam | Sonda diagnóstica aprobada: 53/53 análisis con rostro, 478 landmarks, 52 blendshapes y 20,71 ms de latencia media; todavía desconectada de Alice |
 | Datos privados preservados | Nueve archivos base intactos; R3 añade `audit/events-v1.jsonl` como décimo archivo gobernado |
 | Avatar privado | Preservado y excluido de Git |
 
@@ -57,7 +58,7 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - React no recibe ni muestra claves de proveedores.
 - Una respuesta de nube no se convierte automáticamente en recuerdo o verdad.
 - La observación vigente se limita a metadatos autorizados de la ventana activa; no registra teclas, archivos ni imágenes.
-- Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados.
+- Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados. La sonda facial no cambia ese estado.
 - Voz, rostro, mirada, puente corporal y adaptadores externos permanecen desconectados. El visor posee una prueba manual DualSense que no representa salida de Alice.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
 - R2 consume grants efímeros para ventana, cámara o micrófono. Aprobar no abre hardware: cada sensor exige una activación posterior y ofrece Detener inmediato.
@@ -93,9 +94,11 @@ Comprobación real de hardware del 09 de agosto de 2026:
 
 El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada real: la prueba exigió señal positiva, detuvo cada lease y confirmó `MEDIA_DELTA=0` sobre 107 archivos. Las capacidades `perception.camera.observe` y `perception.microphone.observe` son ahora `partial`, usan `enforcedBy: native` y aparecen `idle` o `active` según el proceso real. Todavía no analizan, transcriben ni crean recuerdos.
 
+Como evaluación de una alternativa accesible a un visor con seguimiento facial, el 15 de agosto de 2026 se ejecutó una sonda local independiente con MediaPipe Face Landmarker sobre `ACER HD User Facing`. En 10,59 segundos analizó 53 fotogramas, detectó un rostro en 53/53, obtuvo 478 landmarks y 52 blendshapes, con 20,71 ms de latencia media y 22,17 ms en p95. El recuento multimedia permaneció en 117 archivos (`MEDIA_DELTA=0`). El modelo verificado vive sólo en `Assets/Models/private/`, está excluido de Git y la sonda exige `--live`; no identifica personas, no conserva coordenadas y no mueve el avatar. `perception.gesture.derive` continúa planificada hasta disponer de autorización R2 específica, parada visible, calibración y un puente R9 revisado.
+
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
-Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md) y [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md).
+Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md) y [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md).
 
 ### Prueba manual DualSense
 

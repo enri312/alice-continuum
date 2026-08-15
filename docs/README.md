@@ -51,6 +51,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 45. [Revisión técnica de OpenClaw y TencentDB Agent Memory](research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md)
 46. [ADR-P-070: volumen neural compacto y evolutivo](decisions/ADR-P-070-volumen-neural-compacto-evolutivo.md)
 47. [Informe visual del volumen neural compacto](testing/NEURAL_VOLUME_COMPACT_REPORT_2026-08-15.md)
+48. [ADR-P-071: sonda facial local mediante webcam](decisions/ADR-P-071-sonda-facial-webcam-local.md)
+49. [Informe real de preparación facial](testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md)
 
 ## Secciones
 

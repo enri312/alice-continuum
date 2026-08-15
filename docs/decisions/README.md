@@ -46,3 +46,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-068](ADR-P-068-vista-previa-consolidacion-manual.md) | Vista previa nativa y sin escritura antes de consolidar memoria |
 | [ADR-P-069](ADR-P-069-resolucion-mantener-separados.md) | Resolución humana mantener-separados con respaldo, SHA-256 y auditoría |
 | [ADR-P-070](ADR-P-070-volumen-neural-compacto-evolutivo.md) | Volumen neural compacto, anclas reales y color afectivo condicionado a señal |
+| [ADR-P-071](ADR-P-071-sonda-facial-webcam-local.md) | Sonda facial local por webcam, modelo verificado y frontera previa al puente R9 |

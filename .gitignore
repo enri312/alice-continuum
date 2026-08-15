@@ -14,3 +14,6 @@ Assets/*.vroid
 
 # Clips corporales privados o sujetos a licencias de terceros.
 Assets/Animations/private/
+
+# Modelos locales de visión: se verifican por SHA-256 y no se redistribuyen.
+Assets/Models/private/
