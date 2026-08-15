@@ -671,7 +671,11 @@ fn memory_capabilities(
             CapabilityKind::Mutation,
             CapabilityMaturity::Implemented,
             "memory",
-            &["save_memory", "activate_layered_memory"],
+            &[
+                "save_memory",
+                "activate_layered_memory",
+                "resolve_consolidation_candidate",
+            ],
             records_state,
             CapabilityRisk::Medium,
             &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],

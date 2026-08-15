@@ -85,7 +85,9 @@ struct MemoryAuditEntry {
 
 const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
-const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
+const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
 const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
 
@@ -195,14 +197,14 @@ pub(crate) enum ConsolidationPreviewState {
     Blocked,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum ConsolidationCandidateKind {
     ExactDuplicate,
     ReviewRequired,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum ConsolidationReasonCode {
     ExactNormalizedContent,
@@ -217,6 +219,8 @@ pub(crate) struct ConsolidationCandidate {
     record_ids: Vec<String>,
     reason_code: ConsolidationReasonCode,
     requires_human_review: bool,
+    resolution: Option<ConsolidationResolutionAction>,
+    decision_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -230,6 +234,8 @@ pub(crate) struct ConsolidationPreviewSnapshot {
     eligible_record_count: usize,
     archived_record_count: usize,
     candidate_count: usize,
+    pending_candidate_count: usize,
+    kept_separate_count: usize,
     exact_duplicate_count: usize,
     review_required_count: usize,
     candidates: Vec<ConsolidationCandidate>,
@@ -237,6 +243,55 @@ pub(crate) struct ConsolidationPreviewSnapshot {
     automatic_merge: bool,
     records_modified: bool,
     model_used: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationResolutionAction {
+    KeepSeparate,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ConsolidationDecision {
+    decision_id: String,
+    candidate_id: String,
+    source_sha256: String,
+    candidate_kind: ConsolidationCandidateKind,
+    reason_code: ConsolidationReasonCode,
+    record_ids: Vec<String>,
+    action: ConsolidationResolutionAction,
+    decided_at: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ConsolidationDecisionDocument {
+    schema_version: u8,
+    decisions: Vec<ConsolidationDecision>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ResolveConsolidationCandidateInput {
+    expected_source_sha256: String,
+    candidate_id: String,
+    expected_record_ids: Vec<String>,
+    action: ConsolidationResolutionAction,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationResolutionResult {
+    schema_version: u8,
+    decision: ConsolidationDecision,
+    source_backup_path: String,
+    ledger_path: String,
+    backup_created: bool,
+    records_modified: bool,
+    model_used: bool,
+    preview: ConsolidationPreviewSnapshot,
 }
 
 #[derive(Deserialize)]
@@ -386,6 +441,79 @@ fn is_sha256(value: &str) -> bool {
         && value[7..].bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
+fn consolidation_decision_path(data_root: &Path) -> PathBuf {
+    data_root.join("memory").join(CONSOLIDATION_DECISION_FILE)
+}
+
+fn consolidation_source_backup_path(data_root: &Path, source_sha256: &str) -> PathBuf {
+    data_root
+        .join("memory")
+        .join("backups")
+        .join(format!("consolidation-source-{}.json", &source_sha256[7..]))
+}
+
+fn empty_consolidation_decisions() -> ConsolidationDecisionDocument {
+    ConsolidationDecisionDocument {
+        schema_version: CONSOLIDATION_DECISION_SCHEMA_VERSION,
+        decisions: Vec::new(),
+    }
+}
+
+fn validate_consolidation_decisions(
+    document: &ConsolidationDecisionDocument,
+) -> Result<(), String> {
+    if document.schema_version != CONSOLIDATION_DECISION_SCHEMA_VERSION {
+        return Err("El registro de decisiones R6.3 usa una versión incompatible".into());
+    }
+    let mut decision_ids = HashSet::with_capacity(document.decisions.len());
+    let mut candidate_sources = HashSet::with_capacity(document.decisions.len());
+    for decision in &document.decisions {
+        if !is_sha256(&decision.decision_id)
+            || !is_sha256(&decision.candidate_id)
+            || !is_sha256(&decision.source_sha256)
+        {
+            return Err("El registro de decisiones R6.3 contiene una huella inválida".into());
+        }
+        if decision.record_ids.len() != 2
+            || decision.record_ids.iter().any(|id| id.trim().is_empty())
+            || decision.record_ids[0] >= decision.record_ids[1]
+        {
+            return Err("El registro de decisiones R6.3 contiene un par inválido".into());
+        }
+        validate_timestamp("decidedAt", &decision.decided_at)?;
+        if !decision_ids.insert(decision.decision_id.clone())
+            || !candidate_sources.insert(format!(
+                "{}:{}",
+                decision.source_sha256, decision.candidate_id
+            ))
+        {
+            return Err("El registro de decisiones R6.3 contiene decisiones repetidas".into());
+        }
+    }
+    Ok(())
+}
+
+fn read_consolidation_decisions_at(
+    data_root: &Path,
+) -> Result<ConsolidationDecisionDocument, String> {
+    let path = consolidation_decision_path(data_root);
+    let content = match fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(empty_consolidation_decisions())
+        }
+        Err(error) => {
+            return Err(format!(
+                "No se pudo leer el registro de decisiones R6.3: {error}"
+            ))
+        }
+    };
+    let document = serde_json::from_str::<ConsolidationDecisionDocument>(&content)
+        .map_err(|error| format!("El registro de decisiones R6.3 no es válido: {error}"))?;
+    validate_consolidation_decisions(&document)?;
+    Ok(document)
+}
+
 fn layered_memory_path(data_root: &Path) -> PathBuf {
     data_root.join("memory").join(LAYERED_MEMORY_FILE)
 }
@@ -448,6 +576,8 @@ fn empty_consolidation_snapshot(
         eligible_record_count: 0,
         archived_record_count: 0,
         candidate_count: 0,
+        pending_candidate_count: 0,
+        kept_separate_count: 0,
         exact_duplicate_count: 0,
         review_required_count: 0,
         candidates: Vec::new(),
@@ -546,7 +676,57 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
                 record_ids: vec![left.id.clone(), right.id.clone()],
                 reason_code,
                 requires_human_review: true,
+                resolution: None,
+                decision_id: None,
             });
+        }
+    }
+
+    let decisions = match read_consolidation_decisions_at(data_root) {
+        Ok(document) => document,
+        Err(error) => {
+            let mut snapshot = empty_consolidation_snapshot(
+                ConsolidationPreviewState::Blocked,
+                storage_path,
+                Some(error),
+            );
+            snapshot.source_sha256 = Some(source_sha256);
+            snapshot.record_count = sessions.len();
+            snapshot.eligible_record_count = eligible.len();
+            snapshot.archived_record_count = archived_record_count;
+            return snapshot;
+        }
+    };
+    if decisions
+        .decisions
+        .iter()
+        .any(|decision| decision.source_sha256 == source_sha256)
+    {
+        let backup_path = consolidation_source_backup_path(data_root, &source_sha256);
+        let backup_matches = fs::read_to_string(&backup_path)
+            .map(|content| content == source_content)
+            .unwrap_or(false);
+        if !backup_matches {
+            let mut snapshot = empty_consolidation_snapshot(
+                ConsolidationPreviewState::Blocked,
+                storage_path,
+                Some("La decisión R6.3 no posee un respaldo canónico verificable".into()),
+            );
+            snapshot.source_sha256 = Some(source_sha256);
+            snapshot.record_count = sessions.len();
+            snapshot.eligible_record_count = eligible.len();
+            snapshot.archived_record_count = archived_record_count;
+            return snapshot;
+        }
+    }
+    for candidate in &mut candidates {
+        if let Some(decision) = decisions.decisions.iter().find(|decision| {
+            decision.source_sha256 == source_sha256
+                && decision.candidate_id == candidate.candidate_id
+                && decision.record_ids == candidate.record_ids
+        }) {
+            candidate.resolution = Some(decision.action);
+            candidate.decision_id = Some(decision.decision_id.clone());
         }
     }
 
@@ -555,6 +735,12 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
         .filter(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
         .count();
     let review_required_count = candidates.len() - exact_duplicate_count;
+    let kept_separate_count = candidates
+        .iter()
+        .filter(|candidate| {
+            candidate.resolution == Some(ConsolidationResolutionAction::KeepSeparate)
+        })
+        .count();
     ConsolidationPreviewSnapshot {
         schema_version: CONSOLIDATION_PREVIEW_SCHEMA_VERSION,
         state: ConsolidationPreviewState::Ready,
@@ -564,6 +750,8 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
         eligible_record_count: eligible.len(),
         archived_record_count,
         candidate_count: candidates.len(),
+        pending_candidate_count: candidates.len() - kept_separate_count,
+        kept_separate_count,
         exact_duplicate_count,
         review_required_count,
         candidates,
@@ -572,6 +760,189 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
         records_modified: false,
         model_used: false,
     }
+}
+
+fn write_consolidation_decisions_at(
+    data_root: &Path,
+    document: &ConsolidationDecisionDocument,
+) -> Result<String, String> {
+    validate_consolidation_decisions(document)?;
+    let memory = data_root.join("memory");
+    let backups = memory.join("backups");
+    fs::create_dir_all(&backups)
+        .map_err(|error| format!("No se pudo crear el respaldo R6.3: {error}"))?;
+    let path = consolidation_decision_path(data_root);
+    let previous = if path.exists() {
+        let content = fs::read_to_string(&path)
+            .map_err(|error| format!("No se pudo leer el registro R6.3 anterior: {error}"))?;
+        let previous_sha256 = memory_subject_digest(&content);
+        let backup_path = backups.join(format!(
+            "consolidation-decisions-v1-{}.json",
+            &previous_sha256[7..]
+        ));
+        if !backup_path.exists() {
+            fs::write(&backup_path, content.as_bytes())
+                .map_err(|error| format!("No se pudo respaldar el registro R6.3: {error}"))?;
+        }
+        Some(content)
+    } else {
+        None
+    };
+    let content = serde_json::to_string_pretty(document).map_err(|error| error.to_string())?;
+    let temporary = path.with_extension("tmp");
+    fs::write(&temporary, &content)
+        .map_err(|error| format!("No se pudo preparar el registro R6.3: {error}"))?;
+    let copy_result = fs::copy(&temporary, &path)
+        .map_err(|error| format!("No se pudo guardar el registro R6.3: {error}"));
+    copy_result?;
+    if let Err(error) = fs::remove_file(&temporary) {
+        eprintln!("No se pudo limpiar el temporal R6.3: {error}");
+    }
+    if let Err(audit_error) = append_memory_audit(
+        &path,
+        "consolidation-keep-separate",
+        document.decisions.len(),
+        &content,
+    ) {
+        let rollback = match previous {
+            Some(previous) => fs::write(&path, previous.as_bytes()),
+            None => fs::remove_file(&path),
+        };
+        return match rollback {
+            Ok(()) => Err(format!(
+                "No se pudo auditar la decisión R6.3 y el registro fue restaurado: {audit_error}"
+            )),
+            Err(rollback_error) => Err(format!(
+                "No se pudo auditar la decisión R6.3 ({audit_error}) ni restaurar el registro ({rollback_error})"
+            )),
+        };
+    }
+    Ok(path.display().to_string())
+}
+
+fn resolve_consolidation_candidate_at(
+    data_root: &Path,
+    input: ResolveConsolidationCandidateInput,
+    decided_at: String,
+) -> Result<ConsolidationResolutionResult, String> {
+    if !input.confirmed {
+        return Err("La decisión R6.3 requiere confirmación explícita".into());
+    }
+    if !is_sha256(&input.expected_source_sha256) || !is_sha256(&input.candidate_id) {
+        return Err("La decisión R6.3 contiene una huella inválida".into());
+    }
+    if input.expected_record_ids.len() != 2
+        || input
+            .expected_record_ids
+            .iter()
+            .any(|id| id.trim().is_empty())
+        || input.expected_record_ids[0] >= input.expected_record_ids[1]
+    {
+        return Err("La decisión R6.3 debe identificar dos registros ordenados y distintos".into());
+    }
+    validate_timestamp("decidedAt", &decided_at)?;
+    let preview = consolidation_preview_at(data_root);
+    if preview.state != ConsolidationPreviewState::Ready {
+        return Err(preview
+            .blocked_reason
+            .unwrap_or_else(|| "La memoria canónica no está disponible".into()));
+    }
+    if preview.source_sha256.as_deref() != Some(input.expected_source_sha256.as_str()) {
+        return Err(
+            "records.json cambió después de la vista previa; actualizá antes de decidir".into(),
+        );
+    }
+    let candidate = preview
+        .candidates
+        .iter()
+        .find(|candidate| candidate.candidate_id == input.candidate_id)
+        .ok_or("El candidato R6.3 ya no existe en la fuente revisada")?;
+    if candidate.record_ids != input.expected_record_ids {
+        return Err("El par de registros no coincide con el candidato revisado".into());
+    }
+
+    let mut document = read_consolidation_decisions_at(data_root)?;
+    if let Some(existing) = document.decisions.iter().find(|decision| {
+        decision.source_sha256 == input.expected_source_sha256
+            && decision.candidate_id == input.candidate_id
+    }) {
+        if existing.action != input.action || existing.record_ids != input.expected_record_ids {
+            return Err("El candidato ya posee una decisión incompatible".into());
+        }
+        let backup_path =
+            consolidation_source_backup_path(data_root, &input.expected_source_sha256);
+        return Ok(ConsolidationResolutionResult {
+            schema_version: CONSOLIDATION_DECISION_SCHEMA_VERSION,
+            decision: existing.clone(),
+            source_backup_path: backup_path.display().to_string(),
+            ledger_path: consolidation_decision_path(data_root).display().to_string(),
+            backup_created: false,
+            records_modified: false,
+            model_used: false,
+            preview,
+        });
+    }
+
+    let source_path = data_root.join("memory").join("records.json");
+    let source_content = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo releer records.json: {error}"))?;
+    if memory_subject_digest(&source_content) != input.expected_source_sha256 {
+        return Err("records.json cambió durante la decisión; no se escribió nada".into());
+    }
+    let backup_directory = data_root.join("memory").join("backups");
+    fs::create_dir_all(&backup_directory)
+        .map_err(|error| format!("No se pudo crear el respaldo R6.3: {error}"))?;
+    let source_backup = consolidation_source_backup_path(data_root, &input.expected_source_sha256);
+    let backup_created = if source_backup.exists() {
+        let existing = fs::read_to_string(&source_backup)
+            .map_err(|error| format!("No se pudo verificar el respaldo R6.3: {error}"))?;
+        if existing != source_content {
+            return Err("El respaldo R6.3 existente no coincide con la fuente".into());
+        }
+        false
+    } else {
+        fs::write(&source_backup, source_content.as_bytes())
+            .map_err(|error| format!("No se pudo respaldar records.json: {error}"))?;
+        true
+    };
+
+    let decision_id = memory_subject_digest(&format!(
+        "alice-consolidation-decision:{}:{}:{:?}",
+        input.expected_source_sha256, input.candidate_id, input.action
+    ));
+    let decision = ConsolidationDecision {
+        decision_id,
+        candidate_id: input.candidate_id,
+        source_sha256: input.expected_source_sha256,
+        candidate_kind: candidate.kind,
+        reason_code: candidate.reason_code,
+        record_ids: input.expected_record_ids,
+        action: input.action,
+        decided_at,
+    };
+    document.decisions.push(decision.clone());
+    let ledger_path = write_consolidation_decisions_at(data_root, &document)?;
+    let updated_preview = consolidation_preview_at(data_root);
+    if updated_preview.state != ConsolidationPreviewState::Ready
+        || updated_preview.source_sha256 != Some(decision.source_sha256.clone())
+        || !updated_preview.candidates.iter().any(|candidate| {
+            candidate.candidate_id == decision.candidate_id
+                && candidate.resolution == Some(decision.action)
+                && candidate.decision_id.as_deref() == Some(decision.decision_id.as_str())
+        })
+    {
+        return Err("La decisión R6.3 se escribió pero no pudo verificarse al releerla".into());
+    }
+    Ok(ConsolidationResolutionResult {
+        schema_version: CONSOLIDATION_DECISION_SCHEMA_VERSION,
+        decision,
+        source_backup_path: source_backup.display().to_string(),
+        ledger_path,
+        backup_created,
+        records_modified: false,
+        model_used: false,
+        preview: updated_preview,
+    })
 }
 
 fn classify_layered_memory(
@@ -1061,6 +1432,23 @@ pub(crate) fn consolidation_preview(
     app: AppHandle,
 ) -> Result<ConsolidationPreviewSnapshot, String> {
     Ok(consolidation_preview_at(&alice_data_root_path(&app)?))
+}
+
+#[tauri::command]
+pub(crate) fn resolve_consolidation_candidate(
+    app: AppHandle,
+    input: ResolveConsolidationCandidateInput,
+) -> Result<ConsolidationResolutionResult, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let subject_digest = input.candidate_id.clone();
+    audited_memory_operation(
+        &app,
+        "memory.records.write",
+        "resolve_consolidation_candidate",
+        &subject_digest,
+        "MEMORY_CONSOLIDATION_KEPT_SEPARATE",
+        || resolve_consolidation_candidate_at(&data_root, input, current_utc_timestamp()?),
+    )
 }
 
 fn activate_layered_memory_at(
@@ -1773,6 +2161,8 @@ mod tests {
         assert_eq!(snapshot.eligible_record_count, 3);
         assert_eq!(snapshot.archived_record_count, 1);
         assert_eq!(snapshot.candidate_count, 3);
+        assert_eq!(snapshot.pending_candidate_count, 3);
+        assert_eq!(snapshot.kept_separate_count, 0);
         assert_eq!(snapshot.exact_duplicate_count, 1);
         assert_eq!(snapshot.review_required_count, 2);
         assert_eq!(
@@ -1843,6 +2233,211 @@ mod tests {
     }
 
     #[test]
+    fn r6_3_keep_separate_preserves_records_and_writes_verified_decision() {
+        let root = temporary_probe_root("r6-3-keep-separate");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-a",
+                "kind": "Enseñanza",
+                "intention": "Forma de saludar",
+                "startedAt": "2026-08-15T10:00:00Z",
+                "finishedAt": "2026-08-15T10:01:00Z",
+                "summary": "Alice saluda al entrar.",
+                "memoryType": "semantic"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-b",
+                "kind": "Enseñanza",
+                "intention": "Forma de saludar",
+                "startedAt": "2026-08-15T11:00:00Z",
+                "finishedAt": "2026-08-15T11:01:00Z",
+                "summary": "Alice saluda sólo si hay alguien presente.",
+                "memoryType": "semantic"
+            }))
+            .unwrap(),
+        ];
+        let source = write_layered_fixture(&root, &records);
+        let initial = consolidation_preview_at(&root);
+        let candidate = initial.candidates[0].clone();
+        let source_sha256 = initial.source_sha256.clone().unwrap();
+        let result = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: source_sha256.clone(),
+                candidate_id: candidate.candidate_id.clone(),
+                expected_record_ids: candidate.record_ids.clone(),
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:00:00Z".into(),
+        )
+        .expect("record keep-separate decision");
+
+        assert!(result.backup_created);
+        assert!(!result.records_modified);
+        assert!(!result.model_used);
+        assert_eq!(result.preview.pending_candidate_count, 0);
+        assert_eq!(result.preview.kept_separate_count, 1);
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).unwrap(),
+            source
+        );
+        assert_eq!(
+            fs::read_to_string(&result.source_backup_path).unwrap(),
+            source
+        );
+        let ledger = fs::read_to_string(&result.ledger_path).unwrap();
+        assert!(!ledger.contains("Alice saluda al entrar"));
+        assert!(ledger.contains("keepSeparate"));
+        let audit = fs::read_to_string(
+            root.join("memory")
+                .join("audit")
+                .join("memory-events.jsonl"),
+        )
+        .unwrap();
+        assert!(audit.contains("consolidation-keep-separate"));
+        assert!(!audit.contains("Alice saluda"));
+
+        let before_repeat = file_hashes(&root);
+        let repeated = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: source_sha256,
+                candidate_id: candidate.candidate_id,
+                expected_record_ids: candidate.record_ids,
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:05:00Z".into(),
+        )
+        .expect("idempotent decision");
+        assert!(!repeated.backup_created);
+        assert_eq!(file_hashes(&root), before_repeat);
+
+        fs::remove_file(&result.source_backup_path).expect("remove controlled source backup");
+        let blocked_without_backup = consolidation_preview_at(&root);
+        assert_eq!(
+            blocked_without_backup.state,
+            ConsolidationPreviewState::Blocked
+        );
+        assert!(blocked_without_backup
+            .blocked_reason
+            .as_deref()
+            .is_some_and(|reason| reason.contains("respaldo canónico")));
+
+        fs::remove_dir_all(root).expect("remove keep-separate fixture");
+    }
+
+    #[test]
+    fn r6_3_resolution_rejects_stale_or_unknown_candidates_without_writing() {
+        let root = temporary_probe_root("r6-3-resolution-rejected");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-a",
+                "kind": "Enseñanza",
+                "intention": "Tema",
+                "startedAt": "2026-08-15T10:00:00Z",
+                "finishedAt": "2026-08-15T10:01:00Z",
+                "summary": "Uno"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-b",
+                "kind": "Enseñanza",
+                "intention": "Tema",
+                "startedAt": "2026-08-15T11:00:00Z",
+                "finishedAt": "2026-08-15T11:01:00Z",
+                "summary": "Dos"
+            }))
+            .unwrap(),
+        ];
+        write_layered_fixture(&root, &records);
+        let preview = consolidation_preview_at(&root);
+        let candidate = preview.candidates[0].clone();
+        let before = file_hashes(&root);
+
+        let stale = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: format!("sha256:{}", "0".repeat(64)),
+                candidate_id: candidate.candidate_id.clone(),
+                expected_record_ids: candidate.record_ids.clone(),
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:00:00Z".into(),
+        );
+        assert!(stale.unwrap_err().contains("cambió"));
+
+        let unknown = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: preview.source_sha256.unwrap(),
+                candidate_id: format!("sha256:{}", "f".repeat(64)),
+                expected_record_ids: candidate.record_ids,
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:00:00Z".into(),
+        );
+        assert!(unknown.unwrap_err().contains("ya no existe"));
+        assert_eq!(file_hashes(&root), before);
+
+        fs::remove_dir_all(root).expect("remove rejected fixture");
+    }
+
+    #[test]
+    fn r6_3_resolution_rolls_back_decision_when_audit_is_unavailable() {
+        let root = temporary_probe_root("r6-3-audit-rollback");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-a",
+                "kind": "Enseñanza",
+                "intention": "Tema auditable",
+                "startedAt": "2026-08-15T10:00:00Z",
+                "finishedAt": "2026-08-15T10:01:00Z",
+                "summary": "Uno"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-b",
+                "kind": "Enseñanza",
+                "intention": "Tema auditable",
+                "startedAt": "2026-08-15T11:00:00Z",
+                "finishedAt": "2026-08-15T11:01:00Z",
+                "summary": "Dos"
+            }))
+            .unwrap(),
+        ];
+        let source = write_layered_fixture(&root, &records);
+        let preview = consolidation_preview_at(&root);
+        let candidate = preview.candidates[0].clone();
+        fs::write(root.join("memory").join("audit"), "blocked by fixture")
+            .expect("create real audit failure");
+
+        let result = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: preview.source_sha256.unwrap(),
+                candidate_id: candidate.candidate_id,
+                expected_record_ids: candidate.record_ids,
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:00:00Z".into(),
+        );
+
+        assert!(result.unwrap_err().contains("registro fue restaurado"));
+        assert!(!consolidation_decision_path(&root).exists());
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).unwrap(),
+            source
+        );
+        fs::remove_dir_all(root).expect("remove audit rollback fixture");
+    }
+
+    #[test]
     #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
     fn live_canonical_r6_3_preview_is_read_only() {
         let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
@@ -1863,6 +2458,39 @@ mod tests {
             snapshot.eligible_record_count,
             snapshot.exact_duplicate_count,
             snapshot.review_required_count,
+            before.len()
+        );
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_r6_3_resolution_rejects_unknown_candidate_without_writing() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR requerido");
+        let preview = consolidation_preview_at(&root);
+        let source_sha256 = preview
+            .source_sha256
+            .clone()
+            .expect("fuente canónica disponible");
+        let before = file_hashes(&root);
+        let rejected = resolve_consolidation_candidate_at(
+            &root,
+            ResolveConsolidationCandidateInput {
+                expected_source_sha256: source_sha256,
+                candidate_id: format!("sha256:{}", "0".repeat(64)),
+                expected_record_ids: vec!["unknown-a".into(), "unknown-b".into()],
+                action: ConsolidationResolutionAction::KeepSeparate,
+                confirmed: true,
+            },
+            "2026-08-15T15:00:00Z".into(),
+        );
+        let after = file_hashes(&root);
+
+        assert!(rejected.unwrap_err().contains("ya no existe"));
+        assert_eq!(after, before);
+        eprintln!(
+            "R6_3B_CANONICAL rejectedUnknown=true filesIntact={}",
             before.len()
         );
     }

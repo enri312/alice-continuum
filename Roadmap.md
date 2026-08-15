@@ -182,7 +182,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C y R6.3-A validados el 2026-08-15  
+**Estado:** en curso · R6.1, R6.2-C y R6.3-B validados el 2026-08-15  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -207,6 +207,8 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.3-A:** `consolidation_preview` relee `records.json` sin escribir y produce pares ligados al SHA-256 de la fuente. Sólo llama duplicado exacto a tipo, clase, intención, resumen y próximo paso normalizados iguales; una misma intención con contenido diferente queda como revisión requerida, no contradicción automática. La sonda canónica leyó 10 registros y devolvió cero candidatos con 10 archivos intactos. `Memoria → Consolidar` muestra el resultado nativo; fusión, archivado y resolución continúan bloqueados.
 
+**Incremento R6.3-B:** `resolve_consolidation_candidate` acepta exclusivamente `keepSeparate`. La orden exige confirmación, SHA-256 vigente, ID de candidato y los dos IDs ordenados. Antes de persistir crea un respaldo de `records.json` ligado a su huella; luego registra una decisión lateral, inmutable e idempotente, y auditoría sin texto privado. La interfaz conserva el par visible como resuelto. No reescribe recuerdos ni habilita fusión o archivado. La sonda canónica negativa rechazó un candidato inexistente y preservó los 10 archivos.
+
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
@@ -219,7 +221,7 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 - [x] La memoria de trabajo puede descartarse sin borrar memoria duradera.
 - [x] Los índices derivados pueden reconstruirse desde la fuente de verdad.
 
-R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-A detecta candidatos sin resolverlos. Vista previa con respaldo continúa abierta hasta implementar una decisión de consolidación gobernada.
+R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados con respaldo y auditoría. La fusión manual continúa bloqueada hasta definir selección de registro superviviente y restauración verificable.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -327,7 +329,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, y R6.3-A muestra candidatos reales sin escritura. El siguiente microincremento será **R6.3-B — resolución humana gobernada**, con opción de mantener separados, control SHA-256, respaldo previo y auditoría antes de cualquier fusión o archivado. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, y R6.3-B registra de forma real la decisión humana de mantener dos recuerdos separados. El siguiente microincremento será **R6.3-C — diseño y vista previa de fusión manual de duplicados exactos**, sin ejecutarla hasta cerrar selección del registro superviviente, restauración y auditoría. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

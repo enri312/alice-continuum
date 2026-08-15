@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C y R6.3-A validados  
+Estado: en curso · R6.1, R6.2-C y R6.3-B validados  
 Fecha: 2026-08-15
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -40,7 +40,7 @@ La eliminación de la antigua pestaña independiente Conversación evita duplica
 
 ## R6.3 — Consolidación manual
 
-Estado: R6.3-A validado; resolución de candidatos pendiente.
+Estado: R6.3-B validado; fusión manual pendiente.
 
 - [x] Contrato cerrado de vista previa nativa y de sólo lectura.
 - [x] Duplicados exactos por contenido normalizado y pares de revisión por intención coincidente.
@@ -48,10 +48,13 @@ Estado: R6.3-A validado; resolución de candidatos pendiente.
 - [x] Exclusión de registros archivados y sesiones sin finalizar.
 - [x] Interfaz separada `Memoria → Consolidar` con fallback web honesto.
 - [x] Sonda real contra los 10 recuerdos canónicos con huellas intactas.
-- [ ] Decisión humana conservar/fusionar/mantener separados.
-- [ ] Respaldo previo, bloqueo por SHA-256 y auditoría de cualquier resolución.
+- [x] Decisión humana para mantener ambos recuerdos separados.
+- [x] Respaldo previo, bloqueo por SHA-256 y auditoría de `keepSeparate`.
+- [x] Registro lateral sin contenido privado, visible e idempotente.
+- [ ] Diseño de fusión manual limitado a duplicados exactos.
+- [ ] Selección explícita del registro superviviente y restauración verificable.
 
-R6.3-A no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada.
+R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`: no fusiona, elimina, archiva ni modifica `records.json`.
 
 ## Fuente futura gobernada — proyectos locales
 
