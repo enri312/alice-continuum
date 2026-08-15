@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { retrieveMemories } from "../core/memory-retrieval";
 import { buildCloudPayload } from "../core/cloud-payload";
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
+import type { WorkingMemorySnapshot } from "../core/working-memory";
 
 export type ConversationMessage = {
   id: string;
@@ -33,11 +34,14 @@ export type CloudResponse = {
   responseId: string;
   inputTokens: number;
   outputTokens: number;
+  workingMemory: WorkingMemorySnapshot | null;
+  workingMemoryError: string | null;
 };
 
 type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryStatus?: "confirmed" | "conflict" | "archived" };
 
 type ConversacionProps = {
+  embedded?: boolean;
   desktopApp: boolean;
   draft: string;
   status: CloudStatus;
@@ -58,7 +62,7 @@ function messageTime(iso: string) {
   return new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
 
-export function Conversacion({ desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onOpenSettings, onSend }: ConversacionProps) {
+export function Conversacion({ embedded = false, desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onOpenSettings, onSend }: ConversacionProps) {
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
@@ -116,7 +120,8 @@ export function Conversacion({ desktopApp, draft, status, provider, model, messa
     setSending(true);
     setError("");
     try {
-      await onSend(reviewRequest, rememberLocally, reviewMemoryIds);
+      const response = await onSend(reviewRequest, rememberLocally, reviewMemoryIds);
+      if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
       onDraftChange("");
       setReviewing(false);
       setReviewMemoryIds([]);
@@ -127,11 +132,11 @@ export function Conversacion({ desktopApp, draft, status, provider, model, messa
     }
   }
 
-  return <section className="conversation-page" aria-labelledby="conversation-title">
-    <div className="conversation-heading">
+  return <section className={`conversation-page ${embedded ? "embedded" : ""}`} aria-labelledby={embedded ? undefined : "conversation-title"} aria-label={embedded ? "Conversación real con Alice" : undefined}>
+    {!embedded && <div className="conversation-heading">
       <div><p className="eyebrow">CANAL AUTORIZADO · CONVERSACIÓN</p><h2 id="conversation-title">Conversación con Alice</h2><p>Escribí normalmente. Antes de salir de tu computadora, el contenido pasa por una revisión visible y requiere tu autorización.</p></div>
       <div className={`cloud-status ${configuredCount ? "ready" : "offline"}`}><i />{configuredCount ? `${configuredCount} PROVEEDOR${configuredCount > 1 ? "ES" : ""} DISPONIBLE${configuredCount > 1 ? "S" : ""}` : "FALTA API KEY"}</div>
-    </div>
+    </div>}
 
     <div className="conversation-layout">
       <div className="chat-column">

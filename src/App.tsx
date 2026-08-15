@@ -23,6 +23,7 @@ import { loadCompatibleArray } from "./core/storage-migration";
 import { parsePermissionGatewayStatus } from "./core/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
 import type { Screen } from "./core/workspaces";
+import { messagesFromWorkingMemory, parseWorkingMemorySnapshot } from "./core/working-memory";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -82,7 +83,7 @@ export function App() {
     const requested = new URLSearchParams(window.location.search).get("screen");
     const knownScreens = Object.values(workspaceScreens).flat();
     if (knownScreens.includes(requested as Screen)) return requested as Screen;
-    return avatarDiagnostic ? "avatar" : "conversacion";
+    return avatarDiagnostic ? "avatar" : "identificacion";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
@@ -103,6 +104,7 @@ export function App() {
   const memoryLoadStarted = useRef(false);
   const sessionsRef = useRef(sessions);
   const memorySaveQueue = useRef<Promise<void>>(Promise.resolve());
+  const workingMemoryGeneration = useRef(-1);
 
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
@@ -147,6 +149,27 @@ export function App() {
   useEffect(() => {
     if (!desktopApp) return;
     invoke<CloudStatus>("cloud_status").then(setCloudStatus).catch((error) => recordEvent("SECURITY", "CLOUD_STATUS_ERROR", String(error), "WARN"));
+  }, [desktopApp]);
+
+  useEffect(() => {
+    if (!desktopApp) return;
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const snapshot = parseWorkingMemorySnapshot(await invoke<unknown>("working_memory_status"));
+        if (cancelled || snapshot.generation === workingMemoryGeneration.current) return;
+        workingMemoryGeneration.current = snapshot.generation;
+        setMessages(messagesFromWorkingMemory(snapshot));
+      } catch (error) {
+        if (!cancelled && workingMemoryGeneration.current < 0) {
+          workingMemoryGeneration.current = 0;
+          recordEvent("SECURITY", "WORKING_MEMORY_STATUS_ERROR", String(error), "WARN");
+        }
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 5_000);
+    return () => { cancelled = true; window.clearInterval(timer); };
   }, [desktopApp]);
 
   useEffect(() => {
@@ -233,10 +256,26 @@ export function App() {
     try {
       const response = await invoke<CloudResponse>("send_cloud_message", { request });
       const now = new Date().toISOString();
-      setMessages((current) => [...current,
-        { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
-        { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
-      ]);
+      if (response.workingMemory) {
+        try {
+          const snapshot = parseWorkingMemorySnapshot(response.workingMemory);
+          workingMemoryGeneration.current = snapshot.generation;
+          setMessages(messagesFromWorkingMemory(snapshot));
+          recordEvent("MEMORY", "WORKING_MEMORY_RECORDED", `${snapshot.messageCount}/${snapshot.maximumMessages} mensajes reales en RAM · TTL ${snapshot.ttlSeconds}s`);
+        } catch (error) {
+          setMessages((current) => [...current,
+            { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
+            { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
+          ]);
+          recordEvent("SECURITY", "WORKING_MEMORY_CONTRACT_ERROR", String(error), "WARN");
+        }
+      } else {
+        setMessages((current) => [...current,
+          { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
+          { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
+        ]);
+      }
+      if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
       const recalledIds = new Set(recalledMemoryIds);
       const reinforcedIds = new Set(selectReinforceableMemoryIds(sessionsRef.current.filter((session) => recalledIds.has(session.id))));
       if (rememberLocally || reinforcedIds.size) {
@@ -306,7 +345,7 @@ export function App() {
     </header>
 
     <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
-      <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("conversacion")}>
+      <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("identificacion")}>
         <span>SYS 01 · MENTE Y CONDUCTA</span><strong>COGNITIVE CORE</strong><small>percepción · memoria · estado · actividad</small>
       </button>
       <button type="button" role="tab" aria-selected={workspace === "body"} className={workspace === "body" ? "selected body" : "body"} onClick={() => setScreen("rostro")}>
@@ -325,12 +364,11 @@ export function App() {
 
     <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas de Cognitive Identification" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
       {workspace === "cognitive" && <>
-      <button className={screen === "conversacion" ? "selected" : ""} aria-label="Conversación" data-tooltip="Conversación" aria-current={screen === "conversacion" ? "page" : undefined} onClick={() => setScreen("conversacion")}><NavigationIcon kind="conversation" active={screen === "conversacion"} /><span className="screen-tab-label">Conversación</span></button>
+      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Entrada e identificación cognitiva" data-tooltip="Entrada e identificación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Entrada e identificación</span></button>
       <button className={screen === "nucleo" ? "selected" : ""} aria-label="Volumen cognitivo" data-tooltip="Volumen cognitivo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="volume" active={screen === "nucleo"} /><span className="screen-tab-label">Volumen cognitivo</span></button>
       <button className={screen === "flujo" ? "selected" : ""} aria-label="Flujo cognitivo" data-tooltip="Flujo cognitivo" aria-current={screen === "flujo" ? "page" : undefined} onClick={() => setScreen("flujo")}><NavigationIcon kind="flow" active={screen === "flujo"} /><span className="screen-tab-label">Flujo cognitivo</span></button>
       <button className={screen === "estado" ? "selected" : ""} aria-label="Estado y controles" data-tooltip="Estado y controles" aria-current={screen === "estado" ? "page" : undefined} onClick={() => setScreen("estado")}><NavigationIcon kind="state" active={screen === "estado"} /><span className="screen-tab-label">Estado y controles</span></button>
       <button className={screen === "planificador" ? "selected" : ""} aria-label="Planificador de acción" data-tooltip="Planificador" aria-current={screen === "planificador" ? "page" : undefined} onClick={() => setScreen("planificador")}><NavigationIcon kind="planner" active={screen === "planificador"} /><span className="screen-tab-label">Planificador</span></button>
-      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Identificación cognitiva" data-tooltip="Identificación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Identificación</span></button>
       <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${remembered.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{remembered.length}</span></button>
       <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
       </>}
@@ -349,12 +387,11 @@ export function App() {
     </nav>
 
     <div className="core-system-content">
-    {screen === "conversacion" && <Conversacion desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />}
     {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} onConverse={() => setScreen("conversacion")} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
     {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}

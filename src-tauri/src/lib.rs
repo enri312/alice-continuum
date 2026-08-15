@@ -18,6 +18,7 @@ mod sensory;
 // R4 conserva borradores locales verificables; ningún comando ejecuta pasos.
 mod skills;
 mod util;
+mod working_memory;
 
 use audit::{audit_snapshot, record_process_started};
 use avatar::{avatar_animation_status, avatar_status, record_avatar_motor_transition};
@@ -47,6 +48,7 @@ use skills::{
     transition_skill_lifecycle, SkillDraftStore,
 };
 use tauri::Manager;
+use working_memory::{clear_working_memory, working_memory_status, WorkingMemoryStore};
 
 pub fn run() {
     let observation_store = ObservationStore::default();
@@ -54,12 +56,14 @@ pub fn run() {
     let sensor_store = SensorLeaseStore::default();
     let skill_store = SkillDraftStore::default();
     let procedure_store = ProcedureCandidateStore::default();
+    let working_memory_store = WorkingMemoryStore::default();
     tauri::Builder::default()
         .manage(observation_store.clone())
         .manage(permission_gateway.clone())
         .manage(sensor_store.clone())
         .manage(skill_store)
         .manage(procedure_store)
+        .manage(working_memory_store)
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
@@ -120,6 +124,8 @@ pub fn run() {
             avatar_animation_status,
             record_avatar_motor_transition,
             cloud_status,
+            working_memory_status,
+            clear_working_memory,
             send_cloud_message
         ])
         .run(tauri::generate_context!())

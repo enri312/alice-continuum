@@ -1,7 +1,6 @@
 export type Workspace = "cognitive" | "body" | "governance";
 
 export type Screen =
-  | "conversacion"
   | "nucleo"
   | "flujo"
   | "estado"
@@ -19,7 +18,7 @@ export type Screen =
   | "configuracion";
 
 export const workspaceScreens: Record<Workspace, readonly Screen[]> = {
-  cognitive: ["conversacion", "nucleo", "flujo", "estado", "planificador", "identificacion", "memoria", "actividad"],
+  cognitive: ["identificacion", "nucleo", "flujo", "estado", "planificador", "memoria", "actividad"],
   body: ["rostro", "cuerpo", "avatar"],
   governance: ["puentes", "auditoria", "habilidades", "procedimientos", "configuracion"],
 };

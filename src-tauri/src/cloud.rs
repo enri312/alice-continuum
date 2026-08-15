@@ -2,13 +2,16 @@ use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
 use crate::util::{alice_data_root, timestamp_ms};
+use crate::working_memory::{
+    record_real_cloud_exchange, WorkingMemorySnapshot, WorkingMemoryStore,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::{Duration, Instant};
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
 const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Carlos Nuñez. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
 
@@ -55,6 +58,8 @@ pub(crate) struct CloudResponse {
     response_id: String,
     input_tokens: u64,
     output_tokens: u64,
+    working_memory: Option<WorkingMemorySnapshot>,
+    working_memory_error: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -262,6 +267,7 @@ fn extract_cloud_response_text(provider: &str, value: &serde_json::Value) -> Str
 #[tauri::command]
 pub(crate) async fn send_cloud_message(
     app: AppHandle,
+    working_memory: State<'_, WorkingMemoryStore>,
     request: CloudRequest,
 ) -> Result<CloudResponse, String> {
     validate_cloud_request(&request)?;
@@ -287,7 +293,7 @@ pub(crate) async fn send_cloud_message(
         .unwrap_or(86_400_000)
         .min(86_400_000);
     match result {
-        Ok(response) => {
+        Ok(mut response) => {
             let response_digest = format!("sha256:{:x}", Sha256::digest(response.text.as_bytes()));
             if let Err(error) = record_producer_audit(
                 &app,
@@ -302,6 +308,20 @@ pub(crate) async fn send_cloud_message(
                 "CLOUD_RESPONSE_RECEIVED",
             ) {
                 eprintln!("La respuesta de nube llegó, pero R3 no registró el resultado: {error}");
+            }
+            match record_real_cloud_exchange(
+                &app,
+                &working_memory,
+                &request.message,
+                &response.text,
+                &response.provider,
+                &response.model,
+            ) {
+                Ok(result) => {
+                    response.working_memory = Some(result.snapshot);
+                    response.working_memory_error = result.warning;
+                }
+                Err(error) => response.working_memory_error = Some(error),
             }
             Ok(response)
         }
@@ -529,6 +549,8 @@ async fn send_cloud_message_inner(
         response_id,
         input_tokens,
         output_tokens,
+        working_memory: None,
+        working_memory_error: None,
     })
 }
 

@@ -42,30 +42,18 @@ describe("identification", () => {
     expect(snapshot.intent).toBe("INSTRUCCIÓN");
   });
 
-  it("identifica una inyección diagnóstica sin confundirla con conversación real", () => {
+  it("analiza el último mensaje real cuando ya no existe un borrador", () => {
     const snapshot = buildIdentificationSnapshot({
       ...emptyInputs,
-      diagnosticInput: "Era una broma, no te enojes conmigo",
-      draft: "borrador real",
+      lastUserMessage: "Era una broma, no te enojes conmigo",
     });
 
-    expect(snapshot.source).toBe("diagnostic");
+    expect(snapshot.source).toBe("last-user-message");
     expect(snapshot.input).toBe("Era una broma, no te enojes conmigo");
     expect(snapshot.intent).toBe("FRIENDLY");
     expect(snapshot.intentMatches).toEqual(expect.arrayContaining(["broma", "conmigo"]));
-    expect(snapshot.fields.find((field) => field.label === "SOURCE")?.value).toBe("MANUAL_INPUT");
-    expect(snapshot.fields.find((field) => field.label === "SPEAKER")?.value).toBe("CONTEXT_SIM");
-  });
-
-  it("distingue un contexto automático del texto preparado en el inyector", () => {
-    const snapshot = buildIdentificationSnapshot({
-      ...emptyInputs,
-      diagnosticInput: "Eso no salió como esperábamos, pero podemos intentarlo otra vez",
-      diagnosticMode: "auto-demo",
-    });
-
-    expect(snapshot.fields.find((field) => field.label === "SOURCE")?.value).toBe("AUTO_DEMO");
-    expect(snapshot.fields.find((field) => field.label === "SPEAKER")?.value).toBe("CONTEXT_SIM");
+    expect(snapshot.fields.find((field) => field.label === "SOURCE")?.value).toBe("ÚLTIMO_USUARIO");
+    expect(snapshot.fields.find((field) => field.label === "SPEAKER")?.value).toBe("USUARIO_LOCAL");
   });
 
   it("detecta ajuste solo con suficientes indicios y explica sus reglas", () => {

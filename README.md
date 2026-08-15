@@ -6,9 +6,9 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![R6](https://img.shields.io/badge/R6.1-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-224%2F224%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-164%20aprobadas%20%7C%2010%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R6](https://img.shields.io/badge/R6.2--A-integrado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-228%2F228%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-169%20aprobadas%20%7C%2010%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -21,27 +21,27 @@ Aplicación de escritorio local-first para que **Alice** gestione conversación,
 
 El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
 
-- `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: conversación, núcleo, identificación, memoria y actividad cognitiva.
+- `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: entrada `[00]`, volumen, grafo, estado, planificación, memoria y actividad cognitiva.
 - `ALICE_NEURAL_CORE // BODY SOLVER`: rostro, cuerpo y avatar.
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 13 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 14 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
 | Área | Estado real |
 |---|---|
-| Registro de capacidades R1 | Validado: snapshot nativo v1 con 24 capacidades |
+| Registro de capacidades R1 | Validado: snapshot nativo v1 con 25 capacidades |
 | Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1 validado: proyección reversible, revisiones inmutables y cero contenido copiado; activación canónica pendiente del propietario |
-| Capacidades implementadas o parciales | 14 |
+| Memoria por capas R6 | R6.1 validado y R6.2-A integrado: hasta tres intercambios reales en RAM, sin persistencia y con TTL de 30 minutos |
+| Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 224/224 aprobadas |
-| Pruebas Rust | 164 normales aprobadas; diez sondas vivas disponibles por separado |
+| Pruebas TypeScript | 228/228 aprobadas |
+| Pruebas Rust | 169 normales aprobadas; diez sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -67,8 +67,8 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 
 | Espacio | Pantallas | Responsabilidad |
 |---|---|---|
-| Cognitive Core | Conversación, Volumen cognitivo, Flujo cognitivo, Estado y controles, Planificador, Identificación, Memoria y Actividad | Percepción interpretada, estructura, flujo, estado, planificación y eventos de conducta |
-| Body Solver | Rostro, Cuerpo y Avatar | Expresión y presencia física; sus adaptadores continúan desconectados |
+| Cognitive Core | Entrada e identificación `[00]`, Volumen `[01]`, Grafo `[02]`, Estado `[03]`, Planificador `[04]`, Memoria y Actividad `[06]/[07]` | Percepción interpretada, estructura, recuerdos, estado, planificación, línea temporal y eventos |
+| Body Solver | Puente rostro/cuerpo `[05]`, Rostro, Cuerpo y Avatar | Traduce decisiones a expresión y presencia física; sus adaptadores continúan desconectados |
 | Governance Core | Capacidades y permisos, Auditoría y diagnóstico, Taller y Configuración | Controles externos de Carlos sobre alcance, autorización, evidencia técnica y evolución de Alice |
 | Observation Room | Futura | Entorno delimitado para observar sesiones, estímulos, conducta y cambios trazables |
 
@@ -103,7 +103,7 @@ La entrada se lee sólo mediante Gamepad API mientras la prueba está activada. 
 
 ## Control de contexto de conversación
 
-El panel lateral de Conversación es la última revisión antes de una solicitud de nube:
+El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la última revisión antes de una solicitud de nube:
 
 - historial, recuerdos y ventana comienzan desmarcados;
 - observar una ventana localmente no implica enviarla;
@@ -169,6 +169,12 @@ Consulta el [contrato R5](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md),
 La pestaña **Memoria → Capas R6** relee `records.json` y muestra una proyección explicable antes de escribir. El índice `layer-index-v2.json` conserva solamente IDs de registros, clasificación, revisiones y SHA-256: no duplica conversaciones, títulos, fuentes ni resúmenes. Activar exige confirmar la huella visible y Rust vuelve a comprobarla. Revertir desactiva la revisión sin borrar la memoria ni el historial.
 
 La sonda real clasificó los 10 registros actuales como 9 episodios, 0 hechos semánticos enseñados y 1 procedimiento pendiente de vínculo R5. No activó la migración y mantuvo intactos los 10 archivos canónicos. Consulta el [contrato R6](docs/architecture/LAYERED_MEMORY_R6.md), [ADR-P-066](docs/decisions/ADR-P-066-proyeccion-memoria-por-capas.md), el [plan R6](docs/plans/R6-layered-memory.md) y el [informe R6.1](docs/testing/R6_LAYERED_MEMORY_REPORT_2026-08-13.md).
+
+## Memoria de trabajo R6.2-A
+
+Cada respuesta real del proveedor puede conservar el intercambio reciente en un almacén nativo dentro del proceso: máximo tres intercambios completos, seis mensajes, 48.000 caracteres y 30 minutos desde la última actividad. El texto no se escribe en disco; cerrar Alice, vencer el TTL o vaciar elimina la RAM sin afectar recuerdos duraderos. R3 registra únicamente operaciones y SHA-256.
+
+La antigua pantalla independiente **Conversación** fue eliminada. Su compositor, previsualización y mensajes viven ahora dentro de `[00] CONVERSATION / PERCEPTION INPUT`. `[05] FACE + BODY OUTPUT BRIDGE` queda en Body Solver; `Face` y `Body` son destinos del grafo cognitivo, no ejecutores del cerebro. Consulta [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md), [ADR-P-067](docs/decisions/ADR-P-067-memoria-trabajo-y-panel-entrada.md) y [el informe R6.2-A](docs/testing/R6_WORKING_MEMORY_REPORT_2026-08-14.md).
 
 ## Iniciar Alice
 
@@ -241,6 +247,7 @@ src-tauri/src/
 ├── core_activity.rs      señal efímera del Núcleo derivada de eventos R3
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
 ├── memory.rs             persistencia v1 y proyección R6.1 reversible, respaldada y auditada
+├── working_memory.rs     contexto conversacional R6.2 efímero, acotado y sólo en RAM
 ├── observation.rs        metadatos autorizados de ventana
 ├── procedure_learning.rs contrato y detector R5.2 de secuencias auditadas sin efectos
 ├── procedure_store.rs    decisiones R5.3 separadas, inmutables y verificables por SHA-256
@@ -257,7 +264,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md), [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md) y [LAYERED_MEMORY_R6.md](docs/architecture/LAYERED_MEMORY_R6.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md), [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [LAYERED_MEMORY_R6.md](docs/architecture/LAYERED_MEMORY_R6.md) y [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
 
 Las investigaciones externas son referencias, no autoridad de implementación. Están revisadas en [OpenClaw + Tencent](docs/research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md) y [Project AIRI](docs/research/REVIEW_AIRI_2026-08-13.md). AIRI aporta patrones útiles para el futuro puente de voz y VRM de R9, pero no sustituye el núcleo Tauri/Rust ni el diseño propio de memoria R6.
 

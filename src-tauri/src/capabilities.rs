@@ -184,7 +184,7 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(24);
+    let mut capabilities = Vec::with_capacity(25);
     capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
     capabilities.extend(memory_capabilities(&generated_at, &probes.memory));
@@ -613,6 +613,35 @@ fn memory_capabilities(
     };
 
     vec![
+        capability(
+            "memory.working.manage",
+            "Gestionar memoria de trabajo",
+            "Mantiene hasta seis mensajes reales dentro del proceso y permite inspeccionarlos o vaciarlos.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Partial,
+            "working-memory",
+            &[
+                "working_memory_status",
+                "record_real_cloud_exchange",
+                "clear_working_memory",
+            ],
+            CapabilityState::Idle,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::None],
+            &["volatileConversationText", "workingMemoryAuditDigests"],
+            &["Proceso de Alice activo", "Respuesta real recibida para registrar"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "El envío se autoriza visiblemente; Rust bloquea vaciado sin confirmación y generación exacta. Su control visual llega en R6.2-B.",
+            ),
+            health(
+                CapabilityHealthStatus::Healthy,
+                "El almacén RAM está disponible; el indicador y vaciado visual continúan pendientes de R6.2-B.",
+                Some(checked_at),
+            ),
+        ),
         capability(
             "memory.records.read",
             "Leer memoria local",
@@ -1678,7 +1707,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 24);
+        assert_eq!(snapshot.capabilities.len(), 25);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1694,6 +1723,10 @@ mod tests {
         assert_eq!(
             registered(&snapshot, "memory.records.read").state,
             CapabilityState::Unavailable
+        );
+        assert_eq!(
+            registered(&snapshot, "memory.working.manage").state,
+            CapabilityState::Idle
         );
         assert_eq!(
             registered(&snapshot, "avatar.vrm.render").state,
@@ -1851,7 +1884,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 24);
+        assert_eq!(snapshot.capabilities.len(), 25);
         assert!(!root.exists());
     }
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { buildIdentificationSnapshot } from "../core/identification";
 import type { IdentificationInputs, IdentificationSnapshot } from "../core/identification";
 
@@ -10,7 +11,7 @@ type TimedSnapshot = {
 type IdentificacionProps = IdentificationInputs & {
   observationAvailable: boolean;
   onToggleObservation: () => void;
-  onConverse: () => void;
+  conversationPanel: ReactNode;
 };
 
 const evidenceLabels = {
@@ -19,12 +20,6 @@ const evidenceLabels = {
   unavailable: "NO DISPONIBLE",
 } as const;
 
-const demoContexts = [
-  "Era una broma, no te enojes conmigo.",
-  "Eso no salió como esperábamos, pero podemos revisarlo juntos.",
-  "Me dio curiosidad. Cuéntame un poco más.",
-];
-
 function createTimedSnapshot(inputs: IdentificationInputs): TimedSnapshot {
   const startedAt = performance.now();
   const snapshot = buildIdentificationSnapshot(inputs);
@@ -32,17 +27,13 @@ function createTimedSnapshot(inputs: IdentificationInputs): TimedSnapshot {
 }
 
 export function Identificacion(props: IdentificacionProps) {
-  const { observationAvailable, onToggleObservation, onConverse, ...identificationInputs } = props;
+  const { observationAvailable, onToggleObservation, conversationPanel, ...identificationInputs } = props;
   const [mode, setMode] = useState<"live" | "paused">("live");
   const [frozen, setFrozen] = useState<TimedSnapshot | null>(null);
   const [cycle, setCycle] = useState(1);
   const [inspect, setInspect] = useState(true);
-  const [stagedInput, setStagedInput] = useState("");
-  const [diagnosticInput, setDiagnosticInput] = useState("");
-  const [diagnosticMode, setDiagnosticMode] = useState<"manual" | "auto-demo">("manual");
-  const [demoIndex, setDemoIndex] = useState(-1);
   const fingerprintRef = useRef("");
-  const analysisInputs = useMemo(() => ({ ...identificationInputs, diagnosticInput, diagnosticMode }), [
+  const analysisInputs = useMemo(() => identificationInputs, [
     props.cloudPending,
     props.draft,
     props.foregroundContext,
@@ -51,8 +42,6 @@ export function Identificacion(props: IdentificacionProps) {
     props.messageCount,
     props.observerEnabled,
     props.retrievedMemoryCount,
-    diagnosticInput,
-    diagnosticMode,
   ]);
   const live = useMemo(() => createTimedSnapshot(analysisInputs), [analysisInputs]);
   const fingerprint = JSON.stringify({
@@ -91,23 +80,6 @@ export function Identificacion(props: IdentificacionProps) {
     setCycle((currentCycle) => currentCycle + 1);
   }
 
-  function injectDiagnosticInput() {
-    const input = stagedInput.trim();
-    if (!input) return;
-    setDiagnosticInput(input);
-    setDiagnosticMode("manual");
-    setMode("live");
-  }
-
-  function loadNextDemoContext() {
-    const nextIndex = (demoIndex + 1) % demoContexts.length;
-    const next = demoContexts[nextIndex];
-    setDemoIndex(nextIndex);
-    setDiagnosticInput(next);
-    setDiagnosticMode("auto-demo");
-    setMode("live");
-  }
-
   return <section className="identification-page" aria-labelledby="identification-title">
     <header className="identification-header">
       <div className="identification-title-block">
@@ -138,7 +110,7 @@ export function Identificacion(props: IdentificacionProps) {
       <button className={mode === "paused" ? "selected warning" : ""} type="button" onClick={pause}>PAUSE</button>
       <button className={mode === "live" ? "selected" : ""} type="button" onClick={resume}>AUTO_REND</button>
       <button className={props.observerEnabled ? "selected" : ""} type="button" aria-pressed={props.observerEnabled} onClick={onToggleObservation} disabled={!observationAvailable} title={observationAvailable ? "Activar o detener la observación local autorizada" : "La observación está disponible en la aplicación de escritorio"}>OBSERVE</button>
-      <button type="button" onClick={onConverse}>CONVERSE</button>
+      <button className="selected" type="button" onClick={() => document.getElementById("alice-message")?.focus()}>CONVERSE</button>
       <button className={inspect ? "selected" : ""} type="button" aria-pressed={inspect} onClick={() => setInspect((currentInspect) => !currentInspect)}>INSPECT</button>
       <button type="button" disabled title="El historial de ciclos aún no está implementado">REPLAY · R1+</button>
       <span className="identification-failsafe"><i /> FAILSAFE · LOCAL ONLY</span>
@@ -148,16 +120,12 @@ export function Identificacion(props: IdentificacionProps) {
       <section className="identification-input" aria-labelledby="perception-input-title">
         <header>
           <h3 id="perception-input-title"><span>[00]</span> CONVERSATION / PERCEPTION INPUT</h3>
-          <small>AUTO_DEMO · MANUAL</small>
+          <small>REAL_INPUT · REVIEW_REQUIRED</small>
         </header>
-        <div className="identification-injector">
-          <textarea aria-label="Texto preparado para inyección local" value={stagedInput} onChange={(event) => { const value = event.target.value; setStagedInput(value); if (!value.trim() && diagnosticMode === "manual") { setDiagnosticInput(""); setDemoIndex(-1); } }} placeholder="Ej.: TEST DE PERSONALIDAD MÚLTIPLE Y LIBRE ALBEDRÍO" />
-          <div><button type="button" onClick={injectDiagnosticInput} disabled={!stagedInput.trim()}>INJECT INPUT</button><button type="button" onClick={loadNextDemoContext}>NEXT AUTO CONTEXT</button></div>
-          <small>SIMULADOR LOCAL · no envía a la nube, no conversa y no guarda memoria</small>
-        </div>
+        {conversationPanel}
         <div className="identification-processed" aria-live="polite">
-          <div className="identification-received"><span>ACTIVE INPUT</span><strong>{snapshot.input || "SIN ENTRADA ACTIVA"}</strong><small>{snapshot.source === "diagnostic" ? diagnosticMode === "auto-demo" ? "AUTO_DEMO" : "MANUAL_INPUT" : snapshot.source === "none" ? "WAITING_INPUT" : "LIVE_CONTEXT"}</small></div>
-          <div className={`identification-tokens ${snapshot.tokens.length ? "" : "empty"}`}>{snapshot.tokens.length ? snapshot.tokens.map((token, index) => <span key={`${token}-${index}`}>{token}</span>) : <p><strong>0 TOKENS</strong><span>Esperando entrada de conversación o contexto simulado.</span></p>}</div>
+          <div className="identification-received"><span>ACTIVE INPUT</span><strong>{snapshot.input || "SIN ENTRADA ACTIVA"}</strong><small>{snapshot.source === "none" ? "WAITING_INPUT" : "LIVE_CONTEXT"}</small></div>
+          <div className={`identification-tokens ${snapshot.tokens.length ? "" : "empty"}`}>{snapshot.tokens.length ? snapshot.tokens.map((token, index) => <span key={`${token}-${index}`}>{token}</span>) : <p><strong>0 TOKENS</strong><span>Esperando una entrada real de conversación o percepción autorizada.</span></p>}</div>
           <small className="identification-token-count">{snapshot.tokens.length} TOKENS · VISUAL MAX 32</small>
         </div>
         {snapshot.tokens.length >= 32 && <p className="identification-limit">La visualización se limita a los primeros 32 tokens.</p>}

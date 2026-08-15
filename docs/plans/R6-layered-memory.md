@@ -1,7 +1,7 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1 implementado y validado  
-Fecha: 2026-08-13
+Estado: en curso · R6.1 validado y motor R6.2-A integrado  
+Fecha: 2026-08-14
 
 ## R6.1 — Proyección inicial y migración reversible
 
@@ -21,9 +21,20 @@ La fuente vigente continúa siendo `records.json`. R6.1 produce `layer-index-v2.
 
 ## R6.2 — Memoria de trabajo de sesión
 
-Estado: pendiente.
+Estado: primer incremento implementado; control visual de vaciado pendiente.
 
-Deberá definir un contenedor efímero descartable, presupuesto de contexto, procedencia y vista previa de todo fragmento que pudiera salir a un proveedor. Cerrar Alice o elegir descartar no eliminará memoria duradera.
+El backend mantiene en RAM hasta tres intercambios reales de conversación —seis mensajes y 48.000 caracteres— durante 30 minutos desde la última respuesta. Sólo se registra un intercambio después de recibir una respuesta real del proveedor. El contenido no se escribe en archivos, expira con tiempo real, se descarta al cerrar el proceso y nunca altera `records.json` ni `layer-index-v2.json`.
+
+- [x] Contenedor nativo, efímero y acotado.
+- [x] Procedencia de proveedor y modelo por intercambio.
+- [x] Expiración, desalojo de intercambios completos y rechazo de sobrepresupuesto.
+- [x] Auditoría R3 sólo con SHA-256, sin texto conversacional.
+- [x] Conversación real integrada dentro de `[00] CONVERSATION / PERCEPTION INPUT`.
+- [x] Consulta defensiva desde React cada cinco segundos.
+- [ ] Indicador y vaciado confirmado dentro de Memoria.
+- [ ] Presupuesto explícito de cada fragmento opcional antes del envío.
+
+La eliminación de la antigua pestaña independiente Conversación evita duplicar el panel `[00]`. La pantalla Memoria permanece porque administra recuerdos duraderos y, en el siguiente microincremento, también mostrará el estado del contenedor efímero sin mezclarlos.
 
 ## R6.3 — Consolidación manual
 

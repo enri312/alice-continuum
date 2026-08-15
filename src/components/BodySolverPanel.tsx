@@ -38,7 +38,7 @@ function ReferenceBody({ output = false }: { output?: boolean }) {
 export function BodySolverPanel() {
   return <div className="body-diagnostic">
     <header className="body-diagnostic-header">
-      <div><span>[BODY]</span><strong>MOTION PIPELINE DIAGNOSTIC // LOCAL PROCESS</strong></div>
+      <div><span>[05/BODY]</span><strong>FACE + BODY OUTPUT BRIDGE // BODY CHANNEL</strong></div>
       <p><i />PIPELINE DESCONECTADO</p>
     </header>
 
@@ -53,7 +53,7 @@ export function BodySolverPanel() {
 
     <div className="body-solver-layout">
       <section className="body-device-panel" aria-labelledby="body-devices-title">
-        <div className="body-panel-title"><span id="body-devices-title">[00] TRACKER DEVICE ARRAY</span><small>SIMULATED DEVICE / REQUIRED</small></div>
+        <div className="body-panel-title"><span id="body-devices-title">[00] TRACKER DEVICE ARRAY</span><small>REAL DEVICE / REQUIRED</small></div>
         <div className="body-device-root"><span>ALICE_SENSOR_HUB</span><small>SIN TRANSPORTE</small></div>
         <div className="body-device-tree">{deviceNodes.map((node) => <div key={node.code}><i>{node.code}</i><span><strong>{node.label}</strong><small>{node.detail}</small></span><em /></div>)}</div>
         <dl className="body-device-metrics"><div><dt>Parsed nodes</dt><dd>0 / 0</dd></div><div><dt>Transport latency</dt><dd>—</dd></div><div><dt>Packet loss</dt><dd>—</dd></div><div><dt>Signal RSSI</dt><dd>—</dd></div><div><dt>MCU temperature</dt><dd>—</dd></div></dl>

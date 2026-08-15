@@ -1,4 +1,4 @@
-export type IdentificationSource = "diagnostic" | "draft" | "last-user-message" | "none";
+export type IdentificationSource = "draft" | "last-user-message" | "none";
 export type EvidenceKind = "observed" | "heuristic" | "unavailable";
 
 export type IdentificationField = {
@@ -27,8 +27,6 @@ export type IdentificationSnapshot = {
 };
 
 export type IdentificationInputs = {
-  diagnosticInput?: string;
-  diagnosticMode?: "manual" | "auto-demo";
   draft: string;
   lastUserMessage?: string;
   messageCount: number;
@@ -91,20 +89,18 @@ function evidenceScore(matches: string[], denominator: number) {
 }
 
 export function buildIdentificationSnapshot(inputs: IdentificationInputs): IdentificationSnapshot {
-  const diagnosticInput = inputs.diagnosticInput?.trim() ?? "";
   const draft = inputs.draft.trim();
   const lastUserMessage = inputs.lastUserMessage?.trim() ?? "";
-  const source: IdentificationSource = diagnosticInput ? "diagnostic" : draft ? "draft" : lastUserMessage ? "last-user-message" : "none";
-  const input = source === "diagnostic" ? diagnosticInput : source === "draft" ? draft : source === "last-user-message" ? lastUserMessage : "";
+  const source: IdentificationSource = draft ? "draft" : lastUserMessage ? "last-user-message" : "none";
+  const input = source === "draft" ? draft : source === "last-user-message" ? lastUserMessage : "";
   const tokens = tokenizeIdentificationInput(input);
   const classification = classifyIntent(input, tokens);
   const cooperationMatches = matchedTokens(tokens, cooperationWords);
   const correctionMatches = matchedTokens(tokens, correctionWords);
   const uncertaintyMatches = matchedTokens(tokens, uncertaintyWords);
 
-  const sourceValue = source === "diagnostic" ? "SIMULADOR_LOCAL" : source === "draft" ? "BORRADOR_LOCAL" : source === "last-user-message" ? "ÚLTIMO_USUARIO" : "SIN_ENTRADA";
-  const diagnosticSourceValue = inputs.diagnosticMode === "auto-demo" ? "AUTO_DEMO" : "MANUAL_INPUT";
-  const speakerValue = source === "diagnostic" ? "CONTEXT_SIM" : input ? "USUARIO_LOCAL" : "NO_IDENTIFICADO";
+  const sourceValue = source === "draft" ? "BORRADOR_LOCAL" : source === "last-user-message" ? "ÚLTIMO_USUARIO" : "SIN_ENTRADA";
+  const speakerValue = input ? "USUARIO_LOCAL" : "NO_IDENTIFICADO";
 
   return {
     source,
@@ -114,8 +110,8 @@ export function buildIdentificationSnapshot(inputs: IdentificationInputs): Ident
     intentConfidence: classification.confidence,
     intentMatches: classification.matches,
     fields: [
-      { label: "SOURCE", value: source === "diagnostic" ? diagnosticSourceValue : sourceValue, evidence: "observed", detail: "Origen exacto del texto activo mostrado" },
-      { label: "SPEAKER", value: speakerValue, evidence: "observed", detail: source === "diagnostic" ? "Contexto del simulador local; no es una persona identificada" : "Rol de conversación; identidad personal aún no conectada" },
+      { label: "SOURCE", value: sourceValue, evidence: "observed", detail: "Origen exacto del texto real activo mostrado" },
+      { label: "SPEAKER", value: speakerValue, evidence: "observed", detail: "Rol de conversación local; identidad personal aún no conectada" },
       { label: "INTENT TOP-1", value: classification.intent, evidence: classification.confidence === null ? "unavailable" : "heuristic", detail: classification.matches.length ? `Reglas activadas: ${classification.matches.join(", ")}` : "Sin evidencia suficiente para asignar intención" },
       { label: "INTENT CONF", value: classification.confidence === null ? "N/D" : classification.confidence.toFixed(2), evidence: classification.confidence === null ? "unavailable" : "heuristic", detail: "Índice de coincidencia de reglas; no es probabilidad de un modelo" },
     ],
