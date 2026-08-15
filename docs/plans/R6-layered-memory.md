@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1 y R6.2-B validados  
+Estado: en curso · R6.1 y R6.2-C validados  
 Fecha: 2026-08-14
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -21,7 +21,7 @@ La fuente vigente continúa siendo `records.json`. R6.1 produce `layer-index-v2.
 
 ## R6.2 — Memoria de trabajo de sesión
 
-Estado: R6.2-B validado; presupuesto por fragmento de salida pendiente.
+Estado: R6.2-C validado.
 
 El backend mantiene en RAM hasta tres intercambios reales de conversación —seis mensajes y 48.000 caracteres— durante 30 minutos desde la última respuesta. Sólo se registra un intercambio después de recibir una respuesta real del proveedor. El contenido no se escribe en archivos, expira con tiempo real, se descarta al cerrar el proceso y nunca altera `records.json` ni `layer-index-v2.json`.
 
@@ -32,7 +32,9 @@ El backend mantiene en RAM hasta tres intercambios reales de conversación —se
 - [x] Conversación real integrada dentro de `[00] CONVERSATION / PERCEPTION INPUT`.
 - [x] Consulta defensiva desde React cada cinco segundos.
 - [x] Indicador, TTL, presupuesto, procedencia y vaciado confirmado dentro de Memoria.
-- [ ] Presupuesto explícito de cada fragmento opcional antes del envío.
+- [x] Presupuesto explícito de cada fragmento opcional antes del envío.
+
+La previsualización calcula sobre la cadena saliente real los caracteres Unicode y bytes UTF-8 de mensaje, historial, recuerdos y ventana. Los fragmentos opcionales no autorizados muestran cero. El cálculo incluye separadores y total, y evita presentar como exacta una estimación de tokens dependiente del proveedor.
 
 La eliminación de la antigua pestaña independiente Conversación evita duplicar el panel `[00]`. La pantalla Memoria conserva separados **Recuerdos**, **Trabajo RAM** y **Capas R6**. El navegador declara ausencia de backend y nunca fabrica un estado de sesión.
 

@@ -20,4 +20,4 @@ El panel `[05] FACE + BODY OUTPUT BRIDGE` pertenece a `Body Solver`. Los nodos `
 - Memoria duradera y RAM tienen fuentes, ciclos y controles distintos.
 - El vaciado usa confirmación y control de concurrencia por generación.
 - Memoria expone estado, TTL, presupuesto y vaciado como subpestaña interna; no se convierte en una octava pantalla del cerebro.
-- El siguiente incremento hará explícito el presupuesto de cada fragmento opcional en la previsualización de salida.
+- La previsualización muestra el presupuesto exacto por fragmento en caracteres Unicode y bytes UTF-8; no confunde esas magnitudes con tokens del proveedor.

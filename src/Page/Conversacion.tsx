@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { retrieveMemories } from "../core/memory-retrieval";
-import { buildCloudPayload } from "../core/cloud-payload";
+import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-payload";
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
 import type { WorkingMemorySnapshot } from "../core/working-memory";
 
@@ -69,6 +69,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [rememberLocally, setRememberLocally] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [reviewRequest, setReviewRequest] = useState<CloudRequest | null>(null);
+  const [reviewBudget, setReviewBudget] = useState<CloudPayloadBudget | null>(null);
   const [reviewMemoryIds, setReviewMemoryIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -89,7 +90,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setReviewing(false);
   }, [observationEnabled]);
 
-  const payload = useMemo(() => buildCloudPayload({
+  const payloadReview = useMemo(() => buildCloudPayloadReview({
     draft,
     includeHistory,
     recentHistory,
@@ -105,12 +106,13 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setError("");
     setReviewRequest({
       message: draft.trim(),
-      payload,
+    payload: payloadReview.payload,
       provider,
       model,
       historyCount: includeHistory ? recentHistory.length : 0,
       memoryCount: includeMemory ? retrievedMemories.length : 0,
     });
+    setReviewBudget(payloadReview.budget);
     setReviewMemoryIds(includeMemory ? selectReinforceableMemoryIds(retrievedMemories) : []);
     setReviewing(true);
   }
@@ -124,6 +126,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
       onDraftChange("");
       setReviewing(false);
+      setReviewBudget(null);
       setReviewMemoryIds([]);
     } catch (cause) {
       setError(String(cause));
@@ -171,6 +174,12 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
 
     {reviewing && <div className="send-review">
       <div className="review-heading"><div><p className="eyebrow">PREVISUALIZACIÓN OBLIGATORIA</p><h3>Esto se enviará a {status.providers.find((option) => option.id === reviewRequest?.provider)?.label ?? reviewRequest?.provider}</h3></div><span>{reviewRequest?.model}</span></div>
+      <div className="payload-budget" aria-label="Presupuesto exacto del contenido saliente">
+        <header><strong>PRESUPUESTO DE SALIDA</strong><span>CARACTERES · BYTES UTF-8</span></header>
+        {reviewBudget?.fragments.map((item) => <div key={item.id} className={item.included ? "included" : "excluded"}><span>{item.label}{item.optional ? " · opcional" : ""}</span><strong>{item.characters.toLocaleString("es-PY")}</strong><em>{item.utf8Bytes.toLocaleString("es-PY")} B</em><small>{item.included ? "INCLUIDO" : "NO AUTORIZADO"}</small></div>)}
+        <div className="separators"><span>Separadores de secciones</span><strong>{reviewBudget?.separatorCharacters.toLocaleString("es-PY") ?? 0}</strong><em>{reviewBudget?.separatorUtf8Bytes.toLocaleString("es-PY") ?? 0} B</em><small>FORMATO</small></div>
+        <footer><span>TOTAL EXACTO DEL PAYLOAD</span><strong>{reviewBudget?.totalCharacters.toLocaleString("es-PY") ?? 0} caracteres</strong><em>{reviewBudget?.totalUtf8Bytes.toLocaleString("es-PY") ?? 0} bytes UTF-8</em></footer>
+      </div>
       <pre>{reviewRequest?.payload}</pre>
       <p className="review-note">Además se adjunta una política breve: responder en español, no afirmar acciones no realizadas y pedir aprobación antes de acciones externas o costosas.</p>
       {!desktopApp && <p className="cloud-error">La llamada de nube solo funciona desde la aplicación de escritorio.</p>}

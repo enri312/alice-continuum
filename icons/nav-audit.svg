@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Auditoría y diagnóstico">
+  <title>Auditoría y diagnóstico</title>
+  <style>
+    .audit-orbit{animation:auditOrbit 4s linear infinite}.audit-pulse{animation:auditPulse 1.8s ease-in-out infinite}.audit-scan{animation:auditScan 3s ease-in-out infinite}
+    @keyframes auditOrbit{to{stroke-dashoffset:-42}}@keyframes auditPulse{50%{opacity:.3}}@keyframes auditScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.audit-orbit,.audit-pulse,.audit-scan{animation:none}}
+  </style>
+  <defs>
+    <radialGradient id="audit-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <linearGradient id="audit-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <linearGradient id="audit-accent" x1="0" x2="1"><stop stop-color="#fb7185"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
+    <radialGradient id="audit-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#fb7185"/><stop offset=".68" stop-color="#60a5fa"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <pattern id="audit-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#fb7185" stroke-width=".45" opacity=".22"/></pattern>
+    <filter id="audit-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="audit-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
+    <linearGradient id="audit-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fb7185" stop-opacity=".28"/><stop offset="1" stop-color="#fb7185" stop-opacity="0"/></linearGradient>
+  </defs>
+  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
+  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#audit-base)" stroke="#475569" stroke-width="1.5"/>
+  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#audit-grid)" stroke="#fb7185" stroke-width=".8" opacity=".78"/>
+  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#audit-beam)"/>
+  <circle class="audit-orbit" cx="100" cy="100" r="71" fill="none" stroke="#fb7185" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="audit-orbit" cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
+  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#fb7185" stroke-width="1" opacity=".65"/>
+  <g fill="url(#audit-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
+  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
+  <g fill="#fb7185" filter="url(#audit-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#60a5fa"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
+  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#fb7185" font-size="7" text-anchor="middle" letter-spacing="1.5">AUDIT · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
+  <g transform="translate(14 65)" fill="#07111e" stroke="#fb7185" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#fb7185"/><circle class="audit-pulse" cx="19" cy="27" r="2" fill="#60a5fa" stroke="none"/></g>
+  <g transform="translate(160 65)" fill="#07111e" stroke="#60a5fa" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#60a5fa"/><circle class="audit-pulse" cx="8" cy="27" r="2" fill="#fb7185" stroke="none"/></g>
+  <g transform="translate(91 84)" filter="url(#audit-shadow)">
+      <path d="M-43-49H35l12 12v91h-90z" fill="#21101a" stroke="#fb7185" stroke-width="2"/><path d="M35-49v12h12" fill="#4b1728" stroke="#fb7185"/>
+      <path d="M-31-31h48M-31-19h58M-31-7H8M-31 5h43M-31 17H2" stroke="#fda4af" stroke-width="3" stroke-linecap="round" opacity=".82"/>
+      <g fill="none" stroke="#60a5fa"><path d="M-31 34h42"/><path d="M-31 40h31"/><rect x="-34" y="28" width="52" height="18" rx="2"/></g>
+      <path d="m-27 34 4 4 8-9" fill="none" stroke="#4ade80" stroke-width="2.5"/><text x="-9" y="38" fill="#bfdbfe" font-family="Consolas,monospace" font-size="5" font-weight="900">SHA-256 OK</text>
+    </g>
+    <g transform="translate(127 105)" filter="url(#audit-glow)"><circle r="32" fill="#071426" fill-opacity=".88" stroke="#60a5fa" stroke-width="6"/><circle r="23" fill="none" stroke="#93c5fd" stroke-dasharray="3 3"/><path d="M22 22 48 48" stroke="#60a5fa" stroke-width="11" stroke-linecap="round"/><path d="M-11 1-2 10 14-12" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-16" cy="-15" r="4" fill="#fb7185"/></g>
+    <path d="M47 143h35l7 7h25" fill="none" stroke="#fb7185" stroke-width="2"/><g fill="#fb7185"><circle cx="47" cy="143" r="3"/><circle cx="114" cy="150" r="3"/></g>
+  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><g transform="translate(35 130)"><rect width="130" height="25" rx="3" fill="#190d17" stroke="#fb7185"/><text x="7" y="8" fill="#94a3b8">INTEGRITY</text><text x="48" y="8" fill="#4ade80">HEALTHY</text><text x="7" y="16" fill="#94a3b8">DIAGNOSTIC</text><text x="52" y="16" fill="#60a5fa">PASSIVE</text><text x="7" y="23" fill="#94a3b8">SIDE EFFECTS</text><text x="52" y="23" fill="#fb7185">NONE</text><path d="M94 6h28M94 12h22M94 18h28" stroke="#475569"/><circle cx="126" cy="18" r="3" fill="#4ade80"/></g><text x="100" y="163" fill="#fb7185" text-anchor="middle">VERIFY · TRACE · DIAGNOSE</text></g>
+  <g class="audit-scan" stroke="#60a5fa" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
+  <g opacity=".65" stroke="#fb7185" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
+  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#fb7185"/><circle cx="58" cy="2.5" r="1.5" fill="#60a5fa"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
+</svg>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCloudPayload } from "./cloud-payload";
+import { buildCloudPayload, buildCloudPayloadReview } from "./cloud-payload";
 
 const context = {
   draft: "  Ayúdame con programación  ",
@@ -49,5 +49,41 @@ describe("buildCloudPayload", () => {
     expect(blocked).not.toContain("VENTANA AUTORIZADA");
     expect(allowed).toContain("Programa: Code");
     expect(allowed).toContain("Título: Proyecto secreto");
+  });
+
+  it("mide cada fragmento sobre la misma cadena exacta que se enviará", () => {
+    const review = buildCloudPayloadReview({
+      ...context,
+      draft: "Alice, leé esto 👋",
+      includeHistory: true,
+      includeMemory: true,
+      includeWindow: true,
+    });
+    const included = review.budget.fragments.filter((item) => item.included);
+
+    expect(review.payload).toBe(buildCloudPayload({
+      ...context,
+      draft: "Alice, leé esto 👋",
+      includeHistory: true,
+      includeMemory: true,
+      includeWindow: true,
+    }));
+    expect(review.budget.totalCharacters).toBe(Array.from(review.payload).length);
+    expect(review.budget.totalUtf8Bytes).toBe(new TextEncoder().encode(review.payload).length);
+    expect(review.budget.separatorCharacters).toBe((included.length - 1) * 2);
+    expect(included.reduce((sum, item) => sum + item.characters, 0) + review.budget.separatorCharacters).toBe(review.budget.totalCharacters);
+    expect(included.reduce((sum, item) => sum + item.utf8Bytes, 0) + review.budget.separatorUtf8Bytes).toBe(review.budget.totalUtf8Bytes);
+    expect(review.budget.totalUtf8Bytes).toBeGreaterThan(review.budget.totalCharacters);
+  });
+
+  it("asigna cero a fragmentos opcionales no autorizados", () => {
+    const review = buildCloudPayloadReview(context);
+    const optional = review.budget.fragments.filter((item) => item.optional);
+    const message = review.budget.fragments.find((item) => item.id === "message");
+
+    expect(optional).toHaveLength(3);
+    expect(optional.every((item) => !item.included && item.characters === 0 && item.utf8Bytes === 0)).toBe(true);
+    expect(message).toMatchObject({ included: true, optional: false });
+    expect(review.budget.separatorCharacters).toBe(0);
   });
 });

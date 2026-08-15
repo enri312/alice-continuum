@@ -2,6 +2,7 @@ import conversationSvg from "../../icons/nav-conversation.svg?raw";
 import nucleusSvg from "../../icons/nav-nucleus.svg?raw";
 import memorySvg from "../../icons/nav-memory.svg?raw";
 import activitySvg from "../../icons/nav-activity.svg?raw";
+import auditSvg from "../../icons/nav-audit.svg?raw";
 import bridgesSvg from "../../icons/nav-bridges.svg?raw";
 import avatarSvg from "../../icons/nav-avatar.svg?raw";
 import identificationSvg from "../../icons/nav-identification.svg?raw";
@@ -16,7 +17,7 @@ import stateSvg from "../../icons/nucleus-state.svg?raw";
 import plannerSvg from "../../icons/nucleus-planner.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
+export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "audit" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -28,6 +29,7 @@ const sources: Record<NavigationIconKind, string> = {
   nucleus: nucleusSvg,
   memory: memorySvg,
   activity: activitySvg,
+  audit: auditSvg,
   bridges: bridgesSvg,
   avatar: avatarSvg,
   identification: identificationSvg,

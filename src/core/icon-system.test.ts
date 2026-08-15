@@ -3,6 +3,7 @@ import bridgeBody from "../../icons/bridge-body.svg?raw";
 import bridgeFace from "../../icons/bridge-face.svg?raw";
 import bridgeOverview from "../../icons/bridge-overview.svg?raw";
 import navActivity from "../../icons/nav-activity.svg?raw";
+import navAudit from "../../icons/nav-audit.svg?raw";
 import navAvatar from "../../icons/nav-avatar.svg?raw";
 import navBridges from "../../icons/nav-bridges.svg?raw";
 import navConversation from "../../icons/nav-conversation.svg?raw";
@@ -27,6 +28,7 @@ const functionalIcons = {
   bridgeFace,
   bridgeOverview,
   navActivity,
+  navAudit,
   navAvatar,
   navBridges,
   navConversation,
@@ -50,8 +52,16 @@ const functionalIcons = {
 describe("sistema de iconos funcionales", () => {
   it("mantiene el catálogo completo y con diseños distintos", () => {
     const sources = Object.values(functionalIcons);
-    expect(sources).toHaveLength(22);
+    expect(sources).toHaveLength(23);
     expect(new Set(sources).size).toBe(sources.length);
+  });
+
+  it("distingue actividad temporal de auditoría forense", () => {
+    expect(navActivity).toContain("LIVE EVENT WINDOW");
+    expect(navActivity).toContain("TIMELINE · EVENT STREAM · R3");
+    expect(navAudit).toContain("SHA-256 OK");
+    expect(navAudit).toContain("VERIFY · TRACE · DIAGNOSE");
+    expect(navAudit).not.toBe(navActivity);
   });
 
   it.each(Object.entries(functionalIcons))("%s declara una fuente SVG utilizable", (_name, source) => {
