@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
+import { parseConsolidationPreview, type ConsolidationPreviewSnapshot } from "../core/memory-consolidation-preview";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
 import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../core/working-memory";
@@ -9,6 +10,7 @@ import { teachingTemplates } from "../core/teaching-templates";
 import { SensoryLearningPanel } from "../components/SensoryLearningPanel";
 
 type MemoryType = "semantic" | "procedural" | "preference" | "episodic";
+type MemoryView = "records" | "working" | "layers" | "learn" | "teach" | "review" | "consolidate" | "safety";
 
 type MemorySession = {
   id: string;
@@ -59,7 +61,8 @@ const memoryTypeLabels: Record<MemoryType, string> = {
 
 export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
-  const [view, setView] = useState<"records" | "working" | "layers" | "learn" | "teach" | "review" | "safety">(requestedView === "working" || requestedView === "layers" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "safety" ? requestedView : "records");
+  const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
+  const [view, setView] = useState<MemoryView>(initialView);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [summary, setSummary] = useState("");
@@ -76,6 +79,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
   const [operationMessage, setOperationMessage] = useState("");
   const [operationRunning, setOperationRunning] = useState(false);
   const [layeredMemory, setLayeredMemory] = useState<LayeredMemorySnapshot | null>(null);
+  const [consolidationPreview, setConsolidationPreview] = useState<ConsolidationPreviewSnapshot | null>(null);
   const remembered = sessions.filter((session) => session.finishedAt);
   const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza")), [remembered]);
   const pendingReviews = reviewQueue.filter((review) => review.due);
@@ -85,6 +89,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
     const text = `${session.intention} ${session.summary ?? ""} ${session.nextStep ?? ""} ${session.source ?? ""} ${session.memoryType ?? ""}`.toLocaleLowerCase();
     return text.includes(query.toLocaleLowerCase().trim());
   }), [query, remembered]);
+  const sessionsById = useMemo(() => new Map(sessions.map((session) => [session.id, session])), [sessions]);
 
   async function refreshLayeredMemory() {
     if (!isTauri()) return;
@@ -95,6 +100,16 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
   }
 
   useEffect(() => { if (view === "layers") void refreshLayeredMemory(); }, [view, sessions]);
+
+  async function refreshConsolidationPreview() {
+    if (!isTauri()) return;
+    setOperationRunning(true);
+    try { setConsolidationPreview(parseConsolidationPreview(await invoke<unknown>("consolidation_preview"))); }
+    catch (error) { setOperationMessage(`No se pudo verificar R6.3: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  useEffect(() => { if (view === "consolidate") void refreshConsolidationPreview(); }, [view, sessions]);
 
   async function activateLayers() {
     const sourceSha256 = layeredMemory?.preview?.sourceSha256;
@@ -206,7 +221,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
 
   return <section className="memory-page" aria-labelledby="memory-title">
     <div className="memory-heading"><div><p className="eyebrow">MEMORIA Y APRENDIZAJE · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Recuerdos confirmados, enseñanzas directas y futuros aprendizajes derivados de sesiones sensoriales autorizadas.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count"><strong>{remembered.length}</strong><span>recuerdos<br />locales</span></div></div></div>
-    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>04</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>05</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>06</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>07</span>RESPALDO</button></nav>
+    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>04</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>05</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>06</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>07</span>CONSOLIDAR <em>{consolidationPreview?.candidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>08</span>RESPALDO</button></nav>
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
       {workingMemory ? <>
@@ -241,6 +256,16 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
       <header><div><p className="eyebrow">CONSOLIDACIÓN · REPASO LOCAL</p><h3 id="memory-review-title">Cola de vigencia</h3><p>Alice programa revisiones desde tus registros. Confirmar fortalece el indicador local; no entrena al modelo de nube.</p></div><div className={pendingReviews.length ? "review-counter pending" : "review-counter"}><strong>{pendingReviews.length}</strong><span>{pendingReviews.length === 1 ? "pendiente" : "pendientes"}</span></div></header>
       {pendingReviews.length ? <div className="memory-review-list">{pendingReviews.slice(0, 3).map((item) => <article key={item.memory.id}><div><span>{item.memory.memoryStatus === "conflict" ? "CORRECCIÓN NECESARIA" : "REPASO VENCIDO"}</span><h4>{item.memory.intention}</h4><small>Consolidación {Math.round((item.memory.storageStrength ?? .08) * 100)}% · importancia {item.memory.importance ?? 3}/5</small></div><div className="memory-review-actions"><button className="secondary" onClick={() => review(item.memory, "needs-correction")}>Necesita corrección</button><button className="primary" onClick={() => review(item.memory, "confirmed")}>Sigue vigente</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>✓</span><strong>Sin repasos pendientes</strong></div><p>{nextReview ? `Próximo: “${nextReview.memory.intention}”, ${formatDate(nextReview.dueAt)}.` : "Guardá una enseñanza para iniciar su ciclo de repaso."}</p></div>}
       <footer>INTERVALOS EXPLICABLES · 1 · 3 · 7 · 14 · 30 · 60 · 120 DÍAS</footer>
+    </section>}
+    {view === "consolidate" && <section className={`consolidation-preview memory-view-panel state-${consolidationPreview?.state ?? "unavailable"}`} aria-labelledby="consolidation-preview-title">
+      <header><div><p className="eyebrow">R6.3-A · VISTA PREVIA NATIVA</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados por reglas explícitas. No fusiona, archiva, corrige ni usa un modelo.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.candidateCount} CANDIDATOS` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
+      {consolidationPreview?.blockedReason && <p className="consolidation-blocked" role="alert">{consolidationPreview.blockedReason}</p>}
+      {consolidationPreview?.state === "ready" && <><div className="consolidation-summary"><article><strong>{consolidationPreview.recordCount}</strong><span>REGISTROS LEÍDOS</span><small>{consolidationPreview.eligibleRecordCount} elegibles · {consolidationPreview.archivedRecordCount} archivados</small></article><article><strong>{consolidationPreview.exactDuplicateCount}</strong><span>DUPLICADOS EXACTOS</span><small>Mismo contenido normalizado</small></article><article><strong>{consolidationPreview.reviewRequiredCount}</strong><span>REVISIÓN REQUERIDA</span><small>Mismo tema, contenido diferente</small></article></div>
+        {consolidationPreview.candidates.length ? <div className="consolidation-candidates">{consolidationPreview.candidates.map((candidate) => { const pair = candidate.recordIds.map((id) => sessionsById.get(id)); return <article key={candidate.candidateId} className={candidate.kind}><header><span>{candidate.kind === "exactDuplicate" ? "DUPLICADO EXACTO" : "POSIBLE SOLAPAMIENTO"}</span><small>REVISIÓN HUMANA OBLIGATORIA</small></header><div>{pair.map((memory, index) => <section key={candidate.recordIds[index]}><small>REGISTRO {index + 1} · {candidate.recordIds[index]}</small><strong>{memory?.intention ?? "Registro no cargado en React"}</strong><p>{memory?.summary || "Sin resumen"}</p></section>)}</div><footer><code>{candidate.candidateId}</code><span>{candidate.kind === "exactDuplicate" ? "Título, contenido y próximo paso normalizados coinciden." : "El título normalizado coincide; Alice no declara contradicción automáticamente."}</span></footer></article>; })}</div> : <div className="consolidation-empty"><strong>SIN CANDIDATOS</strong><p>Los registros actuales no comparten una intención normalizada. No hay nada que fusionar ni revisar en R6.3-A.</p></div>}
+        <div className="consolidation-source"><span>FUENTE VERIFICADA · SIN ESCRITURA</span><code>{consolidationPreview.sourceSha256}</code></div></>}
+      {consolidationPreview?.state === "unavailable" && <div className="consolidation-empty"><strong>SIN ARCHIVO CANÓNICO</strong><p>Rust no encontró <code>records.json</code>. No creó carpetas, archivos ni candidatos.</p></div>}
+      {!consolidationPreview && <div className="consolidation-empty"><strong>SNAPSHOT NATIVO NO DISPONIBLE</strong><p>Abre Alice como aplicación de escritorio para analizar el archivo canónico. El navegador no fabrica candidatos.</p></div>}
+      <footer><div><strong>CERO CAMBIOS AUTOMÁTICOS</strong><span>Sin LLM · sin fusión · sin archivado · sin reescritura</span></div><button className="secondary" type="button" onClick={() => void refreshConsolidationPreview()} disabled={operationRunning || !isTauri()}>Actualizar vista previa</button></footer>
     </section>}
     {view === "safety" && <div className="memory-view-panel memory-safety-view"><div className="memory-tools" aria-label="Herramientas de respaldo">
       <div><p className="eyebrow">SEGURIDAD DE DATOS</p><p>La memoria privada vive fuera del repositorio.</p>{storagePath && <code className="memory-path">{storagePath}</code>}</div>

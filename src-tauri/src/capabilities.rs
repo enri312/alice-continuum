@@ -650,7 +650,7 @@ fn memory_capabilities(
             CapabilityKind::Query,
             CapabilityMaturity::Partial,
             "memory",
-            &["load_memory", "layered_memory_status"],
+            &["load_memory", "layered_memory_status", "consolidation_preview"],
             records_state,
             CapabilityRisk::Medium,
             &[CapabilityEffect::LocalRead],

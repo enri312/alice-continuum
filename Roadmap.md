@@ -182,7 +182,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1 y R6.2-B validados el 2026-08-14  
+**Estado:** en curso · R6.1, R6.2-C y R6.3-A validados el 2026-08-15  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -203,6 +203,10 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.2-B:** `Memoria → Trabajo RAM` muestra estado, mensajes, intercambios, caracteres, porcentaje, TTL, generación y procedencia desde el snapshot nativo. No repite texto conversacional. Vaciar exige confirmación visible y la generación exacta; una generación obsoleta se bloquea. El navegador declara `SIN BACKEND` y no simula métricas.
 
+**Incremento R6.2-C:** la previsualización obligatoria calcula caracteres Unicode y bytes UTF-8 exactos para mensaje, historial, recuerdos, ventana y separadores usando la misma cadena saliente. Una fuente opcional no autorizada cuenta cero; no se inventan tokens dependientes del proveedor.
+
+**Incremento R6.3-A:** `consolidation_preview` relee `records.json` sin escribir y produce pares ligados al SHA-256 de la fuente. Sólo llama duplicado exacto a tipo, clase, intención, resumen y próximo paso normalizados iguales; una misma intención con contenido diferente queda como revisión requerida, no contradicción automática. La sonda canónica leyó 10 registros y devolvió cero candidatos con 10 archivos intactos. `Memoria → Consolidar` muestra el resultado nativo; fusión, archivado y resolución continúan bloqueados.
+
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
@@ -210,12 +214,12 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 **Criterios de aceptación:**
 
 - [ ] Cada recuerdo tiene capa, origen, estado y reglas de vigencia.
-- [ ] Los conflictos no se resuelven silenciosamente.
+- [x] Los conflictos no se resuelven silenciosamente.
 - [ ] La consolidación ofrece vista previa y respaldo.
-- [ ] La memoria de trabajo puede descartarse sin borrar memoria duradera.
-- [ ] Los índices derivados pueden reconstruirse desde la fuente de verdad.
+- [x] La memoria de trabajo puede descartarse sin borrar memoria duradera.
+- [x] Los índices derivados pueden reconstruirse desde la fuente de verdad.
 
-R6.1 satisface la base de capa, procedencia y reconstrucción para registros existentes; los criterios permanecen abiertos hasta incorporar memoria de trabajo y consolidación manual.
+R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-A detecta candidatos sin resolverlos. Vista previa con respaldo continúa abierta hasta implementar una decisión de consolidación gobernada.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -323,7 +327,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera y R6.2-B permite inspeccionar y vaciar el contexto RAM sin tocar recuerdos. El siguiente microincremento es **R6.2-C — presupuesto explícito por fragmento en la previsualización de salida**, antes de consolidación. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, y R6.3-A muestra candidatos reales sin escritura. El siguiente microincremento será **R6.3-B — resolución humana gobernada**, con opción de mantener separados, control SHA-256, respaldo previo y auditoría antes de cualquier fusión o archivado. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

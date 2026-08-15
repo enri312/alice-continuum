@@ -43,3 +43,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-065](ADR-P-065-cierre-r5-vigencia-evidencia.md) | Cierre R5.5 con vigencia, obsolescencia, bloqueo y conversión nativamente gobernados |
 | [ADR-P-066](ADR-P-066-proyeccion-memoria-por-capas.md) | Proyección R6.1 por capas, ligada a SHA-256, inmutable y reversible |
 | [ADR-P-067](ADR-P-067-memoria-trabajo-y-panel-entrada.md) | Memoria de trabajo R6.2 en RAM y conversación integrada en el panel `[00]` |
+| [ADR-P-068](ADR-P-068-vista-previa-consolidacion-manual.md) | Vista previa nativa y sin escritura antes de consolidar memoria |

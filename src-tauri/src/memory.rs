@@ -85,6 +85,9 @@ struct MemoryAuditEntry {
 
 const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
+const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
+const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -182,6 +185,58 @@ pub(crate) struct LayeredMemorySnapshot {
     migration_requires_confirmation: bool,
     automatic_migration: bool,
     content_copied: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationPreviewState {
+    Unavailable,
+    Ready,
+    Blocked,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationCandidateKind {
+    ExactDuplicate,
+    ReviewRequired,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationReasonCode {
+    ExactNormalizedContent,
+    SameNormalizedIntentionDifferentContent,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationCandidate {
+    candidate_id: String,
+    kind: ConsolidationCandidateKind,
+    record_ids: Vec<String>,
+    reason_code: ConsolidationReasonCode,
+    requires_human_review: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationPreviewSnapshot {
+    schema_version: u8,
+    state: ConsolidationPreviewState,
+    storage_path: String,
+    source_sha256: Option<String>,
+    record_count: usize,
+    eligible_record_count: usize,
+    archived_record_count: usize,
+    candidate_count: usize,
+    exact_duplicate_count: usize,
+    review_required_count: usize,
+    candidates: Vec<ConsolidationCandidate>,
+    blocked_reason: Option<String>,
+    automatic_merge: bool,
+    records_modified: bool,
+    model_used: bool,
 }
 
 #[derive(Deserialize)]
@@ -348,6 +403,175 @@ fn read_validated_source_at(
         .map_err(|error| format!("records.json no es una memoria válida: {error}"))?;
     validate_memory_sessions(&sessions)?;
     Ok(Some((content, sessions)))
+}
+
+fn normalize_consolidation_text(value: &str) -> String {
+    value
+        .trim()
+        .to_lowercase()
+        .chars()
+        .map(|character| {
+            if character.is_alphanumeric() {
+                character
+            } else {
+                ' '
+            }
+        })
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn normalized_memory_signature(session: &MemorySession) -> String {
+    [
+        normalize_consolidation_text(&session.kind),
+        normalize_consolidation_text(session.memory_type.as_deref().unwrap_or("")),
+        normalize_consolidation_text(&session.intention),
+        normalize_consolidation_text(session.summary.as_deref().unwrap_or("")),
+        normalize_consolidation_text(session.next_step.as_deref().unwrap_or("")),
+    ]
+    .join("\u{1f}")
+}
+
+fn empty_consolidation_snapshot(
+    state: ConsolidationPreviewState,
+    storage_path: String,
+    blocked_reason: Option<String>,
+) -> ConsolidationPreviewSnapshot {
+    ConsolidationPreviewSnapshot {
+        schema_version: CONSOLIDATION_PREVIEW_SCHEMA_VERSION,
+        state,
+        storage_path,
+        source_sha256: None,
+        record_count: 0,
+        eligible_record_count: 0,
+        archived_record_count: 0,
+        candidate_count: 0,
+        exact_duplicate_count: 0,
+        review_required_count: 0,
+        candidates: Vec::new(),
+        blocked_reason,
+        automatic_merge: false,
+        records_modified: false,
+        model_used: false,
+    }
+}
+
+fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
+    let records_path = data_root.join("memory").join("records.json");
+    let storage_path = records_path.display().to_string();
+    let (source_content, sessions) = match read_validated_source_at(data_root) {
+        Ok(Some(source)) => source,
+        Ok(None) => {
+            return empty_consolidation_snapshot(
+                ConsolidationPreviewState::Unavailable,
+                storage_path,
+                None,
+            )
+        }
+        Err(error) => {
+            return empty_consolidation_snapshot(
+                ConsolidationPreviewState::Blocked,
+                storage_path,
+                Some(error),
+            )
+        }
+    };
+    let source_sha256 = memory_subject_digest(&source_content);
+    if sessions.len() > CONSOLIDATION_MAX_RECORDS {
+        let mut snapshot = empty_consolidation_snapshot(
+            ConsolidationPreviewState::Blocked,
+            storage_path,
+            Some(format!(
+                "La vista R6.3 admite hasta {CONSOLIDATION_MAX_RECORDS} registros por revisión"
+            )),
+        );
+        snapshot.source_sha256 = Some(source_sha256);
+        snapshot.record_count = sessions.len();
+        return snapshot;
+    }
+
+    let archived_record_count = sessions
+        .iter()
+        .filter(|session| session.memory_status.as_deref() == Some("archived"))
+        .count();
+    let mut eligible = sessions
+        .iter()
+        .filter(|session| {
+            session.finished_at.is_some() && session.memory_status.as_deref() != Some("archived")
+        })
+        .collect::<Vec<_>>();
+    eligible.sort_by(|left, right| left.id.cmp(&right.id));
+    let mut candidates = Vec::new();
+
+    for (index, left) in eligible.iter().enumerate() {
+        let left_intention = normalize_consolidation_text(&left.intention);
+        for right in eligible.iter().skip(index + 1) {
+            if left_intention != normalize_consolidation_text(&right.intention) {
+                continue;
+            }
+            if candidates.len() == CONSOLIDATION_MAX_CANDIDATES {
+                let mut snapshot = empty_consolidation_snapshot(
+                    ConsolidationPreviewState::Blocked,
+                    storage_path,
+                    Some(format!(
+                        "La vista R6.3 excede {CONSOLIDATION_MAX_CANDIDATES} pares candidatos"
+                    )),
+                );
+                snapshot.source_sha256 = Some(source_sha256);
+                snapshot.record_count = sessions.len();
+                snapshot.eligible_record_count = eligible.len();
+                snapshot.archived_record_count = archived_record_count;
+                return snapshot;
+            }
+            let exact = normalized_memory_signature(left) == normalized_memory_signature(right);
+            let kind = if exact {
+                ConsolidationCandidateKind::ExactDuplicate
+            } else {
+                ConsolidationCandidateKind::ReviewRequired
+            };
+            let reason_code = if exact {
+                ConsolidationReasonCode::ExactNormalizedContent
+            } else {
+                ConsolidationReasonCode::SameNormalizedIntentionDifferentContent
+            };
+            let candidate_id = memory_subject_digest(&format!(
+                "alice-consolidation-preview:{CONSOLIDATION_PREVIEW_SCHEMA_VERSION}:{source_sha256}:{:?}:{}:{}",
+                kind, left.id, right.id
+            ));
+            candidates.push(ConsolidationCandidate {
+                candidate_id,
+                kind,
+                record_ids: vec![left.id.clone(), right.id.clone()],
+                reason_code,
+                requires_human_review: true,
+            });
+        }
+    }
+
+    let exact_duplicate_count = candidates
+        .iter()
+        .filter(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
+        .count();
+    let review_required_count = candidates.len() - exact_duplicate_count;
+    ConsolidationPreviewSnapshot {
+        schema_version: CONSOLIDATION_PREVIEW_SCHEMA_VERSION,
+        state: ConsolidationPreviewState::Ready,
+        storage_path,
+        source_sha256: Some(source_sha256),
+        record_count: sessions.len(),
+        eligible_record_count: eligible.len(),
+        archived_record_count,
+        candidate_count: candidates.len(),
+        exact_duplicate_count,
+        review_required_count,
+        candidates,
+        blocked_reason: None,
+        automatic_merge: false,
+        records_modified: false,
+        model_used: false,
+    }
 }
 
 fn classify_layered_memory(
@@ -830,6 +1054,13 @@ pub(crate) fn load_memory(app: AppHandle) -> Result<MemorySnapshot, String> {
 #[tauri::command]
 pub(crate) fn layered_memory_status(app: AppHandle) -> Result<LayeredMemorySnapshot, String> {
     Ok(layered_memory_status_at(&alice_data_root_path(&app)?))
+}
+
+#[tauri::command]
+pub(crate) fn consolidation_preview(
+    app: AppHandle,
+) -> Result<ConsolidationPreviewSnapshot, String> {
+    Ok(consolidation_preview_at(&alice_data_root_path(&app)?))
 }
 
 fn activate_layered_memory_at(
@@ -1482,5 +1713,157 @@ mod tests {
         );
 
         fs::remove_dir_all(root).expect("remove controlled fixture");
+    }
+
+    #[test]
+    fn r6_3_preview_detects_exact_and_review_pairs_without_writing() {
+        let root = temporary_probe_root("r6-3-candidates");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "alice-a",
+                "kind": "Enseñanza",
+                "intention": "Arquitectura de Alice",
+                "startedAt": "2026-08-14T10:00:00Z",
+                "finishedAt": "2026-08-14T10:01:00Z",
+                "summary": "Alice usa memoria local.",
+                "nextStep": "Revisar",
+                "memoryType": "semantic"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "alice-b",
+                "kind": "Enseñanza",
+                "intention": "  ARQUITECTURA, de Alice! ",
+                "startedAt": "2026-08-14T11:00:00Z",
+                "finishedAt": "2026-08-14T11:01:00Z",
+                "summary": "Alice usa memoria local",
+                "nextStep": "revisar",
+                "memoryType": "semantic"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "alice-c",
+                "kind": "Enseñanza",
+                "intention": "Arquitectura de Alice",
+                "startedAt": "2026-08-14T12:00:00Z",
+                "finishedAt": "2026-08-14T12:01:00Z",
+                "summary": "Alice usa únicamente memoria remota.",
+                "memoryType": "semantic"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "alice-archived",
+                "kind": "Enseñanza",
+                "intention": "Arquitectura de Alice",
+                "startedAt": "2026-08-14T13:00:00Z",
+                "finishedAt": "2026-08-14T13:01:00Z",
+                "summary": "Alice usa memoria local.",
+                "memoryType": "semantic",
+                "memoryStatus": "archived"
+            }))
+            .unwrap(),
+        ];
+        let content = write_layered_fixture(&root, &records);
+        let before = file_hashes(&root);
+        let snapshot = consolidation_preview_at(&root);
+        let after = file_hashes(&root);
+
+        assert_eq!(snapshot.state, ConsolidationPreviewState::Ready);
+        assert_eq!(snapshot.record_count, 4);
+        assert_eq!(snapshot.eligible_record_count, 3);
+        assert_eq!(snapshot.archived_record_count, 1);
+        assert_eq!(snapshot.candidate_count, 3);
+        assert_eq!(snapshot.exact_duplicate_count, 1);
+        assert_eq!(snapshot.review_required_count, 2);
+        assert_eq!(
+            snapshot.source_sha256,
+            Some(memory_subject_digest(&content))
+        );
+        assert!(snapshot
+            .candidates
+            .iter()
+            .all(|candidate| candidate.requires_human_review && candidate.record_ids.len() == 2));
+        assert!(!snapshot.automatic_merge);
+        assert!(!snapshot.records_modified);
+        assert!(!snapshot.model_used);
+        assert_eq!(after, before);
+
+        fs::remove_dir_all(root).expect("remove R6.3 fixture");
+    }
+
+    #[test]
+    fn r6_3_preview_is_deterministic_and_does_not_compare_different_topics() {
+        let root = temporary_probe_root("r6-3-deterministic");
+        let first = serde_json::from_value::<MemorySession>(serde_json::json!({
+            "id": "memory-z",
+            "kind": "Enseñanza",
+            "intention": "Tema Z",
+            "startedAt": "2026-08-14T10:00:00Z",
+            "finishedAt": "2026-08-14T10:01:00Z",
+            "summary": "Contenido"
+        }))
+        .unwrap();
+        let second = serde_json::from_value::<MemorySession>(serde_json::json!({
+            "id": "memory-a",
+            "kind": "Enseñanza",
+            "intention": "Tema A",
+            "startedAt": "2026-08-14T11:00:00Z",
+            "finishedAt": "2026-08-14T11:01:00Z",
+            "summary": "Contenido"
+        }))
+        .unwrap();
+        write_layered_fixture(&root, &[first, second]);
+
+        let one = consolidation_preview_at(&root);
+        let two = consolidation_preview_at(&root);
+        assert_eq!(one, two);
+        assert_eq!(one.candidate_count, 0);
+
+        fs::remove_dir_all(root).expect("remove deterministic fixture");
+    }
+
+    #[test]
+    fn r6_3_preview_reports_missing_and_corrupt_sources_without_creating_files() {
+        let missing_root = temporary_probe_root("r6-3-missing");
+        let missing = consolidation_preview_at(&missing_root);
+        assert_eq!(missing.state, ConsolidationPreviewState::Unavailable);
+        assert!(!missing_root.exists());
+
+        let corrupt_root = temporary_probe_root("r6-3-corrupt");
+        let memory = corrupt_root.join("memory");
+        fs::create_dir_all(&memory).unwrap();
+        fs::write(memory.join("records.json"), "not-json").unwrap();
+        let before = file_hashes(&corrupt_root);
+        let blocked = consolidation_preview_at(&corrupt_root);
+        assert_eq!(blocked.state, ConsolidationPreviewState::Blocked);
+        assert!(blocked.blocked_reason.is_some());
+        assert_eq!(file_hashes(&corrupt_root), before);
+
+        fs::remove_dir_all(corrupt_root).expect("remove corrupt fixture");
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_r6_3_preview_is_read_only() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR requerido");
+        let before = file_hashes(&root);
+        let snapshot = consolidation_preview_at(&root);
+        let after = file_hashes(&root);
+
+        assert_eq!(after, before);
+        assert_ne!(snapshot.state, ConsolidationPreviewState::Blocked);
+        assert!(!snapshot.automatic_merge);
+        assert!(!snapshot.records_modified);
+        assert!(!snapshot.model_used);
+        eprintln!(
+            "R6_3_CANONICAL records={} eligible={} exact={} review={} filesIntact={}",
+            snapshot.record_count,
+            snapshot.eligible_record_count,
+            snapshot.exact_duplicate_count,
+            snapshot.review_required_count,
+            before.len()
+        );
     }
 }
