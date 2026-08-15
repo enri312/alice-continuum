@@ -1,6 +1,6 @@
 # Memoria de trabajo R6.2
 
-Estado: incremento R6.2-A implementado  
+Estado: incremento R6.2-B validado  
 Fecha: 2026-08-14
 
 ## Propósito
@@ -42,4 +42,6 @@ La conversación real vive dentro de `[00] CONVERSATION / PERCEPTION INPUT`; no 
 - cuerpo: `[05] FACE + BODY OUTPUT BRIDGE`;
 - `Face` y `Body` son destinos visibles del grafo `[02]`, pero su ejecución pertenece a `Body Solver`.
 
-La pantalla Memoria permanece separada porque administra memoria duradera. R6.2-B añadirá allí el indicador y el vaciado explícito de la memoria efímera.
+La pantalla Memoria mantiene subpestañas distintas para recuerdos duraderos, Trabajo RAM y Capas R6. Trabajo RAM recibe el mismo snapshot nativo que alimenta la conversación, actualiza el TTL cada cinco segundos y muestra solamente conteos, presupuesto, generación, proveedor, modelo y fecha. No duplica preguntas o respuestas.
+
+El vaciado presenta una confirmación visible y envía la generación exacta mostrada. Rust bloquea una generación obsoleta, por lo que una respuesta llegada después de abrir la confirmación no puede borrarse accidentalmente. En desarrollo web aparece `SIN BACKEND`; no existe fallback con contenido o métricas inventadas.

@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1 validado y motor R6.2-A integrado  
+Estado: en curso · R6.1 y R6.2-B validados  
 Fecha: 2026-08-14
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -21,7 +21,7 @@ La fuente vigente continúa siendo `records.json`. R6.1 produce `layer-index-v2.
 
 ## R6.2 — Memoria de trabajo de sesión
 
-Estado: primer incremento implementado; control visual de vaciado pendiente.
+Estado: R6.2-B validado; presupuesto por fragmento de salida pendiente.
 
 El backend mantiene en RAM hasta tres intercambios reales de conversación —seis mensajes y 48.000 caracteres— durante 30 minutos desde la última respuesta. Sólo se registra un intercambio después de recibir una respuesta real del proveedor. El contenido no se escribe en archivos, expira con tiempo real, se descarta al cerrar el proceso y nunca altera `records.json` ni `layer-index-v2.json`.
 
@@ -31,10 +31,10 @@ El backend mantiene en RAM hasta tres intercambios reales de conversación —se
 - [x] Auditoría R3 sólo con SHA-256, sin texto conversacional.
 - [x] Conversación real integrada dentro de `[00] CONVERSATION / PERCEPTION INPUT`.
 - [x] Consulta defensiva desde React cada cinco segundos.
-- [ ] Indicador y vaciado confirmado dentro de Memoria.
+- [x] Indicador, TTL, presupuesto, procedencia y vaciado confirmado dentro de Memoria.
 - [ ] Presupuesto explícito de cada fragmento opcional antes del envío.
 
-La eliminación de la antigua pestaña independiente Conversación evita duplicar el panel `[00]`. La pantalla Memoria permanece porque administra recuerdos duraderos y, en el siguiente microincremento, también mostrará el estado del contenedor efímero sin mezclarlos.
+La eliminación de la antigua pestaña independiente Conversación evita duplicar el panel `[00]`. La pantalla Memoria conserva separados **Recuerdos**, **Trabajo RAM** y **Capas R6**. El navegador declara ausencia de backend y nunca fabrica un estado de sesión.
 
 ## R6.3 — Consolidación manual
 

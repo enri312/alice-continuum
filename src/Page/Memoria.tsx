@@ -3,6 +3,8 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
+import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../core/working-memory";
+import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../core/working-memory";
 import { teachingTemplates } from "../core/teaching-templates";
 import { SensoryLearningPanel } from "../components/SensoryLearningPanel";
 
@@ -30,6 +32,8 @@ type MemorySession = {
 
 type MemoriaProps = {
   sessions: MemorySession[];
+  workingMemory: WorkingMemorySnapshot | null;
+  onClearWorkingMemory: (expectedGeneration: number) => Promise<WorkingMemoryOperationResult>;
   onCreate: (teaching: { intention: string; summary: string; memoryType: MemoryType; source: string; importance: number }) => void;
   onUpdate: (id: string, changes: { summary: string; nextStep: string; source?: string; importance?: number }) => void;
   onDelete: (id: string) => void;
@@ -53,9 +57,9 @@ const memoryTypeLabels: Record<MemoryType, string> = {
   episodic: "Experiencia",
 };
 
-export function Memoria({ sessions, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
+export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
-  const [view, setView] = useState<"records" | "layers" | "learn" | "teach" | "review" | "safety">(requestedView === "layers" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "safety" ? requestedView : "records");
+  const [view, setView] = useState<"records" | "working" | "layers" | "learn" | "teach" | "review" | "safety">(requestedView === "working" || requestedView === "layers" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "safety" ? requestedView : "records");
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [summary, setSummary] = useState("");
@@ -112,6 +116,21 @@ export function Memoria({ sessions, onCreate, onUpdate, onDelete, onReview, onEx
       setOperationMessage("Proyección R6.1 desactivada; la revisión y la memoria original permanecen intactas.");
     } catch (error) { setOperationMessage(`No se pudo revertir R6.1: ${String(error)}`); }
     finally { setOperationRunning(false); }
+  }
+
+  async function clearSessionWorkingMemory() {
+    if (!workingMemory?.messageCount) return;
+    const confirmed = window.confirm(`¿Vaciar los ${workingMemory.messageCount} mensajes de la memoria de trabajo? No se borrarán recuerdos, enseñanzas ni revisiones R6.1.`);
+    if (!confirmed) return;
+    setOperationRunning(true);
+    try {
+      const result = await onClearWorkingMemory(workingMemory.generation);
+      setOperationMessage(result.warning ?? "Memoria de trabajo vaciada. Los recuerdos duraderos permanecen intactos.");
+    } catch (error) {
+      setOperationMessage(`No se pudo vaciar la memoria de trabajo: ${String(error)}`);
+    } finally {
+      setOperationRunning(false);
+    }
   }
 
   function edit(session: MemorySession) { setEditingId(session.id); setSummary(session.summary ?? ""); setNextStep(session.nextStep ?? ""); setEditSource(session.source ?? ""); setEditImportance(session.importance ?? 3); }
@@ -187,11 +206,21 @@ export function Memoria({ sessions, onCreate, onUpdate, onDelete, onReview, onEx
 
   return <section className="memory-page" aria-labelledby="memory-title">
     <div className="memory-heading"><div><p className="eyebrow">MEMORIA Y APRENDIZAJE · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Recuerdos confirmados, enseñanzas directas y futuros aprendizajes derivados de sesiones sensoriales autorizadas.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count"><strong>{remembered.length}</strong><span>recuerdos<br />locales</span></div></div></div>
-    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>02</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>03</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>04</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>05</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>06</span>RESPALDO</button></nav>
+    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>04</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>05</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>06</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>07</span>RESPALDO</button></nav>
+    {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
+      <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
+      {workingMemory ? <>
+        <div className="working-memory-grid"><article><strong>{workingMemory.messageCount}<small> / {workingMemory.maximumMessages}</small></strong><span>MENSAJES</span><small>{workingMemory.exchangeCount} / {workingMemory.maximumMessages / 2} intercambios completos</small></article><article><strong>{workingMemory.characterCount.toLocaleString("es-PY")}<small> / {workingMemory.maximumCharacters.toLocaleString("es-PY")}</small></strong><span>CARACTERES</span><small>Presupuesto usado: {workingMemoryUsagePercent(workingMemory)}%</small></article><article><strong>{workingMemoryRemainingLabel(workingMemory)}</strong><span>VENCIMIENTO</span><small>Actualización nativa cada 5 segundos</small></article><article><strong>{workingMemory.generation}</strong><span>GENERACIÓN</span><small>Evita vaciar estado no revisado</small></article></div>
+        <div className="working-memory-budget" aria-label={`Presupuesto de caracteres utilizado: ${workingMemoryUsagePercent(workingMemory)}%`}><span style={{ width: `${workingMemoryUsagePercent(workingMemory)}%` }} /></div>
+        {workingMemory.exchanges.length ? <div className="working-memory-exchanges"><header><span>INTERCAMBIOS EN RAM</span><small>METADATOS · SIN REPETIR CONTENIDO</small></header>{workingMemory.exchanges.map((exchange, index) => <article key={exchange.exchangeId}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{exchange.provider} · {exchange.model}</strong><small>{formatDate(exchange.createdAt)} · cloudConversation</small></div><em>2 MENSAJES</em></article>)}</div> : <div className="working-memory-empty"><strong>{workingMemory.state === "expired" ? "EL CONTEXTO VENCIÓ" : "SIN CONTEXTO ACTIVO"}</strong><span>{workingMemory.state === "expired" ? "Rust eliminó los mensajes al cumplirse el TTL." : "Aparecerá aquí después de una respuesta real del proveedor."}</span></div>}
+        <footer><div><strong>SOLO RAM · NO PERSISTENTE</strong><span>Al cerrar Alice se descarta · R3 conserva únicamente SHA-256</span></div><button className="danger" type="button" onClick={() => void clearSessionWorkingMemory()} disabled={operationRunning || workingMemory.messageCount === 0}>Vaciar memoria de trabajo</button></footer>
+      </> : <div className="working-memory-empty"><strong>SNAPSHOT NATIVO NO DISPONIBLE</strong><span>Abre Alice como aplicación de escritorio para consultar el estado real.</span></div>}
+      {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
+    </section>}
     {view === "layers" && <section className={`memory-layer-panel memory-view-panel state-${layeredMemory?.state ?? "loading"}`} aria-labelledby="memory-layer-title">
       <header><div><p className="eyebrow">R6.1 · PROYECCIÓN REVERSIBLE</p><h3 id="memory-layer-title">Memoria por capas</h3><p>Clasifica referencias explícitas sin copiar el contenido ni modificar <code>records.json</code>.</p></div><span>{layeredMemory?.state === "active" ? "ACTIVA" : layeredMemory?.state === "sourceChanged" ? "FUENTE CAMBIÓ" : layeredMemory?.state === "rolledBack" ? "REVERTIDA" : layeredMemory?.state === "blocked" ? "BLOQUEADA" : layeredMemory?.state === "unavailable" ? "SIN FUENTE" : "LISTA PARA REVISAR"}</span></header>
       {layeredMemory?.blockedReason && <p className="memory-layer-blocked" role="alert">{layeredMemory.blockedReason}</p>}
-      {layeredMemory?.preview ? <><div className="memory-layer-grid"><article><strong>{layeredMemory.preview.workingCount}</strong><span>TRABAJO</span><small>Vacía y efímera en R6.1</small></article><article><strong>{layeredMemory.preview.episodicCount}</strong><span>EPISODIOS</span><small>Conversaciones y experiencias explícitas</small></article><article><strong>{layeredMemory.preview.taughtFactCount}</strong><span>HECHOS ENSEÑADOS</span><small>Sólo enseñanza semántica directa</small></article><article className={layeredMemory.preview.unclassifiedCount ? "pending" : ""}><strong>{layeredMemory.preview.unclassifiedCount}</strong><span>SIN CLASIFICAR</span><small>{layeredMemory.preview.proceduralPendingCount} procedimientos · {layeredMemory.preview.preferencePendingCount} preferencias</small></article></div><div className="memory-layer-evidence"><span>FUENTE · {layeredMemory.preview.recordCount} REGISTROS</span><code>{layeredMemory.preview.sourceSha256}</code><span>{layeredMemory.revisionCount} REVISIONES INMUTABLES</span></div></> : <div className="memory-layer-empty">{operationRunning ? "Verificando la fuente local…" : "No existe una vista previa disponible."}</div>}
+      {layeredMemory?.preview ? <><div className="memory-layer-grid"><article><strong>{layeredMemory.preview.workingCount}</strong><span>TRABAJO EN ÍNDICE</span><small>La RAM real se consulta en Trabajo RAM</small></article><article><strong>{layeredMemory.preview.episodicCount}</strong><span>EPISODIOS</span><small>Conversaciones y experiencias explícitas</small></article><article><strong>{layeredMemory.preview.taughtFactCount}</strong><span>HECHOS ENSEÑADOS</span><small>Sólo enseñanza semántica directa</small></article><article className={layeredMemory.preview.unclassifiedCount ? "pending" : ""}><strong>{layeredMemory.preview.unclassifiedCount}</strong><span>SIN CLASIFICAR</span><small>{layeredMemory.preview.proceduralPendingCount} procedimientos · {layeredMemory.preview.preferencePendingCount} preferencias</small></article></div><div className="memory-layer-evidence"><span>FUENTE · {layeredMemory.preview.recordCount} REGISTROS</span><code>{layeredMemory.preview.sourceSha256}</code><span>{layeredMemory.revisionCount} REVISIONES INMUTABLES</span></div></> : <div className="memory-layer-empty">{operationRunning ? "Verificando la fuente local…" : "No existe una vista previa disponible."}</div>}
       <footer><div><strong>CERO CONTENIDO COPIADO</strong><span>Sin LLM · sin señal sensorial · sin migración automática</span></div><div><button className="secondary" onClick={() => void refreshLayeredMemory()} disabled={operationRunning}>Actualizar vista previa</button>{(layeredMemory?.state === "ready" || layeredMemory?.state === "rolledBack" || layeredMemory?.state === "sourceChanged") && <button className="primary" onClick={() => void activateLayers()} disabled={operationRunning || !layeredMemory.preview}>Revisé la huella · activar</button>}{(layeredMemory?.state === "active" || layeredMemory?.state === "sourceChanged") && <button className="danger" onClick={() => void rollbackLayers()} disabled={operationRunning || !layeredMemory.activeRevisionId}>Desactivar proyección</button>}</div></footer>
       {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}

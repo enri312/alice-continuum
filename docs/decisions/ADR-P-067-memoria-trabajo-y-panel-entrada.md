@@ -19,4 +19,5 @@ El panel `[05] FACE + BODY OUTPUT BRIDGE` pertenece a `Body Solver`. Los nodos `
 - Cerrar Alice descarta la memoria de trabajo.
 - Memoria duradera y RAM tienen fuentes, ciclos y controles distintos.
 - El vaciado usa confirmación y control de concurrencia por generación.
-- El siguiente incremento debe exponer estado y vaciado en Memoria sin convertirlo en una octava pantalla del cerebro.
+- Memoria expone estado, TTL, presupuesto y vaciado como subpestaña interna; no se convierte en una octava pantalla del cerebro.
+- El siguiente incremento hará explícito el presupuesto de cada fragmento opcional en la previsualización de salida.

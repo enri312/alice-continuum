@@ -619,7 +619,7 @@ fn memory_capabilities(
             "Mantiene hasta seis mensajes reales dentro del proceso y permite inspeccionarlos o vaciarlos.",
             CapabilityDomain::Memory,
             CapabilityKind::Mutation,
-            CapabilityMaturity::Partial,
+            CapabilityMaturity::Implemented,
             "working-memory",
             &[
                 "working_memory_status",
@@ -634,11 +634,11 @@ fn memory_capabilities(
             permission(
                 CapabilityPermissionMode::ExplicitPreview,
                 CapabilityPermissionEnforcer::CurrentUi,
-                "El envío se autoriza visiblemente; Rust bloquea vaciado sin confirmación y generación exacta. Su control visual llega en R6.2-B.",
+                "El envío se autoriza visiblemente; Memoria confirma el vaciado y Rust exige la generación exacta revisada.",
             ),
             health(
                 CapabilityHealthStatus::Healthy,
-                "El almacén RAM está disponible; el indicador y vaciado visual continúan pendientes de R6.2-B.",
+                "El almacén RAM, su indicador, vencimiento y vaciado confirmado están disponibles.",
                 Some(checked_at),
             ),
         ),
@@ -1727,6 +1727,10 @@ mod tests {
         assert_eq!(
             registered(&snapshot, "memory.working.manage").state,
             CapabilityState::Idle
+        );
+        assert_eq!(
+            registered(&snapshot, "memory.working.manage").maturity,
+            CapabilityMaturity::Implemented
         );
         assert_eq!(
             registered(&snapshot, "avatar.vrm.render").state,

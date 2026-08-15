@@ -6,8 +6,8 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![R6](https://img.shields.io/badge/R6.2--A-integrado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-228%2F228%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![R6](https://img.shields.io/badge/R6.2--B-validado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-229%2F229%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-169%20aprobadas%20%7C%2010%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
@@ -37,10 +37,10 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1 validado y R6.2-A integrado: hasta tres intercambios reales en RAM, sin persistencia y con TTL de 30 minutos |
+| Memoria por capas R6 | R6.1 validado y R6.2-B validado: RAM acotada, TTL visible, presupuesto y vaciado confirmado sin afectar recuerdos |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 228/228 aprobadas |
+| Pruebas TypeScript | 229/229 aprobadas |
 | Pruebas Rust | 169 normales aprobadas; diez sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
@@ -170,11 +170,13 @@ La pestaña **Memoria → Capas R6** relee `records.json` y muestra una proyecci
 
 La sonda real clasificó los 10 registros actuales como 9 episodios, 0 hechos semánticos enseñados y 1 procedimiento pendiente de vínculo R5. No activó la migración y mantuvo intactos los 10 archivos canónicos. Consulta el [contrato R6](docs/architecture/LAYERED_MEMORY_R6.md), [ADR-P-066](docs/decisions/ADR-P-066-proyeccion-memoria-por-capas.md), el [plan R6](docs/plans/R6-layered-memory.md) y el [informe R6.1](docs/testing/R6_LAYERED_MEMORY_REPORT_2026-08-13.md).
 
-## Memoria de trabajo R6.2-A
+## Memoria de trabajo R6.2-B
 
-Cada respuesta real del proveedor puede conservar el intercambio reciente en un almacén nativo dentro del proceso: máximo tres intercambios completos, seis mensajes, 48.000 caracteres y 30 minutos desde la última actividad. El texto no se escribe en disco; cerrar Alice, vencer el TTL o vaciar elimina la RAM sin afectar recuerdos duraderos. R3 registra únicamente operaciones y SHA-256.
+Cada respuesta real del proveedor puede conservar el intercambio reciente en un almacén nativo dentro del proceso: máximo tres intercambios completos, seis mensajes, 48.000 caracteres y 30 minutos desde la última actividad. La subpestaña **Memoria → Trabajo RAM** muestra mensajes, intercambios, caracteres, porcentaje, vencimiento, generación y procedencia sin repetir el contenido. Vaciar exige confirmación visible y la generación exacta revisada por el usuario.
 
-La antigua pantalla independiente **Conversación** fue eliminada. Su compositor, previsualización y mensajes viven ahora dentro de `[00] CONVERSATION / PERCEPTION INPUT`. `[05] FACE + BODY OUTPUT BRIDGE` queda en Body Solver; `Face` y `Body` son destinos del grafo cognitivo, no ejecutores del cerebro. Consulta [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md), [ADR-P-067](docs/decisions/ADR-P-067-memoria-trabajo-y-panel-entrada.md) y [el informe R6.2-A](docs/testing/R6_WORKING_MEMORY_REPORT_2026-08-14.md).
+El texto no se escribe en disco; cerrar Alice, vencer el TTL o vaciar elimina la RAM sin afectar recuerdos duraderos. R3 registra únicamente operaciones y SHA-256. En navegador se muestra explícitamente `SIN BACKEND`, sin inventar un snapshot.
+
+La antigua pantalla independiente **Conversación** fue eliminada. Su compositor, previsualización y mensajes viven ahora dentro de `[00] CONVERSATION / PERCEPTION INPUT`. `[05] FACE + BODY OUTPUT BRIDGE` queda en Body Solver; `Face` y `Body` son destinos del grafo cognitivo, no ejecutores del cerebro. Consulta [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md), [ADR-P-067](docs/decisions/ADR-P-067-memoria-trabajo-y-panel-entrada.md), [el informe R6.2-A](docs/testing/R6_WORKING_MEMORY_REPORT_2026-08-14.md) y [la validación R6.2-B](docs/testing/R6_WORKING_MEMORY_UI_REPORT_2026-08-14.md).
 
 ## Iniciar Alice
 

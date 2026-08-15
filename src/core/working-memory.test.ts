@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./working-memory";
+import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot, workingMemoryRemainingLabel, workingMemoryUsagePercent } from "./working-memory";
 
 function activeSnapshot() {
   const userText = "Mensaje real";
@@ -57,5 +57,13 @@ describe("contrato R6.2 de memoria de trabajo real", () => {
     const result = parseWorkingMemoryOperationResult({ snapshot: activeSnapshot(), auditHealthy: false, warning: "Auditoría R3 no disponible" });
 
     expect(result.warning).toContain("R3");
+  });
+
+  it("deriva el contador y el uso únicamente desde el snapshot nativo", () => {
+    const snapshot = parseWorkingMemorySnapshot({ ...activeSnapshot(), expiresInSeconds: 125 });
+
+    expect(workingMemoryRemainingLabel(snapshot)).toBe("02:05");
+    expect(workingMemoryUsagePercent(snapshot)).toBe(0.1);
+    expect(workingMemoryRemainingLabel(parseWorkingMemorySnapshot({ ...activeSnapshot(), state: "expired", exchanges: [], exchangeCount: 0, messageCount: 0, characterCount: 0, expiresInSeconds: null }))).toBe("EXPIRADA");
   });
 });

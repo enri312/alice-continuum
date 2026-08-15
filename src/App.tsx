@@ -23,7 +23,8 @@ import { loadCompatibleArray } from "./core/storage-migration";
 import { parsePermissionGatewayStatus } from "./core/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
 import type { Screen } from "./core/workspaces";
-import { messagesFromWorkingMemory, parseWorkingMemorySnapshot } from "./core/working-memory";
+import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/working-memory";
+import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -78,6 +79,7 @@ export function App() {
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
     const requested = new URLSearchParams(window.location.search).get("screen");
@@ -157,9 +159,12 @@ export function App() {
     const refresh = async () => {
       try {
         const snapshot = parseWorkingMemorySnapshot(await invoke<unknown>("working_memory_status"));
-        if (cancelled || snapshot.generation === workingMemoryGeneration.current) return;
-        workingMemoryGeneration.current = snapshot.generation;
-        setMessages(messagesFromWorkingMemory(snapshot));
+        if (cancelled) return;
+        setWorkingMemory(snapshot);
+        if (snapshot.generation !== workingMemoryGeneration.current) {
+          workingMemoryGeneration.current = snapshot.generation;
+          setMessages(messagesFromWorkingMemory(snapshot));
+        }
       } catch (error) {
         if (!cancelled && workingMemoryGeneration.current < 0) {
           workingMemoryGeneration.current = 0;
@@ -260,6 +265,7 @@ export function App() {
         try {
           const snapshot = parseWorkingMemorySnapshot(response.workingMemory);
           workingMemoryGeneration.current = snapshot.generation;
+          setWorkingMemory(snapshot);
           setMessages(messagesFromWorkingMemory(snapshot));
           recordEvent("MEMORY", "WORKING_MEMORY_RECORDED", `${snapshot.messageCount}/${snapshot.maximumMessages} mensajes reales en RAM · TTL ${snapshot.ttlSeconds}s`);
         } catch (error) {
@@ -299,6 +305,22 @@ export function App() {
       throw error;
     } finally {
       setCloudPending(false);
+    }
+  }
+
+  async function clearWorkingMemory(expectedGeneration: number): Promise<WorkingMemoryOperationResult> {
+    if (!desktopApp) throw new Error("El vaciado de RAM requiere la aplicación de escritorio.");
+    try {
+      const result = parseWorkingMemoryOperationResult(await invoke<unknown>("clear_working_memory", { input: { expectedGeneration, confirmed: true } }));
+      workingMemoryGeneration.current = result.snapshot.generation;
+      setWorkingMemory(result.snapshot);
+      setMessages(messagesFromWorkingMemory(result.snapshot));
+      recordEvent("MEMORY", "WORKING_MEMORY_CLEARED", `RAM vaciada en generación ${result.snapshot.generation}`);
+      if (result.warning) recordEvent("SECURITY", "WORKING_MEMORY_CLEAR_AUDIT_WARNING", result.warning, "WARN");
+      return result;
+    } catch (error) {
+      recordEvent("SECURITY", "WORKING_MEMORY_CLEAR_ERROR", String(error), "WARN");
+      throw error;
     }
   }
 
@@ -392,7 +414,7 @@ export function App() {
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
-    {screen === "memoria" && <Memoria sessions={sessions} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
+    {screen === "memoria" && <Memoria sessions={sessions} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

@@ -148,3 +148,16 @@ export function messagesFromWorkingMemory(snapshot: WorkingMemorySnapshot) {
     { id: `${exchange.exchangeId}-assistant`, role: "assistant" as const, text: exchange.assistantText, createdAt: exchange.createdAt, model: `${exchange.provider} · ${exchange.model}` },
   ]);
 }
+
+export function workingMemoryRemainingLabel(snapshot: WorkingMemorySnapshot) {
+  if (snapshot.state === "expired") return "EXPIRADA";
+  if (snapshot.state === "empty" || snapshot.expiresInSeconds === null) return "VACÍA";
+  const minutes = Math.floor(snapshot.expiresInSeconds / 60);
+  const seconds = snapshot.expiresInSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function workingMemoryUsagePercent(snapshot: WorkingMemorySnapshot) {
+  if (!snapshot.maximumCharacters) return 0;
+  return Math.min(100, Math.round((snapshot.characterCount / snapshot.maximumCharacters) * 1_000) / 10);
+}
