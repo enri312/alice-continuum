@@ -57,6 +57,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 51. [Informe del diagnóstico pasivo de Rostro](testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md)
 52. [ADR-P-072: permiso facial R2 separado](decisions/ADR-P-072-permiso-facial-r2-separado.md)
 53. [Informe del contrato de permiso facial R2](testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md)
+54. [ADR-P-073: catálogo VRM facial de solo lectura](decisions/ADR-P-073-catalogo-expresiones-vrm-solo-lectura.md)
+55. [Informe real del catálogo de expresiones VRM](testing/AVATAR_EXPRESSION_CATALOG_REPORT_2026-08-16.md)
 
 ## Secciones
 

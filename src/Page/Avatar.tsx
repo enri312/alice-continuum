@@ -86,6 +86,10 @@ export function Avatar({ desktopApp }: AvatarProps) {
           <span>Redistribución: {telemetry ? telemetry.redistributionAllowed ? "permitida" : "prohibida" : "—"}</span>
           <span>Modificación: {telemetry ? modificationLabels[telemetry.modification] ?? telemetry.modification : "—"}</span>
         </div>
+        <div className="avatar-expression-catalog">
+          <strong>CATÁLOGO FACIAL DEL VRM · SOLO LECTURA</strong>
+          {telemetry ? telemetry.expressionNames.length ? <div>{telemetry.expressionNames.map((name) => <code key={name}>{name}</code>)}</div> : <small>El archivo cargado no declara expresiones VRM utilizables.</small> : <small>Cargando el catálogo declarado por el archivo privado…</small>}
+        </div>
         <code className="avatar-path" title={status?.path}>{status?.path}</code>
       </aside>
     </div>}

@@ -29,6 +29,7 @@ import {
 } from "../core/manual-avatar-control";
 import { applyAvatarClothingSurfaceDetail, avatarClothingFinish } from "../core/avatar-appearance";
 import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../core/avatar-foot-ik";
+import { catalogAvatarExpressions } from "../core/avatar-expression-catalog";
 import {
   advanceAvatarBodyState,
   bodyStateAnimation,
@@ -45,6 +46,7 @@ export type AvatarTelemetry = {
   metaVersion: string;
   boneCount: number;
   expressionCount: number;
+  expressionNames: string[];
   springJointCount: number;
   colliderCount: number;
   creditRequired: boolean;
@@ -143,6 +145,7 @@ function readTelemetry(vrm: VRM): AvatarTelemetry {
     metaVersion: meta.metaVersion,
     boneCount: Object.keys(vrm.humanoid.humanBones).length,
     expressionCount: vrm.expressionManager?.expressions.length ?? 0,
+    expressionNames: catalogAvatarExpressions(vrm.expressionManager?.expressions.map((expression) => expression.expressionName) ?? []),
     springJointCount: vrm.springBoneManager?.joints.size ?? 0,
     colliderCount: vrm.springBoneManager?.colliders.length ?? 0,
     creditRequired: isVrm1 ? meta.creditNotation === "required" : true,

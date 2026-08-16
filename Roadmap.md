@@ -275,6 +275,11 @@ Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, an
 
 **Base facial local ya comprobada:** una sonda diagnóstica explícita procesó video real de `ACER HD User Facing` con MediaPipe Face Landmarker y el modelo float16 v1 verificado por SHA-256. Detectó 478 landmarks y 52 blendshapes sin persistir fotogramas ni coordenadas. La sonda no forma parte del runtime, no identifica personas, no activa `perception.face.landmarks` y no controla el avatar. La integración futura deberá separar captura, derivación facial y salida VRM; requerirá un grant R2 específico, indicador y parada visibles, calibración por usuario, filtrado temporal y auditoría R3 sin biometría cruda.
 
+**Destino facial real inventariado:** el VRM privado declara 14 expresiones preset (`happy`, `angry`,
+`sad`, `relaxed`, `surprised`, vocales y parpadeos) y ninguna personalizada. Avatar las expone como
+catálogo de solo lectura; no crea pesos, animación ni un mapeo desde la cámara. La futura tabla de
+retarget deberá partir de este catálogo y conservar la frontera R2/R3/R9.
+
 **Preparación visible sin sensor:** la pestaña Rostro consulta un estado nativo pasivo del modelo y runtime local. Esta comprobación vuelve a calcular la huella, confirma dependencias y declara `sensorOpened=false`; no puede convertirse en lectura facial, permiso, memoria, actividad cognitiva ni salida VRM.
 
 #### Subfase futura — Sala de observación y maduración
