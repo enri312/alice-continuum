@@ -58,6 +58,23 @@ pub(crate) struct MemorySnapshot {
     existed: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MarkdownNoteCatalogEntry {
+    relative_path: String,
+    byte_length: u64,
+    sha256: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MarkdownNoteCatalogSnapshot {
+    vault_path: String,
+    vault_exists: bool,
+    note_count: usize,
+    notes: Vec<MarkdownNoteCatalogEntry>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum MemoryResourceState {
     Missing,
@@ -1422,6 +1439,69 @@ pub(crate) fn load_memory(app: AppHandle) -> Result<MemorySnapshot, String> {
     })
 }
 
+fn collect_markdown_notes(
+    directory: &Path,
+    root: &Path,
+    notes: &mut Vec<MarkdownNoteCatalogEntry>,
+) -> Result<(), String> {
+    if notes.len() >= 500 {
+        return Err("La bóveda supera el límite de 500 notas para este catálogo inicial".into());
+    }
+    for entry in fs::read_dir(directory)
+        .map_err(|error| format!("No se pudo enumerar la bóveda: {error}"))?
+    {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let path = entry.path();
+        let file_type = entry.file_type().map_err(|error| error.to_string())?;
+        if file_type.is_dir() {
+            if entry.file_name() != ".obsidian" {
+                collect_markdown_notes(&path, root, notes)?;
+            }
+            continue;
+        }
+        if !file_type.is_file()
+            || path.extension().and_then(|extension| extension.to_str()) != Some("md")
+        {
+            continue;
+        }
+        let bytes = fs::read(&path)
+            .map_err(|error| format!("No se pudo leer la nota para calcular su huella: {error}"))?;
+        let relative_path = path
+            .strip_prefix(root)
+            .map_err(|error| error.to_string())?
+            .to_string_lossy()
+            .replace('\\', "/");
+        notes.push(MarkdownNoteCatalogEntry {
+            relative_path,
+            byte_length: bytes.len() as u64,
+            sha256: format!("sha256:{:x}", Sha256::digest(bytes)),
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub(crate) fn markdown_note_catalog(app: AppHandle) -> Result<MarkdownNoteCatalogSnapshot, String> {
+    let vault = alice_data_root_path(&app)?.join("memory").join("notes");
+    if !vault.is_dir() {
+        return Ok(MarkdownNoteCatalogSnapshot {
+            vault_path: vault.display().to_string(),
+            vault_exists: false,
+            note_count: 0,
+            notes: Vec::new(),
+        });
+    }
+    let mut notes = Vec::new();
+    collect_markdown_notes(&vault, &vault, &mut notes)?;
+    notes.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
+    Ok(MarkdownNoteCatalogSnapshot {
+        vault_path: vault.display().to_string(),
+        vault_exists: true,
+        note_count: notes.len(),
+        notes,
+    })
+}
+
 #[tauri::command]
 pub(crate) fn layered_memory_status(app: AppHandle) -> Result<LayeredMemorySnapshot, String> {
     Ok(layered_memory_status_at(&alice_data_root_path(&app)?))
@@ -1684,6 +1764,30 @@ mod tests {
             "alice-memory-probe-{label}-{}-{unique}",
             std::process::id()
         ))
+    }
+
+    #[test]
+    fn markdown_catalog_lists_only_notes_and_preserves_source_bytes() {
+        let root = temporary_probe_root("markdown-catalog");
+        fs::create_dir_all(root.join("nested")).expect("create nested vault path");
+        fs::create_dir_all(root.join(".obsidian")).expect("create config path");
+        fs::write(root.join("zeta.md"), "# Zeta").expect("write note");
+        fs::write(root.join("nested").join("alpha.md"), "# Alpha").expect("write nested note");
+        fs::write(root.join(".obsidian").join("ignored.md"), "internal")
+            .expect("write internal file");
+        fs::write(root.join("ignore.txt"), "not a note").expect("write non note");
+        let before = file_hashes(&root);
+        let mut notes = Vec::new();
+
+        collect_markdown_notes(&root, &root, &mut notes).expect("catalog notes");
+        notes.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
+
+        assert_eq!(notes.len(), 2);
+        assert_eq!(notes[0].relative_path, "nested/alpha.md");
+        assert_eq!(notes[1].relative_path, "zeta.md");
+        assert!(notes.iter().all(|note| note.sha256.starts_with("sha256:")));
+        assert_eq!(file_hashes(&root), before);
+        fs::remove_dir_all(root).expect("remove controlled vault fixture");
     }
 
     fn legacy_memory() -> MemorySession {

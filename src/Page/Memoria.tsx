@@ -10,7 +10,9 @@ import { teachingTemplates } from "../core/teaching-templates";
 import { SensoryLearningPanel } from "../components/SensoryLearningPanel";
 
 type MemoryType = "semantic" | "procedural" | "preference" | "episodic";
-type MemoryView = "records" | "working" | "layers" | "learn" | "teach" | "review" | "consolidate" | "safety";
+type MemoryView = "records" | "working" | "layers" | "notes" | "learn" | "teach" | "review" | "consolidate" | "safety";
+
+type MarkdownNoteCatalog = { vaultPath: string; vaultExists: boolean; noteCount: number; notes: { relativePath: string; byteLength: number; sha256: string }[] };
 
 type MemorySession = {
   id: string;
@@ -61,7 +63,7 @@ const memoryTypeLabels: Record<MemoryType, string> = {
 
 export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
-  const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
+  const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "notes" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
   const [view, setView] = useState<MemoryView>(initialView);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
   const [operationRunning, setOperationRunning] = useState(false);
   const [layeredMemory, setLayeredMemory] = useState<LayeredMemorySnapshot | null>(null);
   const [consolidationPreview, setConsolidationPreview] = useState<ConsolidationPreviewSnapshot | null>(null);
+  const [markdownNotes, setMarkdownNotes] = useState<MarkdownNoteCatalog | null>(null);
   const remembered = sessions.filter((session) => session.finishedAt);
   const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza")), [remembered]);
   const pendingReviews = reviewQueue.filter((review) => review.due);
@@ -110,6 +113,16 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
   }
 
   useEffect(() => { if (view === "consolidate") void refreshConsolidationPreview(); }, [view, sessions]);
+
+  async function refreshMarkdownNotes() {
+    if (!isTauri()) return;
+    setOperationRunning(true);
+    try { setMarkdownNotes(await invoke<MarkdownNoteCatalog>("markdown_note_catalog")); }
+    catch (error) { setOperationMessage(`No se pudo catalogar la bóveda Markdown: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  useEffect(() => { if (view === "notes") void refreshMarkdownNotes(); }, [view]);
 
   async function keepConsolidationPairSeparate(candidate: ConsolidationCandidate) {
     const sourceSha256 = consolidationPreview?.sourceSha256;
@@ -236,7 +249,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
 
   return <section className="memory-page" aria-labelledby="memory-title">
     <div className="memory-heading"><div><p className="eyebrow">MEMORIA Y APRENDIZAJE · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Recuerdos confirmados, enseñanzas directas y futuros aprendizajes derivados de sesiones sensoriales autorizadas.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count"><strong>{remembered.length}</strong><span>recuerdos<br />locales</span></div></div></div>
-    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>04</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>05</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>06</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>07</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>08</span>RESPALDO</button></nav>
+    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "notes"} className={view === "notes" ? "selected" : ""} onClick={() => setView("notes")}><span>04</span>NOTAS MD <em>{markdownNotes?.noteCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>05</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>06</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>07</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>08</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>09</span>RESPALDO</button></nav>
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
       {workingMemory ? <>
@@ -254,6 +267,7 @@ export function Memoria({ sessions, workingMemory, onClearWorkingMemory, onCreat
       <footer><div><strong>CERO CONTENIDO COPIADO</strong><span>Sin LLM · sin señal sensorial · sin migración automática</span></div><div><button className="secondary" onClick={() => void refreshLayeredMemory()} disabled={operationRunning}>Actualizar vista previa</button>{(layeredMemory?.state === "ready" || layeredMemory?.state === "rolledBack" || layeredMemory?.state === "sourceChanged") && <button className="primary" onClick={() => void activateLayers()} disabled={operationRunning || !layeredMemory.preview}>Revisé la huella · activar</button>}{(layeredMemory?.state === "active" || layeredMemory?.state === "sourceChanged") && <button className="danger" onClick={() => void rollbackLayers()} disabled={operationRunning || !layeredMemory.activeRevisionId}>Desactivar proyección</button>}</div></footer>
       {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}
+    {view === "notes" && <section className="memory-view-panel" aria-labelledby="markdown-notes-title"><header><p className="eyebrow">BÓVEDA OBSIDIAN · CATÁLOGO NATIVO DE SOLO LECTURA</p><h3 id="markdown-notes-title">Notas Markdown disponibles</h3><p>Se muestran rutas, tamaño y huella. Alice no interpreta, copia ni convierte una nota en recuerdo.</p></header>{markdownNotes?.vaultExists ? markdownNotes.notes.length ? <div className="memory-list">{markdownNotes.notes.map((note) => <article className="memory-record" key={note.relativePath}><div className="memory-body"><h3>{note.relativePath}</h3><div className="memory-evidence"><span>{note.byteLength.toLocaleString("es-PY")} BYTES</span><code>{note.sha256}</code></div></div></article>)}</div> : <div className="memory-empty"><h3>Bóveda sin notas</h3><p>Creá una nota en Obsidian y actualizá este catálogo.</p></div> : <div className="memory-empty"><h3>Bóveda no encontrada</h3><p>La carpeta privada de notas todavía no existe.</p></div>}<footer><code>{markdownNotes?.vaultPath ?? "Consultando ruta local…"}</code><button className="secondary" type="button" onClick={() => void refreshMarkdownNotes()} disabled={operationRunning || !isTauri()}>Actualizar catálogo</button></footer></section>}
     {view === "learn" && <div className="memory-view-panel"><SensoryLearningPanel observationEnabled={observationEnabled} /></div>}
     {view === "teach" && <section className="teaching-panel memory-view-panel" aria-labelledby="teaching-title">
       <header><div><p className="eyebrow">ENSEÑANZA DIRECTA · SOLO LOCAL</p><h3 id="teaching-title">Enseñarle algo a Alice</h3><p>Esta información se guarda en tu computadora. No consulta ni envía nada a OpenRouter.</p></div><span>CONSOLIDACIÓN INICIAL 18%</span></header>

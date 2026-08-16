@@ -30,8 +30,8 @@ use diagnostics::diagnostic_snapshot;
 use face_readiness::face_readiness_status;
 use memory::{
     activate_layered_memory, consolidation_preview, export_memory, layered_memory_status,
-    load_memory, open_memory_directory, resolve_consolidation_candidate, restore_memory_backup,
-    rollback_layered_memory, save_memory,
+    load_memory, markdown_note_catalog, open_memory_directory, resolve_consolidation_candidate,
+    restore_memory_backup, rollback_layered_memory, save_memory,
 };
 use observation::{get_foreground_context, spawn_observer_thread, ObservationStore};
 use permissions::{
@@ -117,6 +117,7 @@ pub fn run() {
             diagnostic_snapshot,
             get_foreground_context,
             load_memory,
+            markdown_note_catalog,
             layered_memory_status,
             consolidation_preview,
             resolve_consolidation_candidate,

@@ -8,7 +8,7 @@
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6.3--B-validado-0f766e?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-250%2F250%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-178%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-179%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -41,7 +41,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
 | Pruebas TypeScript | 250/250 aprobadas |
-| Pruebas Rust | 178 normales aprobadas; trece sondas vivas disponibles por separado |
+| Pruebas Rust | 179 normales aprobadas; trece sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
