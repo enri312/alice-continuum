@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createCancelPermissionInput,
   createExecutePermissionInput,
+  createFaceLandmarkPreparation,
   createForegroundControlPreparation,
   createPermissionDecisionInput,
   createRevokePermissionInput,
@@ -52,6 +53,26 @@ function status(requests: unknown[] = [request()]) {
     limits: { highRiskDecisionTtlSeconds: 60, standardDecisionTtlSeconds: 300, maximumSessionDurationSeconds: 300 },
     requests,
     grants: [],
+  };
+}
+
+function faceRequest() {
+  return {
+    ...request(),
+    requestId: "request_face_000001",
+    idempotencyKey: "prepare-face-0001",
+    capabilityId: "perception.face.landmarks",
+    operation: "deriveAuthorizedFaceLandmarks",
+    purpose: "Derivar movimiento facial efímero con autorización visible.",
+    resource: { kind: "facePipeline", stableId: "face-pipeline-integrated-camera", label: "Derivación facial local" },
+    dataScopes: ["facialLandmarksEphemeral"],
+    effects: ["facialLandmarksDerive"],
+    risk: "critical",
+    decisionExpiresAt: "2026-08-09T15:01:00Z",
+    requestedDurationSeconds: 60,
+    maximumDurationSeconds: 60,
+    summary: "Alice solicita derivar geometría facial efímera.",
+    warnings: ["Aprobar no abre la cámara."],
   };
 }
 
@@ -226,6 +247,31 @@ describe("permission gateway contract", () => {
     expect(createSensorPreparation("microphone", "sensor-microphone-01", "Verificar micrófono vivo.", 30).capabilityId).toBe("perception.microphone.observe");
     expect(() => createSensorPreparation("camera", "sensor-camera-0002", "Verificar.", 61)).toThrow(/1 y 60/);
     expect(() => createSensorPreparation("face" as SensorKind, "sensor-face-0001", "No debe preparar rostro sin R2.", 30)).toThrow(/todavía no está migrado/);
+  });
+
+  it("construye y valida el perfil facial R2 separado del permiso de cámara", () => {
+    expect(createFaceLandmarkPreparation(
+      "face-permission-0001",
+      "Derivar movimiento facial efímero.",
+      60,
+    )).toEqual({
+      idempotencyKey: "face-permission-0001",
+      capabilityId: "perception.face.landmarks",
+      operation: "deriveAuthorizedFaceLandmarks",
+      purpose: "Derivar movimiento facial efímero.",
+      parameters: { durationSeconds: 60 },
+    });
+    const parsed = parsePreparedPermissionRequest(faceRequest());
+    expect(parsed.resource.kind).toBe("facePipeline");
+    expect(parsed.risk).toBe("critical");
+    expect(parsed.effects).toEqual(["facialLandmarksDerive"]);
+  });
+
+  it("rechaza permisos faciales que amplían alcance, efecto o recurso", () => {
+    expect(() => parsePreparedPermissionRequest({ ...faceRequest(), dataScopes: ["cameraFrames"] })).toThrow(/amplía el alcance/);
+    expect(() => parsePreparedPermissionRequest({ ...faceRequest(), effects: ["facialLandmarksDerive", "cameraObserve"] })).toThrow(/amplía el alcance/);
+    expect(() => parsePreparedPermissionRequest({ ...faceRequest(), resource: { kind: "camera", stableId: "camera-acer-hd-user-facing", label: "Cámara" } })).toThrow(/parciales/);
+    expect(() => createFaceLandmarkPreparation("face-permission-0002", "Derivar.", 61)).toThrow(/1 y 60/);
   });
 
   it("valida un lease real sin persistencia y ligado a su grant activo", () => {

@@ -10,10 +10,12 @@ export type PermissionEffect =
   | "processLaunch"
   | "windowMetadataRead"
   | "cameraObserve"
+  | "facialLandmarksDerive"
   | "microphoneObserve"
   | "screenObserve";
 export type PermissionResourceKind =
   | "camera"
+  | "facePipeline"
   | "microphone"
   | "screen"
   | "file"
@@ -112,6 +114,14 @@ export type PrepareSensorPermissionInput = {
   parameters: { durationSeconds: number };
 };
 
+export type PrepareFaceLandmarkPermissionInput = {
+  idempotencyKey: string;
+  capabilityId: "perception.face.landmarks";
+  operation: "deriveAuthorizedFaceLandmarks";
+  purpose: string;
+  parameters: { durationSeconds: number };
+};
+
 export type PermissionDecisionInput = {
   requestId: string;
   previewDigest: string;
@@ -148,8 +158,8 @@ export type SensorLeaseExecutionResult = { grant: PermissionGrant; lease: Sensor
 
 const modes = ["implicitRead", "oneShot", "session"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
-const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "cameraObserve", "microphoneObserve", "screenObserve"] as const;
-const resourceKinds = ["camera", "microphone", "screen", "file", "directory", "networkEndpoint", "process", "window", "memory", "other"] as const;
+const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "cameraObserve", "facialLandmarksDerive", "microphoneObserve", "screenObserve"] as const;
+const resourceKinds = ["camera", "facePipeline", "microphone", "screen", "file", "directory", "networkEndpoint", "process", "window", "memory", "other"] as const;
 const requestStates = ["awaitingDecision", "approved", "denied", "cancelled", "expired"] as const;
 const grantStates = ["approved", "consuming", "completed", "error", "active", "stopped", "revoked", "expired"] as const;
 const requestKeys = ["schemaVersion", "requestId", "idempotencyKey", "capabilityId", "capabilityVersion", "operation", "mode", "purpose", "resource", "dataScopes", "effects", "risk", "createdAt", "decisionExpiresAt", "requestedDurationSeconds", "maximumDurationSeconds", "executionPlanDigest", "previewDigest", "state", "summary", "warnings"] as const;
@@ -262,6 +272,9 @@ export function parsePreparedPermissionRequest(value: unknown): PreparedPermissi
   const requestedDurationSeconds = optionalDuration(input.requestedDurationSeconds, "request.requestedDurationSeconds");
   const maximumDurationSeconds = optionalDuration(input.maximumDurationSeconds, "request.maximumDurationSeconds");
   const risk = enumValue(input.risk, risks, "request.risk");
+  const parsedCapabilityId = capabilityId(input.capabilityId);
+  const parsedOperation = identifier(input.operation, "request.operation");
+  const resource = parseResource(input.resource);
   const createdAt = utcTimestamp(input.createdAt, "request.createdAt");
   const decisionExpiresAt = utcTimestamp(input.decisionExpiresAt, "request.decisionExpiresAt");
   const decisionTtl = Date.parse(decisionExpiresAt) - Date.parse(createdAt);
@@ -272,16 +285,31 @@ export function parsePreparedPermissionRequest(value: unknown): PreparedPermissi
       fail("request.session contiene una duración inválida");
     }
   } else if (requestedDurationSeconds !== null || maximumDurationSeconds !== null) fail("request.oneShot no admite duración");
+  const declaresFace = parsedCapabilityId === "perception.face.landmarks"
+    || parsedOperation === "deriveAuthorizedFaceLandmarks"
+    || resource.kind === "facePipeline";
+  if (declaresFace) {
+    if (parsedCapabilityId !== "perception.face.landmarks" || parsedOperation !== "deriveAuthorizedFaceLandmarks" || resource.kind !== "facePipeline") {
+      fail("request facial contiene capacidad, operación o recurso parciales");
+    }
+    if (mode !== "session" || risk !== "critical" || maximumDurationSeconds !== 60) {
+      fail("request facial requiere session critical limitada a 60 segundos");
+    }
+    if (dataScopes.length !== 1 || dataScopes[0] !== "facialLandmarksEphemeral"
+      || parsedEffects.length !== 1 || parsedEffects[0] !== "facialLandmarksDerive") {
+      fail("request facial amplía el alcance efímero autorizado");
+    }
+  }
   return {
     schemaVersion: PERMISSION_GATEWAY_SCHEMA_VERSION,
     requestId: opaqueId(input.requestId, "request.requestId"),
     idempotencyKey: opaqueId(input.idempotencyKey, "request.idempotencyKey"),
-    capabilityId: capabilityId(input.capabilityId),
+    capabilityId: parsedCapabilityId,
     capabilityVersion: positiveInteger(input.capabilityVersion, "request.capabilityVersion"),
-    operation: identifier(input.operation, "request.operation"),
+    operation: parsedOperation,
     mode,
     purpose: cleanText(input.purpose, "request.purpose"),
-    resource: parseResource(input.resource),
+    resource,
     dataScopes,
     effects: parsedEffects,
     risk,
@@ -422,6 +450,25 @@ export function createSensorPreparation(
     default:
       return fail("el sensor todavía no está migrado al Gateway R2");
   }
+}
+
+export function createFaceLandmarkPreparation(
+  idempotencyKey: string,
+  purpose: string,
+  durationSeconds = 60,
+): PrepareFaceLandmarkPermissionInput {
+  opaqueId(idempotencyKey, "idempotencyKey");
+  cleanText(purpose, "purpose");
+  if (!Number.isInteger(durationSeconds) || durationSeconds < 1 || durationSeconds > 60) {
+    fail("durationSeconds facial debe estar entre 1 y 60");
+  }
+  return {
+    idempotencyKey,
+    capabilityId: "perception.face.landmarks",
+    operation: "deriveAuthorizedFaceLandmarks",
+    purpose,
+    parameters: { durationSeconds },
+  };
 }
 
 export function createPermissionDecisionInput(

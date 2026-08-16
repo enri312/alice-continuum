@@ -36,6 +36,10 @@ const MAX_RESOURCE_LABEL_LENGTH: usize = 160;
 
 const FOREGROUND_CONTROL_CAPABILITY: &str = "context.foreground.control";
 const FOREGROUND_CONTROL_OPERATION: &str = "setContextObservationEnabled";
+const FACE_LANDMARK_CAPABILITY: &str = "perception.face.landmarks";
+const FACE_LANDMARK_OPERATION: &str = "deriveAuthorizedFaceLandmarks";
+const FACE_PIPELINE_STABLE_ID: &str = "face-pipeline-integrated-camera";
+const FACE_PIPELINE_LABEL: &str = "Derivación facial local · ACER HD User Facing";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -658,6 +662,11 @@ fn prepare_sensor_permission_trace(
     if duration_seconds == 0 || duration_seconds > SENSOR_SESSION_DURATION_SECONDS {
         return Err("La sesión sensorial debe solicitar entre 1 y 60 segundos".into());
     }
+    let declares_face = input.capability_id == FACE_LANDMARK_CAPABILITY
+        || input.operation == FACE_LANDMARK_OPERATION;
+    if declares_face {
+        return prepare_face_permission_trace(gateway, input, duration_seconds);
+    }
     let kind = SensorKind::from_capability(&input.capability_id, &input.operation)?;
     let (resource_kind, effect, scope, stable_id, label, summary, warning) = match kind {
         SensorKind::Camera => (
@@ -706,6 +715,54 @@ fn prepare_sensor_permission_trace(
     gateway.prepare_request_traced(
         draft,
         json!({ "durationSeconds": duration_seconds, "deviceStableId": stable_id }),
+    )
+}
+
+fn prepare_face_permission_trace(
+    gateway: &PermissionGateway,
+    input: PreparePermissionRequestInput,
+    duration_seconds: u32,
+) -> Result<PreparedPermissionTrace, String> {
+    if input.capability_id != FACE_LANDMARK_CAPABILITY || input.operation != FACE_LANDMARK_OPERATION
+    {
+        return Err("El permiso facial exige capacidad y operación canónicas coincidentes".into());
+    }
+    let draft = PermissionRequestDraft {
+        schema_version: PERMISSION_GATEWAY_SCHEMA_VERSION,
+        request_id: "assigned_by_gateway".into(),
+        idempotency_key: input.idempotency_key,
+        capability_id: input.capability_id,
+        capability_version: 1,
+        operation: input.operation,
+        mode: PermissionMode::Session,
+        purpose: input.purpose,
+        resource: PermissionResource {
+            kind: PermissionResourceKind::FacePipeline,
+            stable_id: FACE_PIPELINE_STABLE_ID.into(),
+            label: FACE_PIPELINE_LABEL.into(),
+        },
+        data_scopes: vec!["facialLandmarksEphemeral".into()],
+        effects: vec![PermissionEffect::FacialLandmarksDerive],
+        risk: PermissionRisk::Critical,
+        created_at: "1970-01-01T00:00:00Z".into(),
+        decision_expires_at: "1970-01-01T00:00:01Z".into(),
+        requested_duration_seconds: Some(duration_seconds),
+        maximum_duration_seconds: Some(SENSOR_SESSION_DURATION_SECONDS),
+        summary: "Alice solicita derivar temporalmente geometría facial efímera desde la cámara integrada.".into(),
+        warnings: vec![
+            "Aprobar solo crea un grant: este incremento no abre la cámara ni inicia el modelo.".into(),
+            "No se autoriza identidad, persistencia de video, fotografías ni memoria biométrica.".into(),
+        ],
+    };
+    gateway.prepare_request_traced(
+        draft,
+        json!({
+            "activationExposed": false,
+            "durationSeconds": duration_seconds,
+            "identityAllowed": false,
+            "rawPersistence": false,
+            "sourceStableId": CAMERA_STABLE_ID
+        }),
     )
 }
 
@@ -818,6 +875,7 @@ pub(crate) enum PermissionEffect {
     ProcessLaunch,
     WindowMetadataRead,
     CameraObserve,
+    FacialLandmarksDerive,
     MicrophoneObserve,
     ScreenObserve,
 }
@@ -826,6 +884,7 @@ pub(crate) enum PermissionEffect {
 #[serde(rename_all = "camelCase")]
 pub(crate) enum PermissionResourceKind {
     Camera,
+    FacePipeline,
     Microphone,
     Screen,
     File,
@@ -1038,6 +1097,37 @@ impl PreparedPermissionRequest {
     }
 
     fn validate_sensor_rules(&self) -> Result<(), String> {
+        let declares_face = self.capability_id == FACE_LANDMARK_CAPABILITY
+            || self.operation == FACE_LANDMARK_OPERATION
+            || self.resource.kind == PermissionResourceKind::FacePipeline;
+        if declares_face {
+            if self.capability_id != FACE_LANDMARK_CAPABILITY
+                || self.operation != FACE_LANDMARK_OPERATION
+                || self.resource.kind != PermissionResourceKind::FacePipeline
+            {
+                return Err(
+                    "El perfil facial R2 no admite capacidad, operación o recurso parciales".into(),
+                );
+            }
+            if self.mode != PermissionMode::Session
+                || self.risk != PermissionRisk::Critical
+                || self.requested_duration_seconds.is_none()
+                || self.maximum_duration_seconds != Some(SENSOR_SESSION_DURATION_SECONDS)
+            {
+                return Err(
+                    "La derivación facial exige una sesión critical limitada a 60 segundos".into(),
+                );
+            }
+            if self.effects != [PermissionEffect::FacialLandmarksDerive]
+                || self.data_scopes != ["facialLandmarksEphemeral"]
+            {
+                return Err(
+                    "La derivación facial solo admite landmarks efímeros y su efecto específico"
+                        .into(),
+                );
+            }
+            return Ok(());
+        }
         let expected = match self.resource.kind {
             PermissionResourceKind::Camera => {
                 Some((PermissionEffect::CameraObserve, "cameraFrames", "La cámara"))
@@ -1540,6 +1630,30 @@ mod tests {
         }
     }
 
+    fn face_draft() -> PermissionRequestDraft {
+        PermissionRequestDraft {
+            request_id: "face_request_0001".into(),
+            idempotency_key: "face-session-0001".into(),
+            capability_id: FACE_LANDMARK_CAPABILITY.into(),
+            operation: FACE_LANDMARK_OPERATION.into(),
+            mode: PermissionMode::Session,
+            purpose: "Derivar movimiento facial efímero durante esta sesión.".into(),
+            resource: PermissionResource {
+                kind: PermissionResourceKind::FacePipeline,
+                stable_id: FACE_PIPELINE_STABLE_ID.into(),
+                label: FACE_PIPELINE_LABEL.into(),
+            },
+            data_scopes: vec!["facialLandmarksEphemeral".into()],
+            effects: vec![PermissionEffect::FacialLandmarksDerive],
+            risk: PermissionRisk::Critical,
+            requested_duration_seconds: Some(60),
+            maximum_duration_seconds: Some(60),
+            summary: "Alice solicita derivar geometría facial efímera.".into(),
+            warnings: vec!["No se conservarán fotogramas ni geometría facial.".into()],
+            ..draft()
+        }
+    }
+
     fn one_shot_grant() -> PermissionGrant {
         let request = draft().prepare().unwrap();
         PermissionGrant {
@@ -1709,6 +1823,22 @@ mod tests {
             .prepare()
             .unwrap_err()
             .contains("alcance de datos"));
+
+        face_draft().prepare().unwrap().validate().unwrap();
+        let mut facial_with_camera_scope = face_draft();
+        facial_with_camera_scope.data_scopes = vec!["cameraFrames".into()];
+        assert!(facial_with_camera_scope
+            .prepare()
+            .unwrap_err()
+            .contains("landmarks efímeros"));
+        let mut facial_with_camera_effect = face_draft();
+        facial_with_camera_effect
+            .effects
+            .push(PermissionEffect::CameraObserve);
+        assert!(facial_with_camera_effect
+            .prepare()
+            .unwrap_err()
+            .contains("efecto específico"));
     }
 
     #[test]
@@ -1810,24 +1940,90 @@ mod tests {
     }
 
     #[test]
-    fn preparation_rejects_planned_facial_derivation_without_storing_anything() {
+    fn facial_preparation_is_specific_critical_and_does_not_open_a_sensor() {
         let gateway = PermissionGateway::default();
-        let error = prepare_supported_permission_request(
+        let sensors = SensorLeaseStore::default();
+        let request = prepare_supported_permission_request(
             &gateway,
             PreparePermissionRequestInput {
                 idempotency_key: "prepare-face-0001".into(),
-                capability_id: "perception.face.landmarks".into(),
-                operation: "deriveAuthorizedFaceLandmarks".into(),
-                purpose: "Intento facial que todavía no tiene adaptador R2.".into(),
+                capability_id: FACE_LANDMARK_CAPABILITY.into(),
+                operation: FACE_LANDMARK_OPERATION.into(),
+                purpose: "Preparar derivación facial local sin ejecutarla.".into(),
                 parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
                     duration_seconds: 60,
                 }),
             },
         )
-        .unwrap_err();
+        .unwrap();
 
-        assert!(error.contains("no autoriza una cámara o micrófono"));
-        assert!(gateway.status().unwrap().requests.is_empty());
+        assert_eq!(request.resource.kind, PermissionResourceKind::FacePipeline);
+        assert_eq!(request.data_scopes, vec!["facialLandmarksEphemeral"]);
+        assert_eq!(
+            request.effects,
+            vec![PermissionEffect::FacialLandmarksDerive]
+        );
+        assert_eq!(request.risk, PermissionRisk::Critical);
+        assert_eq!(request.state, PermissionRequestState::AwaitingDecision);
+        assert_eq!(gateway.status().unwrap().requests, vec![request]);
+        assert!(gateway.status().unwrap().grants.is_empty());
+        assert!(sensors.status().unwrap().leases.is_empty());
+    }
+
+    #[test]
+    fn facial_grant_can_be_approved_and_revoked_but_not_run_as_a_sensor() {
+        let gateway = PermissionGateway::default();
+        let sensors = SensorLeaseStore::default();
+        let observation = ObservationStore::default();
+        let request = prepare_supported_permission_request(
+            &gateway,
+            PreparePermissionRequestInput {
+                idempotency_key: "prepare-face-0002".into(),
+                capability_id: FACE_LANDMARK_CAPABILITY.into(),
+                operation: FACE_LANDMARK_OPERATION.into(),
+                purpose: "Autorizar contrato facial sin activar la cámara.".into(),
+                parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
+                    duration_seconds: 60,
+                }),
+            },
+        )
+        .unwrap();
+        let grant = gateway
+            .decide(PermissionDecisionInput {
+                request_id: request.request_id,
+                preview_digest: request.preview_digest,
+                decision: PermissionDecision::Approve,
+            })
+            .unwrap()
+            .unwrap();
+        assert_eq!(grant.state, PermissionGrantState::Approved);
+
+        let execution_error = execute_sensor_lease_grant_impl(
+            &gateway,
+            &sensors,
+            ExecutePermissionGrantInput {
+                grant_id: grant.grant_id.clone(),
+            },
+        )
+        .unwrap_err();
+        assert!(execution_error.contains("no autoriza una cámara o micrófono"));
+        assert_eq!(
+            gateway.grant(&grant.grant_id).unwrap().state,
+            PermissionGrantState::Approved
+        );
+        assert!(sensors.status().unwrap().leases.is_empty());
+
+        let revoked = revoke_permission_grant_impl(
+            &gateway,
+            &observation,
+            &sensors,
+            RevokePermissionGrantInput {
+                grant_id: grant.grant_id,
+            },
+        )
+        .unwrap();
+        assert_eq!(revoked.state, PermissionGrantState::Revoked);
+        assert!(sensors.status().unwrap().leases.is_empty());
     }
 
     #[test]

@@ -72,7 +72,7 @@ Cada capacidad tendrá como mínimo:
 
 ### Fase R2 — Gateway de permisos
 
-**Estado:** completada en su alcance inicial · ventana, cámara y micrófono protegidos  
+**Estado:** completada en su alcance inicial · ventana, cámara, micrófono y autorización facial protegidos  
 **Dependencia:** Fase R1  
 **Objetivo:** convertir el registro en una frontera única que autorice o rechace cada uso.
 
@@ -94,6 +94,12 @@ Cada solicitud deberá tener alcance, recurso objetivo, vencimiento, motivo, rie
 - [x] Los permisos son específicos, revocables y tienen vencimiento cuando corresponde.
 - [x] Cancelar o cerrar la solicitud no produce efectos secundarios.
 - [x] Las pruebas cubren autorización, rechazo, expiración, revocación y duplicados.
+
+**Extensión facial sin ejecución:** `perception.face.landmarks` dispone de un perfil R2 `critical`
+independiente, limitado a 60 segundos y al alcance `facialLandmarksEphemeral`. Rostro permite
+preparar, aprobar, denegar, cancelar y revocar; aprobar todavía no abre la cámara ni inicia MediaPipe.
+El ejecutor sensorial genérico rechaza el grant facial y la capacidad R1 continúa planificada hasta
+incorporar un adaptador dedicado con indicador, parada y auditoría operacional.
 
 ### Fase R3 — Auditoría unificada y diagnóstico
 

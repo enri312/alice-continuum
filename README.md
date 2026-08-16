@@ -7,8 +7,8 @@
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6.3--B-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-246%2F246%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-177%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-248%2F248%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-178%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -26,22 +26,22 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 15 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 16 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
 | Área | Estado real |
 |---|---|
 | Registro de capacidades R1 | Validado: snapshot nativo v1 con 25 capacidades |
-| Gateway de permisos R2 | Alcance inicial validado: ventana, cámara y micrófono protegidos por grants nativos |
+| Gateway de permisos R2 | Ventana, cámara y micrófono protegidos; permiso facial separado disponible sin ejecución |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
 | Memoria por capas R6 | R6.1, R6.2-C y R6.3-B validados: RAM acotada, candidatos deterministas y decisión humana mantener-separados |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 246/246 aprobadas |
-| Pruebas Rust | 177 normales aprobadas; trece sondas vivas disponibles por separado |
+| Pruebas TypeScript | 248/248 aprobadas |
+| Pruebas Rust | 178 normales aprobadas; trece sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -58,10 +58,10 @@ La evidencia completa está en [el informe de validación R1](docs/testing/R1_CA
 - React no recibe ni muestra claves de proveedores.
 - Una respuesta de nube no se convierte automáticamente en recuerdo o verdad.
 - La observación vigente se limita a metadatos autorizados de la ventana activa; no registra teclas, archivos ni imágenes.
-- Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados. La sonda facial no cambia ese estado.
+- Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados. Rostro dispone de autorización R2 separada, pero todavía no de adaptador ejecutable.
 - Voz, rostro, mirada, puente corporal y adaptadores externos permanecen desconectados. El visor posee una prueba manual DualSense que no representa salida de Alice.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
-- R2 consume grants efímeros para ventana, cámara o micrófono. Aprobar no abre hardware: cada sensor exige una activación posterior y ofrece Detener inmediato.
+- R2 consume grants efímeros para ventana, cámara, micrófono o derivación facial. Aprobar no abre hardware; el grant facial ni siquiera expone activación todavía y puede cancelarse, denegarse, vencer o revocarse.
 - El envío a la nube todavía usa previsualización y confirmación en React; R1 lo declara `enforcedBy: currentUi` hasta una migración nativa futura.
 
 ## Pantallas
@@ -94,13 +94,13 @@ Comprobación real de hardware del 09 de agosto de 2026:
 
 El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada real: la prueba exigió señal positiva, detuvo cada lease y confirmó `MEDIA_DELTA=0` sobre 107 archivos. Las capacidades `perception.camera.observe` y `perception.microphone.observe` son ahora `partial`, usan `enforcedBy: native` y aparecen `idle` o `active` según el proceso real. Todavía no analizan, transcriben ni crean recuerdos.
 
-Como evaluación de una alternativa accesible a un visor con seguimiento facial, el 15 de agosto de 2026 se ejecutó una sonda local independiente con MediaPipe Face Landmarker sobre `ACER HD User Facing`. En 10,59 segundos analizó 53 fotogramas, detectó un rostro en 53/53, obtuvo 478 landmarks y 52 blendshapes, con 20,71 ms de latencia media y 22,17 ms en p95. El recuento multimedia permaneció en 117 archivos (`MEDIA_DELTA=0`). El modelo verificado vive sólo en `Assets/Models/private/`, está excluido de Git y la sonda exige `--live`; no identifica personas, no conserva coordenadas y no mueve el avatar. `perception.face.landmarks` continúa planificada hasta disponer de autorización R2 específica, parada visible, calibración y un puente R9 revisado.
+Como evaluación de una alternativa accesible a un visor con seguimiento facial, el 15 de agosto de 2026 se ejecutó una sonda local independiente con MediaPipe Face Landmarker sobre `ACER HD User Facing`. En 10,59 segundos analizó 53 fotogramas, detectó un rostro en 53/53, obtuvo 478 landmarks y 52 blendshapes, con 20,71 ms de latencia media y 22,17 ms en p95. El recuento multimedia permaneció en 117 archivos (`MEDIA_DELTA=0`). El modelo verificado vive sólo en `Assets/Models/private/`, está excluido de Git y la sonda exige `--live`; no identifica personas, no conserva coordenadas y no mueve el avatar. `perception.face.landmarks` continúa planificada aunque ya dispone de autorización R2 específica. La ejecución seguirá bloqueada hasta incorporar adaptador, parada operacional, calibración y un puente R9 revisado.
 
-La pestaña **Rostro** consulta además una comprobación nativa pasiva: vuelve a calcular la huella del modelo local y verifica Python, OpenCV, MediaPipe y NumPy. Sólo expone preparación, nunca abre cámara ni lee landmarks; `sensorOpened` se valida como `false`. Así, el panel distingue modelo verificado de tracking real y deja todos los canales en reserva hasta el incremento R2/R9.
+La pestaña **Rostro** consulta además una comprobación nativa pasiva: vuelve a calcular la huella del modelo local y verifica Python, OpenCV, MediaPipe y NumPy. Sólo expone preparación, nunca abre cámara ni lee landmarks; `sensorOpened` se valida como `false`. El panel también permite preparar y decidir el permiso facial R2 `critical` de 60 segundos. Incluso aprobado, el grant queda sin ejecutar y puede revocarse desde el mismo panel; todos los canales permanecen en reserva.
 
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
-Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [el informe pasivo del panel Rostro](docs/testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md) y [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md).
+Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [el informe pasivo del panel Rostro](docs/testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md), [el informe del permiso facial](docs/testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md), [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md) y [ADR-P-072](docs/decisions/ADR-P-072-permiso-facial-r2-separado.md).
 
 ### Prueba manual DualSense
 

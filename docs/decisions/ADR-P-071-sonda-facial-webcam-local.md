@@ -69,6 +69,10 @@ Antes de usar esta señal dentro de Alice se deberá:
 4. calibrar rango neutral y extremos por usuario;
 5. añadir suavizado, zona muerta y detección de pérdida de rostro;
 6. mapear derivación facial a canales VRM mediante un puente R9 independiente;
+
+El contrato de autorización del punto 2 quedó incorporado mediante ADR-P-072: solicitud, decisión,
+cancelación, vencimiento y revocación ya son visibles. La activación y parada del adaptador real
+continúan pendientes; aprobar un grant todavía no abre la cámara.
 7. demostrar por prueba que cerrar o revocar destruye buffers y pone los canales en neutral.
 
 ## Consecuencias

@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { parseFaceReadinessStatus } from "../core/faceReadiness";
 import type { FaceReadinessStatus } from "../core/faceReadiness";
+import {
+  createCancelPermissionInput,
+  createFaceLandmarkPreparation,
+  createPermissionDecisionInput,
+  createRevokePermissionInput,
+  parsePermissionGatewayStatus,
+  parsePermissionGrant,
+  parsePreparedPermissionRequest,
+} from "../core/permissions";
+import type { PermissionGrant, PreparedPermissionRequest } from "../core/permissions";
 
 const channels = ["eyeBlinkLeft", "eyeBlinkRight", "jawOpen", "mouthSmileLeft", "mouthSmileRight", "browInnerUp", "gazeX", "gazeY"];
 type LoadState = "loading" | "ready" | "error" | "web";
@@ -14,6 +24,18 @@ export function FaceTrackingPanel() {
   const [readiness, setReadiness] = useState<FaceReadinessStatus | null>(null);
   const [loadState, setLoadState] = useState<LoadState>(isTauri() ? "loading" : "web");
   const [error, setError] = useState("");
+  const [faceRequest, setFaceRequest] = useState<PreparedPermissionRequest | null>(null);
+  const [faceGrant, setFaceGrant] = useState<PermissionGrant | null>(null);
+  const [permissionBusy, setPermissionBusy] = useState(false);
+  const [permissionMessage, setPermissionMessage] = useState(isTauri() ? "R2 disponible · sin solicitud" : "Requiere backend nativo");
+
+  async function refreshFacePermission() {
+    const status = parsePermissionGatewayStatus(await invoke<unknown>("permission_gateway_status"));
+    const requests = status.requests.filter((request) => request.capabilityId === "perception.face.landmarks");
+    const grants = status.grants.filter((grant) => grant.capabilityId === "perception.face.landmarks");
+    setFaceRequest(requests.find((request) => request.state === "awaitingDecision") ?? requests.at(-1) ?? null);
+    setFaceGrant(grants.find((grant) => grant.state === "approved" || grant.state === "active") ?? grants.at(-1) ?? null);
+  }
 
   useEffect(() => {
     if (!isTauri()) return;
@@ -33,9 +55,83 @@ export function FaceTrackingPanel() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!isTauri()) return;
+    const refresh = () => void refreshFacePermission().catch((cause) => setPermissionMessage(`R2 no disponible · ${String(cause)}`));
+    refresh();
+    const timer = window.setInterval(refresh, 5_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  async function runPermission(action: () => Promise<void>) {
+    setPermissionBusy(true);
+    try {
+      await action();
+    } catch (cause) {
+      setPermissionMessage(`R2 bloqueó la operación · ${String(cause)}`);
+    } finally {
+      try {
+        await refreshFacePermission();
+      } catch (cause) {
+        setPermissionMessage(`R2 no pudo refrescar el estado · ${String(cause)}`);
+      }
+      setPermissionBusy(false);
+    }
+  }
+
+  function preparePermission() {
+    return runPermission(async () => {
+      const preparedRequest = parsePreparedPermissionRequest(await invoke<unknown>("prepare_permission_request", {
+        input: createFaceLandmarkPreparation(
+          `face-${crypto.randomUUID()}`,
+          "Derivar movimiento facial efímero para controlar expresiones de Alice.",
+          60,
+        ),
+      }));
+      setFaceRequest(preparedRequest);
+      setPermissionMessage("Solicitud preparada · cámara cerrada · decisión requerida");
+    });
+  }
+
+  function decidePermission(decision: "approve" | "deny") {
+    if (!faceRequest) return Promise.resolve();
+    return runPermission(async () => {
+      const result = await invoke<unknown | null>("decide_permission_request", {
+        input: createPermissionDecisionInput(faceRequest, decision),
+      });
+      if (result !== null) parsePermissionGrant(result);
+      setPermissionMessage(decision === "approve"
+        ? "Grant creado · activación facial todavía bloqueada"
+        : "Solicitud denegada · cámara cerrada");
+    });
+  }
+
+  function cancelPermission() {
+    if (!faceRequest) return Promise.resolve();
+    return runPermission(async () => {
+      parsePreparedPermissionRequest(await invoke<unknown>("cancel_permission_request", {
+        input: createCancelPermissionInput(faceRequest.requestId),
+      }));
+      setPermissionMessage("Solicitud cancelada · cámara cerrada");
+    });
+  }
+
+  function revokePermission() {
+    if (!faceGrant) return Promise.resolve();
+    return runPermission(async () => {
+      parsePermissionGrant(await invoke<unknown>("revoke_permission_grant", {
+        input: createRevokePermissionInput(faceGrant.grantId),
+      }));
+      setPermissionMessage("Autorización revocada · cámara cerrada");
+    });
+  }
+
   const modelVerified = readiness?.model.state === "verified";
   const runtimeAvailable = readiness?.runtime.available === true;
   const prepared = modelVerified && runtimeAvailable;
+  const requestPending = faceRequest?.state === "awaitingDecision";
+  const grantRevocable = faceGrant?.state === "approved" || faceGrant?.state === "active";
+  const permissionState = requestPending ? "DECISIÓN PENDIENTE" : grantRevocable ? "GRANT SIN EJECUTAR" : faceGrant?.state?.toUpperCase() ?? faceRequest?.state?.toUpperCase() ?? "NO SOLICITADA";
   const statusLabel = loadState === "loading" ? "CONSULTANDO" : loadState === "web" ? "SIN BACKEND" : prepared ? "PREPARACIÓN LISTA" : "BLOQUEADO";
   const inputDetail = loadState === "error" ? "Diagnóstico nativo no disponible" : "Malla de referencia · la cámara no fue abierta";
   const dependencies = [
@@ -54,7 +150,13 @@ export function FaceTrackingPanel() {
         <div className="face-panel-title"><span id="face-devices-title">PREPARACIÓN LOCAL</span><small>{prepared ? "2 / 2" : "0 / 2"}</small></div>
         <div className="face-tree-root"><span>ALICE_FACE_INPUT</span><small>{prepared ? "DIAGNÓSTICO PASIVO LISTO" : "PIPELINE CERRADO"}</small></div>
         <div className="face-tree-list">{dependencies.map((dependency) => <div key={dependency.code}><i>{dependency.code}</i><span><strong>{dependency.label}</strong><small>{dependency.detail}</small></span><em /></div>)}</div>
-        <div className="face-permission"><strong>FRONTERA R2</strong><span>Cámara facial</span><em>NO SOLICITADA</em><span>Persistencia de video</span><em>DESACTIVADA</em></div>
+        <div className="face-permission"><strong>FRONTERA R2</strong><span>Derivación facial</span><em>{permissionState}</em><span>Persistencia de video</span><em>DESACTIVADA</em></div>
+        <div className="face-permission-gate" aria-live="polite">
+          <span>PERMISO FACIAL · CRITICAL · 60 S</span>
+          <strong>{permissionMessage}</strong>
+          {requestPending ? <div><button type="button" disabled={permissionBusy} onClick={() => void decidePermission("approve")}>APROBAR</button><button type="button" disabled={permissionBusy} onClick={() => void decidePermission("deny")}>DENEGAR</button><button type="button" disabled={permissionBusy} onClick={() => void cancelPermission()}>CANCELAR</button></div> : grantRevocable ? <button type="button" disabled={permissionBusy} onClick={() => void revokePermission()}>DETENER / REVOCAR</button> : <button type="button" disabled={!prepared || permissionBusy || !isTauri()} onClick={() => void preparePermission()}>PREPARAR PERMISO</button>}
+          <small>ACTIVACIÓN BLOQUEADA · APROBAR NO ABRE LA CÁMARA</small>
+        </div>
       </section>
 
       <section className="face-viewport" aria-labelledby="face-viewport-title">
@@ -76,7 +178,7 @@ export function FaceTrackingPanel() {
 
       <aside className="face-telemetry">
         <div className="face-panel-title"><span>ESTADO VERIFICABLE</span><small>LOCAL</small></div>
-        <dl><div><dt>Capacidad</dt><dd>Planificada</dd></div><div><dt>Modelo</dt><dd>{modelVerified ? "Verificado" : "No listo"}</dd></div><div><dt>Runtime</dt><dd>{runtimeAvailable ? "Disponible" : "No listo"}</dd></div><div><dt>Sensor abierto</dt><dd>FALSE</dd></div><div><dt>Landmarks leídos</dt><dd>—</dd></div><div><dt>Blendshapes leídos</dt><dd>—</dd></div><div><dt>Latencia</dt><dd>—</dd></div><div><dt>Retarget</dt><dd>FALSE</dd></div></dl>
+        <dl><div><dt>Capacidad</dt><dd>Planificada</dd></div><div><dt>Permiso R2</dt><dd>{permissionState}</dd></div><div><dt>Modelo</dt><dd>{modelVerified ? "Verificado" : "No listo"}</dd></div><div><dt>Runtime</dt><dd>{runtimeAvailable ? "Disponible" : "No listo"}</dd></div><div><dt>Sensor abierto</dt><dd>FALSE</dd></div><div><dt>Landmarks leídos</dt><dd>—</dd></div><div><dt>Blendshapes leídos</dt><dd>—</dd></div><div><dt>Latencia</dt><dd>—</dd></div><div><dt>Retarget</dt><dd>FALSE</dd></div></dl>
         <div className="face-retarget-status"><span>RUNTIME LOCAL</span><strong>{loadState === "error" ? "ERROR DE CONSULTA" : runtimeAvailable ? "DEPENDENCIAS LISTAS" : "SIN CONFIRMACIÓN"}</strong><small>{error || readiness?.runtime.detail || "Consulta pasiva pendiente."}</small></div>
       </aside>
     </div>

@@ -55,6 +55,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 49. [Informe real de preparación facial](testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md)
 50. [Informe R1/R2 del contrato facial](testing/R1_FACE_CAPABILITY_CONTRACT_REPORT_2026-08-16.md)
 51. [Informe del diagnóstico pasivo de Rostro](testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md)
+52. [ADR-P-072: permiso facial R2 separado](decisions/ADR-P-072-permiso-facial-r2-separado.md)
+53. [Informe del contrato de permiso facial R2](testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md)
 
 ## Secciones
 
