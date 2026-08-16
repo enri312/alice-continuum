@@ -53,6 +53,14 @@ El Gateway R2 conserva un cierre intencional: sólo prepara cámara y micrófono
 esa capacidad facial sin crear una solicitud, grant, proceso o lease. La migración posterior deberá
 ampliar R2 de manera explícita y no reutilizar implícitamente el grant de observación de cámara.
 
+### Diagnóstico pasivo visible — 2026-08-16
+
+La pestaña Rostro puede consultar `face_readiness_status`, un comando local que calcula la huella del
+modelo privado y comprueba dependencias Python. El contrato fuerza `sensorOpened=false`; el comando
+no enumera ni abre una cámara, no carga el modelo en MediaPipe y no produce landmarks. La UI muestra
+la malla sólo como referencia, presenta canales reservados con valores vacíos y diferencia
+preparación de tracking.
+
 Antes de usar esta señal dentro de Alice se deberá:
 
 1. registrar una capacidad facial específica en R1 en lugar de ampliar implícitamente el permiso de cámara;

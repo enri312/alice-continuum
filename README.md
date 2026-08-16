@@ -7,8 +7,8 @@
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6.3--B-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-243%2F243%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-175%20aprobadas%20%7C%2012%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-246%2F246%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-177%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -40,8 +40,8 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Memoria por capas R6 | R6.1, R6.2-C y R6.3-B validados: RAM acotada, candidatos deterministas y decisión humana mantener-separados |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 243/243 aprobadas |
-| Pruebas Rust | 175 normales aprobadas; doce sondas vivas disponibles por separado |
+| Pruebas TypeScript | 246/246 aprobadas |
+| Pruebas Rust | 177 normales aprobadas; trece sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -96,9 +96,11 @@ El incremento R2 volvió a abrir ambos dispositivos mediante la ruta gobernada r
 
 Como evaluación de una alternativa accesible a un visor con seguimiento facial, el 15 de agosto de 2026 se ejecutó una sonda local independiente con MediaPipe Face Landmarker sobre `ACER HD User Facing`. En 10,59 segundos analizó 53 fotogramas, detectó un rostro en 53/53, obtuvo 478 landmarks y 52 blendshapes, con 20,71 ms de latencia media y 22,17 ms en p95. El recuento multimedia permaneció en 117 archivos (`MEDIA_DELTA=0`). El modelo verificado vive sólo en `Assets/Models/private/`, está excluido de Git y la sonda exige `--live`; no identifica personas, no conserva coordenadas y no mueve el avatar. `perception.face.landmarks` continúa planificada hasta disponer de autorización R2 específica, parada visible, calibración y un puente R9 revisado.
 
+La pestaña **Rostro** consulta además una comprobación nativa pasiva: vuelve a calcular la huella del modelo local y verifica Python, OpenCV, MediaPipe y NumPy. Sólo expone preparación, nunca abre cámara ni lee landmarks; `sensorOpened` se valida como `false`. Así, el panel distingue modelo verificado de tracking real y deja todos los canales en reserva hasta el incremento R2/R9.
+
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
 
-Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md) y [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md).
+Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [el informe pasivo del panel Rostro](docs/testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md) y [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md).
 
 ### Prueba manual DualSense
 

@@ -4,6 +4,7 @@ mod capabilities;
 mod cloud;
 mod core_activity;
 mod diagnostics;
+mod face_readiness;
 mod memory;
 mod observation;
 mod procedure_learning;
@@ -26,6 +27,7 @@ use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
 use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
+use face_readiness::face_readiness_status;
 use memory::{
     activate_layered_memory, consolidation_preview, export_memory, layered_memory_status,
     load_memory, open_memory_directory, resolve_consolidation_candidate, restore_memory_backup,
@@ -87,6 +89,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             capability_registry_status,
+            face_readiness_status,
             prepare_read_only_skill_template,
             skill_draft_store_status,
             read_skill_draft,
