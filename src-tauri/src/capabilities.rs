@@ -273,12 +273,12 @@ fn sensory_capabilities(
             "Gateway R2, alcance de aplicación y exclusión de datos protegidos",
         ),
         (
-            "perception.gesture.derive",
-            "Derivar gestos y landmarks",
-            "Representa un futuro análisis local de manos, rostro y pose a partir de una cámara autorizada.",
-            "deriveAuthorizedLandmarks",
-            "gestureLandmarks",
-            "Cámara autorizada, modelo local revisado y Gateway R2",
+            "perception.face.landmarks",
+            "Derivar landmarks faciales locales",
+            "Representa una futura derivación efímera de landmarks y blendshapes faciales desde una cámara autorizada; no identifica personas ni persiste coordenadas.",
+            "deriveAuthorizedFaceLandmarks",
+            "facialLandmarksEphemeral",
+            "Cámara autorizada, modelo local verificado, permiso facial R2 específico y calibración",
         ),
     ]
     .into_iter()
@@ -1758,7 +1758,7 @@ mod tests {
             "perception.screen.observe",
             "perception.media.inspect",
             "perception.desktop.observe",
-            "perception.gesture.derive",
+            "perception.face.landmarks",
         ] {
             let capability = registered(&snapshot, id);
             assert_eq!(capability.domain, CapabilityDomain::Perception);
@@ -1769,6 +1769,18 @@ mod tests {
                 CapabilityPermissionMode::SessionOptIn
             );
         }
+
+        let facial = registered(&snapshot, "perception.face.landmarks");
+        assert_eq!(facial.operations, vec!["deriveAuthorizedFaceLandmarks"]);
+        assert_eq!(facial.data_scopes, vec!["facialLandmarksEphemeral"]);
+        assert!(facial
+            .requirements
+            .iter()
+            .any(|requirement| requirement.contains("permiso facial R2 específico")));
+        assert!(snapshot
+            .capabilities
+            .iter()
+            .all(|capability| capability.id != "perception.gesture.derive"));
 
         for (id, effect) in [
             ("perception.camera.observe", CapabilityEffect::CameraObserve),

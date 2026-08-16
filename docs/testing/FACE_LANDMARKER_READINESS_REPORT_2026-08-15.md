@@ -67,5 +67,5 @@ del runtime de MediaPipe y no impidieron la inferencia.
 
 La cámara integrada ofrece una base real y suficientemente rápida para experimentar con expresión facial
 sin comprar ahora Meta Quest Pro. El resultado es preparación diagnóstica, no una integración: el panel
-Rostro, `perception.gesture.derive`, el avatar y la memoria permanecen desconectados hasta implementar el
+Rostro, `perception.face.landmarks`, el avatar y la memoria permanecen desconectados hasta implementar el
 contrato R2/R3/R9 definido en [ADR-P-071](../decisions/ADR-P-071-sonda-facial-webcam-local.md).

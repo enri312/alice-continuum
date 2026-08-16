@@ -13,6 +13,7 @@ import {
   parsePreparedPermissionRequest,
   parseSensorLeaseExecutionResult,
   parseSensorLeaseStatus,
+  type SensorKind,
 } from "./permissions";
 
 const digest = `sha256:${"a".repeat(64)}`;
@@ -224,6 +225,7 @@ describe("permission gateway contract", () => {
     });
     expect(createSensorPreparation("microphone", "sensor-microphone-01", "Verificar micrófono vivo.", 30).capabilityId).toBe("perception.microphone.observe");
     expect(() => createSensorPreparation("camera", "sensor-camera-0002", "Verificar.", 61)).toThrow(/1 y 60/);
+    expect(() => createSensorPreparation("face" as SensorKind, "sensor-face-0001", "No debe preparar rostro sin R2.", 30)).toThrow(/todavía no está migrado/);
   });
 
   it("valida un lease real sin persistencia y ligado a su grant activo", () => {

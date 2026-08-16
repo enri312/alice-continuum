@@ -11,7 +11,7 @@ OpenCV 5.0.0, NumPy 2.3.5 y MediaPipe 1.0.0. Era necesario comprobar con señal 
 aportar esa cámara antes de diseñar el puente facial de Alice.
 
 El panel **Rostro** es todavía una representación desconectada. La capacidad
-`perception.gesture.derive` continúa planificada y no disponible; el lease R2 existente autoriza
+`perception.face.landmarks` continúa planificada y no disponible; el lease R2 existente autoriza
 observar señal de cámara, no derivar ni conservar geometría facial.
 
 ## Decisión
@@ -40,6 +40,18 @@ aproximación de mirada. No sustituye la precisión, el ángulo estable ni la di
 sensores dedicados montados en el rostro.
 
 ## Frontera para la integración futura
+
+### Inventario R1 — 2026-08-16
+
+El registro sustituyó la entrada amplia `perception.gesture.derive` por
+`perception.face.landmarks` con la operación `deriveAuthorizedFaceLandmarks` y el alcance
+`facialLandmarksEphemeral`. Así, rostro ya no comparte identidad ni futura autorización con manos o
+pose. La nueva capacidad sigue en `planned` + `unavailable`, sin efecto ejecutable y con el
+enforcer `none`.
+
+El Gateway R2 conserva un cierre intencional: sólo prepara cámara y micrófono, por lo que rechaza
+esa capacidad facial sin crear una solicitud, grant, proceso o lease. La migración posterior deberá
+ampliar R2 de manera explícita y no reutilizar implícitamente el grant de observación de cámara.
 
 Antes de usar esta señal dentro de Alice se deberá:
 

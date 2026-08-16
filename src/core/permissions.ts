@@ -402,19 +402,26 @@ export function createSensorPreparation(
   if (!Number.isInteger(durationSeconds) || durationSeconds < 1 || durationSeconds > 60) {
     fail("durationSeconds debe estar entre 1 y 60");
   }
-  return kind === "camera" ? {
-    idempotencyKey,
-    capabilityId: "perception.camera.observe",
-    operation: "observeAuthorizedCamera",
-    purpose,
-    parameters: { durationSeconds },
-  } : {
-    idempotencyKey,
-    capabilityId: "perception.microphone.observe",
-    operation: "observeAuthorizedMicrophone",
-    purpose,
-    parameters: { durationSeconds },
-  };
+  switch (kind) {
+    case "camera":
+      return {
+        idempotencyKey,
+        capabilityId: "perception.camera.observe",
+        operation: "observeAuthorizedCamera",
+        purpose,
+        parameters: { durationSeconds },
+      };
+    case "microphone":
+      return {
+        idempotencyKey,
+        capabilityId: "perception.microphone.observe",
+        operation: "observeAuthorizedMicrophone",
+        purpose,
+        parameters: { durationSeconds },
+      };
+    default:
+      return fail("el sensor todavía no está migrado al Gateway R2");
+  }
 }
 
 export function createPermissionDecisionInput(

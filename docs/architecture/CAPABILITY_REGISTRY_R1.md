@@ -168,9 +168,9 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `perception.screen.observe` | Analizar fotogramas efímeros de una pantalla elegida. | `planned` + `unavailable` |
 | `perception.media.inspect` | Consultar metadatos del reproductor actual. | `planned` + `unavailable` |
 | `perception.desktop.observe` | Recibir eventos accesibles de interfaz sin registrar teclas. | `planned` + `unavailable` |
-| `perception.gesture.derive` | Derivar landmarks y gestos desde una cámara autorizada. | `planned` + `unavailable` |
+| `perception.face.landmarks` | Derivar landmarks y blendshapes faciales efímeros desde una cámara autorizada. | `planned` + `unavailable` |
 
-Estas cuatro entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos. Cámara y micrófono ya figuran arriba como parciales porque poseen adaptador y Gateway nativo comprobados.
+Estas cuatro entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos. `perception.face.landmarks` sustituyó al agrupado `perception.gesture.derive` para no mezclar rostro, manos y pose; cada fuente futura tendrá su capacidad independiente. Cámara y micrófono ya figuran arriba como parciales porque poseen adaptador y Gateway nativo comprobados.
 
 ### Puentes planificados, sin adaptador
 

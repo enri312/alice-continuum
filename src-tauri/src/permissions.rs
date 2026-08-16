@@ -1810,15 +1810,15 @@ mod tests {
     }
 
     #[test]
-    fn preparation_rejects_unmigrated_capabilities_without_storing_anything() {
+    fn preparation_rejects_planned_facial_derivation_without_storing_anything() {
         let gateway = PermissionGateway::default();
         let error = prepare_supported_permission_request(
             &gateway,
             PreparePermissionRequestInput {
-                idempotency_key: "prepare-screen-0001".into(),
-                capability_id: "perception.screen.observe".into(),
-                operation: "observeSelectedScreen".into(),
-                purpose: "Intento que todavía no está autorizado.".into(),
+                idempotency_key: "prepare-face-0001".into(),
+                capability_id: "perception.face.landmarks".into(),
+                operation: "deriveAuthorizedFaceLandmarks".into(),
+                purpose: "Intento facial que todavía no tiene adaptador R2.".into(),
                 parameters: PermissionRequestParameters::Sensor(SensorSessionParameters {
                     duration_seconds: 60,
                 }),
