@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { retrieveMemories } from "../core/memory-retrieval";
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-payload";
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
@@ -73,6 +73,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [reviewMemoryIds, setReviewMemoryIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const reviewRef = useRef<HTMLDivElement>(null);
 
   const recentHistory = messages.slice(-6);
   const memoryMatches = useMemo(() => retrieveMemories(draft, memories, 3), [draft, memories]);
@@ -89,6 +90,15 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setIncludeWindow(false);
     setReviewing(false);
   }, [observationEnabled]);
+
+  useEffect(() => {
+    if (!reviewing) return;
+    const frame = window.requestAnimationFrame(() => {
+      reviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      reviewRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [reviewing]);
 
   const payloadReview = useMemo(() => buildCloudPayloadReview({
     draft,
@@ -159,6 +169,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <div className="context-section-label"><strong>SALIDA A LA NUBE</strong><span>TODO DESMARCADO POR DEFECTO</span></div>
         <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles</small></span></label>
         <label className="context-toggle"><input type="checkbox" checked={includeMemory} disabled={!memoryMatches.length} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>Recuerdos relevantes</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
+        {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se enviarán mientras esta casilla siga desmarcada.</p>}
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos relacionados. No se adjuntará memoria.</p>}</div>}
         <label className="context-toggle"><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? foregroundContext.processName : "sin contexto observado"}</small></span></label>
         <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? "La ventana solo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
@@ -172,7 +183,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       </aside>
     </div>
 
-    {reviewing && <div className="send-review">
+    {reviewing && <div className="send-review" ref={reviewRef} tabIndex={-1}>
       <div className="review-heading"><div><p className="eyebrow">PREVISUALIZACIÓN OBLIGATORIA</p><h3>Esto se enviará a {status.providers.find((option) => option.id === reviewRequest?.provider)?.label ?? reviewRequest?.provider}</h3></div><span>{reviewRequest?.model}</span></div>
       <div className="payload-budget" aria-label="Presupuesto exacto del contenido saliente">
         <header><strong>PRESUPUESTO DE SALIDA</strong><span>CARACTERES · BYTES UTF-8</span></header>
