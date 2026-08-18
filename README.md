@@ -115,7 +115,8 @@ El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la
 - historial, recuerdos y ventana comienzan desmarcados;
 - observar una ventana localmente no implica enviarla;
 - cámara, micrófono, fotogramas y audio no son fuentes elegibles;
-- `Recordar localmente` empieza desactivado y no controla qué sale a Internet;
+- `Aprendizaje episódico local` empieza activado: después de una respuesta real guarda pregunta, respuesta, proveedor y modelo como una experiencia privada; puede desmarcarse antes de enviar y no controla qué sale a Internet;
+- un episodio confirma que la conversación ocurrió, no convierte la respuesta del modelo en un hecho semántico verificado;
 - proveedor y modelo se muestran como destino de solo lectura y solo se cambian en Configuración;
 - el botón de ventana abre el Gateway R2: no activa ni detiene directamente.
 

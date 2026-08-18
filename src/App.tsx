@@ -27,6 +27,7 @@ import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWork
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
 import { parseOwnerProfileSnapshot } from "./core/owner-profile";
 import type { OwnerProfileSnapshot } from "./core/owner-profile";
+import { buildConversationEpisode } from "./core/conversation-learning";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -271,6 +272,7 @@ export function App() {
   async function sendCloudMessage(request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) {
     setCloudPending(true);
     recordEvent("PERCEPTION", "CLOUD_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · memoria ${request.memoryCount}`);
+    const requestStartedAt = new Date().toISOString();
     try {
       const response = await invoke<CloudResponse>("send_cloud_message", { request });
       const now = new Date().toISOString();
@@ -303,12 +305,20 @@ export function App() {
             ? current.map((session) => reinforcedIds.has(session.id) ? applyMemoryRetrieval(session) : session)
             : current;
           return rememberLocally
-            ? [{ id: crypto.randomUUID(), kind: "Conversación", intention: request.message, startedAt: now, finishedAt: new Date().toISOString(), summary: response.text }, ...reinforced]
+            ? [buildConversationEpisode({
+              id: crypto.randomUUID(),
+              userMessage: request.message,
+              assistantMessage: response.text,
+              provider: response.provider,
+              model: response.model,
+              startedAt: requestStartedAt,
+              finishedAt: new Date().toISOString(),
+            }), ...reinforced]
             : reinforced;
         });
       }
       if (rememberLocally) {
-        recordEvent("MEMORY", "CONVERSATION_COMMIT", "Intercambio aprobado y guardado en memoria local");
+        recordEvent("MEMORY", "CONVERSATION_EPISODE_COMMIT", `Episodio real guardado · ${response.provider}/${response.model}`);
       }
       if (reinforcedIds.size) recordEvent("MEMORY", "MEMORY_RECALL_REINFORCED", `${reinforcedIds.size} enseñanza${reinforcedIds.size === 1 ? "" : "s"} autorizada${reinforcedIds.size === 1 ? "" : "s"} reforzada${reinforcedIds.size === 1 ? "" : "s"}`);
       recordEvent("OUTPUT", "CLOUD_RESPONSE", `${response.provider}/${response.model} · ${response.inputTokens} entrada · ${response.outputTokens} salida`);

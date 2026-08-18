@@ -47,3 +47,6 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-069](ADR-P-069-resolucion-mantener-separados.md) | Resolución humana mantener-separados con respaldo, SHA-256 y auditoría |
 | [ADR-P-070](ADR-P-070-volumen-neural-compacto-evolutivo.md) | Volumen neural compacto, anclas reales y color afectivo condicionado a señal |
 | [ADR-P-071](ADR-P-071-sonda-facial-webcam-local.md) | Sonda facial local por webcam, modelo verificado y frontera previa al puente R9 |
+| [ADR-P-072](ADR-P-072-permiso-facial-r2-separado.md) | Permiso R2 facial crítico, separado y todavía sin ejecutor |
+| [ADR-P-073](ADR-P-073-catalogo-expresiones-vrm-solo-lectura.md) | Catálogo real de expresiones VRM inspeccionable y desconectado de la ejecución |
+| [ADR-P-074](ADR-P-074-aprendizaje-episodico-conversacional.md) | Conversaciones reales como episodios con procedencia, sin declararlas hechos verificados |

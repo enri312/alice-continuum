@@ -38,8 +38,26 @@ describe("buildCloudPayload", () => {
     const payload = buildCloudPayload({ ...context, includeMemory: true });
 
     expect(payload).toContain("RECUERDOS LOCALES RECUPERADOS Y AUTORIZADOS");
-    expect(payload).toContain("dato privado: resumen privado · Próximo paso: continuar");
+    expect(payload).toContain("[RECUERDO LOCAL] dato privado: resumen privado · Próximo paso: continuar");
     expect(payload).not.toContain("Proyecto secreto");
+  });
+
+  it("distingue una conversación pasada de un hecho confirmado", () => {
+    const payload = buildCloudPayload({
+      ...context,
+      includeMemory: true,
+      memories: [{
+        kind: "Conversación",
+        memoryType: "episodic",
+        intention: "Investigamos una tecnología",
+        summary: "El modelo produjo una respuesta",
+        source: "Intercambio real autorizado · OpenRouter · openrouter/free",
+      }],
+    });
+
+    expect(payload).toContain("[EPISODIO DE CONVERSACIÓN · NO ES UN HECHO VERIFICADO]");
+    expect(payload).toContain("Fuente: Intercambio real autorizado · OpenRouter · openrouter/free");
+    expect(payload).not.toContain("HECHO ENSEÑADO Y CONFIRMADO");
   });
 
   it("no adjunta la ventana si la observación está apagada", () => {

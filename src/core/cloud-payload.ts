@@ -1,5 +1,12 @@
 export type PayloadMessage = { role: "user" | "assistant"; text: string };
-export type PayloadMemory = { intention: string; summary?: string; nextStep?: string };
+export type PayloadMemory = {
+  kind?: string;
+  intention: string;
+  summary?: string;
+  nextStep?: string;
+  memoryType?: "semantic" | "procedural" | "preference" | "episodic";
+  source?: string;
+};
 export type PayloadWindow = { windowTitle: string; processName: string };
 
 export type CloudPayloadInput = {
@@ -44,6 +51,20 @@ function fragment(id: CloudPayloadFragmentId, label: string, optional: boolean, 
   return { id, label, optional, content };
 }
 
+function memoryEvidenceLabel(memory: PayloadMemory) {
+  if (memory.kind === "Perfil") return "PERFIL CONFIRMADO POR CARLOS";
+  if (memory.kind === "Conversación" || memory.memoryType === "episodic") return "EPISODIO DE CONVERSACIÓN · NO ES UN HECHO VERIFICADO";
+  if (memory.memoryType === "semantic") return "HECHO ENSEÑADO Y CONFIRMADO";
+  if (memory.memoryType === "preference") return "PREFERENCIA CONFIRMADA";
+  if (memory.memoryType === "procedural") return "PROCEDIMIENTO EN MEMORIA · NO AUTORIZA EJECUCIÓN";
+  return "RECUERDO LOCAL";
+}
+
+function formatMemory(memory: PayloadMemory) {
+  const source = memory.source ? ` · Fuente: ${memory.source}` : "";
+  return `- [${memoryEvidenceLabel(memory)}] ${memory.intention}: ${memory.summary || "sin resumen"}${memory.nextStep ? ` · Próximo paso: ${memory.nextStep}` : ""}${source}`;
+}
+
 // Devuelve la cadena exacta y un presupuesto Unicode/UTF-8 derivado de esa misma
 // composición. No estima tokens: esa tokenización depende del proveedor y modelo.
 export function buildCloudPayloadReview(input: CloudPayloadInput): CloudPayloadReview {
@@ -52,7 +73,7 @@ export function buildCloudPayloadReview(input: CloudPayloadInput): CloudPayloadR
       ? `HISTORIAL LOCAL AUTORIZADO\n${input.recentHistory.map((item) => `${item.role === "user" ? "Carlos Nuñez" : "Alice"}: ${item.text}`).join("\n")}`
       : null),
     fragment("memory", "Recuerdos relevantes", true, input.includeMemory && input.memories.length
-      ? `RECUERDOS LOCALES RECUPERADOS Y AUTORIZADOS\n${input.memories.map((item) => `- ${item.intention}: ${item.summary || "sin resumen"}${item.nextStep ? ` · Próximo paso: ${item.nextStep}` : ""}`).join("\n")}`
+      ? `RECUERDOS LOCALES RECUPERADOS Y AUTORIZADOS\n${input.memories.map(formatMemory).join("\n")}`
       : null),
     fragment("window", "Ventana actual", true, input.includeWindow && input.observationEnabled && input.foregroundContext
       ? `VENTANA AUTORIZADA\nPrograma: ${input.foregroundContext.processName}\nTítulo: ${input.foregroundContext.windowTitle}`

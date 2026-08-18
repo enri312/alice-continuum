@@ -38,7 +38,7 @@ export type CloudResponse = {
   workingMemoryError: string | null;
 };
 
-type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryStatus?: "confirmed" | "conflict" | "archived" };
+type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived" };
 
 type ConversacionProps = {
   embedded?: boolean;
@@ -66,7 +66,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
-  const [rememberLocally, setRememberLocally] = useState(false);
+  const [rememberLocally, setRememberLocally] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [reviewRequest, setReviewRequest] = useState<CloudRequest | null>(null);
   const [reviewBudget, setReviewBudget] = useState<CloudPayloadBudget | null>(null);
@@ -176,7 +176,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Abrir Gateway para detener" : "Abrir Gateway para activar"}</button>}
         <p className="context-sensor-boundary">Cámara, micrófono, fotogramas y audio no son fuentes elegibles para este envío.</p>
         <div className="context-section-label local"><strong>ALMACENAMIENTO LOCAL</strong><span>NO SALE A LA NUBE</span></div>
-        <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Recordar localmente</strong><small>Guarda pregunta y respuesta en tu JSON privado</small></span></label>
+        <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Aprendizaje episódico local</strong><small>Guarda el intercambio real como experiencia; no lo declara un hecho verificado</small></span></label>
         <div className="conversation-route"><strong>DESTINO ACTUAL · SOLO LECTURA</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
         <div className="cloud-rule"><strong>POLÍTICA DE ENVÍO</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens de salida · sin herramientas · previsualización obligatoria</span></div>
         <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
