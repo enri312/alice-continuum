@@ -25,6 +25,8 @@ import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
 import type { Screen } from "./core/workspaces";
 import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
+import { parseOwnerProfileSnapshot } from "./core/owner-profile";
+import type { OwnerProfileSnapshot } from "./core/owner-profile";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -103,24 +105,26 @@ export function App() {
   const [cognitiveEvents, setCognitiveEvents] = useState<CognitiveEvent[]>([]);
   const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
   const [memoryPath, setMemoryPath] = useState("");
+  const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
   const memoryLoadStarted = useRef(false);
   const sessionsRef = useRef(sessions);
   const memorySaveQueue = useRef<Promise<void>>(Promise.resolve());
   const workingMemoryGeneration = useRef(-1);
 
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
+  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered], [ownerProfile, remembered]);
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
   const brainSnapshot = useMemo(() => buildBrainSnapshot({
     lastUserMessage,
     conversationCount: messages.length,
-    memoryCount: remembered.length,
+    memoryCount: conversationalMemories.length,
     retrievedMemoryCount: memoryRetrieval.count,
     retrievedMemoryTop: memoryRetrieval.top,
     observerEnabled: observationEnabled,
     foregroundContext,
     cloudConfigured: cloudStatus.providers.some((provider) => provider.configured),
     cloudPending,
-  }), [cloudPending, cloudStatus.providers, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled, remembered.length]);
+  }), [cloudPending, cloudStatus.providers, conversationalMemories.length, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
 
   function recordEvent(module: CognitiveModule, node: string, payload: string, level: CognitiveLevel = "INFO") {
     setCognitiveEvents((current) => [...current.slice(-199), createCognitiveEvent(module, node, payload, level)]);
@@ -151,6 +155,15 @@ export function App() {
   useEffect(() => {
     if (!desktopApp) return;
     invoke<CloudStatus>("cloud_status").then(setCloudStatus).catch((error) => recordEvent("SECURITY", "CLOUD_STATUS_ERROR", String(error), "WARN"));
+  }, [desktopApp]);
+
+  useEffect(() => {
+    if (!desktopApp) return;
+    invoke<unknown>("owner_profile_status").then((raw) => {
+      const snapshot = parseOwnerProfileSnapshot(raw);
+      setOwnerProfile(snapshot);
+      if (snapshot.state === "available") recordEvent("MEMORY", "OWNER_PROFILE_LOAD", `${snapshot.records.length} recuerdos de perfil confirmados · ${snapshot.sourceFiles.length} fuentes con SHA-256`);
+    }).catch((error) => recordEvent("SECURITY", "OWNER_PROFILE_LOAD_ERROR", String(error), "WARN"));
   }, [desktopApp]);
 
   useEffect(() => {
@@ -391,7 +404,7 @@ export function App() {
       <button className={screen === "flujo" ? "selected" : ""} aria-label="Flujo cognitivo" data-tooltip="Flujo cognitivo" aria-current={screen === "flujo" ? "page" : undefined} onClick={() => setScreen("flujo")}><NavigationIcon kind="flow" active={screen === "flujo"} /><span className="screen-tab-label">Flujo cognitivo</span></button>
       <button className={screen === "estado" ? "selected" : ""} aria-label="Estado y controles" data-tooltip="Estado y controles" aria-current={screen === "estado" ? "page" : undefined} onClick={() => setScreen("estado")}><NavigationIcon kind="state" active={screen === "estado"} /><span className="screen-tab-label">Estado y controles</span></button>
       <button className={screen === "planificador" ? "selected" : ""} aria-label="Planificador de acción" data-tooltip="Planificador" aria-current={screen === "planificador" ? "page" : undefined} onClick={() => setScreen("planificador")}><NavigationIcon kind="planner" active={screen === "planificador"} /><span className="screen-tab-label">Planificador</span></button>
-      <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${remembered.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{remembered.length}</span></button>
+      <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${conversationalMemories.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{conversationalMemories.length}</span></button>
       <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
       </>}
       {workspace === "body" && <>
@@ -413,8 +426,8 @@ export function App() {
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={remembered.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={remembered} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
-    {screen === "memoria" && <Memoria sessions={sessions} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
+    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

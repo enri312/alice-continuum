@@ -7,6 +7,7 @@ mod diagnostics;
 mod face_readiness;
 mod memory;
 mod observation;
+mod owner_profile;
 mod procedure_learning;
 // R5.3 conserva decisiones explícitas del propietario en un almacén separado;
 // no crea borradores R4 ni habilita ejecución.
@@ -34,6 +35,7 @@ use memory::{
     restore_memory_backup, rollback_layered_memory, save_memory,
 };
 use observation::{get_foreground_context, spawn_observer_thread, ObservationStore};
+use owner_profile::owner_profile_status;
 use permissions::{
     cancel_permission_request, decide_permission_request, execute_context_observation_grant,
     execute_sensor_lease_grant, permission_gateway_status, prepare_permission_request,
@@ -118,6 +120,7 @@ pub fn run() {
             get_foreground_context,
             load_memory,
             markdown_note_catalog,
+            owner_profile_status,
             layered_memory_status,
             consolidation_preview,
             resolve_consolidation_candidate,
