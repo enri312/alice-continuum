@@ -1,7 +1,7 @@
 # ADR-P-070 — Volumen neural compacto y evolutivo
 
 Fecha: 2026-08-15  
-Estado: aceptada
+Estado: aceptada; rutas cognitivas R3 conectadas el 2026-08-17
 
 ## Contexto
 
@@ -16,6 +16,11 @@ La nube cognitivo-afectiva de ADR-P-046 distribuía puntos por todo el lienzo y 
 - Sin afecto activo, la estructura inactiva usa acero; los pulsos técnicos usan cian, turquesa o ámbar según su función.
 - Un color de la paleta afectiva sólo puede entrar al volumen cuando el canal está `ready` y su valor es mayor que cero.
 - Los controles reales de giro, desplazamiento, zoom y restablecimiento se conservan.
+- La señal global no decide por sí sola qué puntos pulsan: percepción/lenguaje alimentan **Entrada**, memoria/workspace alimentan **Contexto** y una respuesta recibida alimenta **Salida**.
+- Permisos y movimiento manual permanecen fuera de esas tres rutas cognitivas aunque sigan visibles en sus propios paneles.
+- Pequeños pulsos recorren sólo conexiones cuyos extremos poseen señal R3 positiva; no aparecen durante el reposo ni crean estructura persistente.
+- Una solicitud de nube pendiente activa lenguaje y contexto, pero no salida. Salida requiere un evento de ejecución exitosa que demuestre que llegó una respuesta.
+- El arranque del proceso continúa contado como actividad técnica R3 global, pero no activa Entrada, Contexto ni Salida.
 
 ## Consecuencias
 
@@ -23,6 +28,7 @@ La nube cognitivo-afectiva de ADR-P-046 distribuía puntos por todo el lienzo y 
 - Una actividad reciente puede verse y decaer sin confundirse con aprendizaje.
 - Los diez canales afectivos permanecen visibles como contrato, pero apagados y compactos mientras no exista un motor real.
 - La geometría, el conteo de anclas y la selección cromática tienen reglas puras cubiertas por pruebas TypeScript.
+- Tres indicadores muestran el porcentaje técnico independiente de Entrada, Contexto y Salida para explicar la animación observada.
 
 ## Relación con ADR-P-046
 

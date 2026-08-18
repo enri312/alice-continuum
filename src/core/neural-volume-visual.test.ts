@@ -1,5 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { compactGrowthReveal, resolveNeuralColor, visibleMemoryAnchorCount } from "./neural-volume-visual";
+import { compactGrowthReveal, resolveNeuralColor, resolveNeuralGroupActivity, visibleMemoryAnchorCount } from "./neural-volume-visual";
+import type { CoreActivitySnapshot } from "./core-activity";
+
+function activity(signals: Partial<Record<string, number>>): CoreActivitySnapshot {
+  const ids = ["perception", "permission", "memory", "language", "workspace", "output", "motor"] as const;
+  return {
+    schemaVersion: 2,
+    generatedAtMs: 1,
+    method: "r3-recency-motor-v2",
+    heuristic: true,
+    windowMs: 300_000,
+    auditHealthy: true,
+    visibleEventCount: 1,
+    windowEventCount: 1,
+    latestEventAtMs: 1,
+    overallSignal: .4,
+    regions: ids.map((id) => ({ id, label: id, eventCount: signals[id] ? 1 : 0, signal: signals[id] ?? 0, lastEventAtMs: signals[id] ? 1 : null })),
+    links: [
+      { id: "permission-perception", from: "permission", to: "perception", evidenceCount: 0, signal: 0 },
+      { id: "perception-workspace", from: "perception", to: "workspace", evidenceCount: 0, signal: 0 },
+      { id: "memory-workspace", from: "memory", to: "workspace", evidenceCount: 0, signal: 0 },
+      { id: "language-workspace", from: "language", to: "workspace", evidenceCount: 0, signal: 0 },
+      { id: "workspace-output", from: "workspace", to: "output", evidenceCount: 0, signal: 0 },
+    ],
+  };
+}
 
 describe("compactGrowthReveal", () => {
   it("hace crecer el volumen desde el centro hacia afuera", () => {
@@ -24,5 +49,16 @@ describe("resolveNeuralColor", () => {
 
   it("usa el color afectivo solo ante una señal positiva y disponible", () => {
     expect(resolveNeuralColor("output", true, 0.4, true, [255, 216, 77])).toEqual([255, 216, 77]);
+  });
+});
+
+describe("resolveNeuralGroupActivity", () => {
+  it("separa entrada, contexto y salida usando sólo regiones R3 cognitivas", () => {
+    expect(resolveNeuralGroupActivity(activity({ perception: .3, language: .7, memory: .2, workspace: .5, output: .4 }))).toEqual({ input: .7, memory: .5, output: .4 });
+  });
+
+  it("no presenta permisos ni movimiento manual como actividad cognitiva", () => {
+    expect(resolveNeuralGroupActivity(activity({ permission: .8, motor: .9 }))).toEqual({ input: 0, memory: 0, output: 0 });
+    expect(resolveNeuralGroupActivity(null)).toEqual({ input: 0, memory: 0, output: 0 });
   });
 });

@@ -79,7 +79,9 @@ fn validate_owner_profile(document: &OwnerProfileDocument) -> Result<(), String>
             || !source_names.insert(source.file.trim())
             || !is_sha256(&source.sha256)
         {
-            return Err("El perfil contiene una fuente vacía, duplicada o sin SHA-256 válido".into());
+            return Err(
+                "El perfil contiene una fuente vacía, duplicada o sin SHA-256 válido".into(),
+            );
         }
     }
     if document.records.is_empty() || document.records.len() > MAX_PROFILE_RECORDS {
@@ -115,7 +117,10 @@ fn verify_owner_profile_sources(
                 .components()
                 .any(|component| !matches!(component, Component::Normal(_)))
         {
-            return Err(format!("Ruta de fuente privada no permitida: {}", source.file));
+            return Err(format!(
+                "Ruta de fuente privada no permitida: {}",
+                source.file
+            ));
         }
         let path = data_root.join("memory").join(relative);
         let bytes = fs::read(&path)

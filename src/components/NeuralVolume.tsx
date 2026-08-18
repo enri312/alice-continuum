@@ -9,7 +9,7 @@ import zoomOutIcon from "../../icons/view-zoom-out.svg?raw";
 import resetIcon from "../../icons/view-reset.svg?raw";
 import { affectPalette } from "../core/affect";
 import type { CoreActivitySnapshot } from "../core/core-activity";
-import { compactGrowthReveal, resolveNeuralColor, visibleMemoryAnchorCount } from "../core/neural-volume-visual";
+import { compactGrowthReveal, resolveNeuralColor, resolveNeuralGroupActivity, visibleMemoryAnchorCount } from "../core/neural-volume-visual";
 
 type NeuralVolumeProps = {
   snapshot: BrainSnapshot;
@@ -183,6 +183,8 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
   const activeAffects = snapshot.affectChannels.filter((channel) => channel.availability === "ready" && channel.value > .001);
   const dominantAffect = activeAffects.reduce((dominant, channel) => channel.value > dominant.value ? channel : dominant, activeAffects[0]);
   const hasAffectActivity = Boolean(dominantAffect);
+  const groupActivity = resolveNeuralGroupActivity(activity);
+  const groupActivitySignature = `${groupActivity.input.toFixed(4)}:${groupActivity.memory.toFixed(4)}:${groupActivity.output.toFixed(4)}`;
 
   const updateCameraHud = () => {
     const container = containerRef.current;
@@ -333,18 +335,18 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
       const busy = snapshot.focusStatus.includes("nube");
       const automaticYaw = reduceMotion ? .12 : time * (busy ? .00011 : .000035);
       const projected = volume.points.map((point) => project(point, automaticYaw));
-      const visualActivity = Math.min(.32, snapshot.currentNeuralActivity * .78);
-      const transientVisibility = Math.sqrt(snapshot.currentNeuralActivity) * .3;
       const visible = volume.points.map((point, index) => {
         const affect = snapshot.affectChannels[point.affectIndex];
         const affectActivation = affect?.availability === "ready" ? affect.value : 0;
+        const transientVisibility = Math.sqrt(groupActivity[point.group]) * .38;
         const visibleThreshold = Math.max(snapshot.persistentNeuralDensity, transientVisibility);
         return memoryAnchors.has(index) || point.reveal <= Math.min(1, visibleThreshold + affectActivation * .18);
       });
       const active = volume.points.map((point) => {
         const affect = snapshot.affectChannels[point.affectIndex];
         const affectActivation = affect?.availability === "ready" ? affect.value : 0;
-        return point.reveal <= Math.min(1, visualActivity + affectActivation * .18);
+        const signal = groupActivity[point.group];
+        return signal > 0 && point.reveal <= Math.min(1, .035 + Math.sqrt(signal) * .42 + affectActivation * .18);
       });
 
       const structureRadius = width * (.08 + Math.sqrt(snapshot.persistentNeuralDensity) * .21);
@@ -382,7 +384,7 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
       context.restore();
 
       context.globalCompositeOperation = "lighter";
-      for (const edge of volume.edges) {
+      for (const [edgeIndex, edge] of volume.edges.entries()) {
         const fromPoint = volume.points[edge.from];
         const toPoint = volume.points[edge.to];
         const from = projected[edge.from];
@@ -408,6 +410,18 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
         context.moveTo(from.x, from.y);
         context.lineTo(to.x, to.y);
         context.stroke();
+        const routeSignal = Math.min(groupActivity[fromPoint.group], groupActivity[toPoint.group]);
+        if (edgeActive && !reduceMotion && routeSignal > .01 && edgeIndex % 13 === 0) {
+          const direction = fromPoint.group === "output" || (fromPoint.group === "memory" && toPoint.group === "input") ? -1 : 1;
+          const phase = (time * (.00018 + routeSignal * .00034) + (edgeIndex % 97) / 97) % 1;
+          const progress = direction > 0 ? phase : 1 - phase;
+          const pulseX = from.x + (to.x - from.x) * progress;
+          const pulseY = from.y + (to.y - from.y) * progress;
+          context.fillStyle = `rgba(${red},${green},${blue},${.45 + routeSignal * .5})`;
+          context.beginPath();
+          context.arc(pulseX, pulseY, .8 + routeSignal * 1.25, 0, Math.PI * 2);
+          context.fill();
+        }
       }
 
       const ordered = volume.points.map((point, index) => ({ point, index })).sort((a, b) => projected[a.index].z - projected[b.index].z);
@@ -460,7 +474,7 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
       canvas.removeEventListener("dblclick", doubleClick);
       canvas.removeEventListener("keydown", keyDown);
     };
-  }, [affectSignature, dominantAffect?.rgb, hasAffectActivity, snapshot.affectChannels, snapshot.currentNeuralActivity, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity, snapshot.persistentMemoryCount, snapshot.persistentNeuralDensity]);
+  }, [affectSignature, dominantAffect?.rgb, groupActivitySignature, hasAffectActivity, snapshot.affectChannels, snapshot.currentNeuralActivity, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity, snapshot.persistentMemoryCount, snapshot.persistentNeuralDensity]);
 
   return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Matriz cognitivo-afectiva tridimensional de Alice conectada a datos locales reales">
     <div className="nucleus-panel-label"><span>[01]</span><strong>ALICE COGNITIVE VOLUME</strong><small>AFFECTIVE ROUTING MAP</small></div>
@@ -469,6 +483,7 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
       <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
       <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
       <span className="volume-growth">{snapshot.persistentMemoryCount ? "SEMILLA" : "PULSO TEMPORAL"} · {snapshot.persistentMemoryCount} ANCLAS · ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · SEÑAL R3 {Math.round(snapshot.currentNeuralActivity * 100)}% · {activity?.windowEventCount ?? 0} EVENTOS / 5 MIN</span>
+      <div className="volume-route-signals" aria-label="Señal cognitiva por ruta"><span className="input"><i />ENTRADA <strong>{Math.round(groupActivity.input * 100)}%</strong></span><span className="memory"><i />CONTEXTO <strong>{Math.round(groupActivity.memory * 100)}%</strong></span><span className="output"><i />SALIDA <strong>{Math.round(groupActivity.output * 100)}%</strong></span></div>
       <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`} style={hasAffectActivity ? { "--affect-color": dominantAffect.color } as CSSProperties : undefined}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "10 CANALES · TODOS EN ESPERA"}</small></span></div>
       <div className={`volume-affect-palette ${hasAffectActivity ? "active" : "standby"}`} aria-label="Canales afectivos medidos">
         <header><strong>CANALES AFECTIVOS</strong><span>{hasAffectActivity ? "COLOR = SEÑAL REAL" : "SIN COLORACIÓN DEL VOLUMEN"}</span></header>

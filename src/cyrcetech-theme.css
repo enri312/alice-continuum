@@ -458,6 +458,13 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
   box-shadow:0 0 5px rgba(125,211,252,.45);
 }
 .neural-volume .volume-signal-legend .active::before { background:#f8fafc; }
+.neural-volume .volume-route-signals { position:absolute; z-index:3; top:78px; left:50%; display:flex; gap:4px; transform:translateX(-50%); pointer-events:none; }
+.neural-volume .volume-route-signals span { display:flex; align-items:center; gap:5px; border:1px solid #1e3444; padding:6px 7px; background:rgba(2,6,23,.88); color:#64748b; font:800 .43rem Consolas,monospace; letter-spacing:.04em; white-space:nowrap; }
+.neural-volume .volume-route-signals i { width:5px; height:5px; border-radius:50%; background:currentColor; box-shadow:0 0 7px currentColor; }
+.neural-volume .volume-route-signals strong { color:currentColor; font-size:.46rem; }
+.neural-volume .volume-route-signals .input { color:#2dd4bf; }.neural-volume .volume-route-signals .memory { color:#38bdf8; }.neural-volume .volume-route-signals .output { color:#fbbf24; }
+@media(max-width:900px) { .neural-volume .volume-route-signals { top:145px; } }
+@media(max-width:620px) { .neural-volume .volume-route-signals { top:207px; width:calc(100% - 24px); justify-content:center; }.neural-volume .volume-route-signals span { flex:1; justify-content:center; padding-inline:4px; } }
 .neural-volume .volume-affect-palette.standby {
   width:330px;
   border-color:#223449;

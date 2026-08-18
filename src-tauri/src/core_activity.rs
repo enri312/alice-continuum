@@ -158,7 +158,7 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
         }
 
         match event.source {
-            AuditSource::System => add_region(&mut regions, "workspace", event, weight),
+            AuditSource::System => {}
             AuditSource::Memory => {
                 add_region(&mut regions, "memory", event, weight);
                 add_region(&mut regions, "workspace", event, weight);
@@ -167,9 +167,11 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
             AuditSource::Cloud => {
                 add_region(&mut regions, "language", event, weight);
                 add_region(&mut regions, "workspace", event, weight);
-                add_region(&mut regions, "output", event, weight);
                 add_link(&mut links, "language-workspace", weight);
-                add_link(&mut links, "workspace-output", weight);
+                if event.stage == AuditStage::Execution && event.outcome == AuditOutcome::Success {
+                    add_region(&mut regions, "output", event, weight);
+                    add_link(&mut links, "workspace-output", weight);
+                }
             }
             AuditSource::Skill => add_region(&mut regions, "workspace", event, weight),
             AuditSource::Avatar => {
@@ -347,6 +349,39 @@ mod tests {
     }
 
     #[test]
+    fn cloud_request_does_not_invent_an_output_before_a_response_arrives() {
+        let request = event(
+            AuditSource::Cloud,
+            Some("cloud.conversation.send"),
+            AuditStage::Request,
+            AuditOutcome::Pending,
+            1_000,
+        );
+        let snapshot = derive_at(&[request], true, NOW);
+        assert!(region(&snapshot, "language").signal > 0.0);
+        assert!(region(&snapshot, "workspace").signal > 0.0);
+        assert_eq!(region(&snapshot, "output").signal, 0.0);
+        assert!(link(&snapshot, "language-workspace").signal > 0.0);
+        assert_eq!(link(&snapshot, "workspace-output").signal, 0.0);
+    }
+
+    #[test]
+    fn process_startup_remains_technical_without_inventing_a_cognitive_route() {
+        let startup = event(
+            AuditSource::System,
+            None,
+            AuditStage::Execution,
+            AuditOutcome::Success,
+            1_000,
+        );
+        let snapshot = derive_at(&[startup], true, NOW);
+        assert_eq!(snapshot.window_event_count, 1);
+        assert!(snapshot.overall_signal > 0.0);
+        assert!(snapshot.regions.iter().all(|region| region.signal == 0.0));
+        assert!(snapshot.links.iter().all(|link| link.signal == 0.0));
+    }
+
+    #[test]
     fn manual_motor_event_activates_only_motor_region_without_cognitive_route() {
         let motor = AuditEvent {
             schema_version: AUDIT_SCHEMA_VERSION,
@@ -406,7 +441,8 @@ mod tests {
         let after = fs::read(&path).unwrap();
         assert_eq!(before, after);
         assert_eq!(snapshot.window_event_count, 1);
-        assert!(region(&snapshot, "workspace").signal > 0.0);
+        assert!(snapshot.overall_signal > 0.0);
+        assert!(snapshot.regions.iter().all(|region| region.signal == 0.0));
         fs::remove_dir_all(root).unwrap();
     }
 

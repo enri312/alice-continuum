@@ -1,4 +1,5 @@
 import type { BrainGroup } from "./brain";
+import type { CoreActivitySnapshot } from "./core-activity";
 
 export type NeuralRgb = readonly [number, number, number];
 export type NeuralLayer = "cortex" | "association";
@@ -11,6 +12,21 @@ const activeGroupColors: Record<BrainGroup, NeuralRgb> = {
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+export type NeuralGroupActivity = Record<BrainGroup, number>;
+
+/**
+ * Proyecta únicamente regiones cognitivas acreditadas por R3 sobre las tres
+ * zonas visuales. Permisos y motor manual permanecen fuera de esta ruta.
+ */
+export function resolveNeuralGroupActivity(activity: CoreActivitySnapshot | null): NeuralGroupActivity {
+  const signal = (id: string) => activity?.regions.find((region) => region.id === id)?.signal ?? 0;
+  return {
+    input: Math.max(signal("perception"), signal("language")),
+    memory: Math.max(signal("memory"), signal("workspace")),
+    output: signal("output"),
+  };
+}
 
 /**
  * Convierte la distancia al centro en un umbral de aparición estable.
