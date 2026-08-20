@@ -56,9 +56,10 @@ export type ConsolidationResolutionResult = {
 export type ConsolidationMergeDifferenceField = "kind" | "intention" | "startedAt" | "finishedAt" | "summary" | "nextStep" | "memoryType" | "source" | "importance" | "storageStrength" | "memoryStatus" | "successfulRecalls" | "failedRecalls" | "lastRecalledAt" | "successfulReviews" | "correctionCount" | "lastReviewedAt" | "contextEvents";
 export type ConsolidationMergeBackupStatus = "missing" | "verified";
 export type ConsolidationMergeLayerImpact = "absent" | "inactive" | "activeRevisionWillBecomeStale";
+export type ConsolidationRecoveryStep = "verifySource" | "createOrVerifyBackup" | "prepareProjectedSource" | "atomicReplace" | "verifyProjectedSource" | "writeAudit" | "restoreBackupOnFailure" | "verifyRestoredSource";
 
 export type ConsolidationMergePreview = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   sourceSha256: string;
   candidateId: string;
   candidateKind: "exactDuplicate";
@@ -76,6 +77,13 @@ export type ConsolidationMergePreview = {
   sourceBackupStatus: ConsolidationMergeBackupStatus;
   layerImpact: ConsolidationMergeLayerImpact;
   activeLayerRevisionId: string | null;
+  recoveryProtocolVersion: 1;
+  recoverySteps: ConsolidationRecoveryStep[];
+  byteExactBackupRequired: true;
+  atomicReplaceRequired: true;
+  auditRequired: true;
+  restoredSourceVerificationRequired: true;
+  activeLayerExecutionBlocked: boolean;
   executionAvailable: false;
   requiresFinalConfirmation: true;
   restorationCommandAvailable: false;
@@ -89,8 +97,9 @@ const snapshotKeys = ["schemaVersion", "state", "storagePath", "sourceSha256", "
 const candidateKeys = ["candidateId", "kind", "recordIds", "reasonCode", "requiresHumanReview", "resolution", "decisionId"];
 const resultKeys = ["schemaVersion", "decision", "sourceBackupPath", "ledgerPath", "backupCreated", "recordsModified", "modelUsed", "preview"];
 const decisionKeys = ["decisionId", "candidateId", "sourceSha256", "candidateKind", "reasonCode", "recordIds", "action", "decidedAt"];
-const mergePreviewKeys = ["schemaVersion", "sourceSha256", "candidateId", "candidateKind", "reasonCode", "recordIds", "survivorRecordId", "duplicateRecordId", "currentRecordCount", "projectedRecordCount", "projectedSourceSha256", "projectedSourceByteLength", "normalizedContentEqual", "differingFields", "sourceBackupPath", "sourceBackupStatus", "layerImpact", "activeLayerRevisionId", "executionAvailable", "requiresFinalConfirmation", "restorationCommandAvailable", "recordsModified", "filesCreated", "auditWritten", "modelUsed"];
+const mergePreviewKeys = ["schemaVersion", "sourceSha256", "candidateId", "candidateKind", "reasonCode", "recordIds", "survivorRecordId", "duplicateRecordId", "currentRecordCount", "projectedRecordCount", "projectedSourceSha256", "projectedSourceByteLength", "normalizedContentEqual", "differingFields", "sourceBackupPath", "sourceBackupStatus", "layerImpact", "activeLayerRevisionId", "recoveryProtocolVersion", "recoverySteps", "byteExactBackupRequired", "atomicReplaceRequired", "auditRequired", "restoredSourceVerificationRequired", "activeLayerExecutionBlocked", "executionAvailable", "requiresFinalConfirmation", "restorationCommandAvailable", "recordsModified", "filesCreated", "auditWritten", "modelUsed"];
 const mergeDifferenceFields: ConsolidationMergeDifferenceField[] = ["kind", "intention", "startedAt", "finishedAt", "summary", "nextStep", "memoryType", "source", "importance", "storageStrength", "memoryStatus", "successfulRecalls", "failedRecalls", "lastRecalledAt", "successfulReviews", "correctionCount", "lastReviewedAt", "contextEvents"];
+const recoverySteps: ConsolidationRecoveryStep[] = ["verifySource", "createOrVerifyBackup", "prepareProjectedSource", "atomicReplace", "verifyProjectedSource", "writeAudit", "restoreBackupOnFailure", "verifyRestoredSource"];
 const digest = /^sha256:[0-9a-f]{64}$/;
 
 function fail(message: string): never { throw new Error(`Vista R6.3 inválida: ${message}`); }
@@ -206,7 +215,7 @@ export function parseConsolidationResolutionResult(value: unknown): Consolidatio
 export function parseConsolidationMergePreview(value: unknown): ConsolidationMergePreview {
   const input = record(value, "mergePreview");
   exactKeys(input, mergePreviewKeys, "mergePreview");
-  if (input.schemaVersion !== 1) fail("mergePreview.schemaVersion debe ser 1");
+  if (input.schemaVersion !== 2) fail("mergePreview.schemaVersion debe ser 2");
   for (const field of ["sourceSha256", "candidateId", "projectedSourceSha256"] as const) {
     if (typeof input[field] !== "string" || !digest.test(input[field] as string)) fail(`mergePreview.${field} no es SHA-256`);
   }
@@ -225,6 +234,9 @@ export function parseConsolidationMergePreview(value: unknown): ConsolidationMer
   const activeLayerRevisionId = input.activeLayerRevisionId === null ? null : nullableText(input.activeLayerRevisionId, "mergePreview.activeLayerRevisionId");
   if (activeLayerRevisionId !== null && !digest.test(activeLayerRevisionId)) fail("mergePreview.activeLayerRevisionId no es SHA-256");
   if ((input.layerImpact === "activeRevisionWillBecomeStale") !== (activeLayerRevisionId !== null)) fail("mergePreview.layerImpact y activeLayerRevisionId no coinciden");
+  if (input.recoveryProtocolVersion !== 1 || !Array.isArray(input.recoverySteps) || input.recoverySteps.length !== recoverySteps.length || input.recoverySteps.some((step, index) => step !== recoverySteps[index])) fail("mergePreview.recoverySteps no cumple el protocolo R6.3-D");
+  if (input.byteExactBackupRequired !== true || input.atomicReplaceRequired !== true || input.auditRequired !== true || input.restoredSourceVerificationRequired !== true) fail("mergePreview omite una garantía de recuperación R6.3-D");
+  if (typeof input.activeLayerExecutionBlocked !== "boolean" || input.activeLayerExecutionBlocked !== (input.layerImpact === "activeRevisionWillBecomeStale")) fail("mergePreview.activeLayerExecutionBlocked es incoherente");
   if (input.executionAvailable !== false || input.requiresFinalConfirmation !== true || input.restorationCommandAvailable !== false || input.recordsModified !== false || input.filesCreated !== false || input.auditWritten !== false || input.modelUsed !== false) fail("mergePreview declara efectos o disponibilidad prohibidos");
   return input as ConsolidationMergePreview;
 }

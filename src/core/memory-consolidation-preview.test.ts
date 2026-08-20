@@ -29,7 +29,7 @@ function validSnapshot() {
 
 function validMergePreview() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sourceSha256: sha("a"),
     candidateId: sha("b"),
     candidateKind: "exactDuplicate",
@@ -47,6 +47,13 @@ function validMergePreview() {
     sourceBackupStatus: "missing",
     layerImpact: "absent",
     activeLayerRevisionId: null,
+    recoveryProtocolVersion: 1,
+    recoverySteps: ["verifySource", "createOrVerifyBackup", "prepareProjectedSource", "atomicReplace", "verifyProjectedSource", "writeAudit", "restoreBackupOnFailure", "verifyRestoredSource"],
+    byteExactBackupRequired: true,
+    atomicReplaceRequired: true,
+    auditRequired: true,
+    restoredSourceVerificationRequired: true,
+    activeLayerExecutionBlocked: false,
     executionAvailable: false,
     requiresFinalConfirmation: true,
     restorationCommandAvailable: false,
@@ -105,6 +112,7 @@ describe("vista previa R6.3", () => {
     expect(parsed.survivorRecordId).toBe("a");
     expect(parsed.projectedRecordCount).toBe(2);
     expect(parsed.differingFields).toEqual(["intention", "startedAt", "source"]);
+    expect(parsed.recoverySteps).toHaveLength(8);
     expect(parsed.executionAvailable).toBe(false);
   });
 
@@ -113,6 +121,8 @@ describe("vista previa R6.3", () => {
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), survivorRecordId: "c" })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), differingFields: ["source", "source"] })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale" })).toThrow();
-    expect(parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale", activeLayerRevisionId: sha("f") }).activeLayerRevisionId).toBe(sha("f"));
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), recoverySteps: ["verifySource", "writeAudit"] })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), atomicReplaceRequired: false })).toThrow();
+    expect(parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale", activeLayerRevisionId: sha("f"), activeLayerExecutionBlocked: true }).activeLayerRevisionId).toBe(sha("f"));
   });
 });

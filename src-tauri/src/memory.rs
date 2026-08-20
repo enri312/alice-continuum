@@ -9,9 +9,14 @@ use std::collections::HashSet;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use tauri::AppHandle;
+use windows::core::PCWSTR;
+use windows::Win32::Storage::FileSystem::{
+    MoveFileExW, MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -104,7 +109,7 @@ const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
-const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
 const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
@@ -350,7 +355,20 @@ pub(crate) enum ConsolidationMergeLayerImpact {
     ActiveRevisionWillBecomeStale,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationRecoveryStep {
+    VerifySource,
+    CreateOrVerifyBackup,
+    PrepareProjectedSource,
+    AtomicReplace,
+    VerifyProjectedSource,
+    WriteAudit,
+    RestoreBackupOnFailure,
+    VerifyRestoredSource,
+}
+
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct PreviewConsolidationMergeInput {
     expected_source_sha256: String,
@@ -380,6 +398,13 @@ pub(crate) struct ConsolidationMergePreview {
     source_backup_status: ConsolidationMergeBackupStatus,
     layer_impact: ConsolidationMergeLayerImpact,
     active_layer_revision_id: Option<String>,
+    recovery_protocol_version: u8,
+    recovery_steps: Vec<ConsolidationRecoveryStep>,
+    byte_exact_backup_required: bool,
+    atomic_replace_required: bool,
+    audit_required: bool,
+    restored_source_verification_required: bool,
+    active_layer_execution_blocked: bool,
     execution_available: bool,
     requires_final_confirmation: bool,
     restoration_command_available: bool,
@@ -387,6 +412,20 @@ pub(crate) struct ConsolidationMergePreview {
     files_created: bool,
     audit_written: bool,
     model_used: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+// Deliberadamente desconectado de Tauri hasta que R6.3 autorice ejecución canónica.
+#[allow(dead_code)]
+struct ConsolidationRecoveryRehearsal {
+    source_sha256: String,
+    projected_source_sha256: String,
+    restored_source_sha256: String,
+    source_backup_path: String,
+    backup_created: bool,
+    projected_source_verified: bool,
+    audit_written: bool,
+    source_restored: bool,
 }
 
 #[derive(Deserialize)]
@@ -1016,6 +1055,25 @@ fn preview_consolidation_merge_at(
         source_backup_status,
         layer_impact,
         active_layer_revision_id,
+        recovery_protocol_version: 1,
+        recovery_steps: vec![
+            ConsolidationRecoveryStep::VerifySource,
+            ConsolidationRecoveryStep::CreateOrVerifyBackup,
+            ConsolidationRecoveryStep::PrepareProjectedSource,
+            ConsolidationRecoveryStep::AtomicReplace,
+            ConsolidationRecoveryStep::VerifyProjectedSource,
+            ConsolidationRecoveryStep::WriteAudit,
+            ConsolidationRecoveryStep::RestoreBackupOnFailure,
+            ConsolidationRecoveryStep::VerifyRestoredSource,
+        ],
+        byte_exact_backup_required: true,
+        atomic_replace_required: true,
+        audit_required: true,
+        restored_source_verification_required: true,
+        active_layer_execution_blocked: matches!(
+            layer_impact,
+            ConsolidationMergeLayerImpact::ActiveRevisionWillBecomeStale
+        ),
         execution_available: false,
         requires_final_confirmation: true,
         restoration_command_available: false,
@@ -1023,6 +1081,190 @@ fn preview_consolidation_merge_at(
         files_created: false,
         audit_written: false,
         model_used: false,
+    })
+}
+
+fn projected_consolidation_source_at(
+    data_root: &Path,
+    plan: &ConsolidationMergePreview,
+) -> Result<String, String> {
+    let (source, sessions) = read_validated_source_at(data_root)?
+        .ok_or("No existe records.json para preparar el ensayo R6.3-D")?;
+    if memory_subject_digest(&source) != plan.source_sha256 {
+        return Err("records.json cambió antes del ensayo R6.3-D".into());
+    }
+    let projected_sessions = sessions
+        .into_iter()
+        .filter(|session| session.id != plan.duplicate_record_id)
+        .collect::<Vec<_>>();
+    validate_memory_sessions(&projected_sessions)?;
+    let projected =
+        serde_json::to_string_pretty(&projected_sessions).map_err(|error| error.to_string())?;
+    if projected_sessions.len() != plan.projected_record_count
+        || projected.len() != plan.projected_source_byte_length
+        || memory_subject_digest(&projected) != plan.projected_source_sha256
+    {
+        return Err("La proyección R6.3-D no coincide con el plan humano revisado".into());
+    }
+    Ok(projected)
+}
+
+fn nul_terminated_path(path: &Path) -> Vec<u16> {
+    path.as_os_str().encode_wide().chain(Some(0)).collect()
+}
+
+fn atomic_replace_memory_source(
+    source_path: &Path,
+    content: &str,
+    expected_sha256: &str,
+) -> Result<(), String> {
+    let sessions = serde_json::from_str::<Vec<MemorySession>>(content)
+        .map_err(|error| format!("El contenido R6.3-D preparado no es memoria válida: {error}"))?;
+    validate_memory_sessions(&sessions)?;
+    if memory_subject_digest(content) != expected_sha256 {
+        return Err("El contenido R6.3-D preparado no coincide con su SHA-256".into());
+    }
+    let temporary = source_path.with_extension("r6-3-d.tmp");
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&temporary)
+        .map_err(|error| format!("No se pudo crear el temporal atómico R6.3-D: {error}"))?;
+    if let Err(error) = file
+        .write_all(content.as_bytes())
+        .and_then(|()| file.sync_all())
+    {
+        let _ = fs::remove_file(&temporary);
+        return Err(format!("No se pudo preparar el reemplazo R6.3-D: {error}"));
+    }
+    drop(file);
+    let temporary_wide = nul_terminated_path(&temporary);
+    let source_wide = nul_terminated_path(source_path);
+    let replace = unsafe {
+        MoveFileExW(
+            PCWSTR(temporary_wide.as_ptr()),
+            PCWSTR(source_wide.as_ptr()),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+        )
+    };
+    if let Err(error) = replace {
+        let _ = fs::remove_file(&temporary);
+        return Err(format!("Falló el reemplazo atómico R6.3-D: {error}"));
+    }
+    let stored = fs::read_to_string(source_path)
+        .map_err(|error| format!("No se pudo verificar records.json tras reemplazarlo: {error}"))?;
+    if memory_subject_digest(&stored) != expected_sha256 || stored != content {
+        return Err("records.json no coincide con el contenido R6.3-D reemplazado".into());
+    }
+    Ok(())
+}
+
+fn restore_rehearsal_source(
+    source_path: &Path,
+    backup_content: &str,
+    expected_source_sha256: &str,
+) -> Result<String, String> {
+    atomic_replace_memory_source(source_path, backup_content, expected_source_sha256)?;
+    let restored = fs::read_to_string(source_path)
+        .map_err(|error| format!("No se pudo releer la restauración R6.3-D: {error}"))?;
+    let restored_sha256 = memory_subject_digest(&restored);
+    if restored_sha256 != expected_source_sha256 || restored != backup_content {
+        return Err("La restauración R6.3-D no recuperó los bytes originales".into());
+    }
+    Ok(restored_sha256)
+}
+
+// Este motor sólo se invoca desde pruebas físicas controladas; no es un comando de la app.
+#[allow(dead_code)]
+fn rehearse_consolidation_recovery_at(
+    data_root: &Path,
+    input: PreviewConsolidationMergeInput,
+    audit: impl FnOnce(&ConsolidationMergePreview) -> Result<(), String>,
+) -> Result<ConsolidationRecoveryRehearsal, String> {
+    let plan = preview_consolidation_merge_at(data_root, input)?;
+    if plan.active_layer_execution_blocked {
+        return Err(
+            "R6.3-D bloqueó el ensayo porque una revisión R6.1 activa quedaría obsoleta".into(),
+        );
+    }
+    let source_path = data_root.join("memory").join("records.json");
+    let source_content = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo releer records.json para R6.3-D: {error}"))?;
+    if memory_subject_digest(&source_content) != plan.source_sha256 {
+        return Err("records.json cambió antes de crear el respaldo R6.3-D".into());
+    }
+    let projected_content = projected_consolidation_source_at(data_root, &plan)?;
+    let backup_path = PathBuf::from(&plan.source_backup_path);
+    let backup_directory = backup_path
+        .parent()
+        .ok_or("El respaldo R6.3-D no posee un directorio válido")?;
+    fs::create_dir_all(backup_directory)
+        .map_err(|error| format!("No se pudo crear el directorio de respaldo R6.3-D: {error}"))?;
+    let backup_created = if backup_path.exists() {
+        false
+    } else {
+        let mut backup_file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&backup_path)
+            .map_err(|error| format!("No se pudo crear el respaldo R6.3-D: {error}"))?;
+        backup_file
+            .write_all(source_content.as_bytes())
+            .and_then(|()| backup_file.sync_all())
+            .map_err(|error| format!("No se pudo persistir el respaldo R6.3-D: {error}"))?;
+        true
+    };
+    let backup_content = fs::read_to_string(&backup_path)
+        .map_err(|error| format!("No se pudo verificar el respaldo R6.3-D: {error}"))?;
+    if backup_content != source_content
+        || memory_subject_digest(&backup_content) != plan.source_sha256
+    {
+        return Err("El respaldo R6.3-D no coincide byte a byte con la fuente".into());
+    }
+
+    if let Err(replace_error) = atomic_replace_memory_source(
+        &source_path,
+        &projected_content,
+        &plan.projected_source_sha256,
+    ) {
+        let current = fs::read_to_string(&source_path).unwrap_or_default();
+        if current != source_content {
+            restore_rehearsal_source(&source_path, &backup_content, &plan.source_sha256).map_err(
+                |restore_error| {
+                    format!(
+                        "Falló el reemplazo R6.3-D ({replace_error}) y también la restauración ({restore_error})"
+                    )
+                },
+            )?;
+        }
+        return Err(replace_error);
+    }
+
+    let audit_result = audit(&plan);
+    let restored_source_sha256 =
+        restore_rehearsal_source(&source_path, &backup_content, &plan.source_sha256).map_err(
+            |restore_error| match &audit_result {
+                Ok(()) => format!("El ensayo se auditó, pero no pudo restaurarse: {restore_error}"),
+                Err(audit_error) => format!(
+            "Fallaron la auditoría ({audit_error}) y la restauración R6.3-D ({restore_error})"
+        ),
+            },
+        )?;
+    if let Err(audit_error) = audit_result {
+        return Err(format!(
+            "La auditoría R6.3-D falló y records.json fue restaurado byte a byte: {audit_error}"
+        ));
+    }
+
+    Ok(ConsolidationRecoveryRehearsal {
+        source_sha256: plan.source_sha256,
+        projected_source_sha256: plan.projected_source_sha256,
+        restored_source_sha256,
+        source_backup_path: backup_path.display().to_string(),
+        backup_created,
+        projected_source_verified: true,
+        audit_written: true,
+        source_restored: true,
     })
 }
 
@@ -2593,7 +2835,7 @@ mod tests {
         )
         .expect("read-only merge preview");
 
-        assert_eq!(plan.schema_version, 1);
+        assert_eq!(plan.schema_version, 2);
         assert_eq!(
             plan.candidate_kind,
             ConsolidationCandidateKind::ExactDuplicate
@@ -2619,6 +2861,13 @@ mod tests {
             ConsolidationMergeBackupStatus::Missing
         );
         assert_eq!(plan.layer_impact, ConsolidationMergeLayerImpact::Absent);
+        assert_eq!(plan.recovery_protocol_version, 1);
+        assert_eq!(plan.recovery_steps.len(), 8);
+        assert!(plan.byte_exact_backup_required);
+        assert!(plan.atomic_replace_required);
+        assert!(plan.audit_required);
+        assert!(plan.restored_source_verification_required);
+        assert!(!plan.active_layer_execution_blocked);
         assert!(!plan.execution_available);
         assert!(plan.requires_final_confirmation);
         assert!(!plan.restoration_command_available);
@@ -2676,9 +2925,123 @@ mod tests {
             active_plan.active_layer_revision_id.as_deref(),
             Some(active_revision_id.as_str())
         );
+        assert!(active_plan.active_layer_execution_blocked);
         assert_eq!(file_hashes(&root), before_active_plan);
 
         fs::remove_dir_all(root).expect("remove R6.3-C fixture");
+    }
+
+    #[test]
+    fn r6_3_d_rehearsal_restores_real_bytes_and_blocks_active_layers() {
+        let root = temporary_probe_root("r6-3-d-recovery-rehearsal");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "recovery-a",
+                "kind": "Enseñanza",
+                "intention": "Protocolo de recuperación",
+                "startedAt": "2026-08-20T14:00:00Z",
+                "finishedAt": "2026-08-20T14:01:00Z",
+                "summary": "Restaurar la fuente byte a byte.",
+                "nextStep": "Verificar SHA",
+                "memoryType": "semantic",
+                "source": "Carlos"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "recovery-b",
+                "kind": "Enseñanza",
+                "intention": "PROTOCOLO, DE RECUPERACIÓN!",
+                "startedAt": "2026-08-20T15:00:00Z",
+                "finishedAt": "2026-08-20T15:01:00Z",
+                "summary": "Restaurar la fuente byte a byte",
+                "nextStep": "verificar sha",
+                "memoryType": "semantic",
+                "source": "Ensayo controlado"
+            }))
+            .unwrap(),
+        ];
+        let original = write_layered_fixture(&root, &records);
+        let source_path = root.join("memory").join("records.json");
+        let original_bytes = fs::read(&source_path).unwrap();
+        let snapshot = consolidation_preview_at(&root);
+        let candidate = snapshot
+            .candidates
+            .iter()
+            .find(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
+            .unwrap()
+            .clone();
+        let source_sha256 = snapshot.source_sha256.unwrap();
+        let input = PreviewConsolidationMergeInput {
+            expected_source_sha256: source_sha256.clone(),
+            candidate_id: candidate.candidate_id.clone(),
+            expected_record_ids: candidate.record_ids.clone(),
+            survivor_record_id: "recovery-a".into(),
+        };
+
+        let audit_root = root.clone();
+        let rehearsal = rehearse_consolidation_recovery_at(&root, input.clone(), |plan| {
+            let event = AuditEvent::producer(
+                new_operation_id(),
+                AuditSource::Memory,
+                "memory.records.write".into(),
+                "memory.consolidation.recovery_rehearsal".into(),
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                None,
+                Some(plan.projected_source_sha256.clone()),
+                "MEMORY_CONSOLIDATION_RECOVERY_REHEARSED",
+            )?;
+            append_event_at(&audit_root, &event, AUDIT_MAX_BYTES)
+        })
+        .expect("physical recovery rehearsal");
+
+        assert_eq!(rehearsal.source_sha256, source_sha256);
+        assert_ne!(rehearsal.projected_source_sha256, rehearsal.source_sha256);
+        assert_eq!(rehearsal.restored_source_sha256, rehearsal.source_sha256);
+        assert!(rehearsal.backup_created);
+        assert!(rehearsal.projected_source_verified);
+        assert!(rehearsal.audit_written);
+        assert!(rehearsal.source_restored);
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+        assert_eq!(
+            fs::read_to_string(&rehearsal.source_backup_path).unwrap(),
+            original
+        );
+        assert!(!source_path.with_extension("r6-3-d.tmp").exists());
+        let audit_content = fs::read_to_string(root.join("audit").join("events-v1.jsonl"))
+            .expect("real R3 rehearsal audit");
+        let event = serde_json::from_str::<AuditEvent>(audit_content.trim()).unwrap();
+        assert_eq!(event.source, AuditSource::Memory);
+        assert_eq!(event.reason_code, "MEMORY_CONSOLIDATION_RECOVERY_REHEARSED");
+
+        let before_failed_audit = file_hashes(&root);
+        let failed_audit = rehearse_consolidation_recovery_at(&root, input.clone(), |_| {
+            Err("fallo de auditoría inducido".into())
+        })
+        .unwrap_err();
+        assert!(failed_audit.contains("restaurado byte a byte"));
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+        assert_eq!(file_hashes(&root), before_failed_audit);
+
+        let active = activate_layered_memory_at(
+            &root,
+            ActivateLayeredMemoryInput {
+                expected_source_sha256: source_sha256,
+                confirmed: true,
+            },
+            "2026-08-20T16:00:00Z".into(),
+        )
+        .expect("activate controlled R6.1 before blocked rehearsal");
+        assert_eq!(active.state, LayeredMemoryState::Active);
+        let before_block = file_hashes(&root);
+        let blocked = rehearse_consolidation_recovery_at(&root, input, |_| {
+            panic!("audit must not run while R6.1 is active")
+        })
+        .unwrap_err();
+        assert!(blocked.contains("R6.1 activa"));
+        assert_eq!(file_hashes(&root), before_block);
+
+        fs::remove_dir_all(root).expect("remove R6.3-D fixture");
     }
 
     #[test]
