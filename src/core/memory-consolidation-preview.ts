@@ -53,10 +53,44 @@ export type ConsolidationResolutionResult = {
   preview: ConsolidationPreviewSnapshot;
 };
 
+export type ConsolidationMergeDifferenceField = "kind" | "intention" | "startedAt" | "finishedAt" | "summary" | "nextStep" | "memoryType" | "source" | "importance" | "storageStrength" | "memoryStatus" | "successfulRecalls" | "failedRecalls" | "lastRecalledAt" | "successfulReviews" | "correctionCount" | "lastReviewedAt" | "contextEvents";
+export type ConsolidationMergeBackupStatus = "missing" | "verified";
+export type ConsolidationMergeLayerImpact = "absent" | "inactive" | "activeRevisionWillBecomeStale";
+
+export type ConsolidationMergePreview = {
+  schemaVersion: 1;
+  sourceSha256: string;
+  candidateId: string;
+  candidateKind: "exactDuplicate";
+  reasonCode: "exactNormalizedContent";
+  recordIds: [string, string];
+  survivorRecordId: string;
+  duplicateRecordId: string;
+  currentRecordCount: number;
+  projectedRecordCount: number;
+  projectedSourceSha256: string;
+  projectedSourceByteLength: number;
+  normalizedContentEqual: true;
+  differingFields: ConsolidationMergeDifferenceField[];
+  sourceBackupPath: string;
+  sourceBackupStatus: ConsolidationMergeBackupStatus;
+  layerImpact: ConsolidationMergeLayerImpact;
+  activeLayerRevisionId: string | null;
+  executionAvailable: false;
+  requiresFinalConfirmation: true;
+  restorationCommandAvailable: false;
+  recordsModified: false;
+  filesCreated: false;
+  auditWritten: false;
+  modelUsed: false;
+};
+
 const snapshotKeys = ["schemaVersion", "state", "storagePath", "sourceSha256", "recordCount", "eligibleRecordCount", "archivedRecordCount", "candidateCount", "pendingCandidateCount", "keptSeparateCount", "exactDuplicateCount", "reviewRequiredCount", "candidates", "blockedReason", "automaticMerge", "recordsModified", "modelUsed"];
 const candidateKeys = ["candidateId", "kind", "recordIds", "reasonCode", "requiresHumanReview", "resolution", "decisionId"];
 const resultKeys = ["schemaVersion", "decision", "sourceBackupPath", "ledgerPath", "backupCreated", "recordsModified", "modelUsed", "preview"];
 const decisionKeys = ["decisionId", "candidateId", "sourceSha256", "candidateKind", "reasonCode", "recordIds", "action", "decidedAt"];
+const mergePreviewKeys = ["schemaVersion", "sourceSha256", "candidateId", "candidateKind", "reasonCode", "recordIds", "survivorRecordId", "duplicateRecordId", "currentRecordCount", "projectedRecordCount", "projectedSourceSha256", "projectedSourceByteLength", "normalizedContentEqual", "differingFields", "sourceBackupPath", "sourceBackupStatus", "layerImpact", "activeLayerRevisionId", "executionAvailable", "requiresFinalConfirmation", "restorationCommandAvailable", "recordsModified", "filesCreated", "auditWritten", "modelUsed"];
+const mergeDifferenceFields: ConsolidationMergeDifferenceField[] = ["kind", "intention", "startedAt", "finishedAt", "summary", "nextStep", "memoryType", "source", "importance", "storageStrength", "memoryStatus", "successfulRecalls", "failedRecalls", "lastRecalledAt", "successfulReviews", "correctionCount", "lastReviewedAt", "contextEvents"];
 const digest = /^sha256:[0-9a-f]{64}$/;
 
 function fail(message: string): never { throw new Error(`Vista R6.3 inválida: ${message}`); }
@@ -167,4 +201,30 @@ export function parseConsolidationResolutionResult(value: unknown): Consolidatio
   const resolved = preview.candidates.find((candidate) => candidate.candidateId === decision.candidateId);
   if (!resolved || resolved.resolution !== "keepSeparate" || resolved.decisionId !== decision.decisionId) fail("la vista no confirma la decisión");
   return { schemaVersion: 1, decision: decision as ConsolidationResolutionResult["decision"], sourceBackupPath: input.sourceBackupPath, ledgerPath: input.ledgerPath, backupCreated: input.backupCreated, recordsModified: false, modelUsed: false, preview };
+}
+
+export function parseConsolidationMergePreview(value: unknown): ConsolidationMergePreview {
+  const input = record(value, "mergePreview");
+  exactKeys(input, mergePreviewKeys, "mergePreview");
+  if (input.schemaVersion !== 1) fail("mergePreview.schemaVersion debe ser 1");
+  for (const field of ["sourceSha256", "candidateId", "projectedSourceSha256"] as const) {
+    if (typeof input[field] !== "string" || !digest.test(input[field] as string)) fail(`mergePreview.${field} no es SHA-256`);
+  }
+  if (input.candidateKind !== "exactDuplicate" || input.reasonCode !== "exactNormalizedContent") fail("mergePreview sólo admite duplicados exactos");
+  if (!Array.isArray(input.recordIds) || input.recordIds.length !== 2 || input.recordIds.some((id) => typeof id !== "string" || !id.trim()) || input.recordIds[0] >= input.recordIds[1]) fail("mergePreview.recordIds debe contener dos IDs ordenados");
+  if (typeof input.survivorRecordId !== "string" || typeof input.duplicateRecordId !== "string" || input.survivorRecordId === input.duplicateRecordId || !input.recordIds.includes(input.survivorRecordId) || !input.recordIds.includes(input.duplicateRecordId)) fail("mergePreview no identifica superviviente y duplicado dentro del par");
+  const currentRecordCount = count(input.currentRecordCount, "mergePreview.currentRecordCount");
+  const projectedRecordCount = count(input.projectedRecordCount, "mergePreview.projectedRecordCount");
+  const projectedSourceByteLength = count(input.projectedSourceByteLength, "mergePreview.projectedSourceByteLength");
+  if (currentRecordCount < 2 || projectedRecordCount + 1 !== currentRecordCount || projectedSourceByteLength === 0) fail("mergePreview tiene una proyección incoherente");
+  if (input.normalizedContentEqual !== true) fail("mergePreview no confirma igualdad normalizada");
+  if (!Array.isArray(input.differingFields) || input.differingFields.some((field) => typeof field !== "string" || !mergeDifferenceFields.includes(field as ConsolidationMergeDifferenceField)) || new Set(input.differingFields).size !== input.differingFields.length) fail("mergePreview.differingFields es inválido");
+  if (typeof input.sourceBackupPath !== "string" || !input.sourceBackupPath.trim()) fail("mergePreview.sourceBackupPath está vacío");
+  if (input.sourceBackupStatus !== "missing" && input.sourceBackupStatus !== "verified") fail("mergePreview.sourceBackupStatus es desconocido");
+  if (input.layerImpact !== "absent" && input.layerImpact !== "inactive" && input.layerImpact !== "activeRevisionWillBecomeStale") fail("mergePreview.layerImpact es desconocido");
+  const activeLayerRevisionId = input.activeLayerRevisionId === null ? null : nullableText(input.activeLayerRevisionId, "mergePreview.activeLayerRevisionId");
+  if (activeLayerRevisionId !== null && !digest.test(activeLayerRevisionId)) fail("mergePreview.activeLayerRevisionId no es SHA-256");
+  if ((input.layerImpact === "activeRevisionWillBecomeStale") !== (activeLayerRevisionId !== null)) fail("mergePreview.layerImpact y activeLayerRevisionId no coinciden");
+  if (input.executionAvailable !== false || input.requiresFinalConfirmation !== true || input.restorationCommandAvailable !== false || input.recordsModified !== false || input.filesCreated !== false || input.auditWritten !== false || input.modelUsed !== false) fail("mergePreview declara efectos o disponibilidad prohibidos");
+  return input as ConsolidationMergePreview;
 }

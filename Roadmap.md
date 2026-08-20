@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C y R6.3-B validados el 2026-08-15  
+**Estado:** en curso · R6.1, R6.2-C, R6.3-C y R6.4-A validados al 2026-08-20  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -215,6 +215,8 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.3-B:** `resolve_consolidation_candidate` acepta exclusivamente `keepSeparate`. La orden exige confirmación, SHA-256 vigente, ID de candidato y los dos IDs ordenados. Antes de persistir crea un respaldo de `records.json` ligado a su huella; luego registra una decisión lateral, inmutable e idempotente, y auditoría sin texto privado. La interfaz conserva el par visible como resuelto. No reescribe recuerdos ni habilita fusión o archivado. La sonda canónica negativa rechazó un candidato inexistente y preservó los 10 archivos.
 
+**Incremento R6.3-C:** `preview_consolidation_merge` acepta únicamente duplicados exactos pendientes y exige que Carlos seleccione uno de los dos registros como superviviente. Rust relee y valida la fuente, confirma el candidato y proyecta conteo, SHA-256, bytes, diferencias originales, respaldo e impacto sobre R6.1. La interfaz no contiene ejecución. En datos controlados se verificaron respaldo ausente y existente, revisión R6.1 activa y cero escrituras; la sonda canónica leyó 17 registros, halló cero candidatos y conservó las huellas de 20 archivos.
+
 **Incremento R6.4-A:** una respuesta realmente recibida de un proveedor puede guardarse como episodio local cuando **Aprendizaje episódico local** está activo. El registro conserva proveedor y modelo, comienza con fuerza baja y confirma que la conversación ocurrió, no la verdad factual de la respuesta. La recuperación posterior lo rotula como episodio no verificado. La extracción de hechos, preferencias o hábitos continúa pendiente y requerirá candidatos revisables.
 
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
@@ -229,7 +231,7 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 - [x] La memoria de trabajo puede descartarse sin borrar memoria duradera.
 - [x] Los índices derivados pueden reconstruirse desde la fuente de verdad.
 
-R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados con respaldo y auditoría. La fusión manual continúa bloqueada hasta definir selección de registro superviviente y restauración verificable.
+R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados con respaldo y auditoría; R6.3-C ya selecciona superviviente y proyecta una fusión sin escribir. La ejecución continúa bloqueada hasta cerrar restauración verificable y auditoría transaccional.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -346,7 +348,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, y R6.3-B registra de forma real la decisión humana de mantener dos recuerdos separados. El siguiente microincremento será **R6.3-C — diseño y vista previa de fusión manual de duplicados exactos**, sin ejecutarla hasta cerrar selección del registro superviviente, restauración y auditoría. Extracción automática, “dreaming”, análisis de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, R6.3-B registra la decisión humana de mantener dos recuerdos separados y R6.3-C calcula una fusión sin ejecutarla. El siguiente microincremento será **R6.3-D — restauración verificable y diseño de la transacción auditada**, todavía sin habilitar una modificación canónica hasta que las pruebas de recuperación cierren. Extracción automática, “dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

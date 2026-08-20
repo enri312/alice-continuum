@@ -1,8 +1,8 @@
 # Vista previa de consolidación R6.3
 
-Versión: R6.3-B  
+Versión: R6.3-C  
 Estado: implementado y validado  
-Fecha: 2026-08-15
+Fecha: 2026-08-20
 
 ## Propósito
 
@@ -31,6 +31,22 @@ La fuente se respalda byte a byte como `backups/consolidation-source-<sha>.json`
 
 La vista bloquea una decisión cuyo respaldo falte o no coincida. Si la auditoría local no puede escribirse, la transacción restaura el registro lateral anterior y no presenta la resolución como aceptada.
 
+## Plan manual R6.3-C
+
+`preview_consolidation_merge` acepta únicamente un candidato `exactDuplicate` pendiente. La persona debe elegir uno de los dos IDs como superviviente. Rust exige el SHA-256 revisado, el ID determinista del candidato y el par ordenado; después relee `records.json`, valida nuevamente ambos registros y confirma que sus firmas normalizadas sigan siendo iguales.
+
+La respuesta es un plan cerrado de solo lectura. Incluye:
+
+- registro superviviente y registro que se retiraría;
+- cantidad actual y proyectada de registros;
+- SHA-256 y tamaño en bytes de la serialización proyectada;
+- campos originales que difieren aunque el contenido normalizado coincida;
+- estado `missing` o `verified` del respaldo ligado a la fuente;
+- impacto `absent`, `inactive` o `activeRevisionWillBecomeStale` sobre R6.1;
+- indicadores explícitos de que ejecución y restauración no están disponibles.
+
+El comando no crea el respaldo faltante, no escribe auditoría y no modifica ningún archivo. La interfaz invalida el plan al cambiar el superviviente o actualizar la fuente. No existe botón de fusión.
+
 ## Límites y fronteras
 
 - máximo 1.000 registros por revisión;
@@ -42,5 +58,8 @@ La vista bloquea una decisión cuyo respaldo falte o no coincida. Si la auditor�
 - fuente ausente produce `unavailable` sin crear directorios;
 - registro lateral corrupto bloquea la vista;
 - la resolución requiere confirmación, respaldo, auditoría y SHA-256 vigente.
+- R6.3-C sólo calcula planes para `exactDuplicate` sin resolución previa;
+- una vista R6.3-C declara `recordsModified: false`, `filesCreated: false`, `auditWritten: false` y `modelUsed: false`;
+- el hash proyectado describe el resultado hipotético y nunca sustituye la fuente canónica.
 
-La futura fusión manual permanece fuera de alcance hasta definir un registro superviviente, restauración verificable y efectos exactos sobre los índices derivados.
+La ejecución de la fusión permanece fuera de alcance hasta implementar restauración verificable, auditoría transaccional y tratamiento explícito de una revisión R6.1 que quedaría obsoleta.

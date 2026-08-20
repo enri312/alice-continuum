@@ -1,7 +1,7 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C y R6.3-B validados  
-Fecha: 2026-08-15
+Estado: en curso · R6.1, R6.2-C, R6.3-C y R6.4-A validados  
+Fecha: 2026-08-20
 
 ## R6.1 — Proyección inicial y migración reversible
 
@@ -40,21 +40,25 @@ La eliminación de la antigua pestaña independiente Conversación evita duplica
 
 ## R6.3 — Consolidación manual
 
-Estado: R6.3-B validado; fusión manual pendiente.
+Estado: R6.3-C validado; ejecución de fusión pendiente.
 
 - [x] Contrato cerrado de vista previa nativa y de sólo lectura.
 - [x] Duplicados exactos por contenido normalizado y pares de revisión por intención coincidente.
 - [x] IDs de candidato ligados al SHA-256 de la fuente y a dos registros ordenados.
 - [x] Exclusión de registros archivados y sesiones sin finalizar.
 - [x] Interfaz separada `Memoria → Consolidar` con fallback web honesto.
-- [x] Sonda real contra los 10 recuerdos canónicos con huellas intactas.
+- [x] Sonda real contra los 17 recuerdos canónicos y 20 archivos con huellas intactas.
 - [x] Decisión humana para mantener ambos recuerdos separados.
 - [x] Respaldo previo, bloqueo por SHA-256 y auditoría de `keepSeparate`.
 - [x] Registro lateral sin contenido privado, visible e idempotente.
-- [ ] Diseño de fusión manual limitado a duplicados exactos.
-- [ ] Selección explícita del registro superviviente y restauración verificable.
+- [x] Diseño de fusión manual limitado a duplicados exactos.
+- [x] Selección explícita del registro superviviente.
+- [x] Proyección de conteo, SHA-256, bytes, diferencias y efecto sobre R6.1 sin escribir.
+- [x] Verificación pasiva de un respaldo existente sin crearlo.
+- [ ] Restauración verificable de una fusión ejecutada.
+- [ ] Auditoría transaccional y ejecución manual confirmada.
 
-R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`: no fusiona, elimina, archiva ni modifica `records.json`.
+R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`. R6.3-C permite seleccionar un superviviente y calcular un plan cerrado, pero no expone ejecución, eliminación ni modificación de `records.json`.
 
 ## Fuente futura gobernada — proyectos locales
 

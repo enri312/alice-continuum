@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
-import { parseConsolidationPreview, parseConsolidationResolutionResult, type ConsolidationCandidate, type ConsolidationPreviewSnapshot } from "../core/memory-consolidation-preview";
+import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationResolutionResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot } from "../core/memory-consolidation-preview";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
 import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../core/working-memory";
@@ -63,6 +63,27 @@ const memoryTypeLabels: Record<MemoryType, string> = {
   episodic: "Experiencia",
 };
 
+const mergeDifferenceLabels: Record<ConsolidationMergeDifferenceField, string> = {
+  kind: "tipo",
+  intention: "título original",
+  startedAt: "inicio",
+  finishedAt: "cierre",
+  summary: "contenido original",
+  nextStep: "próximo paso original",
+  memoryType: "clase de memoria",
+  source: "fuente",
+  importance: "importancia",
+  storageStrength: "fuerza",
+  memoryStatus: "estado",
+  successfulRecalls: "usos correctos",
+  failedRecalls: "usos fallidos",
+  lastRecalledAt: "último uso",
+  successfulReviews: "revisiones",
+  correctionCount: "correcciones",
+  lastReviewedAt: "última revisión",
+  contextEvents: "eventos de contexto",
+};
+
 export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
   const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "notes" || requestedView === "profile" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
@@ -84,6 +105,8 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   const [operationRunning, setOperationRunning] = useState(false);
   const [layeredMemory, setLayeredMemory] = useState<LayeredMemorySnapshot | null>(null);
   const [consolidationPreview, setConsolidationPreview] = useState<ConsolidationPreviewSnapshot | null>(null);
+  const [mergeSelections, setMergeSelections] = useState<Record<string, string>>({});
+  const [mergePreviews, setMergePreviews] = useState<Record<string, ConsolidationMergePreview>>({});
   const [markdownNotes, setMarkdownNotes] = useState<MarkdownNoteCatalog | null>(null);
   const remembered = sessions.filter((session) => session.finishedAt);
   const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza")), [remembered]);
@@ -109,7 +132,11 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   async function refreshConsolidationPreview() {
     if (!isTauri()) return;
     setOperationRunning(true);
-    try { setConsolidationPreview(parseConsolidationPreview(await invoke<unknown>("consolidation_preview"))); }
+    try {
+      setConsolidationPreview(parseConsolidationPreview(await invoke<unknown>("consolidation_preview")));
+      setMergeSelections({});
+      setMergePreviews({});
+    }
     catch (error) { setOperationMessage(`No se pudo verificar R6.3: ${String(error)}`); }
     finally { setOperationRunning(false); }
   }
@@ -138,6 +165,20 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       setConsolidationPreview(result.preview);
       setOperationMessage(`Decisión verificada: ambos recuerdos permanecen separados. Respaldo: ${result.sourceBackupPath}`);
     } catch (error) { setOperationMessage(`No se registró la decisión R6.3: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function previewConsolidationMerge(candidate: ConsolidationCandidate) {
+    const sourceSha256 = consolidationPreview?.sourceSha256;
+    const survivorRecordId = mergeSelections[candidate.candidateId];
+    if (!sourceSha256 || candidate.kind !== "exactDuplicate" || candidate.resolution || !survivorRecordId) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const plan = parseConsolidationMergePreview(await invoke<unknown>("preview_consolidation_merge", { input: { expectedSourceSha256: sourceSha256, candidateId: candidate.candidateId, expectedRecordIds: candidate.recordIds, survivorRecordId } }));
+      setMergePreviews((current) => ({ ...current, [candidate.candidateId]: plan }));
+      setOperationMessage("Vista R6.3-C verificada. No se modificó records.json ni se creó un respaldo.");
+    } catch (error) { setOperationMessage(`No se pudo planificar R6.3-C: ${String(error)}`); }
     finally { setOperationRunning(false); }
   }
 
@@ -290,14 +331,57 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       <footer>INTERVALOS EXPLICABLES · 1 · 3 · 7 · 14 · 30 · 60 · 120 DÍAS</footer>
     </section>}
     {view === "consolidate" && <section className={`consolidation-preview memory-view-panel state-${consolidationPreview?.state ?? "unavailable"}`} aria-labelledby="consolidation-preview-title">
-      <header><div><p className="eyebrow">R6.3-B · DECISIÓN HUMANA GOBERNADA</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados y permite conservar un par separado con respaldo y auditoría. No fusiona, archiva, corrige ni usa un modelo.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
+      <header><div><p className="eyebrow">R6.3-C · PLAN MANUAL SIN EJECUCIÓN</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados. Los duplicados exactos permiten elegir qué registro sobreviviría y calcular el impacto, pero Alice todavía no puede ejecutar una fusión.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
       {consolidationPreview?.blockedReason && <p className="consolidation-blocked" role="alert">{consolidationPreview.blockedReason}</p>}
       {consolidationPreview?.state === "ready" && <><div className="consolidation-summary"><article><strong>{consolidationPreview.recordCount}</strong><span>REGISTROS LEÍDOS</span><small>{consolidationPreview.eligibleRecordCount} elegibles · {consolidationPreview.archivedRecordCount} archivados</small></article><article><strong>{consolidationPreview.pendingCandidateCount}</strong><span>DECISIONES PENDIENTES</span><small>{consolidationPreview.candidateCount} pares detectados</small></article><article><strong>{consolidationPreview.exactDuplicateCount}</strong><span>DUPLICADOS EXACTOS</span><small>Mismo contenido normalizado</small></article><article><strong>{consolidationPreview.reviewRequiredCount}</strong><span>REVISIÓN REQUERIDA</span><small>Mismo tema, contenido diferente</small></article><article><strong>{consolidationPreview.keptSeparateCount}</strong><span>MANTENER SEPARADOS</span><small>Decisiones humanas registradas</small></article></div>
-        {consolidationPreview.candidates.length ? <div className="consolidation-candidates">{consolidationPreview.candidates.map((candidate) => { const pair = candidate.recordIds.map((id) => sessionsById.get(id)); return <article key={candidate.candidateId} className={`${candidate.kind}${candidate.resolution ? " resolved" : ""}`}><header><span>{candidate.resolution === "keepSeparate" ? "MANTENER SEPARADOS" : candidate.kind === "exactDuplicate" ? "DUPLICADO EXACTO" : "POSIBLE SOLAPAMIENTO"}</span><small>{candidate.resolution ? "DECISIÓN HUMANA REGISTRADA" : "REVISIÓN HUMANA OBLIGATORIA"}</small></header><div>{pair.map((memory, index) => <section key={candidate.recordIds[index]}><small>REGISTRO {index + 1} · {candidate.recordIds[index]}</small><strong>{memory?.intention ?? "Registro no cargado en React"}</strong><p>{memory?.summary || "Sin resumen"}</p></section>)}</div><footer><div><code>{candidate.decisionId ?? candidate.candidateId}</code><span>{candidate.resolution ? "El registro de decisión conserva ambos recuerdos sin cambiar records.json." : candidate.kind === "exactDuplicate" ? "Título, contenido y próximo paso normalizados coinciden." : "El título normalizado coincide; Alice no declara contradicción automáticamente."}</span></div>{!candidate.resolution && <button className="secondary" type="button" disabled={operationRunning} onClick={() => void keepConsolidationPairSeparate(candidate)}>Mantener separados</button>}</footer></article>; })}</div> : <div className="consolidation-empty"><strong>SIN CANDIDATOS</strong><p>Los registros actuales no comparten una intención normalizada. No hay nada que fusionar ni revisar en R6.3.</p></div>}
+        {consolidationPreview.candidates.length ? <div className="consolidation-candidates">{consolidationPreview.candidates.map((candidate) => {
+          const pair = candidate.recordIds.map((id) => sessionsById.get(id));
+          const selectedSurvivor = mergeSelections[candidate.candidateId];
+          const mergePlan = mergePreviews[candidate.candidateId];
+          return <article key={candidate.candidateId} className={`${candidate.kind}${candidate.resolution ? " resolved" : ""}`}>
+            <header><span>{candidate.resolution === "keepSeparate" ? "MANTENER SEPARADOS" : candidate.kind === "exactDuplicate" ? "DUPLICADO EXACTO" : "POSIBLE SOLAPAMIENTO"}</span><small>{candidate.resolution ? "DECISIÓN HUMANA REGISTRADA" : "REVISIÓN HUMANA OBLIGATORIA"}</small></header>
+            <div>{pair.map((memory, index) => {
+              const recordId = candidate.recordIds[index];
+              return <section key={recordId}>
+                <small>REGISTRO {index + 1} · {recordId}</small>
+                <strong>{memory?.intention ?? "Registro no cargado en React"}</strong>
+                <p>{memory?.summary || "Sin resumen"}</p>
+                {candidate.kind === "exactDuplicate" && !candidate.resolution && <label className="merge-survivor-choice">
+                  <input type="radio" name={`merge-survivor-${candidate.candidateId}`} checked={selectedSurvivor === recordId} onChange={() => {
+                    setMergeSelections((current) => ({ ...current, [candidate.candidateId]: recordId }));
+                    setMergePreviews((current) => { const next = { ...current }; delete next[candidate.candidateId]; return next; });
+                  }} />
+                  <span>CONSERVAR ESTE REGISTRO</span>
+                </label>}
+              </section>;
+            })}</div>
+            <footer>
+              <div><code>{candidate.decisionId ?? candidate.candidateId}</code><span>{candidate.resolution ? "El registro de decisión conserva ambos recuerdos sin cambiar records.json." : candidate.kind === "exactDuplicate" ? "El contenido normalizado coincide; seleccioná el superviviente para calcular un plan." : "El título normalizado coincide; Alice no declara contradicción automáticamente."}</span></div>
+              {!candidate.resolution && <div className="consolidation-candidate-actions">
+                {candidate.kind === "exactDuplicate" && <button className="secondary" type="button" disabled={operationRunning || !selectedSurvivor} onClick={() => void previewConsolidationMerge(candidate)}>Previsualizar fusión</button>}
+                <button className="secondary" type="button" disabled={operationRunning} onClick={() => void keepConsolidationPairSeparate(candidate)}>Mantener separados</button>
+              </div>}
+            </footer>
+            {mergePlan && <section className="merge-preview-plan" aria-label="Plan de fusión sin ejecución">
+              <header><div><strong>PLAN R6.3-C VERIFICADO</strong><span>SOLO LECTURA · NO EJECUTABLE</span></div><code>{mergePlan.projectedSourceSha256}</code></header>
+              <dl>
+                <div><dt>SUPERVIVIENTE</dt><dd>{mergePlan.survivorRecordId}</dd></div>
+                <div><dt>SE RETIRARÍA</dt><dd>{mergePlan.duplicateRecordId}</dd></div>
+                <div><dt>REGISTROS</dt><dd>{mergePlan.currentRecordCount} → {mergePlan.projectedRecordCount}</dd></div>
+                <div><dt>TAMAÑO PROYECTADO</dt><dd>{mergePlan.projectedSourceByteLength.toLocaleString("es-PY")} bytes</dd></div>
+                <div><dt>RESPALDO</dt><dd>{mergePlan.sourceBackupStatus === "verified" ? "YA VERIFICADO" : "AÚN NO CREADO"}</dd></div>
+                <div><dt>CAPAS R6.1</dt><dd>{mergePlan.layerImpact === "activeRevisionWillBecomeStale" ? "REVISIÓN ACTIVA QUEDARÍA OBSOLETA" : mergePlan.layerImpact === "inactive" ? "ÍNDICE INACTIVO" : "SIN ÍNDICE"}</dd></div>
+              </dl>
+              <p><strong>DIFERENCIAS ORIGINALES</strong>{mergePlan.differingFields.length ? mergePlan.differingFields.map((field) => mergeDifferenceLabels[field]).join(" · ") : "Ninguna; ambos registros también coinciden sin normalización."}</p>
+              <footer><strong>FUSIÓN NO DISPONIBLE</strong><span>Falta implementar restauración cerrada y auditoría de ejecución. Esta vista no modificó archivos.</span></footer>
+            </section>}
+          </article>;
+        })}</div> : <div className="consolidation-empty"><strong>SIN CANDIDATOS</strong><p>Los registros actuales no comparten una intención normalizada. No hay nada que fusionar ni revisar en R6.3.</p></div>}
         <div className="consolidation-source"><span>FUENTE VERIFICADA · SIN ESCRITURA</span><code>{consolidationPreview.sourceSha256}</code></div></>}
       {consolidationPreview?.state === "unavailable" && <div className="consolidation-empty"><strong>SIN ARCHIVO CANÓNICO</strong><p>Rust no encontró <code>records.json</code>. No creó carpetas, archivos ni candidatos.</p></div>}
       {!consolidationPreview && <div className="consolidation-empty"><strong>SNAPSHOT NATIVO NO DISPONIBLE</strong><p>Abre Alice como aplicación de escritorio para analizar el archivo canónico. El navegador no fabrica candidatos.</p></div>}
-      <footer><div><strong>CERO CAMBIOS AUTOMÁTICOS</strong><span>Sin LLM · sin fusión · sin archivado · decisiones humanas con respaldo</span></div><button className="secondary" type="button" onClick={() => void refreshConsolidationPreview()} disabled={operationRunning || !isTauri()}>Actualizar vista previa</button></footer>
+      <footer><div><strong>CERO CAMBIOS AUTOMÁTICOS</strong><span>Sin LLM · sin fusión · sin archivado · planes manuales ligados al SHA-256</span></div><button className="secondary" type="button" onClick={() => void refreshConsolidationPreview()} disabled={operationRunning || !isTauri()}>Actualizar vista previa</button></footer>
+      {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}
     {view === "safety" && <div className="memory-view-panel memory-safety-view"><div className="memory-tools" aria-label="Herramientas de respaldo">
       <div><p className="eyebrow">SEGURIDAD DE DATOS</p><p>La memoria privada vive fuera del repositorio.</p>{storagePath && <code className="memory-path">{storagePath}</code>}</div>

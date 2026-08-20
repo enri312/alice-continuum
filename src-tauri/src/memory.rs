@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 use tauri::AppHandle;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct MemoryContextEvent {
     #[serde(rename = "type")]
@@ -104,6 +104,7 @@ const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
 const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
@@ -309,6 +310,83 @@ pub(crate) struct ConsolidationResolutionResult {
     records_modified: bool,
     model_used: bool,
     preview: ConsolidationPreviewSnapshot,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationMergeDifferenceField {
+    Kind,
+    Intention,
+    StartedAt,
+    FinishedAt,
+    Summary,
+    NextStep,
+    MemoryType,
+    Source,
+    Importance,
+    StorageStrength,
+    MemoryStatus,
+    SuccessfulRecalls,
+    FailedRecalls,
+    LastRecalledAt,
+    SuccessfulReviews,
+    CorrectionCount,
+    LastReviewedAt,
+    ContextEvents,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationMergeBackupStatus {
+    Missing,
+    Verified,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationMergeLayerImpact {
+    Absent,
+    Inactive,
+    ActiveRevisionWillBecomeStale,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PreviewConsolidationMergeInput {
+    expected_source_sha256: String,
+    candidate_id: String,
+    expected_record_ids: Vec<String>,
+    survivor_record_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationMergePreview {
+    schema_version: u8,
+    source_sha256: String,
+    candidate_id: String,
+    candidate_kind: ConsolidationCandidateKind,
+    reason_code: ConsolidationReasonCode,
+    record_ids: Vec<String>,
+    survivor_record_id: String,
+    duplicate_record_id: String,
+    current_record_count: usize,
+    projected_record_count: usize,
+    projected_source_sha256: String,
+    projected_source_byte_length: usize,
+    normalized_content_equal: bool,
+    differing_fields: Vec<ConsolidationMergeDifferenceField>,
+    source_backup_path: String,
+    source_backup_status: ConsolidationMergeBackupStatus,
+    layer_impact: ConsolidationMergeLayerImpact,
+    active_layer_revision_id: Option<String>,
+    execution_available: bool,
+    requires_final_confirmation: bool,
+    restoration_command_available: bool,
+    records_modified: bool,
+    files_created: bool,
+    audit_written: bool,
+    model_used: bool,
 }
 
 #[derive(Deserialize)]
@@ -777,6 +855,175 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
         records_modified: false,
         model_used: false,
     }
+}
+
+fn consolidation_merge_differences(
+    survivor: &MemorySession,
+    duplicate: &MemorySession,
+) -> Vec<ConsolidationMergeDifferenceField> {
+    let mut fields = Vec::new();
+    macro_rules! compare {
+        ($field:ident, $variant:ident) => {
+            if survivor.$field != duplicate.$field {
+                fields.push(ConsolidationMergeDifferenceField::$variant);
+            }
+        };
+    }
+    compare!(kind, Kind);
+    compare!(intention, Intention);
+    compare!(started_at, StartedAt);
+    compare!(finished_at, FinishedAt);
+    compare!(summary, Summary);
+    compare!(next_step, NextStep);
+    compare!(memory_type, MemoryType);
+    compare!(source, Source);
+    compare!(importance, Importance);
+    compare!(storage_strength, StorageStrength);
+    compare!(memory_status, MemoryStatus);
+    compare!(successful_recalls, SuccessfulRecalls);
+    compare!(failed_recalls, FailedRecalls);
+    compare!(last_recalled_at, LastRecalledAt);
+    compare!(successful_reviews, SuccessfulReviews);
+    compare!(correction_count, CorrectionCount);
+    compare!(last_reviewed_at, LastReviewedAt);
+    compare!(context_events, ContextEvents);
+    fields
+}
+
+fn preview_consolidation_merge_at(
+    data_root: &Path,
+    input: PreviewConsolidationMergeInput,
+) -> Result<ConsolidationMergePreview, String> {
+    if !is_sha256(&input.expected_source_sha256) || !is_sha256(&input.candidate_id) {
+        return Err("La vista de fusión R6.3-C contiene una huella inválida".into());
+    }
+    if input.expected_record_ids.len() != 2
+        || input
+            .expected_record_ids
+            .iter()
+            .any(|id| id.trim().is_empty())
+        || input.expected_record_ids[0] >= input.expected_record_ids[1]
+    {
+        return Err(
+            "La vista de fusión R6.3-C requiere dos registros ordenados y distintos".into(),
+        );
+    }
+    if !input
+        .expected_record_ids
+        .iter()
+        .any(|id| id == &input.survivor_record_id)
+    {
+        return Err("El registro superviviente debe pertenecer al par revisado".into());
+    }
+
+    let preview = consolidation_preview_at(data_root);
+    if preview.state != ConsolidationPreviewState::Ready {
+        return Err(preview
+            .blocked_reason
+            .unwrap_or_else(|| "La memoria canónica no está disponible".into()));
+    }
+    if preview.source_sha256.as_deref() != Some(input.expected_source_sha256.as_str()) {
+        return Err(
+            "records.json cambió después de la vista previa; actualizá antes de planificar".into(),
+        );
+    }
+    let candidate = preview
+        .candidates
+        .iter()
+        .find(|candidate| candidate.candidate_id == input.candidate_id)
+        .ok_or("El candidato R6.3-C ya no existe en la fuente revisada")?;
+    if candidate.record_ids != input.expected_record_ids {
+        return Err("El par de registros no coincide con el candidato revisado".into());
+    }
+    if candidate.kind != ConsolidationCandidateKind::ExactDuplicate {
+        return Err("R6.3-C sólo admite duplicados exactos normalizados".into());
+    }
+    if candidate.resolution.is_some() {
+        return Err("El candidato ya posee una decisión humana y no admite plan de fusión".into());
+    }
+
+    let (source_content, sessions) = read_validated_source_at(data_root)?
+        .ok_or("No existe records.json para planificar la fusión")?;
+    if memory_subject_digest(&source_content) != input.expected_source_sha256 {
+        return Err("records.json cambió durante la planificación; no se produjo un plan".into());
+    }
+    let survivor = sessions
+        .iter()
+        .find(|session| session.id == input.survivor_record_id)
+        .ok_or("El registro superviviente ya no existe")?;
+    let duplicate_record_id = input
+        .expected_record_ids
+        .iter()
+        .find(|id| *id != &input.survivor_record_id)
+        .cloned()
+        .ok_or("No se pudo determinar el registro duplicado")?;
+    let duplicate = sessions
+        .iter()
+        .find(|session| session.id == duplicate_record_id)
+        .ok_or("El registro duplicado ya no existe")?;
+    if normalized_memory_signature(survivor) != normalized_memory_signature(duplicate) {
+        return Err("El contenido normalizado dejó de ser idéntico".into());
+    }
+
+    let projected_sessions = sessions
+        .iter()
+        .filter(|session| session.id != duplicate_record_id)
+        .cloned()
+        .collect::<Vec<_>>();
+    validate_memory_sessions(&projected_sessions)?;
+    let projected_source =
+        serde_json::to_string_pretty(&projected_sessions).map_err(|error| error.to_string())?;
+    let source_backup_path =
+        consolidation_source_backup_path(data_root, &input.expected_source_sha256);
+    let source_backup_status = if source_backup_path.exists() {
+        let backup = fs::read_to_string(&source_backup_path)
+            .map_err(|error| format!("No se pudo verificar el respaldo R6.3-C: {error}"))?;
+        if backup != source_content {
+            return Err("El respaldo existente no coincide con records.json".into());
+        }
+        ConsolidationMergeBackupStatus::Verified
+    } else {
+        ConsolidationMergeBackupStatus::Missing
+    };
+    let layered_document = read_layered_document_at(data_root)?;
+    let (layer_impact, active_layer_revision_id) = match layered_document {
+        None => (ConsolidationMergeLayerImpact::Absent, None),
+        Some(document) => match document.active_revision_id {
+            Some(active) => (
+                ConsolidationMergeLayerImpact::ActiveRevisionWillBecomeStale,
+                Some(active),
+            ),
+            None => (ConsolidationMergeLayerImpact::Inactive, None),
+        },
+    };
+
+    Ok(ConsolidationMergePreview {
+        schema_version: CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION,
+        source_sha256: input.expected_source_sha256,
+        candidate_id: input.candidate_id,
+        candidate_kind: candidate.kind,
+        reason_code: candidate.reason_code,
+        record_ids: input.expected_record_ids,
+        survivor_record_id: input.survivor_record_id,
+        duplicate_record_id,
+        current_record_count: sessions.len(),
+        projected_record_count: projected_sessions.len(),
+        projected_source_sha256: memory_subject_digest(&projected_source),
+        projected_source_byte_length: projected_source.len(),
+        normalized_content_equal: true,
+        differing_fields: consolidation_merge_differences(survivor, duplicate),
+        source_backup_path: source_backup_path.display().to_string(),
+        source_backup_status,
+        layer_impact,
+        active_layer_revision_id,
+        execution_available: false,
+        requires_final_confirmation: true,
+        restoration_command_available: false,
+        records_modified: false,
+        files_created: false,
+        audit_written: false,
+        model_used: false,
+    })
 }
 
 fn write_consolidation_decisions_at(
@@ -1512,6 +1759,14 @@ pub(crate) fn consolidation_preview(
     app: AppHandle,
 ) -> Result<ConsolidationPreviewSnapshot, String> {
     Ok(consolidation_preview_at(&alice_data_root_path(&app)?))
+}
+
+#[tauri::command]
+pub(crate) fn preview_consolidation_merge(
+    app: AppHandle,
+    input: PreviewConsolidationMergeInput,
+) -> Result<ConsolidationMergePreview, String> {
+    preview_consolidation_merge_at(&alice_data_root_path(&app)?, input)
 }
 
 #[tauri::command]
@@ -2283,6 +2538,147 @@ mod tests {
         assert_eq!(after, before);
 
         fs::remove_dir_all(root).expect("remove R6.3 fixture");
+    }
+
+    #[test]
+    fn r6_3_c_merge_preview_requires_exact_pair_and_never_writes() {
+        let root = temporary_probe_root("r6-3-c-merge-preview");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-a",
+                "kind": "Enseñanza",
+                "intention": "Arquitectura de Alice",
+                "startedAt": "2026-08-20T10:00:00Z",
+                "finishedAt": "2026-08-20T10:01:00Z",
+                "summary": "Alice usa memoria local.",
+                "nextStep": "Revisar",
+                "memoryType": "semantic",
+                "source": "Carlos",
+                "importance": 5
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "memory-b",
+                "kind": "Enseñanza",
+                "intention": "  ARQUITECTURA, DE ALICE! ",
+                "startedAt": "2026-08-20T11:00:00Z",
+                "finishedAt": "2026-08-20T11:01:00Z",
+                "summary": "Alice usa memoria local",
+                "nextStep": "revisar",
+                "memoryType": "semantic",
+                "source": "Enseñanza directa",
+                "importance": 4
+            }))
+            .unwrap(),
+        ];
+        let source = write_layered_fixture(&root, &records);
+        let snapshot = consolidation_preview_at(&root);
+        let candidate = snapshot
+            .candidates
+            .iter()
+            .find(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
+            .expect("exact duplicate candidate")
+            .clone();
+        let source_sha256 = snapshot.source_sha256.clone().unwrap();
+        let before = file_hashes(&root);
+
+        let plan = preview_consolidation_merge_at(
+            &root,
+            PreviewConsolidationMergeInput {
+                expected_source_sha256: source_sha256.clone(),
+                candidate_id: candidate.candidate_id.clone(),
+                expected_record_ids: candidate.record_ids.clone(),
+                survivor_record_id: "memory-a".into(),
+            },
+        )
+        .expect("read-only merge preview");
+
+        assert_eq!(plan.schema_version, 1);
+        assert_eq!(
+            plan.candidate_kind,
+            ConsolidationCandidateKind::ExactDuplicate
+        );
+        assert_eq!(plan.survivor_record_id, "memory-a");
+        assert_eq!(plan.duplicate_record_id, "memory-b");
+        assert_eq!(plan.current_record_count, 2);
+        assert_eq!(plan.projected_record_count, 1);
+        assert!(is_sha256(&plan.projected_source_sha256));
+        assert_ne!(plan.projected_source_sha256, memory_subject_digest(&source));
+        assert!(plan.normalized_content_equal);
+        assert!(plan
+            .differing_fields
+            .contains(&ConsolidationMergeDifferenceField::Intention));
+        assert!(plan
+            .differing_fields
+            .contains(&ConsolidationMergeDifferenceField::StartedAt));
+        assert!(plan
+            .differing_fields
+            .contains(&ConsolidationMergeDifferenceField::Source));
+        assert_eq!(
+            plan.source_backup_status,
+            ConsolidationMergeBackupStatus::Missing
+        );
+        assert_eq!(plan.layer_impact, ConsolidationMergeLayerImpact::Absent);
+        assert!(!plan.execution_available);
+        assert!(plan.requires_final_confirmation);
+        assert!(!plan.restoration_command_available);
+        assert!(!plan.records_modified);
+        assert!(!plan.files_created);
+        assert!(!plan.audit_written);
+        assert!(!plan.model_used);
+        assert_eq!(file_hashes(&root), before);
+
+        let wrong_survivor = preview_consolidation_merge_at(
+            &root,
+            PreviewConsolidationMergeInput {
+                expected_source_sha256: source_sha256.clone(),
+                candidate_id: candidate.candidate_id.clone(),
+                expected_record_ids: candidate.record_ids.clone(),
+                survivor_record_id: "memory-c".into(),
+            },
+        );
+        assert!(wrong_survivor.is_err());
+        assert_eq!(file_hashes(&root), before);
+
+        let backup_path = consolidation_source_backup_path(&root, &source_sha256);
+        fs::create_dir_all(backup_path.parent().unwrap()).unwrap();
+        fs::write(&backup_path, &source).unwrap();
+        let active = activate_layered_memory_at(
+            &root,
+            ActivateLayeredMemoryInput {
+                expected_source_sha256: source_sha256.clone(),
+                confirmed: true,
+            },
+            "2026-08-20T12:00:00Z".into(),
+        )
+        .expect("activate controlled R6.1 projection");
+        let active_revision_id = active.active_revision_id.expect("active R6.1 revision");
+        let before_active_plan = file_hashes(&root);
+        let active_plan = preview_consolidation_merge_at(
+            &root,
+            PreviewConsolidationMergeInput {
+                expected_source_sha256: source_sha256,
+                candidate_id: candidate.candidate_id,
+                expected_record_ids: candidate.record_ids,
+                survivor_record_id: "memory-b".into(),
+            },
+        )
+        .expect("read-only plan with verified backup and active layer");
+        assert_eq!(
+            active_plan.source_backup_status,
+            ConsolidationMergeBackupStatus::Verified
+        );
+        assert_eq!(
+            active_plan.layer_impact,
+            ConsolidationMergeLayerImpact::ActiveRevisionWillBecomeStale
+        );
+        assert_eq!(
+            active_plan.active_layer_revision_id.as_deref(),
+            Some(active_revision_id.as_str())
+        );
+        assert_eq!(file_hashes(&root), before_active_plan);
+
+        fs::remove_dir_all(root).expect("remove R6.3-C fixture");
     }
 
     #[test]

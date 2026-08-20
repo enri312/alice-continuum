@@ -50,3 +50,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-072](ADR-P-072-permiso-facial-r2-separado.md) | Permiso R2 facial crítico, separado y todavía sin ejecutor |
 | [ADR-P-073](ADR-P-073-catalogo-expresiones-vrm-solo-lectura.md) | Catálogo real de expresiones VRM inspeccionable y desconectado de la ejecución |
 | [ADR-P-074](ADR-P-074-aprendizaje-episodico-conversacional.md) | Conversaciones reales como episodios con procedencia, sin declararlas hechos verificados |
+| [ADR-P-075](ADR-P-075-plan-fusion-duplicados-exactos.md) | Selección humana y plan de fusión de solo lectura limitado a duplicados exactos |

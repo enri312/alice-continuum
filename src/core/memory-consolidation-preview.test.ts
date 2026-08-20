@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseConsolidationPreview, parseConsolidationResolutionResult } from "./memory-consolidation-preview";
+import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationResolutionResult } from "./memory-consolidation-preview";
 
 const sha = (letter: string) => `sha256:${letter.repeat(64)}`;
 function validSnapshot() {
@@ -23,6 +23,36 @@ function validSnapshot() {
     blockedReason: null,
     automaticMerge: false,
     recordsModified: false,
+    modelUsed: false,
+  };
+}
+
+function validMergePreview() {
+  return {
+    schemaVersion: 1,
+    sourceSha256: sha("a"),
+    candidateId: sha("b"),
+    candidateKind: "exactDuplicate",
+    reasonCode: "exactNormalizedContent",
+    recordIds: ["a", "b"],
+    survivorRecordId: "a",
+    duplicateRecordId: "b",
+    currentRecordCount: 3,
+    projectedRecordCount: 2,
+    projectedSourceSha256: sha("e"),
+    projectedSourceByteLength: 2048,
+    normalizedContentEqual: true,
+    differingFields: ["intention", "startedAt", "source"],
+    sourceBackupPath: "E:\\data\\memory\\backups\\consolidation-source.json",
+    sourceBackupStatus: "missing",
+    layerImpact: "absent",
+    activeLayerRevisionId: null,
+    executionAvailable: false,
+    requiresFinalConfirmation: true,
+    restorationCommandAvailable: false,
+    recordsModified: false,
+    filesCreated: false,
+    auditWritten: false,
     modelUsed: false,
   };
 }
@@ -68,5 +98,21 @@ describe("vista previa R6.3", () => {
     expect(parseConsolidationResolutionResult(result).decision.action).toBe("keepSeparate");
     expect(() => parseConsolidationResolutionResult({ ...result, recordsModified: true })).toThrow();
     expect(() => parseConsolidationResolutionResult({ ...result, decision: { ...result.decision, candidateId: sha("e") } })).toThrow();
+  });
+
+  it("valida una vista R6.3-C cerrada y sin ejecución", () => {
+    const parsed = parseConsolidationMergePreview(validMergePreview());
+    expect(parsed.survivorRecordId).toBe("a");
+    expect(parsed.projectedRecordCount).toBe(2);
+    expect(parsed.differingFields).toEqual(["intention", "startedAt", "source"]);
+    expect(parsed.executionAvailable).toBe(false);
+  });
+
+  it("rechaza efectos, selección o impacto de capas incoherentes en R6.3-C", () => {
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), recordsModified: true })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), survivorRecordId: "c" })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), differingFields: ["source", "source"] })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale" })).toThrow();
+    expect(parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale", activeLayerRevisionId: sha("f") }).activeLayerRevisionId).toBe(sha("f"));
   });
 });
