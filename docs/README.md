@@ -62,6 +62,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 56. [ADR-P-079: inferencia Ollama limitada a loopback](decisions/ADR-P-079-inferencia-ollama-loopback.md)
 57. [Inventario de modelos locales y propietarios](research/LOCAL_MODEL_INVENTORY_2026-08-20.md)
 58. [Informe real del adaptador local Ollama](testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md)
+59. [ADR-P-080: contexto ampliado y RAG local](decisions/ADR-P-080-contexto-rag-local.md)
+60. [ADR-P-081: observación visual local revisable](decisions/ADR-P-081-observacion-visual-local-revisable.md)
+61. [Informe real de RAG y aprendizaje visual](testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md)
 
 ## Secciones
 

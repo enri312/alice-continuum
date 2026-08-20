@@ -160,17 +160,17 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `avatar.vrm.render` | Carga y presenta el VRM privado en el visor local. | `AvatarViewer` | Implementada | Bajo | Abrir la pestaña Avatar. | `idle` con archivo válido y `unavailable` sin él; renderizar no conecta rostro ni cuerpo. |
 | `perception.camera.observe` | Abre la cámara integrada durante un lease visible y descarta fotogramas. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | OpenCV/DirectShow local; `idle` o `active`; análisis y memoria desconectados. |
 | `perception.microphone.observe` | Abre el arreglo Intel durante un lease visible y descarta muestras. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | PortAudio/WASAPI local; `idle` o `active`; transcripción y memoria desconectadas. |
+| `perception.screen.observe` | Analiza muestras efímeras de una pantalla elegida y propone apuntes revisables. | `getDisplayMedia` + `analyze_screen_frame` + Ollama | Parcial | Alto | Selector del sistema operativo; `enforcedBy: operatingSystem`. | Backend visual probado con imagen real; estado `degraded` hasta validar el selector WebView2 de forma interactiva. |
 
 ### Entradas sensoriales planificadas, sin adaptador
 
 | ID estable | Representación futura | Estado obligatorio en R1 |
 |---|---|---|
-| `perception.screen.observe` | Analizar fotogramas efímeros de una pantalla elegida. | `planned` + `unavailable` |
 | `perception.media.inspect` | Consultar metadatos del reproductor actual. | `planned` + `unavailable` |
 | `perception.desktop.observe` | Recibir eventos accesibles de interfaz sin registrar teclas. | `planned` + `unavailable` |
 | `perception.face.landmarks` | Derivar landmarks y blendshapes faciales efímeros desde una cámara autorizada. | `planned` + `unavailable` |
 
-Estas cuatro entradas anticipan la arquitectura aceptada en ADR-P-043. R1 solo las declara: no abre dispositivos, no comprueba permisos y no ejecuta modelos. `perception.face.landmarks` sustituyó al agrupado `perception.gesture.derive` para no mezclar rostro, manos y pose; cada fuente futura tendrá su capacidad independiente. Cámara y micrófono ya figuran arriba como parciales porque poseen adaptador y Gateway nativo comprobados.
+Estas tres entradas continúan planificadas. `perception.face.landmarks` sustituyó al agrupado `perception.gesture.derive` para no mezclar rostro, manos y pose; cada fuente futura tendrá su capacidad independiente. Cámara y micrófono ya figuran arriba como parciales porque poseen adaptador y Gateway nativo comprobados. Pantalla también figura como parcial: la selección depende del sistema operativo, el backend descarta la imagen tras el análisis y la escritura sólo ocurre al confirmar el candidato textual.
 
 ### Puentes planificados, sin adaptador
 

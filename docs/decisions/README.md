@@ -55,3 +55,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-077](ADR-P-077-recibo-durable-recuperacion-reinicio.md) | Recibo sin contenido privado y recuperación independiente de RAM después de reiniciar |
 | [ADR-P-078](ADR-P-078-estado-restauracion-gobernada.md) | Estado nativo y restauración confirmada sin habilitar la ejecución de fusiones |
 | [ADR-P-079](ADR-P-079-inferencia-ollama-loopback.md) | Inferencia Ollama local con endpoint fijo, autorización previa y actividad basada en respuestas reales |
+| [ADR-P-080](ADR-P-080-contexto-rag-local.md) | Contexto local ampliado, memoria de trabajo mayor y recuperación RAG multivuelta para Ollama |
+| [ADR-P-081](ADR-P-081-observacion-visual-local-revisable.md) | Observación visual local con selección explícita, imágenes efímeras y aprendizaje revisable |

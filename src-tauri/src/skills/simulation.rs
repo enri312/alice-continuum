@@ -521,7 +521,7 @@ mod tests {
             "2026-08-10T00:00:00-03:00".into(),
             &CapabilityProbeSnapshot {
                 cloud: CloudCapabilityProbe {
-                    provider_count: 7,
+                    provider_count: 6,
                     configured_provider_count: 0,
                 },
                 observation: Ok(ObservationCapabilityProbe {
@@ -651,12 +651,12 @@ mod tests {
         let mut planned = manifest();
         planned.declared_risk = CapabilityRisk::High;
         planned.required_capabilities[0] = SkillCapabilityRequirement {
-            capability_id: "perception.screen.observe".into(),
-            operations: vec!["observeSelectedScreen".into()],
-            reason: "Representar una pantalla futura.".into(),
+            capability_id: "perception.media.inspect".into(),
+            operations: vec!["inspectCurrentMediaSession".into()],
+            reason: "Representar una sesión multimedia futura.".into(),
         };
-        planned.steps[0].capability_id = Some("perception.screen.observe".into());
-        planned.steps[0].operation = Some("observeSelectedScreen".into());
+        planned.steps[0].capability_id = Some("perception.media.inspect".into());
+        planned.steps[0].operation = Some("inspectCurrentMediaSession".into());
         let result = simulate_skill_plan_against_registry(&planned, &registry()).unwrap();
         assert_eq!(result.steps[0].readiness, SimulationStepReadiness::Blocked);
         for expected in [

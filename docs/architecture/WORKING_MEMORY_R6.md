@@ -1,7 +1,7 @@
 # Memoria de trabajo R6.2
 
-Estado: incremento R6.2-C validado  
-Fecha: 2026-08-14
+Estado: ampliado por ADR-P-080  
+Fecha: 2026-08-20
 
 ## Propósito
 
@@ -11,10 +11,10 @@ La memoria de trabajo conserva únicamente el contexto conversacional reciente q
 
 | Límite | Valor |
 |---|---:|
-| Intercambios completos | 3 |
-| Mensajes | 6 |
-| Caracteres | 48.000 |
-| TTL desde la última respuesta | 30 minutos |
+| Intercambios completos | 6 |
+| Mensajes | 12 |
+| Caracteres | 72.000 |
+| TTL desde la última respuesta | 2 horas |
 | Persistencia | Ninguna |
 
 Un intercambio entra al almacén sólo después de una respuesta real y satisfactoria del proveedor. Conserva texto de usuario, texto de Alice, fecha UTC, proveedor, modelo y procedencia `cloudConversation`. Al superar un límite se retira el intercambio completo más antiguo; nunca se trunca un mensaje.
@@ -48,6 +48,6 @@ El vaciado presenta una confirmación visible y envía la generación exacta mos
 
 ## Presupuesto del contexto saliente
 
-La previsualización obligatoria compone primero la cadena exacta que recibirá el comando nativo y deriva de ella un presupuesto por fragmento. Muestra mensaje actual, historial reciente, recuerdos relevantes y ventana actual; las tres últimas fuentes son opcionales y registran cero cuando no fueron autorizadas o no están disponibles. También muestra el coste de los separadores y el total.
+La previsualización obligatoria compone primero la cadena exacta que recibirá el comando nativo y deriva de ella un presupuesto por fragmento. Muestra mensaje actual, hasta diez mensajes recientes, recuerdos relevantes y ventana actual. En Ollama, historial y RAG local comienzan activados; pueden desmarcarse antes de procesar. El RAG amplía preguntas de seguimiento con hasta dos mensajes previos del propietario y recupera como máximo tres recuerdos. Para rutas remotas las fuentes opcionales comienzan desmarcadas. También se muestra el coste de los separadores y el total.
 
-Se cuentan caracteres Unicode y bytes UTF-8 mediante `TextEncoder`. No se estima un número de tokens porque la tokenización cambia entre proveedor y modelo. El presupuesto no modifica el límite independiente de 1.200 tokens de salida configurado en Rust.
+Se cuentan caracteres Unicode y bytes UTF-8 mediante `TextEncoder`. No se estima un número de tokens porque la tokenización cambia entre proveedor y modelo. El presupuesto no modifica los límites independientes configurados en Rust: 900 tokens de salida para Ollama y 1.200 para los adaptadores remotos.

@@ -112,7 +112,7 @@ La entrada se lee sólo mediante Gamepad API mientras la prueba está activada. 
 
 El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la última revisión antes de una inferencia local o una solicitud de nube:
 
-- historial, recuerdos y ventana comienzan desmarcados;
+- con Ollama, historial reciente y RAG local comienzan activados y permanecen visibles en la previsualización; para proveedores remotos continúan desmarcados;
 - observar una ventana localmente no implica enviarla;
 - cámara, micrófono, fotogramas y audio no son fuentes elegibles;
 - `Aprendizaje episódico local` empieza activado: después de una respuesta real guarda pregunta, respuesta, proveedor y modelo como una experiencia privada; puede desmarcarse antes de enviar y no controla qué sale a Internet;
@@ -180,11 +180,11 @@ La sonda real clasificó los 10 registros actuales como 9 episodios, 0 hechos se
 
 ## Memoria de trabajo y salida controlada R6.2-C
 
-Cada respuesta real del proveedor puede conservar el intercambio reciente en un almacén nativo dentro del proceso: máximo tres intercambios completos, seis mensajes, 48.000 caracteres y 30 minutos desde la última actividad. La subpestaña **Memoria → Trabajo RAM** muestra mensajes, intercambios, caracteres, porcentaje, vencimiento, generación y procedencia sin repetir el contenido. Vaciar exige confirmación visible y la generación exacta revisada por el usuario.
+Cada respuesta real del proveedor puede conservar el intercambio reciente en un almacén nativo dentro del proceso: máximo seis intercambios completos, doce mensajes, 72.000 caracteres y dos horas desde la última actividad. Conversación vuelve a adjuntar hasta los diez mensajes más recientes cuando Ollama está activo. La subpestaña **Memoria → Trabajo RAM** muestra mensajes, intercambios, caracteres, porcentaje, vencimiento, generación y procedencia sin repetir el contenido. Vaciar exige confirmación visible y la generación exacta revisada por el usuario.
 
 El texto no se escribe en disco; cerrar Alice, vencer el TTL o vaciar elimina la RAM sin afectar recuerdos duraderos. R3 registra únicamente operaciones y SHA-256. En navegador se muestra explícitamente `SIN BACKEND`, sin inventar un snapshot.
 
-Antes de autorizar una llamada, Alice muestra el tamaño exacto de `mensaje`, `historial`, `recuerdos` y `ventana` en caracteres Unicode y bytes UTF-8. Una fuente opcional desmarcada cuenta cero; los separadores y el total se derivan de la misma cadena que recibe Rust. No se publican estimaciones de tokens porque dependen del modelo y del proveedor.
+Antes de autorizar una llamada, Alice muestra el tamaño exacto de `mensaje`, `historial`, `recuerdos` y `ventana` en caracteres Unicode y bytes UTF-8. El RAG lexical combina la consulta actual con hasta dos mensajes anteriores del propietario y recupera como máximo tres recuerdos confirmados. Una fuente opcional desmarcada cuenta cero; los separadores y el total se derivan de la misma cadena que recibe Rust. No se publican estimaciones de tokens porque dependen del modelo y del proveedor.
 
 La antigua pantalla independiente **Conversación** fue eliminada. Su compositor, previsualización y mensajes viven ahora dentro de `[00] CONVERSATION / PERCEPTION INPUT`. `[05] FACE + BODY OUTPUT BRIDGE` queda en Body Solver; `Face` y `Body` son destinos del grafo cognitivo, no ejecutores del cerebro. Consulta [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md), [ADR-P-067](docs/decisions/ADR-P-067-memoria-trabajo-y-panel-entrada.md), [el informe R6.2-A](docs/testing/R6_WORKING_MEMORY_REPORT_2026-08-14.md), [la validación R6.2-B](docs/testing/R6_WORKING_MEMORY_UI_REPORT_2026-08-14.md) y [el cierre R6.2-C](docs/testing/R6_OUTGOING_BUDGET_AND_ICONS_REPORT_2026-08-14.md).
 
@@ -228,14 +228,18 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 | Proveedor | Variable requerida | Modelo opcional |
 |---|---|---|
 | Ollama local | ninguna; `Iniciar Alice.cmd` verifica el runtime | `ALICE_OLLAMA_MODEL` (por defecto `qwen3.5:4b`) |
-| OpenRouter | `OPENROUTER_API_KEY` | `OPENROUTER_MODEL` |
+| OpenRouter | **PAUSADO**; su clave no lo habilita | adaptador preservado para una decisión futura |
 | OpenAI | `OPENAI_API_KEY` | `OPENAI_MODEL` |
 | Anthropic | `ANTHROPIC_API_KEY` | `ANTHROPIC_MODEL` |
 | Google | `GEMINI_API_KEY` | `GEMINI_MODEL` |
 | xAI | `XAI_API_KEY` | `XAI_MODEL` |
 | Compatible con Chat Completions | `ALICE_COMPATIBLE_API_KEY` y `ALICE_COMPATIBLE_BASE_URL` | `ALICE_COMPATIBLE_MODEL` |
 
-`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato local usa contexto 2048, desactiva herramientas, streaming y razonamiento visible, limita la salida a 1200 tokens y mantiene la previsualización obligatoria. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3, memoria de trabajo y, si Carlos lo autoriza, aprendizaje episódico local. Los demás proveedores conservan sus variables, requieren reiniciar Alice y siguen sus propias políticas. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
+`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato conversacional local usa contexto 4096, desactiva herramientas, streaming y razonamiento visible, limita la salida a 900 tokens y mantiene la previsualización obligatoria. OpenRouter no aparece en Configuración y Rust rechaza cualquier solicitud directa hacia él. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3, memoria de trabajo y, si Carlos lo autoriza, aprendizaje episódico local. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [ADR-P-080](docs/decisions/ADR-P-080-contexto-rag-local.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
+
+## Observación visual local
+
+En **Memoria → Aprendizaje**, `Elegir pantalla o ventana` abre el selector del sistema operativo. Alice sólo puede ver la ventana o pantalla elegida. Toma una muestra cada cinco minutos, la reduce a 960 píxeles de ancho, la analiza con el modelo Ollama local y descarta inmediatamente el JPEG temporal. El audio permanece desactivado. Qwen devuelve como máximo cuatro apuntes y dos fragmentos visibles; se conservan hasta doce muestras como candidato editable en RAM. Detener la sesión no guarda nada. Sólo **Confirmar aprendizaje episódico** escribe los apuntes revisados en Memoria; nunca se guardan capturas. La ruta sigue marcada `partial/degraded` hasta validar interactivamente el selector dentro de WebView2. Consulta [ADR-P-081](docs/decisions/ADR-P-081-observacion-visual-local-revisable.md) y [el informe real](docs/testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md).
 
 ## Datos locales
 

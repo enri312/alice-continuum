@@ -19,18 +19,18 @@ function activeSnapshot() {
     }],
     exchangeCount: 1,
     messageCount: 2,
-    maximumMessages: 6,
+    maximumMessages: 12,
     characterCount: [...userText].length + [...assistantText].length,
-    maximumCharacters: 48_000,
-    ttlSeconds: 1_800,
-    expiresInSeconds: 1_799,
+    maximumCharacters: 72_000,
+    ttlSeconds: 7_200,
+    expiresInSeconds: 7_199,
     lastActivityAt: "2026-08-14T12:00:00Z",
     persisted: false,
   };
 }
 
 describe("contrato R6.2 de memoria de trabajo real", () => {
-  it("acepta un intercambio real y lo convierte en los seis mensajes máximos de conversación", () => {
+  it("acepta un intercambio real dentro de los doce mensajes máximos de conversación", () => {
     const snapshot = parseWorkingMemorySnapshot(activeSnapshot());
     const messages = messagesFromWorkingMemory(snapshot);
 
@@ -42,7 +42,7 @@ describe("contrato R6.2 de memoria de trabajo real", () => {
   it("rechaza persistencia, conteos inventados y presupuestos ampliados", () => {
     expect(() => parseWorkingMemorySnapshot({ ...activeSnapshot(), persisted: true })).toThrow();
     expect(() => parseWorkingMemorySnapshot({ ...activeSnapshot(), messageCount: 6 })).toThrow();
-    expect(() => parseWorkingMemorySnapshot({ ...activeSnapshot(), maximumMessages: 8 })).toThrow();
+    expect(() => parseWorkingMemorySnapshot({ ...activeSnapshot(), maximumMessages: 14 })).toThrow();
   });
 
   it("acepta el vaciado confirmado y conserva el estado efímero", () => {
@@ -63,7 +63,7 @@ describe("contrato R6.2 de memoria de trabajo real", () => {
     const snapshot = parseWorkingMemorySnapshot({ ...activeSnapshot(), expiresInSeconds: 125 });
 
     expect(workingMemoryRemainingLabel(snapshot)).toBe("02:05");
-    expect(workingMemoryUsagePercent(snapshot)).toBe(0.1);
+    expect(workingMemoryUsagePercent(snapshot)).toBe(0);
     expect(workingMemoryRemainingLabel(parseWorkingMemorySnapshot({ ...activeSnapshot(), state: "expired", exchanges: [], exchangeCount: 0, messageCount: 0, characterCount: 0, expiresInSeconds: null }))).toBe("EXPIRADA");
   });
 });

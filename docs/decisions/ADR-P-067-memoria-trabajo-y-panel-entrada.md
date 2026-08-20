@@ -3,6 +3,8 @@
 Fecha: 2026-08-14  
 Estado: aceptada
 
+Nota 2026-08-20: ADR-P-080 amplía los límites operativos de RAM y activa historial/RAG por defecto exclusivamente para Ollama. La separación entre RAM y recuerdo duradero establecida aquí permanece vigente.
+
 ## Contexto
 
 La interfaz tenía una pantalla Conversación y un panel `[00] CONVERSATION / PERCEPTION INPUT` separado. Ambos representaban la misma entrada y alejaban el diagnóstico cognitivo de la referencia funcional. Al mismo tiempo, R6 necesitaba contexto reciente real sin convertir cada respuesta en memoria duradera.

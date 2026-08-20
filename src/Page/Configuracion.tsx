@@ -22,7 +22,7 @@ export function Configuracion({ desktopApp, status, provider, model, onProviderC
     <div className="settings-grid">
       <section className="settings-card inference-settings" aria-labelledby="inference-settings-title">
         <header><span>01</span><div><p className="eyebrow">RUTA DE INFERENCIA</p><h3 id="inference-settings-title">Proveedor y modelo</h3></div></header>
-        <p>Esta selección se guarda localmente y se usa como ruta predeterminada para las nuevas conversaciones.</p>
+        <p>Ollama local es la ruta prioritaria para las nuevas conversaciones. OpenRouter permanece pausado y no puede seleccionarse ni recibir solicitudes.</p>
         <div className="settings-provider-list" role="radiogroup" aria-label="Proveedor predeterminado">
           {status.providers.map((option) => <button type="button" role="radio" aria-checked={provider === option.id} key={option.id} className={provider === option.id ? "selected" : ""} onClick={() => onProviderChange(option.id)}>
             <span><strong>{option.label}</strong><small>{option.protocol}</small></span><em className={option.configured ? "ready" : "offline"}>{option.configured ? "LISTO" : option.id === "ollama" ? "NO INICIADO" : "SIN CLAVE"}</em>

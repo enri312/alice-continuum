@@ -109,10 +109,10 @@ export function parseWorkingMemorySnapshot(value: unknown): WorkingMemorySnapsho
   const state = input.state as WorkingMemoryState;
   if (input.persisted !== false) fail("el contenido no puede declararse persistente");
   if (exchangeCount !== exchanges.length || messageCount !== exchanges.length * 2) fail("los conteos no corresponden a los intercambios");
-  if (messageCount > maximumMessages || maximumMessages !== 6) fail("el presupuesto debe limitarse a seis mensajes");
+  if (messageCount > maximumMessages || maximumMessages !== 12) fail("el presupuesto debe limitarse a doce mensajes");
   const exactCharacters = exchanges.reduce((total, exchange) => total + [...exchange.userText].length + [...exchange.assistantText].length, 0);
-  if (characterCount !== exactCharacters || characterCount > maximumCharacters || maximumCharacters !== 48_000) fail("el presupuesto de caracteres no coincide");
-  if (ttlSeconds !== 1_800 || (expiresInSeconds !== null && expiresInSeconds > ttlSeconds)) fail("el vencimiento excede 30 minutos");
+  if (characterCount !== exactCharacters || characterCount > maximumCharacters || maximumCharacters !== 72_000) fail("el presupuesto de caracteres no coincide");
+  if (ttlSeconds !== 7_200 || (expiresInSeconds !== null && expiresInSeconds > ttlSeconds)) fail("el vencimiento excede dos horas");
   if (state === "active" && (!exchanges.length || !lastActivityAt || expiresInSeconds === null)) fail("active requiere contenido y vencimiento");
   if (state !== "active" && (exchanges.length || expiresInSeconds !== null)) fail("empty/expired no puede exponer contenido activo");
   return {

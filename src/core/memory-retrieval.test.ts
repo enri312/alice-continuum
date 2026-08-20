@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { retrieveMemories } from "./memory-retrieval";
+import { buildRetrievalQuery, retrieveMemories } from "./memory-retrieval";
 
 const memories = [
   { id: "facultad", intention: "Horario de Programación", summary: "La clase de programación es el lunes por la noche.", nextStep: "Preparar el práctico." },
@@ -28,5 +28,19 @@ describe("recuperación local de memoria", () => {
 
   it("no devuelve recuerdos sin evidencia lexical", () => {
     expect(retrieveMemories("astronomía cuántica", memories)).toEqual([]);
+  });
+
+  it("amplía una pregunta de seguimiento con los dos últimos mensajes del propietario", () => {
+    const query = buildRetrievalQuery("¿Y cuándo es?", [
+      { role: "user", text: "Necesito recordar mi horario de programación" },
+      { role: "assistant", text: "Voy a revisar el contexto autorizado." },
+    ]);
+
+    expect(query).toContain("horario de programación");
+    expect(retrieveMemories(query, memories)[0].memory.id).toBe("facultad");
+  });
+
+  it("no activa recuperación sin un mensaje actual", () => {
+    expect(buildRetrievalQuery("   ", [{ role: "user", text: "horario de programación" }])).toBe("");
   });
 });

@@ -12,9 +12,9 @@ use tauri::{AppHandle, State};
 use uuid::Uuid;
 
 const WORKING_MEMORY_SCHEMA_VERSION: u8 = 1;
-const MAX_EXCHANGES: usize = 3;
-const MAX_CHARACTERS: usize = 48_000;
-const DEFAULT_TTL_MS: u64 = 30 * 60 * 1_000;
+const MAX_EXCHANGES: usize = 6;
+const MAX_CHARACTERS: usize = 72_000;
+const DEFAULT_TTL_MS: u64 = 2 * 60 * 60 * 1_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

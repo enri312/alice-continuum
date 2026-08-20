@@ -125,6 +125,7 @@ pub(crate) enum CapabilityEffect {
     AssetRender,
     CameraObserve,
     MicrophoneObserve,
+    ScreenObserve,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -246,16 +247,37 @@ fn sensory_capabilities(
             checked_at,
             &probe_summary,
         ),
-    ];
-    capabilities.extend([
-        (
+        capability(
             "perception.screen.observe",
             "Observar pantalla seleccionada",
-            "Representa una futura sesión de fotogramas efímeros elegida con el selector seguro de Windows.",
-            "observeSelectedScreen",
-            "screenPixels",
-            "Gateway R2 y selector Windows Graphics Capture",
+            "Analiza muestras efímeras de una pantalla elegida por el propietario y conserva sólo apuntes candidatos revisables.",
+            CapabilityDomain::Perception,
+            CapabilityKind::Observation,
+            CapabilityMaturity::Partial,
+            "WebView2 getDisplayMedia + Ollama local",
+            &["analyze_screen_frame"],
+            CapabilityState::Degraded,
+            CapabilityRisk::High,
+            &[CapabilityEffect::ScreenObserve, CapabilityEffect::LocalRead],
+            &["screenPixelsEphemeral", "visualNotesCandidate"],
+            &[
+                "Selección explícita del sistema operativo",
+                "Ollama local disponible",
+                "Revisión humana antes de memoria",
+            ],
+            permission(
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityPermissionEnforcer::OperatingSystem,
+                "Windows limita la sesión a la pantalla o ventana elegida; Alice expone Detener y no persiste capturas.",
+            ),
+            health(
+                CapabilityHealthStatus::Degraded,
+                "El backend visual y Qwen respondieron con imagen real; el selector WebView requiere una validación interactiva del propietario.",
+                Some(checked_at),
+            ),
         ),
+    ];
+    capabilities.extend([
         (
             "perception.media.inspect",
             "Inspeccionar reproductor multimedia",
@@ -1415,7 +1437,7 @@ mod tests {
     fn unavailable_probes() -> CapabilityProbeSnapshot {
         CapabilityProbeSnapshot {
             cloud: CloudCapabilityProbe {
-                provider_count: 7,
+                provider_count: 6,
                 configured_provider_count: 0,
             },
             observation: Ok(ObservationCapabilityProbe {
@@ -1750,7 +1772,7 @@ mod tests {
             .iter()
             .filter(|capability| capability.maturity == CapabilityMaturity::Planned)
             .collect::<Vec<_>>();
-        assert_eq!(planned.len(), 10);
+        assert_eq!(planned.len(), 9);
         assert!(planned.iter().all(|capability| {
             capability.state == CapabilityState::Unavailable
                 && capability.adapter == "none"
@@ -1759,7 +1781,6 @@ mod tests {
         }));
 
         for id in [
-            "perception.screen.observe",
             "perception.media.inspect",
             "perception.desktop.observe",
             "perception.face.landmarks",
@@ -1773,6 +1794,19 @@ mod tests {
                 CapabilityPermissionMode::SessionOptIn
             );
         }
+
+        let screen = registered(&snapshot, "perception.screen.observe");
+        assert_eq!(screen.maturity, CapabilityMaturity::Partial);
+        assert_eq!(screen.state, CapabilityState::Degraded);
+        assert_eq!(
+            screen.effects,
+            vec![CapabilityEffect::ScreenObserve, CapabilityEffect::LocalRead]
+        );
+        assert_eq!(
+            screen.permission.enforced_by,
+            CapabilityPermissionEnforcer::OperatingSystem
+        );
+        assert_eq!(screen.operations, vec!["analyze_screen_frame"]);
 
         let facial = registered(&snapshot, "perception.face.landmarks");
         assert_eq!(facial.operations, vec!["deriveAuthorizedFaceLandmarks"]);

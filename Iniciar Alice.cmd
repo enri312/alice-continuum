@@ -41,7 +41,7 @@ if not exist "node_modules" (
 )
 
 set "ALICE_ANY_AI="
-if defined OPENROUTER_API_KEY set "ALICE_ANY_AI=1"
+rem OpenRouter permanece pausado: conservar su clave no lo habilita en Alice.
 if defined OPENAI_API_KEY set "ALICE_ANY_AI=1"
 if defined ANTHROPIC_API_KEY set "ALICE_ANY_AI=1"
 if defined GEMINI_API_KEY set "ALICE_ANY_AI=1"

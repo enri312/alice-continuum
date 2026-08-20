@@ -13,6 +13,18 @@ export type MemoryMatch<T extends RetrievableMemory = RetrievableMemory> = {
   reason: string;
 };
 
+export type RetrievalHistoryMessage = { role: "user" | "assistant"; text: string };
+
+export function buildRetrievalQuery(currentMessage: string, recentHistory: RetrievalHistoryMessage[], priorUserMessages = 2) {
+  const current = currentMessage.trim();
+  if (!current) return "";
+  const prior = recentHistory
+    .filter((message) => message.role === "user" && message.text.trim())
+    .slice(-Math.max(0, priorUserMessages))
+    .map((message) => message.text.trim());
+  return [...prior, current].filter(Boolean).join("\n");
+}
+
 const stopwords = new Set([
   "a", "al", "algo", "como", "con", "cual", "cuando", "de", "del", "donde", "el", "ella", "en", "es", "esa", "ese", "esto", "fue", "ha", "hay", "la", "las", "lo", "los", "me", "mi", "mis", "para", "pero", "por", "que", "se", "sin", "sobre", "su", "sus", "te", "tu", "un", "una", "y", "ya",
 ]);

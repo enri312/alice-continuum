@@ -1,5 +1,7 @@
 # ADR-P-079 — Inferencia Ollama limitada a loopback
 
+> Nota 2026-08-20: ADR-P-080 amplía el contexto y la memoria de trabajo. Los límites operativos vigentes son 4096 tokens de contexto y 900 tokens máximos de salida.
+
 Fecha: 2026-08-20  
 Estado: Aceptada
 

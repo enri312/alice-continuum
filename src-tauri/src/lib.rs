@@ -20,6 +20,7 @@ mod sensory;
 // R4 conserva borradores locales verificables; ningún comando ejecuta pasos.
 mod skills;
 mod util;
+mod visual_learning;
 mod working_memory;
 
 use audit::{audit_snapshot, record_process_started};
@@ -54,6 +55,7 @@ use skills::{
     transition_skill_lifecycle, SkillDraftStore,
 };
 use tauri::Manager;
+use visual_learning::analyze_screen_frame;
 use working_memory::{clear_working_memory, working_memory_status, WorkingMemoryStore};
 
 pub fn run() {
@@ -140,7 +142,8 @@ pub fn run() {
             cloud_status,
             working_memory_status,
             clear_working_memory,
-            send_cloud_message
+            send_cloud_message,
+            analyze_screen_frame
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar Alice Cognitive Core");

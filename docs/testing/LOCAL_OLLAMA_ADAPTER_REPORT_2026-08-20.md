@@ -1,5 +1,7 @@
 # Informe — Adaptador local Ollama
 
+> Nota posterior: los valores iniciales de contexto y salida documentados aquí fueron ampliados por ADR-P-080 a 4096 y 900 tokens, respectivamente.
+
 Fecha: 2026-08-20
 
 ## Alcance

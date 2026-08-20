@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { retrieveMemories } from "../core/memory-retrieval";
+import { buildRetrievalQuery, retrieveMemories } from "../core/memory-retrieval";
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-payload";
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
 import type { WorkingMemorySnapshot } from "../core/working-memory";
@@ -75,8 +75,9 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [error, setError] = useState("");
   const reviewRef = useRef<HTMLDivElement>(null);
 
-  const recentHistory = messages.slice(-6);
-  const memoryMatches = useMemo(() => retrieveMemories(draft, memories, 3), [draft, memories]);
+  const recentHistory = messages.slice(-10);
+  const retrievalQuery = useMemo(() => buildRetrievalQuery(draft, recentHistory), [draft, recentHistory]);
+  const memoryMatches = useMemo(() => retrieveMemories(retrievalQuery, memories, 3), [memories, retrievalQuery]);
   const retrievedMemories = memoryMatches.map((match) => match.memory);
   const selectedProvider = status.providers.find((option) => option.id === provider) ?? status.providers[0];
   const localInference = selectedProvider?.id === "ollama";
@@ -85,6 +86,13 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   useEffect(() => {
     onMemoryRetrieval({ count: memoryMatches.length, top: memoryMatches[0]?.memory.intention ?? "" });
   }, [memoryMatches, onMemoryRetrieval]);
+
+  useEffect(() => {
+    const enableLocalContext = selectedProvider?.id === "ollama";
+    setIncludeHistory(enableLocalContext);
+    setIncludeMemory(enableLocalContext);
+    setReviewing(false);
+  }, [selectedProvider?.id]);
 
   useEffect(() => {
     if (observationEnabled) return;
@@ -117,7 +125,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setError("");
     setReviewRequest({
       message: draft.trim(),
-    payload: payloadReview.payload,
+      payload: payloadReview.payload,
       provider,
       model,
       historyCount: includeHistory ? recentHistory.length : 0,
@@ -167,19 +175,19 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       <aside className="cloud-control">
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
         <h3>{localInference ? "Qué puede procesar" : "Qué puede salir"}</h3>
-        <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>TODO DESMARCADO POR DEFECTO</span></div>
-        <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles</small></span></label>
-        <label className="context-toggle"><input type="checkbox" checked={includeMemory} disabled={!memoryMatches.length} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>Recuerdos relevantes</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
-        {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se enviarán mientras esta casilla siga desmarcada.</p>}
+        <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>{localInference ? "HISTORIAL + RAG ACTIVOS" : "TODO DESMARCADO POR DEFECTO"}</span></div>
+        <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles · máximo 10</small></span></label>
+        <label className="context-toggle"><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
+        {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se {localInference ? "procesarán" : "enviarán"} mientras esta casilla siga desmarcada.</p>}
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos relacionados. No se adjuntará memoria.</p>}</div>}
         <label className="context-toggle"><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? foregroundContext.processName : "sin contexto observado"}</small></span></label>
-        <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? "La ventana solo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
+        <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? localInference ? "La ventana sólo se procesará si marcas la casilla y autorizas la inferencia." : "La ventana sólo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
         {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Abrir Gateway para detener" : "Abrir Gateway para activar"}</button>}
         <p className="context-sensor-boundary">Cámara, micrófono, fotogramas y audio no son fuentes elegibles para este envío.</p>
         <div className="context-section-label local"><strong>ALMACENAMIENTO LOCAL</strong><span>NO SALE A LA NUBE</span></div>
         <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Aprendizaje episódico local</strong><small>Guarda el intercambio real como experiencia; no lo declara un hecho verificado</small></span></label>
         <div className="conversation-route"><strong>DESTINO ACTUAL · SOLO LECTURA</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
-        <div className="cloud-rule"><strong>{localInference ? "POLÍTICA DE INFERENCIA" : "POLÍTICA DE ENVÍO"}</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens de salida · sin herramientas · previsualización obligatoria</span></div>
+        <div className="cloud-rule"><strong>{localInference ? "POLÍTICA DE INFERENCIA" : "POLÍTICA DE ENVÍO"}</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · {localInference ? "contexto 4096 · máximo 900 tokens de salida" : "máximo 1200 tokens de salida"} · sin herramientas · previsualización obligatoria</span></div>
         <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
       </aside>
     </div>
