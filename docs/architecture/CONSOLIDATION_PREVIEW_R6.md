@@ -1,6 +1,6 @@
 # Vista previa de consolidación R6.3
 
-Versión: R6.3-E  
+Versión: R6.3-F  
 Estado: implementado y validado  
 Fecha: 2026-08-20
 
@@ -43,7 +43,7 @@ La respuesta es un plan cerrado de solo lectura. Incluye:
 - campos originales que difieren aunque el contenido normalizado coincida;
 - estado `missing` o `verified` del respaldo ligado a la fuente;
 - impacto `absent`, `inactive` o `activeRevisionWillBecomeStale` sobre R6.1;
-- indicadores explícitos de que ejecución y restauración no están disponibles.
+- indicadores explícitos de que la fusión no está disponible y la restauración sólo puede actuar sobre un recibo pendiente ya existente.
 
 El comando no crea el respaldo faltante, no escribe auditoría y no modifica ningún archivo. La interfaz invalida el plan al cambiar el superviviente o actualizar la fuente. No existe botón de fusión.
 
@@ -77,6 +77,25 @@ El recibo se escribe y relee mediante reemplazo atómico. Una recuperación nuev
 
 Si la auditoría de recuperación falla después de restaurar, el recibo permanece pendiente. Otro arranque puede reintentar la auditoría y cerrarlo. Una recuperación `restored` es idempotente y no vuelve a auditar.
 
+## Estado y restauración gobernada R6.3-F
+
+El plan de fusión v4 continúa declarando `executionAvailable: false`, pero reconoce que el comando de restauración existe como vía de seguridad independiente.
+
+`consolidation_recovery_status` es una consulta Tauri de sólo lectura. Devuelve un snapshot v1 cerrado con uno de cuatro estados:
+
+| Estado | Condición |
+|---|---|
+| `idle` | No existe ninguna transacción durable |
+| `recoveryRequired` | Hay un recibo `prepared` o `projected` y la fuente coincide con la huella original o proyectada |
+| `restored` | El recibo está cerrado y la fuente coincide con los bytes originales |
+| `blocked` | El recibo es inválido, falta la fuente o aparece una huella distinta de las dos autorizadas |
+
+El snapshot expone únicamente huellas, estado, nombre del respaldo y fechas. Declara `automaticRecovery: false`, `mergeExecutionAvailable: false`, `recordsModified: false` y `filesCreated: false`.
+
+`restore_consolidation_transaction` es el único comando nuevo con escritura. Requiere `confirmed: true`, ID de transacción y ambas huellas exactas obtenidas del snapshot vigente. La ruta de fuente y respaldo siempre se deriva internamente; el cliente no puede elegir archivos. Una auditoría R3 de solicitud debe persistirse antes de restaurar y la auditoría de éxito debe persistirse antes de cerrar el recibo. Después se releen fuente y recibo. Repetir una restauración cerrada no modifica ni vuelve a auditar.
+
+El comando no crea transacciones, no proyecta recuerdos y no fusiona registros. `prepare_interrupted_consolidation_at` continúa siendo una función interna accesible sólo por pruebas controladas.
+
 ## Límites y fronteras
 
 - máximo 1.000 registros por revisión;
@@ -97,6 +116,8 @@ Si la auditoría de recuperación falla después de restaurar, el recibo permane
 - R6.3-E exige recibo durable v1 y recuperación independiente de RAM;
 - un recibo sólo almacena IDs, huellas, estado, nombre de respaldo y fechas;
 - un recibo corrupto o una huella ajena bloquean sin reparar silenciosamente;
-- preparación y recuperación continúan desconectadas de IPC.
+- la preparación y la ejecución de fusión continúan desconectadas de IPC;
+- R6.3-F registra sólo la consulta de estado y la restauración de una transacción pendiente;
+- una restauración exige confirmación, huellas vigentes y auditoría R3 previa al cierre.
 
-La ejecución de la fusión permanece fuera de alcance hasta exponer primero un estado nativo de recuperación y un comando de restauración gobernado. El recibo aprobado no autoriza todavía una modificación canónica.
+La ejecución de la fusión permanece fuera de alcance. R6.3-F completa la vía de seguridad previa, pero no autoriza crear una transacción ni modificar la memoria canónica para fusionar recuerdos.

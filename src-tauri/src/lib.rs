@@ -30,9 +30,10 @@ use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
 use face_readiness::face_readiness_status;
 use memory::{
-    activate_layered_memory, consolidation_preview, export_memory, layered_memory_status,
-    load_memory, markdown_note_catalog, open_memory_directory, preview_consolidation_merge,
-    resolve_consolidation_candidate, restore_memory_backup, rollback_layered_memory, save_memory,
+    activate_layered_memory, consolidation_preview, consolidation_recovery_status, export_memory,
+    layered_memory_status, load_memory, markdown_note_catalog, open_memory_directory,
+    preview_consolidation_merge, resolve_consolidation_candidate,
+    restore_consolidation_transaction, restore_memory_backup, rollback_layered_memory, save_memory,
 };
 use observation::{get_foreground_context, spawn_observer_thread, ObservationStore};
 use owner_profile::owner_profile_status;
@@ -123,8 +124,10 @@ pub fn run() {
             owner_profile_status,
             layered_memory_status,
             consolidation_preview,
+            consolidation_recovery_status,
             preview_consolidation_merge,
             resolve_consolidation_candidate,
+            restore_consolidation_transaction,
             activate_layered_memory,
             rollback_layered_memory,
             save_memory,

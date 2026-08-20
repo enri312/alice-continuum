@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationResolutionResult } from "./memory-consolidation-preview";
+import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult } from "./memory-consolidation-preview";
 
 const sha = (letter: string) => `sha256:${letter.repeat(64)}`;
 function validSnapshot() {
@@ -29,7 +29,7 @@ function validSnapshot() {
 
 function validMergePreview() {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     sourceSha256: sha("a"),
     candidateId: sha("b"),
     candidateKind: "exactDuplicate",
@@ -60,11 +60,40 @@ function validMergePreview() {
     restartRecoveryRequired: true,
     executionAvailable: false,
     requiresFinalConfirmation: true,
-    restorationCommandAvailable: false,
+    restorationCommandAvailable: true,
     recordsModified: false,
     filesCreated: false,
     auditWritten: false,
     modelUsed: false,
+  };
+}
+
+function validRecoveryStatus() {
+  return {
+    schemaVersion: 1,
+    state: "recoveryRequired",
+    receiptPath: "E:\\data\\memory\\consolidation-merge-transactions-v1.json",
+    receiptFileExists: true,
+    transactionCount: 1,
+    receipt: {
+      transactionId: sha("1"),
+      candidateId: sha("2"),
+      sourceSha256: sha("3"),
+      projectedSourceSha256: sha("4"),
+      sourceBackupFile: `consolidation-source-${"3".repeat(64)}.json`,
+      state: "projected",
+      createdAt: "2026-08-20T20:00:00Z",
+      restoredAt: null,
+    },
+    sourceRelation: "projected",
+    currentSourceSha256: sha("4"),
+    blockedReason: null,
+    restorationAvailable: true,
+    restorationRequiresConfirmation: true,
+    automaticRecovery: false,
+    mergeExecutionAvailable: false,
+    recordsModified: false,
+    filesCreated: false,
   };
 }
 
@@ -129,6 +158,34 @@ describe("vista previa R6.3", () => {
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), recoverySteps: ["verifySource", "writeAudit"] })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), atomicReplaceRequired: false })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), restartRecoveryRequired: false })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), restorationCommandAvailable: false })).toThrow();
     expect(parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale", activeLayerRevisionId: sha("f"), activeLayerExecutionBlocked: true }).activeLayerRevisionId).toBe(sha("f"));
+  });
+
+  it("valida el estado nativo R6.3-F sin atribuir una fusión ejecutable", () => {
+    const pending = parseConsolidationRecoveryStatus(validRecoveryStatus());
+    expect(pending.state).toBe("recoveryRequired");
+    expect(pending.sourceRelation).toBe("projected");
+    expect(pending.restorationAvailable).toBe(true);
+    expect(pending.mergeExecutionAvailable).toBe(false);
+
+    const restoredStatus = {
+      ...validRecoveryStatus(),
+      state: "restored",
+      receipt: { ...validRecoveryStatus().receipt, state: "restored", restoredAt: "2026-08-20T20:05:00Z" },
+      sourceRelation: "original",
+      currentSourceSha256: sha("3"),
+      restorationAvailable: false,
+    };
+    expect(parseConsolidationRecoveryStatus(restoredStatus).state).toBe("restored");
+    expect(parseConsolidationRestorationResult({ schemaVersion: 1, transactionId: sha("1"), sourceSha256: sha("3"), sourceRestored: true, auditWritten: true, alreadyRestored: false, receiptState: "restored", status: restoredStatus }).status.restorationAvailable).toBe(false);
+  });
+
+  it("bloquea estados R6.3-F corruptos, divergentes o con efectos inventados", () => {
+    expect(() => parseConsolidationRecoveryStatus({ ...validRecoveryStatus(), currentSourceSha256: sha("5") })).toThrow();
+    expect(() => parseConsolidationRecoveryStatus({ ...validRecoveryStatus(), automaticRecovery: true })).toThrow();
+    expect(() => parseConsolidationRecoveryStatus({ ...validRecoveryStatus(), mergeExecutionAvailable: true })).toThrow();
+    expect(() => parseConsolidationRecoveryStatus({ ...validRecoveryStatus(), receipt: { ...validRecoveryStatus().receipt, sourceBackupFile: "..\\records.json" } })).toThrow();
+    expect(parseConsolidationRecoveryStatus({ ...validRecoveryStatus(), state: "blocked", sourceRelation: "diverged", currentSourceSha256: sha("5"), blockedReason: "Huella desconocida", restorationAvailable: false }).state).toBe("blocked");
   });
 });

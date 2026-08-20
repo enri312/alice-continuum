@@ -479,6 +479,18 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .merge-transaction-receipt span { color:#71869a; font:600 .45rem Consolas,monospace; }
 .merge-transaction-receipt code { overflow:hidden; color:#91a3b6; font-size:.48rem; text-overflow:ellipsis; white-space:nowrap; }
 .merge-transaction-receipt em { border:1px solid #92400e; padding:5px 7px; color:#fbbf24; font:800 .45rem Consolas,monospace; font-style:normal; white-space:nowrap; }
+.consolidation-recovery-status { display:grid; grid-template-columns:minmax(220px,1fr) minmax(220px,1.2fr) auto auto; align-items:center; gap:12px; margin:16px; border:1px solid #263b50; padding:12px; background:#071522; }
+.consolidation-recovery-status>div { display:grid; gap:4px; }
+.consolidation-recovery-status strong { color:#dbeafe; font:800 .58rem Consolas,monospace; }
+.consolidation-recovery-status span { color:#71869a; font:.54rem/1.45 Consolas,monospace; }
+.consolidation-recovery-status code { overflow:hidden; color:#526779; font-size:.48rem; text-overflow:ellipsis; white-space:nowrap; }
+.consolidation-recovery-status em { border:1px solid #334155; padding:6px 8px; color:#8295a8; font:800 .46rem Consolas,monospace; font-style:normal; white-space:nowrap; }
+.consolidation-recovery-status.state-recoveryRequired { border-color:#b45309; background:linear-gradient(90deg,rgba(180,83,9,.15),#071522 62%); }
+.consolidation-recovery-status.state-recoveryRequired strong,.consolidation-recovery-status.state-recoveryRequired em { color:#fbbf24; }
+.consolidation-recovery-status.state-restored { border-color:#0f766e; }
+.consolidation-recovery-status.state-restored strong { color:#5eead4; }
+.consolidation-recovery-status.state-blocked { border-color:#b91c1c; background:rgba(127,29,29,.12); }
+.consolidation-recovery-status.state-blocked strong { color:#fca5a5; }
 .merge-preview-plan>footer { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:10px !important; border-top:1px solid #3c3152; padding:8px 10px !important; }
 .merge-preview-plan>footer strong { color:#fbbf24; font:800 .52rem Consolas,monospace; white-space:nowrap; }
 .merge-preview-plan>footer span { color:#71869a; font:.52rem/1.4 Consolas,monospace; text-align:right; }
@@ -488,6 +500,7 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
   .merge-preview-plan dl { grid-template-columns:1fr 1fr; }
   .merge-recovery-chain ol { grid-template-columns:1fr 1fr; }
   .merge-transaction-receipt { grid-template-columns:1fr; }
+  .consolidation-recovery-status { grid-template-columns:1fr; }
   .merge-preview-plan>footer { align-items:flex-start !important; flex-direction:column; }
   .merge-preview-plan>footer span { text-align:left; }
 }

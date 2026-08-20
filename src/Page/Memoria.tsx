@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
-import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationResolutionResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStep } from "../core/memory-consolidation-preview";
+import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStatusSnapshot, type ConsolidationRecoveryStep } from "../core/memory-consolidation-preview";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
 import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../core/working-memory";
@@ -46,6 +46,7 @@ type MemoriaProps = {
   onReview: (id: string, outcome: ReviewOutcome) => void;
   onExport: () => Promise<string>;
   onRestore: () => Promise<number>;
+  onReloadMemory: () => Promise<number>;
   onOpenDirectory: () => Promise<string>;
   storageStatus: "browser" | "loading" | "native" | "error";
   storagePath: string;
@@ -95,7 +96,7 @@ const recoveryStepLabels: Record<ConsolidationRecoveryStep, string> = {
   verifyRestoredSource: "VERIFICAR RESTAURACIÓN",
 };
 
-export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
+export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath, observationEnabled }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
   const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "notes" || requestedView === "profile" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
   const [view, setView] = useState<MemoryView>(initialView);
@@ -116,6 +117,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   const [operationRunning, setOperationRunning] = useState(false);
   const [layeredMemory, setLayeredMemory] = useState<LayeredMemorySnapshot | null>(null);
   const [consolidationPreview, setConsolidationPreview] = useState<ConsolidationPreviewSnapshot | null>(null);
+  const [recoveryStatus, setRecoveryStatus] = useState<ConsolidationRecoveryStatusSnapshot | null>(null);
   const [mergeSelections, setMergeSelections] = useState<Record<string, string>>({});
   const [mergePreviews, setMergePreviews] = useState<Record<string, ConsolidationMergePreview>>({});
   const [markdownNotes, setMarkdownNotes] = useState<MarkdownNoteCatalog | null>(null);
@@ -144,7 +146,12 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     if (!isTauri()) return;
     setOperationRunning(true);
     try {
-      setConsolidationPreview(parseConsolidationPreview(await invoke<unknown>("consolidation_preview")));
+      const [preview, recovery] = await Promise.all([
+        invoke<unknown>("consolidation_preview"),
+        invoke<unknown>("consolidation_recovery_status"),
+      ]);
+      setConsolidationPreview(parseConsolidationPreview(preview));
+      setRecoveryStatus(parseConsolidationRecoveryStatus(recovery));
       setMergeSelections({});
       setMergePreviews({});
     }
@@ -188,8 +195,31 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     try {
       const plan = parseConsolidationMergePreview(await invoke<unknown>("preview_consolidation_merge", { input: { expectedSourceSha256: sourceSha256, candidateId: candidate.candidateId, expectedRecordIds: candidate.recordIds, survivorRecordId } }));
       setMergePreviews((current) => ({ ...current, [candidate.candidateId]: plan }));
-      setOperationMessage("Vista R6.3-E verificada. El recibo durable es obligatorio, pero no se ejecutó ni se creó ningún archivo.");
-    } catch (error) { setOperationMessage(`No se pudo planificar R6.3-E: ${String(error)}`); }
+      setOperationMessage("Vista R6.3-F verificada. La fusión sigue bloqueada; sólo una restauración de seguridad puede usar un recibo ya existente.");
+    } catch (error) { setOperationMessage(`No se pudo planificar R6.3-F: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function restoreInterruptedConsolidation() {
+    const receipt = recoveryStatus?.receipt;
+    if (!receipt || !recoveryStatus.restorationAvailable || receipt.state === "restored") return;
+    const confirmed = window.confirm(`Alice detectó una consolidación interrumpida.\n\nEstado del recibo: ${receipt.state}\nFuente actual: ${recoveryStatus.sourceRelation}\n\n¿Restaurar ahora el respaldo original verificado? No se ejecutará ninguna fusión.`);
+    if (!confirmed) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const result = parseConsolidationRestorationResult(await invoke<unknown>("restore_consolidation_transaction", { input: { transactionId: receipt.transactionId, expectedSourceSha256: receipt.sourceSha256, expectedProjectedSourceSha256: receipt.projectedSourceSha256, confirmed: true } }));
+      setRecoveryStatus(result.status);
+      try {
+        const recordCount = await onReloadMemory();
+        setConsolidationPreview(parseConsolidationPreview(await invoke<unknown>("consolidation_preview")));
+        setMergeSelections({});
+        setMergePreviews({});
+        setOperationMessage(`${result.alreadyRestored ? "La restauración ya estaba cerrada" : "Fuente original restaurada y auditada"}. ${recordCount} recuerdos recargados desde disco.`);
+      } catch (reloadError) {
+        setOperationMessage(`La fuente original quedó restaurada y auditada, pero la interfaz no pudo recargarla: ${String(reloadError)}`);
+      }
+    } catch (error) { setOperationMessage(`R6.3-F no restauró la transacción: ${String(error)}`); }
     finally { setOperationRunning(false); }
   }
 
@@ -342,7 +372,13 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       <footer>INTERVALOS EXPLICABLES · 1 · 3 · 7 · 14 · 30 · 60 · 120 DÍAS</footer>
     </section>}
     {view === "consolidate" && <section className={`consolidation-preview memory-view-panel state-${consolidationPreview?.state ?? "unavailable"}`} aria-labelledby="consolidation-preview-title">
-      <header><div><p className="eyebrow">R6.3-E · RECIBO DURABLE · SIN EJECUCIÓN</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados. Los duplicados exactos permiten revisar superviviente, impacto, recuperación y el recibo que permitiría continuar después de reiniciar Alice; la fusión sigue inaccesible.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
+      <header><div><p className="eyebrow">R6.3-F · ESTADO NATIVO · RESTAURACIÓN GOBERNADA</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados y consulta el recibo durable. Si Alice detecta una interrupción puede restaurar la fuente original con confirmación y auditoría; crear o ejecutar una fusión sigue inaccesible.</p></div><span>{recoveryStatus?.state === "recoveryRequired" ? "RECUPERACIÓN REQUERIDA" : recoveryStatus?.state === "blocked" ? "RECUPERACIÓN BLOQUEADA" : consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
+      {recoveryStatus ? <section className={`consolidation-recovery-status state-${recoveryStatus.state}`} aria-label="Estado nativo de recuperación R6.3-F">
+        <div><strong>{recoveryStatus.state === "idle" ? "SIN TRANSACCIONES PENDIENTES" : recoveryStatus.state === "recoveryRequired" ? "RESTAURACIÓN DE SEGURIDAD DISPONIBLE" : recoveryStatus.state === "restored" ? "ÚLTIMA TRANSACCIÓN RESTAURADA" : "RECUPERACIÓN BLOQUEADA"}</strong><span>{recoveryStatus.state === "idle" ? "No existe un recibo que requiera intervención." : recoveryStatus.state === "recoveryRequired" ? `RECIBO ${recoveryStatus.receipt?.state.toUpperCase()} · FUENTE ${recoveryStatus.sourceRelation?.toUpperCase()}` : recoveryStatus.state === "restored" ? "FUENTE ORIGINAL VERIFICADA · AUDITORÍA CERRADA" : recoveryStatus.blockedReason}</span></div>
+        {recoveryStatus.receipt && <code>{recoveryStatus.receipt.transactionId}</code>}
+        {recoveryStatus.restorationAvailable && <button className="danger" type="button" disabled={operationRunning} onClick={() => void restoreInterruptedConsolidation()}>Confirmar y restaurar original</button>}
+        {!recoveryStatus.mergeExecutionAvailable && <em>FUSIÓN NO DISPONIBLE</em>}
+      </section> : <section className="consolidation-recovery-status state-unavailable"><div><strong>ESTADO NATIVO NO DISPONIBLE</strong><span>Abre Alice como aplicación de escritorio; el navegador no fabrica recibos.</span></div><em>FUSIÓN NO DISPONIBLE</em></section>}
       {consolidationPreview?.blockedReason && <p className="consolidation-blocked" role="alert">{consolidationPreview.blockedReason}</p>}
       {consolidationPreview?.state === "ready" && <><div className="consolidation-summary"><article><strong>{consolidationPreview.recordCount}</strong><span>REGISTROS LEÍDOS</span><small>{consolidationPreview.eligibleRecordCount} elegibles · {consolidationPreview.archivedRecordCount} archivados</small></article><article><strong>{consolidationPreview.pendingCandidateCount}</strong><span>DECISIONES PENDIENTES</span><small>{consolidationPreview.candidateCount} pares detectados</small></article><article><strong>{consolidationPreview.exactDuplicateCount}</strong><span>DUPLICADOS EXACTOS</span><small>Mismo contenido normalizado</small></article><article><strong>{consolidationPreview.reviewRequiredCount}</strong><span>REVISIÓN REQUERIDA</span><small>Mismo tema, contenido diferente</small></article><article><strong>{consolidationPreview.keptSeparateCount}</strong><span>MANTENER SEPARADOS</span><small>Decisiones humanas registradas</small></article></div>
         {consolidationPreview.candidates.length ? <div className="consolidation-candidates">{consolidationPreview.candidates.map((candidate) => {
@@ -374,7 +410,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
               </div>}
             </footer>
             {mergePlan && <section className="merge-preview-plan" aria-label="Plan de fusión sin ejecución">
-              <header><div><strong>PLAN R6.3-E VERIFICADO</strong><span>SOLO LECTURA · NO EJECUTABLE</span></div><code>{mergePlan.projectedSourceSha256}</code></header>
+              <header><div><strong>PLAN R6.3-F VERIFICADO</strong><span>SOLO LECTURA · NO EJECUTABLE</span></div><code>{mergePlan.projectedSourceSha256}</code></header>
               <dl>
                 <div><dt>SUPERVIVIENTE</dt><dd>{mergePlan.survivorRecordId}</dd></div>
                 <div><dt>SE RETIRARÍA</dt><dd>{mergePlan.duplicateRecordId}</dd></div>
@@ -385,7 +421,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
               </dl>
               <p><strong>DIFERENCIAS ORIGINALES</strong>{mergePlan.differingFields.length ? mergePlan.differingFields.map((field) => mergeDifferenceLabels[field]).join(" · ") : "Ninguna; ambos registros también coinciden sin normalización."}</p>
               <div className="merge-recovery-chain"><strong>PROTOCOLO R6.3-D · {mergePlan.recoverySteps.length} PASOS</strong><ol>{mergePlan.recoverySteps.map((step, index) => <li key={step}><span>{String(index + 1).padStart(2, "0")}</span>{recoveryStepLabels[step]}</li>)}</ol></div>
-              <div className="merge-transaction-receipt"><div><strong>RECIBO R6.3-E · V{mergePlan.transactionReceiptVersion}</strong><span>RECUPERACIÓN TRAS REINICIO OBLIGATORIA</span></div><code>{mergePlan.transactionReceiptFile}</code><em>COMANDO AÚN DESCONECTADO</em></div>
+              <div className="merge-transaction-receipt"><div><strong>RECIBO R6.3-E · V{mergePlan.transactionReceiptVersion}</strong><span>RECUPERACIÓN TRAS REINICIO OBLIGATORIA</span></div><code>{mergePlan.transactionReceiptFile}</code><em>{mergePlan.restorationCommandAvailable ? "RESTAURACIÓN R6.3-F DISPONIBLE SÓLO CON RECIBO" : "RESTAURACIÓN DESCONECTADA"}</em></div>
               <footer><strong>FUSIÓN NO DISPONIBLE</strong><span>{mergePlan.activeLayerExecutionBlocked ? "La proyección R6.1 activa debe cerrarse antes de cualquier ensayo." : "El protocolo exige respaldo byte a byte, reemplazo atómico, auditoría y restauración verificada."} Esta vista no modificó archivos.</span></footer>
             </section>}
           </article>;

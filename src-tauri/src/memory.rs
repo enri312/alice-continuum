@@ -109,8 +109,9 @@ const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
-const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 3;
+const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 4;
 const CONSOLIDATION_TRANSACTION_SCHEMA_VERSION: u8 = 1;
+const CONSOLIDATION_RECOVERY_STATUS_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
 const CONSOLIDATION_TRANSACTION_FILE: &str = "consolidation-merge-transactions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
@@ -372,7 +373,7 @@ pub(crate) enum ConsolidationRecoveryStep {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-enum ConsolidationTransactionState {
+pub(crate) enum ConsolidationTransactionState {
     Prepared,
     Projected,
     Restored,
@@ -463,6 +464,79 @@ struct ConsolidationTransactionReceipt {
 struct ConsolidationTransactionDocument {
     schema_version: u8,
     transactions: Vec<ConsolidationTransactionReceipt>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationRecoveryStatusState {
+    Idle,
+    RecoveryRequired,
+    Restored,
+    Blocked,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ConsolidationSourceRelation {
+    Original,
+    Projected,
+    Diverged,
+    Missing,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationRecoveryReceiptView {
+    transaction_id: String,
+    candidate_id: String,
+    source_sha256: String,
+    projected_source_sha256: String,
+    source_backup_file: String,
+    state: ConsolidationTransactionState,
+    created_at: String,
+    restored_at: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationRecoveryStatusSnapshot {
+    schema_version: u8,
+    state: ConsolidationRecoveryStatusState,
+    receipt_path: String,
+    receipt_file_exists: bool,
+    transaction_count: usize,
+    receipt: Option<ConsolidationRecoveryReceiptView>,
+    source_relation: Option<ConsolidationSourceRelation>,
+    current_source_sha256: Option<String>,
+    blocked_reason: Option<String>,
+    restoration_available: bool,
+    restoration_requires_confirmation: bool,
+    automatic_recovery: bool,
+    merge_execution_available: bool,
+    records_modified: bool,
+    files_created: bool,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct RestoreConsolidationTransactionInput {
+    transaction_id: String,
+    expected_source_sha256: String,
+    expected_projected_source_sha256: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConsolidationRestorationResult {
+    schema_version: u8,
+    transaction_id: String,
+    source_sha256: String,
+    source_restored: bool,
+    audit_written: bool,
+    already_restored: bool,
+    receipt_state: ConsolidationTransactionState,
+    status: ConsolidationRecoveryStatusSnapshot,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -1133,7 +1207,7 @@ fn preview_consolidation_merge_at(
         restart_recovery_required: true,
         execution_available: false,
         requires_final_confirmation: true,
-        restoration_command_available: false,
+        restoration_command_available: true,
         records_modified: false,
         files_created: false,
         audit_written: false,
@@ -1419,6 +1493,142 @@ fn read_consolidation_transactions_at(
     Ok(document)
 }
 
+fn consolidation_recovery_receipt_view(
+    receipt: &ConsolidationTransactionReceipt,
+) -> ConsolidationRecoveryReceiptView {
+    ConsolidationRecoveryReceiptView {
+        transaction_id: receipt.transaction_id.clone(),
+        candidate_id: receipt.candidate_id.clone(),
+        source_sha256: receipt.source_sha256.clone(),
+        projected_source_sha256: receipt.projected_source_sha256.clone(),
+        source_backup_file: receipt.source_backup_file.clone(),
+        state: receipt.state,
+        created_at: receipt.created_at.clone(),
+        restored_at: receipt.restored_at.clone(),
+    }
+}
+
+fn consolidation_recovery_status_at(data_root: &Path) -> ConsolidationRecoveryStatusSnapshot {
+    let receipt_path = consolidation_transaction_path(data_root);
+    let receipt_file_exists = receipt_path.is_file();
+    let base = |state,
+                transaction_count,
+                receipt,
+                source_relation,
+                current_source_sha256,
+                blocked_reason,
+                restoration_available| ConsolidationRecoveryStatusSnapshot {
+        schema_version: CONSOLIDATION_RECOVERY_STATUS_SCHEMA_VERSION,
+        state,
+        receipt_path: receipt_path.display().to_string(),
+        receipt_file_exists,
+        transaction_count,
+        receipt,
+        source_relation,
+        current_source_sha256,
+        blocked_reason,
+        restoration_available,
+        restoration_requires_confirmation: true,
+        automatic_recovery: false,
+        merge_execution_available: false,
+        records_modified: false,
+        files_created: false,
+    };
+    let document = match read_consolidation_transactions_at(data_root) {
+        Ok(document) => document,
+        Err(error) => {
+            return base(
+                ConsolidationRecoveryStatusState::Blocked,
+                0,
+                None,
+                None,
+                None,
+                Some(error),
+                false,
+            )
+        }
+    };
+    let transaction_count = document.transactions.len();
+    let selected = document
+        .transactions
+        .iter()
+        .find(|receipt| receipt.state != ConsolidationTransactionState::Restored)
+        .or_else(|| document.transactions.last());
+    let Some(receipt) = selected else {
+        return base(
+            ConsolidationRecoveryStatusState::Idle,
+            transaction_count,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+    };
+    let source_path = data_root.join("memory").join("records.json");
+    let current_source_sha256 = match fs::read_to_string(&source_path) {
+        Ok(content) => Some(memory_subject_digest(&content)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => {
+            return base(
+                ConsolidationRecoveryStatusState::Blocked,
+                transaction_count,
+                Some(consolidation_recovery_receipt_view(receipt)),
+                None,
+                None,
+                Some(format!(
+                    "No se pudo leer records.json para determinar la recuperación R6.3-F: {error}"
+                )),
+                false,
+            )
+        }
+    };
+    let source_relation = match current_source_sha256.as_deref() {
+        Some(sha256) if sha256 == receipt.source_sha256 => ConsolidationSourceRelation::Original,
+        Some(sha256) if sha256 == receipt.projected_source_sha256 => {
+            ConsolidationSourceRelation::Projected
+        }
+        Some(_) => ConsolidationSourceRelation::Diverged,
+        None => ConsolidationSourceRelation::Missing,
+    };
+    let receipt_view = Some(consolidation_recovery_receipt_view(receipt));
+    match (receipt.state, source_relation) {
+        (ConsolidationTransactionState::Restored, ConsolidationSourceRelation::Original) => base(
+            ConsolidationRecoveryStatusState::Restored,
+            transaction_count,
+            receipt_view,
+            Some(source_relation),
+            current_source_sha256,
+            None,
+            false,
+        ),
+        (
+            ConsolidationTransactionState::Prepared | ConsolidationTransactionState::Projected,
+            ConsolidationSourceRelation::Original | ConsolidationSourceRelation::Projected,
+        ) => base(
+            ConsolidationRecoveryStatusState::RecoveryRequired,
+            transaction_count,
+            receipt_view,
+            Some(source_relation),
+            current_source_sha256,
+            None,
+            true,
+        ),
+        _ => base(
+            ConsolidationRecoveryStatusState::Blocked,
+            transaction_count,
+            receipt_view,
+            Some(source_relation),
+            current_source_sha256,
+            Some(
+                "records.json no coincide con el estado durable del recibo R6.3-F; no se modificó la fuente"
+                    .into(),
+            ),
+            false,
+        ),
+    }
+}
+
 fn write_consolidation_transactions_at(
     data_root: &Path,
     document: &ConsolidationTransactionDocument,
@@ -1534,16 +1744,21 @@ fn prepare_interrupted_consolidation_at(
     Ok(transaction_id)
 }
 
-// Recupera sólo desde disco y continúa inaccesible desde IPC.
+// Primitiva de disco: R6.3-F sólo la expone a través del wrapper gobernado.
 #[allow(dead_code)]
 fn recover_interrupted_consolidation_at(
     data_root: &Path,
     transaction_id: &str,
+    expected_source_sha256: &str,
+    expected_projected_source_sha256: &str,
     restored_at: String,
     audit: impl FnOnce(&ConsolidationTransactionReceipt) -> Result<(), String>,
 ) -> Result<ConsolidationRestartRecoveryResult, String> {
-    if !is_sha256(transaction_id) {
-        return Err("El ID de recuperación R6.3-E no es SHA-256".into());
+    if !is_sha256(transaction_id)
+        || !is_sha256(expected_source_sha256)
+        || !is_sha256(expected_projected_source_sha256)
+    {
+        return Err("La recuperación R6.3-F contiene una huella inválida".into());
     }
     validate_timestamp("restoredAt", &restored_at)?;
     let mut document = read_consolidation_transactions_at(data_root)?;
@@ -1553,6 +1768,14 @@ fn recover_interrupted_consolidation_at(
         .position(|receipt| receipt.transaction_id == transaction_id)
         .ok_or("La transacción R6.3-E no existe")?;
     let receipt = document.transactions[receipt_index].clone();
+    if receipt.source_sha256 != expected_source_sha256
+        || receipt.projected_source_sha256 != expected_projected_source_sha256
+    {
+        return Err(
+            "El recibo R6.3-F cambió después de la revisión; actualizá el estado antes de restaurar"
+                .into(),
+        );
+    }
     let source_path = data_root.join("memory").join("records.json");
     let current = fs::read_to_string(&source_path)
         .map_err(|error| format!("No se pudo leer records.json al recuperar R6.3-E: {error}"))?;
@@ -1597,6 +1820,125 @@ fn recover_interrupted_consolidation_at(
         source_restored: true,
         audit_written: true,
         receipt_state: ConsolidationTransactionState::Restored,
+    })
+}
+
+fn restore_consolidation_transaction_at(
+    data_root: &Path,
+    input: RestoreConsolidationTransactionInput,
+    restored_at: String,
+    mut audit: impl FnMut(AuditStage, AuditOutcome, Option<u64>, &str) -> Result<(), String>,
+) -> Result<ConsolidationRestorationResult, String> {
+    if !input.confirmed {
+        return Err("La restauración R6.3-F requiere confirmación explícita".into());
+    }
+    if !is_sha256(&input.transaction_id)
+        || !is_sha256(&input.expected_source_sha256)
+        || !is_sha256(&input.expected_projected_source_sha256)
+    {
+        return Err("La restauración R6.3-F contiene una huella inválida".into());
+    }
+    validate_timestamp("restoredAt", &restored_at)?;
+    let document = read_consolidation_transactions_at(data_root)?;
+    let receipt = document
+        .transactions
+        .iter()
+        .find(|receipt| receipt.transaction_id == input.transaction_id)
+        .ok_or("La transacción R6.3-F ya no existe")?;
+    if receipt.source_sha256 != input.expected_source_sha256
+        || receipt.projected_source_sha256 != input.expected_projected_source_sha256
+    {
+        return Err(
+            "El recibo R6.3-F cambió después de la revisión; actualizá antes de restaurar".into(),
+        );
+    }
+    let before = consolidation_recovery_status_at(data_root);
+    if before
+        .receipt
+        .as_ref()
+        .map(|view| view.transaction_id.as_str())
+        != Some(input.transaction_id.as_str())
+    {
+        return Err("El estado R6.3-F ya no corresponde a la transacción revisada".into());
+    }
+    if receipt.state == ConsolidationTransactionState::Restored {
+        if before.state != ConsolidationRecoveryStatusState::Restored {
+            return Err(before
+                .blocked_reason
+                .unwrap_or_else(|| "La restauración cerrada no coincide con records.json".into()));
+        }
+        return Ok(ConsolidationRestorationResult {
+            schema_version: CONSOLIDATION_RECOVERY_STATUS_SCHEMA_VERSION,
+            transaction_id: receipt.transaction_id.clone(),
+            source_sha256: receipt.source_sha256.clone(),
+            source_restored: true,
+            audit_written: true,
+            already_restored: true,
+            receipt_state: ConsolidationTransactionState::Restored,
+            status: before,
+        });
+    }
+    if before.state != ConsolidationRecoveryStatusState::RecoveryRequired
+        || !before.restoration_available
+    {
+        return Err(before
+            .blocked_reason
+            .unwrap_or_else(|| "La restauración R6.3-F no está disponible".into()));
+    }
+
+    audit(
+        AuditStage::Request,
+        AuditOutcome::Pending,
+        None,
+        "MEMORY_CONSOLIDATION_RESTORE_ACCEPTED",
+    )?;
+    let started = Instant::now();
+    let recovery = recover_interrupted_consolidation_at(
+        data_root,
+        &input.transaction_id,
+        &input.expected_source_sha256,
+        &input.expected_projected_source_sha256,
+        restored_at,
+        |_| {
+            audit(
+                AuditStage::Execution,
+                AuditOutcome::Success,
+                Some(elapsed_ms(started)),
+                "MEMORY_CONSOLIDATION_RESTART_RESTORED",
+            )
+        },
+    );
+    let recovery = match recovery {
+        Ok(recovery) => recovery,
+        Err(error) => {
+            if let Err(audit_error) = audit(
+                AuditStage::Error,
+                AuditOutcome::Error,
+                Some(elapsed_ms(started)),
+                "MEMORY_CONSOLIDATION_RESTORE_FAILED",
+            ) {
+                return Err(format!(
+                    "{error}; además no se pudo auditar el fallo R6.3-F: {audit_error}"
+                ));
+            }
+            return Err(error);
+        }
+    };
+    let status = consolidation_recovery_status_at(data_root);
+    if status.state != ConsolidationRecoveryStatusState::Restored
+        || status.current_source_sha256.as_deref() != Some(recovery.source_sha256.as_str())
+    {
+        return Err("R6.3-F restauró la fuente, pero el estado final no pudo verificarse".into());
+    }
+    Ok(ConsolidationRestorationResult {
+        schema_version: CONSOLIDATION_RECOVERY_STATUS_SCHEMA_VERSION,
+        transaction_id: recovery.transaction_id,
+        source_sha256: recovery.source_sha256,
+        source_restored: recovery.source_restored,
+        audit_written: recovery.audit_written,
+        already_restored: false,
+        receipt_state: recovery.receipt_state,
+        status,
     })
 }
 
@@ -2333,6 +2675,44 @@ pub(crate) fn consolidation_preview(
     app: AppHandle,
 ) -> Result<ConsolidationPreviewSnapshot, String> {
     Ok(consolidation_preview_at(&alice_data_root_path(&app)?))
+}
+
+#[tauri::command]
+pub(crate) fn consolidation_recovery_status(
+    app: AppHandle,
+) -> Result<ConsolidationRecoveryStatusSnapshot, String> {
+    Ok(consolidation_recovery_status_at(&alice_data_root_path(
+        &app,
+    )?))
+}
+
+#[tauri::command]
+pub(crate) fn restore_consolidation_transaction(
+    app: AppHandle,
+    input: RestoreConsolidationTransactionInput,
+) -> Result<ConsolidationRestorationResult, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let operation_id = new_operation_id();
+    let subject_digest = input.transaction_id.clone();
+    restore_consolidation_transaction_at(
+        &data_root,
+        input,
+        current_utc_timestamp()?,
+        |stage, outcome, duration_ms, reason_code| {
+            record_producer_audit(
+                &app,
+                operation_id.clone(),
+                AuditSource::Memory,
+                "memory.records.restore".into(),
+                "restore_consolidation_transaction".into(),
+                stage,
+                outcome,
+                duration_ms,
+                Some(subject_digest.clone()),
+                reason_code,
+            )
+        },
+    )
 }
 
 #[tauri::command]
@@ -3167,7 +3547,7 @@ mod tests {
         )
         .expect("read-only merge preview");
 
-        assert_eq!(plan.schema_version, 3);
+        assert_eq!(plan.schema_version, 4);
         assert_eq!(
             plan.candidate_kind,
             ConsolidationCandidateKind::ExactDuplicate
@@ -3209,7 +3589,7 @@ mod tests {
         assert!(plan.restart_recovery_required);
         assert!(!plan.execution_available);
         assert!(plan.requires_final_confirmation);
-        assert!(!plan.restoration_command_available);
+        assert!(plan.restoration_command_available);
         assert!(!plan.records_modified);
         assert!(!plan.files_created);
         assert!(!plan.audit_written);
@@ -3436,8 +3816,9 @@ mod tests {
         .expect("prepare physical interrupted transaction");
 
         let projected = fs::read_to_string(&source_path).unwrap();
+        let projected_sha256 = memory_subject_digest(&projected);
         assert_ne!(projected, original);
-        assert_ne!(memory_subject_digest(&projected), source_sha256);
+        assert_ne!(projected_sha256, source_sha256);
         let prepared_document = read_consolidation_transactions_at(&root).unwrap();
         assert_eq!(prepared_document.transactions.len(), 1);
         assert_eq!(
@@ -3452,6 +3833,8 @@ mod tests {
         let failed_audit = recover_interrupted_consolidation_at(
             &root,
             &transaction_id,
+            &source_sha256,
+            &projected_sha256,
             "2026-08-20T18:05:00Z".into(),
             |_| Err("auditoría temporalmente inaccesible".into()),
         )
@@ -3470,6 +3853,8 @@ mod tests {
         let recovered = recover_interrupted_consolidation_at(
             &root,
             &transaction_id,
+            &source_sha256,
+            &projected_sha256,
             "2026-08-20T18:10:00Z".into(),
             |receipt| {
                 let event = AuditEvent::producer(
@@ -3509,6 +3894,8 @@ mod tests {
         let idempotent = recover_interrupted_consolidation_at(
             &root,
             &transaction_id,
+            &source_sha256,
+            &projected_sha256,
             "2026-08-20T18:15:00Z".into(),
             |_| panic!("an already restored receipt must not audit again"),
         )
@@ -3524,6 +3911,8 @@ mod tests {
         assert!(recover_interrupted_consolidation_at(
             &root,
             &transaction_id,
+            &source_sha256,
+            &projected_sha256,
             "2026-08-20T18:20:00Z".into(),
             |_| Ok(()),
         )
@@ -3531,6 +3920,172 @@ mod tests {
         assert_eq!(fs::read(&source_path).unwrap(), before_corruption_probe);
 
         fs::remove_dir_all(root).expect("remove R6.3-E fixture");
+    }
+
+    #[test]
+    fn r6_3_f_exposes_native_status_and_governed_restore_without_merge_command() {
+        let root = temporary_probe_root("r6-3-f-governed-restoration");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "governed-a",
+                "kind": "Enseñanza",
+                "intention": "Restauración gobernada",
+                "startedAt": "2026-08-20T19:00:00Z",
+                "finishedAt": "2026-08-20T19:01:00Z",
+                "summary": "La restauración requiere recibo y confirmación.",
+                "nextStep": "Verificar estado",
+                "memoryType": "semantic",
+                "source": "Carlos"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "governed-b",
+                "kind": "Enseñanza",
+                "intention": "RESTAURACIÓN GOBERNADA!",
+                "startedAt": "2026-08-20T19:30:00Z",
+                "finishedAt": "2026-08-20T19:31:00Z",
+                "summary": "La restauración requiere recibo y confirmación",
+                "nextStep": "verificar estado",
+                "memoryType": "semantic",
+                "source": "Ensayo controlado"
+            }))
+            .unwrap(),
+        ];
+        let original = write_layered_fixture(&root, &records);
+        let source_path = root.join("memory").join("records.json");
+        let original_bytes = fs::read(&source_path).unwrap();
+        let preview = consolidation_preview_at(&root);
+        let source_sha256 = preview.source_sha256.unwrap();
+        let candidate = preview
+            .candidates
+            .into_iter()
+            .find(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
+            .unwrap();
+        let transaction_id = prepare_interrupted_consolidation_at(
+            &root,
+            PreviewConsolidationMergeInput {
+                expected_source_sha256: source_sha256.clone(),
+                candidate_id: candidate.candidate_id,
+                expected_record_ids: candidate.record_ids,
+                survivor_record_id: "governed-a".into(),
+            },
+            "2026-08-20T20:00:00Z".into(),
+        )
+        .expect("prepare governed recovery fixture");
+        let projected_bytes = fs::read(&source_path).unwrap();
+        let projected_sha256 =
+            memory_subject_digest(std::str::from_utf8(&projected_bytes).unwrap());
+
+        let pending = consolidation_recovery_status_at(&root);
+        assert_eq!(pending.schema_version, 1);
+        assert_eq!(
+            pending.state,
+            ConsolidationRecoveryStatusState::RecoveryRequired
+        );
+        assert!(pending.receipt_file_exists);
+        assert_eq!(pending.transaction_count, 1);
+        assert_eq!(
+            pending
+                .receipt
+                .as_ref()
+                .map(|receipt| receipt.transaction_id.as_str()),
+            Some(transaction_id.as_str())
+        );
+        assert_eq!(
+            pending.source_relation,
+            Some(ConsolidationSourceRelation::Projected)
+        );
+        assert_eq!(
+            pending.current_source_sha256.as_deref(),
+            Some(projected_sha256.as_str())
+        );
+        assert!(pending.restoration_available);
+        assert!(pending.restoration_requires_confirmation);
+        assert!(!pending.automatic_recovery);
+        assert!(!pending.merge_execution_available);
+        assert!(!pending.records_modified);
+        assert!(!pending.files_created);
+
+        let input = RestoreConsolidationTransactionInput {
+            transaction_id: transaction_id.clone(),
+            expected_source_sha256: source_sha256.clone(),
+            expected_projected_source_sha256: projected_sha256.clone(),
+            confirmed: true,
+        };
+        let stale = restore_consolidation_transaction_at(
+            &root,
+            RestoreConsolidationTransactionInput {
+                expected_projected_source_sha256: memory_subject_digest("stale"),
+                ..input.clone()
+            },
+            "2026-08-20T20:03:00Z".into(),
+            |_, _, _, _| panic!("stale input must fail before audit"),
+        );
+        assert!(stale.is_err());
+        assert_eq!(fs::read(&source_path).unwrap(), projected_bytes);
+
+        let request_audit_failure = restore_consolidation_transaction_at(
+            &root,
+            input.clone(),
+            "2026-08-20T20:04:00Z".into(),
+            |stage, _, _, _| {
+                assert_eq!(stage, AuditStage::Request);
+                Err("auditoría R3 indisponible".into())
+            },
+        )
+        .unwrap_err();
+        assert!(request_audit_failure.contains("auditoría R3 indisponible"));
+        assert_eq!(fs::read(&source_path).unwrap(), projected_bytes);
+
+        let mut audit_events = Vec::new();
+        let restored = restore_consolidation_transaction_at(
+            &root,
+            input.clone(),
+            "2026-08-20T20:05:00Z".into(),
+            |stage, outcome, _, reason| {
+                audit_events.push((stage, outcome, reason.to_string()));
+                Ok(())
+            },
+        )
+        .expect("governed restore from native status");
+        assert_eq!(audit_events.len(), 2);
+        assert_eq!(audit_events[0].0, AuditStage::Request);
+        assert_eq!(audit_events[0].1, AuditOutcome::Pending);
+        assert_eq!(audit_events[1].0, AuditStage::Execution);
+        assert_eq!(audit_events[1].1, AuditOutcome::Success);
+        assert!(restored.source_restored);
+        assert!(restored.audit_written);
+        assert!(!restored.already_restored);
+        assert_eq!(
+            restored.receipt_state,
+            ConsolidationTransactionState::Restored
+        );
+        assert_eq!(
+            restored.status.state,
+            ConsolidationRecoveryStatusState::Restored
+        );
+        assert!(!restored.status.restoration_available);
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+        assert_eq!(fs::read_to_string(&source_path).unwrap(), original);
+
+        let idempotent = restore_consolidation_transaction_at(
+            &root,
+            input,
+            "2026-08-20T20:06:00Z".into(),
+            |_, _, _, _| panic!("closed restoration must not audit twice"),
+        )
+        .expect("idempotent governed restoration");
+        assert!(idempotent.already_restored);
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+
+        fs::write(consolidation_transaction_path(&root), b"{}").unwrap();
+        let blocked = consolidation_recovery_status_at(&root);
+        assert_eq!(blocked.state, ConsolidationRecoveryStatusState::Blocked);
+        assert!(!blocked.restoration_available);
+        assert!(blocked.blocked_reason.is_some());
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+
+        fs::remove_dir_all(root).expect("remove R6.3-F fixture");
     }
 
     #[test]
@@ -3810,6 +4365,31 @@ mod tests {
             snapshot.eligible_record_count,
             snapshot.exact_duplicate_count,
             snapshot.review_required_count,
+            before.len()
+        );
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_r6_3_f_recovery_status_is_read_only() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR requerido");
+        let before = file_hashes(&root);
+        let status = consolidation_recovery_status_at(&root);
+        let after = file_hashes(&root);
+
+        assert_eq!(after, before);
+        assert!(!status.automatic_recovery);
+        assert!(!status.merge_execution_available);
+        assert!(!status.records_modified);
+        assert!(!status.files_created);
+        eprintln!(
+            "R6_3F_CANONICAL state={:?} transactions={} receiptExists={} restorationAvailable={} filesIntact={}",
+            status.state,
+            status.transaction_count,
+            status.receipt_file_exists,
+            status.restoration_available,
             before.len()
         );
     }

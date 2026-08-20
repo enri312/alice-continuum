@@ -717,7 +717,11 @@ fn memory_capabilities(
             CapabilityKind::Mutation,
             CapabilityMaturity::Implemented,
             "memory",
-            &["restore_memory_backup", "rollback_layered_memory"],
+            &[
+                "restore_memory_backup",
+                "rollback_layered_memory",
+                "restore_consolidation_transaction",
+            ],
             restore_state,
             CapabilityRisk::High,
             &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
@@ -1853,6 +1857,14 @@ mod tests {
                 .permission
                 .enforced_by,
             CapabilityPermissionEnforcer::Native
+        );
+        assert_eq!(
+            registered(&snapshot, "memory.records.restore").operations,
+            vec![
+                "restore_memory_backup",
+                "rollback_layered_memory",
+                "restore_consolidation_transaction"
+            ]
         );
         assert_eq!(
             observation.health.checked_at.as_deref(),

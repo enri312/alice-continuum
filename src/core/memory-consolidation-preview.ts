@@ -57,9 +57,52 @@ export type ConsolidationMergeDifferenceField = "kind" | "intention" | "startedA
 export type ConsolidationMergeBackupStatus = "missing" | "verified";
 export type ConsolidationMergeLayerImpact = "absent" | "inactive" | "activeRevisionWillBecomeStale";
 export type ConsolidationRecoveryStep = "verifySource" | "createOrVerifyBackup" | "prepareProjectedSource" | "atomicReplace" | "verifyProjectedSource" | "writeAudit" | "restoreBackupOnFailure" | "verifyRestoredSource";
+export type ConsolidationTransactionState = "prepared" | "projected" | "restored";
+export type ConsolidationRecoveryStatusState = "idle" | "recoveryRequired" | "restored" | "blocked";
+export type ConsolidationSourceRelation = "original" | "projected" | "diverged" | "missing";
+
+export type ConsolidationRecoveryReceipt = {
+  transactionId: string;
+  candidateId: string;
+  sourceSha256: string;
+  projectedSourceSha256: string;
+  sourceBackupFile: string;
+  state: ConsolidationTransactionState;
+  createdAt: string;
+  restoredAt: string | null;
+};
+
+export type ConsolidationRecoveryStatusSnapshot = {
+  schemaVersion: 1;
+  state: ConsolidationRecoveryStatusState;
+  receiptPath: string;
+  receiptFileExists: boolean;
+  transactionCount: number;
+  receipt: ConsolidationRecoveryReceipt | null;
+  sourceRelation: ConsolidationSourceRelation | null;
+  currentSourceSha256: string | null;
+  blockedReason: string | null;
+  restorationAvailable: boolean;
+  restorationRequiresConfirmation: true;
+  automaticRecovery: false;
+  mergeExecutionAvailable: false;
+  recordsModified: false;
+  filesCreated: false;
+};
+
+export type ConsolidationRestorationResult = {
+  schemaVersion: 1;
+  transactionId: string;
+  sourceSha256: string;
+  sourceRestored: true;
+  auditWritten: true;
+  alreadyRestored: boolean;
+  receiptState: "restored";
+  status: ConsolidationRecoveryStatusSnapshot;
+};
 
 export type ConsolidationMergePreview = {
-  schemaVersion: 3;
+  schemaVersion: 4;
   sourceSha256: string;
   candidateId: string;
   candidateKind: "exactDuplicate";
@@ -90,7 +133,7 @@ export type ConsolidationMergePreview = {
   restartRecoveryRequired: true;
   executionAvailable: false;
   requiresFinalConfirmation: true;
-  restorationCommandAvailable: false;
+  restorationCommandAvailable: true;
   recordsModified: false;
   filesCreated: false;
   auditWritten: false;
@@ -102,6 +145,9 @@ const candidateKeys = ["candidateId", "kind", "recordIds", "reasonCode", "requir
 const resultKeys = ["schemaVersion", "decision", "sourceBackupPath", "ledgerPath", "backupCreated", "recordsModified", "modelUsed", "preview"];
 const decisionKeys = ["decisionId", "candidateId", "sourceSha256", "candidateKind", "reasonCode", "recordIds", "action", "decidedAt"];
 const mergePreviewKeys = ["schemaVersion", "sourceSha256", "candidateId", "candidateKind", "reasonCode", "recordIds", "survivorRecordId", "duplicateRecordId", "currentRecordCount", "projectedRecordCount", "projectedSourceSha256", "projectedSourceByteLength", "normalizedContentEqual", "differingFields", "sourceBackupPath", "sourceBackupStatus", "layerImpact", "activeLayerRevisionId", "recoveryProtocolVersion", "recoverySteps", "byteExactBackupRequired", "atomicReplaceRequired", "auditRequired", "restoredSourceVerificationRequired", "activeLayerExecutionBlocked", "transactionReceiptVersion", "transactionReceiptFile", "durableReceiptRequired", "restartRecoveryRequired", "executionAvailable", "requiresFinalConfirmation", "restorationCommandAvailable", "recordsModified", "filesCreated", "auditWritten", "modelUsed"];
+const recoveryStatusKeys = ["schemaVersion", "state", "receiptPath", "receiptFileExists", "transactionCount", "receipt", "sourceRelation", "currentSourceSha256", "blockedReason", "restorationAvailable", "restorationRequiresConfirmation", "automaticRecovery", "mergeExecutionAvailable", "recordsModified", "filesCreated"];
+const recoveryReceiptKeys = ["transactionId", "candidateId", "sourceSha256", "projectedSourceSha256", "sourceBackupFile", "state", "createdAt", "restoredAt"];
+const restorationResultKeys = ["schemaVersion", "transactionId", "sourceSha256", "sourceRestored", "auditWritten", "alreadyRestored", "receiptState", "status"];
 const mergeDifferenceFields: ConsolidationMergeDifferenceField[] = ["kind", "intention", "startedAt", "finishedAt", "summary", "nextStep", "memoryType", "source", "importance", "storageStrength", "memoryStatus", "successfulRecalls", "failedRecalls", "lastRecalledAt", "successfulReviews", "correctionCount", "lastReviewedAt", "contextEvents"];
 const recoverySteps: ConsolidationRecoveryStep[] = ["verifySource", "createOrVerifyBackup", "prepareProjectedSource", "atomicReplace", "verifyProjectedSource", "writeAudit", "restoreBackupOnFailure", "verifyRestoredSource"];
 const digest = /^sha256:[0-9a-f]{64}$/;
@@ -219,7 +265,7 @@ export function parseConsolidationResolutionResult(value: unknown): Consolidatio
 export function parseConsolidationMergePreview(value: unknown): ConsolidationMergePreview {
   const input = record(value, "mergePreview");
   exactKeys(input, mergePreviewKeys, "mergePreview");
-  if (input.schemaVersion !== 3) fail("mergePreview.schemaVersion debe ser 3");
+  if (input.schemaVersion !== 4) fail("mergePreview.schemaVersion debe ser 4");
   for (const field of ["sourceSha256", "candidateId", "projectedSourceSha256"] as const) {
     if (typeof input[field] !== "string" || !digest.test(input[field] as string)) fail(`mergePreview.${field} no es SHA-256`);
   }
@@ -242,6 +288,60 @@ export function parseConsolidationMergePreview(value: unknown): ConsolidationMer
   if (input.byteExactBackupRequired !== true || input.atomicReplaceRequired !== true || input.auditRequired !== true || input.restoredSourceVerificationRequired !== true) fail("mergePreview omite una garantía de recuperación R6.3-D");
   if (typeof input.activeLayerExecutionBlocked !== "boolean" || input.activeLayerExecutionBlocked !== (input.layerImpact === "activeRevisionWillBecomeStale")) fail("mergePreview.activeLayerExecutionBlocked es incoherente");
   if (input.transactionReceiptVersion !== 1 || input.transactionReceiptFile !== "consolidation-merge-transactions-v1.json" || input.durableReceiptRequired !== true || input.restartRecoveryRequired !== true) fail("mergePreview omite el recibo durable R6.3-E");
-  if (input.executionAvailable !== false || input.requiresFinalConfirmation !== true || input.restorationCommandAvailable !== false || input.recordsModified !== false || input.filesCreated !== false || input.auditWritten !== false || input.modelUsed !== false) fail("mergePreview declara efectos o disponibilidad prohibidos");
+  if (input.executionAvailable !== false || input.requiresFinalConfirmation !== true || input.restorationCommandAvailable !== true || input.recordsModified !== false || input.filesCreated !== false || input.auditWritten !== false || input.modelUsed !== false) fail("mergePreview declara efectos o disponibilidad incoherentes");
   return input as ConsolidationMergePreview;
+}
+
+function parseRecoveryReceipt(value: unknown): ConsolidationRecoveryReceipt {
+  const input = record(value, "recoveryReceipt");
+  exactKeys(input, recoveryReceiptKeys, "recoveryReceipt");
+  for (const field of ["transactionId", "candidateId", "sourceSha256", "projectedSourceSha256"] as const) {
+    if (typeof input[field] !== "string" || !digest.test(input[field] as string)) fail(`recoveryReceipt.${field} no es SHA-256`);
+  }
+  if (typeof input.sourceBackupFile !== "string" || !/^consolidation-source-[0-9a-f]{64}\.json$/.test(input.sourceBackupFile)) fail("recoveryReceipt.sourceBackupFile es inválido");
+  if (input.state !== "prepared" && input.state !== "projected" && input.state !== "restored") fail("recoveryReceipt.state es desconocido");
+  if (typeof input.createdAt !== "string" || !Number.isFinite(Date.parse(input.createdAt))) fail("recoveryReceipt.createdAt es inválido");
+  const restoredAt = input.restoredAt === null ? null : nullableText(input.restoredAt, "recoveryReceipt.restoredAt");
+  if (restoredAt !== null && !Number.isFinite(Date.parse(restoredAt))) fail("recoveryReceipt.restoredAt es inválido");
+  if ((input.state === "restored") !== (restoredAt !== null)) fail("recoveryReceipt.state y restoredAt no coinciden");
+  return { ...input, restoredAt } as ConsolidationRecoveryReceipt;
+}
+
+export function parseConsolidationRecoveryStatus(value: unknown): ConsolidationRecoveryStatusSnapshot {
+  const input = record(value, "recoveryStatus");
+  exactKeys(input, recoveryStatusKeys, "recoveryStatus");
+  if (input.schemaVersion !== 1) fail("recoveryStatus.schemaVersion debe ser 1");
+  if (input.state !== "idle" && input.state !== "recoveryRequired" && input.state !== "restored" && input.state !== "blocked") fail("recoveryStatus.state es desconocido");
+  if (typeof input.receiptPath !== "string" || !input.receiptPath.trim()) fail("recoveryStatus.receiptPath está vacío");
+  if (typeof input.receiptFileExists !== "boolean" || typeof input.restorationAvailable !== "boolean") fail("recoveryStatus contiene disponibilidad inválida");
+  if (input.restorationRequiresConfirmation !== true || input.automaticRecovery !== false || input.mergeExecutionAvailable !== false || input.recordsModified !== false || input.filesCreated !== false) fail("recoveryStatus declara automatismos o efectos prohibidos");
+  const transactionCount = count(input.transactionCount, "recoveryStatus.transactionCount");
+  const receipt = input.receipt === null ? null : parseRecoveryReceipt(input.receipt);
+  if (input.sourceRelation !== null && input.sourceRelation !== "original" && input.sourceRelation !== "projected" && input.sourceRelation !== "diverged" && input.sourceRelation !== "missing") fail("recoveryStatus.sourceRelation es desconocida");
+  const sourceRelation = input.sourceRelation as ConsolidationSourceRelation | null;
+  const currentSourceSha256 = input.currentSourceSha256 === null ? null : nullableText(input.currentSourceSha256, "recoveryStatus.currentSourceSha256");
+  if (currentSourceSha256 !== null && !digest.test(currentSourceSha256)) fail("recoveryStatus.currentSourceSha256 no es SHA-256");
+  const blockedReason = input.blockedReason === null ? null : nullableText(input.blockedReason, "recoveryStatus.blockedReason");
+  if (transactionCount > 0 && !input.receiptFileExists) fail("recoveryStatus tiene transacciones sin archivo de recibos");
+  if (input.state === "idle" && (transactionCount !== 0 || receipt || sourceRelation || currentSourceSha256 || blockedReason || input.restorationAvailable)) fail("recoveryStatus idle contiene estado inexistente");
+  if (input.state === "recoveryRequired") {
+    if (!receipt || receipt.state === "restored" || (sourceRelation !== "original" && sourceRelation !== "projected") || !currentSourceSha256 || blockedReason || input.restorationAvailable !== true) fail("recoveryStatus no describe una recuperación válida");
+    const expected = sourceRelation === "original" ? receipt.sourceSha256 : receipt.projectedSourceSha256;
+    if (currentSourceSha256 !== expected) fail("recoveryStatus no vincula la fuente al recibo pendiente");
+  }
+  if (input.state === "restored" && (!receipt || receipt.state !== "restored" || sourceRelation !== "original" || currentSourceSha256 !== receipt.sourceSha256 || blockedReason || input.restorationAvailable)) fail("recoveryStatus restored es incoherente");
+  if (input.state === "blocked" && (!blockedReason || input.restorationAvailable)) fail("recoveryStatus blocked requiere razón y bloqueo efectivo");
+  return { schemaVersion: 1, state: input.state as ConsolidationRecoveryStatusState, receiptPath: input.receiptPath, receiptFileExists: input.receiptFileExists, transactionCount, receipt, sourceRelation, currentSourceSha256, blockedReason, restorationAvailable: input.restorationAvailable, restorationRequiresConfirmation: true, automaticRecovery: false, mergeExecutionAvailable: false, recordsModified: false, filesCreated: false };
+}
+
+export function parseConsolidationRestorationResult(value: unknown): ConsolidationRestorationResult {
+  const input = record(value, "restorationResult");
+  exactKeys(input, restorationResultKeys, "restorationResult");
+  if (input.schemaVersion !== 1) fail("restorationResult.schemaVersion debe ser 1");
+  if (typeof input.transactionId !== "string" || !digest.test(input.transactionId)) fail("restorationResult.transactionId no es SHA-256");
+  if (typeof input.sourceSha256 !== "string" || !digest.test(input.sourceSha256)) fail("restorationResult.sourceSha256 no es SHA-256");
+  if (input.sourceRestored !== true || input.auditWritten !== true || typeof input.alreadyRestored !== "boolean" || input.receiptState !== "restored") fail("restorationResult no confirma una restauración cerrada");
+  const status = parseConsolidationRecoveryStatus(input.status);
+  if (status.state !== "restored" || status.receipt?.transactionId !== input.transactionId || status.currentSourceSha256 !== input.sourceSha256) fail("restorationResult y status no coinciden");
+  return { schemaVersion: 1, transactionId: input.transactionId, sourceSha256: input.sourceSha256, sourceRestored: true, auditWritten: true, alreadyRestored: input.alreadyRestored, receiptState: "restored", status };
 }

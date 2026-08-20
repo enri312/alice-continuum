@@ -367,6 +367,17 @@ export function App() {
     return snapshot.sessions.length;
   }
 
+  async function reloadMemoryFromDisk() {
+    if (!desktopApp) throw new Error("La recarga de memoria requiere la aplicación de escritorio.");
+    await memorySaveQueue.current;
+    const snapshot = await invoke<MemorySnapshot>("load_memory");
+    sessionsRef.current = snapshot.sessions;
+    setSessions(snapshot.sessions);
+    setMemoryPath(snapshot.storagePath);
+    setMemoryStatus("native");
+    return snapshot.sessions.length;
+  }
+
   async function openMemoryDirectory() {
     if (!desktopApp) throw new Error("La carpeta privada está disponible en la aplicación de escritorio.");
     const path = await invoke<string>("open_memory_directory");
@@ -437,7 +448,7 @@ export function App() {
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
-    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
+    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
