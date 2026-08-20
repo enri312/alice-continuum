@@ -54,3 +54,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-076](ADR-P-076-ensayo-recuperacion-fusion.md) | Reemplazo atómico y restauración física ensayados antes de habilitar una fusión |
 | [ADR-P-077](ADR-P-077-recibo-durable-recuperacion-reinicio.md) | Recibo sin contenido privado y recuperación independiente de RAM después de reiniciar |
 | [ADR-P-078](ADR-P-078-estado-restauracion-gobernada.md) | Estado nativo y restauración confirmada sin habilitar la ejecución de fusiones |
+| [ADR-P-079](ADR-P-079-inferencia-ollama-loopback.md) | Inferencia Ollama local con endpoint fijo, autorización previa y actividad basada en respuestas reales |

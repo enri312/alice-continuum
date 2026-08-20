@@ -25,12 +25,12 @@ export function Configuracion({ desktopApp, status, provider, model, onProviderC
         <p>Esta selección se guarda localmente y se usa como ruta predeterminada para las nuevas conversaciones.</p>
         <div className="settings-provider-list" role="radiogroup" aria-label="Proveedor predeterminado">
           {status.providers.map((option) => <button type="button" role="radio" aria-checked={provider === option.id} key={option.id} className={provider === option.id ? "selected" : ""} onClick={() => onProviderChange(option.id)}>
-            <span><strong>{option.label}</strong><small>{option.protocol}</small></span><em className={option.configured ? "ready" : "offline"}>{option.configured ? "LISTO" : "SIN CLAVE"}</em>
+            <span><strong>{option.label}</strong><small>{option.protocol}</small></span><em className={option.configured ? "ready" : "offline"}>{option.configured ? "LISTO" : option.id === "ollama" ? "NO INICIADO" : "SIN CLAVE"}</em>
           </button>)}
         </div>
         <label className="settings-model-field">MODELO PREDETERMINADO<input value={model} onChange={(event) => onModelChange(event.target.value)} placeholder={selected?.defaultModel || "Identificador del modelo"} /></label>
         <div className="settings-policy"><strong>POLÍTICA DEL ADAPTADOR</strong><span>{selected?.retentionMode ?? "Seleccioná un proveedor para consultar su política."}</span></div>
-        <small className="settings-security-note">Las claves API no se muestran ni se escriben aquí. Su presencia solamente se comprueba desde el proceso nativo.</small>
+        <small className="settings-security-note">Las claves API no se muestran ni se escriben aquí. Ollama no usa clave y su adaptador sólo acepta el servidor local fijado a 127.0.0.1.</small>
       </section>
 
       <section className="settings-card" aria-labelledby="privacy-settings-title">

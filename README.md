@@ -110,7 +110,7 @@ La entrada se lee sólo mediante Gamepad API mientras la prueba está activada. 
 
 ## Control de contexto de conversación
 
-El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la última revisión antes de una solicitud de nube:
+El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la última revisión antes de una inferencia local o una solicitud de nube:
 
 - historial, recuerdos y ventana comienzan desmarcados;
 - observar una ventana localmente no implica enviarla;
@@ -227,6 +227,7 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 
 | Proveedor | Variable requerida | Modelo opcional |
 |---|---|---|
+| Ollama local | ninguna; `Iniciar Alice.cmd` verifica el runtime | `ALICE_OLLAMA_MODEL` (por defecto `qwen3.5:4b`) |
 | OpenRouter | `OPENROUTER_API_KEY` | `OPENROUTER_MODEL` |
 | OpenAI | `OPENAI_API_KEY` | `OPENAI_MODEL` |
 | Anthropic | `ANTHROPIC_API_KEY` | `ANTHROPIC_MODEL` |
@@ -234,7 +235,7 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 | xAI | `XAI_API_KEY` | `XAI_MODEL` |
 | Compatible con Chat Completions | `ALICE_COMPATIBLE_API_KEY` y `ALICE_COMPATIBLE_BASE_URL` | `ALICE_COMPATIBLE_MODEL` |
 
-Las variables se configuran en el perfil de Windows y requieren reiniciar Alice. La URL compatible debe usar HTTPS. Las llamadas no habilitan herramientas y limitan la salida a 1200 tokens; las políticas del proveedor siguen siendo aplicables.
+`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato local usa contexto 2048, desactiva herramientas, streaming y razonamiento visible, limita la salida a 1200 tokens y mantiene la previsualización obligatoria. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3, memoria de trabajo y, si Carlos lo autoriza, aprendizaje episódico local. Los demás proveedores conservan sus variables, requieren reiniciar Alice y siguen sus propias políticas. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
 
 ## Datos locales
 

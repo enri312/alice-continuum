@@ -59,6 +59,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 53. [Informe del contrato de permiso facial R2](testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md)
 54. [ADR-P-073: catálogo VRM facial de solo lectura](decisions/ADR-P-073-catalogo-expresiones-vrm-solo-lectura.md)
 55. [Informe real del catálogo de expresiones VRM](testing/AVATAR_EXPRESSION_CATALOG_REPORT_2026-08-16.md)
+56. [ADR-P-079: inferencia Ollama limitada a loopback](decisions/ADR-P-079-inferencia-ollama-loopback.md)
+57. [Inventario de modelos locales y propietarios](research/LOCAL_MODEL_INVENTORY_2026-08-20.md)
+58. [Informe real del adaptador local Ollama](testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md)
 
 ## Secciones
 

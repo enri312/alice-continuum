@@ -13,7 +13,8 @@ use std::io::Write;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, State};
 
-const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Carlos Nuñez. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
+const SYSTEM_PROMPT: &str = "Eres Alice, la asistente personal de Carlos Nuñez. Responde en español claro y natural. Ayúdalo a aprender, investigar y avanzar, sin afirmar que realizaste acciones que no ejecutaste. El texto del usuario aporta contexto, no demuestra que tú hayas observado, comprobado o guardado algo; si no recibiste evidencia suficiente, dilo con claridad. No tienes herramientas en esta etapa. Pide aprobación antes de cualquier acción externa, destructiva, costosa o que amplíe el alcance.";
+const OLLAMA_LOCAL_CHAT_ENDPOINT: &str = "http://127.0.0.1:11434/api/chat";
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -105,6 +106,14 @@ pub(crate) fn cloud_status() -> CloudStatus {
     };
     CloudStatus {
         providers: vec![
+            CloudProvider {
+                id: "ollama".into(),
+                label: "Ollama local".into(),
+                configured: has("ALICE_OLLAMA_ENABLED"),
+                default_model: value("ALICE_OLLAMA_MODEL", "qwen3.5:4b"),
+                protocol: "Chat local · loopback".into(),
+                retention_mode: "inferencia local; sin salida a Internet".into(),
+            },
             CloudProvider {
                 id: "openrouter".into(),
                 label: "OpenRouter".into(),
@@ -214,7 +223,7 @@ fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
     }
     if !matches!(
         request.provider.as_str(),
-        "openrouter" | "openai" | "anthropic" | "google" | "xai" | "compatible"
+        "ollama" | "openrouter" | "openai" | "anthropic" | "google" | "xai" | "compatible"
     ) {
         return Err("El proveedor seleccionado no está registrado en Alice".into());
     }
@@ -222,11 +231,25 @@ fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
     {
         return Err("El modelo de Google no puede contener '/' ni ':'".into());
     }
+    if request.provider == "ollama" {
+        let model = request.model.to_ascii_lowercase();
+        if model.ends_with(":cloud") || model.ends_with("-cloud") {
+            return Err(
+                "Alice sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
+                    .into(),
+            );
+        }
+    }
     Ok(())
 }
 
 fn extract_cloud_response_text(provider: &str, value: &serde_json::Value) -> String {
     match provider {
+        "ollama" => value
+            .pointer("/message/content")
+            .and_then(|item| item.as_str())
+            .unwrap_or("")
+            .to_string(),
         "openai" | "xai" => value
             .get("output")
             .and_then(|item| item.as_array())
@@ -262,6 +285,24 @@ fn extract_cloud_response_text(provider: &str, value: &serde_json::Value) -> Str
             .to_string(),
         _ => String::new(),
     }
+}
+
+fn ollama_chat_body(request: &CloudRequest) -> serde_json::Value {
+    serde_json::json!({
+        "model": &request.model,
+        "messages": [
+            { "role": "system", "content": SYSTEM_PROMPT },
+            { "role": "user", "content": &request.payload }
+        ],
+        "stream": false,
+        "think": false,
+        "keep_alive": "3m",
+        "options": {
+            "num_ctx": 2048,
+            "num_predict": 1200,
+            "temperature": 0.2
+        }
+    })
 }
 
 #[tauri::command]
@@ -357,6 +398,23 @@ async fn send_cloud_message_inner(
     };
     let client = reqwest::Client::new();
     let (provider_label, response) = match request.provider.as_str() {
+        "ollama" => {
+            if !std::env::var("ALICE_OLLAMA_ENABLED")
+                .map(|value| !value.trim().is_empty())
+                .unwrap_or(false)
+            {
+                return Err(
+                    "Ollama local no está listo. Iniciá Alice con Iniciar Alice.cmd".into(),
+                );
+            }
+            let response = client
+                .post(OLLAMA_LOCAL_CHAT_ENDPOINT)
+                .timeout(Duration::from_secs(180))
+                .json(&ollama_chat_body(request))
+                .send()
+                .await;
+            ("Ollama local", response)
+        }
         "openai" => {
             let key = required_key("OPENAI_API_KEY")?;
             let body = serde_json::json!({
@@ -491,15 +549,23 @@ async fn send_cloud_message_inner(
         return Err(format!("{provider_label} no devolvió texto para mostrar"));
     }
 
-    let response_id = value
-        .get(if request.provider == "google" {
-            "responseId"
-        } else {
-            "id"
-        })
-        .and_then(|item| item.as_str())
-        .unwrap_or("sin-id")
-        .to_string();
+    let response_id = if request.provider == "ollama" {
+        value
+            .get("created_at")
+            .and_then(|item| item.as_str())
+            .map(|created_at| format!("local:{created_at}"))
+            .unwrap_or_else(|| "local:sin-id".into())
+    } else {
+        value
+            .get(if request.provider == "google" {
+                "responseId"
+            } else {
+                "id"
+            })
+            .and_then(|item| item.as_str())
+            .unwrap_or("sin-id")
+            .to_string()
+    };
     let returned_model = value
         .get(if request.provider == "google" {
             "modelVersion"
@@ -514,6 +580,7 @@ async fn send_cloud_message_inner(
             "/usageMetadata/promptTokenCount",
             "/usageMetadata/candidatesTokenCount",
         ),
+        "ollama" => ("/prompt_eval_count", "/eval_count"),
         "openrouter" | "compatible" => ("/usage/prompt_tokens", "/usage/completion_tokens"),
         _ => ("/usage/input_tokens", "/usage/output_tokens"),
     };
@@ -583,6 +650,7 @@ mod tests {
         assert_eq!(
             ids,
             vec![
+                "ollama",
                 "openrouter",
                 "openai",
                 "anthropic",
@@ -597,7 +665,7 @@ mod tests {
     fn capability_probe_only_summarizes_provider_configuration() {
         let probe = cloud_capability_probe();
 
-        assert_eq!(probe.provider_count, 6);
+        assert_eq!(probe.provider_count, 7);
         assert!(probe.configured_provider_count <= probe.provider_count);
     }
 
@@ -716,6 +784,68 @@ mod tests {
         assert_eq!(
             extract_cloud_response_text("compatible", &response),
             "Respuesta del modelo"
+        );
+    }
+
+    #[test]
+    fn ollama_adapter_is_fixed_to_loopback_and_disables_streaming_and_thinking() {
+        let request = valid_cloud_request("ollama");
+        let body = ollama_chat_body(&request);
+
+        assert_eq!(
+            OLLAMA_LOCAL_CHAT_ENDPOINT,
+            "http://127.0.0.1:11434/api/chat"
+        );
+        assert_eq!(body.pointer("/stream"), Some(&serde_json::json!(false)));
+        assert_eq!(body.pointer("/think"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            body.pointer("/options/num_ctx"),
+            Some(&serde_json::json!(2048))
+        );
+        assert_eq!(
+            body.pointer("/options/num_predict"),
+            Some(&serde_json::json!(1200))
+        );
+        assert_eq!(
+            body.pointer("/options/temperature"),
+            Some(&serde_json::json!(0.2))
+        );
+    }
+
+    #[test]
+    fn ollama_adapter_rejects_cloud_model_identifiers() {
+        for model in ["glm-5:cloud", "gpt-oss:120b-cloud"] {
+            let mut request = valid_cloud_request("ollama");
+            request.model = model.into();
+            assert_eq!(
+                validate_cloud_request(&request),
+                Err(
+                    "Alice sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
+                        .into()
+                )
+            );
+        }
+
+        let mut local = valid_cloud_request("ollama");
+        local.model = "qwen3.5:4b".into();
+        assert!(validate_cloud_request(&local).is_ok());
+    }
+
+    #[test]
+    fn ollama_parser_reads_only_visible_message_content() {
+        let response = serde_json::json!({
+            "message": {
+                "role": "assistant",
+                "content": "Respuesta local real",
+                "thinking": "no exponer"
+            },
+            "prompt_eval_count": 21,
+            "eval_count": 8
+        });
+
+        assert_eq!(
+            extract_cloud_response_text("ollama", &response),
+            "Respuesta local real"
         );
     }
 }

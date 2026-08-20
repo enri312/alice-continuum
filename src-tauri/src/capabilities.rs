@@ -1415,7 +1415,7 @@ mod tests {
     fn unavailable_probes() -> CapabilityProbeSnapshot {
         CapabilityProbeSnapshot {
             cloud: CloudCapabilityProbe {
-                provider_count: 6,
+                provider_count: 7,
                 configured_provider_count: 0,
             },
             observation: Ok(ObservationCapabilityProbe {

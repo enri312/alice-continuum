@@ -95,6 +95,7 @@ export function App() {
   const [cloudPending, setCloudPending] = useState(false);
   const [memoryRetrieval, setMemoryRetrieval] = useState({ count: 0, top: "" });
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
+    { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
     { id: "openrouter", label: "OpenRouter", configured: false, defaultModel: "openrouter/free", protocol: "Chat Completions · router gratuito", retentionMode: "según OpenRouter y el proveedor enrutado" },
     { id: "openai", label: "OpenAI", configured: false, defaultModel: "gpt-5.6-terra", protocol: "Responses API", retentionMode: "store: false" },
     { id: "anthropic", label: "Anthropic", configured: false, defaultModel: "", protocol: "Messages API", retentionMode: "solicitud sin estado local" },

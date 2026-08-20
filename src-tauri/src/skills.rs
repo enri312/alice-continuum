@@ -1319,7 +1319,7 @@ mod tests {
             "2026-08-09T21:00:00-03:00".into(),
             &CapabilityProbeSnapshot {
                 cloud: CloudCapabilityProbe {
-                    provider_count: 6,
+                    provider_count: 7,
                     configured_provider_count: 0,
                 },
                 observation: Ok(ObservationCapabilityProbe {

@@ -79,6 +79,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const memoryMatches = useMemo(() => retrieveMemories(draft, memories, 3), [draft, memories]);
   const retrievedMemories = memoryMatches.map((match) => match.memory);
   const selectedProvider = status.providers.find((option) => option.id === provider) ?? status.providers[0];
+  const localInference = selectedProvider?.id === "ollama";
   const configuredCount = status.providers.filter((option) => option.configured).length;
 
   useEffect(() => {
@@ -147,8 +148,8 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
 
   return <section className={`conversation-page ${embedded ? "embedded" : ""}`} aria-labelledby={embedded ? undefined : "conversation-title"} aria-label={embedded ? "Conversación real con Alice" : undefined}>
     {!embedded && <div className="conversation-heading">
-      <div><p className="eyebrow">CANAL AUTORIZADO · CONVERSACIÓN</p><h2 id="conversation-title">Conversación con Alice</h2><p>Escribí normalmente. Antes de salir de tu computadora, el contenido pasa por una revisión visible y requiere tu autorización.</p></div>
-      <div className={`cloud-status ${configuredCount ? "ready" : "offline"}`}><i />{configuredCount ? `${configuredCount} PROVEEDOR${configuredCount > 1 ? "ES" : ""} DISPONIBLE${configuredCount > 1 ? "S" : ""}` : "FALTA API KEY"}</div>
+      <div><p className="eyebrow">CANAL AUTORIZADO · CONVERSACIÓN</p><h2 id="conversation-title">Conversación con Alice</h2><p>Escribí normalmente. Antes de procesarse localmente o salir de tu computadora, el contenido pasa por una revisión visible y requiere tu autorización.</p></div>
+      <div className={`cloud-status ${configuredCount ? "ready" : "offline"}`}><i />{configuredCount ? `${configuredCount} PROVEEDOR${configuredCount > 1 ? "ES" : ""} DISPONIBLE${configuredCount > 1 ? "S" : ""}` : "SIN PROVEEDOR LISTO"}</div>
     </div>}
 
     <div className="conversation-layout">
@@ -159,14 +160,14 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <div className="composer">
           <label htmlFor="alice-message">MENSAJE PARA ALICE</label>
           <textarea id="alice-message" value={draft} onChange={(event) => { onDraftChange(event.target.value); setReviewing(false); }} placeholder="Preguntá, explicá una idea o pedí ayuda…" />
-          <div className="composer-footer"><span>Primero verás exactamente qué datos saldrán de tu PC.</span><button className="primary" title="Abre la previsualización de privacidad; todavía no envía el mensaje" onClick={prepareReview} disabled={!draft.trim() || sending}>Ver qué se enviará <span>→</span></button></div>
+          <div className="composer-footer"><span>{localInference ? "Primero verás exactamente qué contexto procesará el modelo local." : "Primero verás exactamente qué datos saldrán de tu PC."}</span><button className="primary" title="Abre la previsualización de privacidad; todavía no procesa el mensaje" onClick={prepareReview} disabled={!draft.trim() || sending}>{localInference ? "Revisar contexto local" : "Ver qué se enviará"} <span>→</span></button></div>
         </div>
       </div>
 
       <aside className="cloud-control">
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
-        <h3>Qué puede salir</h3>
-        <div className="context-section-label"><strong>SALIDA A LA NUBE</strong><span>TODO DESMARCADO POR DEFECTO</span></div>
+        <h3>{localInference ? "Qué puede procesar" : "Qué puede salir"}</h3>
+        <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>TODO DESMARCADO POR DEFECTO</span></div>
         <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles</small></span></label>
         <label className="context-toggle"><input type="checkbox" checked={includeMemory} disabled={!memoryMatches.length} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>Recuerdos relevantes</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
         {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se enviarán mientras esta casilla siga desmarcada.</p>}
@@ -178,25 +179,25 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <div className="context-section-label local"><strong>ALMACENAMIENTO LOCAL</strong><span>NO SALE A LA NUBE</span></div>
         <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Aprendizaje episódico local</strong><small>Guarda el intercambio real como experiencia; no lo declara un hecho verificado</small></span></label>
         <div className="conversation-route"><strong>DESTINO ACTUAL · SOLO LECTURA</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
-        <div className="cloud-rule"><strong>POLÍTICA DE ENVÍO</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens de salida · sin herramientas · previsualización obligatoria</span></div>
+        <div className="cloud-rule"><strong>{localInference ? "POLÍTICA DE INFERENCIA" : "POLÍTICA DE ENVÍO"}</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · máximo 1200 tokens de salida · sin herramientas · previsualización obligatoria</span></div>
         <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
       </aside>
     </div>
 
     {reviewing && <div className="send-review" ref={reviewRef} tabIndex={-1}>
-      <div className="review-heading"><div><p className="eyebrow">PREVISUALIZACIÓN OBLIGATORIA</p><h3>Esto se enviará a {status.providers.find((option) => option.id === reviewRequest?.provider)?.label ?? reviewRequest?.provider}</h3></div><span>{reviewRequest?.model}</span></div>
-      <div className="payload-budget" aria-label="Presupuesto exacto del contenido saliente">
-        <header><strong>PRESUPUESTO DE SALIDA</strong><span>CARACTERES · BYTES UTF-8</span></header>
+      <div className="review-heading"><div><p className="eyebrow">PREVISUALIZACIÓN OBLIGATORIA</p><h3>{reviewRequest?.provider === "ollama" ? "Esto se procesará localmente con" : "Esto se enviará a"} {status.providers.find((option) => option.id === reviewRequest?.provider)?.label ?? reviewRequest?.provider}</h3></div><span>{reviewRequest?.model}</span></div>
+      <div className="payload-budget" aria-label="Presupuesto exacto del contexto autorizado">
+        <header><strong>{reviewRequest?.provider === "ollama" ? "PRESUPUESTO DE CONTEXTO LOCAL" : "PRESUPUESTO DE SALIDA"}</strong><span>CARACTERES · BYTES UTF-8</span></header>
         {reviewBudget?.fragments.map((item) => <div key={item.id} className={item.included ? "included" : "excluded"}><span>{item.label}{item.optional ? " · opcional" : ""}</span><strong>{item.characters.toLocaleString("es-PY")}</strong><em>{item.utf8Bytes.toLocaleString("es-PY")} B</em><small>{item.included ? "INCLUIDO" : "NO AUTORIZADO"}</small></div>)}
         <div className="separators"><span>Separadores de secciones</span><strong>{reviewBudget?.separatorCharacters.toLocaleString("es-PY") ?? 0}</strong><em>{reviewBudget?.separatorUtf8Bytes.toLocaleString("es-PY") ?? 0} B</em><small>FORMATO</small></div>
         <footer><span>TOTAL EXACTO DEL PAYLOAD</span><strong>{reviewBudget?.totalCharacters.toLocaleString("es-PY") ?? 0} caracteres</strong><em>{reviewBudget?.totalUtf8Bytes.toLocaleString("es-PY") ?? 0} bytes UTF-8</em></footer>
       </div>
       <pre>{reviewRequest?.payload}</pre>
-      <p className="review-note">Además se adjunta una política breve: responder en español, no afirmar acciones no realizadas y pedir aprobación antes de acciones externas o costosas.</p>
-      {!desktopApp && <p className="cloud-error">La llamada de nube solo funciona desde la aplicación de escritorio.</p>}
-      {desktopApp && !selectedProvider?.configured && <p className="cloud-error">Este proveedor todavía no tiene sus variables de entorno configuradas. Alice no puede enviar la consulta.</p>}
+      <p className="review-note">Además se incluye una política breve: responder en español, no afirmar acciones no realizadas y pedir aprobación antes de acciones externas o costosas.</p>
+      {!desktopApp && <p className="cloud-error">La inferencia sólo funciona desde la aplicación de escritorio.</p>}
+      {desktopApp && !selectedProvider?.configured && <p className="cloud-error">{localInference ? "Ollama local no está iniciado. Abrí Alice mediante Iniciar Alice.cmd." : "Este proveedor todavía no tiene sus variables de entorno configuradas. Alice no puede enviar la consulta."}</p>}
       {error && <p className="cloud-error">{error}</p>}
-      <div className="review-actions"><button className="secondary" onClick={() => setReviewing(false)} disabled={sending}>Volver a editar</button><button className="primary" onClick={authorizeAndSend} disabled={sending || !reviewRequest || !desktopApp || !selectedProvider?.configured || !reviewRequest?.model.trim()}>{sending ? "Consultando…" : "Autorizar y enviar a la nube"}</button></div>
+      <div className="review-actions"><button className="secondary" onClick={() => setReviewing(false)} disabled={sending}>Volver a editar</button><button className="primary" onClick={authorizeAndSend} disabled={sending || !reviewRequest || !desktopApp || !selectedProvider?.configured || !reviewRequest?.model.trim()}>{sending ? "Consultando…" : localInference ? "Autorizar y procesar localmente" : "Autorizar y enviar a la nube"}</button></div>
     </div>}
   </section>;
 }
