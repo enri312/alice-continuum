@@ -8,7 +8,7 @@
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6.4--A-validado-0f766e?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-282%2F282%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-186%20aprobadas%20%7C%2014%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-187%20aprobadas%20%7C%2014%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -37,11 +37,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1, R6.2-C, R6.3-D y R6.4-A validados: RAM acotada, plan de fusión, recuperación física ensayada y aprendizaje episódico conversacional |
+| Memoria por capas R6 | R6.1, R6.2-C, R6.3-E y R6.4-A validados: RAM acotada, plan de fusión, recuperación durable tras reinicio y aprendizaje episódico conversacional |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
 | Pruebas TypeScript | 282/282 aprobadas |
-| Pruebas Rust | 186 normales aprobadas; catorce sondas vivas disponibles por separado |
+| Pruebas Rust | 187 normales aprobadas; catorce sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -188,7 +188,7 @@ Antes de autorizar una llamada, Alice muestra el tamaño exacto de `mensaje`, `h
 
 La antigua pantalla independiente **Conversación** fue eliminada. Su compositor, previsualización y mensajes viven ahora dentro de `[00] CONVERSATION / PERCEPTION INPUT`. `[05] FACE + BODY OUTPUT BRIDGE` queda en Body Solver; `Face` y `Body` son destinos del grafo cognitivo, no ejecutores del cerebro. Consulta [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md), [ADR-P-067](docs/decisions/ADR-P-067-memoria-trabajo-y-panel-entrada.md), [el informe R6.2-A](docs/testing/R6_WORKING_MEMORY_REPORT_2026-08-14.md), [la validación R6.2-B](docs/testing/R6_WORKING_MEMORY_UI_REPORT_2026-08-14.md) y [el cierre R6.2-C](docs/testing/R6_OUTGOING_BUDGET_AND_ICONS_REPORT_2026-08-14.md).
 
-## Consolidación manual R6.3-D
+## Consolidación manual R6.3-E
 
 La subpestaña **Memoria → Consolidar** relee `records.json` desde Rust y produce referencias de candidatos sin escribir. Un duplicado exacto exige coincidencia normalizada de tipo, clase, intención, resumen y próximo paso. Dos registros con la misma intención pero contenido diferente se etiquetan únicamente como **revisión requerida**: Alice no afirma por sí sola que exista una contradicción.
 
@@ -196,7 +196,9 @@ Cada candidato contiene dos IDs, una razón cerrada y una huella SHA-256 determi
 
 R6.3-D añade un protocolo visible de ocho pasos y un motor Rust desconectado de Tauri. En almacenamiento físico controlado sustituyó realmente `records.json` mediante una operación atómica de Windows, verificó la proyección, auditó y restauró exactamente los bytes originales. Un fallo de auditoría inducido también restauró la fuente; una revisión R6.1 activa bloqueó antes de escribir.
 
-La interfaz declara **FUSIÓN NO DISPONIBLE** y no contiene un botón de ejecución. La memoria canónica nunca pasó por el motor de ensayo: la sonda de solo lectura encontró 17 recuerdos, cero candidatos y 20 archivos sin cambios de SHA-256. Consulta el [contrato R6.3](docs/architecture/CONSOLIDATION_PREVIEW_R6.md), [ADR-P-075](docs/decisions/ADR-P-075-plan-fusion-duplicados-exactos.md), [ADR-P-076](docs/decisions/ADR-P-076-ensayo-recuperacion-fusion.md) y el [informe R6.3-D](docs/testing/R6_CONSOLIDATION_RECOVERY_REHEARSAL_REPORT_2026-08-20.md).
+R6.3-E persiste antes del reemplazo un recibo atómico sin contenido conversacional. Sus estados cerrados `prepared`, `projected` y `restored` permiten que una llamada nueva, sin conservar el plan en RAM, distinga la fuente original de la proyectada, restaure el respaldo y reintente una auditoría fallida. Una tercera huella o un recibo corrupto bloquean sin reparar silenciosamente; una recuperación terminada es idempotente.
+
+La interfaz declara **FUSIÓN NO DISPONIBLE** y no contiene un botón de ejecución o restauración. La memoria canónica nunca pasó por los motores R6.3-D/E: la sonda de solo lectura encontró 17 recuerdos, cero candidatos y 20 archivos sin cambios de SHA-256. Consulta el [contrato R6.3](docs/architecture/CONSOLIDATION_PREVIEW_R6.md), [ADR-P-075](docs/decisions/ADR-P-075-plan-fusion-duplicados-exactos.md), [ADR-P-076](docs/decisions/ADR-P-076-ensayo-recuperacion-fusion.md), [ADR-P-077](docs/decisions/ADR-P-077-recibo-durable-recuperacion-reinicio.md), [el informe R6.3-D](docs/testing/R6_CONSOLIDATION_RECOVERY_REHEARSAL_REPORT_2026-08-20.md) y [el informe R6.3-E](docs/testing/R6_CONSOLIDATION_RESTART_RECOVERY_REPORT_2026-08-20.md).
 
 ## Iniciar Alice
 

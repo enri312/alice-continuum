@@ -473,6 +473,12 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .merge-recovery-chain ol { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin:0; padding:0; list-style:none; }
 .merge-recovery-chain li { display:flex; min-width:0; align-items:center; gap:6px; border:1px solid #263b50; padding:6px 7px; background:#06101a; color:#91a3b6; font:700 .46rem/1.25 Consolas,monospace; }
 .merge-recovery-chain li span { flex:0 0 auto; color:#22d3ee; font-size:.48rem; }
+.merge-transaction-receipt { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(220px,1.2fr) auto; align-items:center; gap:10px; border-top:1px solid #26364a; padding:9px 10px; background:rgba(8,145,178,.06); }
+.merge-transaction-receipt>div { display:grid; gap:2px; }
+.merge-transaction-receipt strong { color:#67e8f9; font:800 .5rem Consolas,monospace; }
+.merge-transaction-receipt span { color:#71869a; font:600 .45rem Consolas,monospace; }
+.merge-transaction-receipt code { overflow:hidden; color:#91a3b6; font-size:.48rem; text-overflow:ellipsis; white-space:nowrap; }
+.merge-transaction-receipt em { border:1px solid #92400e; padding:5px 7px; color:#fbbf24; font:800 .45rem Consolas,monospace; font-style:normal; white-space:nowrap; }
 .merge-preview-plan>footer { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:10px !important; border-top:1px solid #3c3152; padding:8px 10px !important; }
 .merge-preview-plan>footer strong { color:#fbbf24; font:800 .52rem Consolas,monospace; white-space:nowrap; }
 .merge-preview-plan>footer span { color:#71869a; font:.52rem/1.4 Consolas,monospace; text-align:right; }
@@ -481,6 +487,7 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
   .consolidation-candidate-actions { justify-content:flex-start; }
   .merge-preview-plan dl { grid-template-columns:1fr 1fr; }
   .merge-recovery-chain ol { grid-template-columns:1fr 1fr; }
+  .merge-transaction-receipt { grid-template-columns:1fr; }
   .merge-preview-plan>footer { align-items:flex-start !important; flex-direction:column; }
   .merge-preview-plan>footer span { text-align:left; }
 }

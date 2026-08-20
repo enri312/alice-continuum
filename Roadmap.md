@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C, R6.3-D y R6.4-A validados al 2026-08-20  
+**Estado:** en curso · R6.1, R6.2-C, R6.3-E y R6.4-A validados al 2026-08-20  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -219,6 +219,8 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.3-D:** el plan v2 declara ocho pasos obligatorios de recuperación. Un motor Rust deliberadamente desconectado de Tauri creó un respaldo físico, sustituyó una fuente controlada mediante `MoveFileExW`, verificó la proyección, escribió auditoría R3 y restauró los bytes originales. Un fallo de auditoría inducido también terminó restaurado. R6.1 activa bloqueó antes de escribir. La memoria canónica no se sometió al ensayo y sus 20 archivos conservaron sus SHA-256.
 
+**Incremento R6.3-E:** un recibo transaccional durable v1 conserva IDs, huellas, respaldo, fechas y los estados cerrados `prepared`, `projected` y `restored`, sin texto privado. Una recuperación iniciada desde una llamada nueva y sin plan en RAM restauró físicamente una fuente proyectada, dejó pendiente un fallo de auditoría, lo reintentó y cerró de forma idempotente. Un recibo corrupto o una tercera huella bloquearon sin sobrescribir. Preparación y recuperación permanecen desconectadas de IPC y no se ejecutaron sobre memoria canónica.
+
 **Incremento R6.4-A:** una respuesta realmente recibida de un proveedor puede guardarse como episodio local cuando **Aprendizaje episódico local** está activo. El registro conserva proveedor y modelo, comienza con fuerza baja y confirma que la conversación ocurrió, no la verdad factual de la respuesta. La recuperación posterior lo rotula como episodio no verificado. La extracción de hechos, preferencias o hábitos continúa pendiente y requerirá candidatos revisables.
 
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
@@ -229,11 +231,11 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 
 - [ ] Cada recuerdo tiene capa, origen, estado y reglas de vigencia.
 - [x] Los conflictos no se resuelven silenciosamente.
-- [ ] La consolidación ofrece vista previa y respaldo.
+- [x] La consolidación ofrece vista previa y respaldo.
 - [x] La memoria de trabajo puede descartarse sin borrar memoria duradera.
 - [x] Los índices derivados pueden reconstruirse desde la fuente de verdad.
 
-R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración en almacenamiento controlado. La ejecución continúa bloqueada hasta persistir un recibo transaccional recuperable tras reiniciar Alice y exponer una restauración gobernada.
+R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración controlada; R6.3-E persiste el recibo y recupera sin depender de RAM. La ejecución continúa bloqueada hasta exponer primero un estado nativo de recuperación y una restauración gobernada.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -350,7 +352,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, R6.3-C calcula una fusión y R6.3-D demostró que el archivo original puede recuperarse después de reemplazo y fallo de auditoría. El siguiente microincremento será **R6.3-E — recibo transaccional durable y recuperación después de reiniciar**, todavía sin habilitar una modificación canónica. Extracción automática, “dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida, R6.3-C calcula una fusión, R6.3-D ensaya la restauración y R6.3-E permite recuperarla después de perder el estado en RAM. El siguiente microincremento será **R6.3-F — estado nativo de recuperación y restauración gobernada**, todavía sin habilitar la creación o ejecución canónica de una fusión. Extracción automática, “dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
 
 ## Identidad adoptada — Alice Cognitive Core
 

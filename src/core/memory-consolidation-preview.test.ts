@@ -29,7 +29,7 @@ function validSnapshot() {
 
 function validMergePreview() {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     sourceSha256: sha("a"),
     candidateId: sha("b"),
     candidateKind: "exactDuplicate",
@@ -54,6 +54,10 @@ function validMergePreview() {
     auditRequired: true,
     restoredSourceVerificationRequired: true,
     activeLayerExecutionBlocked: false,
+    transactionReceiptVersion: 1,
+    transactionReceiptFile: "consolidation-merge-transactions-v1.json",
+    durableReceiptRequired: true,
+    restartRecoveryRequired: true,
     executionAvailable: false,
     requiresFinalConfirmation: true,
     restorationCommandAvailable: false,
@@ -113,6 +117,7 @@ describe("vista previa R6.3", () => {
     expect(parsed.projectedRecordCount).toBe(2);
     expect(parsed.differingFields).toEqual(["intention", "startedAt", "source"]);
     expect(parsed.recoverySteps).toHaveLength(8);
+    expect(parsed.transactionReceiptFile).toBe("consolidation-merge-transactions-v1.json");
     expect(parsed.executionAvailable).toBe(false);
   });
 
@@ -123,6 +128,7 @@ describe("vista previa R6.3", () => {
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale" })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), recoverySteps: ["verifySource", "writeAudit"] })).toThrow();
     expect(() => parseConsolidationMergePreview({ ...validMergePreview(), atomicReplaceRequired: false })).toThrow();
+    expect(() => parseConsolidationMergePreview({ ...validMergePreview(), restartRecoveryRequired: false })).toThrow();
     expect(parseConsolidationMergePreview({ ...validMergePreview(), layerImpact: "activeRevisionWillBecomeStale", activeLayerRevisionId: sha("f"), activeLayerExecutionBlocked: true }).activeLayerRevisionId).toBe(sha("f"));
   });
 });

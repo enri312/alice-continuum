@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C, R6.3-D y R6.4-A validados  
+Estado: en curso · R6.1, R6.2-C, R6.3-E y R6.4-A validados  
 Fecha: 2026-08-20
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -40,7 +40,7 @@ La eliminación de la antigua pestaña independiente Conversación evita duplica
 
 ## R6.3 — Consolidación manual
 
-Estado: R6.3-D validado; ejecución canónica de fusión pendiente.
+Estado: R6.3-E validado; ejecución canónica de fusión pendiente.
 
 - [x] Contrato cerrado de vista previa nativa y de sólo lectura.
 - [x] Duplicados exactos por contenido normalizado y pares de revisión por intención coincidente.
@@ -58,11 +58,14 @@ Estado: R6.3-D validado; ejecución canónica de fusión pendiente.
 - [x] Protocolo cerrado de respaldo, reemplazo atómico, auditoría y restauración.
 - [x] Ensayo físico que restaura tras éxito y fallo de auditoría inducido.
 - [x] Bloqueo previo cuando una revisión R6.1 activa quedaría obsoleta.
-- [ ] Recibo transaccional durable y recuperable tras reiniciar Alice.
+- [x] Recibo transaccional durable y recuperable tras reiniciar Alice.
+- [x] Estados cerrados `prepared`, `projected` y `restored` sin contenido privado.
+- [x] Reintento de auditoría e idempotencia después de restaurar.
+- [x] Bloqueo de recibo corrupto o fuente con una tercera huella.
 - [ ] Comando gobernado de restauración.
 - [ ] Ejecución manual canónica confirmada.
 
-R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`; R6.3-C calcula un plan; R6.3-D ensaya físicamente recuperación en almacenamiento controlado. Ninguno expone una fusión canónica.
+R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`; R6.3-C calcula un plan; R6.3-D ensaya recuperación y R6.3-E la continúa después de perder la RAM. Ninguno expone una fusión canónica.
 
 ## Fuente futura gobernada — proyectos locales
 

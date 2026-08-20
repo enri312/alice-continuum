@@ -188,8 +188,8 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     try {
       const plan = parseConsolidationMergePreview(await invoke<unknown>("preview_consolidation_merge", { input: { expectedSourceSha256: sourceSha256, candidateId: candidate.candidateId, expectedRecordIds: candidate.recordIds, survivorRecordId } }));
       setMergePreviews((current) => ({ ...current, [candidate.candidateId]: plan }));
-      setOperationMessage("Vista R6.3-D verificada. El protocolo de recuperación está cerrado, pero no se ejecutó ni se creó un respaldo.");
-    } catch (error) { setOperationMessage(`No se pudo planificar R6.3-D: ${String(error)}`); }
+      setOperationMessage("Vista R6.3-E verificada. El recibo durable es obligatorio, pero no se ejecutó ni se creó ningún archivo.");
+    } catch (error) { setOperationMessage(`No se pudo planificar R6.3-E: ${String(error)}`); }
     finally { setOperationRunning(false); }
   }
 
@@ -342,7 +342,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       <footer>INTERVALOS EXPLICABLES · 1 · 3 · 7 · 14 · 30 · 60 · 120 DÍAS</footer>
     </section>}
     {view === "consolidate" && <section className={`consolidation-preview memory-view-panel state-${consolidationPreview?.state ?? "unavailable"}`} aria-labelledby="consolidation-preview-title">
-      <header><div><p className="eyebrow">R6.3-D · RECUPERACIÓN ENSAYADA · SIN EJECUCIÓN</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados. Los duplicados exactos permiten elegir qué registro sobreviviría, calcular el impacto y revisar el protocolo de recuperación; Alice todavía no puede ejecutar una fusión.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
+      <header><div><p className="eyebrow">R6.3-E · RECIBO DURABLE · SIN EJECUCIÓN</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados. Los duplicados exactos permiten revisar superviviente, impacto, recuperación y el recibo que permitiría continuar después de reiniciar Alice; la fusión sigue inaccesible.</p></div><span>{consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
       {consolidationPreview?.blockedReason && <p className="consolidation-blocked" role="alert">{consolidationPreview.blockedReason}</p>}
       {consolidationPreview?.state === "ready" && <><div className="consolidation-summary"><article><strong>{consolidationPreview.recordCount}</strong><span>REGISTROS LEÍDOS</span><small>{consolidationPreview.eligibleRecordCount} elegibles · {consolidationPreview.archivedRecordCount} archivados</small></article><article><strong>{consolidationPreview.pendingCandidateCount}</strong><span>DECISIONES PENDIENTES</span><small>{consolidationPreview.candidateCount} pares detectados</small></article><article><strong>{consolidationPreview.exactDuplicateCount}</strong><span>DUPLICADOS EXACTOS</span><small>Mismo contenido normalizado</small></article><article><strong>{consolidationPreview.reviewRequiredCount}</strong><span>REVISIÓN REQUERIDA</span><small>Mismo tema, contenido diferente</small></article><article><strong>{consolidationPreview.keptSeparateCount}</strong><span>MANTENER SEPARADOS</span><small>Decisiones humanas registradas</small></article></div>
         {consolidationPreview.candidates.length ? <div className="consolidation-candidates">{consolidationPreview.candidates.map((candidate) => {
@@ -374,7 +374,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
               </div>}
             </footer>
             {mergePlan && <section className="merge-preview-plan" aria-label="Plan de fusión sin ejecución">
-              <header><div><strong>PLAN R6.3-D VERIFICADO</strong><span>SOLO LECTURA · NO EJECUTABLE</span></div><code>{mergePlan.projectedSourceSha256}</code></header>
+              <header><div><strong>PLAN R6.3-E VERIFICADO</strong><span>SOLO LECTURA · NO EJECUTABLE</span></div><code>{mergePlan.projectedSourceSha256}</code></header>
               <dl>
                 <div><dt>SUPERVIVIENTE</dt><dd>{mergePlan.survivorRecordId}</dd></div>
                 <div><dt>SE RETIRARÍA</dt><dd>{mergePlan.duplicateRecordId}</dd></div>
@@ -385,6 +385,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
               </dl>
               <p><strong>DIFERENCIAS ORIGINALES</strong>{mergePlan.differingFields.length ? mergePlan.differingFields.map((field) => mergeDifferenceLabels[field]).join(" · ") : "Ninguna; ambos registros también coinciden sin normalización."}</p>
               <div className="merge-recovery-chain"><strong>PROTOCOLO R6.3-D · {mergePlan.recoverySteps.length} PASOS</strong><ol>{mergePlan.recoverySteps.map((step, index) => <li key={step}><span>{String(index + 1).padStart(2, "0")}</span>{recoveryStepLabels[step]}</li>)}</ol></div>
+              <div className="merge-transaction-receipt"><div><strong>RECIBO R6.3-E · V{mergePlan.transactionReceiptVersion}</strong><span>RECUPERACIÓN TRAS REINICIO OBLIGATORIA</span></div><code>{mergePlan.transactionReceiptFile}</code><em>COMANDO AÚN DESCONECTADO</em></div>
               <footer><strong>FUSIÓN NO DISPONIBLE</strong><span>{mergePlan.activeLayerExecutionBlocked ? "La proyección R6.1 activa debe cerrarse antes de cualquier ensayo." : "El protocolo exige respaldo byte a byte, reemplazo atómico, auditoría y restauración verificada."} Esta vista no modificó archivos.</span></footer>
             </section>}
           </article>;

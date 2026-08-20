@@ -1,6 +1,6 @@
 # Vista previa de consolidación R6.3
 
-Versión: R6.3-D  
+Versión: R6.3-E  
 Estado: implementado y validado  
 Fecha: 2026-08-20
 
@@ -63,6 +63,20 @@ Rust contiene un motor de ensayo deliberadamente desconectado del registro de co
 
 Un fallo de auditoría inducido también termina con la fuente original restaurada. El motor no puede invocarse desde React ni desde IPC; por eso una vista previa canónica continúa siendo de solo lectura.
 
+## Recibo durable R6.3-E
+
+El plan v3 exige `consolidation-merge-transactions-v1.json`. El documento admite hasta cien recibos y como máximo una transacción sin restaurar. Cada recibo contiene únicamente IDs, SHA-256, nombre cerrado del respaldo, fechas y uno de tres estados:
+
+| Estado | Significado recuperable |
+|---|---|
+| `prepared` | El respaldo y el recibo existen; la sustitución puede no haber ocurrido |
+| `projected` | La fuente proyectada pudo quedar activa y debe recuperarse |
+| `restored` | La fuente original y la auditoría de recuperación fueron verificadas |
+
+El recibo se escribe y relee mediante reemplazo atómico. Una recuperación nueva no depende de variables en RAM: compara `records.json` contra la huella original y la proyectada del recibo. Si encuentra la proyección, restaura el respaldo; si ya encuentra el original, continúa desde allí. Una tercera huella bloquea sin sobrescribir.
+
+Si la auditoría de recuperación falla después de restaurar, el recibo permanece pendiente. Otro arranque puede reintentar la auditoría y cerrarlo. Una recuperación `restored` es idempotente y no vuelve a auditar.
+
 ## Límites y fronteras
 
 - máximo 1.000 registros por revisión;
@@ -80,5 +94,9 @@ Un fallo de auditoría inducido también termina con la fuente original restaura
 - el protocolo R6.3-D debe declarar ocho pasos exactos y todas sus garantías en `true`;
 - R6.1 activa establece `activeLayerExecutionBlocked: true`;
 - el motor de ensayo no está registrado como comando Tauri.
+- R6.3-E exige recibo durable v1 y recuperación independiente de RAM;
+- un recibo sólo almacena IDs, huellas, estado, nombre de respaldo y fechas;
+- un recibo corrupto o una huella ajena bloquean sin reparar silenciosamente;
+- preparación y recuperación continúan desconectadas de IPC.
 
-La ejecución de la fusión permanece fuera de alcance hasta persistir un recibo transaccional recuperable después de reiniciar Alice y exponer una restauración gobernada. El ensayo aprobado no autoriza todavía una modificación canónica.
+La ejecución de la fusión permanece fuera de alcance hasta exponer primero un estado nativo de recuperación y un comando de restauración gobernado. El recibo aprobado no autoriza todavía una modificación canónica.

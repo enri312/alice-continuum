@@ -109,8 +109,10 @@ const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
 const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
-const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 2;
+const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 3;
+const CONSOLIDATION_TRANSACTION_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
+const CONSOLIDATION_TRANSACTION_FILE: &str = "consolidation-merge-transactions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
 const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
 
@@ -368,6 +370,14 @@ pub(crate) enum ConsolidationRecoveryStep {
     VerifyRestoredSource,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum ConsolidationTransactionState {
+    Prepared,
+    Projected,
+    Restored,
+}
+
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct PreviewConsolidationMergeInput {
@@ -405,6 +415,10 @@ pub(crate) struct ConsolidationMergePreview {
     audit_required: bool,
     restored_source_verification_required: bool,
     active_layer_execution_blocked: bool,
+    transaction_receipt_version: u8,
+    transaction_receipt_file: String,
+    durable_receipt_required: bool,
+    restart_recovery_required: bool,
     execution_available: bool,
     requires_final_confirmation: bool,
     restoration_command_available: bool,
@@ -426,6 +440,39 @@ struct ConsolidationRecoveryRehearsal {
     projected_source_verified: bool,
     audit_written: bool,
     source_restored: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ConsolidationTransactionReceipt {
+    transaction_id: String,
+    candidate_id: String,
+    record_ids: Vec<String>,
+    survivor_record_id: String,
+    duplicate_record_id: String,
+    source_sha256: String,
+    projected_source_sha256: String,
+    source_backup_file: String,
+    state: ConsolidationTransactionState,
+    created_at: String,
+    restored_at: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ConsolidationTransactionDocument {
+    schema_version: u8,
+    transactions: Vec<ConsolidationTransactionReceipt>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[allow(dead_code)]
+struct ConsolidationRestartRecoveryResult {
+    transaction_id: String,
+    source_sha256: String,
+    source_restored: bool,
+    audit_written: bool,
+    receipt_state: ConsolidationTransactionState,
 }
 
 #[derive(Deserialize)]
@@ -577,6 +624,12 @@ fn is_sha256(value: &str) -> bool {
 
 fn consolidation_decision_path(data_root: &Path) -> PathBuf {
     data_root.join("memory").join(CONSOLIDATION_DECISION_FILE)
+}
+
+fn consolidation_transaction_path(data_root: &Path) -> PathBuf {
+    data_root
+        .join("memory")
+        .join(CONSOLIDATION_TRANSACTION_FILE)
 }
 
 fn consolidation_source_backup_path(data_root: &Path, source_sha256: &str) -> PathBuf {
@@ -1074,6 +1127,10 @@ fn preview_consolidation_merge_at(
             layer_impact,
             ConsolidationMergeLayerImpact::ActiveRevisionWillBecomeStale
         ),
+        transaction_receipt_version: CONSOLIDATION_TRANSACTION_SCHEMA_VERSION,
+        transaction_receipt_file: CONSOLIDATION_TRANSACTION_FILE.into(),
+        durable_receipt_required: true,
+        restart_recovery_required: true,
         execution_available: false,
         requires_final_confirmation: true,
         restoration_command_available: false,
@@ -1113,6 +1170,47 @@ fn nul_terminated_path(path: &Path) -> Vec<u16> {
     path.as_os_str().encode_wide().chain(Some(0)).collect()
 }
 
+fn atomic_replace_text_file(
+    destination: &Path,
+    content: &str,
+    temporary_extension: &str,
+    label: &str,
+) -> Result<(), String> {
+    let temporary = destination.with_extension(temporary_extension);
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&temporary)
+        .map_err(|error| format!("No se pudo crear el temporal atómico {label}: {error}"))?;
+    if let Err(error) = file
+        .write_all(content.as_bytes())
+        .and_then(|()| file.sync_all())
+    {
+        let _ = fs::remove_file(&temporary);
+        return Err(format!("No se pudo preparar el reemplazo {label}: {error}"));
+    }
+    drop(file);
+    let temporary_wide = nul_terminated_path(&temporary);
+    let destination_wide = nul_terminated_path(destination);
+    let replace = unsafe {
+        MoveFileExW(
+            PCWSTR(temporary_wide.as_ptr()),
+            PCWSTR(destination_wide.as_ptr()),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+        )
+    };
+    if let Err(error) = replace {
+        let _ = fs::remove_file(&temporary);
+        return Err(format!("Falló el reemplazo atómico {label}: {error}"));
+    }
+    let stored = fs::read_to_string(destination)
+        .map_err(|error| format!("No se pudo verificar {label} tras reemplazarlo: {error}"))?;
+    if stored != content {
+        return Err(format!("{label} no coincide con el contenido reemplazado"));
+    }
+    Ok(())
+}
+
 fn atomic_replace_memory_source(
     source_path: &Path,
     content: &str,
@@ -1124,37 +1222,11 @@ fn atomic_replace_memory_source(
     if memory_subject_digest(content) != expected_sha256 {
         return Err("El contenido R6.3-D preparado no coincide con su SHA-256".into());
     }
-    let temporary = source_path.with_extension("r6-3-d.tmp");
-    let mut file = OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(&temporary)
-        .map_err(|error| format!("No se pudo crear el temporal atómico R6.3-D: {error}"))?;
-    if let Err(error) = file
-        .write_all(content.as_bytes())
-        .and_then(|()| file.sync_all())
-    {
-        let _ = fs::remove_file(&temporary);
-        return Err(format!("No se pudo preparar el reemplazo R6.3-D: {error}"));
-    }
-    drop(file);
-    let temporary_wide = nul_terminated_path(&temporary);
-    let source_wide = nul_terminated_path(source_path);
-    let replace = unsafe {
-        MoveFileExW(
-            PCWSTR(temporary_wide.as_ptr()),
-            PCWSTR(source_wide.as_ptr()),
-            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
-        )
-    };
-    if let Err(error) = replace {
-        let _ = fs::remove_file(&temporary);
-        return Err(format!("Falló el reemplazo atómico R6.3-D: {error}"));
-    }
+    atomic_replace_text_file(source_path, content, "r6-3-d.tmp", "records.json")?;
     let stored = fs::read_to_string(source_path)
-        .map_err(|error| format!("No se pudo verificar records.json tras reemplazarlo: {error}"))?;
-    if memory_subject_digest(&stored) != expected_sha256 || stored != content {
-        return Err("records.json no coincide con el contenido R6.3-D reemplazado".into());
+        .map_err(|error| format!("No se pudo verificar records.json: {error}"))?;
+    if memory_subject_digest(&stored) != expected_sha256 {
+        return Err("records.json no coincide con el SHA-256 R6.3-D esperado".into());
     }
     Ok(())
 }
@@ -1265,6 +1337,266 @@ fn rehearse_consolidation_recovery_at(
         projected_source_verified: true,
         audit_written: true,
         source_restored: true,
+    })
+}
+
+fn validate_consolidation_transactions(
+    document: &ConsolidationTransactionDocument,
+) -> Result<(), String> {
+    if document.schema_version != CONSOLIDATION_TRANSACTION_SCHEMA_VERSION {
+        return Err("El recibo R6.3-E usa una versión incompatible".into());
+    }
+    if document.transactions.len() > 100 {
+        return Err("El recibo R6.3-E supera 100 transacciones".into());
+    }
+    let mut transaction_ids = HashSet::new();
+    let mut active_count = 0usize;
+    for receipt in &document.transactions {
+        if !is_sha256(&receipt.transaction_id)
+            || !is_sha256(&receipt.candidate_id)
+            || !is_sha256(&receipt.source_sha256)
+            || !is_sha256(&receipt.projected_source_sha256)
+        {
+            return Err("El recibo R6.3-E contiene una huella inválida".into());
+        }
+        if !transaction_ids.insert(receipt.transaction_id.clone()) {
+            return Err("El recibo R6.3-E repite un ID de transacción".into());
+        }
+        if receipt.record_ids.len() != 2
+            || receipt.record_ids[0] >= receipt.record_ids[1]
+            || !receipt.record_ids.contains(&receipt.survivor_record_id)
+            || !receipt.record_ids.contains(&receipt.duplicate_record_id)
+            || receipt.survivor_record_id == receipt.duplicate_record_id
+        {
+            return Err("El recibo R6.3-E contiene un par incoherente".into());
+        }
+        validate_timestamp("createdAt", &receipt.created_at)?;
+        if let Some(restored_at) = &receipt.restored_at {
+            validate_timestamp("restoredAt", restored_at)?;
+        }
+        let expected_backup = format!("consolidation-source-{}.json", &receipt.source_sha256[7..]);
+        if receipt.source_backup_file != expected_backup
+            || receipt.source_backup_file.contains(['/', '\\'])
+        {
+            return Err("El recibo R6.3-E contiene un respaldo inesperado".into());
+        }
+        match receipt.state {
+            ConsolidationTransactionState::Restored if receipt.restored_at.is_none() => {
+                return Err("Una transacción restaurada requiere restoredAt".into());
+            }
+            ConsolidationTransactionState::Prepared | ConsolidationTransactionState::Projected => {
+                if receipt.restored_at.is_some() {
+                    return Err("Una transacción activa no puede declarar restoredAt".into());
+                }
+                active_count += 1;
+            }
+            ConsolidationTransactionState::Restored => {}
+        }
+    }
+    if active_count > 1 {
+        return Err("R6.3-E admite una sola transacción sin restaurar".into());
+    }
+    Ok(())
+}
+
+fn read_consolidation_transactions_at(
+    data_root: &Path,
+) -> Result<ConsolidationTransactionDocument, String> {
+    let path = consolidation_transaction_path(data_root);
+    let content = match fs::read_to_string(&path) {
+        Ok(content) => content,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(ConsolidationTransactionDocument {
+                schema_version: CONSOLIDATION_TRANSACTION_SCHEMA_VERSION,
+                transactions: Vec::new(),
+            });
+        }
+        Err(error) => return Err(format!("No se pudo leer el recibo R6.3-E: {error}")),
+    };
+    let document = serde_json::from_str::<ConsolidationTransactionDocument>(&content)
+        .map_err(|error| format!("El recibo R6.3-E no es válido: {error}"))?;
+    validate_consolidation_transactions(&document)?;
+    Ok(document)
+}
+
+fn write_consolidation_transactions_at(
+    data_root: &Path,
+    document: &ConsolidationTransactionDocument,
+) -> Result<(), String> {
+    validate_consolidation_transactions(document)?;
+    let path = consolidation_transaction_path(data_root);
+    let content = serde_json::to_string_pretty(document).map_err(|error| error.to_string())?;
+    atomic_replace_text_file(&path, &content, "r6-3-e.tmp", "recibo R6.3-E")?;
+    let stored = read_consolidation_transactions_at(data_root)?;
+    if stored != *document {
+        return Err("El recibo R6.3-E no coincide después de releerlo".into());
+    }
+    Ok(())
+}
+
+fn create_or_verify_transaction_backup(
+    data_root: &Path,
+    plan: &ConsolidationMergePreview,
+    source_content: &str,
+) -> Result<PathBuf, String> {
+    let backup_path = consolidation_source_backup_path(data_root, &plan.source_sha256);
+    let backup_directory = backup_path
+        .parent()
+        .ok_or("El respaldo R6.3-E no posee un directorio válido")?;
+    fs::create_dir_all(backup_directory)
+        .map_err(|error| format!("No se pudo crear el directorio R6.3-E: {error}"))?;
+    if !backup_path.exists() {
+        let mut backup = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&backup_path)
+            .map_err(|error| format!("No se pudo crear el respaldo R6.3-E: {error}"))?;
+        backup
+            .write_all(source_content.as_bytes())
+            .and_then(|()| backup.sync_all())
+            .map_err(|error| format!("No se pudo persistir el respaldo R6.3-E: {error}"))?;
+    }
+    let stored = fs::read_to_string(&backup_path)
+        .map_err(|error| format!("No se pudo verificar el respaldo R6.3-E: {error}"))?;
+    if stored != source_content || memory_subject_digest(&stored) != plan.source_sha256 {
+        return Err("El respaldo R6.3-E no coincide byte a byte".into());
+    }
+    Ok(backup_path)
+}
+
+// Prepara una interrupción controlada. No está registrada como comando Tauri.
+#[allow(dead_code)]
+fn prepare_interrupted_consolidation_at(
+    data_root: &Path,
+    input: PreviewConsolidationMergeInput,
+    created_at: String,
+) -> Result<String, String> {
+    validate_timestamp("createdAt", &created_at)?;
+    let plan = preview_consolidation_merge_at(data_root, input)?;
+    if plan.active_layer_execution_blocked {
+        return Err("R6.3-E bloqueó la preparación porque R6.1 está activa".into());
+    }
+    let mut document = read_consolidation_transactions_at(data_root)?;
+    if document
+        .transactions
+        .iter()
+        .any(|receipt| receipt.state != ConsolidationTransactionState::Restored)
+    {
+        return Err("Ya existe una transacción R6.3-E pendiente de recuperación".into());
+    }
+    let source_path = data_root.join("memory").join("records.json");
+    let source_content = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo leer records.json para R6.3-E: {error}"))?;
+    if memory_subject_digest(&source_content) != plan.source_sha256 {
+        return Err("records.json cambió antes de preparar R6.3-E".into());
+    }
+    let projected_content = projected_consolidation_source_at(data_root, &plan)?;
+    let backup_path = create_or_verify_transaction_backup(data_root, &plan, &source_content)?;
+    let transaction_id = memory_subject_digest(&format!(
+        "alice-consolidation-transaction:{}:{}:{}:{}",
+        plan.source_sha256,
+        plan.projected_source_sha256,
+        plan.candidate_id,
+        plan.survivor_record_id
+    ));
+    let receipt = ConsolidationTransactionReceipt {
+        transaction_id: transaction_id.clone(),
+        candidate_id: plan.candidate_id,
+        record_ids: plan.record_ids,
+        survivor_record_id: plan.survivor_record_id,
+        duplicate_record_id: plan.duplicate_record_id,
+        source_sha256: plan.source_sha256.clone(),
+        projected_source_sha256: plan.projected_source_sha256.clone(),
+        source_backup_file: backup_path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or("El nombre del respaldo R6.3-E no es UTF-8")?
+            .into(),
+        state: ConsolidationTransactionState::Prepared,
+        created_at,
+        restored_at: None,
+    };
+    document.transactions.push(receipt);
+    write_consolidation_transactions_at(data_root, &document)?;
+
+    atomic_replace_memory_source(
+        &source_path,
+        &projected_content,
+        &plan.projected_source_sha256,
+    )?;
+    let stored_receipt = document
+        .transactions
+        .iter_mut()
+        .find(|receipt| receipt.transaction_id == transaction_id)
+        .ok_or("La transacción R6.3-E desapareció antes de marcarse proyectada")?;
+    stored_receipt.state = ConsolidationTransactionState::Projected;
+    write_consolidation_transactions_at(data_root, &document)?;
+    Ok(transaction_id)
+}
+
+// Recupera sólo desde disco y continúa inaccesible desde IPC.
+#[allow(dead_code)]
+fn recover_interrupted_consolidation_at(
+    data_root: &Path,
+    transaction_id: &str,
+    restored_at: String,
+    audit: impl FnOnce(&ConsolidationTransactionReceipt) -> Result<(), String>,
+) -> Result<ConsolidationRestartRecoveryResult, String> {
+    if !is_sha256(transaction_id) {
+        return Err("El ID de recuperación R6.3-E no es SHA-256".into());
+    }
+    validate_timestamp("restoredAt", &restored_at)?;
+    let mut document = read_consolidation_transactions_at(data_root)?;
+    let receipt_index = document
+        .transactions
+        .iter()
+        .position(|receipt| receipt.transaction_id == transaction_id)
+        .ok_or("La transacción R6.3-E no existe")?;
+    let receipt = document.transactions[receipt_index].clone();
+    let source_path = data_root.join("memory").join("records.json");
+    let current = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo leer records.json al recuperar R6.3-E: {error}"))?;
+    let current_sha256 = memory_subject_digest(&current);
+    if receipt.state == ConsolidationTransactionState::Restored {
+        if current_sha256 != receipt.source_sha256 {
+            return Err("El recibo está restaurado, pero records.json no coincide".into());
+        }
+        return Ok(ConsolidationRestartRecoveryResult {
+            transaction_id: receipt.transaction_id,
+            source_sha256: receipt.source_sha256,
+            source_restored: true,
+            audit_written: true,
+            receipt_state: ConsolidationTransactionState::Restored,
+        });
+    }
+    if current_sha256 == receipt.projected_source_sha256 {
+        let backup_path = data_root
+            .join("memory")
+            .join("backups")
+            .join(&receipt.source_backup_file);
+        let backup = fs::read_to_string(&backup_path)
+            .map_err(|error| format!("No se pudo leer el respaldo al recuperar R6.3-E: {error}"))?;
+        restore_rehearsal_source(&source_path, &backup, &receipt.source_sha256)?;
+    } else if current_sha256 != receipt.source_sha256 {
+        return Err(
+            "records.json no coincide con la fuente ni la proyección del recibo R6.3-E".into(),
+        );
+    }
+    if let Err(error) = audit(&receipt) {
+        return Err(format!(
+            "La fuente R6.3-E fue restaurada, pero la auditoría debe reintentarse: {error}"
+        ));
+    }
+    let stored_receipt = &mut document.transactions[receipt_index];
+    stored_receipt.state = ConsolidationTransactionState::Restored;
+    stored_receipt.restored_at = Some(restored_at);
+    write_consolidation_transactions_at(data_root, &document)?;
+    Ok(ConsolidationRestartRecoveryResult {
+        transaction_id: transaction_id.into(),
+        source_sha256: receipt.source_sha256,
+        source_restored: true,
+        audit_written: true,
+        receipt_state: ConsolidationTransactionState::Restored,
     })
 }
 
@@ -2835,7 +3167,7 @@ mod tests {
         )
         .expect("read-only merge preview");
 
-        assert_eq!(plan.schema_version, 2);
+        assert_eq!(plan.schema_version, 3);
         assert_eq!(
             plan.candidate_kind,
             ConsolidationCandidateKind::ExactDuplicate
@@ -2868,6 +3200,13 @@ mod tests {
         assert!(plan.audit_required);
         assert!(plan.restored_source_verification_required);
         assert!(!plan.active_layer_execution_blocked);
+        assert_eq!(plan.transaction_receipt_version, 1);
+        assert_eq!(
+            plan.transaction_receipt_file,
+            CONSOLIDATION_TRANSACTION_FILE
+        );
+        assert!(plan.durable_receipt_required);
+        assert!(plan.restart_recovery_required);
         assert!(!plan.execution_available);
         assert!(plan.requires_final_confirmation);
         assert!(!plan.restoration_command_available);
@@ -3042,6 +3381,156 @@ mod tests {
         assert_eq!(file_hashes(&root), before_block);
 
         fs::remove_dir_all(root).expect("remove R6.3-D fixture");
+    }
+
+    #[test]
+    fn r6_3_e_durable_receipt_recovers_after_restart_and_retries_audit() {
+        let root = temporary_probe_root("r6-3-e-restart-recovery");
+        let records = vec![
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "restart-a",
+                "kind": "Enseñanza",
+                "intention": "Recuperación después de reiniciar",
+                "startedAt": "2026-08-20T17:00:00Z",
+                "finishedAt": "2026-08-20T17:01:00Z",
+                "summary": "El recibo conserva sólo identificadores y huellas.",
+                "nextStep": "Restaurar",
+                "memoryType": "semantic",
+                "source": "Carlos"
+            }))
+            .unwrap(),
+            serde_json::from_value::<MemorySession>(serde_json::json!({
+                "id": "restart-b",
+                "kind": "Enseñanza",
+                "intention": "RECUPERACIÓN DESPUÉS DE REINICIAR!",
+                "startedAt": "2026-08-20T17:30:00Z",
+                "finishedAt": "2026-08-20T17:31:00Z",
+                "summary": "El recibo conserva sólo identificadores y huellas",
+                "nextStep": "restaurar",
+                "memoryType": "semantic",
+                "source": "Ensayo de reinicio"
+            }))
+            .unwrap(),
+        ];
+        let original = write_layered_fixture(&root, &records);
+        let source_path = root.join("memory").join("records.json");
+        let original_bytes = fs::read(&source_path).unwrap();
+        let snapshot = consolidation_preview_at(&root);
+        let candidate = snapshot
+            .candidates
+            .iter()
+            .find(|candidate| candidate.kind == ConsolidationCandidateKind::ExactDuplicate)
+            .unwrap()
+            .clone();
+        let source_sha256 = snapshot.source_sha256.unwrap();
+        let transaction_id = prepare_interrupted_consolidation_at(
+            &root,
+            PreviewConsolidationMergeInput {
+                expected_source_sha256: source_sha256.clone(),
+                candidate_id: candidate.candidate_id,
+                expected_record_ids: candidate.record_ids,
+                survivor_record_id: "restart-a".into(),
+            },
+            "2026-08-20T18:00:00Z".into(),
+        )
+        .expect("prepare physical interrupted transaction");
+
+        let projected = fs::read_to_string(&source_path).unwrap();
+        assert_ne!(projected, original);
+        assert_ne!(memory_subject_digest(&projected), source_sha256);
+        let prepared_document = read_consolidation_transactions_at(&root).unwrap();
+        assert_eq!(prepared_document.transactions.len(), 1);
+        assert_eq!(
+            prepared_document.transactions[0].state,
+            ConsolidationTransactionState::Projected
+        );
+        assert!(prepared_document.transactions[0].restored_at.is_none());
+        let receipt_text = fs::read_to_string(consolidation_transaction_path(&root)).unwrap();
+        assert!(!receipt_text.contains("Recuperación después"));
+        assert!(!receipt_text.contains("El recibo conserva"));
+
+        let failed_audit = recover_interrupted_consolidation_at(
+            &root,
+            &transaction_id,
+            "2026-08-20T18:05:00Z".into(),
+            |_| Err("auditoría temporalmente inaccesible".into()),
+        )
+        .unwrap_err();
+        assert!(failed_audit.contains("auditoría debe reintentarse"));
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+        assert_eq!(
+            read_consolidation_transactions_at(&root)
+                .unwrap()
+                .transactions[0]
+                .state,
+            ConsolidationTransactionState::Projected
+        );
+
+        let audit_root = root.clone();
+        let recovered = recover_interrupted_consolidation_at(
+            &root,
+            &transaction_id,
+            "2026-08-20T18:10:00Z".into(),
+            |receipt| {
+                let event = AuditEvent::producer(
+                    new_operation_id(),
+                    AuditSource::Memory,
+                    "memory.records.write".into(),
+                    "memory.consolidation.restart_recovery".into(),
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    None,
+                    Some(receipt.transaction_id.clone()),
+                    "MEMORY_CONSOLIDATION_RESTART_RECOVERED",
+                )?;
+                append_event_at(&audit_root, &event, AUDIT_MAX_BYTES)
+            },
+        )
+        .expect("recover from durable receipt after simulated restart");
+        assert_eq!(recovered.transaction_id, transaction_id);
+        assert_eq!(recovered.source_sha256, source_sha256);
+        assert!(recovered.source_restored);
+        assert!(recovered.audit_written);
+        assert_eq!(
+            recovered.receipt_state,
+            ConsolidationTransactionState::Restored
+        );
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+        let restored_document = read_consolidation_transactions_at(&root).unwrap();
+        assert_eq!(
+            restored_document.transactions[0].state,
+            ConsolidationTransactionState::Restored
+        );
+        assert_eq!(
+            restored_document.transactions[0].restored_at.as_deref(),
+            Some("2026-08-20T18:10:00Z")
+        );
+
+        let idempotent = recover_interrupted_consolidation_at(
+            &root,
+            &transaction_id,
+            "2026-08-20T18:15:00Z".into(),
+            |_| panic!("an already restored receipt must not audit again"),
+        )
+        .expect("idempotent recovery after restart");
+        assert_eq!(
+            idempotent.receipt_state,
+            ConsolidationTransactionState::Restored
+        );
+        assert_eq!(fs::read(&source_path).unwrap(), original_bytes);
+
+        let before_corruption_probe = fs::read(&source_path).unwrap();
+        fs::write(consolidation_transaction_path(&root), b"{}").unwrap();
+        assert!(recover_interrupted_consolidation_at(
+            &root,
+            &transaction_id,
+            "2026-08-20T18:20:00Z".into(),
+            |_| Ok(()),
+        )
+        .is_err());
+        assert_eq!(fs::read(&source_path).unwrap(), before_corruption_probe);
+
+        fs::remove_dir_all(root).expect("remove R6.3-E fixture");
     }
 
     #[test]
