@@ -87,13 +87,20 @@ describe("sistema de iconos funcionales", () => {
     expect(source).toContain('viewBox="0 0 200 200"');
   });
 
-  it("conserva Avatar como ficha manual del gemelo digital de Alice", () => {
+  it.each(Object.entries(functionalIcons))("%s tiene movimiento decorativo desactivable", (_name, source) => {
+    expect(source).toMatch(/animation:/);
+    expect(source).toContain("prefers-reduced-motion");
+  });
+
+  it("conserva Avatar con el contenido real del visor de Alice", () => {
     expect(navAvatar).toContain("ALICE · AVATAR");
-    expect(navAvatar).toContain("HAIR ASSET");
-    expect(navAvatar).toContain("TECHWEAR SET");
+    expect(navAvatar).toContain("MODELO CARGADO");
+    expect(navAvatar).toContain("INSPECTOR VRM");
     expect(navAvatar).toContain("CLIPS");
-    expect(navAvatar).toContain("WALK");
-    expect(navAvatar).toContain("JUMP");
+    expect(navAvatar).toContain("FACIAL · SOLO LECTURA");
+    expect(navAvatar).toContain("01 RENDER");
+    expect(navAvatar).toContain("04 RAGDOLL");
+    expect(navAvatar).toContain("MANUAL · R3");
     expect(navAvatar).toContain("ALICE.VRM");
     expect(navAvatar).toContain("LOCAL · PRIVATE");
     expect(navAvatar).not.toMatch(/transform:\s*translate/i);

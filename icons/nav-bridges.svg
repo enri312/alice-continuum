@@ -1,41 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Puentes corporales">
   <title>Puentes corporales</title>
   <style>
-    .bridges-orbit{animation:bridgesOrbit 4s linear infinite}.bridges-pulse{animation:bridgesPulse 1.8s ease-in-out infinite}.bridges-scan{animation:bridgesScan 3s ease-in-out infinite}
-    @keyframes bridgesOrbit{to{stroke-dashoffset:-42}}@keyframes bridgesPulse{50%{opacity:.3}}@keyframes bridgesScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
-    @media (prefers-reduced-motion:reduce){.bridges-orbit,.bridges-pulse,.bridges-scan{animation:none}}
+    .bridges-dash{animation:bridgesDash 2.8s linear infinite}.bridges-blink{animation:bridgesBlink 1.6s steps(2,end) infinite}.bridges-blink2{animation:bridgesBlink 2.3s steps(2,end) .5s infinite}.bridges-scan{animation:bridgesScan 4.2s ease-in-out infinite}.bridges-spin{transform-box:fill-box;transform-origin:50% 50%;animation:bridgesSpin 16s linear infinite}
+    @keyframes bridgesDash{to{stroke-dashoffset:-26}}@keyframes bridgesBlink{50%{opacity:.25}}
+    @keyframes bridgesScan{0%,100%{y:50px;opacity:.06}50%{y:140px;opacity:.4}}
+    @keyframes bridgesSpin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.bridges-dash,.bridges-blink,.bridges-blink2,.bridges-scan,.bridges-spin{animation:none}}
   </style>
   <defs>
-    <radialGradient id="bridges-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <radialGradient id="bridges-plate" cx="38%" cy="30%" r="80%"><stop stop-color="#1b2836"/><stop offset=".55" stop-color="#0b1420"/><stop offset="1" stop-color="#04080d"/></radialGradient>
+    <linearGradient id="bridges-ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#38bdf8"/><stop offset=".55" stop-color="#f8fafc"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
+    <linearGradient id="bridges-gb" x1="0" x2="1"><stop stop-color="#fb923c"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
     <linearGradient id="bridges-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="bridges-accent" x1="0" x2="1"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
-    <radialGradient id="bridges-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#38bdf8"/><stop offset=".68" stop-color="#fb923c"/><stop offset="1" stop-color="#07111d"/></radialGradient>
-    <pattern id="bridges-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#38bdf8" stroke-width=".45" opacity=".22"/></pattern>
-    <filter id="bridges-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="bridges-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
-    <linearGradient id="bridges-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#38bdf8" stop-opacity=".28"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></linearGradient>
+    <radialGradient id="bridges-halo"><stop stop-color="#fff"/><stop offset=".2" stop-color="#38bdf8"/><stop offset=".7" stop-color="#fb923c"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <filter id="bridges-shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="2.6" flood-color="#000" flood-opacity=".85"/></filter>
+    <filter id="bridges-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
-  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
-  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#bridges-base)" stroke="#475569" stroke-width="1.5"/>
-  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#bridges-grid)" stroke="#38bdf8" stroke-width=".8" opacity=".78"/>
-  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#bridges-beam)"/>
-  <circle class="bridges-orbit" cx="100" cy="100" r="71" fill="none" stroke="#38bdf8" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="bridges-orbit" cx="100" cy="100" r="62" fill="none" stroke="#fb923c" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
-  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#38bdf8" stroke-width="1" opacity=".65"/>
-  <g fill="url(#bridges-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
-  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
-  <g fill="#38bdf8" filter="url(#bridges-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#fb923c"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
-  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#38bdf8" font-size="7" text-anchor="middle" letter-spacing="1.5">BRIDGES · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
-  <g transform="translate(14 65)" fill="#07111e" stroke="#38bdf8" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#38bdf8"/><circle class="bridges-pulse" cx="19" cy="27" r="2" fill="#fb923c" stroke="none"/></g>
-  <g transform="translate(160 65)" fill="#07111e" stroke="#fb923c" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#fb923c"/><circle class="bridges-pulse" cx="8" cy="27" r="2" fill="#38bdf8" stroke="none"/></g>
-  <g transform="translate(100 91)" filter="url(#bridges-shadow)">
-      <path d="M-58 34 0 5l58 29L0 62z" fill="#111827" stroke="#64748b"/><path d="M-58 34 0 62v10l-58-28z" fill="#060b13"/><path d="M58 34 0 62v10l58-28z" fill="#0b111b"/>
-      <g transform="translate(-30 -3)"><path d="M-18-28 0-38l18 10L0-18z" fill="#164e63" stroke="#38bdf8"/><path d="M-18-28 0-18v39l-18-10z" fill="#082f49"/><path d="M18-28 0-18v39l18-10z" fill="#0c4a6e"/><circle cy="-26" r="4" fill="#38bdf8"/></g>
-      <g transform="translate(30 -3)"><path d="M-18-28 0-38l18 10L0-18z" fill="#7c2d12" stroke="#fb923c"/><path d="M-18-28 0-18v39l-18-10z" fill="#431407"/><path d="M18-28 0-18v39l18-10z" fill="#7c2d12"/><circle cy="-26" r="4" fill="#fb923c"/></g>
-      <path d="M-30-29Q0-57 30-29M-30-18Q0 5 30-18" fill="none" stroke="url(#bridges-accent)" stroke-width="4" filter="url(#bridges-glow)"/><circle cy="-38" r="6" fill="#fff"/>
+  <rect x="20" y="20" width="160" height="160" rx="32" fill="#02050a"/>
+  <rect x="25" y="25" width="150" height="150" rx="27" fill="url(#bridges-plate)" stroke="url(#bridges-ga)" stroke-width="2.4"/>
+  <rect x="34" y="34" width="132" height="132" rx="21" fill="none" stroke="#1e293b" stroke-width="1.2"/>
+  <path d="M42 54v-8q0-4 4-4h8M158 54v-8q0-4-4-4h-8M42 146v8q0 4 4 4h8M158 146v8q0 4-4 4h-8" fill="none" stroke="#38bdf8" stroke-width="1.6" opacity=".5"/>
+  <g fill="#1e293b" stroke="#475569" stroke-width=".6"><circle cx="31" cy="31" r="1.6"/><circle cx="169" cy="31" r="1.6"/><circle cx="31" cy="169" r="1.6"/><circle cx="169" cy="169" r="1.6"/></g>
+  <path d="M88 40h6M106 40h6" stroke="#1e293b" stroke-width="1.4"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="58" y="50" fill="#475569" font-size="3">ALICE // LOCAL-FIRST</text><text x="142" y="50" fill="#475569" font-size="3" text-anchor="end">v0.1.0</text></g>
+  <path d="M36 62v76M164 62v76" stroke="#1e293b" stroke-width=".7"/>
+  <path d="M36 68h2.5M36 80h1.8M36 92h2.5M36 104h1.8M36 116h2.5M36 128h1.8M164 68h-2.5M164 80h-1.8M164 92h-2.5M164 104h-1.8M164 116h-2.5M164 128h-1.8" stroke="#475569" stroke-width=".6"/>
+  <circle class="bridges-blink" cx="100" cy="42" r="2.2" fill="#fb923c" filter="url(#bridges-glow)"/>
+  <g filter="url(#bridges-shadow)">
+      <g transform="translate(58 84)"><path d="M-14-8 0-15l14 7L0-1z" fill="#164e63" stroke="#38bdf8"/><path d="M-14-8 0-1v21l-14-7z" fill="#082f49"/><path d="M14-8 0-1v21l14-7z" fill="#0c4a6e"/><circle cy="-10" r="2.6" fill="#38bdf8"/></g>
+      <g transform="translate(142 84)"><path d="M-14-8 0-15l14 7L0-1z" fill="#7c2d12" stroke="#fb923c"/><path d="M-14-8 0-1v21l-14-7z" fill="#431407"/><path d="M14-8 0-1v21l14-7z" fill="#7c2d12"/><circle cy="-10" r="2.6" fill="#fb923c"/></g>
     </g>
-  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><g transform="translate(37 127)"><rect width="126" height="26" rx="3" fill="#07111e" stroke="#475569"/><g fill="#0c2634" stroke="#38bdf8"><rect x="5" y="5" width="20" height="16"/><rect x="30" y="5" width="20" height="16"/><rect x="55" y="5" width="20" height="16"/></g><g fill="#2a170a" stroke="#fb923c"><rect x="80" y="5" width="20" height="16"/><rect x="105" y="5" width="16" height="16"/></g><text x="15" y="15" fill="#38bdf8" text-anchor="middle">MEM</text><text x="40" y="15" fill="#38bdf8" text-anchor="middle">SEN</text><text x="65" y="15" fill="#38bdf8" text-anchor="middle">AI</text><text x="90" y="15" fill="#fb923c" text-anchor="middle">FACE</text><text x="113" y="15" fill="#fb923c" text-anchor="middle">BODY</text></g><text x="100" y="160" fill="#fca5a5" text-anchor="middle">REGISTRY · PASSIVE PROBES · SAFE OFF</text></g>
-  <g class="bridges-scan" stroke="#fb923c" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
-  <g opacity=".65" stroke="#38bdf8" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
-  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#38bdf8"/><circle cx="58" cy="2.5" r="1.5" fill="#fb923c"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
+    <path class="bridges-dash" d="M66 70Q100 54 134 70" fill="none" stroke="url(#bridges-ga)" stroke-width="1.8" stroke-dasharray="6 4" filter="url(#bridges-glow)"/>
+    <circle class="bridges-blink" cx="100" cy="62" r="3" fill="#fff"/>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.6"><text x="58" y="104" fill="#38bdf8" text-anchor="middle">MENTE</text><text x="142" y="104" fill="#fb923c" text-anchor="middle">CUERPO</text></g>
+    <path d="M46 108h4l2-3 3 5 2-4 3 3h4" stroke="#38bdf8" stroke-width=".8" fill="none" opacity=".7"/><path d="M130 108h4l2-3 3 5 2-4 3 3h4" stroke="#fb923c" stroke-width=".8" fill="none" opacity=".7"/>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.4">
+      <g fill="#0b1320" stroke="#475569"><rect x="42" y="112" width="116" height="9" rx="2"/><rect x="42" y="124" width="116" height="9" rx="2"/></g>
+      <circle cx="48" cy="116.5" r="1.8" fill="#fbbf24" class="bridges-blink2"/><text x="54" y="119" fill="#94a3b8">CAM / MIC · PARTIAL</text><text x="152" y="119" fill="#fde68a" text-anchor="end">LEASE 60s</text>
+      <circle cx="48" cy="128.5" r="1.8" fill="#64748b"/><text x="54" y="131" fill="#64748b">VOZ · ROSTRO · CUERPO</text><text x="152" y="131" fill="#64748b" text-anchor="end">PLANNED</text>
+    </g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="42" y="142" fill="#475569" font-size="3">25 CAPS</text><text x="100" y="142" fill="#fca5a5" font-size="3.8" text-anchor="middle">REGISTRY · PROBES · SAFE OFF</text></g>
+  <rect class="bridges-scan" x="40" y="50" width="120" height="1.4" fill="#38bdf8"/>
+  <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#38bdf8"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-BRIDGES</text></g>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="163" fill="#64748b" font-size="7" text-anchor="middle" letter-spacing="2">BRIDGES</text></g>
 </svg>

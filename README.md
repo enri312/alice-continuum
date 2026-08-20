@@ -6,9 +6,9 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![R6](https://img.shields.io/badge/R6.3--B-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-250%2F250%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-179%20aprobadas%20%7C%2013%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R6](https://img.shields.io/badge/R6.4--A-validado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-280%2F280%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-184%20aprobadas%20%7C%2014%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -26,7 +26,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 16 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 20 de agosto de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
@@ -37,11 +37,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1, R6.2-C y R6.3-B validados: RAM acotada, candidatos deterministas y decisión humana mantener-separados |
+| Memoria por capas R6 | R6.1, R6.2-C, R6.3-B y R6.4-A validados: RAM acotada, candidatos deterministas, decisión humana mantener-separados y aprendizaje episódico conversacional |
 | Capacidades implementadas o parciales | 15 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 250/250 aprobadas |
-| Pruebas Rust | 179 normales aprobadas; trece sondas vivas disponibles por separado |
+| Pruebas TypeScript | 280/280 aprobadas |
+| Pruebas Rust | 184 normales aprobadas; catorce sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -77,9 +77,9 @@ El volumen `[01]` es una semilla 3D evolutiva: crece desde el centro, representa
 
 ### Sistema de insignias técnicas Alice
 
-La navegación y los controles visuales usan 22 SVG locales de alta definición con escenas técnicas propias: revisión de privacidad, señales R3, registro de capacidades, VRM y locomoción, tokens, manifiestos, evidencia de procedimientos, canales corporales y controles de cámara. El lenguaje visual se estudió auditando la colección de Cyrcetech, sin importar sus archivos ni sus figuras. Dieciocho iconos se generan desde cero con `npm run icons:generate`; `nav-memory.svg` y la base visual de `nav-conversation.svg`, aportados por el propietario, se adaptan y preservan como fuentes manuales. `nav-avatar.svg` y `bridge-face.svg` también quedan protegidos como composiciones manuales originales: Avatar es una estación de personalización VRM que presenta el cabello, el conjunto techwear, el arnés, las botas, el rig y los 12 clips como activos separados, sin rostro ni figura humana; su geometría permanece fija y sólo varía lentamente la intensidad de LEDs. Rostro es un calibrador óptico independiente con perfil humano abstracto, landmarks, cinco dependencias inactivas, ocho canales reservados, cámara apagada y video no almacenado. Conversación representa entrada textual, contexto, compuerta de privacidad y autorización; mantiene el micrófono en `SAFE OFF` hasta que exista una integración real de voz. La navegación presenta los SVG a `98 × 98 px` (`86 × 86 px` en móvil) para conservar sus microdetalles. Las pruebas verifican catálogo, accesibilidad, lienzo, unicidad, semántica de Avatar/Rostro y ausencia de recursos externos o contenido ejecutable.
+La navegación y los controles visuales usan 23 SVG locales de alta definición con escenas técnicas propias: revisión de privacidad, señales R3, registro de capacidades, VRM y locomoción, tokens, manifiestos, evidencia de procedimientos, canales corporales y controles de cámara. El lenguaje visual se estudió auditando la colección de Cyrcetech, sin importar sus archivos ni sus figuras. El generador produce de forma reproducible 22 iconos —diecisiete de pantalla y cinco controles de cámara— como teclas redondeadas de glifo grueso con escena semántica real, etiqueta inferior y colores propios de cada área; `nav-avatar.svg` es la única composición manual protegida. Avatar reproduce su pantalla real en la misma tecla —visor con maniquí sin rostro y rig visible, estado `MODELO CARGADO`, inspector VRM con huesos, 14 expresiones, springs y 12 clips, catálogo facial de solo lectura, licencia privada, control manual DualSense auditado en R3 y las cuatro fronteras de conexión (render activo; expresión, voz y ragdoll desconectados)—. Rostro muestra el calibrador óptico con perfil humano abstracto, landmarks inactivos, cinco dependencias en cero, ocho canales reservados, cámara apagada y video no almacenado. Conversación representa entrada textual, contexto, compuerta de privacidad y autorización; mantiene el micrófono en `SAFE OFF` hasta que exista una integración real de voz. El movimiento es decorativo y acotado (escaneo, flujo de datos, parpadeos de estado) y se desactiva con `prefers-reduced-motion`. La navegación presenta los SVG a `98 × 98 px` (`86 × 86 px` en móvil) para conservar sus microdetalles. Las pruebas verifican catálogo, accesibilidad, lienzo, unicidad, semántica de Avatar/Rostro, movimiento decorativo desactivable y ausencia de recursos externos o contenido ejecutable.
 
-El emblema de la aplicación no forma parte de este rediseño: [`icons/app-alice.svg`](icons/app-alice.svg) y el conjunto de iconos de Tauri permanecen intactos. La decisión vigente y la verificación están documentadas en [ADR-P-064](docs/decisions/ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md). [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) conserva el antecedente reemplazado.
+El emblema [`icons/app-alice.svg`](icons/app-alice.svg) se rediseñó el 2026-08-20 a solicitud del propietario con mayor detalle —retícula y anillo internos, tornillería, trazas de circuito entre nodos, anillo orbital con satélites, facetas del hexágono y ticks en la línea base— conservando su identidad de hemisferios y núcleo; el conjunto de iconos de Tauri (`src-tauri/icons/`) permanece intacto. La decisión vigente y la verificación están documentadas en [ADR-P-064](docs/decisions/ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md). [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) conserva el antecedente reemplazado.
 
 ## Cámara, micrófono y aprendizaje sensorial
 

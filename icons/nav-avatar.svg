@@ -1,81 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Estación de personalización del avatar VRM de Alice">
-  <title>Avatar de Alice · estación de personalización VRM</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Avatar">
+  <title>Avatar</title>
   <style>
-    .av-led-a{animation:avLedA 3.8s ease-in-out infinite}.av-led-b{animation:avLedB 4.6s ease-in-out infinite}
-    @keyframes avLedA{0%,100%{opacity:.95}50%{opacity:.38}}@keyframes avLedB{0%,100%{opacity:.35}50%{opacity:.9}}
-    @media(prefers-reduced-motion:reduce){.av-led-a,.av-led-b{animation:none}}
+    .avatar-dash{animation:avatarDash 2.8s linear infinite}.avatar-blink{animation:avatarBlink 1.6s steps(2,end) infinite}.avatar-blink2{animation:avatarBlink 2.3s steps(2,end) .5s infinite}.avatar-scan{animation:avatarScan 4.2s ease-in-out infinite}.avatar-spin{transform-box:fill-box;transform-origin:50% 50%;animation:avatarSpin 16s linear infinite}
+    @keyframes avatarDash{to{stroke-dashoffset:-26}}@keyframes avatarBlink{50%{opacity:.25}}
+    @keyframes avatarScan{0%,100%{y:50px;opacity:.06}50%{y:140px;opacity:.4}}
+    @keyframes avatarSpin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.avatar-dash,.avatar-blink,.avatar-blink2,.avatar-scan,.avatar-spin{animation:none}}
   </style>
   <defs>
-    <linearGradient id="av-chassis" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#27364a"/><stop offset=".32" stop-color="#111c2b"/><stop offset=".72" stop-color="#07101a"/><stop offset="1" stop-color="#02050a"/></linearGradient>
-    <linearGradient id="av-screen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0e7490" stop-opacity=".28"/><stop offset=".45" stop-color="#0b1725" stop-opacity=".9"/><stop offset="1" stop-color="#6d28d9" stop-opacity=".18"/></linearGradient>
-    <linearGradient id="av-cyan" x1="0" x2="1"><stop stop-color="#22d3ee"/><stop offset=".55" stop-color="#38bdf8"/><stop offset="1" stop-color="#818cf8"/></linearGradient>
-    <linearGradient id="av-violet" x1="0" x2="1"><stop stop-color="#818cf8"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#d8b4fe"/></linearGradient>
-    <linearGradient id="av-hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".42" stop-color="#dbeafe"/><stop offset=".76" stop-color="#94a3b8"/><stop offset="1" stop-color="#536274"/></linearGradient>
-    <linearGradient id="av-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#64748b"/><stop offset=".25" stop-color="#273448"/><stop offset=".64" stop-color="#101722"/><stop offset="1" stop-color="#030509"/></linearGradient>
-    <linearGradient id="av-fabric" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#eff6ff"/><stop offset=".55" stop-color="#a8b7c8"/><stop offset="1" stop-color="#64748b"/></linearGradient>
-    <linearGradient id="av-deck" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#334155"/><stop offset="1" stop-color="#060b12"/></linearGradient>
-    <radialGradient id="av-halo"><stop stop-color="#bae6fd" stop-opacity=".75"/><stop offset=".3" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="1" stop-color="#020617" stop-opacity="0"/></radialGradient>
-    <pattern id="av-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0v10" fill="none" stroke="#38bdf8" stroke-width=".35" opacity=".18"/></pattern>
-    <filter id="av-shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#000" flood-opacity=".86"/></filter>
-    <filter id="av-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="avatar-plate" cx="38%" cy="30%" r="80%"><stop stop-color="#1b2836"/><stop offset=".55" stop-color="#0b1420"/><stop offset="1" stop-color="#04080d"/></radialGradient>
+    <linearGradient id="avatar-ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f472b6"/><stop offset=".55" stop-color="#f8fafc"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+    <linearGradient id="avatar-gb" x1="0" x2="1"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#f472b6"/></linearGradient>
+    <linearGradient id="avatar-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
+    <radialGradient id="avatar-halo"><stop stop-color="#fff"/><stop offset=".2" stop-color="#f472b6"/><stop offset=".7" stop-color="#38bdf8"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <filter id="avatar-shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="2.6" flood-color="#000" flood-opacity=".85"/></filter>
+    <filter id="avatar-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
-
-  <!-- Consola de loadout: todo permanece fijo -->
-  <path d="M15 31 38 10h124l23 21v126l-24 28H39l-24-22Z" fill="#02050a" stroke="#020617" stroke-width="3"/>
-  <path d="M21 35 42 17h116l20 18v119l-21 24H43l-22-19Z" fill="url(#av-chassis)" stroke="#64748b" stroke-width="1.5"/>
-  <path d="M29 43h142v108l-18 18H47l-18-16Z" fill="url(#av-screen)" stroke="#38bdf8" stroke-width=".9"/>
-  <path d="M29 43h142v108l-18 18H47l-18-16Z" fill="url(#av-grid)"/>
-  <path d="M29 43h142v18H29Z" fill="#07111c" stroke="#475569"/>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="38" y="54" fill="#7dd3fc" font-size="6.2" letter-spacing="1">ALICE · AVATAR LOADOUT</text><text x="164" y="54" fill="#c4b5fd" font-size="5" text-anchor="end">VRM 1.0</text></g>
-
-  <!-- Tres compartimentos de personalización -->
-  <g filter="url(#av-shadow)">
-    <path d="M35 69 52 62h28l10 9v61l-12 10H49l-14-10Z" fill="#07121e" stroke="#22d3ee"/>
-    <path d="M92 68 101 62h39l10 9v61l-10 10h-39l-9-10Z" fill="#0d1020" stroke="#818cf8"/>
-    <path d="M152 71 160 65h12v65l-8 9h-12Z" fill="#0b1420" stroke="#38bdf8"/>
-  </g>
-
-  <!-- Módulo 1: cabello de Alice como activo, sin cara -->
-  <g transform="translate(62 99)">
-    <ellipse cy="32" rx="21" ry="7" fill="url(#av-halo)"/>
-    <path d="M-18-12c1-25 10-38 20-38 12 0 22 14 21 38l-2 35-10 9-2-40H-8l-2 40-10-9Z" fill="url(#av-hair)" stroke="#e0f2fe" stroke-width="1.2"/>
-    <path d="M-13-13c3-20 9-29 16-29 8 0 15 10 17 29-8-4-14-11-17-20-3 9-8 15-16 20Z" fill="#f8fafc" opacity=".85"/>
-    <path d="M1-50c-5-11 7-15 9-6-7-4-7 3-4 6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M-12-28v25M-6-39v30M2-44v31M10-39v30M17-27v24" stroke="#8393a5" stroke-width=".8" opacity=".65"/>
-    <path d="M-5 8h13" stroke="#38bdf8" stroke-width="2" filter="url(#av-glow)"/>
-  </g>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="42" y="76" fill="#7dd3fc" font-size="4.5">HAIR ASSET</text><text x="42" y="137" fill="#4ade80" font-size="4.3">BOUND</text></g>
-
-  <!-- Módulo 2: vestuario real de Alice sin figura humana -->
-  <g transform="translate(121 101)">
-    <ellipse cy="32" rx="25" ry="7" fill="url(#av-halo)"/>
-    <!-- chaqueta abierta -->
-    <path d="M-12-32c-16 2-24 11-26 27l8 31 11-4-4-26 9-12 8 14 6-30Z" fill="url(#av-coat)" stroke="#64748b" stroke-width="1.2"/>
-    <path d="M12-32c16 2 24 11 26 27l-8 31-11-4 4-26-9-12-8 14-6-30Z" fill="url(#av-coat)" stroke="#64748b" stroke-width="1.2"/>
-    <path d="M-31-16h12m-14 9h12m-11 9h10M31-16H19m14 9H21m11 9H22" stroke="#94a3b8" stroke-width="1" opacity=".58"/>
-    <!-- vestido, corbata y arnés suspendidos -->
-    <path d="M-11-29-17 27H17L11-29Z" fill="url(#av-fabric)" stroke="#dbeafe"/>
-    <path d="M-2-30h4l4 9-6 7-6-7Z" fill="#030509" stroke="#94a3b8"/><path d="M0-14v38" stroke="#030509" stroke-width="2.5"/>
-    <path d="M-16-16 14 1M-13 16 17 2" stroke="#070a0f" stroke-width="3"/><rect x="-16" y="20" width="32" height="6" rx="2" fill="#070a0f" stroke="#64748b"/><rect x="-3" y="19" width="7" height="8" rx="1" fill="#334155" stroke="#cbd5e1"/>
-    <!-- botas como conjunto -->
-    <path d="m-14 28-3 9 4 5h11l2-11-7-3Zm28 0 3 9-4 5H2L0 31l7-3Z" fill="url(#av-coat)" stroke="#94a3b8"/>
-  </g>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="76" fill="#c4b5fd" font-size="4.5">TECHWEAR SET</text><text x="100" y="137" fill="#4ade80" font-size="4.3">6 PARTS</text></g>
-
-  <!-- Módulo 3: canales del rig -->
-  <g transform="translate(162 96)" fill="none" stroke="url(#av-cyan)"><circle cy="-17" r="4"/><path d="M0-13v22m0-13-7 8m7-8 7 8M0 9l-6 13m6-13 6 13"/></g>
-  <g fill="#fff" stroke="#38bdf8"><circle cx="162" cy="83" r="1.4"/><circle cx="162" cy="105" r="1.4"/><circle cx="155" cy="100" r="1.4"/><circle cx="169" cy="100" r="1.4"/><circle cx="156" cy="118" r="1.4"/><circle cx="168" cy="118" r="1.4"/></g>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="162" y="130" fill="#7dd3fc" font-size="4" text-anchor="middle">RIG</text><text x="162" y="136" fill="#4ade80" font-size="4" text-anchor="middle">OK</text></g>
-
-  <!-- Biblioteca motora y control humano -->
-  <path d="M40 145h119l10 10-14 18H47l-16-17Z" fill="url(#av-deck)" stroke="#64748b"/>
-  <path d="M47 150h103l9 7-8 10H49l-9-10Z" fill="#06101a" stroke="url(#av-violet)" stroke-width=".8"/>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="51" y="158" fill="#94a3b8" font-size="4.6">MOTOR CLIPS</text><text x="92" y="158" fill="#fff" font-size="5">12</text><text x="51" y="165" fill="#7dd3fc" font-size="4">IDLE · WALK · SIT · JUMP</text></g>
-  <g transform="translate(124 157)" fill="#172536" stroke="#93c5fd"><path d="M0 0c2-5 7-6 11-3l3 3h12l3-3c4-3 9-2 11 3l-4 5-6-2H10L4 5Z"/><path d="M8-1v4M6 1h4" stroke="#fff"/><circle cx="31" cy="0" r="1.3" fill="#a78bfa"/><circle cx="34" cy="3" r="1.3" fill="#38bdf8"/></g>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="44" y="181" fill="#7dd3fc" font-size="4.8">ALICE.VRM</text><text x="157" y="181" fill="#c4b5fd" font-size="4.8" text-anchor="end">LOCAL · PRIVATE</text></g>
-
-  <!-- Movimiento limitado a intensidad de LEDs -->
-  <g class="av-led-a" fill="#22d3ee" filter="url(#av-glow)"><circle cx="30" cy="31" r="2"/><circle cx="170" cy="31" r="2"/><rect x="36" y="63" width="2" height="26" rx="1"/></g>
-  <g class="av-led-b" fill="#a78bfa" filter="url(#av-glow)"><circle cx="31" cy="165" r="2"/><circle cx="169" cy="162" r="2"/><rect x="148" y="72" width="2" height="25" rx="1"/></g>
-  <g fill="url(#av-chassis)" stroke="#94a3b8"><circle cx="30" cy="31" r="4"/><circle cx="170" cy="31" r="4"/><circle cx="31" cy="165" r="4"/><circle cx="169" cy="162" r="4"/></g><g fill="#22d3ee"><circle cx="30" cy="31" r="1.4"/><circle cx="170" cy="31" r="1.4"/></g><g fill="#a78bfa"><circle cx="31" cy="165" r="1.4"/><circle cx="169" cy="162" r="1.4"/></g>
+  <rect x="20" y="20" width="160" height="160" rx="32" fill="#02050a"/>
+  <rect x="25" y="25" width="150" height="150" rx="27" fill="url(#avatar-plate)" stroke="url(#avatar-ga)" stroke-width="2.4"/>
+  <rect x="34" y="34" width="132" height="132" rx="21" fill="none" stroke="#1e293b" stroke-width="1.2"/>
+  <path d="M42 54v-8q0-4 4-4h8M158 54v-8q0-4-4-4h-8M42 146v8q0 4 4 4h8M158 146v8q0 4-4 4h-8" fill="none" stroke="#f472b6" stroke-width="1.6" opacity=".5"/>
+  <g fill="#1e293b" stroke="#475569" stroke-width=".6"><circle cx="31" cy="31" r="1.6"/><circle cx="169" cy="31" r="1.6"/><circle cx="31" cy="169" r="1.6"/><circle cx="169" cy="169" r="1.6"/></g>
+  <path d="M88 40h6M106 40h6" stroke="#1e293b" stroke-width="1.4"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="58" y="50" fill="#475569" font-size="3">ALICE // LOCAL-FIRST</text><text x="142" y="50" fill="#475569" font-size="3" text-anchor="end">v0.1.0</text></g>
+  <path d="M36 62v76M164 62v76" stroke="#1e293b" stroke-width=".7"/>
+  <path d="M36 68h2.5M36 80h1.8M36 92h2.5M36 104h1.8M36 116h2.5M36 128h1.8M164 68h-2.5M164 80h-1.8M164 92h-2.5M164 104h-1.8M164 116h-2.5M164 128h-1.8" stroke="#475569" stroke-width=".6"/>
+  <circle class="avatar-blink" cx="100" cy="42" r="2.2" fill="#38bdf8" filter="url(#avatar-glow)"/>
+  <g filter="url(#avatar-shadow)"><rect x="40" y="56" width="70" height="64" rx="3" fill="#0d0a14" stroke="#f472b6" stroke-width="1.2"/></g>
+    <circle cx="46" cy="62" r="1.6" fill="#4ade80" class="avatar-blink" filter="url(#avatar-glow)"/>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="51" y="64" fill="#4ade80" font-size="3.6">MODELO CARGADO</text><text x="106" y="64" fill="#64748b" font-size="3.2" text-anchor="end">ALICE · AVATAR</text></g>
+    <g><circle cx="75" cy="82" r="5" fill="url(#avatar-halo)" stroke="#cbd5e1" stroke-width=".9"/>
+      <path d="M70 88h10l2 12-3 9h-8l-3-9Z" fill="#1f2937" stroke="#64748b" stroke-width=".9"/>
+      <path d="M70 89l-5 3-1 9M80 89l5 3 1 9" fill="none" stroke="#273448" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M72 109l-1 6M78 109l1 6" fill="none" stroke="#101722" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M68 90c-3 6-3 12-1 18M82 90c3 6 3 12 1 18" fill="none" stroke="#f472b6" stroke-width=".8" opacity=".8" stroke-dasharray="4 3" class="avatar-dash"/>
+    </g>
+    <g fill="#fff" stroke="#38bdf8" stroke-width=".6"><circle cx="70" cy="89" r=".9"/><circle cx="80" cy="89" r=".9"/><circle cx="64" cy="101" r=".9"/><circle cx="86" cy="101" r=".9"/><circle cx="71" cy="109" r=".9"/><circle cx="79" cy="109" r=".9"/></g>
+    <ellipse cx="75" cy="117" rx="16" ry="3.4" fill="none" stroke="#38bdf8" stroke-width=".8" stroke-dasharray="5 4" class="avatar-dash"/>
+    <g transform="translate(94 116) scale(.8)" fill="#172536" stroke="#93c5fd" stroke-width=".9"><path d="M0 0c1.5-4 5.5-5 9-2.5l2.5 2.5h9l2.5-2.5c3.5-2.5 7.5-1.5 9 2.5l-3 4-5-1.5h-14l-5 1.5z"/></g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="108" y="106" fill="#64748b" font-size="3.2" text-anchor="end">TEST 10s</text><text x="108" y="112" fill="#64748b" font-size="3.2" text-anchor="end">MANUAL · R3</text></g>
+    <g filter="url(#avatar-shadow)"><path d="M114 56h46v64h-46l-4-6V62Z" fill="#100d1c" stroke="#38bdf8"/></g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="118" y="63" fill="#c4b5fd" font-size="3.8">INSPECTOR VRM</text></g>
+    <path d="M118 66h38" stroke="#312e81" stroke-width=".7"/>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.2">
+      <text x="118" y="72" fill="#64748b">HUESOS</text><rect x="144" y="69.6" width="12" height="2.4" fill="#164e63"/><rect x="144" y="69.6" width="8" height="2.4" fill="#38bdf8" class="avatar-blink2"/>
+      <text x="118" y="79" fill="#64748b">EXPR</text><text x="156" y="79" fill="#e0f2fe" text-anchor="end">14</text>
+      <text x="118" y="86" fill="#64748b">SPRINGS</text><rect x="144" y="83.6" width="12" height="2.4" fill="#3b0764"/><rect x="144" y="83.6" width="6" height="2.4" fill="#f472b6" class="avatar-blink2"/>
+      <text x="118" y="93" fill="#64748b">CLIPS</text><text x="156" y="93" fill="#e0f2fe" text-anchor="end">12</text>
+    </g>
+    <path d="M118 97h38" stroke="#312e81" stroke-width=".7"/>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="2.8"><text x="118" y="102" fill="#64748b">FACIAL · SOLO LECTURA</text><text x="118" y="107" fill="#475569">LICENCIA · PRIVADA</text></g>
+    <path d="M150 103h5v4.5h-5Zm1-.9v-1.4a1.6 1.6 0 0 1 3.2 0v1.4" fill="none" stroke="#94a3b8" stroke-width=".7"/>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.2">
+      <rect x="40" y="126" width="29" height="10" rx="2" fill="#052e2b" stroke="#4ade80" stroke-width=".7"/><circle cx="45" cy="131" r="1.4" fill="#4ade80" class="avatar-blink2"/><text x="49" y="133" fill="#a7f3d0">01 RENDER</text>
+      <rect x="71" y="126" width="29" height="10" rx="2" fill="#0b1320" stroke="#475569" stroke-width=".7"/><text x="76" y="133" fill="#64748b">02 EXPR</text>
+      <rect x="102" y="126" width="29" height="10" rx="2" fill="#0b1320" stroke="#475569" stroke-width=".7"/><text x="107" y="133" fill="#64748b">03 VOZ</text>
+      <rect x="133" y="126" width="27" height="10" rx="2" fill="#0b1320" stroke="#475569" stroke-width=".7"/><text x="137" y="133" fill="#64748b">04 RAGDOLL</text>
+    </g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="146" fill="#64748b" font-size="3.6" text-anchor="middle">ALICE.VRM · LOCAL · PRIVATE</text></g>
+  <rect class="avatar-scan" x="40" y="50" width="120" height="1.4" fill="#f472b6"/>
+  <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#f472b6"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-AVATAR</text></g>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="163" fill="#64748b" font-size="7" text-anchor="middle" letter-spacing="2">AVATAR</text></g>
 </svg>

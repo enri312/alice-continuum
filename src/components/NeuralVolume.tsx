@@ -203,7 +203,7 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
   };
 
   const changeZoom = (factor: number) => {
-    cameraRef.current.zoom = clamp(cameraRef.current.zoom * factor, .55, 3);
+    cameraRef.current.zoom = clamp(cameraRef.current.zoom * factor, .55, 3.5);
     updateCameraHud();
   };
 
@@ -278,7 +278,7 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
 
     const wheel = (event: WheelEvent) => {
       if (!snapshot.hasActivity) return;
-      cameraRef.current.zoom = clamp(cameraRef.current.zoom * Math.exp(-event.deltaY * .0012), .55, 3);
+      cameraRef.current.zoom = clamp(cameraRef.current.zoom * Math.exp(-event.deltaY * .0012), .55, 3.5);
       updateCameraHud();
       event.preventDefault();
     };
@@ -476,33 +476,37 @@ export function NeuralVolume({ snapshot, activity }: NeuralVolumeProps) {
     };
   }, [affectSignature, dominantAffect?.rgb, groupActivitySignature, hasAffectActivity, snapshot.affectChannels, snapshot.currentNeuralActivity, snapshot.focusStatus, snapshot.hasActivity, snapshot.neuralDensity, snapshot.persistentMemoryCount, snapshot.persistentNeuralDensity]);
 
-  return <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Matriz cognitivo-afectiva tridimensional de Alice conectada a datos locales reales">
-    <div className="nucleus-panel-label"><span>[01]</span><strong>ALICE COGNITIVE VOLUME</strong><small>AFFECTIVE ROUTING MAP</small></div>
-    <canvas ref={canvasRef} tabIndex={snapshot.hasActivity ? 0 : -1} aria-label="Vista 3D del volumen neuronal. Arrastra para girar o mover, usa la rueda para acercar y alejar, y pulsa cero para restablecer." />
-    {snapshot.hasActivity ? <>
-      <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
-      <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
-      <span className="volume-growth">{snapshot.persistentMemoryCount ? "SEMILLA" : "PULSO TEMPORAL"} · {snapshot.persistentMemoryCount} ANCLAS · ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · SEÑAL R3 {Math.round(snapshot.currentNeuralActivity * 100)}% · {activity?.windowEventCount ?? 0} EVENTOS / 5 MIN</span>
-      <div className="volume-route-signals" aria-label="Señal cognitiva por ruta"><span className="input"><i />ENTRADA <strong>{Math.round(groupActivity.input * 100)}%</strong></span><span className="memory"><i />CONTEXTO <strong>{Math.round(groupActivity.memory * 100)}%</strong></span><span className="output"><i />SALIDA <strong>{Math.round(groupActivity.output * 100)}%</strong></span></div>
-      <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`} style={hasAffectActivity ? { "--affect-color": dominantAffect.color } as CSSProperties : undefined}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "10 CANALES · TODOS EN ESPERA"}</small></span></div>
-      <div className={`volume-affect-palette ${hasAffectActivity ? "active" : "standby"}`} aria-label="Canales afectivos medidos">
-        <header><strong>CANALES AFECTIVOS</strong><span>{hasAffectActivity ? "COLOR = SEÑAL REAL" : "SIN COLORACIÓN DEL VOLUMEN"}</span></header>
-        {hasAffectActivity ? <div>{snapshot.affectChannels.map((channel) => <span key={channel.id} title={`${channel.label}: ${channel.role}. Estado ${channel.availability === "ready" ? "disponible" : "planificado"}.`} style={{ "--affect-color": channel.color } as CSSProperties}><i />{channel.label}<small>{channel.value.toFixed(2)}</small></span>)}</div> : <div className="affect-standby-row">{snapshot.affectChannels.map((channel) => <i key={channel.id} title={`${channel.label}: ${channel.value.toFixed(2)} · ${channel.availability === "ready" ? "disponible" : "planificado"}`} style={{ "--affect-color": channel.color } as CSSProperties} />)}<small>0.00 EN TODOS LOS CANALES</small></div>}
-      </div>
-      <div className="volume-signal-legend"><span className="structure">estructura persistente</span><span className="anchor">ancla de memoria</span><span className="active">pulso R3 verificable</span></div>
-      <div className="volume-camera-controls" aria-label="Controles de cámara del volumen neuronal">
-        <div className="volume-camera-modes" role="group" aria-label="Modo de arrastre">
-          <button className={interactionMode === "rotate" ? "selected" : ""} type="button" title="Girar al arrastrar" aria-pressed={interactionMode === "rotate"} onClick={() => chooseMode("rotate")}><InlineSvgIcon markup={rotateIcon} className="camera-control-icon" /><span>Girar</span></button>
-          <button className={interactionMode === "pan" ? "selected" : ""} type="button" title="Mover al arrastrar" aria-pressed={interactionMode === "pan"} onClick={() => chooseMode("pan")}><InlineSvgIcon markup={panIcon} className="camera-control-icon" /><span>Mover</span></button>
+  return <>
+    <div ref={containerRef} className={`neural-volume mode-${interactionMode} ${snapshot.hasActivity ? "has-activity" : "is-empty"}`} role="group" aria-label="Matriz cognitivo-afectiva tridimensional de Alice conectada a datos locales reales">
+      <div className="nucleus-panel-label"><span>[01]</span><strong>ALICE COGNITIVE VOLUME</strong><small>AFFECTIVE ROUTING MAP</small></div>
+      <canvas ref={canvasRef} tabIndex={snapshot.hasActivity ? 0 : -1} aria-label="Vista 3D del volumen neuronal. Arrastra para girar o mover, usa la rueda para acercar y alejar, y pulsa cero para restablecer." />
+      {snapshot.hasActivity ? <>
+        <span className="hemisphere-label left">PERCEPCIÓN · MEMORIA · EVALUACIÓN</span>
+        <span className="hemisphere-label right">PLANIFICACIÓN · RESPUESTA · ACCIÓN</span>
+        <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`} style={hasAffectActivity ? { "--affect-color": dominantAffect.color } as CSSProperties : undefined}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "10 CANALES · TODOS EN ESPERA"}</small></span></div>
+        <div className={`volume-affect-palette ${hasAffectActivity ? "active" : "standby"}`} aria-label="Canales afectivos medidos">
+          <header><strong>CANALES AFECTIVOS</strong><span>{hasAffectActivity ? "COLOR = SEÑAL REAL" : "SIN COLORACIÓN DEL VOLUMEN"}</span></header>
+          {hasAffectActivity ? <div>{snapshot.affectChannels.map((channel) => <span key={channel.id} title={`${channel.label}: ${channel.role}. Estado ${channel.availability === "ready" ? "disponible" : "planificado"}.`} style={{ "--affect-color": channel.color } as CSSProperties}><i />{channel.label}<small>{channel.value.toFixed(2)}</small></span>)}</div> : <div className="affect-standby-row">{snapshot.affectChannels.map((channel) => <i key={channel.id} title={`${channel.label}: ${channel.value.toFixed(2)} · ${channel.availability === "ready" ? "disponible" : "planificado"}`} style={{ "--affect-color": channel.color } as CSSProperties} />)}<small>0.00 EN TODOS LOS CANALES</small></div>}
         </div>
-        <div className="volume-camera-actions" role="group" aria-label="Zoom y restablecimiento">
-          <button type="button" title="Alejar" aria-label="Alejar volumen" onClick={() => changeZoom(1 / 1.18)}><InlineSvgIcon markup={zoomOutIcon} className="camera-control-icon" /></button>
-          <output aria-label={`Zoom ${zoomPercent} por ciento`}>{zoomPercent}%</output>
-          <button type="button" title="Acercar" aria-label="Acercar volumen" onClick={() => changeZoom(1.18)}><InlineSvgIcon markup={zoomInIcon} className="camera-control-icon" /></button>
-          <button type="button" title="Restablecer vista (doble clic o tecla 0)" aria-label="Restablecer vista" onClick={resetCamera}><InlineSvgIcon markup={resetIcon} className="camera-control-icon" /></button>
+        <div className="volume-signal-legend"><span className="structure">estructura persistente</span><span className="anchor">ancla de memoria</span><span className="active">pulso R3 verificable</span></div>
+        <div className="volume-camera-controls" aria-label="Controles de cámara del volumen neuronal">
+          <div className="volume-camera-modes" role="group" aria-label="Modo de arrastre">
+            <button className={interactionMode === "rotate" ? "selected" : ""} type="button" title="Girar al arrastrar" aria-pressed={interactionMode === "rotate"} onClick={() => chooseMode("rotate")}><InlineSvgIcon markup={rotateIcon} className="camera-control-icon" /><span>Girar</span></button>
+            <button className={interactionMode === "pan" ? "selected" : ""} type="button" title="Mover al arrastrar" aria-pressed={interactionMode === "pan"} onClick={() => chooseMode("pan")}><InlineSvgIcon markup={panIcon} className="camera-control-icon" /><span>Mover</span></button>
+          </div>
+          <div className="volume-camera-actions" role="group" aria-label="Zoom y restablecimiento">
+            <button type="button" title="Alejar" aria-label="Alejar volumen" onClick={() => changeZoom(1 / 1.18)}><InlineSvgIcon markup={zoomOutIcon} className="camera-control-icon" /></button>
+            <output aria-label={`Zoom ${zoomPercent} por ciento`}>{zoomPercent}%</output>
+            <button type="button" title="Acercar" aria-label="Acercar volumen" onClick={() => changeZoom(1.18)}><InlineSvgIcon markup={zoomInIcon} className="camera-control-icon" /></button>
+            <button type="button" title="Restablecer vista (doble clic o tecla 0)" aria-label="Restablecer vista" onClick={resetCamera}><InlineSvgIcon markup={resetIcon} className="camera-control-icon" /></button>
+          </div>
         </div>
-      </div>
-      <p className="volume-camera-help">RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; SHIFT + ARRASTRAR · MOVER&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</p>
-    </> : <div className="volume-empty"><span>000</span><strong>SIN ACTIVIDAD REGISTRADA</strong><small>La matriz aparecerá después de una interacción real. Los diez canales afectivos permanecen en 0.00.</small></div>}
-  </div>;
+      </> : <div className="volume-empty"><span>000</span><strong>SIN ACTIVIDAD REGISTRADA</strong><small>La matriz aparecerá después de una interacción real. Los diez canales afectivos permanecen en 0.00.</small></div>}
+    </div>
+    {snapshot.hasActivity && <div className="volume-stats-strip">
+      <span className="volume-stats-growth">{snapshot.persistentMemoryCount ? "SEMILLA" : "PULSO TEMPORAL"} · {snapshot.persistentMemoryCount} ANCLAS · ESTRUCTURA {Math.round(snapshot.persistentNeuralDensity * 100)}% · SEÑAL R3 {Math.round(snapshot.currentNeuralActivity * 100)}% · {activity?.windowEventCount ?? 0} EVENTOS / 5 MIN</span>
+      <div className="volume-stats-routes" aria-label="Señal cognitiva por ruta"><span className="input"><i />ENTRADA <strong>{Math.round(groupActivity.input * 100)}%</strong></span><span className="memory"><i />CONTEXTO <strong>{Math.round(groupActivity.memory * 100)}%</strong></span><span className="output"><i />SALIDA <strong>{Math.round(groupActivity.output * 100)}%</strong></span></div>
+      <span className="volume-stats-help">RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; SHIFT + ARRASTRAR · MOVER&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</span>
+    </div>}
+  </>;
 }

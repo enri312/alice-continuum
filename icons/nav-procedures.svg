@@ -1,43 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Procedimientos">
   <title>Procedimientos</title>
   <style>
-    .procedures-orbit{animation:proceduresOrbit 4s linear infinite}.procedures-pulse{animation:proceduresPulse 1.8s ease-in-out infinite}.procedures-scan{animation:proceduresScan 3s ease-in-out infinite}
-    @keyframes proceduresOrbit{to{stroke-dashoffset:-42}}@keyframes proceduresPulse{50%{opacity:.3}}@keyframes proceduresScan{0%,100%{transform:translateX(-7px);opacity:.18}50%{transform:translateX(7px);opacity:.8}}
-    @media (prefers-reduced-motion:reduce){.procedures-orbit,.procedures-pulse,.procedures-scan{animation:none}}
+    .procedures-dash{animation:proceduresDash 2.8s linear infinite}.procedures-blink{animation:proceduresBlink 1.6s steps(2,end) infinite}.procedures-blink2{animation:proceduresBlink 2.3s steps(2,end) .5s infinite}.procedures-scan{animation:proceduresScan 4.2s ease-in-out infinite}.procedures-spin{transform-box:fill-box;transform-origin:50% 50%;animation:proceduresSpin 16s linear infinite}
+    @keyframes proceduresDash{to{stroke-dashoffset:-26}}@keyframes proceduresBlink{50%{opacity:.25}}
+    @keyframes proceduresScan{0%,100%{y:50px;opacity:.06}50%{y:140px;opacity:.4}}
+    @keyframes proceduresSpin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.procedures-dash,.procedures-blink,.procedures-blink2,.procedures-scan,.procedures-spin{animation:none}}
   </style>
   <defs>
-    <radialGradient id="procedures-base" cx="42%" cy="32%" r="75%"><stop stop-color="#263442"/><stop offset=".48" stop-color="#101923"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+    <radialGradient id="procedures-plate" cx="38%" cy="30%" r="80%"><stop stop-color="#1b2836"/><stop offset=".55" stop-color="#0b1420"/><stop offset="1" stop-color="#04080d"/></radialGradient>
+    <linearGradient id="procedures-ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#34d399"/><stop offset=".55" stop-color="#f8fafc"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+    <linearGradient id="procedures-gb" x1="0" x2="1"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#34d399"/></linearGradient>
     <linearGradient id="procedures-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="procedures-accent" x1="0" x2="1"><stop stop-color="#34d399"/><stop offset=".52" stop-color="#f8fafc"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
-    <radialGradient id="procedures-holo"><stop stop-color="#fff"/><stop offset=".18" stop-color="#34d399"/><stop offset=".68" stop-color="#fbbf24"/><stop offset="1" stop-color="#07111d"/></radialGradient>
-    <pattern id="procedures-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0v12" fill="none" stroke="#34d399" stroke-width=".45" opacity=".22"/></pattern>
-    <filter id="procedures-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="procedures-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity=".8"/></filter>
-    <linearGradient id="procedures-beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#34d399" stop-opacity=".28"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></linearGradient>
+    <radialGradient id="procedures-halo"><stop stop-color="#fff"/><stop offset=".2" stop-color="#34d399"/><stop offset=".7" stop-color="#fbbf24"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <filter id="procedures-shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="2.6" flood-color="#000" flood-opacity=".85"/></filter>
+    <filter id="procedures-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
-  <path d="M100 8C178 8 192 22 192 100S178 192 100 192 8 178 8 100 22 8 100 8Z" fill="#070a0f"/>
-  <path d="M100 13c72 0 82 15 82 87s-10 87-82 87-82-15-82-87 10-87 82-87Z" fill="url(#procedures-base)" stroke="#475569" stroke-width="1.5"/>
-  <path d="M100 19c66 0 76 14 76 81s-10 81-76 81-76-14-76-81 10-81 76-81Z" fill="url(#procedures-grid)" stroke="#34d399" stroke-width=".8" opacity=".78"/>
-  <path d="M100 24c57 0 71 10 75 57L25 81c4-47 18-57 75-57Z" fill="url(#procedures-beam)"/>
-  <circle class="procedures-orbit" cx="100" cy="100" r="71" fill="none" stroke="#34d399" stroke-width=".7" stroke-dasharray="7 5" opacity=".45"/><circle class="procedures-orbit" cx="100" cy="100" r="62" fill="none" stroke="#fbbf24" stroke-width=".6" stroke-dasharray="2 6" opacity=".38"/>
-  <path d="M48 34h18l7 7m79-7h-18l-7 7M48 166h18l7-7m79 7h-18l-7-7" fill="none" stroke="#34d399" stroke-width="1" opacity=".65"/>
-  <g fill="url(#procedures-metal)" stroke="#020617"><circle cx="30" cy="30" r="5"/><circle cx="170" cy="30" r="5"/><circle cx="30" cy="170" r="5"/><circle cx="170" cy="170" r="5"/></g>
-  <g stroke="#cbd5e1" stroke-width=".8" opacity=".75"><path d="M27 30h6m-3-3v6M167 30h6m-3-3v6M27 170h6m-3-3v6M167 170h6m-3-3v6"/></g>
-  <g fill="#34d399" filter="url(#procedures-glow)"><circle cx="48" cy="28" r="2"/><circle cx="152" cy="172" r="2"/></g><g fill="#fbbf24"><circle cx="152" cy="28" r="1.5"/><circle cx="48" cy="172" r="1.5"/></g>
-  <path d="M48 22Q100 11 152 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".12"/>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="28" fill="#34d399" font-size="7" text-anchor="middle" letter-spacing="1.5">PROCEDURES · ALICE</text><text x="100" y="176" fill="#64748b" font-size="5" text-anchor="middle" letter-spacing="1">LOCAL · VERIFIED</text></g>
-  <g transform="translate(14 65)" fill="#07111e" stroke="#34d399" stroke-width=".8"><path d="M0 0h22l4 5v25l-4 5H0z"/><path d="M5 8h14M5 14h10M5 20h14M5 26h7" stroke="#34d399"/><circle class="procedures-pulse" cx="19" cy="27" r="2" fill="#fbbf24" stroke="none"/></g>
-  <g transform="translate(160 65)" fill="#07111e" stroke="#fbbf24" stroke-width=".8"><path d="M4 0h22v35H4l-4-5V5z"/><path d="M8 8h14M12 14h10M8 20h14M15 26h7" stroke="#fbbf24"/><circle class="procedures-pulse" cx="8" cy="27" r="2" fill="#34d399" stroke="none"/></g>
-  <g transform="translate(100 89)" filter="url(#procedures-shadow)">
-      <path d="M-50-53 45-45 50 54-45 46z" fill="#0d1f22" stroke="#34d399" stroke-width="2"/><path d="M-40-42 35-36 39 43-36 37z" fill="#101923" stroke="#64748b"/>
-      <g fill="#071318" stroke-width="1.5"><rect x="-28" y="-26" width="18" height="18" rx="3" stroke="#34d399"/><rect x="-28" y="1" width="18" height="18" rx="3" stroke="#34d399"/><rect x="-28" y="28" width="18" height="18" rx="3" stroke="#fbbf24"/></g>
-      <path d="m-24-17 4 4 8-10m-12 33 4 4 8-10" fill="none" stroke="#ecfdf5" stroke-width="2.5"/>
-      <circle cx="-19" cy="37" r="4" fill="#fbbf24" filter="url(#procedures-glow)"/>
-      <path d="M1-20h27M1-11h20M1 7h30M1 16h24M1 34h28M1 43h18" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
-      <path d="M-19-8V1m0 18v9" stroke="#64748b"/>
+  <rect x="20" y="20" width="160" height="160" rx="32" fill="#02050a"/>
+  <rect x="25" y="25" width="150" height="150" rx="27" fill="url(#procedures-plate)" stroke="url(#procedures-ga)" stroke-width="2.4"/>
+  <rect x="34" y="34" width="132" height="132" rx="21" fill="none" stroke="#1e293b" stroke-width="1.2"/>
+  <path d="M42 54v-8q0-4 4-4h8M158 54v-8q0-4-4-4h-8M42 146v8q0 4 4 4h8M158 146v8q0 4-4 4h-8" fill="none" stroke="#34d399" stroke-width="1.6" opacity=".5"/>
+  <g fill="#1e293b" stroke="#475569" stroke-width=".6"><circle cx="31" cy="31" r="1.6"/><circle cx="169" cy="31" r="1.6"/><circle cx="31" cy="169" r="1.6"/><circle cx="169" cy="169" r="1.6"/></g>
+  <path d="M88 40h6M106 40h6" stroke="#1e293b" stroke-width="1.4"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="58" y="50" fill="#475569" font-size="3">ALICE // LOCAL-FIRST</text><text x="142" y="50" fill="#475569" font-size="3" text-anchor="end">v0.1.0</text></g>
+  <path d="M36 62v76M164 62v76" stroke="#1e293b" stroke-width=".7"/>
+  <path d="M36 68h2.5M36 80h1.8M36 92h2.5M36 104h1.8M36 116h2.5M36 128h1.8M164 68h-2.5M164 80h-1.8M164 92h-2.5M164 104h-1.8M164 116h-2.5M164 128h-1.8" stroke="#475569" stroke-width=".6"/>
+  <circle class="procedures-blink" cx="100" cy="42" r="2.2" fill="#fbbf24" filter="url(#procedures-glow)"/>
+  <g filter="url(#procedures-shadow)" font-family="Consolas,monospace" font-weight="900" font-size="4">
+      <rect x="40" y="66" width="34" height="24" rx="3" fill="#052e2b" stroke="#34d399"/><text x="57" y="80" fill="#34d399" text-anchor="middle">R3 × 3</text>
+      <rect x="83" y="66" width="36" height="24" rx="3" fill="#071713" stroke="#34d399"/><text x="101" y="80" fill="#a7f3d0" text-anchor="middle">CANDIDATE</text>
+      <rect x="128" y="66" width="32" height="24" rx="3" fill="#422006" stroke="#fbbf24"/><text x="144" y="80" fill="#fbbf24" text-anchor="middle">R4 DRAFT</text>
     </g>
-  <g font-family="Consolas,monospace" font-size="5" font-weight="900"><g transform="translate(33 125)"><rect width="134" height="32" rx="3" fill="#071713" stroke="#34d399"/><g fill="#052e2b" stroke="#34d399"><rect x="5" y="6" width="30" height="19"/><rect x="52" y="6" width="30" height="19"/></g><rect x="99" y="6" width="30" height="19" fill="#422006" stroke="#fbbf24"/><text x="20" y="14" fill="#34d399" text-anchor="middle">R3 × 3</text><text x="67" y="14" fill="#34d399" text-anchor="middle">CANDIDATE</text><text x="114" y="14" fill="#fbbf24" text-anchor="middle">R4 DRAFT</text><path d="M35 15h17m30 0h17" stroke="#e2e8f0"/><path d="m47 11 5 4-5 4m47-8 5 4-5 4" fill="none" stroke="#e2e8f0"/><text x="67" y="23" fill="#94a3b8" text-anchor="middle">REVIEW REQUIRED</text></g><text x="100" y="164" fill="#fca5a5" text-anchor="middle">DETECT · RETAIN · NEVER EXECUTE</text></g>
-  <g class="procedures-scan" stroke="#fbbf24" stroke-width=".8" opacity=".55"><path d="M52 58h96M52 100h96M52 142h96"/></g>
-  <g opacity=".65" stroke="#34d399" stroke-width="1"><path d="M24 108h10l5 5h8M176 108h-10l-5 5h-8" fill="none"/><path d="M24 113h15M176 113h-15"/></g>
-  <g transform="translate(63 181)"><rect width="74" height="5" rx="2.5" fill="#020617" stroke="#334155" stroke-width=".7"/><rect x="2" y="1.5" width="46" height="2" rx="1" fill="#34d399"/><circle cx="58" cy="2.5" r="1.5" fill="#fbbf24"/><circle cx="66" cy="2.5" r="1.5" fill="#4ade80"/></g>
+    <path class="procedures-dash" d="M74 78h9m36 0h9" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3 2"/><path d="m79 75 4 3-4 3m32-6 4 3-4 3" fill="none" stroke="#e2e8f0" stroke-width="1.1"/>
+    <g class="procedures-blink" fill="#4ade80"><circle cx="46" cy="72" r="1.5"/><circle cx="51" cy="72" r="1.5"/><circle cx="56" cy="72" r="1.5"/></g>
+    <g stroke="#4ade80" stroke-width=".8" fill="none"><path d="m46 84 2 2 4-4m8 0 2 2 4-4m8 0 2 2 4-4"/></g>
+    <g fill="#475569"><circle cx="91" cy="84" r=".8"/><circle cx="95" cy="84" r=".8"/><circle cx="99" cy="84" r=".8"/><circle cx="103" cy="84" r=".8"/><circle cx="107" cy="84" r=".8"/></g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="57" y="94" fill="#64748b" font-size="3" text-anchor="middle">3 OCC · 2 PASOS</text></g>
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.4">
+      <rect x="42" y="98" width="36" height="10" rx="2" fill="#052e2b" stroke="#4ade80" stroke-width=".8"/><text x="60" y="105" fill="#a7f3d0" text-anchor="middle">RETAIN</text>
+      <rect x="82" y="98" width="36" height="10" rx="2" fill="#1c1013" stroke="#ef4444" stroke-width=".8"/><text x="100" y="105" fill="#fca5a5" text-anchor="middle">DISMISS</text>
+      <rect x="122" y="98" width="38" height="10" rx="2" fill="#0b1320" stroke="#fbbf24" stroke-width=".8"/><text x="141" y="105" fill="#fde68a" text-anchor="middle">VALID</text>
+    </g>
+    <circle cx="100" cy="120" r="9" fill="none" stroke="#fbbf24" stroke-dasharray="4 3" class="procedures-dash"/>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="122" fill="#fbbf24" font-size="3.6" text-anchor="middle">REVIEW</text></g>
+    <g font-family="Consolas,monospace" font-weight="900"><text x="42" y="141" fill="#475569" font-size="3">R5</text><text x="100" y="141" fill="#fca5a5" font-size="3.8" text-anchor="middle">DETECT · RETAIN · NEVER EXECUTE</text></g>
+  <rect class="procedures-scan" x="40" y="50" width="120" height="1.4" fill="#34d399"/>
+  <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#34d399"/>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-PROCEDURES</text></g>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="163" fill="#64748b" font-size="7" text-anchor="middle" letter-spacing="2">LEARNING</text></g>
 </svg>
