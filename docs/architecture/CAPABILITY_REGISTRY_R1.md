@@ -147,7 +147,7 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 |---|---|---|---|---|---|---|
 | `cloud.providers.inspect` | Indica qué proveedores tienen configuración y su modelo inicial. | `cloud_status` | Implementada | Bajo | Lectura implícita; Rust no devuelve claves. | Estado `idle`; solo expone presencia de configuración. |
 | `cloud.conversation.send` | Envía el contexto previsualizado al proveedor elegido y audita metadatos. | `send_cloud_message` | Implementada | Medio | Previsualización y confirmación en React. | `idle` si existe proveedor configurado; `unavailable` en caso contrario. La puerta todavía no es nativa. |
-| `memory.working.manage` | Conserva hasta tres intercambios reales en RAM, permite consultarlos y vaciarlos. | `working_memory_status`, registro posterior a `send_cloud_message` y `clear_working_memory` | Implementada | Bajo | Envío autorizado; Memoria confirma y Rust exige la generación exacta para vaciar. | No persiste texto; expira a los 30 minutos o al cerrar Alice. Estado, TTL y vaciado son visibles. |
+| `memory.working.manage` | Conserva hasta seis intercambios reales en RAM, permite consultarlos y vaciarlos. | `working_memory_status`, registro posterior a `send_cloud_message` y `clear_working_memory` | Implementada | Bajo | Envío autorizado; Memoria confirma y Rust exige la generación exacta para vaciar. | No persiste texto; expira a las dos horas o al cerrar Alice. Estado, TTL y vaciado son visibles. |
 | `context.foreground.control` | Activa o detiene la observación de título y proceso de la ventana externa actual. | `execute_context_observation_grant` | Implementada | Medio | Grant R2 específico consumido en Rust; `enforcedBy: native`. | Empieza `disabled`; pasa a `active` solo con un grant de sesión vigente. |
 | `context.foreground.read` | Devuelve el último título y proceso observados si el control está encendido. | `get_foreground_context` | Implementada | Medio | Depende del opt-in de sesión. | No registra teclas, pantalla ni contenido de archivos. |
 | `memory.records.read` | Lee y valida los registros locales. | `load_memory` | Parcial | Medio | Arranque de la aplicación. | El comando actual también crea estructura y puede migrar; la sonda R1 no debe invocarlo. |
@@ -156,6 +156,7 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `memory.records.restore` | Restaura un respaldo validado o cierra una recuperación de consolidación pendiente. | `restore_memory_backup`, `rollback_layered_memory`, `restore_consolidation_transaction` | Implementada | Alto | Confirmación visible; R6.3-F revalida ID y huellas en Rust. | Reversible, pero sustituye la fuente de verdad vigente. |
 | `memory.directory.open` | Inicia Explorer en la carpeta privada de memoria. | `open_memory_directory` | Implementada | Bajo | Acción explícita en React. | Declara `processLaunch`; no equivale a acceso genérico a procesos. |
 | `memory.retrieval.lexical` | Busca hasta tres recuerdos relacionados sin usar red. | `retrieveMemories` | Implementada | Bajo | Lectura local al escribir una consulta. | Se ejecuta en TypeScript; solo el envío posterior puede sacar el resultado del equipo. |
+| `memory.learning.propose` | Propone hasta cuatro aprendizajes desde un recuerdo elegido usando Ollama local. | `preview_learning_candidates` | Parcial | Medio | Vista previa explícita; guardar requiere confirmación separada. | Sólo loopback, evidencia literal, sin herramientas ni escritura automática. |
 | `avatar.vrm.inspect` | Comprueba ruta, extensión, existencia y tamaño del VRM. | `avatar_status` | Implementada | Bajo | Lectura implícita al abrir Avatar. | La sonda no carga el modelo ni modifica el archivo. |
 | `avatar.vrm.render` | Carga y presenta el VRM privado en el visor local. | `AvatarViewer` | Implementada | Bajo | Abrir la pestaña Avatar. | `idle` con archivo válido y `unavailable` sin él; renderizar no conecta rostro ni cuerpo. |
 | `perception.camera.observe` | Abre la cámara integrada durante un lease visible y descarta fotogramas. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | OpenCV/DirectShow local; `idle` o `active`; análisis y memoria desconectados. |
@@ -183,7 +184,7 @@ Estas tres entradas continúan planificadas. `perception.face.landmarks` sustitu
 | `output.avatar.body` | Entregar poses o acciones corporales. | `planned` + `unavailable` |
 | `output.external.adapter` | Conectar VRChat u otro destino revisado. | `planned` + `unavailable` |
 
-Fish Audio, captura de pantalla, Mocap y Active Ragdoll no se registran como implementados. Cámara y micrófono son parciales: verifican señal efímera, pero no ejecutan percepción semántica, transcripción, aprendizaje ni control del avatar.
+Fish Audio, Mocap y Active Ragdoll no se registran como implementados. La pantalla es parcial: procesa muestras efímeras elegidas por el sistema operativo mediante Ollama local y exige confirmación para guardar texto. Cámara y micrófono también son parciales: verifican señal efímera, pero no ejecutan percepción semántica, transcripción, aprendizaje ni control del avatar.
 
 ## Funciones internas fuera del registro
 
@@ -213,7 +214,7 @@ Si una de estas funciones comienza a observar datos nuevos, persistir informaci�
 
 ## Diferencias resueltas entre el tablero y la realidad
 
-- `Puentes.tsx` consume ahora las 25 capacidades del snapshot nativo y las agrupa por dominio.
+- `Puentes.tsx` consume ahora las 26 capacidades del snapshot nativo y las agrupa por dominio.
 - Los contadores se calculan desde estado y madurez reales; no existe un total fijado en React.
 - La pestaña Actividad conserva eventos únicamente durante la sesión; no sustituye las auditorías JSONL.
 - La observación de ventana ya usa `enforcedBy: native`. Las confirmaciones de envío, restauración y borrado aún se realizan en React y permanecen `currentUi` hasta su migración individual.

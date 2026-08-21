@@ -27,6 +27,7 @@ pub(crate) struct CloudStatus {
 pub(crate) struct CloudCapabilityProbe {
     pub(crate) provider_count: usize,
     pub(crate) configured_provider_count: usize,
+    pub(crate) ollama_configured: bool,
 }
 
 #[derive(Serialize)]
@@ -172,6 +173,10 @@ pub(crate) fn cloud_capability_probe() -> CloudCapabilityProbe {
     let status = cloud_status();
     CloudCapabilityProbe {
         provider_count: status.providers.len(),
+        ollama_configured: status
+            .providers
+            .iter()
+            .any(|provider| provider.id == "ollama" && provider.configured),
         configured_provider_count: status
             .providers
             .iter()

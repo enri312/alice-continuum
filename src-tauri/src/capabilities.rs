@@ -185,10 +185,14 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(25);
+    let mut capabilities = Vec::with_capacity(26);
     capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
-    capabilities.extend(memory_capabilities(&generated_at, &probes.memory));
+    capabilities.extend(memory_capabilities(
+        &generated_at,
+        &probes.memory,
+        probes.cloud.ollama_configured,
+    ));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
     capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
     capabilities.extend(planned_output_capabilities());
@@ -596,6 +600,7 @@ fn observation_capabilities(
 fn memory_capabilities(
     checked_at: &str,
     probe: &MemoryCapabilityProbe,
+    ollama_configured: bool,
 ) -> Vec<CapabilityDescriptor> {
     let (records_state, records_health, records_summary) = memory_records_health(probe);
     let (directory_state, directory_health, directory_summary) = if probe.directory_exists {
@@ -638,7 +643,7 @@ fn memory_capabilities(
         capability(
             "memory.working.manage",
             "Gestionar memoria de trabajo",
-            "Mantiene hasta seis mensajes reales dentro del proceso y permite inspeccionarlos o vaciarlos.",
+            "Mantiene hasta seis intercambios y doce mensajes reales dentro del proceso y permite inspeccionarlos o vaciarlos.",
             CapabilityDomain::Memory,
             CapabilityKind::Mutation,
             CapabilityMaturity::Implemented,
@@ -797,6 +802,45 @@ fn memory_capabilities(
                 "La búsqueda ocurre localmente al redactar; un envío posterior requiere otra autorización.",
             ),
             health(records_health, records_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.learning.propose",
+            "Proponer aprendizaje desde memoria",
+            "Analiza un recuerdo con Ollama local y devuelve candidatos revisables sin guardarlos.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Partial,
+            "learning-candidates",
+            &["preview_learning_candidates"],
+            if records_state == CapabilityState::Idle && ollama_configured {
+                CapabilityState::Idle
+            } else {
+                CapabilityState::Unavailable
+            },
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
+            &["memoryRecords", "localLearningCandidates"],
+            &["Memoria local válida", "Ollama disponible sólo en loopback"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "Carlos elige el recuerdo y solicita la vista previa; guardar exige otra confirmación visible.",
+            ),
+            health(
+                if records_state == CapabilityState::Idle && ollama_configured {
+                    CapabilityHealthStatus::Healthy
+                } else {
+                    CapabilityHealthStatus::Unavailable
+                },
+                if records_state != CapabilityState::Idle {
+                    "La memoria local no está disponible para proponer candidatos."
+                } else if !ollama_configured {
+                    "Ollama local no está disponible; no se envió el recuerdo."
+                } else {
+                    "La vista previa local está disponible; no escribe memoria automáticamente."
+                },
+                Some(checked_at),
+            ),
         ),
     ]
 }
@@ -1439,6 +1483,7 @@ mod tests {
             cloud: CloudCapabilityProbe {
                 provider_count: 6,
                 configured_provider_count: 0,
+                ollama_configured: false,
             },
             observation: Ok(ObservationCapabilityProbe {
                 enabled: false,
@@ -1737,7 +1782,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 25);
+        assert_eq!(snapshot.capabilities.len(), 26);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1847,6 +1892,7 @@ mod tests {
     fn registry_maps_configured_active_and_valid_probe_states() {
         let mut probes = unavailable_probes();
         probes.cloud.configured_provider_count = 1;
+        probes.cloud.ollama_configured = true;
         probes.observation = Ok(ObservationCapabilityProbe {
             enabled: true,
             has_latest_context: false,
@@ -1872,6 +1918,7 @@ mod tests {
             "memory.records.restore",
             "memory.directory.open",
             "memory.retrieval.lexical",
+            "memory.learning.propose",
             "avatar.vrm.inspect",
             "avatar.vrm.render",
         ] {
@@ -1951,7 +1998,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 25);
+        assert_eq!(snapshot.capabilities.len(), 26);
         assert!(!root.exists());
     }
 

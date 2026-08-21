@@ -6,9 +6,9 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![R6](https://img.shields.io/badge/R6.4--A-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-284%2F284%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-188%20aprobadas%20%7C%2015%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R6](https://img.shields.io/badge/R6.4--B-validado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-289%2F289%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-197%20aprobadas%20%7C%2015%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -32,16 +32,16 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 
 | Área | Estado real |
 |---|---|
-| Registro de capacidades R1 | Validado: snapshot nativo v1 con 25 capacidades |
+| Registro de capacidades R1 | Validado: snapshot nativo v1 con 26 capacidades |
 | Gateway de permisos R2 | Ventana, cámara y micrófono protegidos; permiso facial separado disponible sin ejecución |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1, R6.2-C, R6.3-F y R6.4-A validados: RAM acotada, plan de fusión, recuperación durable gobernada y aprendizaje episódico conversacional |
-| Capacidades implementadas o parciales | 15 |
+| Memoria por capas R6 | R6.1, R6.2-C, R6.3-F y R6.4-B validados: RAM acotada, recuperación durable, episodios y candidatos locales revisables |
+| Capacidades implementadas o parciales | 16 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 284/284 aprobadas |
-| Pruebas Rust | 188 normales aprobadas; quince sondas vivas disponibles por separado |
+| Pruebas TypeScript | 289/289 aprobadas |
+| Pruebas Rust | 197 normales aprobadas; quince sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -241,6 +241,12 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 
 En **Memoria → Aprendizaje**, `Elegir pantalla o ventana` abre el selector del sistema operativo. Alice sólo puede ver la ventana o pantalla elegida. Toma una muestra cada cinco minutos, la reduce a 960 píxeles de ancho, la analiza con el modelo Ollama local y descarta inmediatamente el JPEG temporal. El audio permanece desactivado. Qwen devuelve como máximo cuatro apuntes y dos fragmentos visibles; se conservan hasta doce muestras como candidato editable en RAM. Detener la sesión no guarda nada. Sólo **Confirmar aprendizaje episódico** escribe los apuntes revisados en Memoria; nunca se guardan capturas. El selector WebView2 y el backend local ya completaron cinco muestras autorizadas; la capacidad conserva madurez `partial`, pero su salud es `healthy` y su estado de reposo es `idle`. Consulta [ADR-P-081](docs/decisions/ADR-P-081-observacion-visual-local-revisable.md) y [el informe real](docs/testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md).
 
+## Candidatos de aprendizaje local
+
+En la misma pantalla, **Candidatos desde recuerdos reales** permite elegir un registro existente y pedir a `qwen3.5:4b` una vista previa local. Rust limita la fuente, exige JSON cerrado, admite como máximo cuatro propuestas y rechaza toda cita que no aparezca literalmente en el recuerdo. Hechos, preferencias, hábitos declarados y experiencias pueden corregirse antes de guardar; la vista previa declara `0 escrituras` y una confirmación separada crea la enseñanza. En pruebas reales, dos fuentes breves produjeron honestamente cero candidatos y una conversación extensa produjo cuatro, todos con evidencia literal y sin cambiar el SHA-256 de la memoria. Consulta [el contrato R6.4-B](docs/architecture/LEARNING_CANDIDATES_R6.md), [ADR-P-082](docs/decisions/ADR-P-082-candidatos-aprendizaje-local.md) y [el informe real](docs/testing/R6_LOCAL_LEARNING_CANDIDATES_REPORT_2026-08-20.md).
+
+La credencial de Fish Audio no se lee desde documentos ni se incorpora al repositorio. Su adaptador sigue perteneciendo a R9 y deberá usar una variable de entorno, previsualización de texto, límites de costo y autorización visible.
+
 ## Datos locales
 
 `Iniciar Alice.cmd` establece `ALICE_DATA_DIR` en `E:\Alice Cognitive Core\data`. El contenido está excluido de Git.
@@ -277,6 +283,7 @@ src-tauri/src/
 ├── cloud.rs              proveedores y solicitudes autorizadas
 ├── core_activity.rs      señal efímera del Núcleo derivada de eventos R3
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
+├── learning_candidates.rs vista previa R6.4-B mediante Ollama local y evidencia literal
 ├── memory.rs             persistencia v1 y proyección R6.1 reversible, respaldada y auditada
 ├── working_memory.rs     contexto conversacional R6.2 efímero, acotado y sólo en RAM
 ├── observation.rs        metadatos autorizados de ventana

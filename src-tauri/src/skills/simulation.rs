@@ -523,6 +523,7 @@ mod tests {
                 cloud: CloudCapabilityProbe {
                     provider_count: 6,
                     configured_provider_count: 0,
+                    ollama_configured: false,
                 },
                 observation: Ok(ObservationCapabilityProbe {
                     enabled: false,
@@ -794,7 +795,7 @@ mod tests {
         );
         let live_registry =
             capability_registry_from_probes("2026-08-10T01:00:00-03:00".into(), &probes).unwrap();
-        assert_eq!(live_registry.capabilities.len(), 25);
+        assert_eq!(live_registry.capabilities.len(), 26);
         let result = simulate_skill_plan_against_registry(&manifest(), &live_registry).unwrap();
         assert!(!result.can_execute);
         assert_eq!(result.adapter_invocation_count, 0);

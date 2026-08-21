@@ -1321,6 +1321,7 @@ mod tests {
                 cloud: CloudCapabilityProbe {
                     provider_count: 6,
                     configured_provider_count: 0,
+                    ollama_configured: false,
                 },
                 observation: Ok(ObservationCapabilityProbe {
                     enabled: false,
@@ -1412,9 +1413,9 @@ mod tests {
     }
 
     #[test]
-    fn valid_draft_uses_the_real_25_capability_registry() {
+    fn valid_draft_uses_the_real_26_capability_registry() {
         let registry = registry();
-        assert_eq!(registry.capabilities.len(), 25);
+        assert_eq!(registry.capabilities.len(), 26);
         manifest().validate_new_draft(&registry).unwrap();
     }
 

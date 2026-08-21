@@ -57,3 +57,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-079](ADR-P-079-inferencia-ollama-loopback.md) | Inferencia Ollama local con endpoint fijo, autorización previa y actividad basada en respuestas reales |
 | [ADR-P-080](ADR-P-080-contexto-rag-local.md) | Contexto local ampliado, memoria de trabajo mayor y recuperación RAG multivuelta para Ollama |
 | [ADR-P-081](ADR-P-081-observacion-visual-local-revisable.md) | Observación visual local con selección explícita, imágenes efímeras y aprendizaje revisable |
+| [ADR-P-082](ADR-P-082-candidatos-aprendizaje-local.md) | Extracción local de candidatos con evidencia literal y confirmación humana |

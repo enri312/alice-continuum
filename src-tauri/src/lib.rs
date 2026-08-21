@@ -5,6 +5,7 @@ mod cloud;
 mod core_activity;
 mod diagnostics;
 mod face_readiness;
+mod learning_candidates;
 mod memory;
 mod observation;
 mod owner_profile;
@@ -30,6 +31,7 @@ use cloud::{cloud_status, send_cloud_message};
 use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
 use face_readiness::face_readiness_status;
+use learning_candidates::preview_learning_candidates;
 use memory::{
     activate_layered_memory, consolidation_preview, consolidation_recovery_status, export_memory,
     layered_memory_status, load_memory, markdown_note_catalog, open_memory_directory,
@@ -143,7 +145,8 @@ pub fn run() {
             working_memory_status,
             clear_working_memory,
             send_cloud_message,
-            analyze_screen_frame
+            analyze_screen_frame,
+            preview_learning_candidates
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar Alice Cognitive Core");

@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C, R6.3-F y R6.4-A validados  
+Estado: en curso · R6.1, R6.2-C, R6.3-F y R6.4-B validados  
 Fecha: 2026-08-20
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -23,7 +23,7 @@ La fuente vigente continúa siendo `records.json`. R6.1 produce `layer-index-v2.
 
 Estado: R6.2-C validado.
 
-El backend mantiene en RAM hasta tres intercambios reales de conversación —seis mensajes y 48.000 caracteres— durante 30 minutos desde la última respuesta. Sólo se registra un intercambio después de recibir una respuesta real del proveedor. El contenido no se escribe en archivos, expira con tiempo real, se descarta al cerrar el proceso y nunca altera `records.json` ni `layer-index-v2.json`.
+El backend mantiene en RAM hasta seis intercambios reales de conversación —doce mensajes y 72.000 caracteres— durante dos horas desde la última respuesta. Sólo se registra un intercambio después de recibir una respuesta real del proveedor. El contenido no se escribe en archivos, expira con tiempo real, se descarta al cerrar el proceso y nunca altera `records.json` ni `layer-index-v2.json`.
 
 - [x] Contenedor nativo, efímero y acotado.
 - [x] Procedencia de proveedor y modelo por intercambio.
@@ -69,6 +69,21 @@ Estado: R6.3-F validado; ejecución canónica de fusión pendiente.
 - [ ] Ejecución manual canónica confirmada.
 
 R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`; R6.3-C calcula un plan; R6.3-D ensaya recuperación; R6.3-E la continúa después de perder la RAM y R6.3-F expone estado y restauración gobernada. Ninguno crea o ejecuta una fusión canónica.
+
+## R6.4 — Aprendizaje conversacional y candidatos locales
+
+Estado: R6.4-B validado.
+
+- [x] Guardado opcional de una conversación realmente recibida como episodio no verificado.
+- [x] Fuente elegida entre recuerdos reales, sin lectura general de carpetas.
+- [x] Ollama fijo a loopback, sin herramientas, streaming ni razonamiento visible.
+- [x] Contrato cerrado con máximo de cuatro candidatos.
+- [x] Evidencia literal obligatoria y rechazo de contenido inventado.
+- [x] Vista editable que declara cero escrituras.
+- [x] Confirmación humana separada para guardar como enseñanza.
+- [x] Prueba real sobre tres recuerdos canónicos con SHA-256 intacto.
+
+R6.4-B no entrena el modelo, no promueve respuestas automáticamente y acepta cero candidatos como resultado honesto. La transacción nativa única entre revalidación final y anexado queda como endurecimiento futuro.
 
 ## Fuente futura gobernada — proyectos locales
 

@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C, R6.3-F y R6.4-A validados al 2026-08-20  
+**Estado:** en curso · R6.1, R6.2-C, R6.3-F y R6.4-B validados al 2026-08-20  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -224,6 +224,8 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 **Incremento R6.3-F:** `consolidation_recovery_status` expone estado nativo de sólo lectura y `restore_consolidation_transaction` restaura únicamente un recibo pendiente con confirmación, ID y ambas huellas vigentes. La solicitud debe auditarse antes de tocar la fuente y el recibo se cierra sólo después de auditar el éxito. Repetir una restauración cerrada es idempotente. La preparación y la fusión siguen desconectadas de IPC. La sonda canónica devolvió `idle`, 17 recuerdos y 20 archivos intactos.
 
 **Incremento R6.4-A:** una respuesta realmente recibida de un proveedor puede guardarse como episodio local cuando **Aprendizaje episódico local** está activo. El registro conserva proveedor y modelo, comienza con fuerza baja y confirma que la conversación ocurrió, no la verdad factual de la respuesta. La recuperación posterior lo rotula como episodio no verificado. La extracción de hechos, preferencias o hábitos continúa pendiente y requerirá candidatos revisables.
+
+**Incremento R6.4-B:** `memory.learning.propose` relee un recuerdo elegido, lo limita a 12.000 caracteres y solicita a Ollama local hasta cuatro candidatos cerrados. Rust rechaza modelos cloud, tipos desconocidos, límites excedidos y cualquier evidencia que no aparezca literalmente en la fuente. La vista permite corregir título, clase, contenido e importancia, declara cero escrituras y exige confirmación separada para usar el almacén normal de Memoria. Tres pruebas reales devolvieron 0, 0 y 4 candidatos; las cuatro evidencias del caso extenso coincidieron y `records.json` conservó su SHA-256.
 
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
@@ -354,7 +356,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.1 separa memoria duradera, R6.2 gobierna RAM y salida y R6.3-F completa la vía de recuperación previa a cualquier fusión. El próximo incremento no queda autorizado automáticamente: antes se decidirá entre diseñar el preflight de una fusión canónica o priorizar la inferencia local real para activar conversación y actividad cognitiva. Extracción automática, “dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. La prueba manual DualSense no alimenta cognición ni convierte `output.avatar.body` en capacidad disponible.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.4-B ya permite propuestas locales revisables sin aprendizaje automático. El siguiente incremento deberá elegirse explícitamente entre endurecer la confirmación en una única transacción Rust, preparar el preflight de fusión canónica o avanzar hacia R7. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
 
 ## Identidad adoptada — Alice Cognitive Core
 

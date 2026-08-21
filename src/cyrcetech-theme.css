@@ -590,3 +590,34 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
   .neural-volume .volume-affect-palette.standby { right:12px; bottom:96px; left:12px; width:auto; }
   .neural-volume .volume-signal-legend { right:12px; flex-wrap:wrap; }
 }
+
+/* R6.4-B: extracción local gobernada dentro de Aprendizaje. */
+.memory-learning-stack { display:grid; gap:16px; }
+.learning-candidate-panel { overflow:hidden; border:1px solid var(--alice-border-strong); background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(2,6,23,.94) 52%); }
+.learning-candidate-panel>header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:16px 17px; border-bottom:1px solid var(--alice-border); }
+.learning-candidate-panel>header h3 { margin:5px 0 4px; font-size:1.08rem; }
+.learning-candidate-panel>header p:not(.eyebrow) { max-width:760px; margin:0; color:var(--alice-muted); font-size:.77rem; line-height:1.5; }
+.learning-candidate-panel>header>span { padding:6px 8px; border:1px solid rgba(192,132,252,.4); color:#d8b4fe; font:800 .57rem Consolas,monospace; white-space:nowrap; }
+.learning-candidate-source { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:13px; padding:14px 17px; border-bottom:1px solid var(--alice-border); background:rgba(2,6,23,.5); }
+.learning-candidate-source label { margin:0; color:#94a3b8; font:700 .61rem Consolas,monospace; letter-spacing:.06em; }
+.learning-candidate-source select,.learning-candidate-fields select { width:100%; min-width:0; padding:10px 11px; border:1px solid var(--alice-border); background:#09121f; color:#e2e8f0; font:600 .73rem Inter,sans-serif; }
+.learning-candidate-empty { padding:24px 17px; color:#64748b; font:.72rem Consolas,monospace; text-align:center; }
+.learning-candidate-receipt { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; padding:9px 17px; border-bottom:1px solid var(--alice-border); background:#07111e; color:#7dd3fc; font:700 .57rem Consolas,monospace; }
+.learning-candidate-receipt code { margin-left:auto; color:#64748b; font-size:.53rem; }
+.learning-candidate-card { margin:12px 17px; border:1px solid #334155; background:#0a1321; }
+.learning-candidate-card.confirmed { border-color:rgba(16,185,129,.55); }
+.learning-candidate-kind { display:flex; justify-content:space-between; gap:12px; padding:9px 11px; border-bottom:1px solid #26364a; color:#d8b4fe; font:800 .58rem Consolas,monospace; }
+.learning-candidate-kind span { color:#64748b; }
+.learning-candidate-fields { display:grid; grid-template-columns:1.5fr 1fr; gap:0 12px; padding:0 12px 12px; }
+.learning-candidate-fields label { min-width:0; color:#94a3b8; font:700 .59rem Consolas,monospace; letter-spacing:.05em; }
+.learning-candidate-fields input,.learning-candidate-fields textarea { margin:0; padding:9px 10px; border-radius:0; font:500 .74rem Inter,sans-serif; }
+.learning-candidate-fields textarea { min-height:74px; }
+.learning-candidate-fields input[type="range"] { height:7px; padding:0; border:0; accent-color:#a855f7; }
+.learning-candidate-fields label>strong { color:#d8b4fe; }
+.learning-candidate-summary { grid-column:1/-1; }
+.learning-candidate-card blockquote { margin:0 12px 12px; padding:10px 11px; border-left:2px solid #a855f7; background:rgba(168,85,247,.055); color:#cbd5e1; font-size:.72rem; line-height:1.5; }
+.learning-candidate-card blockquote span { display:block; margin-bottom:4px; color:#a78bfa; font:800 .53rem Consolas,monospace; letter-spacing:.08em; }
+.learning-candidate-card footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 11px; border-top:1px solid #26364a; background:#07101c; }
+.learning-candidate-card footer code { overflow:hidden; color:#475569; font-size:.5rem; text-overflow:ellipsis; white-space:nowrap; }
+.learning-candidate-card footer .primary { flex:0 0 auto; padding:8px 11px; border-radius:2px; font:800 .61rem Consolas,monospace; }
+@media(max-width:720px){.learning-candidate-panel>header{flex-direction:column}.learning-candidate-source,.learning-candidate-fields{grid-template-columns:1fr}.learning-candidate-summary{grid-column:auto}.learning-candidate-card footer{align-items:stretch;flex-direction:column}.learning-candidate-card footer .primary{width:100%}}
