@@ -160,7 +160,7 @@ Las claves se usan internamente cuando corresponde, pero nunca se devuelven como
 | `avatar.vrm.render` | Carga y presenta el VRM privado en el visor local. | `AvatarViewer` | Implementada | Bajo | Abrir la pestaña Avatar. | `idle` con archivo válido y `unavailable` sin él; renderizar no conecta rostro ni cuerpo. |
 | `perception.camera.observe` | Abre la cámara integrada durante un lease visible y descarta fotogramas. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | OpenCV/DirectShow local; `idle` o `active`; análisis y memoria desconectados. |
 | `perception.microphone.observe` | Abre el arreglo Intel durante un lease visible y descarta muestras. | `execute_sensor_lease_grant` + `sensory.rs` | Parcial | Alto | Grant R2 de sesión; `enforcedBy: native`. | PortAudio/WASAPI local; `idle` o `active`; transcripción y memoria desconectadas. |
-| `perception.screen.observe` | Analiza muestras efímeras de una pantalla elegida y propone apuntes revisables. | `getDisplayMedia` + `analyze_screen_frame` + Ollama | Parcial | Alto | Selector del sistema operativo; `enforcedBy: operatingSystem`. | Backend visual probado con imagen real; estado `degraded` hasta validar el selector WebView2 de forma interactiva. |
+| `perception.screen.observe` | Analiza muestras efímeras de una pantalla elegida y propone apuntes revisables. | `getDisplayMedia` + `analyze_screen_frame` + Ollama | Parcial | Alto | Selector del sistema operativo; `enforcedBy: operatingSystem`. | Selector y backend aprobados con cinco muestras reales; salud `healthy`, estado en reposo `idle`. |
 
 ### Entradas sensoriales planificadas, sin adaptador
 

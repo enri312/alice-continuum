@@ -256,7 +256,7 @@ fn sensory_capabilities(
             CapabilityMaturity::Partial,
             "WebView2 getDisplayMedia + Ollama local",
             &["analyze_screen_frame"],
-            CapabilityState::Degraded,
+            CapabilityState::Idle,
             CapabilityRisk::High,
             &[CapabilityEffect::ScreenObserve, CapabilityEffect::LocalRead],
             &["screenPixelsEphemeral", "visualNotesCandidate"],
@@ -271,8 +271,8 @@ fn sensory_capabilities(
                 "Windows limita la sesión a la pantalla o ventana elegida; Alice expone Detener y no persiste capturas.",
             ),
             health(
-                CapabilityHealthStatus::Degraded,
-                "El backend visual y Qwen respondieron con imagen real; el selector WebView requiere una validación interactiva del propietario.",
+                CapabilityHealthStatus::Healthy,
+                "El selector WebView2 y el backend Ollama completaron cinco muestras reales autorizadas; ninguna captura fue persistida.",
                 Some(checked_at),
             ),
         ),
@@ -1797,7 +1797,8 @@ mod tests {
 
         let screen = registered(&snapshot, "perception.screen.observe");
         assert_eq!(screen.maturity, CapabilityMaturity::Partial);
-        assert_eq!(screen.state, CapabilityState::Degraded);
+        assert_eq!(screen.state, CapabilityState::Idle);
+        assert_eq!(screen.health.status, CapabilityHealthStatus::Healthy);
         assert_eq!(
             screen.effects,
             vec![CapabilityEffect::ScreenObserve, CapabilityEffect::LocalRead]

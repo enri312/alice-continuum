@@ -1,7 +1,7 @@
 # Informe — Contexto RAG y observación visual local
 
 Fecha: 2026-08-20  
-Estado: backend visual aprobado; selector interactivo pendiente
+Estado: backend visual y selector interactivo aprobados
 
 ## Prueba real de visión
 
@@ -20,7 +20,13 @@ Después de limitar el esquema a cuatro apuntes, dos textos visibles y 260 token
 - memoria escrita: ninguna;
 - captura incorporada al proyecto: ninguna.
 
-El intervalo de sesión se fijó en cinco minutos para evitar solapamiento y reducir interferencia con la clase y el avatar. El selector de pantalla requiere una acción humana que no puede automatizarse de forma honesta; por eso continúa pendiente una prueba manual desde **Memoria → Aprendizaje**.
+El intervalo de sesión se fijó en cinco minutos para evitar solapamiento y reducir interferencia con la clase y el avatar.
+
+## Validación interactiva durante una clase real
+
+El propietario abrió **Memoria → Aprendizaje**, activó el selector de WebView2 y eligió una fuente. R3 registró cinco pares completos `request → success` entre las 20:10 y las 20:30, separados aproximadamente por cinco minutos. Las duraciones fueron 41.582, 39.504, 32.891, 28.288 y 28.290 ms. No hubo eventos de error.
+
+La revisión posterior encontró cero archivos PNG/JPEG/WebP/BMP dentro de `data/` y cero recuerdos cuya procedencia fuera `Pantalla compartida`; por lo tanto, la observación funcionó y los apuntes aún no habían sido confirmados como aprendizaje duradero. No se inspeccionó ni documentó el contenido textual de la clase.
 
 ## Prueba real de continuidad multivuelta
 

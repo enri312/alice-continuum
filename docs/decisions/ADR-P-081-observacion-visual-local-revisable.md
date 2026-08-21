@@ -1,7 +1,7 @@
 # ADR-P-081 — Observación visual local con candidato revisable
 
 Fecha: 2026-08-20  
-Estado: parcial; pendiente validación interactiva del selector
+Estado: aceptada; capacidad parcial con selector validado
 
 ## Contexto
 
@@ -18,7 +18,7 @@ Alice sólo podía leer metadatos de la ventana activa. Para acompañar una clas
 - Descartar la imagen después de cada solicitud. En R3 sólo persisten SHA-256 y metadatos de ejecución.
 - Mantener hasta doce análisis como candidato editable en RAM.
 - Detener no guarda. Escribir memoria episódica requiere el botón de confirmación y conserva únicamente el texto revisado.
-- Mantener `perception.screen.observe` en madurez `partial` y salud `degraded` hasta que el selector se pruebe interactivamente en Alice Desktop.
+- Mantener `perception.screen.observe` en madurez `partial`: la ruta visual funciona, pero aún no posee un Gateway nativo equivalente a cámara/micrófono. Tras cinco muestras reales autorizadas, su salud pasa a `healthy` y su estado de reposo a `idle`.
 
 ## Límites
 
