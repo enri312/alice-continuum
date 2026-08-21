@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLearningCandidatePreview } from "./learning-candidates";
+import { parseLearningCandidateConfirmation, parseLearningCandidatePreview } from "./learning-candidates";
 
 const valid = {
   sourceRecordId: "record-1",
@@ -32,5 +32,27 @@ describe("learning candidate preview", () => {
   it("rejects unknown candidate kinds and excessive output", () => {
     expect(() => parseLearningCandidatePreview({ ...valid, candidates: [{ ...valid.candidates[0], candidateKind: "personality" }] })).toThrow();
     expect(() => parseLearningCandidatePreview({ ...valid, candidates: Array.from({ length: 5 }, () => valid.candidates[0]) })).toThrow();
+  });
+
+  it("accepts only a closed native confirmation receipt", () => {
+    expect(parseLearningCandidateConfirmation({
+      recordId: "record-new",
+      recordCount: 18,
+      sourceSha256: `sha256:${"c".repeat(64)}`,
+      backupSha256: valid.sourceSha256,
+      storagePath: "E:\\Alice Cognitive Core\\data\\memory\\records.json",
+      alreadyConfirmed: false,
+      auditWritten: true,
+    }).recordCount).toBe(18);
+    expect(() => parseLearningCandidateConfirmation({ recordId: "record-new" })).toThrow();
+    expect(() => parseLearningCandidateConfirmation({
+      recordId: "record-new",
+      recordCount: 18,
+      sourceSha256: "sha256:not-a-digest",
+      backupSha256: valid.sourceSha256,
+      storagePath: "memory.json",
+      alreadyConfirmed: false,
+      auditWritten: true,
+    })).toThrow();
   });
 });

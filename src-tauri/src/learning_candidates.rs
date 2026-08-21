@@ -1,6 +1,10 @@
 use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
+use crate::capabilities::current_utc_timestamp;
+use crate::memory::{
+    append_confirmed_learning, ConfirmedLearningAppendInput, ConfirmedLearningAppendResult,
+};
 use crate::util::alice_data_root_path;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -47,8 +51,8 @@ struct RawLearningCandidateEnvelope {
     candidates: Vec<RawLearningCandidate>,
 }
 
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct LearningCandidate {
     candidate_id: String,
     candidate_kind: String,
@@ -57,6 +61,26 @@ pub(crate) struct LearningCandidate {
     summary: String,
     evidence: String,
     confidence: f64,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ApprovedLearningCandidate {
+    memory_type: String,
+    intention: String,
+    summary: String,
+    importance: u8,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ConfirmLearningCandidateRequest {
+    expected_source_sha256: String,
+    source_record_id: String,
+    model: String,
+    candidate: LearningCandidate,
+    approved: ApprovedLearningCandidate,
+    confirmed: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -74,6 +98,12 @@ pub(crate) struct LearningCandidatePreview {
 
 fn sha256(value: impl AsRef<[u8]>) -> String {
     format!("sha256:{:x}", Sha256::digest(value))
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 71
+        && value.starts_with("sha256:")
+        && value[7..].bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn validate_local_model(model: &str) -> Result<(), String> {
@@ -362,6 +392,91 @@ pub(crate) async fn preview_learning_candidates(
     }
 }
 
+fn validate_approved_candidate(
+    candidate: &LearningCandidate,
+    approved: &ApprovedLearningCandidate,
+) -> Result<(), String> {
+    if approved.intention.trim().is_empty()
+        || approved.intention.chars().count() > 100
+        || approved.summary.trim().is_empty()
+        || approved.summary.chars().count() > 420
+        || !matches!(
+            approved.memory_type.as_str(),
+            "semantic" | "procedural" | "preference" | "episodic"
+        )
+        || !(1..=5).contains(&approved.importance)
+    {
+        return Err("La edición confirmada está fuera del contrato R6.4-C".into());
+    }
+    if candidate.candidate_kind == "habit" && approved.memory_type != "procedural" {
+        return Err("Un hábito declarado debe confirmarse como memoria procedimental".into());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub(crate) fn confirm_learning_candidate(
+    app: AppHandle,
+    input: ConfirmLearningCandidateRequest,
+) -> Result<ConfirmedLearningAppendResult, String> {
+    if !input.confirmed {
+        return Err("Guardar el candidato requiere confirmación explícita".into());
+    }
+    validate_local_model(&input.model)?;
+    if !is_sha256(&input.expected_source_sha256) {
+        return Err("La huella revisada de records.json no es válida".into());
+    }
+    if input.source_record_id.trim().is_empty() || input.source_record_id.len() > 160 {
+        return Err("El recuerdo de origen no posee un identificador válido".into());
+    }
+    let path = alice_data_root_path(&app)?
+        .join("memory")
+        .join("records.json");
+    let content = fs::read_to_string(&path)
+        .map_err(|error| format!("No se pudo releer la memoria antes de confirmar: {error}"))?;
+    let records = serde_json::from_str::<Vec<SourceMemorySession>>(&content)
+        .map_err(|error| format!("records.json no es una memoria válida: {error}"))?;
+    let record = records
+        .iter()
+        .find(|record| record.id == input.source_record_id)
+        .ok_or_else(|| "El recuerdo de origen ya no existe".to_string())?;
+    if record.memory_status.as_deref() == Some("archived") {
+        return Err("El recuerdo de origen fue archivado; analizá otra fuente".into());
+    }
+    let source = bounded_source(record);
+    let rebuilt = validate_candidate(
+        RawLearningCandidate {
+            candidate_kind: input.candidate.candidate_kind.clone(),
+            memory_type: input.candidate.memory_type.clone(),
+            intention: input.candidate.intention.clone(),
+            summary: input.candidate.summary.clone(),
+            evidence: input.candidate.evidence.clone(),
+            confidence: input.candidate.confidence,
+        },
+        &source,
+        &input.expected_source_sha256,
+        &input.source_record_id,
+    )?;
+    if rebuilt.candidate_id != input.candidate.candidate_id {
+        return Err("El candidato cambió después de la vista previa".into());
+    }
+    validate_approved_candidate(&rebuilt, &input.approved)?;
+    append_confirmed_learning(
+        &app,
+        &input.expected_source_sha256,
+        ConfirmedLearningAppendInput {
+            candidate_id: rebuilt.candidate_id,
+            source_record_id: input.source_record_id,
+            model: input.model.trim().to_string(),
+            intention: input.approved.intention,
+            summary: input.approved.summary,
+            memory_type: input.approved.memory_type,
+            importance: input.approved.importance,
+            confirmed_at: current_utc_timestamp()?,
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -425,5 +540,56 @@ mod tests {
             "record-1"
         )
         .is_err());
+    }
+
+    #[test]
+    fn candidate_identity_covers_the_complete_original_proposal() {
+        let raw = RawLearningCandidate {
+            candidate_kind: "fact".into(),
+            memory_type: "semantic".into(),
+            intention: "Arquitectura".into(),
+            summary: "Alice es local-first.".into(),
+            evidence: "Alice es local-first".into(),
+            confidence: 0.92,
+        };
+        let source = "El proyecto declara: Alice es local-first.";
+        let original = validate_candidate(
+            raw.clone(),
+            source,
+            &format!("sha256:{}", "1".repeat(64)),
+            "record-1",
+        )
+        .unwrap();
+        let changed = validate_candidate(
+            RawLearningCandidate {
+                summary: "Alice usa una arquitectura local-first.".into(),
+                ..raw
+            },
+            source,
+            &format!("sha256:{}", "1".repeat(64)),
+            "record-1",
+        )
+        .unwrap();
+        assert_ne!(original.candidate_id, changed.candidate_id);
+    }
+
+    #[test]
+    fn approved_habit_must_remain_procedural() {
+        let candidate = LearningCandidate {
+            candidate_id: format!("sha256:{}", "a".repeat(64)),
+            candidate_kind: "habit".into(),
+            memory_type: "procedural".into(),
+            intention: "Práctica".into(),
+            summary: "Práctica repetida.".into(),
+            evidence: "cada día".into(),
+            confidence: 0.8,
+        };
+        let invalid = ApprovedLearningCandidate {
+            memory_type: "semantic".into(),
+            intention: "Práctica".into(),
+            summary: "Práctica repetida.".into(),
+            importance: 3,
+        };
+        assert!(validate_approved_candidate(&candidate, &invalid).is_err());
     }
 }

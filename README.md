@@ -6,9 +6,9 @@
 ![R3](https://img.shields.io/badge/R3-validado-16a34a?style=flat-square)
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
-![R6](https://img.shields.io/badge/R6.4--B-validado-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-289%2F289%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-197%20aprobadas%20%7C%2015%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![R6](https://img.shields.io/badge/R6.4--C-validado-0f766e?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-290%2F290%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-203%20aprobadas%20%7C%2016%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -37,11 +37,11 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | R6.1, R6.2-C, R6.3-F y R6.4-B validados: RAM acotada, recuperación durable, episodios y candidatos locales revisables |
+| Memoria por capas R6 | R6.1, R6.2-C, R6.3-F y R6.4-C validados: RAM acotada, recuperación durable y aprendizaje local transaccional |
 | Capacidades implementadas o parciales | 16 |
 | Capacidades planificadas | 10, sin adaptador y no disponibles |
-| Pruebas TypeScript | 289/289 aprobadas |
-| Pruebas Rust | 197 normales aprobadas; quince sondas vivas disponibles por separado |
+| Pruebas TypeScript | 290/290 aprobadas |
+| Pruebas Rust | 203 normales aprobadas; dieciséis sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -243,7 +243,7 @@ En **Memoria → Aprendizaje**, `Elegir pantalla o ventana` abre el selector del
 
 ## Candidatos de aprendizaje local
 
-En la misma pantalla, **Candidatos desde recuerdos reales** permite elegir un registro existente y pedir a `qwen3.5:4b` una vista previa local. Rust limita la fuente, exige JSON cerrado, admite como máximo cuatro propuestas y rechaza toda cita que no aparezca literalmente en el recuerdo. Hechos, preferencias, hábitos declarados y experiencias pueden corregirse antes de guardar; la vista previa declara `0 escrituras` y una confirmación separada crea la enseñanza. En pruebas reales, dos fuentes breves produjeron honestamente cero candidatos y una conversación extensa produjo cuatro, todos con evidencia literal y sin cambiar el SHA-256 de la memoria. Consulta [el contrato R6.4-B](docs/architecture/LEARNING_CANDIDATES_R6.md), [ADR-P-082](docs/decisions/ADR-P-082-candidatos-aprendizaje-local.md) y [el informe real](docs/testing/R6_LOCAL_LEARNING_CANDIDATES_REPORT_2026-08-20.md).
+En la misma pantalla, **Candidatos desde recuerdos reales** permite elegir un registro existente y pedir a `qwen3.5:4b` una vista previa local. Rust limita la fuente, exige JSON cerrado, admite como máximo cuatro propuestas y rechaza toda cita que no aparezca literalmente en el recuerdo. R6.4-C confirma en un único comando nativo: relee y reconstruye el candidato, verifica el SHA-256, crea un respaldo exacto, reemplaza atómicamente, audita y restaura ante fallo. El reintento idéntico no duplica; un candidato alterado se bloquea. En pruebas reales, dos fuentes breves produjeron cero candidatos y una conversación extensa produjo cuatro; la sonda transaccional rechazó una fuente obsoleta sin cambiar ninguno de los 21 archivos canónicos. Consulta [el contrato R6.4-C](docs/architecture/LEARNING_CANDIDATES_R6.md), [ADR-P-082](docs/decisions/ADR-P-082-candidatos-aprendizaje-local.md), [ADR-P-083](docs/decisions/ADR-P-083-confirmacion-transaccional-aprendizaje.md), [el informe de candidatos](docs/testing/R6_LOCAL_LEARNING_CANDIDATES_REPORT_2026-08-20.md) y [el informe transaccional](docs/testing/R6_TRANSACTIONAL_LEARNING_CONFIRMATION_REPORT_2026-08-20.md).
 
 La credencial de Fish Audio no se lee desde documentos ni se incorpora al repositorio. Su adaptador sigue perteneciendo a R9 y deberá usar una variable de entorno, previsualización de texto, límites de costo y autorización visible.
 
@@ -283,7 +283,7 @@ src-tauri/src/
 ├── cloud.rs              proveedores y solicitudes autorizadas
 ├── core_activity.rs      señal efímera del Núcleo derivada de eventos R3
 ├── diagnostics.rs        inspección R3 pasiva y tipada sin efectos laterales
-├── learning_candidates.rs vista previa R6.4-B mediante Ollama local y evidencia literal
+├── learning_candidates.rs vista previa R6.4-B y confirmación transaccional R6.4-C
 ├── memory.rs             persistencia v1 y proyección R6.1 reversible, respaldada y auditada
 ├── working_memory.rs     contexto conversacional R6.2 efímero, acotado y sólo en RAM
 ├── observation.rs        metadatos autorizados de ventana

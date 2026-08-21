@@ -702,6 +702,7 @@ fn memory_capabilities(
                 "save_memory",
                 "activate_layered_memory",
                 "resolve_consolidation_candidate",
+                "confirm_learning_candidate",
             ],
             records_state,
             CapabilityRisk::Medium,

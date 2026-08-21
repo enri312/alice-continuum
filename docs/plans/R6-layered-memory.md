@@ -1,6 +1,6 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C, R6.3-F y R6.4-B validados  
+Estado: en curso · R6.1, R6.2-C, R6.3-F y R6.4-C validados  
 Fecha: 2026-08-20
 
 ## R6.1 — Proyección inicial y migración reversible
@@ -72,7 +72,7 @@ R6.3 no detecta contradicciones semánticas generales porque el formato v1 no po
 
 ## R6.4 — Aprendizaje conversacional y candidatos locales
 
-Estado: R6.4-B validado.
+Estado: R6.4-C validado.
 
 - [x] Guardado opcional de una conversación realmente recibida como episodio no verificado.
 - [x] Fuente elegida entre recuerdos reales, sin lectura general de carpetas.
@@ -82,8 +82,13 @@ Estado: R6.4-B validado.
 - [x] Vista editable que declara cero escrituras.
 - [x] Confirmación humana separada para guardar como enseñanza.
 - [x] Prueba real sobre tres recuerdos canónicos con SHA-256 intacto.
+- [x] Confirmación nativa única con revalidación de fuente, candidato y edición.
+- [x] Bloqueo compartido entre confirmación, guardado y restauración de `records.json`.
+- [x] Respaldo exacto, reemplazo atómico y restauración si falla la auditoría.
+- [x] Idempotencia estricta: reintento idéntico permitido y contenido alterado rechazado.
+- [x] Sonda canónica negativa sobre 21 archivos con huellas intactas.
 
-R6.4-B no entrena el modelo, no promueve respuestas automáticamente y acepta cero candidatos como resultado honesto. La transacción nativa única entre revalidación final y anexado queda como endurecimiento futuro.
+R6.4-C no entrena el modelo, no promueve respuestas automáticamente y acepta cero candidatos como resultado honesto. La confirmación positiva se prueba con archivos físicos temporales para no sembrar conocimiento ficticio; la sonda canónica real sólo verifica el rechazo seguro y la ausencia de escrituras.
 
 ## Fuente futura gobernada — proyectos locales
 

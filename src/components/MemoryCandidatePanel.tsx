@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import {
+  parseLearningCandidateConfirmation,
   parseLearningCandidatePreview,
   type LearningCandidate,
   type LearningCandidatePreview,
@@ -21,7 +22,7 @@ type MemoryCandidatePanelProps = {
   sessions: CandidateSource[];
   ollamaReady: boolean;
   ollamaModel: string;
-  onConfirm: (teaching: { intention: string; summary: string; memoryType: LearningMemoryType; source: string; importance: number }) => void;
+  onReloadMemory: () => Promise<number>;
 };
 
 const kindLabels: Record<LearningCandidate["candidateKind"], string> = {
@@ -31,7 +32,7 @@ const kindLabels: Record<LearningCandidate["candidateKind"], string> = {
   experience: "EXPERIENCIA",
 };
 
-export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onConfirm }: MemoryCandidatePanelProps) {
+export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onReloadMemory }: MemoryCandidatePanelProps) {
   const sources = useMemo(() => sessions.filter((session) => session.finishedAt && session.memoryStatus !== "archived" && `${session.intention} ${session.summary ?? ""}`.trim().length >= 12), [sessions]);
   const [sourceId, setSourceId] = useState("");
   const [preview, setPreview] = useState<LearningCandidatePreview | null>(null);
@@ -71,24 +72,43 @@ export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onCon
     setDrafts((current) => ({ ...current, [candidateId]: { ...current[candidateId], ...changes } }));
   }
 
-  function confirmCandidate(candidate: LearningCandidate) {
+  async function confirmCandidate(candidate: LearningCandidate) {
     const draft = drafts[candidate.candidateId];
     if (!draft?.intention.trim() || !draft.summary.trim() || confirmed.has(candidate.candidateId) || !preview) return;
-    if (!window.confirm(`¿Confirmás que Alice guarde este aprendizaje?\n\n${draft.intention}\n\nLa evidencia y la huella del recuerdo de origen quedarán indicadas en la fuente.`)) return;
-    onConfirm({
-      intention: draft.intention.trim(),
-      summary: draft.summary.trim(),
-      memoryType: draft.memoryType,
-      importance: draft.importance,
-      source: `Ollama local · ${preview.model} · recuerdo ${preview.sourceRecordId} · ${preview.sourceSha256} · candidato ${candidate.candidateId}`,
-    });
-    setConfirmed((current) => new Set(current).add(candidate.candidateId));
-    setMessage("Aprendizaje confirmado y enviado al almacén local de Memoria.");
+    if (!window.confirm(`¿Confirmás que Alice guarde este aprendizaje?\n\n${draft.intention}\n\nEl modelo, el recuerdo y el candidato quedarán en la procedencia; las huellas se verificarán en Rust.`)) return;
+    setPending(true);
+    setMessage("");
+    try {
+      const result = parseLearningCandidateConfirmation(await invoke<unknown>("confirm_learning_candidate", { input: {
+        expectedSourceSha256: preview.sourceSha256,
+        sourceRecordId: preview.sourceRecordId,
+        model: preview.model,
+        candidate,
+        approved: {
+          intention: draft.intention.trim(),
+          summary: draft.summary.trim(),
+          memoryType: draft.memoryType,
+          importance: draft.importance,
+        },
+        confirmed: true,
+      } }));
+      const count = await onReloadMemory();
+      setConfirmed((current) => new Set(current).add(candidate.candidateId));
+      setPreview(null);
+      setDrafts({});
+      setMessage(result.alreadyConfirmed
+        ? `El aprendizaje ya estaba confirmado. Memoria recargada: ${count} registros.`
+        : `Aprendizaje confirmado por Rust, respaldado y auditado. Memoria recargada: ${count} registros. Analizá otra vez para revisar candidatos restantes.`);
+    } catch (error) {
+      setMessage(`No se confirmó el aprendizaje: ${String(error)}`);
+    } finally {
+      setPending(false);
+    }
   }
 
   return <section className="learning-candidate-panel" aria-labelledby="learning-candidate-title">
     <header>
-      <div><p className="eyebrow">R6.4-B · EXTRACCIÓN LOCAL GOBERNADA</p><h3 id="learning-candidate-title">Candidatos desde recuerdos reales</h3><p>Qwen propone hechos, preferencias, hábitos declarados o experiencias. Podés corregirlos; ninguno se guarda sin tu confirmación.</p></div>
+      <div><p className="eyebrow">R6.4-C · APRENDIZAJE LOCAL TRANSACCIONAL</p><h3 id="learning-candidate-title">Candidatos desde recuerdos reales</h3><p>Qwen propone hechos, preferencias, hábitos declarados o experiencias. Podés corregirlos; Rust vuelve a validarlos y ninguno se guarda sin tu confirmación.</p></div>
       <span>{ollamaReady ? "OLLAMA LOCAL" : "OLLAMA NO DISPONIBLE"}</span>
     </header>
     <div className="learning-candidate-source">
@@ -110,7 +130,7 @@ export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onCon
           <label>IMPORTANCIA <strong>{draft.importance}/5</strong><input type="range" min="1" max="5" value={draft.importance} onChange={(event) => updateDraft(candidate.candidateId, { importance: Number(event.target.value) })} disabled={wasConfirmed} /></label>
         </div>
         <blockquote><span>EVIDENCIA LITERAL</span>{candidate.evidence}</blockquote>
-        <footer><code>{candidate.candidateId}</code><button className="primary" type="button" onClick={() => confirmCandidate(candidate)} disabled={wasConfirmed}>{wasConfirmed ? "Confirmado" : "Confirmar aprendizaje"}</button></footer>
+        <footer><code>{candidate.candidateId}</code><button className="primary" type="button" onClick={() => void confirmCandidate(candidate)} disabled={wasConfirmed || pending}>{wasConfirmed ? "Confirmado" : pending ? "Confirmando…" : "Confirmar aprendizaje"}</button></footer>
       </article>;
     })}
     {message && <p className="memory-operation-message" role="status">{message}</p>}

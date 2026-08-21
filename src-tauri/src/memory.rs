@@ -11,6 +11,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::time::Instant;
 use tauri::AppHandle;
 use windows::core::PCWSTR;
@@ -61,6 +62,30 @@ pub(crate) struct MemorySnapshot {
     sessions: Vec<MemorySession>,
     storage_path: String,
     existed: bool,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct ConfirmedLearningAppendInput {
+    pub(crate) candidate_id: String,
+    pub(crate) source_record_id: String,
+    pub(crate) model: String,
+    pub(crate) intention: String,
+    pub(crate) summary: String,
+    pub(crate) memory_type: String,
+    pub(crate) importance: u8,
+    pub(crate) confirmed_at: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ConfirmedLearningAppendResult {
+    pub(crate) record_id: String,
+    pub(crate) record_count: usize,
+    pub(crate) source_sha256: String,
+    pub(crate) backup_sha256: String,
+    pub(crate) storage_path: String,
+    pub(crate) already_confirmed: bool,
+    pub(crate) audit_written: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -116,6 +141,14 @@ const CONSOLIDATION_DECISION_FILE: &str = "consolidation-decisions-v1.json";
 const CONSOLIDATION_TRANSACTION_FILE: &str = "consolidation-merge-transactions-v1.json";
 const CONSOLIDATION_MAX_RECORDS: usize = 1_000;
 const CONSOLIDATION_MAX_CANDIDATES: usize = 2_000;
+static MEMORY_WRITE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+fn acquire_memory_write_lock() -> Result<MutexGuard<'static, ()>, String> {
+    MEMORY_WRITE_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .map_err(|_| "El bloqueo de escritura de Memoria quedó dañado".into())
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -1303,6 +1336,188 @@ fn atomic_replace_memory_source(
         return Err("records.json no coincide con el SHA-256 R6.3-D esperado".into());
     }
     Ok(())
+}
+
+fn confirmed_learning_source(input: &ConfirmedLearningAppendInput) -> String {
+    format!(
+        "Ollama local · {} · recuerdo {} · candidato {}",
+        input.model, input.source_record_id, input.candidate_id
+    )
+}
+
+fn validate_confirmed_learning_append(input: &ConfirmedLearningAppendInput) -> Result<(), String> {
+    if !is_sha256(&input.candidate_id) {
+        return Err("El candidato de aprendizaje no posee una huella válida".into());
+    }
+    if input.source_record_id.trim().is_empty() || input.source_record_id.len() > 160 {
+        return Err("El recuerdo de origen no posee un identificador válido".into());
+    }
+    if input.model.trim().is_empty() || input.model.len() > 160 {
+        return Err("El modelo de origen no posee un identificador válido".into());
+    }
+    if input.intention.trim().is_empty()
+        || input.intention.chars().count() > 100
+        || input.summary.trim().is_empty()
+        || input.summary.chars().count() > 420
+        || !matches!(
+            input.memory_type.as_str(),
+            "semantic" | "procedural" | "preference" | "episodic"
+        )
+        || !(1..=5).contains(&input.importance)
+    {
+        return Err("La edición confirmada del candidato está fuera del contrato R6.4-C".into());
+    }
+    validate_timestamp("confirmedAt", &input.confirmed_at)
+}
+
+fn append_confirmed_learning_at(
+    data_root: &Path,
+    expected_source_sha256: &str,
+    input: ConfirmedLearningAppendInput,
+) -> Result<ConfirmedLearningAppendResult, String> {
+    if !is_sha256(expected_source_sha256) {
+        return Err("La huella esperada de records.json no es válida".into());
+    }
+    validate_confirmed_learning_append(&input)?;
+    let source_path = data_root.join("memory").join("records.json");
+    let source_content = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo releer records.json para confirmar: {error}"))?;
+    let mut sessions = serde_json::from_str::<Vec<MemorySession>>(&source_content)
+        .map_err(|error| format!("records.json no es una memoria válida: {error}"))?;
+    validate_memory_sessions(&sessions)?;
+    let current_source_sha256 = memory_subject_digest(&source_content);
+    let provenance = confirmed_learning_source(&input);
+    if let Some(existing) = sessions.iter().find(|session| {
+        session.kind == "Enseñanza" && session.source.as_deref() == Some(provenance.as_str())
+    }) {
+        let exact_retry = existing.intention == input.intention.trim()
+            && existing.summary.as_deref() == Some(input.summary.trim())
+            && existing.memory_type.as_deref() == Some(input.memory_type.as_str())
+            && existing.importance == Some(input.importance)
+            && existing.memory_status.as_deref() == Some("confirmed");
+        if !exact_retry {
+            return Err(
+                "El candidato ya fue confirmado con otro contenido; revisá el recuerdo existente"
+                    .into(),
+            );
+        }
+        return Ok(ConfirmedLearningAppendResult {
+            record_id: existing.id.clone(),
+            record_count: sessions.len(),
+            source_sha256: current_source_sha256,
+            backup_sha256: expected_source_sha256.to_string(),
+            storage_path: source_path.display().to_string(),
+            already_confirmed: true,
+            audit_written: false,
+        });
+    }
+    if current_source_sha256 != expected_source_sha256 {
+        return Err(
+            "records.json cambió después de la vista previa; analizá el recuerdo otra vez".into(),
+        );
+    }
+    if !sessions.iter().any(|session| {
+        session.id == input.source_record_id && session.memory_status.as_deref() != Some("archived")
+    }) {
+        return Err("El recuerdo de origen ya no está disponible para confirmar".into());
+    }
+
+    let record_id = uuid::Uuid::new_v4().to_string();
+    sessions.insert(
+        0,
+        MemorySession {
+            id: record_id.clone(),
+            kind: "Enseñanza".into(),
+            intention: input.intention.trim().to_string(),
+            started_at: input.confirmed_at.clone(),
+            finished_at: Some(input.confirmed_at),
+            summary: Some(input.summary.trim().to_string()),
+            next_step: None,
+            memory_type: Some(input.memory_type),
+            source: Some(provenance),
+            importance: Some(input.importance),
+            storage_strength: Some(0.18),
+            memory_status: Some("confirmed".into()),
+            successful_recalls: 0,
+            failed_recalls: 0,
+            last_recalled_at: None,
+            successful_reviews: 0,
+            correction_count: 0,
+            last_reviewed_at: None,
+            context_events: Vec::new(),
+        },
+    );
+    validate_memory_sessions(&sessions)?;
+    let projected = serde_json::to_string_pretty(&sessions).map_err(|error| error.to_string())?;
+    let backup_path = data_root
+        .join("memory")
+        .join("backups")
+        .join("records.backup.json");
+    fs::create_dir_all(
+        backup_path
+            .parent()
+            .ok_or("El respaldo R6.4-C no posee directorio")?,
+    )
+    .map_err(|error| format!("No se pudo preparar el respaldo R6.4-C: {error}"))?;
+    atomic_replace_text_file(
+        &backup_path,
+        &source_content,
+        "r6-4-c-backup.tmp",
+        "respaldo R6.4-C",
+    )?;
+    atomic_replace_text_file(
+        &source_path,
+        &projected,
+        "r6-4-c-records.tmp",
+        "records.json R6.4-C",
+    )?;
+    if let Err(audit_error) = append_memory_audit(
+        &source_path,
+        "confirm-learning-candidate",
+        sessions.len(),
+        &projected,
+    ) {
+        if let Err(restore_error) = atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "r6-4-c-restore.tmp",
+            "restauración R6.4-C",
+        ) {
+            return Err(format!(
+                "Falló la auditoría R6.4-C ({audit_error}) y también la restauración ({restore_error})"
+            ));
+        }
+        return Err(format!(
+            "La auditoría R6.4-C falló y records.json fue restaurado: {audit_error}"
+        ));
+    }
+    Ok(ConfirmedLearningAppendResult {
+        record_id,
+        record_count: sessions.len(),
+        source_sha256: memory_subject_digest(&projected),
+        backup_sha256: current_source_sha256,
+        storage_path: source_path.display().to_string(),
+        already_confirmed: false,
+        audit_written: true,
+    })
+}
+
+pub(crate) fn append_confirmed_learning(
+    app: &AppHandle,
+    expected_source_sha256: &str,
+    input: ConfirmedLearningAppendInput,
+) -> Result<ConfirmedLearningAppendResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
+    let data_root = alice_data_root_path(app)?;
+    let subject_digest = input.candidate_id.clone();
+    audited_memory_operation(
+        app,
+        "memory.records.write",
+        "memory.learning.confirm",
+        &subject_digest,
+        "LOCAL_LEARNING_CANDIDATE_CONFIRMED",
+        || append_confirmed_learning_at(&data_root, expected_source_sha256, input),
+    )
 }
 
 fn restore_rehearsal_source(
@@ -2691,6 +2906,7 @@ pub(crate) fn restore_consolidation_transaction(
     app: AppHandle,
     input: RestoreConsolidationTransactionInput,
 ) -> Result<ConsolidationRestorationResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
     let data_root = alice_data_root_path(&app)?;
     let operation_id = new_operation_id();
     let subject_digest = input.transaction_id.clone();
@@ -2840,6 +3056,7 @@ pub(crate) fn rollback_layered_memory(
 #[tauri::command]
 pub(crate) fn save_memory(app: AppHandle, sessions: Vec<MemorySession>) -> Result<String, String> {
     validate_memory_sessions(&sessions)?;
+    let _write_guard = acquire_memory_write_lock()?;
     let path = memory_file(&app)?;
     let backup = path
         .parent()
@@ -2908,6 +3125,7 @@ pub(crate) fn export_memory(app: AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 pub(crate) fn restore_memory_backup(app: AppHandle) -> Result<MemorySnapshot, String> {
+    let _write_guard = acquire_memory_write_lock()?;
     let path = memory_file(&app)?;
     let directory = path
         .parent()
@@ -4344,6 +4562,123 @@ mod tests {
         fs::remove_dir_all(root).expect("remove audit rollback fixture");
     }
 
+    fn confirmed_learning_fixture() -> ConfirmedLearningAppendInput {
+        ConfirmedLearningAppendInput {
+            candidate_id: format!("sha256:{}", "a".repeat(64)),
+            source_record_id: "legacy-1".into(),
+            model: "qwen3.5:4b".into(),
+            intention: "Tecnología confirmada".into(),
+            summary: "Alice usa una arquitectura local-first.".into(),
+            memory_type: "semantic".into(),
+            importance: 4,
+            confirmed_at: "2026-08-20T23:30:00Z".into(),
+        }
+    }
+
+    #[test]
+    fn r6_4_c_appends_once_with_exact_backup_and_audit() {
+        let root = temporary_probe_root("r6-4-c-confirm");
+        let original = write_layered_fixture(&root, &[legacy_memory()]);
+        let original_sha256 = memory_subject_digest(&original);
+
+        let first =
+            append_confirmed_learning_at(&root, &original_sha256, confirmed_learning_fixture())
+                .expect("confirm learning candidate");
+        let stored = fs::read_to_string(root.join("memory").join("records.json"))
+            .expect("read confirmed memory");
+        let backup = fs::read_to_string(
+            root.join("memory")
+                .join("backups")
+                .join("records.backup.json"),
+        )
+        .expect("read exact backup");
+        let sessions: Vec<MemorySession> =
+            serde_json::from_str(&stored).expect("decode confirmed memory");
+
+        assert_eq!(first.record_count, 2);
+        assert!(!first.already_confirmed);
+        assert!(first.audit_written);
+        assert_eq!(backup, original);
+        assert_eq!(first.backup_sha256, original_sha256);
+        assert_eq!(first.source_sha256, memory_subject_digest(&stored));
+        assert_eq!(sessions[0].id, first.record_id);
+        assert_eq!(sessions[0].kind, "Enseñanza");
+        assert_eq!(sessions[0].memory_status.as_deref(), Some("confirmed"));
+        assert!(root
+            .join("memory")
+            .join("audit")
+            .join("memory-events.jsonl")
+            .is_file());
+
+        let retry =
+            append_confirmed_learning_at(&root, &original_sha256, confirmed_learning_fixture())
+                .expect("idempotent retry");
+        assert!(retry.already_confirmed);
+        assert!(!retry.audit_written);
+        assert_eq!(retry.record_id, first.record_id);
+        assert_eq!(retry.record_count, 2);
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).unwrap(),
+            stored
+        );
+        fs::remove_dir_all(root).expect("remove confirmation fixture");
+    }
+
+    #[test]
+    fn r6_4_c_rejects_stale_source_without_writing() {
+        let root = temporary_probe_root("r6-4-c-stale");
+        write_layered_fixture(&root, &[legacy_memory()]);
+        let before = file_hashes(&root);
+        let result = append_confirmed_learning_at(
+            &root,
+            &format!("sha256:{}", "f".repeat(64)),
+            confirmed_learning_fixture(),
+        );
+
+        assert!(result.unwrap_err().contains("cambió"));
+        assert_eq!(file_hashes(&root), before);
+        fs::remove_dir_all(root).expect("remove stale fixture");
+    }
+
+    #[test]
+    fn r6_4_c_rejects_changed_retry_without_writing() {
+        let root = temporary_probe_root("r6-4-c-changed-retry");
+        let original = write_layered_fixture(&root, &[legacy_memory()]);
+        let original_sha256 = memory_subject_digest(&original);
+        append_confirmed_learning_at(&root, &original_sha256, confirmed_learning_fixture())
+            .expect("initial confirmation");
+        let before = file_hashes(&root);
+        let mut changed = confirmed_learning_fixture();
+        changed.summary = "Contenido cambiado después de confirmar.".into();
+
+        let result = append_confirmed_learning_at(&root, &original_sha256, changed);
+
+        assert!(result.unwrap_err().contains("otro contenido"));
+        assert_eq!(file_hashes(&root), before);
+        fs::remove_dir_all(root).expect("remove changed retry fixture");
+    }
+
+    #[test]
+    fn r6_4_c_restores_source_when_memory_audit_fails() {
+        let root = temporary_probe_root("r6-4-c-audit-rollback");
+        let original = write_layered_fixture(&root, &[legacy_memory()]);
+        fs::write(root.join("memory").join("audit"), "blocked by fixture")
+            .expect("block memory audit directory");
+
+        let result = append_confirmed_learning_at(
+            &root,
+            &memory_subject_digest(&original),
+            confirmed_learning_fixture(),
+        );
+
+        assert!(result.unwrap_err().contains("fue restaurado"));
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).unwrap(),
+            original
+        );
+        fs::remove_dir_all(root).expect("remove audit failure fixture");
+    }
+
     #[test]
     #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
     fn live_canonical_r6_3_preview_is_read_only() {
@@ -4423,6 +4758,40 @@ mod tests {
         assert_eq!(after, before);
         eprintln!(
             "R6_3B_CANONICAL rejectedUnknown=true filesIntact={}",
+            before.len()
+        );
+    }
+
+    #[test]
+    #[ignore = "requiere ALICE_LIVE_DATA_DIR apuntando a los datos canónicos"]
+    fn live_canonical_r6_4_c_rejects_stale_confirmation_without_writing() {
+        let root = std::env::var_os("ALICE_LIVE_DATA_DIR")
+            .map(PathBuf::from)
+            .expect("ALICE_LIVE_DATA_DIR requerido");
+        let source = read_validated_source_at(&root)
+            .expect("leer memoria canónica")
+            .expect("records.json canónico disponible");
+        let source_record_id = source
+            .1
+            .iter()
+            .find(|record| record.memory_status.as_deref() != Some("archived"))
+            .map(|record| record.id.clone())
+            .expect("al menos un recuerdo canónico activo");
+        let before = file_hashes(&root);
+        let rejected = append_confirmed_learning_at(
+            &root,
+            &format!("sha256:{}", "0".repeat(64)),
+            ConfirmedLearningAppendInput {
+                source_record_id,
+                ..confirmed_learning_fixture()
+            },
+        );
+        let after = file_hashes(&root);
+
+        assert!(rejected.unwrap_err().contains("cambió"));
+        assert_eq!(after, before);
+        eprintln!(
+            "R6_4C_CANONICAL staleRejected=true filesIntact={}",
             before.len()
         );
     }
