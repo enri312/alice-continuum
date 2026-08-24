@@ -122,6 +122,10 @@
       <text x="42" y="148" fill="#64748b" font-size="3">ZERO BLACKBOX COMM</text>
       <text x="158" y="148" fill="#64748b" font-size="3" text-anchor="end">DIRECT ACYCLIC [PASS]</text>
     </g>
+  <g aria-label="Rutas evidenciadas" fill="none" stroke-width=".7">
+    <path d="M42 154h20l7-6 12 6 10-4 12 4 10-6 12 6h33" stroke="#8b5cf6"/><path d="M69 148l22 2 22-2" stroke="#ec4899" stroke-dasharray="2 2"/>
+    <g fill="#2e1065" stroke="#ddd6fe"><circle cx="69" cy="148" r="2"/><circle cx="91" cy="150" r="2"/><circle cx="113" cy="148" r="2"/><circle cx="125" cy="154" r="2"/></g>
+  </g>
   <rect class="flow-scan" x="40" y="50" width="120" height="1.4" fill="#8b5cf6"/>
   <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#8b5cf6"/>
   <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-FLOW</text></g>

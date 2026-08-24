@@ -40,9 +40,9 @@
     <!-- Viewport HUD -->
     <g font-family="Consolas,monospace" font-weight="900">
       <text x="44" y="66" fill="#fbcfe8" font-size="2.6">SENSORY_INPUT</text>
-      <text x="92" y="66" fill="#22d3ee" font-size="2.6" text-anchor="end">TRACKING</text>
-      <circle cx="45" cy="116" r="1.5" fill="#4ade80" class="face-blink"/>
-      <text x="49" y="117.5" fill="#4ade80" font-size="2.2">CAM_0 ACTIVE</text>
+      <text x="92" y="66" fill="#fda4af" font-size="2.6" text-anchor="end">NO SIGNAL</text>
+      <circle cx="45" cy="116" r="1.5" fill="#f472b6" class="face-blink"/>
+      <text x="49" y="117.5" fill="#fda4af" font-size="2.2">CAM_0 NO SIGNAL</text>
     </g>
 
     <!-- Biometric Face Wireframe (Iris/Face Scanner) -->
@@ -101,9 +101,7 @@
       <path d="M-8 -14 v28 M8 -14 v28 M-16 -7 h32 M-16 7 h32" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="1 2"/>
       
       <!-- Current Emotion Plot Point -->
-      <circle cx="8" cy="-6" r="2.5" fill="#f472b6" class="face-blink" filter="url(#face-glow)"/>
-      <path d="M0 0 L8 -6" fill="none" stroke="#f472b6" stroke-width="1" opacity="0.6"/>
-      <path d="M8 -6 h6 M8 -6 v-4" stroke="#f472b6" stroke-width="0.5" opacity="0.8"/>
+      <circle cx="0" cy="0" r="2.5" fill="none" stroke="#64748b" stroke-width=".8" stroke-dasharray="1 1"/>
       
       <!-- Emotion Zones Labels -->
       <text x="0" y="-16" fill="#64748b" font-family="Consolas,monospace" font-weight="900" font-size="1.8" text-anchor="middle">AROUSAL</text>
@@ -114,15 +112,15 @@
     <g font-family="Consolas,monospace" font-weight="900" font-size="2.2" fill="#94a3b8">
       <text x="108" y="107">AU01: INNER_BROW</text>
       <rect x="108" y="109" width="48" height="2" fill="#1e293b"/>
-      <rect x="108" y="109" width="22" height="2" fill="#22d3ee"/>
+      <rect x="108" y="109" width="1" height="2" fill="#64748b"/>
       
       <text x="108" y="115">AU12: LIP_CORNER</text>
       <rect x="108" y="117" width="48" height="2" fill="#1e293b"/>
-      <rect x="108" y="117" width="36" height="2" fill="#4ade80" class="face-blink2"/>
+      <rect x="108" y="117" width="1" height="2" fill="#64748b"/>
       
       <text x="108" y="123">AU45: BLINK</text>
       <rect x="108" y="125" width="48" height="2" fill="#1e293b"/>
-      <rect x="108" y="125" width="8" height="2" fill="#f472b6"/>
+      <rect x="108" y="125" width="1" height="2" fill="#64748b"/>
     </g>
 
     <!-- Bottom Module Output Tabs & Terminal -->
@@ -132,9 +130,9 @@
     
     <!-- Vision Logs & Metrics -->
     <g font-family="Consolas,monospace" font-weight="900" font-size="2.2" fill="#64748b">
-      <text x="42" y="135">> SENSOR: RGB-IR fused (52 FPS)</text>
-      <text x="42" y="139">> BLENDSHAPES: 52 coefficients streaming</text>
-      <text x="42" y="143">> CONFIDENCE: Landmarks=0.98, Iris=0.94</text>
+      <text x="42" y="135">> CAMERA: CLOSED · LANDMARKS 0/5</text>
+      <text x="42" y="139">> BLENDSHAPES: 0/8 · CALIBRATION IDLE</text>
+      <text x="42" y="143">> CONFIDENCE: NO SIGNAL · NO FRAMES</text>
     </g>
     
     <!-- Status Badges -->
@@ -147,6 +145,10 @@
       <rect x="124" y="138" width="34" height="6" fill="#052e2b"/>
       <text x="126" y="142.5" fill="#4ade80">VIDEO: NOT STORED</text>
     </g>
+  <g aria-label="Matriz facial inactiva" fill="none" stroke="#f472b6" stroke-width=".65" opacity=".7">
+    <path d="M42 151h24m4 0h12m4 0h12m4 0h12m4 0h40"/><circle cx="68" cy="151" r="2"/><circle cx="84" cy="151" r="2"/><circle cx="100" cy="151" r="2"/><circle cx="116" cy="151" r="2"/>
+  </g>
+  <g font-family="Consolas,monospace" font-weight="900" font-size="2.3"><text x="42" y="157" fill="#fda4af">VIDEO · CLOSED</text><text x="158" y="157" fill="#94a3b8" text-anchor="end">NOT STORED · LOCAL</text></g>
   <rect class="face-scan" x="40" y="50" width="120" height="1.4" fill="#f472b6"/>
   <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#f472b6"/>
   <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-FACE</text></g>

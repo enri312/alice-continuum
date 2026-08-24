@@ -28,8 +28,8 @@
   <circle class="avatar-blink" cx="100" cy="42" r="2.2" fill="#38bdf8" filter="url(#avatar-glow)"/>
   <!-- Top System Header Bar -->
     <g font-family="Consolas,monospace" font-weight="900">
-      <text x="38" y="52" fill="#f472b6" font-size="4">[04] NEURAL_PROJECTION // KINEMATIC_CORE</text>
-      <text x="162" y="52" fill="#94a3b8" font-size="3.2" text-anchor="end">VRM BIOMETRIC ENGINE</text>
+      <text x="38" y="52" fill="#f472b6" font-size="4">[04] ALICE · AVATAR // LOCAL RENDER</text>
+      <text x="162" y="52" fill="#94a3b8" font-size="3.2" text-anchor="end">INSPECTOR VRM</text>
     </g>
 
     <!-- Left: Holographic 3D Mesh Viewport -->
@@ -39,8 +39,8 @@
     </g>
     <!-- Viewport HUD & Labels -->
     <g font-family="Consolas,monospace" font-weight="900">
-      <text x="44" y="66" fill="#a7f3d0" font-size="2.6">ALICE_MESH_V3</text>
-      <text x="102" y="66" fill="#38bdf8" font-size="2.6" text-anchor="end">SYNC: OPTIMAL</text>
+      <text x="44" y="66" fill="#a7f3d0" font-size="2.6">MODELO CARGADO</text>
+      <text x="102" y="66" fill="#38bdf8" font-size="2.6" text-anchor="end">ALICE.VRM</text>
     </g>
     
     <!-- Concentric Radar/Targeting Background -->
@@ -90,12 +90,12 @@
     <path d="M86 80 L96 74" stroke="#38bdf8" stroke-width="0.8"/>
     <path d="M84 98 L96 104" stroke="#38bdf8" stroke-width="0.8"/>
     <g font-family="Consolas,monospace" font-weight="900" font-size="2">
-      <text x="98" y="75" fill="#38bdf8">EYE_L: 0.94</text>
-      <text x="98" y="105" fill="#38bdf8">JAW_O: 0.12</text>
+      <text x="98" y="75" fill="#38bdf8">EYE_L: N/A</text>
+      <text x="98" y="105" fill="#38bdf8">JAW_O: N/A</text>
       <!-- Telemetry overlay left -->
-      <text x="44" y="112" fill="#64748b">Z-DEPTH: 14.2cm</text>
-      <text x="44" y="116" fill="#64748b">PITCH: -2.4°</text>
-      <text x="44" y="120" fill="#64748b">YAW: +0.8°</text>
+      <text x="44" y="112" fill="#64748b">MESH: PRIVATE</text>
+      <text x="44" y="116" fill="#64748b">POSE: MANUAL</text>
+      <text x="44" y="120" fill="#64748b">FACE: READONLY</text>
     </g>
     
     <!-- Moving Scanner Bar -->
@@ -165,9 +165,9 @@
     
     <!-- Hex Dump Terminal -->
     <g font-family="Consolas,monospace" font-weight="900" font-size="2.2" fill="#64748b">
-      <text x="42" y="133">0x00A1: 4F 70 74 69 6D 61 6C 20</text>
-      <text x="42" y="137">0x00B2: 42 69 6F 6D 65 74 72 79</text>
-      <text x="42" y="141">0x00C3: 53 79 6E 63 20 4F 4B 21</text>
+      <text x="42" y="133">01 RENDER · 02 IK · 03 CLIPS</text>
+      <text x="42" y="137">04 RAGDOLL · MANUAL · R3</text>
+      <text x="42" y="141">FACIAL · SOLO LECTURA</text>
     </g>
     
     <path d="M96 128 V144" stroke="#f472b6" stroke-width="0.8" opacity="0.5"/>
@@ -176,16 +176,17 @@
     <g font-family="Consolas,monospace" font-weight="900" font-size="3.2">
       <!-- Subsystem 1 -->
       <rect x="100" y="130" width="28" height="6" fill="#052e2b"/>
-      <text x="102" y="135" fill="#4ade80" font-size="2.4">FACIAL: SECURE</text>
+      <text x="102" y="135" fill="#4ade80" font-size="2.4">LOCAL · PRIVATE</text>
       <!-- Subsystem 2 -->
       <rect x="100" y="137" width="28" height="6" fill="#1e1b4b"/>
-      <text x="102" y="142" fill="#818cf8" font-size="2.4">VOICE: ACTIVE</text>
+      <text x="102" y="142" fill="#818cf8" font-size="2.4">CLIPS · MIXAMO</text>
       <!-- Core Status -->
       <rect x="131" y="130" width="28" height="13" fill="#f472b6" opacity="0.1"/>
       <rect x="131" y="130" width="28" height="13" fill="none" stroke="#f472b6" stroke-width="0.8"/>
       <circle cx="145" cy="134" r="1.5" fill="#f472b6" class="avatar-blink2"/>
-      <text x="145" y="140" fill="#fbcfe8" font-size="2.6" text-anchor="middle">LIVE FEED</text>
+      <text x="145" y="140" fill="#fbcfe8" font-size="2.6" text-anchor="middle">NO FACE INPUT</text>
     </g>
+  <g aria-label="Cadena corporal VRM" fill="none" stroke="#f472b6" stroke-width=".7"><path d="M42 152h18l5-5 6 5 8-5 6 5h14l5-5 6 5 8-5 6 5h34"/><circle cx="65" cy="147" r="2"/><circle cx="79" cy="147" r="2"/><circle cx="104" cy="147" r="2"/><circle cx="118" cy="147" r="2"/></g>
   <rect class="avatar-scan" x="40" y="50" width="120" height="1.4" fill="#f472b6"/>
   <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#f472b6"/>
   <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-AVATAR</text></g>

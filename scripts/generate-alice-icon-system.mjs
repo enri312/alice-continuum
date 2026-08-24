@@ -3,7 +3,17 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../icons/", import.meta.url));
-const handAuthoredIcons = new Set([]);
+// Estos SVG son componentes funcionales diseñados y revisados individualmente.
+// El generador histórico queda disponible como referencia, pero no debe borrar
+// detalles contextuales, estados honestos ni correcciones visuales aprobadas.
+const handAuthoredIcons = new Set([
+  "bridge-body.svg", "bridge-face.svg", "bridge-overview.svg",
+  "nav-activity.svg", "nav-audit.svg", "nav-avatar.svg", "nav-bridges.svg",
+  "nav-conversation.svg", "nav-identification.svg", "nav-memory.svg",
+  "nav-nucleus.svg", "nav-procedures.svg", "nav-settings.svg", "nav-skills.svg",
+  "nucleus-flow.svg", "nucleus-planner.svg", "nucleus-state.svg", "nucleus-volume.svg",
+  "view-pan.svg", "view-reset.svg", "view-rotate.svg", "view-zoom-in.svg", "view-zoom-out.svg",
+]);
 
 const screens = [
   ["nav-conversation.svg", "conversation", "Conversación", "#22d3ee", "#34d399", "DIALOGUE", `
@@ -388,4 +398,4 @@ function renderKey([file, id, title, accent, secondary, label, rawScene]) {
 
 const generated = [...screens, ...controls].filter(([file]) => !handAuthoredIcons.has(file));
 for (const icon of generated) writeFileSync(join(root, icon[0]), renderKey(icon), "utf8");
-console.log(`Generated ${screens.length} screen keys + ${controls.length} control keys; preserved ${handAuthoredIcons.size} hand-authored icons.`);
+console.log(`Generated ${generated.length} legacy keys; preserved ${handAuthoredIcons.size} hand-authored functional icons.`);
