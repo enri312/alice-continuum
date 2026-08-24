@@ -125,7 +125,10 @@ fn verify_owner_profile_sources(
         let path = data_root.join("memory").join(relative);
         let bytes = fs::read(&path)
             .map_err(|error| format!("No se pudo verificar la fuente {}: {error}", source.file))?;
-        let actual = format!("sha256:{:x}", Sha256::digest(&bytes));
+        let actual = format!(
+            "sha256:{}",
+            crate::util::encode_hex_lower(Sha256::digest(&bytes))
+        );
         if actual != source.sha256.to_lowercase() {
             return Err(format!("La fuente privada cambió: {}", source.file));
         }
@@ -220,7 +223,10 @@ mod tests {
         fs::create_dir_all(&source_directory).expect("source directory");
         let source_path = source_directory.join("profile.md");
         fs::write(&source_path, b"perfil confirmado").expect("source file");
-        let expected = format!("sha256:{:x}", Sha256::digest(b"perfil confirmado"));
+        let expected = format!(
+            "sha256:{}",
+            crate::util::encode_hex_lower(Sha256::digest(b"perfil confirmado"))
+        );
         let source = OwnerProfileSource {
             file: "notes/profile.md".into(),
             sha256: expected,

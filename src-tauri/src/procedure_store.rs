@@ -1013,7 +1013,10 @@ fn validate_digest(field: &str, value: &str) -> Result<(), String> {
 }
 
 fn sha256_digest(bytes: &[u8]) -> String {
-    format!("sha256:{:x}", Sha256::digest(bytes))
+    format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(bytes))
+    )
 }
 
 fn serialize_json<T: Serialize>(value: &T) -> Result<Vec<u8>, String> {

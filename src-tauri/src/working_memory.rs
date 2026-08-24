@@ -262,7 +262,10 @@ impl WorkingMemoryStore {
 }
 
 fn digest_text(value: &str) -> String {
-    format!("sha256:{:x}", Sha256::digest(value.as_bytes()))
+    format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(value.as_bytes()))
+    )
 }
 
 struct WorkingMemoryAudit<'a> {

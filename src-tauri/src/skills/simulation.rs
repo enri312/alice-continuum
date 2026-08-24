@@ -776,7 +776,10 @@ mod tests {
             hasher.update(fs::read(path).expect("read canonical data file"));
             hasher.update([0xff]);
         }
-        (files.len(), format!("{:x}", hasher.finalize()))
+        (
+            files.len(),
+            crate::util::encode_hex_lower(hasher.finalize()),
+        )
     }
 
     #[test]

@@ -524,7 +524,10 @@ fn procedure_signature_digest(signature: &[(String, String)]) -> Result<String, 
     hasher.update(PROCEDURE_DETECTION_METHOD.as_bytes());
     hasher.update([0]);
     hasher.update(canonical);
-    Ok(format!("sha256:{:x}", hasher.finalize()))
+    Ok(format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(hasher.finalize())
+    ))
 }
 
 fn variation_dimension_rank(dimension: ProcedureVariationDimension) -> u8 {
@@ -1019,7 +1022,7 @@ mod tests {
     #[test]
     fn detector_rejects_runs_with_ambiguous_millisecond_order() {
         let (_, mut events) = candidate_fixture();
-        for pair in events.chunks_exact_mut(2) {
+        for pair in events.as_chunks_mut::<2>().0 {
             pair[1].timestamp_ms = pair[0].timestamp_ms;
         }
         let snapshot =

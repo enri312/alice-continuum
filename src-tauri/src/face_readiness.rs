@@ -68,7 +68,7 @@ fn sha256_file(path: &Path) -> Result<String, String> {
         }
         digest.update(&buffer[..bytes_read]);
     }
-    Ok(format!("{:X}", digest.finalize()))
+    Ok(crate::util::encode_hex_upper(digest.finalize()))
 }
 
 fn face_model_readiness_at(path: &Path, expected_hash: &str) -> FaceModelReadiness {

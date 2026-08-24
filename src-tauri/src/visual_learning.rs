@@ -201,7 +201,10 @@ pub(crate) async fn analyze_screen_frame(
 ) -> Result<ScreenFrameAnalysis, String> {
     validate_screen_frame_request(&input)?;
     let operation_id = new_operation_id();
-    let frame_digest = format!("sha256:{:x}", Sha256::digest(input.image_base64.as_bytes()));
+    let frame_digest = format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(input.image_base64.as_bytes()))
+    );
     record_producer_audit(
         &app,
         operation_id.clone(),
@@ -222,7 +225,10 @@ pub(crate) async fn analyze_screen_frame(
     match result {
         Ok(analysis) => {
             let digest_source = serde_json::to_vec(&analysis.notes).unwrap_or_default();
-            let digest = format!("sha256:{:x}", Sha256::digest(digest_source));
+            let digest = format!(
+                "sha256:{}",
+                crate::util::encode_hex_lower(Sha256::digest(digest_source))
+            );
             if let Err(error) = record_producer_audit(
                 &app,
                 operation_id,

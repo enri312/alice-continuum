@@ -521,7 +521,7 @@ mod tests {
                     output.push((
                         path.strip_prefix(root).unwrap().to_path_buf(),
                         u64::try_from(content.len()).unwrap(),
-                        format!("{:x}", Sha256::digest(&content)),
+                        crate::util::encode_hex_lower(Sha256::digest(&content)),
                     ));
                 }
             }

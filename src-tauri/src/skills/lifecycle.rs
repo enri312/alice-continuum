@@ -965,7 +965,7 @@ mod tests {
         assert!(events
             .iter()
             .all(|event| event.source == crate::audit::AuditSource::Skill));
-        for pair in events.chunks_exact(2) {
+        for pair in events.as_chunks::<2>().0 {
             assert_eq!(pair[0].operation_id, pair[1].operation_id);
             assert_eq!(pair[0].stage, AuditStage::Request);
             assert_eq!(pair[1].stage, AuditStage::Execution);
@@ -1132,7 +1132,10 @@ mod tests {
             hasher.update(fs::read(path).expect("read canonical data file"));
             hasher.update([0xff]);
         }
-        (files.len(), format!("{:x}", hasher.finalize()))
+        (
+            files.len(),
+            crate::util::encode_hex_lower(hasher.finalize()),
+        )
     }
 
     #[test]

@@ -1527,7 +1527,7 @@ fn append_memory_audit(
         timestamp_ms: timestamp_ms()?,
         action: action.to_string(),
         session_count,
-        sha256: format!("{:x}", Sha256::digest(content.as_bytes())),
+        sha256: crate::util::encode_hex_lower(Sha256::digest(content.as_bytes())),
     };
     let line = serde_json::to_string(&entry).map_err(|error| error.to_string())?;
     let audit_directory = directory.join("audit");
@@ -1542,7 +1542,10 @@ fn append_memory_audit(
 }
 
 fn memory_subject_digest(content: &str) -> String {
-    format!("sha256:{:x}", Sha256::digest(content.as_bytes()))
+    format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(content.as_bytes()))
+    )
 }
 
 fn is_sha256(value: &str) -> bool {
@@ -6291,7 +6294,10 @@ fn collect_markdown_notes(
         notes.push(MarkdownNoteCatalogEntry {
             relative_path,
             byte_length: bytes.len() as u64,
-            sha256: format!("sha256:{:x}", Sha256::digest(bytes)),
+            sha256: format!(
+                "sha256:{}",
+                crate::util::encode_hex_lower(Sha256::digest(bytes))
+            ),
         });
     }
     Ok(())
@@ -7092,7 +7098,7 @@ mod tests {
                         path.strip_prefix(root)
                             .expect("relative fixture path")
                             .into(),
-                        format!("{:x}", Sha256::digest(content)),
+                        crate::util::encode_hex_lower(Sha256::digest(content)),
                     );
                 }
             }

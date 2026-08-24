@@ -98,7 +98,10 @@ pub(crate) struct LearningCandidatePreview {
 }
 
 fn sha256(value: impl AsRef<[u8]>) -> String {
-    format!("sha256:{:x}", Sha256::digest(value))
+    format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(value))
+    )
 }
 
 fn is_sha256(value: &str) -> bool {

@@ -324,7 +324,10 @@ pub(crate) async fn send_cloud_message(
     validate_cloud_request(&request)?;
 
     let operation_id = new_operation_id();
-    let request_digest = format!("sha256:{:x}", Sha256::digest(request.payload.as_bytes()));
+    let request_digest = format!(
+        "sha256:{}",
+        crate::util::encode_hex_lower(Sha256::digest(request.payload.as_bytes()))
+    );
     record_producer_audit(
         &app,
         operation_id.clone(),
@@ -345,7 +348,10 @@ pub(crate) async fn send_cloud_message(
         .min(86_400_000);
     match result {
         Ok(mut response) => {
-            let response_digest = format!("sha256:{:x}", Sha256::digest(response.text.as_bytes()));
+            let response_digest = format!(
+                "sha256:{}",
+                crate::util::encode_hex_lower(Sha256::digest(response.text.as_bytes()))
+            );
             if let Err(error) = record_producer_audit(
                 &app,
                 operation_id,
@@ -614,8 +620,10 @@ async fn send_cloud_message_inner(
             memory_count: request.memory_count,
             input_tokens,
             output_tokens,
-            request_sha256: format!("{:x}", Sha256::digest(request.payload.as_bytes())),
-            response_sha256: format!("{:x}", Sha256::digest(text.as_bytes())),
+            request_sha256: crate::util::encode_hex_lower(Sha256::digest(
+                request.payload.as_bytes(),
+            )),
+            response_sha256: crate::util::encode_hex_lower(Sha256::digest(text.as_bytes())),
         },
     )?;
 

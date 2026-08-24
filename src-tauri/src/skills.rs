@@ -1233,7 +1233,7 @@ fn restore_optional_file(path: &Path, previous: Option<&[u8]>) -> Result<(), Str
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    crate::util::encode_hex_lower(Sha256::digest(bytes))
 }
 
 fn valid_sha256(value: &str) -> bool {

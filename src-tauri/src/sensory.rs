@@ -491,7 +491,7 @@ pub(crate) fn spawn_sensor_reaper_thread(
                     .values()
                     .map(|sensor| sensor.snapshot.grant_id.clone())
                     .collect::<Vec<_>>();
-                let finished = store.finished_grant_ids.drain(..).collect::<Vec<_>>();
+                let finished = std::mem::take(&mut store.finished_grant_ids);
                 (active, finished)
             }
             Err(_) => break,
