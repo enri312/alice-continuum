@@ -21,7 +21,7 @@ export type MemoryLifecycleReference = {
   validity: MemoryValidityState;
   accessibility: MemoryAccessibilityState;
   retrievalPolicy: MemoryRetrievalPolicy;
-  retention: "notAssessed";
+  retention: "notAssessed" | "deletionScheduled";
   suppressed: boolean;
   archived: boolean;
   baseVersion: 1;
@@ -43,7 +43,7 @@ export type MemoryLifecyclePreview = {
   retrievalOutcomeCount: number;
   functionalAssessmentCount: number;
   weakeningReviewRequiredCount: number;
-  retentionAssessedCount: 0;
+  retentionAssessedCount: number;
   suppressedCount: number;
   reconsolidatedCount: number;
   references: MemoryLifecycleReference[];
@@ -161,7 +161,7 @@ function parseReference(value: unknown, index: number): MemoryLifecycleReference
   if (typeof input.validity !== "string" || !validities.includes(input.validity as MemoryValidityState)) fail(`references[${index}].validity es desconocido`);
   if (typeof input.accessibility !== "string" || !accessibilities.includes(input.accessibility as MemoryAccessibilityState)) fail(`references[${index}].accessibility es desconocida`);
   if (typeof input.retrievalPolicy !== "string" || !retrievalPolicies.includes(input.retrievalPolicy as MemoryRetrievalPolicy)) fail(`references[${index}].retrievalPolicy es desconocido`);
-  if (input.retention !== "notAssessed" || typeof input.suppressed !== "boolean" || typeof input.archived !== "boolean" || input.baseVersion !== 1) fail(`references[${index}] declara una retención, archivo o versión base incompatible`);
+  if ((input.retention !== "notAssessed" && input.retention !== "deletionScheduled") || typeof input.suppressed !== "boolean" || typeof input.archived !== "boolean" || input.baseVersion !== 1) fail(`references[${index}] declara una retención, archivo o versión base incompatible`);
   const validity = input.validity as MemoryValidityState;
   const accessibility = input.accessibility as MemoryAccessibilityState;
   const retrievalPolicy = input.retrievalPolicy as MemoryRetrievalPolicy;
@@ -170,7 +170,8 @@ function parseReference(value: unknown, index: number): MemoryLifecycleReference
   if (validity === "archived" && !archived) fail(`references[${index}] pierde el archivo heredado`);
   const expectedPolicy = archived ? "blockedByArchive" : validity === "conflict" ? "blockedByConflict" : suppressed ? "blockedBySuppression" : accessibility === "dormant" ? "blockedByDormancy" : validity === "current" ? "eligible" : "legacyEligible";
   if (retrievalPolicy !== expectedPolicy) fail(`references[${index}] mezcla vigencia, accesibilidad y recuperación`);
-  return { recordId: input.recordId, recordSha256: input.recordSha256, validity, accessibility, retrievalPolicy, retention: "notAssessed", suppressed, archived, baseVersion: 1, reconsolidationCount: count(input.reconsolidationCount, `references[${index}].reconsolidationCount`) };
+  if (input.retention === "deletionScheduled" && !archived) fail(`references[${index}] programa eliminación sin archivo reversible`);
+  return { recordId: input.recordId, recordSha256: input.recordSha256, validity, accessibility, retrievalPolicy, retention: input.retention, suppressed, archived, baseVersion: 1, reconsolidationCount: count(input.reconsolidationCount, `references[${index}].reconsolidationCount`) };
 }
 
 function parseWeakeningAssessment(value: unknown, index: number): MemoryWeakeningAssessment {
@@ -195,7 +196,7 @@ function parsePreview(value: unknown): MemoryLifecyclePreview {
   if (!Array.isArray(input.references)) fail("preview.references debe ser una lista");
   if (!Array.isArray(input.weakeningAssessments)) fail("preview.weakeningAssessments debe ser una lista");
   if (input.recordsModified !== false || input.contentCopied !== false || input.automaticInference !== false) fail("preview declara escrituras, copia o inferencia automática");
-  if (input.retentionAssessedCount !== 0) fail("preview declara una retención todavía no implementada");
+  const retentionAssessedCount = count(input.retentionAssessedCount, "preview.retentionAssessedCount");
   const references = input.references.map(parseReference);
   const weakeningAssessments = input.weakeningAssessments.map(parseWeakeningAssessment);
   const ids = new Set(references.map((reference) => reference.recordId));
@@ -215,7 +216,7 @@ function parsePreview(value: unknown): MemoryLifecyclePreview {
     retrievalOutcomeCount: count(input.retrievalOutcomeCount, "retrievalOutcomeCount"),
     functionalAssessmentCount: count(input.functionalAssessmentCount, "functionalAssessmentCount"),
     weakeningReviewRequiredCount: count(input.weakeningReviewRequiredCount, "weakeningReviewRequiredCount"),
-    retentionAssessedCount: 0,
+    retentionAssessedCount,
     suppressedCount: count(input.suppressedCount, "suppressedCount"),
     reconsolidatedCount: count(input.reconsolidatedCount, "reconsolidatedCount"),
     references,
@@ -233,6 +234,7 @@ function parsePreview(value: unknown): MemoryLifecyclePreview {
   if (preview.accessibleCount + preview.dormantCount !== preview.accessibilityAssessedCount || preview.accessibilityAssessedCount > preview.recordCount) fail("los estados de accesibilidad son incoherentes");
   if (preview.retrievalEligibleCount + preview.retrievalBlockedCount !== preview.recordCount) fail("la política de recuperación no cubre todos los registros");
   if (preview.suppressedCount !== preview.references.filter((reference) => reference.suppressed).length) fail("suppressedCount no coincide con las referencias");
+  if (preview.retentionAssessedCount !== preview.references.filter((reference) => reference.retention === "deletionScheduled").length) fail("retentionAssessedCount no coincide con las referencias");
   if (preview.archivedCount !== preview.references.filter((reference) => reference.archived).length) fail("archivedCount no coincide con las referencias");
   if (preview.reconsolidatedCount !== preview.references.filter((reference) => reference.reconsolidationCount > 0).length) fail("reconsolidatedCount no coincide con las referencias");
   if (preview.retrievalOutcomeCount !== preview.weakeningAssessments.reduce((total, assessment) => total + assessment.evidenceCount, 0)) fail("retrievalOutcomeCount no coincide con la evidencia");

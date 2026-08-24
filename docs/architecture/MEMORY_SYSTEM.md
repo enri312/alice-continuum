@@ -133,7 +133,15 @@ El archivo nuevo no reutiliza `memoryStatus=archived`. Ese valor se admite sólo
 
 `confirm_memory_archive` es una segunda autorización sobre el mismo plan y la misma fecha. Antes de escribir crea `backups/archive-source-<sha>.json`, reemplaza `records.json` atómicamente, relee la fuente, valida el ciclo y registra auditoría local. Cualquier fallo posterior restaura exactamente los bytes anteriores. Repetir un estado, cambiar la fuente, alterar el plan o intentar restaurar un `memoryStatus=archived` heredado se rechaza sin inventar información.
 
-El RAG excluye `archiveStatus=archived` antes del puntaje léxico. La consolidación tampoco usa esos registros como candidatos. El volumen mantiene el nodo real, atenuado y rotulado como archivado, sin arista de recuperación. Restaurar retira únicamente los tres metadatos de archivo y devuelve la política resultante de vigencia, accesibilidad y supresión. La eliminación durable continúa bloqueada y requerirá un contrato distinto.
+El RAG excluye `archiveStatus=archived` antes del puntaje léxico. La consolidación tampoco usa esos registros como candidatos. El volumen mantiene el nodo real, atenuado y rotulado como archivado, sin arista de recuperación. Restaurar retira únicamente los tres metadatos de archivo y devuelve la política resultante de vigencia, accesibilidad y supresión.
+
+## Retención y eliminación gobernada R6.5-J
+
+Archivar no elimina. La eliminación comienza únicamente desde un archivo reversible y se divide en dos contratos independientes. `preview_memory_deletion_schedule` no escribe y fija una espera no configurable de 604.800 segundos. `confirm_memory_deletion_schedule` exige el mismo plan y segunda autorización; añade `deletionStatus=scheduled`, un motivo cerrado, `deletionRequestedAt` y `deletionEligibleAt`. Cancelar durante la espera retira sólo esos metadatos. Restaurar el archivo queda bloqueado hasta cancelar la programación.
+
+Una vez vencida la fecha según el reloj nativo, `preview_memory_deletion` vuelve a comprobar las huellas de la fuente y del registro. `confirm_memory_deletion` repite la comprobación del reloj y del plan, conserva los bytes completos de la fuente en `memory/private-deletion-safeguards`, reemplaza `records.json` sin el registro y escribe una lápida en `memory/deletion-tombstones`. La lápida conserva únicamente huellas, fechas y códigos cerrados; el ID se digesta y no incluye título, resumen, fuente ni nota. Después se valida el ciclo y se audita. Un fallo restaura `records.json` y retira la lápida creada por el intento; el resguardo puede permanecer como protección local.
+
+Esta operación significa retiro de la memoria activa canónica, no borrado criptográfico ni garantía de que el contenido desapareció de copias, respaldos, journal del sistema de archivos o soporte físico. Purgar esos resguardos requeriría otro contrato explícito. No existe eliminación automática.
 
 ## Consolidación y repaso v1
 
@@ -158,3 +166,4 @@ No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruy
 - R6.5-G no suprime automáticamente y no confunde supresión con reposo, conflicto, archivo o borrado.
 - R6.5-H no reconsolida por recuperación y nunca sobrescribe contenido confirmado sin conservar la versión desplazada.
 - R6.5-I no archiva por antigüedad, fuerza o salida de modelo; archivar no es suprimir, dormir, invalidar ni eliminar.
+- R6.5-J no programa ni ejecuta eliminación desde métricas o modelos; exige archivo previo, siete días cancelables, dos etapas confirmadas y resguardo exacto.

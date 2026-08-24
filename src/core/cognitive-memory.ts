@@ -13,6 +13,7 @@ export type CognitiveMemoryInput = {
   accessibilityStatus?: "accessible" | "dormant";
   suppressionStatus?: "suppressed";
   archiveStatus?: "archived";
+  deletionStatus?: "scheduled";
   memoryVersion?: number;
   successfulRecalls?: number;
   successfulReviews?: number;
@@ -26,6 +27,7 @@ export type CognitiveMemoryNode = {
   accessibility: "notAssessed" | "accessible" | "dormant";
   suppressed: boolean;
   archived: boolean;
+  deletionScheduled: boolean;
   version: number;
   source: string | null;
   storageStrength: number | null;
@@ -110,6 +112,7 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       accessibility: memory.accessibilityStatus ?? "notAssessed",
       suppressed: memory.suppressionStatus === "suppressed",
       archived,
+      deletionScheduled: memory.deletionStatus === "scheduled",
       version: Number.isSafeInteger(memory.memoryVersion) && (memory.memoryVersion ?? 0) >= 2 ? memory.memoryVersion! : 1,
       source: memory.source?.trim() || null,
       storageStrength: strength === null ? null : clamp01(strength),

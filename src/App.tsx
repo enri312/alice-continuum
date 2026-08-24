@@ -52,6 +52,10 @@ type Session = {
   archiveStatus?: "archived";
   archiveReason?: "ownerChoice" | "superseded" | "noLongerRelevant";
   archiveUpdatedAt?: string;
+  deletionStatus?: "scheduled";
+  deletionReason?: "ownerRequest" | "duplicateAfterMerge" | "privacyRemoval";
+  deletionRequestedAt?: string;
+  deletionEligibleAt?: string;
   memoryVersion?: number;
   reconsolidatedAt?: string;
   reconsolidationReason?: "ownerCorrection" | "newContext" | "clarification";

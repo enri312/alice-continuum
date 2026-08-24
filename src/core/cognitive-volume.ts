@@ -76,7 +76,7 @@ export function buildCognitiveVolumeGraph(memoryNodes: CognitiveMemoryNode[], ac
     id: `memory:${memory.id}`,
     kind: "memory",
     label: memory.label,
-    detail: `${memory.layer} · ${memory.status} · ${memory.accessibility}${memory.archived ? " · archived" : ""}${memory.suppressed ? " · suppressed" : ""}`,
+    detail: `${memory.layer} · ${memory.status} · ${memory.accessibility}${memory.archived ? " · archived" : ""}${memory.deletionScheduled ? " · deletion scheduled" : ""}${memory.suppressed ? " · suppressed" : ""}`,
     x: memory.x,
     y: memory.y,
     z: memory.z,

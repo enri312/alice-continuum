@@ -35,12 +35,13 @@ use learning_candidates::{confirm_learning_candidate, preview_learning_candidate
 use memory::{
     activate_layered_memory, activate_memory_lifecycle, assess_memory_accessibility,
     assess_memory_suppression, assess_memory_validity, confirm_memory_archive,
-    confirm_memory_reconsolidation, consolidation_preview, consolidation_recovery_status,
-    export_memory, layered_memory_status, load_memory, markdown_note_catalog,
-    memory_lifecycle_preview, open_memory_directory, preview_consolidation_merge,
-    preview_memory_archive, preview_memory_reconsolidation, resolve_consolidation_candidate,
-    restore_consolidation_transaction, restore_memory_backup, rollback_layered_memory,
-    rollback_memory_lifecycle, save_memory,
+    confirm_memory_deletion, confirm_memory_deletion_schedule, confirm_memory_reconsolidation,
+    consolidation_preview, consolidation_recovery_status, export_memory, layered_memory_status,
+    load_memory, markdown_note_catalog, memory_lifecycle_preview, open_memory_directory,
+    preview_consolidation_merge, preview_memory_archive, preview_memory_deletion,
+    preview_memory_deletion_schedule, preview_memory_reconsolidation,
+    resolve_consolidation_candidate, restore_consolidation_transaction, restore_memory_backup,
+    rollback_layered_memory, rollback_memory_lifecycle, save_memory,
 };
 use observation::{get_foreground_context, spawn_observer_thread, ObservationStore};
 use owner_profile::owner_profile_status;
@@ -139,6 +140,10 @@ pub fn run() {
             assess_memory_suppression,
             preview_memory_archive,
             confirm_memory_archive,
+            preview_memory_deletion_schedule,
+            confirm_memory_deletion_schedule,
+            preview_memory_deletion,
+            confirm_memory_deletion,
             preview_memory_reconsolidation,
             confirm_memory_reconsolidation,
             consolidation_preview,

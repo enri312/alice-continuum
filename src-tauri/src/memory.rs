@@ -1,7 +1,9 @@
 use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
-use crate::capabilities::{current_utc_timestamp, validate_timestamp};
+use crate::capabilities::{
+    current_unix_seconds, current_utc_timestamp, format_utc_timestamp, validate_timestamp,
+};
 use crate::util::{alice_data_root, alice_data_root_path, timestamp_ms};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -50,6 +52,10 @@ pub(crate) struct MemorySession {
     archive_status: Option<String>,
     archive_reason: Option<String>,
     archive_updated_at: Option<String>,
+    deletion_status: Option<String>,
+    deletion_reason: Option<String>,
+    deletion_requested_at: Option<String>,
+    deletion_eligible_at: Option<String>,
     memory_version: Option<u32>,
     reconsolidated_at: Option<String>,
     reconsolidation_reason: Option<String>,
@@ -149,6 +155,8 @@ const MEMORY_LIFECYCLE_PREVIEW_SCHEMA_VERSION: u8 = 1;
 const MEMORY_LIFECYCLE_FILE: &str = "lifecycle-index-v1.json";
 const MEMORY_RECONSOLIDATION_SCHEMA_VERSION: u8 = 1;
 const MEMORY_ARCHIVE_SCHEMA_VERSION: u8 = 1;
+const MEMORY_DELETION_SCHEMA_VERSION: u8 = 1;
+const MEMORY_DELETION_WAIT_SECONDS: i64 = 7 * 24 * 60 * 60;
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 4;
@@ -308,6 +316,7 @@ pub(crate) enum MemoryAccessibilityState {
 #[serde(rename_all = "camelCase")]
 pub(crate) enum MemoryRetentionState {
     NotAssessed,
+    DeletionScheduled,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -618,6 +627,165 @@ pub(crate) struct MemoryArchiveResult {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryDeletionScheduleAction {
+    Schedule,
+    Cancel,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryDeletionReason {
+    OwnerRequest,
+    DuplicateAfterMerge,
+    PrivacyRemoval,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PreviewMemoryDeletionScheduleInput {
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    action: MemoryDeletionScheduleAction,
+    reason: MemoryDeletionReason,
+    note: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ConfirmMemoryDeletionScheduleInput {
+    expected_plan_id: String,
+    planned_at: String,
+    eligible_at: String,
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    action: MemoryDeletionScheduleAction,
+    reason: MemoryDeletionReason,
+    note: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryDeletionSchedulePreview {
+    schema_version: u8,
+    plan_id: String,
+    planned_at: String,
+    eligible_at: String,
+    record_id: String,
+    action: MemoryDeletionScheduleAction,
+    reason: MemoryDeletionReason,
+    note_sha256: String,
+    source_sha256: String,
+    record_sha256_before: String,
+    projected_record_sha256: String,
+    previous_scheduled: bool,
+    projected_scheduled: bool,
+    wait_seconds: i64,
+    records_modified: bool,
+    automatic_action: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryDeletionScheduleResult {
+    schema_version: u8,
+    plan_id: String,
+    record_id: String,
+    action: MemoryDeletionScheduleAction,
+    reason: MemoryDeletionReason,
+    previous_scheduled: bool,
+    new_scheduled: bool,
+    eligible_at: Option<String>,
+    source_sha256_before: String,
+    source_sha256_after: String,
+    record_sha256_before: String,
+    record_sha256_after: String,
+    backup_sha256: String,
+    records_modified: bool,
+    audit_written: bool,
+    lifecycle: MemoryLifecyclePreviewSnapshot,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PreviewMemoryDeletionInput {
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    note: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ConfirmMemoryDeletionInput {
+    expected_plan_id: String,
+    planned_at: String,
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    note: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryDeletionPreview {
+    schema_version: u8,
+    plan_id: String,
+    planned_at: String,
+    record_id: String,
+    reason: MemoryDeletionReason,
+    note_sha256: String,
+    source_sha256: String,
+    record_sha256: String,
+    requested_at: String,
+    eligible_at: String,
+    safeguard_required: bool,
+    tombstone_contains_content: bool,
+    records_modified: bool,
+    automatic_action: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryDeletionResult {
+    schema_version: u8,
+    plan_id: String,
+    record_id: String,
+    reason: MemoryDeletionReason,
+    source_sha256_before: String,
+    source_sha256_after: String,
+    record_sha256: String,
+    safeguard_sha256: String,
+    tombstone_sha256: String,
+    remaining_record_count: usize,
+    records_modified: bool,
+    audit_written: bool,
+    lifecycle: MemoryLifecyclePreviewSnapshot,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct MemoryDeletionTombstone {
+    schema_version: u8,
+    plan_id: String,
+    record_id_sha256: String,
+    record_sha256: String,
+    source_sha256_before: String,
+    source_sha256_after: String,
+    reason: MemoryDeletionReason,
+    requested_at: String,
+    eligible_at: String,
+    deleted_at: String,
+    note_sha256: String,
+    safeguard_sha256: String,
+    content_included: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) enum MemoryReconsolidationReason {
     OwnerCorrection,
     NewContext,
@@ -850,6 +1018,10 @@ pub(crate) enum ConsolidationMergeDifferenceField {
     ArchiveStatus,
     ArchiveReason,
     ArchiveUpdatedAt,
+    DeletionStatus,
+    DeletionReason,
+    DeletionRequestedAt,
+    DeletionEligibleAt,
     MemoryVersion,
     ReconsolidatedAt,
     ReconsolidationReason,
@@ -1179,6 +1351,43 @@ fn validate_memory_sessions(sessions: &[MemorySession]) -> Result<(), String> {
         if let Some(updated_at) = session.archive_updated_at.as_deref() {
             validate_timestamp("archiveUpdatedAt", updated_at)?;
         }
+        if let Some(status) = session.deletion_status.as_deref() {
+            if status != "scheduled"
+                || !matches!(
+                    session.deletion_reason.as_deref(),
+                    Some("ownerRequest" | "duplicateAfterMerge" | "privacyRemoval")
+                )
+                || session.deletion_requested_at.is_none()
+                || session.deletion_eligible_at.is_none()
+                || session.archive_status.as_deref() != Some("archived")
+            {
+                return Err(format!(
+                    "El recuerdo {record} declara una eliminación programada incoherente"
+                ));
+            }
+        } else if session.deletion_reason.is_some()
+            || session.deletion_requested_at.is_some()
+            || session.deletion_eligible_at.is_some()
+        {
+            return Err(format!(
+                "El recuerdo {record} conserva metadatos de eliminación sin estar programado"
+            ));
+        }
+        if let Some(requested_at) = session.deletion_requested_at.as_deref() {
+            validate_timestamp("deletionRequestedAt", requested_at)?;
+        }
+        if let Some(eligible_at) = session.deletion_eligible_at.as_deref() {
+            validate_timestamp("deletionEligibleAt", eligible_at)?;
+            if session
+                .deletion_requested_at
+                .as_deref()
+                .is_some_and(|requested_at| eligible_at <= requested_at)
+            {
+                return Err(format!(
+                    "El recuerdo {record} no conserva una espera de eliminación válida"
+                ));
+            }
+        }
         match session.memory_version {
             Some(version) => {
                 if version < 2
@@ -1470,7 +1679,11 @@ fn lifecycle_reference(session: &MemorySession) -> Result<MemoryLifecycleReferen
         validity,
         accessibility,
         retrieval_policy,
-        retention: MemoryRetentionState::NotAssessed,
+        retention: if session.deletion_status.as_deref() == Some("scheduled") {
+            MemoryRetentionState::DeletionScheduled
+        } else {
+            MemoryRetentionState::NotAssessed
+        },
         suppressed,
         archived,
         base_version: 1,
@@ -1628,7 +1841,11 @@ fn lifecycle_preview(
         retrieval_outcome_count,
         functional_assessment_count,
         weakening_review_required_count,
-        retention_assessed_count: 0,
+        retention_assessed_count: revision
+            .references
+            .iter()
+            .filter(|reference| reference.retention == MemoryRetentionState::DeletionScheduled)
+            .count(),
         suppressed_count,
         reconsolidated_count,
         references: revision.references.clone(),
@@ -1695,7 +1912,10 @@ fn lifecycle_reference_is_consistent(reference: &MemoryLifecycleReference) -> bo
     !reference.record_id.trim().is_empty()
         && is_sha256(&reference.record_sha256)
         && policy_matches
-        && reference.retention == MemoryRetentionState::NotAssessed
+        && matches!(
+            reference.retention,
+            MemoryRetentionState::NotAssessed | MemoryRetentionState::DeletionScheduled
+        )
         && reference.base_version == 1
 }
 
@@ -2667,6 +2887,47 @@ fn archive_action_code(action: MemoryArchiveAction) -> &'static str {
     }
 }
 
+fn utc_timestamp_seconds(value: &str) -> Result<i64, String> {
+    validate_timestamp("timestamp", value)?;
+    if value.len() != 20 || !value.ends_with('Z') {
+        return Err("La retención requiere una fecha UTC canónica con segundos".into());
+    }
+    let number = |range: std::ops::Range<usize>| -> Result<i64, String> {
+        value[range]
+            .parse::<i64>()
+            .map_err(|_| "La retención contiene una fecha inválida".into())
+    };
+    let year = number(0..4)?;
+    let month = number(5..7)?;
+    let day = number(8..10)?;
+    let hour = number(11..13)?;
+    let minute = number(14..16)?;
+    let second = number(17..19)?;
+    let adjusted_year = year - i64::from(month <= 2);
+    let era = adjusted_year.div_euclid(400);
+    let year_of_era = adjusted_year - era * 400;
+    let month_prime = month + if month > 2 { -3 } else { 9 };
+    let day_of_year = (153 * month_prime + 2) / 5 + day - 1;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    let days = era * 146_097 + day_of_era - 719_468;
+    Ok(days * 86_400 + hour * 3_600 + minute * 60 + second)
+}
+
+fn deletion_reason_code(reason: MemoryDeletionReason) -> &'static str {
+    match reason {
+        MemoryDeletionReason::OwnerRequest => "ownerRequest",
+        MemoryDeletionReason::DuplicateAfterMerge => "duplicateAfterMerge",
+        MemoryDeletionReason::PrivacyRemoval => "privacyRemoval",
+    }
+}
+
+fn deletion_schedule_action_code(action: MemoryDeletionScheduleAction) -> &'static str {
+    match action {
+        MemoryDeletionScheduleAction::Schedule => "schedule",
+        MemoryDeletionScheduleAction::Cancel => "cancel",
+    }
+}
+
 fn prepare_memory_archive_at(
     data_root: &Path,
     input: PreviewMemoryArchiveInput,
@@ -2722,6 +2983,12 @@ fn prepare_memory_archive_at(
     }
     if previous_reference.validity == MemoryValidityState::Archived {
         return Err("Un archivo heredado no conserva su vigencia previa y no puede restaurarse automáticamente".into());
+    }
+    if sessions[position].deletion_status.as_deref() == Some("scheduled") {
+        return Err(
+            "Cancelá primero la eliminación programada antes de cambiar el archivo reversible"
+                .into(),
+        );
     }
     let previous_archived = previous_reference.archived;
     let projected_archived = input.action == MemoryArchiveAction::Archive;
@@ -2947,6 +3214,476 @@ fn confirm_memory_archive_at(
             &fs::read_to_string(backup)
                 .map_err(|error| format!("No se pudo verificar el respaldo final: {error}"))?,
         ),
+        records_modified: true,
+        audit_written: true,
+        lifecycle,
+    })
+}
+
+fn prepare_memory_deletion_schedule_at(
+    data_root: &Path,
+    input: PreviewMemoryDeletionScheduleInput,
+    planned_at: String,
+    eligible_at: String,
+) -> Result<(MemoryDeletionSchedulePreview, String, Vec<MemorySession>), String> {
+    let planned_seconds = utc_timestamp_seconds(&planned_at)?;
+    let eligible_seconds = utc_timestamp_seconds(&eligible_at)?;
+    if eligible_seconds != planned_seconds + MEMORY_DELETION_WAIT_SECONDS {
+        return Err("La eliminación requiere exactamente siete días completos de espera".into());
+    }
+    if !is_sha256(&input.expected_source_sha256) || !is_sha256(&input.expected_record_sha256) {
+        return Err("La programación de eliminación contiene una huella inválida".into());
+    }
+    if input.record_id.trim().is_empty() || input.record_id.len() > 160 {
+        return Err("La programación de eliminación contiene un ID inválido".into());
+    }
+    let note = input.note.trim();
+    if note.is_empty() || note.chars().count() > 500 {
+        return Err(
+            "Programar o cancelar una eliminación requiere una nota de 1 a 500 caracteres".into(),
+        );
+    }
+    let (source_content, mut sessions) = read_validated_source_at(data_root)?
+        .ok_or("No existe records.json para programar una eliminación")?;
+    let source_sha256 = memory_subject_digest(&source_content);
+    if source_sha256 != input.expected_source_sha256 {
+        return Err("records.json cambió después de revisar la programación".into());
+    }
+    let position = sessions
+        .iter()
+        .position(|session| session.id == input.record_id)
+        .ok_or("El recuerdo ya no existe")?;
+    let reference = lifecycle_reference(&sessions[position])?;
+    if reference.record_sha256 != input.expected_record_sha256 {
+        return Err("El recuerdo cambió después de revisar la programación".into());
+    }
+    if sessions[position].archive_status.as_deref() != Some("archived")
+        || reference.validity == MemoryValidityState::Archived
+    {
+        return Err("Sólo un recuerdo archivado mediante el contrato reversible puede programarse para eliminación".into());
+    }
+    let previous_scheduled = sessions[position].deletion_status.as_deref() == Some("scheduled");
+    let projected_scheduled = input.action == MemoryDeletionScheduleAction::Schedule;
+    if previous_scheduled == projected_scheduled {
+        return Err("El recuerdo ya posee ese estado de retención".into());
+    }
+    if input.action == MemoryDeletionScheduleAction::Cancel
+        && sessions[position].deletion_reason.as_deref() != Some(deletion_reason_code(input.reason))
+    {
+        return Err("Cancelar requiere conservar el motivo original de la programación".into());
+    }
+    let projected = &mut sessions[position];
+    if projected_scheduled {
+        projected.deletion_status = Some("scheduled".into());
+        projected.deletion_reason = Some(deletion_reason_code(input.reason).into());
+        projected.deletion_requested_at = Some(planned_at.clone());
+        projected.deletion_eligible_at = Some(eligible_at.clone());
+    } else {
+        projected.deletion_status = None;
+        projected.deletion_reason = None;
+        projected.deletion_requested_at = None;
+        projected.deletion_eligible_at = None;
+    }
+    validate_memory_sessions(&sessions)?;
+    let projected_record = serde_json::to_string(&sessions[position])
+        .map_err(|error| format!("No se pudo calcular la retención propuesta: {error}"))?;
+    let projected_record_sha256 = memory_subject_digest(&projected_record);
+    let note_sha256 = memory_subject_digest(note);
+    let plan_id = memory_subject_digest(&format!(
+        "alice-memory-deletion-schedule:{}:{}:{}:{}:{}:{}:{}:{}:{}",
+        MEMORY_DELETION_SCHEMA_VERSION,
+        source_sha256,
+        reference.record_sha256,
+        projected_record_sha256,
+        deletion_schedule_action_code(input.action),
+        deletion_reason_code(input.reason),
+        note_sha256,
+        planned_at,
+        eligible_at
+    ));
+    Ok((
+        MemoryDeletionSchedulePreview {
+            schema_version: MEMORY_DELETION_SCHEMA_VERSION,
+            plan_id,
+            planned_at,
+            eligible_at,
+            record_id: input.record_id,
+            action: input.action,
+            reason: input.reason,
+            note_sha256,
+            source_sha256,
+            record_sha256_before: reference.record_sha256,
+            projected_record_sha256,
+            previous_scheduled,
+            projected_scheduled,
+            wait_seconds: MEMORY_DELETION_WAIT_SECONDS,
+            records_modified: false,
+            automatic_action: false,
+        },
+        source_content,
+        sessions,
+    ))
+}
+
+fn deletion_schedule_backup_path(data_root: &Path, source_sha256: &str) -> PathBuf {
+    data_root.join("memory").join("backups").join(format!(
+        "deletion-schedule-source-{}.json",
+        &source_sha256[7..]
+    ))
+}
+
+fn create_or_verify_exact_file(
+    path: &Path,
+    content: &str,
+    expected_sha256: &str,
+    temporary_name: &str,
+    description: &str,
+) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("{description} no posee directorio"))?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("No se pudo preparar {description}: {error}"))?;
+    if path.exists() {
+        let stored = fs::read_to_string(path)
+            .map_err(|error| format!("No se pudo verificar {description}: {error}"))?;
+        if stored != content || memory_subject_digest(&stored) != expected_sha256 {
+            return Err(format!("{description} existente no coincide con la fuente"));
+        }
+        return Ok(());
+    }
+    atomic_replace_text_file(path, content, temporary_name, description)?;
+    let stored = fs::read_to_string(path)
+        .map_err(|error| format!("No se pudo releer {description}: {error}"))?;
+    if stored != content || memory_subject_digest(&stored) != expected_sha256 {
+        return Err(format!("{description} no coincide byte a byte"));
+    }
+    Ok(())
+}
+
+fn confirm_memory_deletion_schedule_at(
+    data_root: &Path,
+    input: ConfirmMemoryDeletionScheduleInput,
+) -> Result<MemoryDeletionScheduleResult, String> {
+    if !input.confirmed {
+        return Err("La retención requiere una segunda autorización explícita".into());
+    }
+    if !is_sha256(&input.expected_plan_id) {
+        return Err("El plan esperado de retención no es válido".into());
+    }
+    let expected_plan_id = input.expected_plan_id.clone();
+    let (preview, source_content, sessions) = prepare_memory_deletion_schedule_at(
+        data_root,
+        PreviewMemoryDeletionScheduleInput {
+            expected_source_sha256: input.expected_source_sha256,
+            record_id: input.record_id,
+            expected_record_sha256: input.expected_record_sha256,
+            action: input.action,
+            reason: input.reason,
+            note: input.note,
+        },
+        input.planned_at,
+        input.eligible_at,
+    )?;
+    if preview.plan_id != expected_plan_id {
+        return Err("La programación cambió después de la vista previa".into());
+    }
+    let source_path = data_root.join("memory").join("records.json");
+    let projected_source = serde_json::to_string_pretty(&sessions)
+        .map_err(|error| format!("No se pudo serializar la retención: {error}"))?;
+    let source_sha256_after = memory_subject_digest(&projected_source);
+    let backup = deletion_schedule_backup_path(data_root, &preview.source_sha256);
+    create_or_verify_exact_file(
+        &backup,
+        &source_content,
+        &preview.source_sha256,
+        "deletion-schedule-backup.tmp",
+        "el respaldo de retención",
+    )?;
+    atomic_replace_text_file(
+        &source_path,
+        &projected_source,
+        "deletion-schedule-records.tmp",
+        "records.json tras retención",
+    )?;
+    let rollback = |message: String| -> Result<MemoryDeletionScheduleResult, String> {
+        atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "deletion-schedule-restore.tmp",
+            "restauración de records.json",
+        )?;
+        Err(message)
+    };
+    match read_validated_source_at(data_root) {
+        Ok(Some((stored, _))) if stored == projected_source => {}
+        Ok(_) => return rollback("La retención no coincidió al releerla y fue restaurada".into()),
+        Err(error) => return rollback(format!("La retención fue inválida y se restauró: {error}")),
+    }
+    let lifecycle = memory_lifecycle_preview_at(data_root);
+    if lifecycle.state == MemoryLifecyclePreviewState::Blocked {
+        return rollback("La retención volvió incoherente el ciclo y fue restaurada".into());
+    }
+    if let Err(error) = append_memory_audit(
+        &source_path,
+        &format!(
+            "deletion-{}-{}",
+            deletion_schedule_action_code(preview.action),
+            deletion_reason_code(preview.reason)
+        ),
+        sessions.len(),
+        &projected_source,
+    ) {
+        return rollback(format!(
+            "Falló la auditoría de retención y records.json fue restaurado: {error}"
+        ));
+    }
+    Ok(MemoryDeletionScheduleResult {
+        schema_version: MEMORY_DELETION_SCHEMA_VERSION,
+        plan_id: preview.plan_id,
+        record_id: preview.record_id,
+        action: preview.action,
+        reason: preview.reason,
+        previous_scheduled: preview.previous_scheduled,
+        new_scheduled: preview.projected_scheduled,
+        eligible_at: preview.projected_scheduled.then_some(preview.eligible_at),
+        source_sha256_before: preview.source_sha256,
+        source_sha256_after,
+        record_sha256_before: preview.record_sha256_before,
+        record_sha256_after: preview.projected_record_sha256,
+        backup_sha256: memory_subject_digest(
+            &fs::read_to_string(&backup)
+                .map_err(|error| format!("No se pudo verificar el respaldo final: {error}"))?,
+        ),
+        records_modified: true,
+        audit_written: true,
+        lifecycle,
+    })
+}
+
+fn prepare_memory_deletion_at(
+    data_root: &Path,
+    input: PreviewMemoryDeletionInput,
+    planned_at: String,
+) -> Result<(MemoryDeletionPreview, String, Vec<MemorySession>, usize), String> {
+    let planned_seconds = utc_timestamp_seconds(&planned_at)?;
+    if !is_sha256(&input.expected_source_sha256) || !is_sha256(&input.expected_record_sha256) {
+        return Err("La propuesta de eliminación contiene una huella inválida".into());
+    }
+    let note = input.note.trim();
+    if note.is_empty() || note.chars().count() > 500 {
+        return Err("La eliminación final requiere una nota de 1 a 500 caracteres".into());
+    }
+    let (source_content, sessions) = read_validated_source_at(data_root)?
+        .ok_or("No existe records.json para preparar la eliminación")?;
+    let source_sha256 = memory_subject_digest(&source_content);
+    if source_sha256 != input.expected_source_sha256 {
+        return Err("records.json cambió después de revisar la eliminación".into());
+    }
+    let position = sessions
+        .iter()
+        .position(|session| session.id == input.record_id)
+        .ok_or("El recuerdo ya no existe")?;
+    let reference = lifecycle_reference(&sessions[position])?;
+    if reference.record_sha256 != input.expected_record_sha256 {
+        return Err("El recuerdo cambió después de revisar la eliminación".into());
+    }
+    let session = &sessions[position];
+    if session.archive_status.as_deref() != Some("archived")
+        || session.deletion_status.as_deref() != Some("scheduled")
+    {
+        return Err("La eliminación final exige archivo reversible y retención programada".into());
+    }
+    let requested_at = session
+        .deletion_requested_at
+        .clone()
+        .ok_or("Falta la fecha de solicitud")?;
+    let eligible_at = session
+        .deletion_eligible_at
+        .clone()
+        .ok_or("Falta la fecha de elegibilidad")?;
+    if planned_seconds < utc_timestamp_seconds(&eligible_at)? {
+        return Err(format!(
+            "La espera todavía no terminó; la eliminación será elegible el {eligible_at}"
+        ));
+    }
+    let reason = match session.deletion_reason.as_deref() {
+        Some("ownerRequest") => MemoryDeletionReason::OwnerRequest,
+        Some("duplicateAfterMerge") => MemoryDeletionReason::DuplicateAfterMerge,
+        Some("privacyRemoval") => MemoryDeletionReason::PrivacyRemoval,
+        _ => return Err("El motivo durable de eliminación es desconocido".into()),
+    };
+    let note_sha256 = memory_subject_digest(note);
+    let plan_id = memory_subject_digest(&format!(
+        "alice-memory-delete:{}:{}:{}:{}:{}:{}:{}:{}",
+        MEMORY_DELETION_SCHEMA_VERSION,
+        source_sha256,
+        reference.record_sha256,
+        deletion_reason_code(reason),
+        requested_at,
+        eligible_at,
+        note_sha256,
+        planned_at
+    ));
+    Ok((
+        MemoryDeletionPreview {
+            schema_version: MEMORY_DELETION_SCHEMA_VERSION,
+            plan_id,
+            planned_at,
+            record_id: input.record_id,
+            reason,
+            note_sha256,
+            source_sha256,
+            record_sha256: reference.record_sha256,
+            requested_at,
+            eligible_at,
+            safeguard_required: true,
+            tombstone_contains_content: false,
+            records_modified: false,
+            automatic_action: false,
+        },
+        source_content,
+        sessions,
+        position,
+    ))
+}
+
+fn confirm_memory_deletion_at(
+    data_root: &Path,
+    input: ConfirmMemoryDeletionInput,
+    confirmed_at: String,
+) -> Result<MemoryDeletionResult, String> {
+    if !input.confirmed {
+        return Err("Eliminar requiere una segunda autorización explícita".into());
+    }
+    if !is_sha256(&input.expected_plan_id) {
+        return Err("El plan esperado de eliminación no es válido".into());
+    }
+    let expected_plan_id = input.expected_plan_id.clone();
+    let (preview, source_content, mut sessions, position) = prepare_memory_deletion_at(
+        data_root,
+        PreviewMemoryDeletionInput {
+            expected_source_sha256: input.expected_source_sha256,
+            record_id: input.record_id,
+            expected_record_sha256: input.expected_record_sha256,
+            note: input.note,
+        },
+        input.planned_at,
+    )?;
+    if preview.plan_id != expected_plan_id {
+        return Err("La propuesta de eliminación cambió después de la vista previa".into());
+    }
+    if utc_timestamp_seconds(&confirmed_at)? < utc_timestamp_seconds(&preview.eligible_at)? {
+        return Err("La espera terminó sólo en el plan, no en el reloj real del sistema".into());
+    }
+    sessions.remove(position);
+    validate_memory_sessions(&sessions)?;
+    let projected_source = serde_json::to_string_pretty(&sessions)
+        .map_err(|error| format!("No se pudo serializar la fuente sin el recuerdo: {error}"))?;
+    let source_sha256_after = memory_subject_digest(&projected_source);
+    let safeguard_path = data_root
+        .join("memory")
+        .join("private-deletion-safeguards")
+        .join(format!("source-{}.json", &preview.source_sha256[7..]));
+    create_or_verify_exact_file(
+        &safeguard_path,
+        &source_content,
+        &preview.source_sha256,
+        "deletion-safeguard.tmp",
+        "el resguardo privado previo a eliminación",
+    )?;
+    let tombstone = MemoryDeletionTombstone {
+        schema_version: MEMORY_DELETION_SCHEMA_VERSION,
+        plan_id: preview.plan_id.clone(),
+        record_id_sha256: memory_subject_digest(&preview.record_id),
+        record_sha256: preview.record_sha256.clone(),
+        source_sha256_before: preview.source_sha256.clone(),
+        source_sha256_after: source_sha256_after.clone(),
+        reason: preview.reason,
+        requested_at: preview.requested_at.clone(),
+        eligible_at: preview.eligible_at.clone(),
+        deleted_at: confirmed_at,
+        note_sha256: preview.note_sha256.clone(),
+        safeguard_sha256: preview.source_sha256.clone(),
+        content_included: false,
+    };
+    let tombstone_content = serde_json::to_string_pretty(&tombstone)
+        .map_err(|error| format!("No se pudo serializar la lápida de eliminación: {error}"))?;
+    let tombstone_sha256 = memory_subject_digest(&tombstone_content);
+    let tombstone_path = data_root
+        .join("memory")
+        .join("deletion-tombstones")
+        .join(format!("{}.json", &preview.plan_id[7..]));
+    let source_path = data_root.join("memory").join("records.json");
+    atomic_replace_text_file(
+        &source_path,
+        &projected_source,
+        "deletion-records.tmp",
+        "records.json tras eliminación gobernada",
+    )?;
+    let rollback = |message: String| -> Result<MemoryDeletionResult, String> {
+        let restore = atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "deletion-restore.tmp",
+            "restauración de records.json",
+        );
+        if tombstone_path.exists() {
+            let _ = fs::remove_file(&tombstone_path);
+        }
+        restore?;
+        Err(message)
+    };
+    match read_validated_source_at(data_root) {
+        Ok(Some((stored, _))) if stored == projected_source => {}
+        Ok(_) => {
+            return rollback("La eliminación no coincidió al releerla y fue restaurada".into())
+        }
+        Err(error) => {
+            return rollback(format!(
+                "La eliminación produjo una fuente inválida y fue restaurada: {error}"
+            ))
+        }
+    }
+    if let Err(error) = create_or_verify_exact_file(
+        &tombstone_path,
+        &tombstone_content,
+        &tombstone_sha256,
+        "deletion-tombstone.tmp",
+        "la lápida sin contenido",
+    ) {
+        return rollback(format!(
+            "No se pudo cerrar la lápida y records.json fue restaurado: {error}"
+        ));
+    }
+    let lifecycle = memory_lifecycle_preview_at(data_root);
+    if lifecycle.state == MemoryLifecyclePreviewState::Blocked {
+        return rollback("La eliminación volvió incoherente el ciclo y fue restaurada".into());
+    }
+    if let Err(error) = append_memory_audit(
+        &source_path,
+        &format!("delete-final-{}", deletion_reason_code(preview.reason)),
+        sessions.len(),
+        &projected_source,
+    ) {
+        return rollback(format!(
+            "Falló la auditoría de eliminación y records.json fue restaurado: {error}"
+        ));
+    }
+    Ok(MemoryDeletionResult {
+        schema_version: MEMORY_DELETION_SCHEMA_VERSION,
+        plan_id: preview.plan_id,
+        record_id: preview.record_id,
+        reason: preview.reason,
+        source_sha256_before: preview.source_sha256.clone(),
+        source_sha256_after,
+        record_sha256: preview.record_sha256,
+        safeguard_sha256: memory_subject_digest(
+            &fs::read_to_string(&safeguard_path)
+                .map_err(|error| format!("No se pudo verificar el resguardo final: {error}"))?,
+        ),
+        tombstone_sha256,
+        remaining_record_count: sessions.len(),
         records_modified: true,
         audit_written: true,
         lifecycle,
@@ -3677,6 +4414,10 @@ fn consolidation_merge_differences(
     compare!(archive_status, ArchiveStatus);
     compare!(archive_reason, ArchiveReason);
     compare!(archive_updated_at, ArchiveUpdatedAt);
+    compare!(deletion_status, DeletionStatus);
+    compare!(deletion_reason, DeletionReason);
+    compare!(deletion_requested_at, DeletionRequestedAt);
+    compare!(deletion_eligible_at, DeletionEligibleAt);
     compare!(memory_version, MemoryVersion);
     compare!(reconsolidated_at, ReconsolidatedAt);
     compare!(reconsolidation_reason, ReconsolidationReason);
@@ -4051,6 +4792,10 @@ fn append_confirmed_learning_at(
             archive_status: None,
             archive_reason: None,
             archive_updated_at: None,
+            deletion_status: None,
+            deletion_reason: None,
+            deletion_requested_at: None,
+            deletion_eligible_at: None,
             memory_version: None,
             reconsolidated_at: None,
             reconsolidation_reason: None,
@@ -5636,6 +6381,69 @@ pub(crate) fn confirm_memory_archive(
 }
 
 #[tauri::command]
+pub(crate) fn preview_memory_deletion_schedule(
+    app: AppHandle,
+    input: PreviewMemoryDeletionScheduleInput,
+) -> Result<MemoryDeletionSchedulePreview, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let planned_seconds = current_unix_seconds()?;
+    let (preview, _, _) = prepare_memory_deletion_schedule_at(
+        &data_root,
+        input,
+        format_utc_timestamp(planned_seconds),
+        format_utc_timestamp(planned_seconds + MEMORY_DELETION_WAIT_SECONDS),
+    )?;
+    Ok(preview)
+}
+
+#[tauri::command]
+pub(crate) fn confirm_memory_deletion_schedule(
+    app: AppHandle,
+    input: ConfirmMemoryDeletionScheduleInput,
+) -> Result<MemoryDeletionScheduleResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
+    let data_root = alice_data_root_path(&app)?;
+    let plan_digest = input.expected_plan_id.clone();
+    audited_memory_operation(
+        &app,
+        "memory.records.write",
+        "confirm_memory_deletion_schedule",
+        &plan_digest,
+        "MEMORY_DELETION_RETENTION_CHANGED",
+        || confirm_memory_deletion_schedule_at(&data_root, input),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn preview_memory_deletion(
+    app: AppHandle,
+    input: PreviewMemoryDeletionInput,
+) -> Result<MemoryDeletionPreview, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let (preview, _, _, _) =
+        prepare_memory_deletion_at(&data_root, input, current_utc_timestamp()?)?;
+    Ok(preview)
+}
+
+#[tauri::command]
+pub(crate) fn confirm_memory_deletion(
+    app: AppHandle,
+    input: ConfirmMemoryDeletionInput,
+) -> Result<MemoryDeletionResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
+    let data_root = alice_data_root_path(&app)?;
+    let plan_digest = input.expected_plan_id.clone();
+    audited_memory_operation(
+        &app,
+        "memory.records.write",
+        "confirm_memory_deletion",
+        &plan_digest,
+        "MEMORY_DELETED_AFTER_RETENTION",
+        || confirm_memory_deletion_at(&data_root, input, current_utc_timestamp()?),
+    )
+}
+
+#[tauri::command]
 pub(crate) fn preview_memory_reconsolidation(
     app: AppHandle,
     input: PreviewMemoryReconsolidationInput,
@@ -5841,7 +6649,8 @@ fn validate_generic_memory_update(
             previous.memory_status.as_deref(),
             Some("confirmed" | "conflict" | "archived")
         ) || previous.memory_version.is_some()
-            || previous.archive_status.is_some();
+            || previous.archive_status.is_some()
+            || previous.deletion_status.is_some();
         let Some(next) = sessions.iter().find(|session| session.id == previous.id) else {
             if protected {
                 return Err(format!(
@@ -5883,6 +6692,16 @@ fn validate_generic_memory_update(
                 previous.id
             ));
         }
+        if previous.deletion_status != next.deletion_status
+            || previous.deletion_reason != next.deletion_reason
+            || previous.deletion_requested_at != next.deletion_requested_at
+            || previous.deletion_eligible_at != next.deletion_eligible_at
+        {
+            return Err(format!(
+                "La retención de eliminación de '{}' sólo puede cambiar mediante su contrato gobernado",
+                previous.id
+            ));
+        }
     }
     if sessions.iter().any(|session| {
         !existing.iter().any(|previous| previous.id == session.id)
@@ -5892,7 +6711,11 @@ fn validate_generic_memory_update(
                 || session.previous_version_sha256.is_some()
                 || session.archive_status.is_some()
                 || session.archive_reason.is_some()
-                || session.archive_updated_at.is_some())
+                || session.archive_updated_at.is_some()
+                || session.deletion_status.is_some()
+                || session.deletion_reason.is_some()
+                || session.deletion_requested_at.is_some()
+                || session.deletion_eligible_at.is_some())
     }) {
         return Err("Un recuerdo nuevo debe comenzar en su versión base".into());
     }
@@ -6104,6 +6927,10 @@ mod tests {
             archive_status: None,
             archive_reason: None,
             archive_updated_at: None,
+            deletion_status: None,
+            deletion_reason: None,
+            deletion_requested_at: None,
+            deletion_eligible_at: None,
             memory_version: None,
             reconsolidated_at: None,
             reconsolidation_reason: None,
@@ -6292,7 +7119,14 @@ mod tests {
                 |assessment| assessment.state == MemoryWeakeningAssessmentState::NotAssessed
                     && !assessment.automatic_action
             ));
-        assert_eq!(preview.retention_assessed_count, 0);
+        assert_eq!(
+            preview.retention_assessed_count,
+            preview
+                .references
+                .iter()
+                .filter(|reference| reference.retention == MemoryRetentionState::DeletionScheduled)
+                .count()
+        );
         assert_eq!(
             preview.suppressed_count,
             preview
@@ -7406,6 +8240,298 @@ mod tests {
     }
 
     #[test]
+    fn deletion_retention_is_physical_cancelable_and_enforces_seven_days() {
+        let root = temporary_probe_root("deletion-retention");
+        let mut memory = legacy_memory();
+        memory.id = "retention-target".into();
+        memory.memory_status = Some("confirmed".into());
+        memory.summary = Some("Contenido que debe sobrevivir a la espera".into());
+        let source = write_layered_fixture(&root, std::slice::from_ref(&memory));
+        let reference = memory_lifecycle_preview_at(&root)
+            .preview
+            .expect("initial retention preview")
+            .references
+            .remove(0);
+        let (archive_plan, _, _) = prepare_memory_archive_at(
+            &root,
+            PreviewMemoryArchiveInput {
+                expected_source_sha256: memory_subject_digest(&source),
+                record_id: memory.id.clone(),
+                expected_record_sha256: reference.record_sha256,
+                action: MemoryArchiveAction::Archive,
+                reason: MemoryArchiveReason::OwnerChoice,
+                note: "Paso previo reversible".into(),
+            },
+            "2026-08-23T09:00:00Z".into(),
+        )
+        .expect("prepare archive before retention");
+        let archived = confirm_memory_archive_at(
+            &root,
+            ConfirmMemoryArchiveInput {
+                expected_plan_id: archive_plan.plan_id,
+                planned_at: archive_plan.planned_at,
+                expected_source_sha256: archive_plan.source_sha256,
+                record_id: archive_plan.record_id,
+                expected_record_sha256: archive_plan.record_sha256_before,
+                action: archive_plan.action,
+                reason: archive_plan.reason,
+                note: "Paso previo reversible".into(),
+                confirmed: true,
+            },
+        )
+        .expect("archive before retention");
+        let archived_reference = archived
+            .lifecycle
+            .preview
+            .expect("archive lifecycle")
+            .references
+            .remove(0);
+        let before_preview = file_hashes(&root);
+        let (schedule, _, _) = prepare_memory_deletion_schedule_at(
+            &root,
+            PreviewMemoryDeletionScheduleInput {
+                expected_source_sha256: archived.source_sha256_after,
+                record_id: memory.id.clone(),
+                expected_record_sha256: archived_reference.record_sha256,
+                action: MemoryDeletionScheduleAction::Schedule,
+                reason: MemoryDeletionReason::OwnerRequest,
+                note: "Carlos solicita evaluar el retiro".into(),
+            },
+            "2026-08-23T10:00:00Z".into(),
+            "2026-08-30T10:00:00Z".into(),
+        )
+        .expect("prepare seven-day retention");
+        assert_eq!(file_hashes(&root), before_preview);
+        assert_eq!(schedule.wait_seconds, 604_800);
+        assert!(prepare_memory_deletion_schedule_at(
+            &root,
+            PreviewMemoryDeletionScheduleInput {
+                expected_source_sha256: schedule.source_sha256.clone(),
+                record_id: memory.id.clone(),
+                expected_record_sha256: schedule.record_sha256_before.clone(),
+                action: MemoryDeletionScheduleAction::Schedule,
+                reason: MemoryDeletionReason::OwnerRequest,
+                note: "Intento de acortar espera".into(),
+            },
+            "2026-08-23T10:00:00Z".into(),
+            "2026-08-24T10:00:00Z".into(),
+        )
+        .is_err());
+        let scheduled = confirm_memory_deletion_schedule_at(
+            &root,
+            ConfirmMemoryDeletionScheduleInput {
+                expected_plan_id: schedule.plan_id,
+                planned_at: schedule.planned_at,
+                eligible_at: schedule.eligible_at,
+                expected_source_sha256: schedule.source_sha256,
+                record_id: schedule.record_id,
+                expected_record_sha256: schedule.record_sha256_before,
+                action: schedule.action,
+                reason: schedule.reason,
+                note: "Carlos solicita evaluar el retiro".into(),
+                confirmed: true,
+            },
+        )
+        .expect("confirm retention");
+        assert!(scheduled.new_scheduled);
+        assert_eq!(
+            scheduled
+                .lifecycle
+                .preview
+                .as_ref()
+                .expect("scheduled lifecycle")
+                .retention_assessed_count,
+            1
+        );
+        let (_, stored) = read_validated_source_at(&root)
+            .expect("read scheduled source")
+            .expect("scheduled source");
+        assert_eq!(stored[0].summary, memory.summary);
+        assert_eq!(
+            stored[0].deletion_eligible_at.as_deref(),
+            Some("2026-08-30T10:00:00Z")
+        );
+        let scheduled_reference = scheduled
+            .lifecycle
+            .preview
+            .expect("scheduled preview")
+            .references
+            .remove(0);
+        assert!(prepare_memory_deletion_at(
+            &root,
+            PreviewMemoryDeletionInput {
+                expected_source_sha256: scheduled.source_sha256_after.clone(),
+                record_id: memory.id.clone(),
+                expected_record_sha256: scheduled_reference.record_sha256.clone(),
+                note: "Todavía no debe eliminarse".into(),
+            },
+            "2026-08-30T09:59:59Z".into(),
+        )
+        .is_err());
+        let (cancel, _, _) = prepare_memory_deletion_schedule_at(
+            &root,
+            PreviewMemoryDeletionScheduleInput {
+                expected_source_sha256: scheduled.source_sha256_after,
+                record_id: memory.id.clone(),
+                expected_record_sha256: scheduled_reference.record_sha256,
+                action: MemoryDeletionScheduleAction::Cancel,
+                reason: MemoryDeletionReason::OwnerRequest,
+                note: "Carlos cancela el retiro".into(),
+            },
+            "2026-08-24T10:00:00Z".into(),
+            "2026-08-31T10:00:00Z".into(),
+        )
+        .expect("prepare cancellation");
+        let canceled = confirm_memory_deletion_schedule_at(
+            &root,
+            ConfirmMemoryDeletionScheduleInput {
+                expected_plan_id: cancel.plan_id,
+                planned_at: cancel.planned_at,
+                eligible_at: cancel.eligible_at,
+                expected_source_sha256: cancel.source_sha256,
+                record_id: cancel.record_id,
+                expected_record_sha256: cancel.record_sha256_before,
+                action: cancel.action,
+                reason: cancel.reason,
+                note: "Carlos cancela el retiro".into(),
+                confirmed: true,
+            },
+        )
+        .expect("cancel retention");
+        assert!(!canceled.new_scheduled);
+        let (_, stored) = read_validated_source_at(&root)
+            .expect("read canceled source")
+            .expect("canceled source");
+        assert!(stored[0].deletion_status.is_none());
+        assert_eq!(stored[0].summary, memory.summary);
+        fs::remove_dir_all(root).expect("remove retention fixture");
+    }
+
+    #[test]
+    fn final_deletion_removes_active_record_only_after_safeguard_and_writes_content_free_tombstone()
+    {
+        let root = temporary_probe_root("deletion-final");
+        let mut memory = legacy_memory();
+        memory.id = "delete-target".into();
+        memory.memory_status = Some("confirmed".into());
+        memory.summary = Some("Contenido privado que no debe aparecer en la lápida".into());
+        memory.archive_status = Some("archived".into());
+        memory.archive_reason = Some("ownerChoice".into());
+        memory.archive_updated_at = Some("2026-08-20T10:00:00Z".into());
+        let source = write_layered_fixture(&root, std::slice::from_ref(&memory));
+        let reference = memory_lifecycle_preview_at(&root)
+            .preview
+            .expect("archive preview")
+            .references
+            .remove(0);
+        let (schedule, _, _) = prepare_memory_deletion_schedule_at(
+            &root,
+            PreviewMemoryDeletionScheduleInput {
+                expected_source_sha256: memory_subject_digest(&source),
+                record_id: memory.id.clone(),
+                expected_record_sha256: reference.record_sha256,
+                action: MemoryDeletionScheduleAction::Schedule,
+                reason: MemoryDeletionReason::PrivacyRemoval,
+                note: "Retiro solicitado por privacidad".into(),
+            },
+            "2026-08-20T11:00:00Z".into(),
+            "2026-08-27T11:00:00Z".into(),
+        )
+        .expect("prepare final retention");
+        let scheduled = confirm_memory_deletion_schedule_at(
+            &root,
+            ConfirmMemoryDeletionScheduleInput {
+                expected_plan_id: schedule.plan_id,
+                planned_at: schedule.planned_at,
+                eligible_at: schedule.eligible_at,
+                expected_source_sha256: schedule.source_sha256,
+                record_id: schedule.record_id,
+                expected_record_sha256: schedule.record_sha256_before,
+                action: schedule.action,
+                reason: schedule.reason,
+                note: "Retiro solicitado por privacidad".into(),
+                confirmed: true,
+            },
+        )
+        .expect("schedule final deletion");
+        let scheduled_source = fs::read_to_string(root.join("memory").join("records.json"))
+            .expect("scheduled source bytes");
+        let scheduled_reference = scheduled
+            .lifecycle
+            .preview
+            .expect("scheduled lifecycle")
+            .references
+            .remove(0);
+        let (preview, _, _, _) = prepare_memory_deletion_at(
+            &root,
+            PreviewMemoryDeletionInput {
+                expected_source_sha256: scheduled.source_sha256_after,
+                record_id: memory.id.clone(),
+                expected_record_sha256: scheduled_reference.record_sha256,
+                note: "Confirmación final del retiro privado".into(),
+            },
+            "2026-08-27T11:00:00Z".into(),
+        )
+        .expect("prepare final deletion");
+        let confirmation = ConfirmMemoryDeletionInput {
+            expected_plan_id: preview.plan_id.clone(),
+            planned_at: preview.planned_at,
+            expected_source_sha256: preview.source_sha256,
+            record_id: preview.record_id,
+            expected_record_sha256: preview.record_sha256,
+            note: "Confirmación final del retiro privado".into(),
+            confirmed: true,
+        };
+        let audit_path = root.join("memory").join("audit");
+        fs::remove_dir_all(&audit_path).expect("remove audit directory inside fixture");
+        fs::write(&audit_path, "blocked").expect("create audit obstruction");
+        assert!(confirm_memory_deletion_at(
+            &root,
+            confirmation.clone(),
+            "2026-08-27T11:00:01Z".into(),
+        )
+        .is_err());
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json"))
+                .expect("read source restored after failed audit"),
+            scheduled_source
+        );
+        assert!(!root
+            .join("memory")
+            .join("deletion-tombstones")
+            .join(format!("{}.json", &preview.plan_id[7..]))
+            .exists());
+        fs::remove_file(&audit_path).expect("remove audit obstruction");
+        let result = confirm_memory_deletion_at(&root, confirmation, "2026-08-27T11:00:02Z".into())
+            .expect("confirm final deletion");
+        assert_eq!(result.remaining_record_count, 0);
+        assert!(read_validated_source_at(&root)
+            .expect("read source after deletion")
+            .expect("source exists")
+            .1
+            .is_empty());
+        let safeguard = fs::read_to_string(
+            root.join("memory")
+                .join("private-deletion-safeguards")
+                .join(format!("source-{}.json", &result.source_sha256_before[7..])),
+        )
+        .expect("read exact safeguard");
+        assert_eq!(safeguard, scheduled_source);
+        let tombstone = fs::read_to_string(
+            root.join("memory")
+                .join("deletion-tombstones")
+                .join(format!("{}.json", &preview.plan_id[7..])),
+        )
+        .expect("read tombstone");
+        assert!(!tombstone.contains("Contenido privado"));
+        assert!(!tombstone.contains("delete-target"));
+        let parsed: MemoryDeletionTombstone =
+            serde_json::from_str(&tombstone).expect("parse tombstone");
+        assert!(!parsed.content_included);
+        fs::remove_dir_all(root).expect("remove final deletion fixture");
+    }
+
+    #[test]
     fn reconsolidation_preview_and_confirmation_preserve_a_real_previous_version() {
         let root = temporary_probe_root("reconsolidation-version");
         let mut memory = legacy_memory();
@@ -7729,11 +8855,12 @@ mod tests {
             preview.accessibility_assessed_count
         );
         eprintln!(
-            "R6_5_LIFECYCLE_CANONICAL records={} current={} conflict={} archived={} notAssessed={} accessible={} dormant={} suppressed={} reconsolidated={} outcomes={} assessed={} reviewRequired={} filesIntact={}",
+            "R6_5_LIFECYCLE_CANONICAL records={} current={} conflict={} archived={} retention={} notAssessed={} accessible={} dormant={} suppressed={} reconsolidated={} outcomes={} assessed={} reviewRequired={} filesIntact={}",
             preview.record_count,
             preview.current_count,
             preview.conflict_count,
             preview.archived_count,
+            preview.retention_assessed_count,
             preview.not_assessed_count,
             preview.accessible_count,
             preview.dormant_count,

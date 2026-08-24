@@ -413,16 +413,18 @@ pub(crate) fn current_capability_registry(
 }
 
 pub(crate) fn current_utc_timestamp() -> Result<String, String> {
+    Ok(format_utc_timestamp(current_unix_seconds()?))
+}
+
+pub(crate) fn current_unix_seconds() -> Result<i64, String> {
     let seconds = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| error.to_string())?
         .as_secs();
-    let seconds =
-        i64::try_from(seconds).map_err(|_| "La fecha del sistema excede el rango admitido")?;
-    Ok(format_utc_timestamp(seconds))
+    i64::try_from(seconds).map_err(|_| "La fecha del sistema excede el rango admitido".into())
 }
 
-fn format_utc_timestamp(seconds: i64) -> String {
+pub(crate) fn format_utc_timestamp(seconds: i64) -> String {
     let days = seconds.div_euclid(86_400);
     let seconds_of_day = seconds.rem_euclid(86_400);
     let (year, month, day) = civil_date_from_unix_days(days);
@@ -682,6 +684,8 @@ fn memory_capabilities(
                 "layered_memory_status",
                 "consolidation_preview",
                 "preview_memory_archive",
+                "preview_memory_deletion_schedule",
+                "preview_memory_deletion",
                 "preview_memory_reconsolidation",
             ],
             records_state,
@@ -699,7 +703,7 @@ fn memory_capabilities(
         capability(
             "memory.records.write",
             "Modificar memoria local",
-            "Crea, edita o elimina registros mediante sustitución validada y respaldo.",
+            "Crea, edita, archiva o elimina registros mediante contratos validados, espera y resguardo.",
             CapabilityDomain::Memory,
             CapabilityKind::Mutation,
             CapabilityMaturity::Implemented,
@@ -710,6 +714,8 @@ fn memory_capabilities(
                 "resolve_consolidation_candidate",
                 "confirm_learning_candidate",
                 "confirm_memory_archive",
+                "confirm_memory_deletion_schedule",
+                "confirm_memory_deletion",
                 "confirm_memory_reconsolidation",
             ],
             records_state,
@@ -720,7 +726,7 @@ fn memory_capabilities(
             permission(
                 CapabilityPermissionMode::ExplicitConfirmation,
                 CapabilityPermissionEnforcer::CurrentUi,
-                "Las acciones son visibles y la eliminación solicita confirmación en React.",
+                "Las acciones son visibles; eliminar exige archivo previo, siete días de espera, vista previa, doble confirmación y resguardo local.",
             ),
             health(records_health, records_summary, Some(checked_at)),
         ),
