@@ -1,4 +1,5 @@
 export type ReviewOutcome = "confirmed" | "needs-correction";
+export type RetrievalOutcome = "helpful" | "not-helpful";
 
 export type ReviewableMemory = {
   id: string;
@@ -11,6 +12,7 @@ export type ReviewableMemory = {
   successfulRecalls?: number;
   failedRecalls?: number;
   lastRecalledAt?: string;
+  retrievalEvidenceVersion?: 1;
   successfulReviews?: number;
   correctionCount?: number;
   lastReviewedAt?: string;
@@ -96,16 +98,16 @@ export function applyMemoryReview<T extends ReviewableMemory>(memory: T, outcome
   };
 }
 
-export function applyMemoryRetrieval<T extends ReviewableMemory>(memory: T, now = new Date()): T {
+export function applyMemoryRetrievalOutcome<T extends ReviewableMemory>(memory: T, outcome: RetrievalOutcome, now = new Date()): T {
   if (memory.kind !== "Enseñanza" || (memory.memoryStatus !== undefined && memory.memoryStatus !== "confirmed")) return memory;
-  const importance = clamp(memory.importance ?? 3, 1, 5);
-  const strength = clamp(memory.storageStrength ?? .08, 0, 1);
-  const reinforcement = .04 + importance * .006;
+  const previousHelpful = memory.retrievalEvidenceVersion === 1 ? memory.successfulRecalls ?? 0 : 0;
+  const previousNotHelpful = memory.retrievalEvidenceVersion === 1 ? memory.failedRecalls ?? 0 : 0;
   return {
     ...memory,
-    storageStrength: Number(clamp(strength + reinforcement, 0, 1).toFixed(3)),
-    successfulRecalls: (memory.successfulRecalls ?? 0) + 1,
+    successfulRecalls: previousHelpful + (outcome === "helpful" ? 1 : 0),
+    failedRecalls: previousNotHelpful + (outcome === "not-helpful" ? 1 : 0),
     lastRecalledAt: now.toISOString(),
+    retrievalEvidenceVersion: 1,
   };
 }
 

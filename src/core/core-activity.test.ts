@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildBrainSnapshot } from "./brain";
 import { applyCoreActivitySnapshot, parseCoreActivitySnapshot } from "./core-activity";
 
+const memories = (count: number) => Array.from({ length: count }, (_, index) => ({ id: `memory-${index}`, intention: `Recuerdo ${index}`, memoryStatus: "confirmed" as const }));
+
 const regions = [
   { id: "perception", label: "Percepción", eventCount: 1, signal: 0.3, lastEventAtMs: 1_786_280_000_000 },
   { id: "permission", label: "Permisos", eventCount: 1, signal: 0.3, lastEventAtMs: 1_786_280_000_000 },
@@ -35,9 +37,10 @@ const raw = {
 
 const baseInputs = {
   conversationCount: 0,
-  memoryCount: 0,
+  memories: [],
   retrievedMemoryCount: 0,
   retrievedMemoryTop: "",
+  retrievedMemoryIds: [],
   observerEnabled: false,
   foregroundContext: null,
   cloudConfigured: false,
@@ -73,7 +76,7 @@ describe("parseCoreActivitySnapshot", () => {
 
 describe("applyCoreActivitySnapshot", () => {
   it("separa densidad persistente de señal R3 efímera", () => {
-    const base = buildBrainSnapshot({ ...baseInputs, memoryCount: 10 });
+    const base = buildBrainSnapshot({ ...baseInputs, memories: memories(10) });
     const merged = applyCoreActivitySnapshot(base, parseCoreActivitySnapshot(raw));
     expect(merged.persistentNeuralDensity).toBe(base.persistentNeuralDensity);
     expect(merged.currentNeuralActivity).toBe(0.25);

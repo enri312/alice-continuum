@@ -4,6 +4,9 @@ export type RetrievableMemory = {
   summary?: string;
   nextStep?: string;
   finishedAt?: string;
+  memoryStatus?: "confirmed" | "conflict" | "archived";
+  accessibilityStatus?: "accessible" | "dormant";
+  suppressionStatus?: "suppressed";
 };
 
 export type MemoryMatch<T extends RetrievableMemory = RetrievableMemory> = {
@@ -63,14 +66,15 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
   const queryTokens = tokens(query);
   if (!queryTokens.length || !memories.length || limit <= 0) return [];
 
-  const documentTokens = memories.map((memory) => new Set(tokens(`${memory.intention} ${memory.summary ?? ""} ${memory.nextStep ?? ""}`)));
+  const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed");
+  const documentTokens = eligibleMemories.map((memory) => new Set(tokens(`${memory.intention} ${memory.summary ?? ""} ${memory.nextStep ?? ""}`)));
   const documentFrequency = new Map<string, number>();
   for (const token of queryTokens) {
     documentFrequency.set(token, documentTokens.filter((document) => document.has(token)).length);
   }
 
   const normalizedQuery = normalize(query);
-  return memories
+  return eligibleMemories
     .map((memory, index): MemoryMatch<T> | null => {
       const title = memory.intention;
       const summary = memory.summary ?? "";
@@ -81,7 +85,7 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
 
       for (const token of queryTokens) {
         const frequency = documentFrequency.get(token) ?? 0;
-        const inverseFrequency = Math.log((memories.length + 1) / (frequency + 1)) + 1;
+        const inverseFrequency = Math.log((eligibleMemories.length + 1) / (frequency + 1)) + 1;
         let weight = 0;
         if (containsToken(title, token)) { weight += 2.4; matchedFields.add("tema"); }
         if (containsToken(summary, token)) { weight += 1.45; matchedFields.add("resumen"); }

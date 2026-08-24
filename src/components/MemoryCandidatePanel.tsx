@@ -60,7 +60,9 @@ export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onRel
         memoryType: candidate.memoryType,
         importance: Math.max(1, Math.min(5, Math.round(candidate.confidence * 4) + 1)),
       }])));
-      setMessage(result.candidates.length ? "Vista previa lista. Nada fue guardado." : "Ollama no encontró conocimiento explícito que proponer en este recuerdo.");
+      setMessage(result.candidates.length
+        ? `Vista previa lista. Nada fue guardado.${result.rejectedCandidateCount ? ` Rust descartó ${result.rejectedCandidateCount} propuesta${result.rejectedCandidateCount === 1 ? "" : "s"} fuera del contrato.` : ""}`
+        : "Ollama no encontró conocimiento explícito que proponer en este recuerdo.");
     } catch (error) {
       setMessage(`No se pudo crear la vista previa: ${String(error)}`);
     } finally {
@@ -116,7 +118,7 @@ export function MemoryCandidatePanel({ sessions, ollamaReady, ollamaModel, onRel
       <button className="primary" type="button" onClick={() => void analyze()} disabled={pending || !ollamaReady || !sourceId || !isTauri()}>{pending ? "Analizando localmente…" : "Buscar candidatos"}</button>
     </div>
     {!sources.length && <div className="learning-candidate-empty">Primero debe existir al menos un recuerdo real con contenido.</div>}
-    {preview && <div className="learning-candidate-receipt"><span>SÓLO VISTA PREVIA · 0 ESCRITURAS</span><span>{preview.inputTokens} IN · {preview.outputTokens} OUT</span><code>{preview.sourceSha256}</code></div>}
+    {preview && <div className="learning-candidate-receipt"><span>SÓLO VISTA PREVIA · 0 ESCRITURAS</span><span>{preview.inputTokens} IN · {preview.outputTokens} OUT · {preview.rejectedCandidateCount} DESCARTADOS</span><code>{preview.sourceSha256}</code></div>}
     {preview?.candidates.map((candidate) => {
       const draft = drafts[candidate.candidateId];
       if (!draft) return null;

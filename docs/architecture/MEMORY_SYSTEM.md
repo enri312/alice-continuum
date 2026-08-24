@@ -1,11 +1,13 @@
 # Sistema de memoria de Alice
 
-Estado: almacenamiento v1 vigente; proyección por capas R6.1 implementada  
-Fecha: 2026-08-13
+Estado: almacenamiento v1 vigente; ciclo R6.5-H con reconsolidación versionada; rediseño funcional ADR-P-084  
+Fecha: 2026-08-23
 
 ## Propósito
 
-La memoria de Alice conserva enseñanzas y experiencias locales para recuperarlas durante una conversación autorizada. No modifica los pesos del modelo de OpenRouter y no convierte automáticamente una salida de nube en conocimiento propio.
+La memoria de Alice conserva experiencias, conocimiento confirmado, procedimientos y contexto local para recuperarlos cuando corresponda. No es una carpeta de textos ni un entrenamiento oculto del modelo: implementa un ciclo explícito de codificación, candidatura, consolidación, recuperación, revisión y olvido funcional. No modifica los pesos del proveedor y no convierte automáticamente una salida de un modelo en conocimiento propio.
+
+El fundamento funcional y sus límites científicos están documentados en [Modelo funcional de memoria humana aplicable a Alice](../research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md). La decisión de arquitectura vigente es [ADR-P-084](../decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md).
 
 ## Directorio de datos
 
@@ -16,9 +18,13 @@ memory/
 |-- manifest.json                 # Versión y contrato del almacenamiento
 |-- records.json                  # Recuerdos y enseñanzas vigentes
 |-- layer-index-v2.json           # Revisiones R6.1 derivadas, sin contenido privado
+|-- lifecycle-index-v1.json       # Índice lateral opcional activado por el propietario
+|-- revisions/
+|   `-- reconsolidation-v1-*.json # Versiones desplazadas, privadas e inmutables
 |-- backups/
 |   |-- records.backup.json       # Respaldo automático anterior
-|   `-- records.pre-restore.json  # Estado protegido antes de restaurar
+|   |-- records.pre-restore.json  # Estado protegido antes de restaurar
+|   `-- *-source-<sha>.json       # Fuente exacta previa a una transición gobernada
 |-- exports/
 |   `-- alice-memory-*.json       # Exportaciones solicitadas por Carlos Nuñez
 |-- audit/
@@ -48,7 +54,7 @@ Si existe `memory/sessions.json` y todavía no existe `records.json`, Alice copi
 
 Campos principales: identificador, clase de registro, intención o título, contenido, fecha, tipo de memoria, fuente, importancia, fuerza de almacenamiento, estado, recuperaciones conversacionales, repasos manuales, correcciones y sus fechas.
 
-La fuerza de almacenamiento no es una certeza científica. Es una métrica de ingeniería explicable para visualizar consolidación y programar repasos.
+La fuerza de almacenamiento no es una certeza científica ni una probabilidad de verdad. Es una métrica de ingeniería explicable para visualizar estabilidad y programar revisiones. Accesibilidad, confianza factual, importancia, procedencia, frecuencia de recuperación y estado deben permanecer como dimensiones independientes.
 
 ## Proyección por capas R6.1
 
@@ -63,13 +69,69 @@ Activar exige confirmar el SHA-256 exacto mostrado. Rust relee la fuente antes d
 
 El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la decisión en [ADR-P-066](../decisions/ADR-P-066-proyeccion-memoria-por-capas.md).
 
+## Vista previa del ciclo R6.5-B
+
+`memory_lifecycle_preview` relee y valida la fuente canónica sin crear archivos. Para cada registro devuelve su ID, una huella SHA-256 individual, vigencia explícita y la política de recuperación que el sistema aplica actualmente. Un registro v1 sin `memoryStatus` permanece `notAssessed` y conserva la elegibilidad heredada; no se convierte silenciosamente en vigente.
+
+## Índice reversible del ciclo R6.5-C
+
+`lifecycle-index-v1.json` conserva revisiones laterales inmutables compuestas sólo por referencias, huellas, vigencia y política de recuperación. Activar exige confirmación y coincidencia con el SHA-256 mostrado por la vista previa. Si `records.json` cambia, el índice pasa a `sourceChanged` hasta que se revise y active otra proyección.
+
+Antes de reemplazar un índice existente se crea un respaldo ligado a su propia huella. El documento se relee y valida después del reemplazo; si falla la auditoría local, se restaura el índice anterior o se retira el nuevo si antes no existía. Revertir conserva todas las revisiones y elimina únicamente el puntero activo. `records.json` no forma parte de estas escrituras.
+
+`storageStrength` no activa reconsolidación, accesibilidad ni supresión. R6.5-F añade una evaluación funcional derivada de resultados explícitos, pero no persiste debilitamiento como estado ni ejecuta una transición. R6.5-G incorpora la supresión sólo como una decisión voluntaria separada y R6.5-H incorpora la actualización del contenido únicamente como una operación versionada.
+
+## Evaluación explícita de vigencia R6.5-D
+
+`assess_memory_validity` acepta únicamente recuerdos cuyo estado sea todavía `notAssessed`. La interfaz presenta el registro real y dos decisiones humanas: **Confirmar vigente** o **Necesita corrección**. Ningún modelo, antigüedad, frecuencia o valor de fuerza puede tomar esa decisión.
+
+La solicitud queda ligada tanto a la huella completa mostrada de `records.json` como a la huella individual del recuerdo. Rust vuelve a leer ambas antes de actuar, crea `backups/validity-source-<sha>.json`, reemplaza `records.json` atómicamente y valida el archivo resultante. Si la relectura o la auditoría fallan, restaura exactamente los bytes originales.
+
+Confirmar vigencia establece `memoryStatus=confirmed`, incrementa `successfulReviews` y registra `lastReviewedAt`. Marcar conflicto establece `memoryStatus=conflict`, incrementa `correctionCount` y registra la misma evidencia temporal. Ambas operaciones preservan el texto, la fuente, importancia y `storageStrength`. Si había una revisión activa de `lifecycle-index-v1.json`, no se reescribe: pasa a `sourceChanged` y requiere revisión explícita sobre la nueva huella.
+
+## Accesibilidad y reposo R6.5-E
+
+La accesibilidad responde si un recuerdo vigente puede participar en una recuperación espontánea. No indica si es verdadero, importante, reciente, fuerte o existente. `accessibilityStatus=accessible` permite la recuperación normal; `accessibilityStatus=dormant` conserva el recuerdo pero lo excluye del RAG. La fecha `accessibilityUpdatedAt` demuestra cuándo se tomó la decisión.
+
+`assess_memory_accessibility` acepta solamente recuerdos con `memoryStatus=confirmed` y exige confirmación, SHA-256 de `records.json` y SHA-256 del registro. Cada transición crea `backups/accessibility-source-<sha>.json`, reemplaza la fuente atómicamente, relee el resultado y registra auditoría. Ante cualquier fallo posterior restaura los bytes originales. Repetir el estado actual se rechaza sin escritura; volver de `dormant` a `accessible` conserva la reversibilidad y el historial de auditoría.
+
+La recuperación léxica de Conversación excluye físicamente los registros `dormant` antes de puntuar coincidencias. El volumen mantiene su nodo persistente, lo atenúa y evita crear una arista de recuperación. Por lo tanto reposo no equivale a eliminación ni a desaparición visual. Los recuerdos históricos sin evaluación de accesibilidad conservan el comportamiento anterior; R6.5-E no los duerme automáticamente.
+
+## Resultados de recuperación y debilitamiento funcional R6.5-F
+
+Una respuesta técnica del proveedor ya no cuenta como recuperación exitosa. Cuando una consulta real incluyó recuerdos mediante RAG y la respuesta terminó, Conversación presenta cada recuerdo utilizado y solicita a Carlos Nuñez marcar **Sí, fue útil** o **No ayudó**. La decisión se guarda en `successfulRecalls` o `failedRecalls`, actualiza `lastRecalledAt` y establece `retrievalEvidenceVersion=1`; no cambia `storageStrength`, vigencia ni accesibilidad.
+
+Los contadores anteriores que no poseen `retrievalEvidenceVersion=1` se consideran evidencia heredada no verificada y la vista del ciclo los ignora. La primera evaluación explícita inicia ambos contadores desde cero para no mezclar una respuesta técnica antigua con utilidad confirmada.
+
+`memory_lifecycle_preview` produce una evaluación por registro sin escribir archivos. Cero resultados queda `notAssessed`; uno o dos quedan `insufficientEvidence`. Con al menos tres resultados, dos tercios o más marcados **No ayudó** producen `reviewRequired`; el resto queda `noWeakeningSignal`. El umbral es una regla conservadora de ingeniería para solicitar revisión, no una afirmación neurocientífica ni una decisión de olvido. En todos los casos `automaticAction=false`: la señal no duerme, debilita, suprime, archiva ni elimina el recuerdo.
+
+## Supresión voluntaria reversible R6.5-G
+
+La supresión representa la decisión explícita del propietario de impedir que un recuerdo participe en recuperación espontánea sin borrarlo, archivarlo, declararlo falso ni alterar su fuerza. `assess_memory_suppression` admite solamente las acciones cerradas `suppress` y `release`, con uno de tres motivos declarados: `ownerChoice`, `sensitiveContext` o `temporaryBoundary`. No existe un disparador automático desde antigüedad, frecuencia, `storageStrength`, resultados R6.5-F o una salida de modelo.
+
+Cada solicitud exige confirmación visible y las huellas SHA-256 vigentes de `records.json` y del registro individual. Al suprimir se guardan `suppressionStatus=suppressed`, el motivo y `suppressionUpdatedAt`; al liberar se eliminan esos tres campos. La operación no modifica contenido, importancia, vigencia, accesibilidad, contadores ni fuerza. Un recuerdo dormido puede además estar suprimido: son decisiones independientes y liberar la supresión no reactiva su accesibilidad.
+
+Antes de escribir se crea `backups/suppression-source-<sha>.json` con los bytes exactos de la fuente. Rust reemplaza `records.json` atómicamente, relee y valida el resultado, comprueba la proyección del ciclo y registra una auditoría local con acción y motivo cerrados, sin texto privado. Si falla cualquier comprobación o la auditoría, restaura exactamente la fuente anterior. Repetir el mismo estado se rechaza sin escribir.
+
+El RAG excluye los recuerdos suprimidos antes de puntuarlos. El volumen cognitivo conserva su nodo real atenuado, lo identifica como `suprimido` y evita dibujar una arista de recuperación. Así, supresión significa inaccesibilidad voluntaria y reversible, no desaparición del recuerdo.
+
+## Reconsolidación versionada R6.5-H
+
+Recuperar un recuerdo, usarlo en una respuesta o recibir información nueva no modifica su contenido. Para actualizar un recuerdo vigente o en conflicto, la interfaz exige una nota del propietario, uno de los motivos cerrados `ownerCorrection`, `newContext` o `clarification`, y campos propuestos explícitos. `preview_memory_reconsolidation` vuelve a verificar las huellas de `records.json` y del registro, calcula la versión sucesora y un `planId`, pero declara `recordsModified=false`, `versionWritten=false` y `automaticAction=false`.
+
+La segunda acción, `confirm_memory_reconsolidation`, sólo acepta exactamente ese plan. Antes de sustituir la fuente crea `backups/reconsolidation-source-<sha>.json` y guarda la versión desplazada completa en `memory/revisions/reconsolidation-v1-<revisionId>.json`. El registro vigente conserva `memoryVersion`, `reconsolidatedAt`, el motivo y la huella de la versión anterior. El ID del recuerdo no cambia y el ciclo deriva `reconsolidationCount=memoryVersion-1`.
+
+Después del reemplazo atómico, Rust relee y valida `records.json`, proyecta nuevamente el ciclo y escribe auditoría local. Si falla la escritura, relectura, validación o auditoría, restaura los bytes originales y retira cualquier archivo de versión creado por el intento. El respaldo exacto puede permanecer como evidencia de seguridad. Una versión existente con contenido diferente bloquea la operación.
+
+El guardado genérico rechaza cambios de título, contenido, próximo paso o fuente sobre recuerdos confirmados o en conflicto, tampoco permite fabricar metadatos de versión ni eliminar un registro durable. Los cambios funcionales de contadores que no alteran contenido continúan permitidos. En el volumen sólo aparece el nodo de la versión vigente, rotulado con su número real; las versiones históricas no generan actividad ni nodos ficticios. Archivo y eliminación durable permanecen bloqueados hasta sus contratos posteriores.
+
 ## Consolidación y repaso v1
 
-La cola de repaso acepta únicamente registros de clase `Enseñanza`, porque fueron escritos y confirmados directamente por Carlos Nuñez. Las conversaciones guardadas permanecen consultables, pero no aumentan su fuerza ni se convierten automáticamente en conocimiento propio.
+La cola de repaso acepta únicamente registros de clase `Enseñanza` que ya poseen una vigencia explícita, porque fueron escritos y confirmados directamente por Carlos Nuñez. Los recuerdos `notAssessed` se resuelven primero mediante R6.5-D y no aparecen simultáneamente en el repaso de estabilidad. Las conversaciones guardadas permanecen consultables, pero no aumentan su fuerza ni se convierten automáticamente en conocimiento propio.
 
 La próxima fecha se deriva de `finishedAt` o `lastReviewedAt`, el balance entre `successfulReviews` y `correctionCount`, y la importancia. Los intervalos base son 1, 3, 7, 14, 30, 60 y 120 días. Marcar **Sigue vigente** refuerza el indicador y extiende el intervalo; **Necesita corrección** reduce la fuerza y cambia el estado a `conflict` hasta guardar una corrección.
 
-El uso durante conversación se registra de manera independiente. Si una enseñanza confirmada fue incluida en la previsualización, Carlos Nuñez autorizó el envío y el proveedor respondió correctamente, Alice incrementa `successfulRecalls` y actualiza `lastRecalledAt`. Cancelar, desmarcar la memoria o recibir un error no produce refuerzo.
+El uso durante conversación se registra de manera independiente. Una enseñanza confirmada incluida en una consulta queda pendiente de evaluación sólo después de recibir una respuesta real. Alice modifica los contadores únicamente cuando Carlos confirma si el recuerdo ayudó. Cancelar, desmarcar memoria, recibir un error o simplemente obtener respuesta no produce evidencia ni refuerzo.
 
 No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruye al mostrar la memoria y todos sus datos continúan en `records.json`.
 
@@ -81,3 +143,7 @@ No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruy
 - Respaldos, exportaciones y auditorías permanecen locales.
 - Los índices futuros serán derivados: deben poder regenerarse desde `records.json`.
 - R6.1 no extrae hechos, no persiste memoria de trabajo y no accede a carpetas de proyectos.
+- R6.5-E no calcula reposo desde antigüedad, `storageStrength`, frecuencia o una salida de modelo.
+- R6.5-F no convierte una respuesta técnica en éxito y no ejecuta olvido desde sus señales funcionales.
+- R6.5-G no suprime automáticamente y no confunde supresión con reposo, conflicto, archivo o borrado.
+- R6.5-H no reconsolida por recuperación y nunca sobrescribe contenido confirmado sin conservar la versión desplazada.

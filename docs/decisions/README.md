@@ -59,3 +59,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-081](ADR-P-081-observacion-visual-local-revisable.md) | Observación visual local con selección explícita, imágenes efímeras y aprendizaje revisable |
 | [ADR-P-082](ADR-P-082-candidatos-aprendizaje-local.md) | Extracción local de candidatos con evidencia literal y confirmación humana |
 | [ADR-P-083](ADR-P-083-confirmacion-transaccional-aprendizaje.md) | Confirmación nativa, atómica, auditable e idempotente de aprendizaje |
+| [ADR-P-084](ADR-P-084-memoria-funcional-y-volumen-trazable.md) | Ciclo funcional de memoria y nodos cognitivos vinculados a registros reales |

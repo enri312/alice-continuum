@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { buildBrainSnapshot } from "./brain";
 
+const memories = (count: number) => Array.from({ length: count }, (_, index) => ({ id: `memory-${index}`, intention: `Recuerdo ${index}`, memoryStatus: "confirmed" as const }));
+
 const emptyInputs = {
   conversationCount: 0,
-  memoryCount: 0,
+  memories: [],
   retrievedMemoryCount: 0,
   retrievedMemoryTop: "",
+  retrievedMemoryIds: [],
   observerEnabled: false,
   foregroundContext: null,
   cloudConfigured: false,
@@ -36,7 +39,7 @@ describe("buildBrainSnapshot", () => {
   });
 
   it("hace depender la densidad persistente únicamente de recuerdos locales", () => {
-    const snapshot = buildBrainSnapshot({ ...emptyInputs, memoryCount: 6 });
+    const snapshot = buildBrainSnapshot({ ...emptyInputs, memories: memories(6) });
     const expectedDensity = .015 + .845 * 6 / 186;
 
     expect(snapshot.hasActivity).toBe(true);
@@ -73,9 +76,10 @@ describe("buildBrainSnapshot", () => {
   it("prioriza la recuperación local y conserva su evidencia", () => {
     const snapshot = buildBrainSnapshot({
       ...emptyInputs,
-      memoryCount: 8,
+      memories: memories(8),
       retrievedMemoryCount: 2,
       retrievedMemoryTop: "Preferencia por documentación previa",
+      retrievedMemoryIds: ["memory-0", "memory-1"],
     });
 
     expect(snapshot.focusStatus).toBe("recuperando memoria");
@@ -102,8 +106,8 @@ describe("buildBrainSnapshot", () => {
   });
 
   it("mantiene una red inicial pequeña y reserva la nube densa para aprendizaje acumulado", () => {
-    const initial = buildBrainSnapshot({ ...emptyInputs, memoryCount: 10 });
-    const mature = buildBrainSnapshot({ ...emptyInputs, memoryCount: 1_000 });
+    const initial = buildBrainSnapshot({ ...emptyInputs, memories: memories(10) });
+    const mature = buildBrainSnapshot({ ...emptyInputs, memories: memories(1_000) });
 
     expect(initial.persistentNeuralDensity).toBeLessThan(.07);
     expect(mature.persistentNeuralDensity).toBeGreaterThan(.72);

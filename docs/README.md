@@ -65,6 +65,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 59. [ADR-P-080: contexto ampliado y RAG local](decisions/ADR-P-080-contexto-rag-local.md)
 60. [ADR-P-081: observación visual local revisable](decisions/ADR-P-081-observacion-visual-local-revisable.md)
 61. [Informe real de RAG y aprendizaje visual](testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md)
+62. [Investigación funcional sobre memoria humana](research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md)
+63. [ADR-P-084: memoria funcional y volumen cognitivo trazable](decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md)
 
 ## Secciones
 

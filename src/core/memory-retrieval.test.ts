@@ -43,4 +43,29 @@ describe("recuperación local de memoria", () => {
   it("no activa recuperación sin un mensaje actual", () => {
     expect(buildRetrievalQuery("   ", [{ role: "user", text: "horario de programación" }])).toBe("");
   });
+
+  it("no recupera recuerdos en conflicto o archivados", () => {
+    const candidates = [
+      { id: "valid", intention: "Proyecto Alice", memoryStatus: "confirmed" as const },
+      { id: "conflict", intention: "Proyecto Alice antiguo", memoryStatus: "conflict" as const },
+      { id: "archived", intention: "Proyecto Alice archivado", memoryStatus: "archived" as const },
+    ];
+    expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["valid"]);
+  });
+
+  it("excluye un recuerdo en reposo aunque sea vigente y tenga coincidencia exacta", () => {
+    const candidates = [
+      { id: "available", intention: "Proyecto Alice accesible", memoryStatus: "confirmed" as const, accessibilityStatus: "accessible" as const },
+      { id: "dormant", intention: "Proyecto Alice en reposo", memoryStatus: "confirmed" as const, accessibilityStatus: "dormant" as const },
+    ];
+    expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["available"]);
+  });
+
+  it("excluye un recuerdo suprimido aunque siga vigente y accesible", () => {
+    const candidates = [
+      { id: "available", intention: "Proyecto Alice recuperable", memoryStatus: "confirmed" as const, accessibilityStatus: "accessible" as const },
+      { id: "suppressed", intention: "Proyecto Alice suprimido", memoryStatus: "confirmed" as const, accessibilityStatus: "accessible" as const, suppressionStatus: "suppressed" as const },
+    ];
+    expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["available"]);
+  });
 });

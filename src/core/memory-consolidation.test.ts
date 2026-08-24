@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyMemoryRetrieval, applyMemoryReview, buildReviewQueue, reviewIntervalDays, scheduleReview, selectReinforceableMemoryIds } from "./memory-consolidation";
+import { applyMemoryRetrievalOutcome, applyMemoryReview, buildReviewQueue, reviewIntervalDays, scheduleReview, selectReinforceableMemoryIds } from "./memory-consolidation";
 
 const baseMemory = {
   id: "memory-1",
@@ -12,6 +12,7 @@ const baseMemory = {
   successfulRecalls: 0,
   failedRecalls: 0,
   lastRecalledAt: undefined as string | undefined,
+  retrievalEvidenceVersion: undefined as 1 | undefined,
   successfulReviews: 0,
   correctionCount: 0,
   lastReviewedAt: undefined as string | undefined,
@@ -66,19 +67,29 @@ describe("memory consolidation", () => {
     expect(queue.map((review) => review.memory.id)).toEqual(["first", "later"]);
   });
 
-  it("refuerza una enseñanza recuperada después de una respuesta correcta", () => {
-    const recalled = applyMemoryRetrieval(baseMemory, new Date("2026-08-08T10:00:00.000Z"));
-    expect(recalled.storageStrength).toBe(.238);
+  it("registra utilidad sólo después de una evaluación explícita y no altera la fuerza", () => {
+    const recalled = applyMemoryRetrievalOutcome(baseMemory, "helpful", new Date("2026-08-08T10:00:00.000Z"));
+    expect(recalled.storageStrength).toBe(.18);
     expect(recalled.successfulRecalls).toBe(1);
+    expect(recalled.failedRecalls).toBe(0);
     expect(recalled.lastRecalledAt).toBe("2026-08-08T10:00:00.000Z");
+    expect(recalled.retrievalEvidenceVersion).toBe(1);
     expect(recalled.successfulReviews).toBe(0);
   });
 
-  it("no refuerza conversaciones ni enseñanzas conflictivas", () => {
+  it("registra una recuperación que no ayudó sin dormir ni debilitar automáticamente", () => {
+    const recalled = applyMemoryRetrievalOutcome({ ...baseMemory, successfulRecalls: 7 }, "not-helpful", new Date("2026-08-08T11:00:00.000Z"));
+    expect(recalled.storageStrength).toBe(.18);
+    expect(recalled.successfulRecalls).toBe(0);
+    expect(recalled.failedRecalls).toBe(1);
+    expect(recalled.memoryStatus).toBe("confirmed");
+  });
+
+  it("no registra resultados sobre conversaciones ni enseñanzas conflictivas", () => {
     const conversation = { ...baseMemory, kind: "Conversación" };
     const conflict = { ...baseMemory, memoryStatus: "conflict" as const };
-    expect(applyMemoryRetrieval(conversation)).toBe(conversation);
-    expect(applyMemoryRetrieval(conflict)).toBe(conflict);
+    expect(applyMemoryRetrievalOutcome(conversation, "helpful")).toBe(conversation);
+    expect(applyMemoryRetrievalOutcome(conflict, "not-helpful")).toBe(conflict);
   });
 
   it("selecciona solamente identificadores de enseñanzas confirmadas", () => {

@@ -8,6 +8,7 @@ const valid = {
   model: "qwen3.5:4b",
   inputTokens: 120,
   outputTokens: 40,
+  rejectedCandidateCount: 0,
   persisted: false,
   candidates: [{
     candidateId: `sha256:${"b".repeat(64)}`,
@@ -32,6 +33,11 @@ describe("learning candidate preview", () => {
   it("rejects unknown candidate kinds and excessive output", () => {
     expect(() => parseLearningCandidatePreview({ ...valid, candidates: [{ ...valid.candidates[0], candidateKind: "personality" }] })).toThrow();
     expect(() => parseLearningCandidatePreview({ ...valid, candidates: Array.from({ length: 5 }, () => valid.candidates[0]) })).toThrow();
+  });
+
+  it("requires a non-negative rejected-candidate count", () => {
+    expect(() => parseLearningCandidatePreview({ ...valid, rejectedCandidateCount: -1 })).toThrow();
+    expect(() => parseLearningCandidatePreview({ ...valid, rejectedCandidateCount: 0.5 })).toThrow();
   });
 
   it("accepts only a closed native confirmation receipt", () => {

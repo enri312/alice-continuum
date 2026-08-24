@@ -17,8 +17,8 @@ import { buildBrainSnapshot } from "./core/brain";
 import { createCognitiveEvent } from "./core/cognitive-events";
 import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive-events";
 import { NavigationIcon } from "./components/NavigationIcon";
-import { applyMemoryRetrieval, applyMemoryReview, selectReinforceableMemoryIds } from "./core/memory-consolidation";
-import type { ReviewOutcome } from "./core/memory-consolidation";
+import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory-consolidation";
+import type { RetrievalOutcome, ReviewOutcome } from "./core/memory-consolidation";
 import { loadCompatibleArray } from "./core/storage-migration";
 import { parsePermissionGatewayStatus } from "./core/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
@@ -44,9 +44,19 @@ type Session = {
   importance?: number;
   storageStrength?: number;
   memoryStatus?: "confirmed" | "conflict" | "archived";
+  accessibilityStatus?: "accessible" | "dormant";
+  accessibilityUpdatedAt?: string;
+  suppressionStatus?: "suppressed";
+  suppressionReason?: "ownerChoice" | "sensitiveContext" | "temporaryBoundary";
+  suppressionUpdatedAt?: string;
+  memoryVersion?: number;
+  reconsolidatedAt?: string;
+  reconsolidationReason?: "ownerCorrection" | "newContext" | "clarification";
+  previousVersionSha256?: string;
   successfulRecalls?: number;
   failedRecalls?: number;
   lastRecalledAt?: string;
+  retrievalEvidenceVersion?: 1;
   successfulReviews?: number;
   correctionCount?: number;
   lastReviewedAt?: string;
@@ -93,7 +103,7 @@ export function App() {
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
   const [cloudPending, setCloudPending] = useState(false);
-  const [memoryRetrieval, setMemoryRetrieval] = useState({ count: 0, top: "" });
+  const [memoryRetrieval, setMemoryRetrieval] = useState<{ count: number; top: string; ids: string[] }>({ count: 0, top: "", ids: [] });
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
     { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
     { id: "openai", label: "OpenAI", configured: false, defaultModel: "gpt-5.6-terra", protocol: "Responses API", retentionMode: "store: false" },
@@ -120,14 +130,15 @@ export function App() {
   const brainSnapshot = useMemo(() => buildBrainSnapshot({
     lastUserMessage,
     conversationCount: messages.length,
-    memoryCount: conversationalMemories.length,
+    memories: conversationalMemories,
     retrievedMemoryCount: memoryRetrieval.count,
     retrievedMemoryTop: memoryRetrieval.top,
+    retrievedMemoryIds: memoryRetrieval.ids,
     observerEnabled: observationEnabled,
     foregroundContext,
     cloudConfigured: cloudStatus.providers.some((provider) => provider.configured),
     cloudPending,
-  }), [cloudPending, cloudStatus.providers, conversationalMemories.length, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
+  }), [cloudPending, cloudStatus.providers, conversationalMemories, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
 
   function recordEvent(module: CognitiveModule, node: string, payload: string, level: CognitiveLevel = "INFO") {
     setCognitiveEvents((current) => [...current.slice(-199), createCognitiveEvent(module, node, payload, level)]);
@@ -263,6 +274,37 @@ export function App() {
       });
   }
 
+  async function updateSessionsVerified(update: (current: Session[]) => Session[]) {
+    const previous = sessionsRef.current;
+    const next = update(previous);
+    sessionsRef.current = next;
+    setSessions(next);
+    if (!desktopApp) {
+      saveSessions(next);
+      return;
+    }
+    const persistence = memorySaveQueue.current
+      .catch(() => undefined)
+      .then(async () => {
+        const path = await invoke<string>("save_memory", { sessions: next });
+        setMemoryPath(path);
+        setMemoryStatus("native");
+      });
+    memorySaveQueue.current = persistence.catch((error) => {
+      setMemoryStatus("error");
+      recordEvent("SECURITY", "MEMORY_SAVE_ERROR", String(error), "WARN");
+    });
+    try {
+      await persistence;
+    } catch (error) {
+      if (sessionsRef.current === next) {
+        sessionsRef.current = previous;
+        setSessions(previous);
+      }
+      throw error;
+    }
+  }
+
   async function toggleObservation() {
     if (!desktopApp) return;
     setScreen("puentes");
@@ -299,30 +341,23 @@ export function App() {
         ]);
       }
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
-      const recalledIds = new Set(recalledMemoryIds);
-      const reinforcedIds = new Set(selectReinforceableMemoryIds(sessionsRef.current.filter((session) => recalledIds.has(session.id))));
-      if (rememberLocally || reinforcedIds.size) {
+      if (rememberLocally) {
         updateSessions((current) => {
-          const reinforced = reinforcedIds.size
-            ? current.map((session) => reinforcedIds.has(session.id) ? applyMemoryRetrieval(session) : session)
-            : current;
-          return rememberLocally
-            ? [buildConversationEpisode({
-              id: crypto.randomUUID(),
-              userMessage: request.message,
-              assistantMessage: response.text,
-              provider: response.provider,
-              model: response.model,
-              startedAt: requestStartedAt,
-              finishedAt: new Date().toISOString(),
-            }), ...reinforced]
-            : reinforced;
+          return [buildConversationEpisode({
+            id: crypto.randomUUID(),
+            userMessage: request.message,
+            assistantMessage: response.text,
+            provider: response.provider,
+            model: response.model,
+            startedAt: requestStartedAt,
+            finishedAt: new Date().toISOString(),
+          }), ...current];
         });
       }
       if (rememberLocally) {
         recordEvent("MEMORY", "CONVERSATION_EPISODE_COMMIT", `Episodio real guardado · ${response.provider}/${response.model}`);
       }
-      if (reinforcedIds.size) recordEvent("MEMORY", "MEMORY_RECALL_REINFORCED", `${reinforcedIds.size} enseñanza${reinforcedIds.size === 1 ? "" : "s"} autorizada${reinforcedIds.size === 1 ? "" : "s"} reforzada${reinforcedIds.size === 1 ? "" : "s"}`);
+      if (recalledMemoryIds.length) recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} usado${recalledMemoryIds.length === 1 ? "" : "s"} · utilidad aún no confirmada`);
       recordEvent("OUTPUT", "CLOUD_RESPONSE", `${response.provider}/${response.model} · ${response.inputTokens} entrada · ${response.outputTokens} salida`);
       return response;
     } catch (error) {
@@ -331,6 +366,13 @@ export function App() {
     } finally {
       setCloudPending(false);
     }
+  }
+
+  async function assessRetrievalOutcome(recordId: string, outcome: RetrievalOutcome) {
+    const target = sessionsRef.current.find((session) => session.id === recordId);
+    if (!target || target.kind !== "Enseñanza" || target.memoryStatus !== "confirmed") throw new Error("El recuerdo ya no admite una evaluación de recuperación.");
+    await updateSessionsVerified((current) => current.map((session) => session.id === recordId ? applyMemoryRetrievalOutcome(session, outcome) : session));
+    recordEvent("MEMORY", outcome === "helpful" ? "MEMORY_RETRIEVAL_HELPFUL" : "MEMORY_RETRIEVAL_NOT_HELPFUL", `${recordId} · confirmado por el propietario · sin cambio automático de fuerza o accesibilidad`);
   }
 
   async function clearWorkingMemory(expectedGeneration: number): Promise<WorkingMemoryOperationResult> {
@@ -449,8 +491,8 @@ export function App() {
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} />} />}
-    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onCreate={(teaching) => { const now = new Date().toISOString(); const record: Session = { id: crypto.randomUUID(), kind: "Enseñanza", intention: teaching.intention, summary: teaching.summary, startedAt: now, finishedAt: now, memoryType: teaching.memoryType, source: teaching.source, importance: teaching.importance, storageStrength: .18, memoryStatus: "confirmed", successfulRecalls: 0, failedRecalls: 0, successfulReviews: 0, correctionCount: 0 }; updateSessions((current) => [record, ...current]); recordEvent("MEMORY", "TEACHING_COMMIT", `Enseñanza local confirmada: ${teaching.intention}`); }} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} observationEnabled={observationEnabled} ollamaReady={Boolean(ollamaProvider?.configured)} ollamaModel={ollamaModel} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
+    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={(id) => { updateSessions((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Recuerdo eliminado: ${id}`, "WARN"); }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

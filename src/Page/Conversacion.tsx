@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { buildRetrievalQuery, retrieveMemories } from "../core/memory-retrieval";
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-payload";
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
+import type { RetrievalOutcome } from "../core/memory-consolidation";
 import type { WorkingMemorySnapshot } from "../core/working-memory";
 
 export type ConversationMessage = {
@@ -38,7 +39,7 @@ export type CloudResponse = {
   workingMemoryError: string | null;
 };
 
-type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived" };
+type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived"; accessibilityStatus?: "accessible" | "dormant"; suppressionStatus?: "suppressed" };
 
 type ConversacionProps = {
   embedded?: boolean;
@@ -53,16 +54,17 @@ type ConversacionProps = {
   foregroundContext: { windowTitle: string; processName: string } | null;
   onToggleObservation: () => Promise<void>;
   onDraftChange: (value: string) => void;
-  onMemoryRetrieval: (state: { count: number; top: string }) => void;
+  onMemoryRetrieval: (state: { count: number; top: string; ids: string[] }) => void;
   onOpenSettings: () => void;
   onSend: (request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) => Promise<CloudResponse>;
+  onRetrievalOutcome: (recordId: string, outcome: RetrievalOutcome) => Promise<void>;
 };
 
 function messageTime(iso: string) {
   return new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
 
-export function Conversacion({ embedded = false, desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onOpenSettings, onSend }: ConversacionProps) {
+export function Conversacion({ embedded = false, desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onOpenSettings, onSend, onRetrievalOutcome }: ConversacionProps) {
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
@@ -72,19 +74,23 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [reviewBudget, setReviewBudget] = useState<CloudPayloadBudget | null>(null);
   const [reviewMemoryIds, setReviewMemoryIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
+  const [pendingRetrievals, setPendingRetrievals] = useState<{ key: string; recordId: string }[]>([]);
+  const [retrievalFeedbackPending, setRetrievalFeedbackPending] = useState<string | null>(null);
   const [error, setError] = useState("");
   const reviewRef = useRef<HTMLDivElement>(null);
 
   const recentHistory = messages.slice(-10);
   const retrievalQuery = useMemo(() => buildRetrievalQuery(draft, recentHistory), [draft, recentHistory]);
   const memoryMatches = useMemo(() => retrieveMemories(retrievalQuery, memories, 3), [memories, retrievalQuery]);
+  const dormantMemoryCount = useMemo(() => memories.filter((memory) => memory.accessibilityStatus === "dormant").length, [memories]);
+  const suppressedMemoryCount = useMemo(() => memories.filter((memory) => memory.suppressionStatus === "suppressed").length, [memories]);
   const retrievedMemories = memoryMatches.map((match) => match.memory);
   const selectedProvider = status.providers.find((option) => option.id === provider) ?? status.providers[0];
   const localInference = selectedProvider?.id === "ollama";
   const configuredCount = status.providers.filter((option) => option.configured).length;
 
   useEffect(() => {
-    onMemoryRetrieval({ count: memoryMatches.length, top: memoryMatches[0]?.memory.intention ?? "" });
+    onMemoryRetrieval({ count: memoryMatches.length, top: memoryMatches[0]?.memory.intention ?? "", ids: memoryMatches.flatMap((match) => match.memory.id ? [match.memory.id] : []) });
   }, [memoryMatches, onMemoryRetrieval]);
 
   useEffect(() => {
@@ -142,6 +148,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setError("");
     try {
       const response = await onSend(reviewRequest, rememberLocally, reviewMemoryIds);
+      if (reviewMemoryIds.length) setPendingRetrievals((current) => [...current, ...reviewMemoryIds.map((recordId) => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId }))]);
       if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
       onDraftChange("");
       setReviewing(false);
@@ -151,6 +158,19 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       setError(String(cause));
     } finally {
       setSending(false);
+    }
+  }
+
+  async function recordRetrievalOutcome(key: string, recordId: string, outcome: RetrievalOutcome) {
+    setRetrievalFeedbackPending(key);
+    setError("");
+    try {
+      await onRetrievalOutcome(recordId, outcome);
+      setPendingRetrievals((current) => current.filter((item) => item.key !== key));
+    } catch (cause) {
+      setError(`No se guardó la evaluación del recuerdo: ${String(cause)}`);
+    } finally {
+      setRetrievalFeedbackPending(null);
     }
   }
 
@@ -165,6 +185,8 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <div className="message-stream" aria-live="polite">
           {messages.length === 0 ? <div className="chat-empty"><span>A</span><h3>Estoy lista para conversar.</h3><p>No necesitás iniciar una misión. Podés preguntarme, estudiar conmigo o traer una idea para investigar.</p></div> : messages.map((item) => <article key={item.id} className={`chat-message ${item.role}`}><div className="message-author">{item.role === "user" ? "CARLOS NUÑEZ" : "ALICE"}<small>{messageTime(item.createdAt)}</small></div><p>{item.text}</p>{item.model && <span className="message-model">{item.model}</span>}</article>)}
         </div>
+        {pendingRetrievals.length > 0 && <section className="retrieval-outcome-review" aria-label="Evaluación real de recuerdos recuperados"><header><div><strong>R6.5-F · RESULTADO DE RECUPERACIÓN</strong><span>Confirmación humana · no modifica fuerza ni reposo</span></div><em>{pendingRetrievals.length} pendiente{pendingRetrievals.length === 1 ? "" : "s"}</em></header>{pendingRetrievals.map(({ key, recordId }) => { const memory = memories.find((item) => item.id === recordId); return <article key={key}><div><span>¿ESTE RECUERDO AYUDÓ?</span><strong>{memory?.intention ?? recordId}</strong></div><div><button type="button" className="secondary" disabled={retrievalFeedbackPending === key} onClick={() => void recordRetrievalOutcome(key, recordId, "not-helpful")}>No ayudó</button><button type="button" className="primary" disabled={retrievalFeedbackPending === key} onClick={() => void recordRetrievalOutcome(key, recordId, "helpful")}>Sí, fue útil</button></div></article>; })}</section>}
+        {error && !reviewing && <p className="cloud-error" role="alert">{error}</p>}
         <div className="composer">
           <label htmlFor="alice-message">MENSAJE PARA ALICE</label>
           <textarea id="alice-message" value={draft} onChange={(event) => { onDraftChange(event.target.value); setReviewing(false); }} placeholder="Preguntá, explicá una idea o pedí ayuda…" />
@@ -177,9 +199,9 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <h3>{localInference ? "Qué puede procesar" : "Qué puede salir"}</h3>
         <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>{localInference ? "HISTORIAL + RAG ACTIVOS" : "TODO DESMARCADO POR DEFECTO"}</span></div>
         <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles · máximo 10</small></span></label>
-        <label className="context-toggle"><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos` : "escribí un mensaje para buscar"}</small></span></label>
+        <label className="context-toggle"><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos · ${dormantMemoryCount} en reposo · ${suppressedMemoryCount} suprimidos` : "escribí un mensaje para buscar"}</small></span></label>
         {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se {localInference ? "procesarán" : "enviarán"} mientras esta casilla siga desmarcada.</p>}
-        {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos relacionados. No se adjuntará memoria.</p>}</div>}
+        {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3 · REPOSO Y SUPRESIÓN EXCLUIDOS</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos accesibles relacionados. No se adjuntará memoria.</p>}</div>}
         <label className="context-toggle"><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? foregroundContext.processName : "sin contexto observado"}</small></span></label>
         <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? localInference ? "La ventana sólo se procesará si marcas la casilla y autorizas la inferencia." : "La ventana sólo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
         {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Abrir Gateway para detener" : "Abrir Gateway para activar"}</button>}

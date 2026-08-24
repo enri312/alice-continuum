@@ -19,6 +19,7 @@ export type LearningCandidatePreview = {
   inputTokens: number;
   outputTokens: number;
   candidates: LearningCandidate[];
+  rejectedCandidateCount: number;
   persisted: false;
 };
 
@@ -71,7 +72,8 @@ export function parseLearningCandidatePreview(value: unknown): LearningCandidate
     };
   });
   if (candidates.length > 4) throw new Error("La vista excede cuatro candidatos");
-  if (typeof value.inputTokens !== "number" || typeof value.outputTokens !== "number") throw new Error("Conteo de tokens inválido");
+  if (typeof value.inputTokens !== "number" || typeof value.outputTokens !== "number"
+    || typeof value.rejectedCandidateCount !== "number" || !Number.isInteger(value.rejectedCandidateCount) || value.rejectedCandidateCount < 0) throw new Error("Conteo de aprendizaje inválido");
   return {
     sourceRecordId: requiredString(value.sourceRecordId, "recuerdo de origen"),
     sourceTitle: requiredString(value.sourceTitle, "título de origen"),
@@ -80,6 +82,7 @@ export function parseLearningCandidatePreview(value: unknown): LearningCandidate
     inputTokens: value.inputTokens,
     outputTokens: value.outputTokens,
     candidates,
+    rejectedCandidateCount: value.rejectedCandidateCount,
     persisted: false,
   };
 }

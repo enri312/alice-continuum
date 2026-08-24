@@ -53,7 +53,7 @@ export type ConsolidationResolutionResult = {
   preview: ConsolidationPreviewSnapshot;
 };
 
-export type ConsolidationMergeDifferenceField = "kind" | "intention" | "startedAt" | "finishedAt" | "summary" | "nextStep" | "memoryType" | "source" | "importance" | "storageStrength" | "memoryStatus" | "successfulRecalls" | "failedRecalls" | "lastRecalledAt" | "successfulReviews" | "correctionCount" | "lastReviewedAt" | "contextEvents";
+export type ConsolidationMergeDifferenceField = "kind" | "intention" | "startedAt" | "finishedAt" | "summary" | "nextStep" | "memoryType" | "source" | "importance" | "storageStrength" | "memoryStatus" | "suppressionStatus" | "suppressionReason" | "suppressionUpdatedAt" | "memoryVersion" | "reconsolidatedAt" | "reconsolidationReason" | "previousVersionSha256" | "successfulRecalls" | "failedRecalls" | "lastRecalledAt" | "retrievalEvidenceVersion" | "successfulReviews" | "correctionCount" | "lastReviewedAt" | "contextEvents";
 export type ConsolidationMergeBackupStatus = "missing" | "verified";
 export type ConsolidationMergeLayerImpact = "absent" | "inactive" | "activeRevisionWillBecomeStale";
 export type ConsolidationRecoveryStep = "verifySource" | "createOrVerifyBackup" | "prepareProjectedSource" | "atomicReplace" | "verifyProjectedSource" | "writeAudit" | "restoreBackupOnFailure" | "verifyRestoredSource";
@@ -148,7 +148,7 @@ const mergePreviewKeys = ["schemaVersion", "sourceSha256", "candidateId", "candi
 const recoveryStatusKeys = ["schemaVersion", "state", "receiptPath", "receiptFileExists", "transactionCount", "receipt", "sourceRelation", "currentSourceSha256", "blockedReason", "restorationAvailable", "restorationRequiresConfirmation", "automaticRecovery", "mergeExecutionAvailable", "recordsModified", "filesCreated"];
 const recoveryReceiptKeys = ["transactionId", "candidateId", "sourceSha256", "projectedSourceSha256", "sourceBackupFile", "state", "createdAt", "restoredAt"];
 const restorationResultKeys = ["schemaVersion", "transactionId", "sourceSha256", "sourceRestored", "auditWritten", "alreadyRestored", "receiptState", "status"];
-const mergeDifferenceFields: ConsolidationMergeDifferenceField[] = ["kind", "intention", "startedAt", "finishedAt", "summary", "nextStep", "memoryType", "source", "importance", "storageStrength", "memoryStatus", "successfulRecalls", "failedRecalls", "lastRecalledAt", "successfulReviews", "correctionCount", "lastReviewedAt", "contextEvents"];
+const mergeDifferenceFields: ConsolidationMergeDifferenceField[] = ["kind", "intention", "startedAt", "finishedAt", "summary", "nextStep", "memoryType", "source", "importance", "storageStrength", "memoryStatus", "suppressionStatus", "suppressionReason", "suppressionUpdatedAt", "memoryVersion", "reconsolidatedAt", "reconsolidationReason", "previousVersionSha256", "successfulRecalls", "failedRecalls", "lastRecalledAt", "retrievalEvidenceVersion", "successfulReviews", "correctionCount", "lastReviewedAt", "contextEvents"];
 const recoverySteps: ConsolidationRecoveryStep[] = ["verifySource", "createOrVerifyBackup", "prepareProjectedSource", "atomicReplace", "verifyProjectedSource", "writeAudit", "restoreBackupOnFailure", "verifyRestoredSource"];
 const digest = /^sha256:[0-9a-f]{64}$/;
 

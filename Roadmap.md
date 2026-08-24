@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C, R6.3-F y R6.4-C validados al 2026-08-20  
+**Estado:** en curso · R6.1, R6.2-C, R6.3-F, R6.4-C y R6.5-H validados al 2026-08-23  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -229,6 +229,22 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.4-C:** `confirm_learning_candidate` mueve la confirmación completa a Rust. El comando relee la fuente, reconstruye la propuesta, compara su ID y SHA-256, valida la edición y realiza respaldo exacto, reemplazo atómico y auditoría bajo un bloqueo compartido de escritura. Un fallo de auditoría restaura `records.json`; un reintento idéntico es idempotente y uno alterado se rechaza. La sonda real rechazó una huella obsoleta y conservó intactos los 21 archivos canónicos; las escrituras positivas se limitaron a directorios físicos temporales para no insertar recuerdos ficticios.
 
+**Incremento R6.5-A:** ADR-P-084 define la memoria como ciclo funcional de codificación, memoria de trabajo, candidatura, consolidación, recuperación, reconsolidación versionada, debilitamiento funcional, supresión voluntaria, archivo y borrado gobernado. La interfaz **Memoria** deja de comportarse como un formulario separado de enseñanza y vuelve a ser inspección y control del sistema. La primera proyección trazable del volumen usa un círculo por registro real y un rombo únicamente por recuperación actual o proceso R3 con evidencia; una instalación vacía no genera relleno y no se dibujan asociaciones persistentes inexistentes. Este incremento establece contrato y proyección: los estados avanzados del ciclo todavía no se persisten ni ejecutan.
+
+**Incremento R6.5-B:** `memory_lifecycle_preview` valida `records.json` en Rust y genera una referencia trazable por registro con SHA-256, vigencia explícita, política de recuperación vigente y versión base. Los registros sin estado quedan `notAssessed`; no se infieren debilitamiento, supresión ni reconsolidación desde `storageStrength`, antigüedad o frecuencia. La pestaña **Ciclo** integra esta vista con la cola de vigencia. El futuro `lifecycle-index-v1.json` se declara como destino, pero toda escritura y activación permanecen deshabilitadas hasta contar con contrato durable, respaldo, auditoría y reversión.
+
+**Incremento R6.5-C:** `activate_memory_lifecycle` y `rollback_memory_lifecycle` habilitan exclusivamente el índice lateral `lifecycle-index-v1.json`. La activación exige confirmación y SHA-256 vigente, conserva revisiones inmutables y es idempotente para la misma fuente. Un cambio real de `records.json` aparece como `sourceChanged` y requiere una revisión nueva. Cada reemplazo respalda el índice anterior por huella, relee y valida el documento, registra auditoría local y restaura el estado previo si ésta falla. Revertir elimina sólo el puntero activo; nunca reescribe recuerdos. Debilitamiento, supresión y reconsolidación continúan fuera del contrato v1.
+
+**Incremento R6.5-D:** `assess_memory_validity` permite una sola transición inicial sobre recuerdos `notAssessed`: el propietario puede confirmarlos como vigentes o marcarlos en conflicto. La orden exige confirmación, huella exacta de `records.json` y huella individual del registro. Antes de escribir crea un respaldo byte a byte, reemplaza la fuente de forma atómica, relee el resultado y registra auditoría; cualquier fallo posterior restaura la fuente original. La operación modifica únicamente `memoryStatus`, la fecha de revisión y el contador compatible con la decisión. No altera contenido, importancia ni `storageStrength`, y una revisión activa del índice queda visiblemente `sourceChanged` hasta una nueva activación.
+
+**Incremento R6.5-E:** `assess_memory_accessibility` separa disponibilidad de recuperación y vigencia. Sólo un recuerdo confirmado puede declararse `accessible` o `dormant`; ponerlo en reposo lo excluye realmente del RAG léxico y de las rutas activas del volumen, pero conserva su nodo, contenido, fuerza e historial. La operación exige confirmación y ambas huellas, crea un respaldo exacto independiente, reemplaza `records.json` atómicamente y restaura ante fallo de validación o auditoría. Reactivar es una nueva decisión explícita y reversible. El volumen muestra el nodo dormido atenuado, sin presentarlo como recuperado.
+
+**Incremento R6.5-F:** una respuesta real que utilizó RAG deja los recuerdos en espera de evaluación; responder técnicamente ya no incrementa recuperaciones exitosas ni fuerza. Carlos confirma por recuerdo si fue útil o no ayudó. Sólo esos resultados llevan `retrievalEvidenceVersion=1`; contadores heredados sin esa marca se excluyen. La vista nativa exige tres resultados antes de evaluar y señala revisión cuando al menos dos tercios no ayudaron. Es sólo evidencia funcional: `automaticAction=false` y ningún umbral duerme, debilita, suprime, archiva o elimina recuerdos.
+
+**Incremento R6.5-G:** `assess_memory_suppression` permite al propietario suprimir o liberar un recuerdo mediante confirmación explícita, huellas vigentes y uno de tres motivos cerrados: decisión propia, contexto sensible o límite temporal. La supresión bloquea físicamente el RAG y atenúa el nodo real del volumen sin modificar contenido, fuerza, vigencia, accesibilidad ni contadores. Cada transición crea un respaldo exacto, reemplaza `records.json` atómicamente, relee la proyección y audita la decisión; un fallo restaura los bytes originales. Liberar es reversible incluso si después cambió la vigencia. Ninguna señal de debilitamiento ni salida de modelo puede activar esta operación.
+
+**Incremento R6.5-H:** editar un recuerdo confirmado o en conflicto deja de usar la sobrescritura genérica. `preview_memory_reconsolidation` prepara una única versión sucesora, muestra campos y huellas y no escribe; `confirm_memory_reconsolidation` exige el mismo plan, una segunda confirmación y un motivo cerrado. La versión desplazada completa se guarda en `memory/revisions`, la fuente anterior se respalda y `records.json` conserva la versión vigente con su cadena SHA-256. Relectura, ciclo y auditoría son obligatorios; cualquier fallo restaura la fuente y retira la revisión incompleta. Recuperar, conversar o usar un modelo nunca activa reconsolidación. El guardado genérico tampoco puede eliminar registros durables; archivo y eliminación esperan contratos propios. El volumen muestra sólo el nodo vigente y su número real de versión.
+
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
@@ -245,7 +261,7 @@ R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6
 
 ### Fase R7 — Tareas programadas e intenciones
 
-**Estado:** pendiente  
+**Estado:** base visual trazable iniciada; asociaciones persistentes pendientes  
 **Dependencia:** Fases R2, R3 y R6  
 **Objetivo:** diferenciar recuerdos, recordatorios temporales y acciones condicionadas.
 
@@ -358,7 +374,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.4-C ya permite propuestas locales revisables y confirmación transaccional sin aprendizaje automático. El siguiente incremento deberá elegirse explícitamente entre preparar el preflight de fusión canónica, ampliar las fuentes gobernadas de aprendizaje o avanzar hacia R7. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.5-H ya convierte la actualización de contenido confirmado en una transición versionada, explícita y restaurable; recuperar o conversar nunca la activa. El siguiente incremento deberá diseñar el **archivo reversible** separado de supresión, reposo, conflicto y eliminación, con política de restauración y sin inferencias automáticas. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
 
 ## Identidad adoptada — Alice Cognitive Core
 

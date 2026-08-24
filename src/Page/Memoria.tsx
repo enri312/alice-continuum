@@ -4,17 +4,14 @@ import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
 import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStatusSnapshot, type ConsolidationRecoveryStep } from "../core/memory-consolidation-preview";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
+import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, type MemoryAccessibilityAssessmentAction, type MemoryLifecyclePreviewSnapshot, type MemorySuppressionAction, type MemorySuppressionReason, type MemoryValidityAssessmentAction } from "../core/memory-lifecycle";
+import { parseMemoryReconsolidationPreview, parseMemoryReconsolidationResult, type MemoryReconsolidationPreview, type MemoryReconsolidationReason } from "../core/memory-reconsolidation";
 import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../core/working-memory";
-import { teachingTemplates } from "../core/teaching-templates";
-import { SensoryLearningPanel } from "../components/SensoryLearningPanel";
-import { MemoryCandidatePanel } from "../components/MemoryCandidatePanel";
 import type { OwnerProfileSnapshot } from "../core/owner-profile";
 
 type MemoryType = "semantic" | "procedural" | "preference" | "episodic";
-type MemoryView = "records" | "working" | "layers" | "notes" | "profile" | "learn" | "teach" | "review" | "consolidate" | "safety";
-
-type MarkdownNoteCatalog = { vaultPath: string; vaultExists: boolean; noteCount: number; notes: { relativePath: string; byteLength: number; sha256: string }[] };
+type MemoryView = "records" | "working" | "profile" | "layers" | "review" | "consolidate" | "safety";
 
 type MemorySession = {
   id: string;
@@ -28,9 +25,19 @@ type MemorySession = {
   importance?: number;
   storageStrength?: number;
   memoryStatus?: "confirmed" | "conflict" | "archived";
+  accessibilityStatus?: "accessible" | "dormant";
+  accessibilityUpdatedAt?: string;
+  suppressionStatus?: "suppressed";
+  suppressionReason?: MemorySuppressionReason;
+  suppressionUpdatedAt?: string;
+  memoryVersion?: number;
+  reconsolidatedAt?: string;
+  reconsolidationReason?: MemoryReconsolidationReason;
+  previousVersionSha256?: string;
   successfulRecalls?: number;
   failedRecalls?: number;
   lastRecalledAt?: string;
+  retrievalEvidenceVersion?: 1;
   successfulReviews?: number;
   correctionCount?: number;
   lastReviewedAt?: string;
@@ -41,8 +48,7 @@ type MemoriaProps = {
   ownerProfile: OwnerProfileSnapshot | null;
   workingMemory: WorkingMemorySnapshot | null;
   onClearWorkingMemory: (expectedGeneration: number) => Promise<WorkingMemoryOperationResult>;
-  onCreate: (teaching: { intention: string; summary: string; memoryType: MemoryType; source: string; importance: number }) => void;
-  onUpdate: (id: string, changes: { summary: string; nextStep: string; source?: string; importance?: number }) => void;
+  onUpdate: (id: string, changes: { intention?: string; summary: string; nextStep: string; source?: string; importance?: number }) => void;
   onDelete: (id: string) => void;
   onReview: (id: string, outcome: ReviewOutcome) => void;
   onExport: () => Promise<string>;
@@ -51,9 +57,6 @@ type MemoriaProps = {
   onOpenDirectory: () => Promise<string>;
   storageStatus: "browser" | "loading" | "native" | "error";
   storagePath: string;
-  observationEnabled: boolean;
-  ollamaReady: boolean;
-  ollamaModel: string;
 };
 
 function formatDate(iso: string) {
@@ -79,9 +82,17 @@ const mergeDifferenceLabels: Record<ConsolidationMergeDifferenceField, string> =
   importance: "importancia",
   storageStrength: "fuerza",
   memoryStatus: "estado",
+  suppressionStatus: "estado de supresión",
+  suppressionReason: "motivo de supresión",
+  suppressionUpdatedAt: "fecha de supresión",
+  memoryVersion: "versión de memoria",
+  reconsolidatedAt: "fecha de reconsolidación",
+  reconsolidationReason: "motivo de reconsolidación",
+  previousVersionSha256: "huella de versión anterior",
   successfulRecalls: "usos correctos",
   failedRecalls: "usos fallidos",
   lastRecalledAt: "último uso",
+  retrievalEvidenceVersion: "versión de evidencia de recuperación",
   successfulReviews: "revisiones",
   correctionCount: "correcciones",
   lastReviewedAt: "última revisión",
@@ -99,41 +110,50 @@ const recoveryStepLabels: Record<ConsolidationRecoveryStep, string> = {
   verifyRestoredSource: "VERIFICAR RESTAURACIÓN",
 };
 
-export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onCreate, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath, observationEnabled, ollamaReady, ollamaModel }: MemoriaProps) {
+export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
-  const initialView: MemoryView = requestedView === "working" || requestedView === "layers" || requestedView === "notes" || requestedView === "profile" || requestedView === "learn" || requestedView === "teach" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
+  const initialView: MemoryView = requestedView === "working" || requestedView === "profile" || requestedView === "layers" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
   const [view, setView] = useState<MemoryView>(initialView);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editIntention, setEditIntention] = useState("");
   const [summary, setSummary] = useState("");
   const [nextStep, setNextStep] = useState("");
   const [editSource, setEditSource] = useState("");
   const [editImportance, setEditImportance] = useState(3);
-  const [teachingTitle, setTeachingTitle] = useState("");
-  const [teachingContent, setTeachingContent] = useState("");
-  const [teachingType, setTeachingType] = useState<MemoryType>(teachingTemplates[0].memoryType);
-  const [teachingSource, setTeachingSource] = useState("Carlos Nuñez · enseñanza directa");
-  const [teachingImportance, setTeachingImportance] = useState(teachingTemplates[0].importance);
-  const [teachingMessage, setTeachingMessage] = useState("");
-  const [activeTemplateId, setActiveTemplateId] = useState(teachingTemplates[0].id);
   const [operationMessage, setOperationMessage] = useState("");
   const [operationRunning, setOperationRunning] = useState(false);
   const [layeredMemory, setLayeredMemory] = useState<LayeredMemorySnapshot | null>(null);
+  const [lifecyclePreview, setLifecyclePreview] = useState<MemoryLifecyclePreviewSnapshot | null>(null);
   const [consolidationPreview, setConsolidationPreview] = useState<ConsolidationPreviewSnapshot | null>(null);
   const [recoveryStatus, setRecoveryStatus] = useState<ConsolidationRecoveryStatusSnapshot | null>(null);
   const [mergeSelections, setMergeSelections] = useState<Record<string, string>>({});
   const [mergePreviews, setMergePreviews] = useState<Record<string, ConsolidationMergePreview>>({});
-  const [markdownNotes, setMarkdownNotes] = useState<MarkdownNoteCatalog | null>(null);
+  const [suppressionReason, setSuppressionReason] = useState<MemorySuppressionReason>("ownerChoice");
+  const [reconsolidationReason, setReconsolidationReason] = useState<MemoryReconsolidationReason>("clarification");
+  const [reconsolidationNote, setReconsolidationNote] = useState("");
+  const [reconsolidationPreview, setReconsolidationPreview] = useState<MemoryReconsolidationPreview | null>(null);
   const remembered = sessions.filter((session) => session.finishedAt);
-  const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza")), [remembered]);
+  const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza" && session.memoryStatus !== undefined)), [remembered]);
   const pendingReviews = reviewQueue.filter((review) => review.due);
   const nextReview = reviewQueue.find((review) => !review.due);
-  const activeTemplate = teachingTemplates.find((template) => template.id === activeTemplateId) ?? teachingTemplates[0];
   const filtered = useMemo(() => remembered.filter((session) => {
     const text = `${session.intention} ${session.summary ?? ""} ${session.nextStep ?? ""} ${session.source ?? ""} ${session.memoryType ?? ""}`.toLocaleLowerCase();
     return text.includes(query.toLocaleLowerCase().trim());
   }), [query, remembered]);
   const sessionsById = useMemo(() => new Map(sessions.map((session) => [session.id, session])), [sessions]);
+  const unassessedValidity = useMemo(() => lifecyclePreview?.preview?.references
+    .filter((reference) => reference.validity === "notAssessed")
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
+  const currentAccessibility = useMemo(() => lifecyclePreview?.preview?.references
+    .filter((reference) => reference.validity === "current")
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
+  const weakeningEvidence = useMemo(() => lifecyclePreview?.preview?.weakeningAssessments
+    .filter((assessment) => assessment.state !== "notAssessed")
+    .map((assessment) => ({ assessment, memory: sessionsById.get(assessment.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
+  const suppressionCandidates = useMemo(() => lifecyclePreview?.preview?.references
+    .filter((reference) => reference.validity === "current" || reference.suppressed)
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
 
   async function refreshLayeredMemory() {
     if (!isTauri()) return;
@@ -144,6 +164,91 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   }
 
   useEffect(() => { if (view === "layers") void refreshLayeredMemory(); }, [view, sessions]);
+
+  async function refreshLifecyclePreview() {
+    if (!isTauri()) return;
+    setOperationRunning(true);
+    try { setLifecyclePreview(parseMemoryLifecyclePreview(await invoke<unknown>("memory_lifecycle_preview"))); }
+    catch (error) { setOperationMessage(`No se pudo verificar el ciclo de memoria: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  useEffect(() => { if (view === "review") void refreshLifecyclePreview(); }, [view, sessions]);
+
+  async function activateLifecycle() {
+    const sourceSha256 = lifecyclePreview?.preview?.sourceSha256;
+    if (!sourceSha256 || !lifecyclePreview.lifecycleWritesAvailable || !window.confirm("¿Activar esta revisión del ciclo de memoria? Rust volverá a verificar records.json, respaldará el índice lateral y conservará los recuerdos byte a byte.")) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      setLifecyclePreview(parseMemoryLifecyclePreview(await invoke<unknown>("activate_memory_lifecycle", { input: { expectedSourceSha256: sourceSha256, confirmed: true } })));
+      setOperationMessage("Índice del ciclo activado, verificado y auditado. records.json permaneció intacto.");
+    } catch (error) { setOperationMessage(`No se activó el ciclo de memoria: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function rollbackLifecycle() {
+    const revisionId = lifecyclePreview?.activeRevisionId;
+    if (!revisionId || !window.confirm("¿Desactivar la revisión activa del ciclo? La revisión y sus respaldos se conservarán; records.json no se modificará.")) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      setLifecyclePreview(parseMemoryLifecyclePreview(await invoke<unknown>("rollback_memory_lifecycle", { input: { expectedRevisionId: revisionId, confirmed: true } })));
+      setOperationMessage("Revisión del ciclo desactivada de forma reversible. El historial y records.json permanecen intactos.");
+    } catch (error) { setOperationMessage(`No se revirtió el ciclo de memoria: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function assessValidity(recordId: string, recordSha256: string, action: MemoryValidityAssessmentAction) {
+    const sourceSha256 = lifecyclePreview?.sourceSha256;
+    const memory = sessionsById.get(recordId);
+    if (!sourceSha256 || !memory) return;
+    const decision = action === "confirmCurrent" ? "confirmar que sigue vigente" : "marcar que requiere corrección";
+    if (!window.confirm(`¿Querés ${decision}?\n\n${memory.intention}\n\nRust comprobará las huellas, respaldará records.json y auditará la decisión. No cambiará la fuerza del recuerdo.`)) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const result = parseMemoryValidityAssessmentResult(await invoke<unknown>("assess_memory_validity", { input: { expectedSourceSha256: sourceSha256, recordId, expectedRecordSha256: recordSha256, action, confirmed: true } }));
+      setLifecyclePreview(result.lifecycle);
+      const recordCount = await onReloadMemory();
+      setOperationMessage(`${action === "confirmCurrent" ? "Vigencia confirmada" : "Conflicto marcado"}, con respaldo exacto y auditoría. ${recordCount} recuerdos recargados; la revisión del índice puede reactivarse sobre la nueva huella.`);
+    } catch (error) { setOperationMessage(`No se modificó la vigencia: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function assessAccessibility(recordId: string, recordSha256: string, action: MemoryAccessibilityAssessmentAction) {
+    const sourceSha256 = lifecyclePreview?.sourceSha256;
+    const memory = sessionsById.get(recordId);
+    if (!sourceSha256 || !memory) return;
+    const decision = action === "makeAccessible" ? "permitir que vuelva a recuperarse" : "ponerlo en reposo y excluirlo de la recuperación espontánea";
+    if (!window.confirm(`¿Querés ${decision}?\n\n${memory.intention}\n\nEl recuerdo no se borrará ni cambiará su fuerza o contenido. Rust verificará ambas huellas, creará un respaldo exacto y auditará la decisión.`)) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const result = parseMemoryAccessibilityAssessmentResult(await invoke<unknown>("assess_memory_accessibility", { input: { expectedSourceSha256: sourceSha256, recordId, expectedRecordSha256: recordSha256, action, confirmed: true } }));
+      setLifecyclePreview(result.lifecycle);
+      const recordCount = await onReloadMemory();
+      setOperationMessage(`${action === "makeAccessible" ? "Recuerdo nuevamente accesible" : "Recuerdo puesto en reposo"}, con respaldo exacto y auditoría. ${recordCount} recuerdos recargados; Conversación aplicará la nueva política.`);
+    } catch (error) { setOperationMessage(`No se modificó la accesibilidad: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function assessSuppression(recordId: string, recordSha256: string, action: MemorySuppressionAction) {
+    const sourceSha256 = lifecyclePreview?.sourceSha256;
+    const memory = sessionsById.get(recordId);
+    if (!sourceSha256 || !memory) return;
+    const decision = action === "suppress" ? "suprimir voluntariamente" : "liberar de la supresión";
+    if (!window.confirm(`¿Querés ${decision} este recuerdo?\n\n${memory.intention}\n\nLa decisión bloqueará o restaurará su recuperación, con respaldo exacto y auditoría. No borra ni altera el contenido.`)) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const result = parseMemorySuppressionAssessmentResult(await invoke<unknown>("assess_memory_suppression", { input: { expectedSourceSha256: sourceSha256, recordId, expectedRecordSha256: recordSha256, action, reason: suppressionReason, confirmed: true } }));
+      setLifecyclePreview(result.lifecycle);
+      const recordCount = await onReloadMemory();
+      setOperationMessage(`${action === "suppress" ? "Recuerdo suprimido" : "Supresión liberada"}, con respaldo exacto y auditoría. ${recordCount} recuerdos recargados.`);
+    } catch (error) { setOperationMessage(`No se modificó la supresión: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
 
   async function refreshConsolidationPreview() {
     if (!isTauri()) return;
@@ -163,16 +268,6 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   }
 
   useEffect(() => { if (view === "consolidate") void refreshConsolidationPreview(); }, [view, sessions]);
-
-  async function refreshMarkdownNotes() {
-    if (!isTauri()) return;
-    setOperationRunning(true);
-    try { setMarkdownNotes(await invoke<MarkdownNoteCatalog>("markdown_note_catalog")); }
-    catch (error) { setOperationMessage(`No se pudo catalogar la bóveda Markdown: ${String(error)}`); }
-    finally { setOperationRunning(false); }
-  }
-
-  useEffect(() => { if (view === "notes") void refreshMarkdownNotes(); }, [view]);
 
   async function keepConsolidationPairSeparate(candidate: ConsolidationCandidate) {
     const sourceSha256 = consolidationPreview?.sourceSha256;
@@ -263,9 +358,90 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     }
   }
 
-  function edit(session: MemorySession) { setEditingId(session.id); setSummary(session.summary ?? ""); setNextStep(session.nextStep ?? ""); setEditSource(session.source ?? ""); setEditImportance(session.importance ?? 3); }
-  function save() { if (editingId) { onUpdate(editingId, { summary: summary.trim(), nextStep: nextStep.trim(), source: editSource.trim() || undefined, importance: editImportance }); setEditingId(null); } }
-  function remove(session: MemorySession) { if (window.confirm(`¿Eliminar el recuerdo de “${session.intention}”? Esta acción borra solo este registro local.`)) onDelete(session.id); }
+  function edit(session: MemorySession) {
+    setEditingId(session.id);
+    setEditIntention(session.intention);
+    setSummary(session.summary ?? "");
+    setNextStep(session.nextStep ?? "");
+    setEditSource(session.source ?? "");
+    setEditImportance(session.importance ?? 3);
+    setReconsolidationReason(session.memoryStatus === "conflict" ? "ownerCorrection" : "clarification");
+    setReconsolidationNote("");
+    setReconsolidationPreview(null);
+  }
+
+  async function saveOrPreview() {
+    if (!editingId) return;
+    const memory = sessionsById.get(editingId);
+    if (!memory) return;
+    if (memory.memoryStatus !== "confirmed" && memory.memoryStatus !== "conflict") {
+      onUpdate(editingId, { intention: editIntention.trim(), summary: summary.trim(), nextStep: nextStep.trim(), source: editSource.trim() || undefined, importance: editImportance });
+      setEditingId(null);
+      return;
+    }
+    if (!isTauri()) {
+      setOperationMessage("La reconsolidación versionada requiere la aplicación de escritorio.");
+      return;
+    }
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const lifecycle = parseMemoryLifecyclePreview(await invoke<unknown>("memory_lifecycle_preview"));
+      const reference = lifecycle.preview?.references.find((item) => item.recordId === editingId);
+      if (!lifecycle.sourceSha256 || !reference) throw new Error("El recuerdo no aparece en la fuente vigente.");
+      const preview = parseMemoryReconsolidationPreview(await invoke<unknown>("preview_memory_reconsolidation", { input: {
+        expectedSourceSha256: lifecycle.sourceSha256,
+        recordId: editingId,
+        expectedRecordSha256: reference.recordSha256,
+        reason: reconsolidationReason,
+        note: reconsolidationNote,
+        proposedIntention: editIntention,
+        proposedSummary: summary.trim() || null,
+        proposedNextStep: nextStep.trim() || null,
+        proposedSource: editSource.trim() || null,
+      } }));
+      setLifecyclePreview(lifecycle);
+      setReconsolidationPreview(preview);
+      setOperationMessage("Vista previa verificada. Todavía no se modificó records.json ni se escribió una versión.");
+    } catch (error) { setOperationMessage(`No se preparó la reconsolidación: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+
+  async function confirmReconsolidation() {
+    if (!editingId || !reconsolidationPreview) return;
+    if (!window.confirm(`¿Crear la versión ${reconsolidationPreview.projectedVersion} de este recuerdo?\n\nLa versión ${reconsolidationPreview.previousVersion} quedará preservada de forma inmutable. Rust volverá a comprobar el plan, respaldará records.json y restaurará todo si falla la auditoría.`)) return;
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      const result = parseMemoryReconsolidationResult(await invoke<unknown>("confirm_memory_reconsolidation", { input: {
+        expectedPlanId: reconsolidationPreview.planId,
+        plannedAt: reconsolidationPreview.plannedAt,
+        expectedSourceSha256: reconsolidationPreview.sourceSha256,
+        recordId: editingId,
+        expectedRecordSha256: reconsolidationPreview.recordSha256Before,
+        reason: reconsolidationReason,
+        note: reconsolidationNote,
+        proposedIntention: editIntention,
+        proposedSummary: summary.trim() || null,
+        proposedNextStep: nextStep.trim() || null,
+        proposedSource: editSource.trim() || null,
+        confirmed: true,
+      } }));
+      setLifecyclePreview(result.lifecycle);
+      const recordCount = await onReloadMemory();
+      setEditingId(null);
+      setReconsolidationPreview(null);
+      setOperationMessage(`Reconsolidación confirmada: versión ${result.previousVersion} → ${result.newVersion}. La versión anterior, el respaldo exacto y la auditoría quedaron verificados. ${recordCount} recuerdos recargados.`);
+    } catch (error) { setOperationMessage(`No se confirmó la reconsolidación: ${String(error)}`); }
+    finally { setOperationRunning(false); }
+  }
+  function remove(session: MemorySession) {
+    if (session.memoryStatus || session.memoryVersion) {
+      setOperationMessage("Un recuerdo durable no puede borrarse con el guardado genérico. El próximo incremento implementará archivo reversible antes de autorizar eliminación.");
+      return;
+    }
+    if (window.confirm(`¿Eliminar el registro todavía no evaluado de “${session.intention}”? Esta acción conserva el respaldo local anterior.`)) onDelete(session.id);
+  }
   function review(session: MemorySession, outcome: ReviewOutcome) {
     onReview(session.id, outcome);
     if (outcome === "confirmed") {
@@ -274,26 +450,6 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     }
     setOperationMessage(`“${session.intention}” quedó marcado para corrección. Guardá los cambios para resolver el conflicto.`);
     edit(session);
-  }
-
-  function saveTeaching() {
-    if (!teachingTitle.trim() || !teachingContent.trim() || !teachingSource.trim()) {
-      setTeachingMessage("Completá el tema, lo que Alice debe aprender y la fuente.");
-      return;
-    }
-    onCreate({ intention: teachingTitle.trim(), summary: teachingContent.trim(), memoryType: teachingType, source: teachingSource.trim(), importance: teachingImportance });
-    setTeachingMessage(`Enseñanza guardada localmente: ${teachingTitle.trim()}`);
-    setTeachingTitle("");
-    setTeachingContent("");
-    setTeachingType(activeTemplate.memoryType);
-    setTeachingImportance(activeTemplate.importance);
-  }
-
-  function chooseTeachingTemplate(template: (typeof teachingTemplates)[number]) {
-    setActiveTemplateId(template.id);
-    setTeachingType(template.memoryType);
-    setTeachingImportance(template.importance);
-    setTeachingMessage("");
   }
 
   async function exportRecords() {
@@ -335,8 +491,8 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
   }
 
   return <section className="memory-page" aria-labelledby="memory-title">
-    <div className="memory-heading"><div><p className="eyebrow">MEMORIA Y APRENDIZAJE · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Recuerdos confirmados, perfil privado del propietario y futuros aprendizajes derivados de sesiones sensoriales autorizadas.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count"><strong>{remembered.length + (ownerProfile?.records.length ?? 0)}</strong><span>recuerdos<br />consultables</span></div></div></div>
-    <nav className="memory-view-tabs" role="tablist" aria-label="Áreas de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>03</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "notes"} className={view === "notes" ? "selected" : ""} onClick={() => setView("notes")}><span>04</span>NOTAS MD <em>{markdownNotes?.noteCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "profile"} className={view === "profile" ? "selected" : ""} onClick={() => setView("profile")}><span>05</span>PERFIL <em>{ownerProfile?.records.length ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "learn"} className={view === "learn" ? "selected" : ""} onClick={() => setView("learn")}><span>06</span>APRENDIZAJE</button><button type="button" role="tab" aria-selected={view === "teach"} className={view === "teach" ? "selected" : ""} onClick={() => setView("teach")}><span>07</span>ENSEÑAR</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>08</span>REPASAR <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>09</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>10</span>RESPALDO</button></nav>
+    <div className="memory-heading"><div><p className="eyebrow">ALMACÉN COGNITIVO · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Acá se inspecciona lo que Alice ya conserva: recuerdos, contexto de trabajo, perfil confirmado, capas, vigencia, consolidación y recuperación.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count"><strong>{remembered.length + (ownerProfile?.records.length ?? 0)}</strong><span>recuerdos<br />consultables</span></div></div></div>
+    <nav className="memory-view-tabs" role="tablist" aria-label="Funciones de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "profile"} className={view === "profile" ? "selected" : ""} onClick={() => setView("profile")}><span>03</span>PERFIL <em>{ownerProfile?.records.length ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>04</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>05</span>CICLO <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>06</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>07</span>RESPALDO</button></nav>
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
       {workingMemory ? <>
@@ -354,25 +510,19 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       <footer><div><strong>CERO CONTENIDO COPIADO</strong><span>Sin LLM · sin señal sensorial · sin migración automática</span></div><div><button className="secondary" onClick={() => void refreshLayeredMemory()} disabled={operationRunning}>Actualizar vista previa</button>{(layeredMemory?.state === "ready" || layeredMemory?.state === "rolledBack" || layeredMemory?.state === "sourceChanged") && <button className="primary" onClick={() => void activateLayers()} disabled={operationRunning || !layeredMemory.preview}>Revisé la huella · activar</button>}{(layeredMemory?.state === "active" || layeredMemory?.state === "sourceChanged") && <button className="danger" onClick={() => void rollbackLayers()} disabled={operationRunning || !layeredMemory.activeRevisionId}>Desactivar proyección</button>}</div></footer>
       {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}
-    {view === "notes" && <section className="memory-view-panel" aria-labelledby="markdown-notes-title"><header><p className="eyebrow">BÓVEDA OBSIDIAN · CATÁLOGO NATIVO DE SOLO LECTURA</p><h3 id="markdown-notes-title">Notas Markdown disponibles</h3><p>Se muestran rutas, tamaño y huella. Alice no interpreta, copia ni convierte una nota en recuerdo.</p></header>{markdownNotes?.vaultExists ? markdownNotes.notes.length ? <div className="memory-list">{markdownNotes.notes.map((note) => <article className="memory-record" key={note.relativePath}><div className="memory-body"><h3>{note.relativePath}</h3><div className="memory-evidence"><span>{note.byteLength.toLocaleString("es-PY")} BYTES</span><code>{note.sha256}</code></div></div></article>)}</div> : <div className="memory-empty"><h3>Bóveda sin notas</h3><p>Creá una nota en Obsidian y actualizá este catálogo.</p></div> : <div className="memory-empty"><h3>Bóveda no encontrada</h3><p>La carpeta privada de notas todavía no existe.</p></div>}<footer><code>{markdownNotes?.vaultPath ?? "Consultando ruta local…"}</code><button className="secondary" type="button" onClick={() => void refreshMarkdownNotes()} disabled={operationRunning || !isTauri()}>Actualizar catálogo</button></footer></section>}
     {view === "profile" && <section className="memory-view-panel owner-profile-panel" aria-labelledby="owner-profile-title"><header><div><p className="eyebrow">PERFIL DEL PROPIETARIO · PRIVADO · SOLO LECTURA</p><h3 id="owner-profile-title">Lo que Alice conoce de Carlos</h3><p>Hechos confirmados por Carlos y derivados de fuentes preservadas de Gemini y Claude. Las instrucciones internas de esos documentos no se ejecutan.</p></div><span>{ownerProfile?.state === "available" ? "CONFIRMADO" : "NO DISPONIBLE"}</span></header>{ownerProfile?.state === "available" ? <><div className="memory-evidence"><span>{ownerProfile.records.length} RECUERDOS DE PERFIL</span><span>{ownerProfile.sourceFiles.length} FUENTES</span><span>CONFIRMÓ · {ownerProfile.confirmedBy}</span></div><div className="memory-list">{ownerProfile.records.map((record) => <article className="memory-record" key={record.id}><div className="memory-meta"><span className="tag">PERFIL</span><small>{record.id}</small></div><div className="memory-body"><h3>{record.intention}</h3><p>{record.summary}</p><div className="memory-evidence"><span>FUENTE · {record.source}</span><span>ESTADO · CONFIRMADO</span></div></div></article>)}</div><footer><code>{ownerProfile.storagePath}</code><span>Solo se adjunta a una conversación cuando autorizás “Recuerdos relevantes”.</span></footer></> : <div className="memory-empty"><h3>Perfil privado no cargado</h3><p>Abre Alice como aplicación de escritorio para validar el archivo local.</p></div>}</section>}
-    {view === "learn" && <div className="memory-view-panel memory-learning-stack"><SensoryLearningPanel observationEnabled={observationEnabled} ollamaReady={ollamaReady} ollamaModel={ollamaModel} onConfirmVisualLearning={onCreate} /><MemoryCandidatePanel sessions={sessions} ollamaReady={ollamaReady} ollamaModel={ollamaModel} onReloadMemory={onReloadMemory} /></div>}
-    {view === "teach" && <section className="teaching-panel memory-view-panel" aria-labelledby="teaching-title">
-      <header><div><p className="eyebrow">ENSEÑANZA DIRECTA · SOLO LOCAL</p><h3 id="teaching-title">Enseñarle algo a Alice</h3><p>Esta información se guarda en tu computadora. No consulta ni envía nada a OpenRouter.</p></div><span>CONSOLIDACIÓN INICIAL 18%</span></header>
-      <div className="teaching-starters"><div><strong>¿POR DÓNDE QUERÉS EMPEZAR?</strong><span>Elegir una guía no guarda información.</span></div><div className="teaching-starter-buttons" role="group" aria-label="Puntos de partida para una enseñanza">{teachingTemplates.map((template) => <button type="button" key={template.id} className={activeTemplateId === template.id ? "selected" : ""} aria-pressed={activeTemplateId === template.id} title={template.description} onClick={() => chooseTeachingTemplate(template)}><small>{template.code}</small><span>{template.label}</span></button>)}</div><p><strong>{activeTemplate.label}:</strong> {activeTemplate.description}</p></div>
-      <div className="teaching-grid">
-        <label className="teaching-topic">TEMA O CONCEPTO<input value={teachingTitle} onChange={(event) => { setTeachingTitle(event.target.value); setTeachingMessage(""); }} placeholder={activeTemplate.titlePlaceholder} /></label>
-        <label>TIPO DE MEMORIA<select value={teachingType} onChange={(event) => setTeachingType(event.target.value as MemoryType)}><option value="semantic">Concepto o hecho</option><option value="procedural">Procedimiento</option><option value="preference">Preferencia personal</option><option value="episodic">Experiencia o episodio</option></select></label>
-        <label className="teaching-content">QUÉ DEBE APRENDER<textarea value={teachingContent} onChange={(event) => { setTeachingContent(event.target.value); setTeachingMessage(""); }} placeholder={activeTemplate.contentPlaceholder} /></label>
-        <label>FUENTE<input value={teachingSource} onChange={(event) => { setTeachingSource(event.target.value); setTeachingMessage(""); }} placeholder="Quién lo enseñó o de dónde proviene" /></label>
-        <label className="teaching-importance">IMPORTANCIA PARA CARLOS NUÑEZ <strong>{teachingImportance}/5</strong><input type="range" min="1" max="5" step="1" value={teachingImportance} onChange={(event) => setTeachingImportance(Number(event.target.value))} /></label>
-      </div>
-      <footer><span>{teachingMessage || "Guardar esta enseñanza será tu confirmación explícita."}</span><button className="primary" onClick={saveTeaching}>Guardar enseñanza local <span>→</span></button></footer>
-    </section>}
-    {view === "review" && <section className="memory-review-panel memory-view-panel" aria-labelledby="memory-review-title">
-      <header><div><p className="eyebrow">CONSOLIDACIÓN · REPASO LOCAL</p><h3 id="memory-review-title">Cola de vigencia</h3><p>Alice programa revisiones desde tus registros. Confirmar fortalece el indicador local; no entrena al modelo de nube.</p></div><div className={pendingReviews.length ? "review-counter pending" : "review-counter"}><strong>{pendingReviews.length}</strong><span>{pendingReviews.length === 1 ? "pendiente" : "pendientes"}</span></div></header>
-      {pendingReviews.length ? <div className="memory-review-list">{pendingReviews.slice(0, 3).map((item) => <article key={item.memory.id}><div><span>{item.memory.memoryStatus === "conflict" ? "CORRECCIÓN NECESARIA" : "REPASO VENCIDO"}</span><h4>{item.memory.intention}</h4><small>Consolidación {Math.round((item.memory.storageStrength ?? .08) * 100)}% · importancia {item.memory.importance ?? 3}/5</small></div><div className="memory-review-actions"><button className="secondary" onClick={() => review(item.memory, "needs-correction")}>Necesita corrección</button><button className="primary" onClick={() => review(item.memory, "confirmed")}>Sigue vigente</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>✓</span><strong>Sin repasos pendientes</strong></div><p>{nextReview ? `Próximo: “${nextReview.memory.intention}”, ${formatDate(nextReview.dueAt)}.` : "Guardá una enseñanza para iniciar su ciclo de repaso."}</p></div>}
+    {view === "review" && <section className={`memory-review-panel memory-view-panel state-${lifecyclePreview?.state ?? "unavailable"}`} aria-labelledby="memory-review-title">
+      <header><div><p className="eyebrow">R6.5-H · RECONSOLIDACIÓN VERSIONADA · CICLO GOBERNADO</p><h3 id="memory-review-title">Ciclo, vigencia, accesibilidad y recuperación</h3><p>Vigencia, accesibilidad, debilitamiento, supresión y reconsolidación permanecen separados. Editar un recuerdo confirmado requiere propuesta, segunda confirmación y preservación de la versión anterior.</p></div><div className={lifecyclePreview?.state === "blocked" || lifecyclePreview?.state === "sourceChanged" ? "review-counter pending" : "review-counter"}><strong>{lifecyclePreview?.preview?.recordCount ?? 0}</strong><span>{lifecyclePreview?.state === "active" ? "ACTIVO" : lifecyclePreview?.state === "rolledBack" ? "REVERTIDO" : lifecyclePreview?.state === "sourceChanged" ? "FUENTE CAMBIÓ" : "referencias"}</span></div></header>
+      {lifecyclePreview?.blockedReason && <p className="memory-layer-blocked" role="alert">{lifecyclePreview.blockedReason}</p>}
+      {lifecyclePreview?.preview ? <><div className="memory-lifecycle-grid"><article><strong>{lifecyclePreview.preview.currentCount}</strong><span>VIGENTES</span><small>Estado confirmado explícito</small></article><article className={lifecyclePreview.preview.notAssessedCount ? "pending" : ""}><strong>{lifecyclePreview.preview.notAssessedCount}</strong><span>VIGENCIA NO EVALUADA</span><small>Registros históricos sin inferencia</small></article><article><strong>{lifecyclePreview.preview.accessibleCount}</strong><span>ACCESIBLES EXPLÍCITOS</span><small>{lifecyclePreview.preview.accessibilityAssessedCount} decisiones de accesibilidad</small></article><article className={lifecyclePreview.preview.dormantCount ? "pending" : ""}><strong>{lifecyclePreview.preview.dormantCount}</strong><span>EN REPOSO</span><small>Persisten, pero RAG no los recupera</small></article><article className={lifecyclePreview.preview.retrievalBlockedCount ? "blocked" : ""}><strong>{lifecyclePreview.preview.retrievalBlockedCount}</strong><span>RECUPERACIÓN BLOQUEADA</span><small>{lifecyclePreview.preview.conflictCount} conflictos · {lifecyclePreview.preview.archivedCount} archivados · {lifecyclePreview.preview.dormantCount} en reposo · {lifecyclePreview.preview.suppressedCount} suprimidos</small></article><article><strong>{lifecyclePreview.preview.retrievalOutcomeCount}</strong><span>RESULTADOS CONFIRMADOS</span><small>Útil o no ayudó · sólo evidencia R6.5-F</small></article><article className={lifecyclePreview.preview.weakeningReviewRequiredCount ? "pending" : ""}><strong>{lifecyclePreview.preview.functionalAssessmentCount}</strong><span>EVALUACIONES SUFICIENTES</span><small>{lifecyclePreview.preview.weakeningReviewRequiredCount} requieren revisión humana</small></article><article className={lifecyclePreview.preview.suppressedCount ? "pending" : ""}><strong>{lifecyclePreview.preview.suppressedCount}</strong><span>SUPRIMIDOS</span><small>Decisiones voluntarias y reversibles R6.5-G</small></article><article><strong>{lifecyclePreview.preview.reconsolidatedCount}</strong><span>RECONSOLIDADOS</span><small>Versión anterior preservada · R6.5-H</small></article></div><div className="memory-layer-evidence"><span>FUENTE · {lifecyclePreview.preview.recordCount} REGISTROS REALES</span><code>{lifecyclePreview.preview.sourceSha256}</code><span>{lifecyclePreview.revisionCount} REVISIONES · POLÍTICA APLICADA POR RAG</span></div></> : <div className="memory-layer-empty">{operationRunning ? "Verificando records.json…" : lifecyclePreview?.state === "unavailable" ? "Abre Alice como aplicación de escritorio para consultar el ciclo nativo." : "No existe una vista previa disponible."}</div>}
+      <div className="memory-lifecycle-boundary"><strong>FRONTERA ACTUAL</strong><span>R6.5-H permite una revisión sólo desde «Recuerdos», mediante vista previa y confirmación explícita. Recuperar, conversar o recibir una salida de modelo jamás reconsolida por sí solo.</span><div className="memory-lifecycle-actions"><button className="secondary" type="button" onClick={() => void refreshLifecyclePreview()} disabled={operationRunning}>Actualizar</button>{lifecyclePreview?.lifecycleWritesAvailable && lifecyclePreview.state !== "active" && <button className="primary" type="button" onClick={() => void activateLifecycle()} disabled={operationRunning || !lifecyclePreview.preview}>Revisé la huella · activar</button>}{lifecyclePreview?.activeRevisionId && <button className="danger" type="button" onClick={() => void rollbackLifecycle()} disabled={operationRunning}>Desactivar</button>}</div></div>
+      <section className="memory-accessibility-assessment memory-weakening-assessment" aria-label="Debilitamiento funcional evaluado"><header><div><p className="eyebrow">EVIDENCIA FUNCIONAL · MÍNIMO 3 RESULTADOS · SIN ACCIÓN AUTOMÁTICA</p><h4>Utilidad de recuerdos recuperados</h4><p>Después de usar RAG, Conversación pregunta si cada recuerdo ayudó. Dos tercios de resultados “no ayudó”, con al menos tres intentos, sólo generan una señal para revisar.</p></div><div className={lifecyclePreview?.preview?.weakeningReviewRequiredCount ? "review-counter pending" : "review-counter"}><strong>{lifecyclePreview?.preview?.weakeningReviewRequiredCount ?? 0}</strong><span>por revisar</span></div></header>{weakeningEvidence.length ? <div className="memory-accessibility-list">{weakeningEvidence.map(({ assessment, memory }) => <article key={assessment.recordId} className={`state-${assessment.state}`}><div><span>{assessment.state === "reviewRequired" ? "REVISIÓN REQUERIDA" : assessment.state === "noWeakeningSignal" ? "SIN SEÑAL DE DEBILITAMIENTO" : "EVIDENCIA AÚN INSUFICIENTE"}</span><h4>{memory?.intention ?? assessment.recordId}</h4><small>{assessment.helpfulOutcomes} útil · {assessment.notHelpfulOutcomes} no ayudó · {assessment.evidenceCount}/3 mínimo</small></div><div className="memory-review-actions"><small>SIN CAMBIO AUTOMÁTICO</small></div></article>)}</div> : <div className="memory-review-empty"><div><span>○</span><strong>Sin resultados explícitos todavía</strong></div><p>Los contadores anteriores a R6.5-F no se consideran evidencia. La próxima conversación real que use recuerdos permitirá evaluarlos.</p></div>}</section>
+      <section className="memory-accessibility-assessment memory-suppression-assessment" aria-label="Supresión voluntaria de recuerdos"><header><div><p className="eyebrow">R6.5-G · DECISIÓN DEL PROPIETARIO · REVERSIBLE · AUDITADA</p><h4>Supresión voluntaria</h4><p>Impide que un recuerdo aparezca espontáneamente sin borrarlo, debilitarlo ni ocultar su existencia. Liberarlo restaura la política que corresponda por vigencia y accesibilidad.</p></div><label className="suppression-reason"><span>MOTIVO CERRADO</span><select value={suppressionReason} onChange={(event) => setSuppressionReason(event.target.value as MemorySuppressionReason)} disabled={operationRunning}><option value="ownerChoice">Elección del propietario</option><option value="sensitiveContext">Contexto sensible</option><option value="temporaryBoundary">Límite temporal</option></select></label></header>{suppressionCandidates.length ? <div className="memory-accessibility-list">{suppressionCandidates.map(({ reference, memory }) => <article key={reference.recordId} className={reference.suppressed ? "state-suppressed" : "state-available"}><div><span>{reference.suppressed ? "SUPRIMIDO · EXCLUIDO DEL RAG" : "NO SUPRIMIDO"}</span><h4>{memory?.intention ?? reference.recordId}</h4><small>{reference.validity.toUpperCase()} · huella {reference.recordSha256.slice(7, 19)}</small></div><div className="memory-review-actions"><button className="secondary" type="button" disabled={operationRunning || !memory || reference.suppressed} onClick={() => void assessSuppression(reference.recordId, reference.recordSha256, "suppress")}>Suprimir</button><button className="primary" type="button" disabled={operationRunning || !memory || !reference.suppressed} onClick={() => void assessSuppression(reference.recordId, reference.recordSha256, "release")}>Liberar</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>○</span><strong>Sin recuerdos gobernables</strong></div><p>Se necesita un recuerdo vigente; uno ya suprimido siempre seguirá disponible para liberación.</p></div>}</section>
+      <section className="memory-validity-assessment" aria-label="Recuerdos sin vigencia evaluada"><header><div><p className="eyebrow">DECISIÓN HUMANA · RESPALDO EXACTO · AUDITORÍA</p><h4>Recuerdos aún no evaluados</h4><p>Estas decisiones actualizan sólo la vigencia y su evidencia de revisión. No alteran el contenido ni la fuerza del recuerdo.</p></div><div className={unassessedValidity.length ? "review-counter pending" : "review-counter"}><strong>{unassessedValidity.length}</strong><span>sin evaluar</span></div></header>{unassessedValidity.length ? <div className="memory-validity-list">{unassessedValidity.map(({ reference, memory }) => <article key={reference.recordId}><div><span>NO EVALUADO · {memory?.memoryType ? memoryTypeLabels[memory.memoryType] : memory?.kind ?? "REGISTRO"}</span><h4>{memory?.intention ?? reference.recordId}</h4><small>{memory?.finishedAt ? formatDate(memory.finishedAt) : "Fecha no disponible"} · huella {reference.recordSha256.slice(7, 19)}</small></div><div className="memory-review-actions"><button className="secondary" type="button" disabled={operationRunning || !memory} onClick={() => void assessValidity(reference.recordId, reference.recordSha256, "markConflict")}>Necesita corrección</button><button className="primary" type="button" disabled={operationRunning || !memory} onClick={() => void assessValidity(reference.recordId, reference.recordSha256, "confirmCurrent")}>Confirmar vigente</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>✓</span><strong>Todos poseen vigencia explícita</strong></div><p>No se aplicó ninguna inferencia automática.</p></div>}</section>
+      <section className="memory-accessibility-assessment" aria-label="Accesibilidad de recuerdos vigentes"><header><div><p className="eyebrow">ACCESIBILIDAD · DIFERENTE DE VERDAD, VIGENCIA Y FUERZA</p><h4>Disponibilidad para recuperación</h4><p>Un recuerdo en reposo sigue existiendo y puede volver a habilitarse. Conversación lo excluye del RAG mientras permanezca así.</p></div><div className={lifecyclePreview?.preview?.dormantCount ? "review-counter pending" : "review-counter"}><strong>{lifecyclePreview?.preview?.dormantCount ?? 0}</strong><span>en reposo</span></div></header>{currentAccessibility.length ? <div className="memory-accessibility-list">{currentAccessibility.map(({ reference, memory }) => <article key={reference.recordId} className={`state-${reference.accessibility}`}><div><span>{reference.accessibility === "dormant" ? "EN REPOSO" : reference.accessibility === "accessible" ? "ACCESIBLE EXPLÍCITO" : "ACCESIBILIDAD NO EVALUADA"}</span><h4>{memory?.intention ?? reference.recordId}</h4><small>{reference.retrievalPolicy === "blockedByDormancy" ? "EXCLUIDO DEL RAG" : "ELEGIBLE PARA RAG"} · huella {reference.recordSha256.slice(7, 19)}</small></div><div className="memory-review-actions"><button className="secondary" type="button" disabled={operationRunning || !memory || reference.accessibility === "dormant"} onClick={() => void assessAccessibility(reference.recordId, reference.recordSha256, "setDormant")}>Poner en reposo</button><button className="primary" type="button" disabled={operationRunning || !memory || reference.accessibility === "accessible"} onClick={() => void assessAccessibility(reference.recordId, reference.recordSha256, "makeAccessible")}>Permitir recuperación</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>○</span><strong>Sin recuerdos vigentes</strong></div><p>Primero debe resolverse su vigencia.</p></div>}</section>
+      <section className="memory-review-queue" aria-label="Repaso espaciado de enseñanzas evaluadas"><header><div><p className="eyebrow">REPASO ESPACIADO · SÓLO ENSEÑANZAS YA EVALUADAS</p><h4>Cola de estabilidad</h4><p>Esta cola es posterior a la vigencia inicial: ajusta el indicador local de estabilidad, no entrena al modelo ni prueba verdad factual.</p></div><div className={pendingReviews.length ? "review-counter pending" : "review-counter"}><strong>{pendingReviews.length}</strong><span>{pendingReviews.length === 1 ? "pendiente" : "pendientes"}</span></div></header>{pendingReviews.length ? <div className="memory-review-list">{pendingReviews.slice(0, 3).map((item) => <article key={item.memory.id}><div><span>{item.memory.memoryStatus === "conflict" ? "CORRECCIÓN NECESARIA" : "REPASO VENCIDO"}</span><h4>{item.memory.intention}</h4><small>Estabilidad {Math.round((item.memory.storageStrength ?? .08) * 100)}% · importancia {item.memory.importance ?? 3}/5</small></div><div className="memory-review-actions"><button className="secondary" onClick={() => review(item.memory, "needs-correction")}>Necesita corrección</button><button className="primary" onClick={() => review(item.memory, "confirmed")}>Repaso correcto</button></div></article>)}</div> : <div className="memory-review-empty"><div><span>✓</span><strong>Sin repasos pendientes</strong></div><p>{nextReview ? `Próximo repaso: “${nextReview.memory.intention}”, ${formatDate(nextReview.dueAt)}.` : "No hay enseñanzas ya evaluadas con un repaso programado."}</p></div>}</section>
       <footer>INTERVALOS EXPLICABLES · 1 · 3 · 7 · 14 · 30 · 60 · 120 DÍAS</footer>
+      {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}
     {view === "consolidate" && <section className={`consolidation-preview memory-view-panel state-${consolidationPreview?.state ?? "unavailable"}`} aria-labelledby="consolidation-preview-title">
       <header><div><p className="eyebrow">R6.3-F · ESTADO NATIVO · RESTAURACIÓN GOBERNADA</p><h3 id="consolidation-preview-title">Candidatos de consolidación</h3><p>Compara registros terminados y consulta el recibo durable. Si Alice detecta una interrupción puede restaurar la fuente original con confirmación y auditoría; crear o ejecutar una fusión sigue inaccesible.</p></div><span>{recoveryStatus?.state === "recoveryRequired" ? "RECUPERACIÓN REQUERIDA" : recoveryStatus?.state === "blocked" ? "RECUPERACIÓN BLOQUEADA" : consolidationPreview ? consolidationPreview.state === "ready" ? `${consolidationPreview.pendingCandidateCount} PENDIENTES` : consolidationPreview.state === "blocked" ? "BLOQUEADA" : "SIN FUENTE" : "SIN BACKEND"}</span></header>
@@ -440,6 +590,16 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
       <div className="memory-tool-actions"><button className="console-button" onClick={openDirectory} disabled={operationRunning}>Abrir carpeta de memoria</button><button className="console-button" onClick={exportRecords} disabled={operationRunning}>Exportar memoria</button><button className="console-button restore" onClick={restoreBackup} disabled={operationRunning}>Restaurar respaldo</button></div>
     </div>{operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}</div>}
     {view === "records" && <div className="memory-view-panel"><div className="memory-toolbar"><label className="memory-search"><span>BUSCAR</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar una conversación o recuerdo" /></label></div>
-    {filtered.length === 0 ? <div className="memory-empty"><span>◌</span><h3>{remembered.length ? "No encontramos recuerdos con esa búsqueda." : "La memoria está vacía por ahora."}</h3><p>{remembered.length ? "Probá con otras palabras." : "Podés comenzar desde la pestaña Enseñar."}</p></div> : <div className="memory-list">{filtered.map((session) => <article className="memory-record" key={session.id}><div className="memory-meta"><div><span className="tag">{session.kind}</span>{session.memoryType && <span className="memory-type">{memoryTypeLabels[session.memoryType]}</span>}</div><small>{session.finishedAt && formatDate(session.finishedAt)}</small></div><div className="memory-body"><h3>{session.intention}</h3>{editingId === session.id ? <div className="memory-editor"><label>Contenido<textarea value={summary} onChange={(event) => setSummary(event.target.value)} /></label><label>Próximo paso<input value={nextStep} onChange={(event) => setNextStep(event.target.value)} /></label>{session.kind === "Enseñanza" && <><label>Fuente<input value={editSource} onChange={(event) => setEditSource(event.target.value)} /></label><label>Importancia: {editImportance}/5<input type="range" min="1" max="5" step="1" value={editImportance} onChange={(event) => setEditImportance(Number(event.target.value))} /></label></>}<div className="action-row"><button className="secondary" onClick={() => setEditingId(null)}>Cancelar</button><button className="primary" onClick={save}>Guardar cambios</button></div></div> : <><p>{session.summary || "Sin resumen todavía."}</p>{session.source && <div className="memory-evidence"><span>FUENTE · {session.source}</span><span>IMPORTANCIA · {session.importance ?? 3}/5</span><span>CONSOLIDACIÓN · {Math.round((session.storageStrength ?? .08) * 100)}%</span><span>USOS AUTORIZADOS · {session.successfulRecalls ?? 0}</span><span>REPASOS · {session.successfulReviews ?? 0}</span></div>}{session.nextStep && <p className="next"><strong>Sigue:</strong> {session.nextStep}</p>}<div className="memory-actions"><button onClick={() => edit(session)}>Editar</button><button className="danger" onClick={() => remove(session)}>Eliminar</button></div></>}</div></article>)}</div>}</div>}
+    {filtered.length === 0 ? <div className="memory-empty"><span>◌</span><h3>{remembered.length ? "No encontramos recuerdos con esa búsqueda." : "La memoria duradera todavía está vacía."}</h3><p>{remembered.length ? "Probá con otras palabras." : "Una conversación u observación autorizada podrá producir candidatos; ninguno se consolidará automáticamente."}</p></div> : <div className="memory-list">{filtered.map((session) => <article className="memory-record" key={session.id}>
+      <div className="memory-meta"><div><span className="tag">{session.kind}</span>{session.memoryType && <span className="memory-type">{memoryTypeLabels[session.memoryType]}</span>}{session.memoryVersion && <span className="memory-type version">V{session.memoryVersion}</span>}</div><small>{session.finishedAt && formatDate(session.finishedAt)}</small></div>
+      <div className="memory-body"><h3>{session.intention}</h3>{editingId === session.id ? <div className="memory-editor reconsolidation-editor">
+        <label>Título o intención<input value={editIntention} onChange={(event) => { setEditIntention(event.target.value); setReconsolidationPreview(null); }} /></label>
+        <label>Contenido<textarea value={summary} onChange={(event) => { setSummary(event.target.value); setReconsolidationPreview(null); }} /></label>
+        <label>Próximo paso<input value={nextStep} onChange={(event) => { setNextStep(event.target.value); setReconsolidationPreview(null); }} /></label>
+        {session.kind === "Enseñanza" && <label>Fuente<input value={editSource} onChange={(event) => { setEditSource(event.target.value); setReconsolidationPreview(null); }} /></label>}
+        {session.memoryStatus === "confirmed" || session.memoryStatus === "conflict" ? <div className="reconsolidation-controls"><p><strong>R6.5-H · EDICIÓN VERSIONADA</strong> La versión actual no se sobrescribirá. Primero se crea una vista previa y después pedirá una segunda confirmación.</p><label>Motivo<select value={reconsolidationReason} onChange={(event) => { setReconsolidationReason(event.target.value as MemoryReconsolidationReason); setReconsolidationPreview(null); }}><option value="ownerCorrection">Corrección del propietario</option><option value="newContext">Información o contexto nuevo</option><option value="clarification">Aclaración</option></select></label><label>Por qué debe actualizarse<textarea value={reconsolidationNote} maxLength={500} onChange={(event) => { setReconsolidationNote(event.target.value); setReconsolidationPreview(null); }} placeholder="Explicá la evidencia o el contexto de esta actualización" /></label>{reconsolidationPreview && <div className="reconsolidation-preview"><strong>PLAN VERIFICADO · V{reconsolidationPreview.previousVersion} → V{reconsolidationPreview.projectedVersion}</strong><span>{reconsolidationPreview.changedFields.join(" · ")}</span><code>{reconsolidationPreview.planId}</code><small>SIN ESCRITURAS · SIN ACCIÓN AUTOMÁTICA</small></div>}</div> : session.kind === "Enseñanza" && <label>Importancia: {editImportance}/5<input type="range" min="1" max="5" step="1" value={editImportance} onChange={(event) => setEditImportance(Number(event.target.value))} /></label>}
+        <div className="action-row"><button className="secondary" onClick={() => { setEditingId(null); setReconsolidationPreview(null); }}>Cancelar</button>{reconsolidationPreview ? <button className="primary" disabled={operationRunning} onClick={() => void confirmReconsolidation()}>Confirmar nueva versión</button> : <button className="primary" disabled={operationRunning} onClick={() => void saveOrPreview()}>{session.memoryStatus === "confirmed" || session.memoryStatus === "conflict" ? "Preparar versión" : "Guardar cambios"}</button>}</div>
+      </div> : <><p>{session.summary || "Sin resumen todavía."}</p><div className="memory-evidence">{session.source && <span>FUENTE · {session.source}</span>}<span>IMPORTANCIA · {session.importance ?? 3}/5</span><span>ESTABILIDAD · {Math.round((session.storageStrength ?? .08) * 100)}%</span><span>RECUPERACIONES · {session.successfulRecalls ?? 0}</span><span>REVISIONES · {session.successfulReviews ?? 0}</span><span>VERSIÓN · {session.memoryVersion ?? 1}</span></div>{session.nextStep && <p className="next"><strong>Sigue:</strong> {session.nextStep}</p>}<div className="memory-actions"><button onClick={() => edit(session)}>Editar con versión</button><button className="danger" disabled={Boolean(session.memoryStatus || session.memoryVersion)} title={session.memoryStatus || session.memoryVersion ? "Archivo reversible pendiente de R6.5-I" : "Eliminar registro no evaluado"} onClick={() => remove(session)}>Eliminar</button></div></>}</div>
+    </article>)}</div>}</div>}
   </section>;
 }
