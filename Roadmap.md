@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C, R6.3-F, R6.4-C y R6.5-I validados al 2026-08-23  
+**Estado:** implementación R6.1–R6.5-J validada · cierre canónico pendiente en 10 recuerdos al 2026-08-24  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -262,6 +262,8 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 - [x] Los índices derivados pueden reconstruirse desde la fuente de verdad.
 
 R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración controlada; R6.3-E persiste el recibo y R6.3-F expone estado y restauración gobernada. Crear o ejecutar una fusión canónica continúa bloqueado y requerirá una decisión independiente.
+
+**Auditoría de cierre R6 · 2026-08-24:** las dos sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. La proyección por capas declaró 19 episodios y 1 recuerdo `unclassified`; el ciclo declaró 11 recuerdos `current` y 9 `notAssessed`; la inspección estructural encontró procedencia explícita en 11 y ausente en 9. Los nueve sin procedencia son los mismos nueve sin vigencia, mientras el recuerdo sin capa es distinto: quedan 10 recuerdos afectados y 19 decisiones de campo. Por ello la implementación queda validada, pero el primer criterio permanece abierto: Alice no puede inventar capa, procedencia ni vigencia. R7 no se inicia hasta que el propietario resuelva esas decisiones mediante los controles gobernados existentes. Evidencia completa en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
 
 ### Fase R7 — Tareas programadas e intenciones
 
