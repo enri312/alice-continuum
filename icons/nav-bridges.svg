@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Capacidades y permisos">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Capacidades y permisos" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Capacidades y permisos</title>
   <style>
     .bridges-dash{animation:bridgesDash 2.8s linear infinite}.bridges-blink{animation:bridgesBlink 1.6s steps(2,end) infinite}.bridges-blink2{animation:bridgesBlink 2.3s steps(2,end) .5s infinite}.bridges-scan{animation:bridgesScan 4.2s ease-in-out infinite}.bridges-spin{transform-box:fill-box;transform-origin:50% 50%;animation:bridgesSpin 16s linear infinite}

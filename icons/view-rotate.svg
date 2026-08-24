@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Rotar vista">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Rotar vista" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Rotar vista</title>
   <style>
     .rotate-dash{animation:rotateDash 2.8s linear infinite}.rotate-blink{animation:rotateBlink 1.6s steps(2,end) infinite}.rotate-blink2{animation:rotateBlink 2.3s steps(2,end) .5s infinite}.rotate-scan{animation:rotateScan 4.2s ease-in-out infinite}.rotate-spin{transform-box:fill-box;transform-origin:50% 50%;animation:rotateSpin 16s linear infinite}

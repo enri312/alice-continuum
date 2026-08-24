@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Acercar vista">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Acercar vista" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Acercar vista</title>
   <style>
     .zoomin-dash{animation:zoominDash 2.8s linear infinite}.zoomin-blink{animation:zoominBlink 1.6s steps(2,end) infinite}.zoomin-blink2{animation:zoominBlink 2.3s steps(2,end) .5s infinite}.zoomin-scan{animation:zoominScan 4.2s ease-in-out infinite}.zoomin-spin{transform-box:fill-box;transform-origin:50% 50%;animation:zoominSpin 16s linear infinite}

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Actividad">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Actividad" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Actividad</title>
   <style>
     .activity-dash{animation:activityDash 2.8s linear infinite}.activity-blink{animation:activityBlink 1.6s steps(2,end) infinite}.activity-blink2{animation:activityBlink 2.3s steps(2,end) .5s infinite}.activity-scan{animation:activityScan 4.2s ease-in-out infinite}.activity-spin{transform-box:fill-box;transform-origin:50% 50%;animation:activitySpin 16s linear infinite}

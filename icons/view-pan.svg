@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Desplazar vista">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Desplazar vista" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Desplazar vista</title>
   <style>
     .pan-dash{animation:panDash 2.8s linear infinite}.pan-blink{animation:panBlink 1.6s steps(2,end) infinite}.pan-blink2{animation:panBlink 2.3s steps(2,end) .5s infinite}.pan-scan{animation:panScan 4.2s ease-in-out infinite}.pan-spin{transform-box:fill-box;transform-origin:50% 50%;animation:panSpin 16s linear infinite}

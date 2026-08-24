@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Memoria">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Memoria" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Memoria</title>
   <style>
     .memory-dash{animation:memoryDash 2.8s linear infinite}.memory-blink{animation:memoryBlink 1.6s steps(2,end) infinite}.memory-blink2{animation:memoryBlink 2.3s steps(2,end) .5s infinite}.memory-scan{animation:memoryScan 4.2s ease-in-out infinite}.memory-spin{transform-box:fill-box;transform-origin:50% 50%;animation:memorySpin 16s linear infinite}

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Núcleo cognitivo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Núcleo cognitivo" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Núcleo cognitivo</title>
   <style>
     .nucleus-dash{animation:nucleusDash 2.8s linear infinite}.nucleus-blink{animation:nucleusBlink 1.6s steps(2,end) infinite}.nucleus-blink2{animation:nucleusBlink 2.3s steps(2,end) .5s infinite}.nucleus-scan{animation:nucleusScan 4.2s ease-in-out infinite}.nucleus-spin{transform-box:fill-box;transform-origin:50% 50%;animation:nucleusSpin 16s linear infinite}

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Estado y controles">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Estado y controles" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Estado y controles</title>
   <style>
     .state-dash{animation:stateDash 2.8s linear infinite}.state-blink{animation:stateBlink 1.6s steps(2,end) infinite}.state-blink2{animation:stateBlink 2.3s steps(2,end) .5s infinite}.state-scan{animation:stateScan 4.2s ease-in-out infinite}.state-spin{transform-box:fill-box;transform-origin:50% 50%;animation:stateSpin 16s linear infinite}

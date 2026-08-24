@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Procedimientos">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Procedimientos" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Procedimientos</title>
   <style>
     .procedures-dash{animation:proceduresDash 2.8s linear infinite}.procedures-blink{animation:proceduresBlink 1.6s steps(2,end) infinite}.procedures-blink2{animation:proceduresBlink 2.3s steps(2,end) .5s infinite}.procedures-scan{animation:proceduresScan 4.2s ease-in-out infinite}.procedures-spin{transform-box:fill-box;transform-origin:50% 50%;animation:proceduresSpin 16s linear infinite}

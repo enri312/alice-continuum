@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Flujo cognitivo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Flujo cognitivo" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Flujo cognitivo</title>
   <style>
     .flow-dash{animation:flowDash 2.8s linear infinite}.flow-blink{animation:flowBlink 1.6s steps(2,end) infinite}.flow-blink2{animation:flowBlink 2.3s steps(2,end) .5s infinite}.flow-scan{animation:flowScan 4.2s ease-in-out infinite}.flow-spin{transform-box:fill-box;transform-origin:50% 50%;animation:flowSpin 16s linear infinite}

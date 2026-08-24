@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Identificación">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Identificación" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Identificación</title>
   <style>
     .identification-dash{animation:identificationDash 2.8s linear infinite}.identification-blink{animation:identificationBlink 1.6s steps(2,end) infinite}.identification-blink2{animation:identificationBlink 2.3s steps(2,end) .5s infinite}.identification-scan{animation:identificationScan 4.2s ease-in-out infinite}.identification-spin{transform-box:fill-box;transform-origin:50% 50%;animation:identificationSpin 16s linear infinite}

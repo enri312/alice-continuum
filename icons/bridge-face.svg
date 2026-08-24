@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Calibración facial">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Calibración facial" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Calibración facial</title>
   <style>
     .face-dash{animation:faceDash 2.8s linear infinite}.face-blink{animation:faceBlink 1.6s steps(2,end) infinite}.face-blink2{animation:faceBlink 2.3s steps(2,end) .5s infinite}.face-scan{animation:faceScan 4.2s ease-in-out infinite}.face-spin{transform-box:fill-box;transform-origin:50% 50%;animation:faceSpin 16s linear infinite}

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Puente corporal">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Puente corporal" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Puente corporal</title>
   <style>
     .body-dash{animation:bodyDash 2.8s linear infinite}.body-blink{animation:bodyBlink 1.6s steps(2,end) infinite}.body-blink2{animation:bodyBlink 2.3s steps(2,end) .5s infinite}.body-scan{animation:bodyScan 4.2s ease-in-out infinite}.body-spin{transform-box:fill-box;transform-origin:50% 50%;animation:bodySpin 16s linear infinite}

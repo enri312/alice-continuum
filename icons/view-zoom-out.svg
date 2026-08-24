@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Alejar vista">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Alejar vista" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Alejar vista</title>
   <style>
     .zoomout-dash{animation:zoomoutDash 2.8s linear infinite}.zoomout-blink{animation:zoomoutBlink 1.6s steps(2,end) infinite}.zoomout-blink2{animation:zoomoutBlink 2.3s steps(2,end) .5s infinite}.zoomout-scan{animation:zoomoutScan 4.2s ease-in-out infinite}.zoomout-spin{transform-box:fill-box;transform-origin:50% 50%;animation:zoomoutSpin 16s linear infinite}

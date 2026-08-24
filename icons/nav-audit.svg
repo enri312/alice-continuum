@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Auditoría y diagnóstico">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Auditoría y diagnóstico" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Auditoría y diagnóstico</title>
   <style>
     .audit-dash{animation:auditDash 2.8s linear infinite}.audit-blink{animation:auditBlink 1.6s steps(2,end) infinite}.audit-blink2{animation:auditBlink 2.3s steps(2,end) .5s infinite}.audit-scan{animation:auditScan 4.2s ease-in-out infinite}.audit-spin{transform-box:fill-box;transform-origin:50% 50%;animation:auditSpin 16s linear infinite}

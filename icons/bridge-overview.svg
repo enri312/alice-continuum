@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Registro de capacidades">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Registro de capacidades" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Registro de capacidades</title>
   <style>
     .overview-dash{animation:overviewDash 2.8s linear infinite}.overview-blink{animation:overviewBlink 1.6s steps(2,end) infinite}.overview-blink2{animation:overviewBlink 2.3s steps(2,end) .5s infinite}.overview-scan{animation:overviewScan 4.2s ease-in-out infinite}.overview-spin{transform-box:fill-box;transform-origin:50% 50%;animation:overviewSpin 16s linear infinite}

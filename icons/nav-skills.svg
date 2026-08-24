@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Taller de habilidades">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Taller de habilidades" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Taller de habilidades</title>
   <style>
     .skills-dash{animation:skillsDash 2.8s linear infinite}.skills-blink{animation:skillsBlink 1.6s steps(2,end) infinite}.skills-blink2{animation:skillsBlink 2.3s steps(2,end) .5s infinite}.skills-scan{animation:skillsScan 4.2s ease-in-out infinite}.skills-spin{transform-box:fill-box;transform-origin:50% 50%;animation:skillsSpin 16s linear infinite}

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Volumen neuronal">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Volumen neuronal" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Volumen neuronal</title>
   <style>
     .volume-dash{animation:volumeDash 2.8s linear infinite}.volume-blink{animation:volumeBlink 1.6s steps(2,end) infinite}.volume-blink2{animation:volumeBlink 2.3s steps(2,end) .5s infinite}.volume-scan{animation:volumeScan 4.2s ease-in-out infinite}.volume-spin{transform-box:fill-box;transform-origin:50% 50%;animation:volumeSpin 16s linear infinite}

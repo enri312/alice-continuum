@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Planificador de acciones">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Planificador de acciones" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" stroke-linecap="round" stroke-linejoin="round">
   <title>Planificador de acciones</title>
   <style>
     .planner-dash{animation:plannerDash 2.8s linear infinite}.planner-blink{animation:plannerBlink 1.6s steps(2,end) infinite}.planner-blink2{animation:plannerBlink 2.3s steps(2,end) .5s infinite}.planner-scan{animation:plannerScan 4.2s ease-in-out infinite}.planner-spin{transform-box:fill-box;transform-origin:50% 50%;animation:plannerSpin 16s linear infinite}
