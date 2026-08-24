@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** en curso · R6.1, R6.2-C, R6.3-F, R6.4-C y R6.5-H validados al 2026-08-23  
+**Estado:** en curso · R6.1, R6.2-C, R6.3-F, R6.4-C y R6.5-I validados al 2026-08-23  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -243,7 +243,9 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.5-G:** `assess_memory_suppression` permite al propietario suprimir o liberar un recuerdo mediante confirmación explícita, huellas vigentes y uno de tres motivos cerrados: decisión propia, contexto sensible o límite temporal. La supresión bloquea físicamente el RAG y atenúa el nodo real del volumen sin modificar contenido, fuerza, vigencia, accesibilidad ni contadores. Cada transición crea un respaldo exacto, reemplaza `records.json` atómicamente, relee la proyección y audita la decisión; un fallo restaura los bytes originales. Liberar es reversible incluso si después cambió la vigencia. Ninguna señal de debilitamiento ni salida de modelo puede activar esta operación.
 
-**Incremento R6.5-H:** editar un recuerdo confirmado o en conflicto deja de usar la sobrescritura genérica. `preview_memory_reconsolidation` prepara una única versión sucesora, muestra campos y huellas y no escribe; `confirm_memory_reconsolidation` exige el mismo plan, una segunda confirmación y un motivo cerrado. La versión desplazada completa se guarda en `memory/revisions`, la fuente anterior se respalda y `records.json` conserva la versión vigente con su cadena SHA-256. Relectura, ciclo y auditoría son obligatorios; cualquier fallo restaura la fuente y retira la revisión incompleta. Recuperar, conversar o usar un modelo nunca activa reconsolidación. El guardado genérico tampoco puede eliminar registros durables; archivo y eliminación esperan contratos propios. El volumen muestra sólo el nodo vigente y su número real de versión.
+**Incremento R6.5-H:** editar un recuerdo confirmado o en conflicto deja de usar la sobrescritura genérica. `preview_memory_reconsolidation` prepara una única versión sucesora, muestra campos y huellas y no escribe; `confirm_memory_reconsolidation` exige el mismo plan, una segunda confirmación y un motivo cerrado. La versión desplazada completa se guarda en `memory/revisions`, la fuente anterior se respalda y `records.json` conserva la versión vigente con su cadena SHA-256. Relectura, ciclo y auditoría son obligatorios; cualquier fallo restaura la fuente y retira la revisión incompleta. Recuperar, conversar o usar un modelo nunca activa reconsolidación. El guardado genérico tampoco puede eliminar registros durables ni fabricar estados gobernados. El volumen muestra sólo el nodo vigente y su número real de versión.
+
+**Incremento R6.5-I:** el archivo nuevo se separa de vigencia, conflicto, reposo, supresión y eliminación. `preview_memory_archive` prepara sin escribir una transición `archive` o `restore`, ligada a ambas huellas, nota digestada y motivo cerrado; `confirm_memory_archive` exige el mismo plan y una segunda confirmación. El estado independiente `archiveStatus=archived` bloquea físicamente RAG y consolidación, pero conserva `memoryStatus`, contenido, fuerza, accesibilidad, supresión y versión. Cada transición crea respaldo exacto, reemplaza la fuente atómicamente, relee el ciclo y audita; cualquier fallo restaura los bytes anteriores. Restaurar elimina sólo los metadatos de archivo y recupera la política determinada por los demás ejes. Los `memoryStatus=archived` heredados siguen legibles, pero no se restauran fingiendo una vigencia previa desconocida.
 
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
@@ -374,7 +376,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.5-H ya convierte la actualización de contenido confirmado en una transición versionada, explícita y restaurable; recuperar o conversar nunca la activa. El siguiente incremento deberá diseñar el **archivo reversible** separado de supresión, reposo, conflicto y eliminación, con política de restauración y sin inferencias automáticas. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
+Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.5-I ya retira y restaura recuerdos de forma explícita sin perder vigencia, conflicto, reposo, supresión, contenido o versión. El siguiente incremento deberá diseñar la **retención y eliminación durable gobernada**, separada del archivo reversible, con exportación o respaldo obligatorio, período de espera y sin inferencias automáticas. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
 
 ## Identidad adoptada — Alice Cognitive Core
 

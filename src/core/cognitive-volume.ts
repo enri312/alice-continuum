@@ -65,6 +65,7 @@ export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): readonly [n
   const memory = node.memory;
   if (!memory) return [100, 116, 139];
   if (memory.retrieved) return [224, 242, 254];
+  if (memory.archived) return memoryStatusColors.archived!;
   if (memory.suppressed) return [88, 72, 94];
   if (memory.accessibility === "dormant") return [100, 116, 139];
   return memoryStatusColors[memory.status] ?? memoryLayerColors[memory.layer];
@@ -75,7 +76,7 @@ export function buildCognitiveVolumeGraph(memoryNodes: CognitiveMemoryNode[], ac
     id: `memory:${memory.id}`,
     kind: "memory",
     label: memory.label,
-    detail: `${memory.layer} · ${memory.status} · ${memory.accessibility}${memory.suppressed ? " · suppressed" : ""}`,
+    detail: `${memory.layer} · ${memory.status} · ${memory.accessibility}${memory.archived ? " · archived" : ""}${memory.suppressed ? " · suppressed" : ""}`,
     x: memory.x,
     y: memory.y,
     z: memory.z,

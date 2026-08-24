@@ -7,6 +7,7 @@ export type RetrievableMemory = {
   memoryStatus?: "confirmed" | "conflict" | "archived";
   accessibilityStatus?: "accessible" | "dormant";
   suppressionStatus?: "suppressed";
+  archiveStatus?: "archived";
 };
 
 export type MemoryMatch<T extends RetrievableMemory = RetrievableMemory> = {
@@ -66,7 +67,7 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
   const queryTokens = tokens(query);
   if (!queryTokens.length || !memories.length || limit <= 0) return [];
 
-  const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed");
+  const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && memory.archiveStatus !== "archived");
   const documentTokens = eligibleMemories.map((memory) => new Set(tokens(`${memory.intention} ${memory.summary ?? ""} ${memory.nextStep ?? ""}`)));
   const documentFrequency = new Map<string, number>();
   for (const token of queryTokens) {

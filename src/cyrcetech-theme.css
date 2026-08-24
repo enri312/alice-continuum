@@ -680,3 +680,17 @@ input,textarea,select { border-color:var(--alice-border-strong); border-radius:2
 .suppression-reason { display:grid; gap:5px; min-width:220px; margin:0; }
 .suppression-reason span { color:#a78bfa; font:800 .53rem Consolas,monospace; letter-spacing:.07em; }
 .suppression-reason select { width:100%; padding:8px 9px; border:1px solid #5b3b82; background:#090d19; color:#e9d5ff; font:700 .62rem Consolas,monospace; }
+
+/* R6.5-I: archivo reversible, independiente de vigencia y supresión. */
+.memory-archive-assessment { border-left:2px solid #f59e0b; }
+.memory-archive-assessment .state-archived { background:linear-gradient(90deg,rgba(120,53,15,.2),#07111d 48%); }
+.memory-archive-assessment .state-archived>div:first-child>span { color:#fbbf24; }
+.archive-note { display:grid; gap:6px; margin:12px 0; }
+.archive-note span { color:#d7a33d; font:800 .52rem Consolas,monospace; letter-spacing:.07em; }
+.archive-note textarea { min-height:68px; resize:vertical; border:1px solid #6b4b1d; background:#070b13; color:#dce7ef; padding:10px; font:.65rem/1.45 Consolas,monospace; }
+.archive-plan { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; padding:11px; border:1px solid #d97706; background:rgba(69,26,3,.2); }
+.archive-plan>div { display:grid; min-width:0; gap:4px; }
+.archive-plan strong { color:#fcd34d; font:.63rem Consolas,monospace; }
+.archive-plan span,.archive-plan small { color:#bda87d; font:.52rem Consolas,monospace; text-transform:uppercase; }
+.archive-plan code { overflow:hidden; color:#f59e0b; font:.49rem Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:760px) { .archive-plan { align-items:stretch; flex-direction:column; } }

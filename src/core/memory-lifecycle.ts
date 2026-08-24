@@ -23,6 +23,7 @@ export type MemoryLifecycleReference = {
   retrievalPolicy: MemoryRetrievalPolicy;
   retention: "notAssessed";
   suppressed: boolean;
+  archived: boolean;
   baseVersion: 1;
   reconsolidationCount: number;
 };
@@ -116,7 +117,7 @@ export type MemorySuppressionAssessmentResult = {
 const digest = /^sha256:[0-9a-f]{64}$/;
 const snapshotKeys = ["schemaVersion", "state", "storagePath", "sourceSha256", "activeRevisionId", "revisionCount", "preview", "blockedReason", "migrationRequiresConfirmation", "lifecycleWritesAvailable", "recordsModified"];
 const previewKeys = ["sourceSha256", "recordCount", "currentCount", "conflictCount", "archivedCount", "notAssessedCount", "accessibilityAssessedCount", "accessibleCount", "dormantCount", "retrievalEligibleCount", "retrievalBlockedCount", "retrievalOutcomeCount", "functionalAssessmentCount", "weakeningReviewRequiredCount", "retentionAssessedCount", "suppressedCount", "reconsolidatedCount", "references", "weakeningAssessments", "recordsModified", "contentCopied", "automaticInference"];
-const referenceKeys = ["recordId", "recordSha256", "validity", "accessibility", "retrievalPolicy", "retention", "suppressed", "baseVersion", "reconsolidationCount"];
+const referenceKeys = ["recordId", "recordSha256", "validity", "accessibility", "retrievalPolicy", "retention", "suppressed", "archived", "baseVersion", "reconsolidationCount"];
 const assessmentKeys = ["schemaVersion", "recordId", "action", "previousValidity", "newValidity", "sourceSha256Before", "sourceSha256After", "backupSha256", "recordsModified", "auditWritten", "lifecycle"];
 const accessibilityAssessmentKeys = ["schemaVersion", "recordId", "action", "previousAccessibility", "newAccessibility", "sourceSha256Before", "sourceSha256After", "backupSha256", "recordsModified", "auditWritten", "lifecycle"];
 const suppressionAssessmentKeys = ["schemaVersion", "recordId", "action", "reason", "previousSuppressed", "newSuppressed", "sourceSha256Before", "sourceSha256After", "backupSha256", "recordsModified", "auditWritten", "lifecycle"];
@@ -160,14 +161,16 @@ function parseReference(value: unknown, index: number): MemoryLifecycleReference
   if (typeof input.validity !== "string" || !validities.includes(input.validity as MemoryValidityState)) fail(`references[${index}].validity es desconocido`);
   if (typeof input.accessibility !== "string" || !accessibilities.includes(input.accessibility as MemoryAccessibilityState)) fail(`references[${index}].accessibility es desconocida`);
   if (typeof input.retrievalPolicy !== "string" || !retrievalPolicies.includes(input.retrievalPolicy as MemoryRetrievalPolicy)) fail(`references[${index}].retrievalPolicy es desconocido`);
-  if (input.retention !== "notAssessed" || typeof input.suppressed !== "boolean" || input.baseVersion !== 1) fail(`references[${index}] declara una retención o versión base incompatible`);
+  if (input.retention !== "notAssessed" || typeof input.suppressed !== "boolean" || typeof input.archived !== "boolean" || input.baseVersion !== 1) fail(`references[${index}] declara una retención, archivo o versión base incompatible`);
   const validity = input.validity as MemoryValidityState;
   const accessibility = input.accessibility as MemoryAccessibilityState;
   const retrievalPolicy = input.retrievalPolicy as MemoryRetrievalPolicy;
   const suppressed = input.suppressed as boolean;
-  const expectedPolicy = validity === "conflict" ? "blockedByConflict" : validity === "archived" ? "blockedByArchive" : suppressed ? "blockedBySuppression" : accessibility === "dormant" ? "blockedByDormancy" : validity === "current" ? "eligible" : "legacyEligible";
+  const archived = input.archived as boolean;
+  if (validity === "archived" && !archived) fail(`references[${index}] pierde el archivo heredado`);
+  const expectedPolicy = archived ? "blockedByArchive" : validity === "conflict" ? "blockedByConflict" : suppressed ? "blockedBySuppression" : accessibility === "dormant" ? "blockedByDormancy" : validity === "current" ? "eligible" : "legacyEligible";
   if (retrievalPolicy !== expectedPolicy) fail(`references[${index}] mezcla vigencia, accesibilidad y recuperación`);
-  return { recordId: input.recordId, recordSha256: input.recordSha256, validity, accessibility, retrievalPolicy, retention: "notAssessed", suppressed, baseVersion: 1, reconsolidationCount: count(input.reconsolidationCount, `references[${index}].reconsolidationCount`) };
+  return { recordId: input.recordId, recordSha256: input.recordSha256, validity, accessibility, retrievalPolicy, retention: "notAssessed", suppressed, archived, baseVersion: 1, reconsolidationCount: count(input.reconsolidationCount, `references[${index}].reconsolidationCount`) };
 }
 
 function parseWeakeningAssessment(value: unknown, index: number): MemoryWeakeningAssessment {
@@ -225,10 +228,12 @@ function parsePreview(value: unknown): MemoryLifecyclePreview {
   if (preview.weakeningAssessments.length !== preview.recordCount) fail("weakeningAssessments no cubre todos los registros");
   const assessmentIds = new Set(preview.weakeningAssessments.map((assessment) => assessment.recordId));
   if (assessmentIds.size !== preview.recordCount || preview.references.some((reference) => !assessmentIds.has(reference.recordId))) fail("weakeningAssessments no corresponde a las referencias");
-  if (preview.currentCount + preview.conflictCount + preview.archivedCount + preview.notAssessedCount !== preview.recordCount) fail("los estados de vigencia no cubren todos los registros");
+  const legacyArchivedCount = preview.references.filter((reference) => reference.validity === "archived").length;
+  if (preview.currentCount + preview.conflictCount + legacyArchivedCount + preview.notAssessedCount !== preview.recordCount) fail("los estados de vigencia no cubren todos los registros");
   if (preview.accessibleCount + preview.dormantCount !== preview.accessibilityAssessedCount || preview.accessibilityAssessedCount > preview.recordCount) fail("los estados de accesibilidad son incoherentes");
   if (preview.retrievalEligibleCount + preview.retrievalBlockedCount !== preview.recordCount) fail("la política de recuperación no cubre todos los registros");
   if (preview.suppressedCount !== preview.references.filter((reference) => reference.suppressed).length) fail("suppressedCount no coincide con las referencias");
+  if (preview.archivedCount !== preview.references.filter((reference) => reference.archived).length) fail("archivedCount no coincide con las referencias");
   if (preview.reconsolidatedCount !== preview.references.filter((reference) => reference.reconsolidationCount > 0).length) fail("reconsolidatedCount no coincide con las referencias");
   if (preview.retrievalOutcomeCount !== preview.weakeningAssessments.reduce((total, assessment) => total + assessment.evidenceCount, 0)) fail("retrievalOutcomeCount no coincide con la evidencia");
   if (preview.functionalAssessmentCount !== preview.weakeningAssessments.filter((assessment) => assessment.state === "noWeakeningSignal" || assessment.state === "reviewRequired").length) fail("functionalAssessmentCount es incoherente");

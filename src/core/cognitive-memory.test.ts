@@ -42,6 +42,11 @@ describe("proyección cognitiva de memoria real", () => {
     expect(node).toMatchObject({ status: "confirmed", suppressed: true, retrieved: false });
   });
 
+  it("conserva visible un archivo reversible sin destruir su vigencia", () => {
+    const [node] = buildCognitiveMemoryNodes([{ id: "archived-v2", intention: "Recuerdo archivado", memoryStatus: "confirmed", archiveStatus: "archived" }], ["archived-v2"]);
+    expect(node).toMatchObject({ status: "confirmed", archived: true, retrieved: false });
+  });
+
   it("proyecta la versión real sin inventar nodos históricos", () => {
     const [node] = buildCognitiveMemoryNodes([{ id: "versioned", intention: "Recuerdo actualizado", memoryStatus: "confirmed", memoryVersion: 3 }], []);
     expect(node).toMatchObject({ id: "versioned", version: 3, retrieved: false });

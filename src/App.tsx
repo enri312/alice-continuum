@@ -49,6 +49,9 @@ type Session = {
   suppressionStatus?: "suppressed";
   suppressionReason?: "ownerChoice" | "sensitiveContext" | "temporaryBoundary";
   suppressionUpdatedAt?: string;
+  archiveStatus?: "archived";
+  archiveReason?: "ownerChoice" | "superseded" | "noLongerRelevant";
+  archiveUpdatedAt?: string;
   memoryVersion?: number;
   reconsolidatedAt?: string;
   reconsolidationReason?: "ownerCorrection" | "newContext" | "clarification";
@@ -370,7 +373,7 @@ export function App() {
 
   async function assessRetrievalOutcome(recordId: string, outcome: RetrievalOutcome) {
     const target = sessionsRef.current.find((session) => session.id === recordId);
-    if (!target || target.kind !== "Enseñanza" || target.memoryStatus !== "confirmed") throw new Error("El recuerdo ya no admite una evaluación de recuperación.");
+    if (!target || target.kind !== "Enseñanza" || target.memoryStatus !== "confirmed" || target.archiveStatus === "archived") throw new Error("El recuerdo ya no admite una evaluación de recuperación.");
     await updateSessionsVerified((current) => current.map((session) => session.id === recordId ? applyMemoryRetrievalOutcome(session, outcome) : session));
     recordEvent("MEMORY", outcome === "helpful" ? "MEMORY_RETRIEVAL_HELPFUL" : "MEMORY_RETRIEVAL_NOT_HELPFUL", `${recordId} · confirmado por el propietario · sin cambio automático de fuerza o accesibilidad`);
   }

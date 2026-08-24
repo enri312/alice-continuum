@@ -68,4 +68,12 @@ describe("recuperación local de memoria", () => {
     ];
     expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["available"]);
   });
+
+  it("excluye un archivo reversible sin perder su vigencia subyacente", () => {
+    const candidates = [
+      { id: "available", intention: "Proyecto Alice vigente", memoryStatus: "confirmed" as const },
+      { id: "archived", intention: "Proyecto Alice en archivo", memoryStatus: "confirmed" as const, archiveStatus: "archived" as const },
+    ];
+    expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["available"]);
+  });
 });

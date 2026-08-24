@@ -47,6 +47,9 @@ pub(crate) struct MemorySession {
     suppression_status: Option<String>,
     suppression_reason: Option<String>,
     suppression_updated_at: Option<String>,
+    archive_status: Option<String>,
+    archive_reason: Option<String>,
+    archive_updated_at: Option<String>,
     memory_version: Option<u32>,
     reconsolidated_at: Option<String>,
     reconsolidation_reason: Option<String>,
@@ -145,6 +148,7 @@ const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
 const MEMORY_LIFECYCLE_PREVIEW_SCHEMA_VERSION: u8 = 1;
 const MEMORY_LIFECYCLE_FILE: &str = "lifecycle-index-v1.json";
 const MEMORY_RECONSOLIDATION_SCHEMA_VERSION: u8 = 1;
+const MEMORY_ARCHIVE_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_PREVIEW_SCHEMA_VERSION: u8 = 2;
 const CONSOLIDATION_DECISION_SCHEMA_VERSION: u8 = 1;
 const CONSOLIDATION_MERGE_PREVIEW_SCHEMA_VERSION: u8 = 4;
@@ -336,6 +340,7 @@ pub(crate) struct MemoryLifecycleReference {
     retrieval_policy: MemoryRetrievalPolicy,
     retention: MemoryRetentionState,
     suppressed: bool,
+    archived: bool,
     base_version: u32,
     reconsolidation_count: u32,
 }
@@ -525,6 +530,86 @@ pub(crate) struct MemorySuppressionAssessmentResult {
     new_suppressed: bool,
     source_sha256_before: String,
     source_sha256_after: String,
+    backup_sha256: String,
+    records_modified: bool,
+    audit_written: bool,
+    lifecycle: MemoryLifecyclePreviewSnapshot,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryArchiveAction {
+    Archive,
+    Restore,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryArchiveReason {
+    OwnerChoice,
+    Superseded,
+    NoLongerRelevant,
+    RelevantAgain,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct PreviewMemoryArchiveInput {
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    action: MemoryArchiveAction,
+    reason: MemoryArchiveReason,
+    note: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ConfirmMemoryArchiveInput {
+    expected_plan_id: String,
+    planned_at: String,
+    expected_source_sha256: String,
+    record_id: String,
+    expected_record_sha256: String,
+    action: MemoryArchiveAction,
+    reason: MemoryArchiveReason,
+    note: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryArchivePreview {
+    schema_version: u8,
+    plan_id: String,
+    planned_at: String,
+    record_id: String,
+    action: MemoryArchiveAction,
+    reason: MemoryArchiveReason,
+    note_sha256: String,
+    source_sha256: String,
+    record_sha256_before: String,
+    projected_record_sha256: String,
+    previous_archived: bool,
+    projected_archived: bool,
+    records_modified: bool,
+    automatic_action: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryArchiveResult {
+    schema_version: u8,
+    plan_id: String,
+    record_id: String,
+    action: MemoryArchiveAction,
+    reason: MemoryArchiveReason,
+    previous_archived: bool,
+    new_archived: bool,
+    source_sha256_before: String,
+    source_sha256_after: String,
+    record_sha256_before: String,
+    record_sha256_after: String,
     backup_sha256: String,
     records_modified: bool,
     audit_written: bool,
@@ -762,6 +847,9 @@ pub(crate) enum ConsolidationMergeDifferenceField {
     SuppressionStatus,
     SuppressionReason,
     SuppressionUpdatedAt,
+    ArchiveStatus,
+    ArchiveReason,
+    ArchiveUpdatedAt,
     MemoryVersion,
     ReconsolidatedAt,
     ReconsolidationReason,
@@ -1070,6 +1158,27 @@ fn validate_memory_sessions(sessions: &[MemorySession]) -> Result<(), String> {
         if let Some(updated_at) = session.suppression_updated_at.as_deref() {
             validate_timestamp("suppressionUpdatedAt", updated_at)?;
         }
+        if let Some(status) = session.archive_status.as_deref() {
+            if status != "archived"
+                || !matches!(
+                    session.archive_reason.as_deref(),
+                    Some("ownerChoice" | "superseded" | "noLongerRelevant")
+                )
+                || session.archive_updated_at.is_none()
+                || session.memory_status.as_deref() == Some("archived")
+            {
+                return Err(format!(
+                    "El recuerdo {record} declara un archivo reversible incoherente"
+                ));
+            }
+        } else if session.archive_reason.is_some() || session.archive_updated_at.is_some() {
+            return Err(format!(
+                "El recuerdo {record} conserva metadatos de archivo sin estar archivado"
+            ));
+        }
+        if let Some(updated_at) = session.archive_updated_at.as_deref() {
+            validate_timestamp("archiveUpdatedAt", updated_at)?;
+        }
         match session.memory_version {
             Some(version) => {
                 if version < 2
@@ -1335,9 +1444,11 @@ fn lifecycle_reference(session: &MemorySession) -> Result<MemoryLifecycleReferen
         None => false,
         Some(_) => return Err("records.json contiene una supresión no soportada".into()),
     };
+    let archived = session.archive_status.as_deref() == Some("archived")
+        || validity == MemoryValidityState::Archived;
     let retrieval_policy = match validity {
+        _ if archived => MemoryRetrievalPolicy::BlockedByArchive,
         MemoryValidityState::Conflict => MemoryRetrievalPolicy::BlockedByConflict,
-        MemoryValidityState::Archived => MemoryRetrievalPolicy::BlockedByArchive,
         MemoryValidityState::Current | MemoryValidityState::NotAssessed if suppressed => {
             MemoryRetrievalPolicy::BlockedBySuppression
         }
@@ -1348,6 +1459,7 @@ fn lifecycle_reference(session: &MemorySession) -> Result<MemoryLifecycleReferen
         }
         MemoryValidityState::Current => MemoryRetrievalPolicy::Eligible,
         MemoryValidityState::NotAssessed => MemoryRetrievalPolicy::LegacyEligible,
+        MemoryValidityState::Archived => MemoryRetrievalPolicy::BlockedByArchive,
     };
     let serialized = serde_json::to_string(session)
         .map_err(|error| format!("No se pudo calcular la huella del recuerdo: {error}"))?;
@@ -1360,6 +1472,7 @@ fn lifecycle_reference(session: &MemorySession) -> Result<MemoryLifecycleReferen
         retrieval_policy,
         retention: MemoryRetentionState::NotAssessed,
         suppressed,
+        archived,
         base_version: 1,
         reconsolidation_count,
     })
@@ -1407,7 +1520,7 @@ fn lifecycle_preview(
     let archived_count = revision
         .references
         .iter()
-        .filter(|item| item.validity == MemoryValidityState::Archived)
+        .filter(|item| item.archived)
         .count();
     let not_assessed_count = revision
         .references
@@ -1532,44 +1645,52 @@ fn lifecycle_reference_is_consistent(reference: &MemoryLifecycleReference) -> bo
             reference.validity,
             reference.accessibility,
             reference.suppressed,
+            reference.archived,
             reference.retrieval_policy
         ),
-        (
-            MemoryValidityState::Current,
-            _,
-            true,
-            MemoryRetrievalPolicy::BlockedBySuppression
-        ) | (
-            MemoryValidityState::NotAssessed,
-            _,
-            true,
-            MemoryRetrievalPolicy::BlockedBySuppression
-        ) | (
-            MemoryValidityState::Current,
-            MemoryAccessibilityState::NotAssessed | MemoryAccessibilityState::Accessible,
-            false,
-            MemoryRetrievalPolicy::Eligible
-        ) | (
-            MemoryValidityState::Current | MemoryValidityState::NotAssessed,
-            MemoryAccessibilityState::Dormant,
-            false,
-            MemoryRetrievalPolicy::BlockedByDormancy
-        ) | (
-            MemoryValidityState::Conflict,
-            _,
-            _,
-            MemoryRetrievalPolicy::BlockedByConflict
-        ) | (
-            MemoryValidityState::Archived,
-            _,
-            _,
-            MemoryRetrievalPolicy::BlockedByArchive
-        ) | (
-            MemoryValidityState::NotAssessed,
-            MemoryAccessibilityState::NotAssessed | MemoryAccessibilityState::Accessible,
-            false,
-            MemoryRetrievalPolicy::LegacyEligible
-        )
+        (_, _, _, true, MemoryRetrievalPolicy::BlockedByArchive)
+            | (
+                MemoryValidityState::Current,
+                _,
+                true,
+                false,
+                MemoryRetrievalPolicy::BlockedBySuppression
+            )
+            | (
+                MemoryValidityState::NotAssessed,
+                _,
+                true,
+                false,
+                MemoryRetrievalPolicy::BlockedBySuppression
+            )
+            | (
+                MemoryValidityState::Current,
+                MemoryAccessibilityState::NotAssessed | MemoryAccessibilityState::Accessible,
+                false,
+                false,
+                MemoryRetrievalPolicy::Eligible
+            )
+            | (
+                MemoryValidityState::Current | MemoryValidityState::NotAssessed,
+                MemoryAccessibilityState::Dormant,
+                false,
+                false,
+                MemoryRetrievalPolicy::BlockedByDormancy
+            )
+            | (
+                MemoryValidityState::Conflict,
+                _,
+                _,
+                false,
+                MemoryRetrievalPolicy::BlockedByConflict
+            )
+            | (
+                MemoryValidityState::NotAssessed,
+                MemoryAccessibilityState::NotAssessed | MemoryAccessibilityState::Accessible,
+                false,
+                false,
+                MemoryRetrievalPolicy::LegacyEligible
+            )
     );
     !reference.record_id.trim().is_empty()
         && is_sha256(&reference.record_sha256)
@@ -2530,6 +2651,308 @@ fn assess_memory_suppression_at(
     })
 }
 
+fn archive_reason_code(reason: MemoryArchiveReason) -> &'static str {
+    match reason {
+        MemoryArchiveReason::OwnerChoice => "ownerChoice",
+        MemoryArchiveReason::Superseded => "superseded",
+        MemoryArchiveReason::NoLongerRelevant => "noLongerRelevant",
+        MemoryArchiveReason::RelevantAgain => "relevantAgain",
+    }
+}
+
+fn archive_action_code(action: MemoryArchiveAction) -> &'static str {
+    match action {
+        MemoryArchiveAction::Archive => "archive",
+        MemoryArchiveAction::Restore => "restore",
+    }
+}
+
+fn prepare_memory_archive_at(
+    data_root: &Path,
+    input: PreviewMemoryArchiveInput,
+    planned_at: String,
+) -> Result<(MemoryArchivePreview, String, Vec<MemorySession>), String> {
+    validate_timestamp("plannedAt", &planned_at)?;
+    if !is_sha256(&input.expected_source_sha256) || !is_sha256(&input.expected_record_sha256) {
+        return Err("La propuesta de archivo contiene una huella inválida".into());
+    }
+    if input.record_id.trim().is_empty() || input.record_id.len() > 160 {
+        return Err("La propuesta de archivo contiene un ID inválido".into());
+    }
+    let note = input.note.trim();
+    if note.is_empty() || note.chars().count() > 500 {
+        return Err("El archivo reversible requiere una nota de 1 a 500 caracteres".into());
+    }
+    match (input.action, input.reason) {
+        (MemoryArchiveAction::Archive, MemoryArchiveReason::RelevantAgain) => {
+            return Err("Archivar requiere un motivo de archivo, no de restauración".into())
+        }
+        (MemoryArchiveAction::Restore, reason) if reason != MemoryArchiveReason::RelevantAgain => {
+            return Err("Restaurar requiere el motivo relevantAgain".into())
+        }
+        _ => {}
+    }
+    let lifecycle_before = memory_lifecycle_preview_at(data_root);
+    if matches!(
+        lifecycle_before.state,
+        MemoryLifecyclePreviewState::Unavailable | MemoryLifecyclePreviewState::Blocked
+    ) {
+        return Err(lifecycle_before.blocked_reason.unwrap_or_else(|| {
+            "La memoria no está disponible para preparar un archivo reversible".into()
+        }));
+    }
+    let (source_content, mut sessions) = read_validated_source_at(data_root)?
+        .ok_or("No existe records.json para preparar un archivo reversible")?;
+    let source_sha256 = memory_subject_digest(&source_content);
+    if source_sha256 != input.expected_source_sha256
+        || lifecycle_before.source_sha256.as_deref() != Some(input.expected_source_sha256.as_str())
+    {
+        return Err(
+            "records.json cambió después de revisar el archivo; actualizá antes de continuar"
+                .into(),
+        );
+    }
+    let position = sessions
+        .iter()
+        .position(|session| session.id == input.record_id)
+        .ok_or("El recuerdo ya no existe")?;
+    let previous_reference = lifecycle_reference(&sessions[position])?;
+    if previous_reference.record_sha256 != input.expected_record_sha256 {
+        return Err("El recuerdo cambió después de preparar el archivo".into());
+    }
+    if previous_reference.validity == MemoryValidityState::Archived {
+        return Err("Un archivo heredado no conserva su vigencia previa y no puede restaurarse automáticamente".into());
+    }
+    let previous_archived = previous_reference.archived;
+    let projected_archived = input.action == MemoryArchiveAction::Archive;
+    if previous_archived == projected_archived {
+        return Err("El recuerdo ya posee ese estado de archivo; no se creó un plan".into());
+    }
+    if projected_archived
+        && !matches!(
+            previous_reference.validity,
+            MemoryValidityState::Current | MemoryValidityState::Conflict
+        )
+    {
+        return Err("Sólo un recuerdo vigente o en conflicto puede archivarse".into());
+    }
+    let projected = &mut sessions[position];
+    if projected_archived {
+        projected.archive_status = Some("archived".into());
+        projected.archive_reason = Some(archive_reason_code(input.reason).into());
+        projected.archive_updated_at = Some(planned_at.clone());
+    } else {
+        projected.archive_status = None;
+        projected.archive_reason = None;
+        projected.archive_updated_at = None;
+    }
+    validate_memory_sessions(&sessions)?;
+    let projected_serialized = serde_json::to_string(&sessions[position])
+        .map_err(|error| format!("No se pudo calcular el archivo propuesto: {error}"))?;
+    let projected_record_sha256 = memory_subject_digest(&projected_serialized);
+    let note_sha256 = memory_subject_digest(note);
+    let plan_id = memory_subject_digest(&format!(
+        "alice-memory-archive:{}:{}:{}:{}:{}:{}:{}:{}",
+        MEMORY_ARCHIVE_SCHEMA_VERSION,
+        source_sha256,
+        previous_reference.record_sha256,
+        projected_record_sha256,
+        archive_action_code(input.action),
+        archive_reason_code(input.reason),
+        note_sha256,
+        planned_at
+    ));
+    Ok((
+        MemoryArchivePreview {
+            schema_version: MEMORY_ARCHIVE_SCHEMA_VERSION,
+            plan_id,
+            planned_at,
+            record_id: input.record_id,
+            action: input.action,
+            reason: input.reason,
+            note_sha256,
+            source_sha256,
+            record_sha256_before: previous_reference.record_sha256,
+            projected_record_sha256,
+            previous_archived,
+            projected_archived,
+            records_modified: false,
+            automatic_action: false,
+        },
+        source_content,
+        sessions,
+    ))
+}
+
+fn archive_source_backup_path(data_root: &Path, source_sha256: &str) -> PathBuf {
+    data_root
+        .join("memory")
+        .join("backups")
+        .join(format!("archive-source-{}.json", &source_sha256[7..]))
+}
+
+fn create_or_verify_archive_backup(
+    data_root: &Path,
+    source_content: &str,
+    source_sha256: &str,
+) -> Result<PathBuf, String> {
+    let path = archive_source_backup_path(data_root, source_sha256);
+    let parent = path
+        .parent()
+        .ok_or("El respaldo de archivo no posee directorio")?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("No se pudo preparar el respaldo de archivo: {error}"))?;
+    if path.exists() {
+        let stored = fs::read_to_string(&path)
+            .map_err(|error| format!("No se pudo verificar el respaldo de archivo: {error}"))?;
+        if stored != source_content || memory_subject_digest(&stored) != source_sha256 {
+            return Err("El respaldo existente de archivo no coincide con records.json".into());
+        }
+        return Ok(path);
+    }
+    atomic_replace_text_file(
+        &path,
+        source_content,
+        "archive-backup.tmp",
+        "respaldo de archivo reversible",
+    )?;
+    let stored = fs::read_to_string(&path)
+        .map_err(|error| format!("No se pudo releer el respaldo de archivo: {error}"))?;
+    if stored != source_content || memory_subject_digest(&stored) != source_sha256 {
+        return Err("El respaldo de archivo no coincide byte a byte".into());
+    }
+    Ok(path)
+}
+
+fn confirm_memory_archive_at(
+    data_root: &Path,
+    input: ConfirmMemoryArchiveInput,
+) -> Result<MemoryArchiveResult, String> {
+    if !input.confirmed {
+        return Err(
+            "Confirmar el archivo reversible requiere una segunda autorización explícita".into(),
+        );
+    }
+    if !is_sha256(&input.expected_plan_id) {
+        return Err("El plan esperado de archivo no es válido".into());
+    }
+    let expected_plan_id = input.expected_plan_id.clone();
+    let (preview, source_content, sessions) = prepare_memory_archive_at(
+        data_root,
+        PreviewMemoryArchiveInput {
+            expected_source_sha256: input.expected_source_sha256,
+            record_id: input.record_id,
+            expected_record_sha256: input.expected_record_sha256,
+            action: input.action,
+            reason: input.reason,
+            note: input.note,
+        },
+        input.planned_at,
+    )?;
+    if preview.plan_id != expected_plan_id {
+        return Err(
+            "La propuesta de archivo cambió después de la vista previa; volvé a revisarla".into(),
+        );
+    }
+    let source_path = data_root.join("memory").join("records.json");
+    let projected_source = serde_json::to_string_pretty(&sessions)
+        .map_err(|error| format!("No se pudo serializar la fuente archivada: {error}"))?;
+    let source_sha256_after = memory_subject_digest(&projected_source);
+    let backup =
+        create_or_verify_archive_backup(data_root, &source_content, &preview.source_sha256)?;
+    atomic_replace_text_file(
+        &source_path,
+        &projected_source,
+        "archive-records.tmp",
+        "records.json tras archivo reversible",
+    )?;
+    let stored = match read_validated_source_at(data_root) {
+        Ok(Some(stored)) => stored,
+        Ok(None) => {
+            atomic_replace_text_file(
+                &source_path,
+                &source_content,
+                "archive-restore.tmp",
+                "restauración de records.json",
+            )?;
+            return Err("records.json desapareció después del archivo reversible".into());
+        }
+        Err(error) => {
+            atomic_replace_text_file(
+                &source_path,
+                &source_content,
+                "archive-restore.tmp",
+                "restauración de records.json",
+            )?;
+            return Err(format!(
+                "El archivo produjo una fuente inválida y fue restaurada: {error}"
+            ));
+        }
+    };
+    if stored.0 != projected_source || memory_subject_digest(&stored.0) != source_sha256_after {
+        atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "archive-restore.tmp",
+            "restauración de records.json",
+        )?;
+        return Err("El archivo no coincidió al releerlo y fue restaurado".into());
+    }
+    let lifecycle = memory_lifecycle_preview_at(data_root);
+    if lifecycle.state == MemoryLifecyclePreviewState::Blocked {
+        atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "archive-restore.tmp",
+            "restauración de records.json",
+        )?;
+        return Err("El archivo volvió incoherente el ciclo y fue restaurado".into());
+    }
+    let audit_action = format!(
+        "archive-{}-{}",
+        archive_action_code(preview.action),
+        archive_reason_code(preview.reason)
+    );
+    if let Err(audit_error) = append_memory_audit(
+        &source_path,
+        &audit_action,
+        sessions.len(),
+        &projected_source,
+    ) {
+        if let Err(restore_error) = atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "archive-restore.tmp",
+            "restauración de records.json",
+        ) {
+            return Err(format!("Falló la auditoría de archivo ({audit_error}) y también la restauración ({restore_error})"));
+        }
+        return Err(format!(
+            "Falló la auditoría de archivo y records.json fue restaurado: {audit_error}"
+        ));
+    }
+    Ok(MemoryArchiveResult {
+        schema_version: MEMORY_ARCHIVE_SCHEMA_VERSION,
+        plan_id: preview.plan_id,
+        record_id: preview.record_id,
+        action: preview.action,
+        reason: preview.reason,
+        previous_archived: preview.previous_archived,
+        new_archived: preview.projected_archived,
+        source_sha256_before: preview.source_sha256,
+        source_sha256_after,
+        record_sha256_before: preview.record_sha256_before,
+        record_sha256_after: preview.projected_record_sha256,
+        backup_sha256: memory_subject_digest(
+            &fs::read_to_string(backup)
+                .map_err(|error| format!("No se pudo verificar el respaldo final: {error}"))?,
+        ),
+        records_modified: true,
+        audit_written: true,
+        lifecycle,
+    })
+}
+
 fn reconsolidation_reason_code(reason: MemoryReconsolidationReason) -> &'static str {
     match reason {
         MemoryReconsolidationReason::OwnerCorrection => "ownerCorrection",
@@ -2632,6 +3055,9 @@ fn prepare_memory_reconsolidation_at(
         MemoryValidityState::Current | MemoryValidityState::Conflict
     ) {
         return Err("Sólo un recuerdo vigente o en conflicto admite reconsolidación".into());
+    }
+    if previous_reference.archived {
+        return Err("Restaurá el recuerdo archivado antes de reconsolidarlo".into());
     }
     if previous_reference.validity == MemoryValidityState::Conflict
         && input.reason != MemoryReconsolidationReason::OwnerCorrection
@@ -3079,12 +3505,17 @@ fn consolidation_preview_at(data_root: &Path) -> ConsolidationPreviewSnapshot {
 
     let archived_record_count = sessions
         .iter()
-        .filter(|session| session.memory_status.as_deref() == Some("archived"))
+        .filter(|session| {
+            session.memory_status.as_deref() == Some("archived")
+                || session.archive_status.as_deref() == Some("archived")
+        })
         .count();
     let mut eligible = sessions
         .iter()
         .filter(|session| {
-            session.finished_at.is_some() && session.memory_status.as_deref() != Some("archived")
+            session.finished_at.is_some()
+                && session.memory_status.as_deref() != Some("archived")
+                && session.archive_status.as_deref() != Some("archived")
         })
         .collect::<Vec<_>>();
     eligible.sort_by(|left, right| left.id.cmp(&right.id));
@@ -3243,6 +3674,9 @@ fn consolidation_merge_differences(
     compare!(suppression_status, SuppressionStatus);
     compare!(suppression_reason, SuppressionReason);
     compare!(suppression_updated_at, SuppressionUpdatedAt);
+    compare!(archive_status, ArchiveStatus);
+    compare!(archive_reason, ArchiveReason);
+    compare!(archive_updated_at, ArchiveUpdatedAt);
     compare!(memory_version, MemoryVersion);
     compare!(reconsolidated_at, ReconsolidatedAt);
     compare!(reconsolidation_reason, ReconsolidationReason);
@@ -3586,7 +4020,9 @@ fn append_confirmed_learning_at(
         );
     }
     if !sessions.iter().any(|session| {
-        session.id == input.source_record_id && session.memory_status.as_deref() != Some("archived")
+        session.id == input.source_record_id
+            && session.memory_status.as_deref() != Some("archived")
+            && session.archive_status.as_deref() != Some("archived")
     }) {
         return Err("El recuerdo de origen ya no está disponible para confirmar".into());
     }
@@ -3612,6 +4048,9 @@ fn append_confirmed_learning_at(
             suppression_status: None,
             suppression_reason: None,
             suppression_updated_at: None,
+            archive_status: None,
+            archive_reason: None,
+            archive_updated_at: None,
             memory_version: None,
             reconsolidated_at: None,
             reconsolidation_reason: None,
@@ -5169,6 +5608,34 @@ pub(crate) fn assess_memory_suppression(
 }
 
 #[tauri::command]
+pub(crate) fn preview_memory_archive(
+    app: AppHandle,
+    input: PreviewMemoryArchiveInput,
+) -> Result<MemoryArchivePreview, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let (preview, _, _) = prepare_memory_archive_at(&data_root, input, current_utc_timestamp()?)?;
+    Ok(preview)
+}
+
+#[tauri::command]
+pub(crate) fn confirm_memory_archive(
+    app: AppHandle,
+    input: ConfirmMemoryArchiveInput,
+) -> Result<MemoryArchiveResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
+    let data_root = alice_data_root_path(&app)?;
+    let plan_digest = input.expected_plan_id.clone();
+    audited_memory_operation(
+        &app,
+        "memory.records.write",
+        "confirm_memory_archive",
+        &plan_digest,
+        "MEMORY_ARCHIVE_CHANGED",
+        || confirm_memory_archive_at(&data_root, input),
+    )
+}
+
+#[tauri::command]
 pub(crate) fn preview_memory_reconsolidation(
     app: AppHandle,
     input: PreviewMemoryReconsolidationInput,
@@ -5373,7 +5840,8 @@ fn validate_generic_memory_update(
         let protected = matches!(
             previous.memory_status.as_deref(),
             Some("confirmed" | "conflict" | "archived")
-        ) || previous.memory_version.is_some();
+        ) || previous.memory_version.is_some()
+            || previous.archive_status.is_some();
         let Some(next) = sessions.iter().find(|session| session.id == previous.id) else {
             if protected {
                 return Err(format!(
@@ -5406,13 +5874,25 @@ fn validate_generic_memory_update(
                 previous.id
             ));
         }
+        if previous.archive_status != next.archive_status
+            || previous.archive_reason != next.archive_reason
+            || previous.archive_updated_at != next.archive_updated_at
+        {
+            return Err(format!(
+                "El archivo reversible de '{}' sólo puede cambiar mediante su contrato gobernado",
+                previous.id
+            ));
+        }
     }
     if sessions.iter().any(|session| {
         !existing.iter().any(|previous| previous.id == session.id)
             && (session.memory_version.is_some()
                 || session.reconsolidated_at.is_some()
                 || session.reconsolidation_reason.is_some()
-                || session.previous_version_sha256.is_some())
+                || session.previous_version_sha256.is_some()
+                || session.archive_status.is_some()
+                || session.archive_reason.is_some()
+                || session.archive_updated_at.is_some())
     }) {
         return Err("Un recuerdo nuevo debe comenzar en su versión base".into());
     }
@@ -5621,6 +6101,9 @@ mod tests {
             suppression_status: None,
             suppression_reason: None,
             suppression_updated_at: None,
+            archive_status: None,
+            archive_reason: None,
+            archive_updated_at: None,
             memory_version: None,
             reconsolidated_at: None,
             reconsolidation_reason: None,
@@ -5649,6 +6132,7 @@ mod tests {
         assert_eq!(decoded.accessibility_status, None);
         assert_eq!(decoded.accessibility_updated_at, None);
         assert_eq!(decoded.suppression_status, None);
+        assert_eq!(decoded.archive_status, None);
         assert_eq!(decoded.successful_recalls, 0);
         assert_eq!(decoded.failed_recalls, 0);
         assert_eq!(decoded.retrieval_evidence_version, None);
@@ -6702,6 +7186,226 @@ mod tests {
     }
 
     #[test]
+    fn archive_and_restore_are_physical_reversible_and_preserve_other_axes() {
+        let root = temporary_probe_root("archive-reversible");
+        let mut memory = legacy_memory();
+        memory.id = "archive-target".into();
+        memory.memory_status = Some("confirmed".into());
+        memory.accessibility_status = Some("dormant".into());
+        memory.accessibility_updated_at = Some("2026-08-23T11:00:00Z".into());
+        memory.suppression_status = Some("suppressed".into());
+        memory.suppression_reason = Some("ownerChoice".into());
+        memory.suppression_updated_at = Some("2026-08-23T11:05:00Z".into());
+        memory.storage_strength = Some(0.42);
+        memory.summary = Some("Contenido real que debe permanecer intacto".into());
+        let original_content = write_layered_fixture(&root, std::slice::from_ref(&memory));
+        let original_sha = memory_subject_digest(&original_content);
+        let original_files = file_hashes(&root);
+        let reference = memory_lifecycle_preview_at(&root)
+            .preview
+            .expect("initial archive preview")
+            .references
+            .remove(0);
+        let (preview, _, _) = prepare_memory_archive_at(
+            &root,
+            PreviewMemoryArchiveInput {
+                expected_source_sha256: original_sha.clone(),
+                record_id: memory.id.clone(),
+                expected_record_sha256: reference.record_sha256,
+                action: MemoryArchiveAction::Archive,
+                reason: MemoryArchiveReason::OwnerChoice,
+                note: "Carlos decidió retirar temporalmente este recuerdo".into(),
+            },
+            "2026-08-23T12:00:00Z".into(),
+        )
+        .expect("prepare archive");
+        assert_eq!(file_hashes(&root), original_files);
+        let archived = confirm_memory_archive_at(
+            &root,
+            ConfirmMemoryArchiveInput {
+                expected_plan_id: preview.plan_id,
+                planned_at: preview.planned_at,
+                expected_source_sha256: preview.source_sha256,
+                record_id: preview.record_id,
+                expected_record_sha256: preview.record_sha256_before,
+                action: preview.action,
+                reason: preview.reason,
+                note: "Carlos decidió retirar temporalmente este recuerdo".into(),
+                confirmed: true,
+            },
+        )
+        .expect("confirm archive");
+        assert!(archived.new_archived);
+        assert_eq!(archived.backup_sha256, original_sha);
+        let (_, archived_records) = read_validated_source_at(&root)
+            .expect("read archived source")
+            .expect("archived source");
+        assert_eq!(archived_records[0].memory_status, memory.memory_status);
+        assert_eq!(
+            archived_records[0].accessibility_status,
+            memory.accessibility_status
+        );
+        assert_eq!(
+            archived_records[0].suppression_status,
+            memory.suppression_status
+        );
+        assert_eq!(
+            archived_records[0].storage_strength,
+            memory.storage_strength
+        );
+        assert_eq!(archived_records[0].summary, memory.summary);
+        let archived_reference = archived
+            .lifecycle
+            .preview
+            .expect("archived lifecycle")
+            .references
+            .remove(0);
+        assert!(archived_reference.archived);
+        assert_eq!(
+            archived_reference.retrieval_policy,
+            MemoryRetrievalPolicy::BlockedByArchive
+        );
+
+        let (restore_preview, _, _) = prepare_memory_archive_at(
+            &root,
+            PreviewMemoryArchiveInput {
+                expected_source_sha256: archived.source_sha256_after,
+                record_id: memory.id.clone(),
+                expected_record_sha256: archived_reference.record_sha256,
+                action: MemoryArchiveAction::Restore,
+                reason: MemoryArchiveReason::RelevantAgain,
+                note: "El recuerdo vuelve a ser relevante para Carlos".into(),
+            },
+            "2026-08-23T12:10:00Z".into(),
+        )
+        .expect("prepare restore");
+        let restored = confirm_memory_archive_at(
+            &root,
+            ConfirmMemoryArchiveInput {
+                expected_plan_id: restore_preview.plan_id,
+                planned_at: restore_preview.planned_at,
+                expected_source_sha256: restore_preview.source_sha256,
+                record_id: restore_preview.record_id,
+                expected_record_sha256: restore_preview.record_sha256_before,
+                action: restore_preview.action,
+                reason: restore_preview.reason,
+                note: "El recuerdo vuelve a ser relevante para Carlos".into(),
+                confirmed: true,
+            },
+        )
+        .expect("confirm restore");
+        assert!(!restored.new_archived);
+        assert_eq!(restored.source_sha256_after, original_sha);
+        let (_, restored_records) = read_validated_source_at(&root)
+            .expect("read restored source")
+            .expect("restored source");
+        assert_eq!(restored_records[0], memory);
+        let restored_reference = restored
+            .lifecycle
+            .preview
+            .expect("restored lifecycle")
+            .references
+            .remove(0);
+        assert!(!restored_reference.archived);
+        assert_eq!(
+            restored_reference.retrieval_policy,
+            MemoryRetrievalPolicy::BlockedBySuppression
+        );
+        fs::remove_dir_all(root).expect("remove archive cycle fixture");
+    }
+
+    #[test]
+    fn archive_rejects_unconfirmed_stale_legacy_and_restores_audit_failure() {
+        let root = temporary_probe_root("archive-guards");
+        let mut memory = legacy_memory();
+        memory.id = "archive-guard".into();
+        memory.memory_status = Some("confirmed".into());
+        let source_content = write_layered_fixture(&root, std::slice::from_ref(&memory));
+        let source_sha = memory_subject_digest(&source_content);
+        let reference = memory_lifecycle_preview_at(&root)
+            .preview
+            .expect("guard preview")
+            .references
+            .remove(0);
+        let (preview, _, _) = prepare_memory_archive_at(
+            &root,
+            PreviewMemoryArchiveInput {
+                expected_source_sha256: source_sha.clone(),
+                record_id: memory.id.clone(),
+                expected_record_sha256: reference.record_sha256,
+                action: MemoryArchiveAction::Archive,
+                reason: MemoryArchiveReason::NoLongerRelevant,
+                note: "Ya no corresponde al contexto actual".into(),
+            },
+            "2026-08-23T13:00:00Z".into(),
+        )
+        .expect("prepare guarded archive");
+        let mut confirmation = ConfirmMemoryArchiveInput {
+            expected_plan_id: preview.plan_id.clone(),
+            planned_at: preview.planned_at.clone(),
+            expected_source_sha256: preview.source_sha256.clone(),
+            record_id: preview.record_id.clone(),
+            expected_record_sha256: preview.record_sha256_before.clone(),
+            action: preview.action,
+            reason: preview.reason,
+            note: "Ya no corresponde al contexto actual".into(),
+            confirmed: false,
+        };
+        assert!(confirm_memory_archive_at(&root, confirmation.clone()).is_err());
+        confirmation.confirmed = true;
+        confirmation.expected_source_sha256 = memory_subject_digest("stale");
+        assert!(confirm_memory_archive_at(&root, confirmation).is_err());
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).expect("unchanged source"),
+            source_content
+        );
+        fs::write(root.join("memory").join("audit"), "blocked").expect("audit obstruction");
+        let failed = confirm_memory_archive_at(
+            &root,
+            ConfirmMemoryArchiveInput {
+                expected_plan_id: preview.plan_id,
+                planned_at: preview.planned_at,
+                expected_source_sha256: preview.source_sha256,
+                record_id: preview.record_id,
+                expected_record_sha256: preview.record_sha256_before,
+                action: preview.action,
+                reason: preview.reason,
+                note: "Ya no corresponde al contexto actual".into(),
+                confirmed: true,
+            },
+        );
+        assert!(failed.is_err());
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).expect("restored source"),
+            source_content
+        );
+
+        let legacy_root = temporary_probe_root("archive-legacy");
+        memory.memory_status = Some("archived".into());
+        let legacy_content = write_layered_fixture(&legacy_root, std::slice::from_ref(&memory));
+        let legacy_reference = memory_lifecycle_preview_at(&legacy_root)
+            .preview
+            .expect("legacy preview")
+            .references
+            .remove(0);
+        assert!(prepare_memory_archive_at(
+            &legacy_root,
+            PreviewMemoryArchiveInput {
+                expected_source_sha256: memory_subject_digest(&legacy_content),
+                record_id: memory.id,
+                expected_record_sha256: legacy_reference.record_sha256,
+                action: MemoryArchiveAction::Restore,
+                reason: MemoryArchiveReason::RelevantAgain,
+                note: "Intento de restauración heredada".into()
+            },
+            "2026-08-23T13:10:00Z".into()
+        )
+        .is_err());
+        fs::remove_dir_all(root).expect("remove archive guard fixture");
+        fs::remove_dir_all(legacy_root).expect("remove legacy archive fixture");
+    }
+
+    #[test]
     fn reconsolidation_preview_and_confirmation_preserve_a_real_previous_version() {
         let root = temporary_probe_root("reconsolidation-version");
         let mut memory = legacy_memory();
@@ -6848,6 +7552,15 @@ mod tests {
             std::slice::from_ref(&forged_version)
         )
         .is_err());
+        let mut forged_archive = confirmed.clone();
+        forged_archive.archive_status = Some("archived".into());
+        forged_archive.archive_reason = Some("ownerChoice".into());
+        forged_archive.archive_updated_at = Some("2026-08-23T13:07:00Z".into());
+        assert!(validate_generic_memory_update(
+            std::slice::from_ref(&confirmed),
+            std::slice::from_ref(&forged_archive)
+        )
+        .is_err());
         assert!(validate_generic_memory_update(std::slice::from_ref(&confirmed), &[]).is_err());
     }
 
@@ -6978,7 +7691,11 @@ mod tests {
         assert_eq!(
             preview.current_count
                 + preview.conflict_count
-                + preview.archived_count
+                + preview
+                    .references
+                    .iter()
+                    .filter(|reference| reference.validity == MemoryValidityState::Archived)
+                    .count()
                 + preview.not_assessed_count,
             preview.record_count
         );
@@ -6989,6 +7706,14 @@ mod tests {
                 .references
                 .iter()
                 .filter(|reference| reference.suppressed)
+                .count()
+        );
+        assert_eq!(
+            preview.archived_count,
+            preview
+                .references
+                .iter()
+                .filter(|reference| reference.archived)
                 .count()
         );
         assert_eq!(

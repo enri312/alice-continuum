@@ -1,6 +1,6 @@
 # Sistema de memoria de Alice
 
-Estado: almacenamiento v1 vigente; ciclo R6.5-H con reconsolidación versionada; rediseño funcional ADR-P-084  
+Estado: almacenamiento v1 vigente; ciclo R6.5-I con archivo reversible; rediseño funcional ADR-P-084  
 Fecha: 2026-08-23
 
 ## Propósito
@@ -79,7 +79,7 @@ El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la
 
 Antes de reemplazar un índice existente se crea un respaldo ligado a su propia huella. El documento se relee y valida después del reemplazo; si falla la auditoría local, se restaura el índice anterior o se retira el nuevo si antes no existía. Revertir conserva todas las revisiones y elimina únicamente el puntero activo. `records.json` no forma parte de estas escrituras.
 
-`storageStrength` no activa reconsolidación, accesibilidad ni supresión. R6.5-F añade una evaluación funcional derivada de resultados explícitos, pero no persiste debilitamiento como estado ni ejecuta una transición. R6.5-G incorpora la supresión sólo como una decisión voluntaria separada y R6.5-H incorpora la actualización del contenido únicamente como una operación versionada.
+`storageStrength` no activa reconsolidación, accesibilidad, supresión ni archivo. R6.5-F añade una evaluación funcional derivada de resultados explícitos, pero no persiste debilitamiento como estado ni ejecuta una transición. R6.5-G incorpora la supresión sólo como una decisión voluntaria separada, R6.5-H incorpora la actualización del contenido únicamente como una operación versionada y R6.5-I incorpora el archivo como un eje reversible independiente.
 
 ## Evaluación explícita de vigencia R6.5-D
 
@@ -123,7 +123,17 @@ La segunda acción, `confirm_memory_reconsolidation`, sólo acepta exactamente e
 
 Después del reemplazo atómico, Rust relee y valida `records.json`, proyecta nuevamente el ciclo y escribe auditoría local. Si falla la escritura, relectura, validación o auditoría, restaura los bytes originales y retira cualquier archivo de versión creado por el intento. El respaldo exacto puede permanecer como evidencia de seguridad. Una versión existente con contenido diferente bloquea la operación.
 
-El guardado genérico rechaza cambios de título, contenido, próximo paso o fuente sobre recuerdos confirmados o en conflicto, tampoco permite fabricar metadatos de versión ni eliminar un registro durable. Los cambios funcionales de contadores que no alteran contenido continúan permitidos. En el volumen sólo aparece el nodo de la versión vigente, rotulado con su número real; las versiones históricas no generan actividad ni nodos ficticios. Archivo y eliminación durable permanecen bloqueados hasta sus contratos posteriores.
+El guardado genérico rechaza cambios de título, contenido, próximo paso o fuente sobre recuerdos confirmados o en conflicto, tampoco permite fabricar metadatos de versión, alterar el archivo reversible ni eliminar un registro durable. Los cambios funcionales de contadores que no alteran contenido continúan permitidos. En el volumen sólo aparece el nodo de la versión vigente, rotulado con su número real; las versiones históricas no generan actividad ni nodos ficticios.
+
+## Archivo reversible R6.5-I
+
+El archivo nuevo no reutiliza `memoryStatus=archived`. Ese valor se admite sólo para compatibilidad con registros heredados cuya vigencia anterior es desconocida. R6.5-I conserva `memoryStatus=confirmed` o `memoryStatus=conflict` y añade un eje independiente mediante `archiveStatus=archived`, `archiveReason` y `archiveUpdatedAt`. Así, restaurar no necesita adivinar si el recuerdo era vigente o estaba en conflicto, y tampoco modifica reposo, supresión, fuerza, contenido, versión o evidencia de recuperación.
+
+`preview_memory_archive` exige las huellas actuales de `records.json` y del registro, una nota de 1 a 500 caracteres y una acción cerrada. Archivar admite `ownerChoice`, `superseded` o `noLongerRelevant`; restaurar exige `relevantAgain`. La nota privada no se persiste: sólo participa mediante SHA-256 en el `planId`. La vista previa no crea archivos ni modifica memoria y declara `automaticAction=false`.
+
+`confirm_memory_archive` es una segunda autorización sobre el mismo plan y la misma fecha. Antes de escribir crea `backups/archive-source-<sha>.json`, reemplaza `records.json` atómicamente, relee la fuente, valida el ciclo y registra auditoría local. Cualquier fallo posterior restaura exactamente los bytes anteriores. Repetir un estado, cambiar la fuente, alterar el plan o intentar restaurar un `memoryStatus=archived` heredado se rechaza sin inventar información.
+
+El RAG excluye `archiveStatus=archived` antes del puntaje léxico. La consolidación tampoco usa esos registros como candidatos. El volumen mantiene el nodo real, atenuado y rotulado como archivado, sin arista de recuperación. Restaurar retira únicamente los tres metadatos de archivo y devuelve la política resultante de vigencia, accesibilidad y supresión. La eliminación durable continúa bloqueada y requerirá un contrato distinto.
 
 ## Consolidación y repaso v1
 
@@ -147,3 +157,4 @@ No existe un proceso oculto ni una tarea en segundo plano. La cola se reconstruy
 - R6.5-F no convierte una respuesta técnica en éxito y no ejecuta olvido desde sus señales funcionales.
 - R6.5-G no suprime automáticamente y no confunde supresión con reposo, conflicto, archivo o borrado.
 - R6.5-H no reconsolida por recuperación y nunca sobrescribe contenido confirmado sin conservar la versión desplazada.
+- R6.5-I no archiva por antigüedad, fuerza o salida de modelo; archivar no es suprimir, dormir, invalidar ni eliminar.

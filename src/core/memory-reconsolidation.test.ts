@@ -10,7 +10,7 @@ function lifecycle() {
       sourceSha256: sha("b"), recordCount: 1, currentCount: 1, conflictCount: 0, archivedCount: 0, notAssessedCount: 0,
       accessibilityAssessedCount: 0, accessibleCount: 0, dormantCount: 0, retrievalEligibleCount: 1, retrievalBlockedCount: 0,
       retrievalOutcomeCount: 0, functionalAssessmentCount: 0, weakeningReviewRequiredCount: 0, retentionAssessedCount: 0, suppressedCount: 0, reconsolidatedCount: 1,
-      references: [{ recordId: "memory", recordSha256: sha("d"), validity: "current", accessibility: "notAssessed", retrievalPolicy: "eligible", retention: "notAssessed", suppressed: false, baseVersion: 1, reconsolidationCount: 1 }],
+      references: [{ recordId: "memory", recordSha256: sha("d"), validity: "current", accessibility: "notAssessed", retrievalPolicy: "eligible", retention: "notAssessed", suppressed: false, archived: false, baseVersion: 1, reconsolidationCount: 1 }],
       weakeningAssessments: [{ recordId: "memory", helpfulOutcomes: 0, notHelpfulOutcomes: 0, evidenceCount: 0, state: "notAssessed", automaticAction: false }],
       recordsModified: false, contentCopied: false, automaticInference: false,
     },

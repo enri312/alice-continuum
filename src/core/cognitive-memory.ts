@@ -12,6 +12,7 @@ export type CognitiveMemoryInput = {
   memoryStatus?: "confirmed" | "conflict" | "archived";
   accessibilityStatus?: "accessible" | "dormant";
   suppressionStatus?: "suppressed";
+  archiveStatus?: "archived";
   memoryVersion?: number;
   successfulRecalls?: number;
   successfulReviews?: number;
@@ -24,6 +25,7 @@ export type CognitiveMemoryNode = {
   status: CognitiveMemoryStatus;
   accessibility: "notAssessed" | "accessible" | "dormant";
   suppressed: boolean;
+  archived: boolean;
   version: number;
   source: string | null;
   storageStrength: number | null;
@@ -93,6 +95,7 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
     seen.add(id);
     const layer = resolveCognitiveMemoryLayer(memory);
     const status = resolveCognitiveMemoryStatus(memory);
+    const archived = status === "archived" || memory.archiveStatus === "archived";
     const center = layerCenters[layer];
     const angle = stableHash(id, 17) * Math.PI * 2;
     const radial = 0.08 + Math.sqrt(stableHash(id, 41)) * 0.24;
@@ -106,13 +109,14 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       status,
       accessibility: memory.accessibilityStatus ?? "notAssessed",
       suppressed: memory.suppressionStatus === "suppressed",
+      archived,
       version: Number.isSafeInteger(memory.memoryVersion) && (memory.memoryVersion ?? 0) >= 2 ? memory.memoryVersion! : 1,
       source: memory.source?.trim() || null,
       storageStrength: strength === null ? null : clamp01(strength),
       importance,
       successfulRecalls: nonNegativeInteger(memory.successfulRecalls),
       successfulReviews: nonNegativeInteger(memory.successfulReviews),
-      retrieved: status !== "archived" && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && retrieved.has(id),
+      retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && retrieved.has(id),
       x: Number((center[0] + Math.cos(angle) * radial).toFixed(6)),
       y: Number((center[1] + Math.sin(angle) * radial * 0.72).toFixed(6)),
       z: Number((center[2] + depth).toFixed(6)),
