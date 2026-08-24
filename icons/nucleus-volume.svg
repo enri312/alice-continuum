@@ -9,37 +9,92 @@
   </style>
   <defs>
     <radialGradient id="volume-plate" cx="38%" cy="30%" r="80%"><stop stop-color="#1b2836"/><stop offset=".55" stop-color="#0b1420"/><stop offset="1" stop-color="#04080d"/></radialGradient>
-    <linearGradient id="volume-ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22d3ee"/><stop offset=".55" stop-color="#f8fafc"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
-    <linearGradient id="volume-gb" x1="0" x2="1"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="volume-ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22d3ee"/><stop offset=".55" stop-color="#f8fafc"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+    <linearGradient id="volume-gb" x1="0" x2="1"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
     <linearGradient id="volume-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#94a3b8"/><stop offset=".35" stop-color="#334155"/><stop offset=".7" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <radialGradient id="volume-halo"><stop stop-color="#fff"/><stop offset=".2" stop-color="#22d3ee"/><stop offset=".7" stop-color="#fbbf24"/><stop offset="1" stop-color="#07111d"/></radialGradient>
+    <linearGradient id="volume-screen-bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#06121d"/><stop offset="1" stop-color="#02070e"/></linearGradient>
+    <radialGradient id="volume-halo"><stop stop-color="#fff"/><stop offset=".2" stop-color="#22d3ee"/><stop offset=".7" stop-color="#a78bfa"/><stop offset="1" stop-color="#07111d"/></radialGradient>
     <filter id="volume-shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="2.6" flood-color="#000" flood-opacity=".85"/></filter>
     <filter id="volume-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <rect x="20" y="20" width="160" height="160" rx="32" fill="#02050a"/>
   <rect x="25" y="25" width="150" height="150" rx="27" fill="url(#volume-plate)" stroke="url(#volume-ga)" stroke-width="2.4"/>
   <rect x="34" y="34" width="132" height="132" rx="21" fill="none" stroke="#1e293b" stroke-width="1.2"/>
-  <path d="M42 54v-8q0-4 4-4h8M158 54v-8q0-4-4-4h-8M42 146v8q0 4 4 4h8M158 146v8q0 4-4 4h-8" fill="none" stroke="#22d3ee" stroke-width="1.6" opacity=".5"/>
   <g fill="#1e293b" stroke="#475569" stroke-width=".6"><circle cx="31" cy="31" r="1.6"/><circle cx="169" cy="31" r="1.6"/><circle cx="31" cy="169" r="1.6"/><circle cx="169" cy="169" r="1.6"/></g>
   <path d="M88 40h6M106 40h6" stroke="#1e293b" stroke-width="1.4"/>
   <g font-family="Consolas,monospace" font-weight="900"><text x="58" y="50" fill="#475569" font-size="3">ALICE // LOCAL-FIRST</text><text x="142" y="50" fill="#475569" font-size="3" text-anchor="end">v0.1.0</text></g>
   <path d="M36 62v76M164 62v76" stroke="#1e293b" stroke-width=".7"/>
   <path d="M36 68h2.5M36 80h1.8M36 92h2.5M36 104h1.8M36 116h2.5M36 128h1.8M164 68h-2.5M164 80h-1.8M164 92h-2.5M164 104h-1.8M164 116h-2.5M164 128h-1.8" stroke="#475569" stroke-width=".6"/>
-  <circle class="volume-blink" cx="100" cy="42" r="2.2" fill="#fbbf24" filter="url(#volume-glow)"/>
-  <circle cx="100" cy="94" r="16" fill="url(#volume-halo)" stroke="#cffafe" stroke-width="1.5" filter="url(#volume-glow)"/>
-    <path d="M100 78v-4M86 82l-3-3M114 82l3-3" stroke="#fbbf24" stroke-width=".9" opacity=".7"/>
-    <circle cx="100" cy="94" r="27" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5 4" class="volume-dash" opacity=".7"/>
-    <circle cx="100" cy="94" r="38" fill="none" stroke="#475569" stroke-width=".8" stroke-dasharray="2 5" opacity=".6"/>
-    <g stroke="#477081" stroke-width=".8"><path d="M100 94 72 80M100 94l28-14M100 94 76 110M100 94l24 16M100 94V66M100 94v28" opacity=".7"/></g>
-    <g fill="#fff"><circle cx="72" cy="80" r="2.4"/><circle cx="128" cy="80" r="2.4"/><circle cx="76" cy="110" r="2.4"/><circle cx="124" cy="110" r="2.4"/><circle cx="100" cy="66" r="2.4"/><circle cx="100" cy="122" r="2.4"/></g>
-    <g fill="#22d3ee"><circle cx="72" cy="80" r="1.1"/><circle cx="76" cy="110" r="1.1"/><circle cx="100" cy="66" r="1.1"/></g><g fill="#fbbf24"><circle cx="128" cy="80" r="1.1"/><circle cx="124" cy="110" r="1.1"/><circle cx="100" cy="122" r="1.1"/></g>
-    <circle class="volume-blink" cx="138" cy="94" r="2.2" fill="#fbbf24"/>
-    <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="92" fill="#031018" font-size="3.8" text-anchor="middle">SEED</text><text x="100" y="100" fill="#031018" font-size="3" text-anchor="middle">DENS 34%</text></g>
-    <g font-family="Consolas,monospace" font-weight="900" font-size="3.4"><text x="58" y="60" fill="#2dd4bf">ENTRADA</text><text x="100" y="56" fill="#38bdf8" text-anchor="middle">CONTEXTO</text><text x="142" y="60" fill="#fbbf24" text-anchor="end">SALIDA</text></g>
-    <g fill="#475569"><circle cx="64" cy="132" r="1.4"/><circle cx="72" cy="132" r="1.4"/><circle cx="80" cy="132" r="1.4"/><circle cx="88" cy="132" r="1.4"/><circle cx="96" cy="132" r="1.4"/><circle cx="104" cy="132" r="1.4"/><circle cx="112" cy="132" r="1.4"/><circle cx="120" cy="132" r="1.4"/><circle cx="128" cy="132" r="1.4"/><circle cx="136" cy="132" r="1.4"/></g>
-    <g font-family="Consolas,monospace" font-weight="900"><text x="42" y="142" fill="#475569" font-size="3">R6</text><text x="100" y="142" fill="#64748b" font-size="3.5" text-anchor="middle">10 ANCHORS · AFFECT 0.00 ×10</text></g>
+  <circle class="volume-blink" cx="100" cy="42" r="2.2" fill="#a78bfa" filter="url(#volume-glow)"/>
+  <!-- Volume State Header -->
+    <g font-family="Consolas,monospace" font-weight="900">
+      <text x="38" y="52" fill="#22d3ee" font-size="4">VOLUMEN NEURAL · R7</text>
+      <text x="162" y="52" fill="#94a3b8" font-size="3.2" text-anchor="end">ESTRUCTURA EVOLUTIVA</text>
+    </g>
+
+    <!-- 3D Spherical Point Cloud Seed & Coordinate Reticle -->
+    <circle cx="100" cy="94" r="17" fill="url(#volume-halo)" stroke="#cffafe" stroke-width="1.6" filter="url(#volume-glow)"/>
+    <path d="M100 77v-5M85 81l-4-4M115 81l4-4" stroke="#a78bfa" stroke-width="1" opacity=".75"/>
+    <!-- Concentric Evolution Spheres -->
+    <circle cx="100" cy="94" r="28" fill="none" stroke="#22d3ee" stroke-width="1.1" stroke-dasharray="5 4" class="volume-dash" opacity=".75"/>
+    <circle cx="100" cy="94" r="39" fill="none" stroke="#475569" stroke-width=".9" stroke-dasharray="2 5" opacity=".6"/>
+    <circle cx="100" cy="94" r="48" fill="none" stroke="#334155" stroke-width=".6" opacity=".4"/>
+    
+    <!-- 3D Isometric Axes -->
+    <g stroke="#477081" stroke-width=".9">
+      <path d="M100 94 71 79M100 94l29-15M100 94 75 111M100 94l25 17M100 94V65M100 94v29" opacity=".75"/>
+    </g>
+    
+    <!-- Synaptic Satellite Nodes (Compact Volume Representation) -->
+    <g fill="#fff">
+      <circle cx="71" cy="79" r="2.5"/><circle cx="129" cy="79" r="2.5"/>
+      <circle cx="75" cy="111" r="2.5"/><circle cx="125" cy="111" r="2.5"/>
+      <circle cx="100" cy="65" r="2.5"/><circle cx="100" cy="123" r="2.5"/>
+    </g>
+    <g fill="#22d3ee">
+      <circle cx="71" cy="79" r="1.2"/><circle cx="75" cy="111" r="1.2"/><circle cx="100" cy="65" r="1.2"/>
+    </g>
+    <g fill="#a78bfa">
+      <circle cx="129" cy="79" r="1.2"/><circle cx="125" cy="111" r="1.2"/><circle cx="100" cy="123" r="1.2"/>
+    </g>
+    
+    <circle class="volume-blink" cx="139" cy="94" r="2.3" fill="#22d3ee"/>
+    
+    <!-- Dynamic Signal Traces -->
+    <path d="M71 79q14-8 29-14M100 65q14 8 29 14" fill="none" stroke="#a78bfa" stroke-width="1.2" opacity=".6"/>
+    
+    <!-- Seed Density Label -->
+    <g font-family="Consolas,monospace" font-weight="900">
+      <text x="100" y="92" fill="#031018" font-size="3.8" text-anchor="middle">SEED</text>
+      <text x="100" y="100" fill="#031018" font-size="3" text-anchor="middle">DENS 34%</text>
+    </g>
+    
+    <!-- Bottom Affective Vector Anchors & Palette -->
+    <g font-family="Consolas,monospace" font-weight="900" font-size="3.3">
+      <rect x="38" y="127" width="58" height="10" rx="2" fill="#07111e" stroke="#22d3ee" stroke-width=".9"/>
+      <text x="67" y="134" fill="#93c5fd" text-anchor="middle">AFFECTIVE TONE</text>
+      
+      <rect x="105" y="127" width="58" height="10" rx="2" fill="#07111e" stroke="#a78bfa" stroke-width=".9"/>
+      <text x="134" y="134" fill="#e9d5ff" text-anchor="middle">10 ANCHORS</text>
+    </g>
+
+    <!-- Signal-Conditioned Colors & Real Anchors Display -->
+    <g fill="#475569">
+      <circle cx="111" cy="143" r="1.5"/><circle cx="116" cy="143" r="1.5"/>
+      <circle cx="121" cy="143" r="1.5"/><circle cx="126" cy="143" r="1.5"/>
+      <circle cx="131" cy="143" r="1.5"/><circle cx="136" cy="143" r="1.5"/>
+      <circle cx="141" cy="143" r="1.5"/><circle cx="146" cy="143" r="1.5"/>
+      <circle cx="151" cy="143" r="1.5"/><circle cx="156" cy="143" r="1.5"/>
+    </g>
+    <circle cx="121" cy="143" r="1.5" fill="#f43f5e" filter="url(#volume-glow)"/>
+    <circle cx="136" cy="143" r="1.5" fill="#eab308" filter="url(#volume-glow)"/>
+    <circle cx="146" cy="143" r="1.5" fill="#10b981" filter="url(#volume-glow)"/>
+
+    <g font-family="Consolas,monospace" font-weight="900">
+      <text x="38" y="144" fill="#64748b" font-size="3.5">COMPACT GRAPH · AFFECT 0.42</text>
+    </g>
   <rect class="volume-scan" x="40" y="50" width="120" height="1.4" fill="#22d3ee"/>
   <g fill="#334155"><rect x="40" y="166" width="1.4" height="6"/><rect x="43" y="166" width=".8" height="6"/><rect x="45.2" y="166" width="1.8" height="6"/><rect x="48.6" y="166" width=".8" height="6"/><rect x="51" y="166" width="1.3" height="6"/><rect x="54" y="166" width=".8" height="6"/></g><rect x="46.6" y="166" width="1" height="6" fill="#22d3ee"/>
   <g font-family="Consolas,monospace" font-weight="900"><text x="160" y="171" fill="#475569" font-size="3.2" text-anchor="end">SN-VOLUME</text></g>
-  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="163" fill="#64748b" font-size="7" text-anchor="middle" letter-spacing="2">SEED</text></g>
+  <g font-family="Consolas,monospace" font-weight="900"><text x="100" y="163" fill="#64748b" font-size="7" text-anchor="middle" letter-spacing="2">VOL</text></g>
 </svg>
