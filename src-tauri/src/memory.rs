@@ -149,8 +149,8 @@ struct MemoryAuditEntry {
     sha256: String,
 }
 
-const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 1;
-const LAYERED_MEMORY_FILE: &str = "layer-index-v2.json";
+const LAYERED_MEMORY_SCHEMA_VERSION: u8 = 2;
+const LAYERED_MEMORY_FILE: &str = "layer-index-v3.json";
 const MEMORY_LIFECYCLE_PREVIEW_SCHEMA_VERSION: u8 = 1;
 const MEMORY_LIFECYCLE_FILE: &str = "lifecycle-index-v1.json";
 const MEMORY_RECONSOLIDATION_SCHEMA_VERSION: u8 = 1;
@@ -202,8 +202,20 @@ struct LayeredMemoryReference {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+enum ProceduralMemoryLinkState {
+    PendingR5,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LayeredProceduralMemoryReference {
+    record_id: String,
+    link_state: ProceduralMemoryLinkState,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 enum UnclassifiedMemoryReason {
-    ProceduralNeedsR5Link,
     PreferenceNeedsOwnLayer,
     MissingExplicitType,
     UnsupportedExplicitType,
@@ -222,6 +234,7 @@ struct LayeredMemoryLayers {
     working: Vec<LayeredMemoryReference>,
     episodic: Vec<LayeredMemoryReference>,
     taught_facts: Vec<LayeredMemoryReference>,
+    procedural: Vec<LayeredProceduralMemoryReference>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -250,6 +263,7 @@ pub(crate) struct LayeredMemoryPreview {
     working_count: usize,
     episodic_count: usize,
     taught_fact_count: usize,
+    procedural_count: usize,
     unclassified_count: usize,
     procedural_pending_count: usize,
     preference_pending_count: usize,
@@ -450,6 +464,7 @@ pub(crate) struct AssessMemoryValidityInput {
     record_id: String,
     expected_record_sha256: String,
     action: MemoryValidityAssessmentAction,
+    declared_source: Option<String>,
     confirmed: bool,
 }
 
@@ -2325,6 +2340,21 @@ fn assess_memory_validity_at(
     if input.record_id.trim().is_empty() || input.record_id.len() > 160 {
         return Err("La evaluación de vigencia contiene un ID inválido".into());
     }
+    let declared_source = input
+        .declared_source
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    if input.declared_source.is_some()
+        && (declared_source.is_none()
+            || declared_source.is_some_and(|value| {
+                value.chars().count() > 300 || value.chars().any(char::is_control)
+            }))
+    {
+        return Err(
+            "La procedencia declarada debe tener entre 1 y 300 caracteres sin controles".into(),
+        );
+    }
     validate_timestamp("reviewedAt", &now)?;
     let lifecycle_before = memory_lifecycle_preview_at(data_root);
     if matches!(
@@ -2359,6 +2389,24 @@ fn assess_memory_validity_at(
     {
         return Err("Sólo un recuerdo no evaluado admite esta operación inicial".into());
     }
+    let source_declared = match session.source.as_deref() {
+        Some(existing) => {
+            if declared_source.is_some_and(|declared| declared != existing) {
+                return Err(
+                    "La evaluación de vigencia no puede reemplazar una procedencia existente"
+                        .into(),
+                );
+            }
+            false
+        }
+        None => {
+            let declared = declared_source.ok_or(
+                "Este recuerdo no tiene procedencia; declárala antes de confirmar su vigencia",
+            )?;
+            session.source = Some(declared.into());
+            true
+        }
+    };
     let new_validity = match input.action {
         MemoryValidityAssessmentAction::ConfirmCurrent => {
             session.memory_status = Some("confirmed".into());
@@ -2426,9 +2474,15 @@ fn assess_memory_validity_at(
         )?;
         return Err("La evaluación volvió incoherente el ciclo y fue restaurada".into());
     }
-    let audit_action = match input.action {
-        MemoryValidityAssessmentAction::ConfirmCurrent => "validity-confirm-current",
-        MemoryValidityAssessmentAction::MarkConflict => "validity-mark-conflict",
+    let audit_action = match (input.action, source_declared) {
+        (MemoryValidityAssessmentAction::ConfirmCurrent, false) => "validity-confirm-current",
+        (MemoryValidityAssessmentAction::ConfirmCurrent, true) => {
+            "validity-confirm-current-with-provenance"
+        }
+        (MemoryValidityAssessmentAction::MarkConflict, false) => "validity-mark-conflict",
+        (MemoryValidityAssessmentAction::MarkConflict, true) => {
+            "validity-mark-conflict-with-provenance"
+        }
     };
     if let Err(audit_error) =
         append_memory_audit(&source_path, audit_action, sessions.len(), &projected)
@@ -5715,6 +5769,7 @@ fn classify_layered_memory(
     ));
     let mut episodic = Vec::new();
     let mut taught_facts = Vec::new();
+    let mut procedural = Vec::new();
     let mut unclassified = Vec::new();
 
     for session in sessions {
@@ -5726,9 +5781,13 @@ fn classify_layered_memory(
         } else if session.kind == "Enseñanza" && session.memory_type.as_deref() == Some("semantic")
         {
             taught_facts.push(reference);
+        } else if session.memory_type.as_deref() == Some("procedural") {
+            procedural.push(LayeredProceduralMemoryReference {
+                record_id: reference.record_id,
+                link_state: ProceduralMemoryLinkState::PendingR5,
+            });
         } else {
             let reason = match session.memory_type.as_deref() {
-                Some("procedural") => UnclassifiedMemoryReason::ProceduralNeedsR5Link,
                 Some("preference") => UnclassifiedMemoryReason::PreferenceNeedsOwnLayer,
                 None => UnclassifiedMemoryReason::MissingExplicitType,
                 Some(_) => UnclassifiedMemoryReason::UnsupportedExplicitType,
@@ -5752,6 +5811,7 @@ fn classify_layered_memory(
             working: Vec::new(),
             episodic,
             taught_facts,
+            procedural,
         },
         unclassified,
     }
@@ -5764,11 +5824,13 @@ fn layered_preview(revision: &LayeredMemoryRevision) -> LayeredMemoryPreview {
         working_count: revision.layers.working.len(),
         episodic_count: revision.layers.episodic.len(),
         taught_fact_count: revision.layers.taught_facts.len(),
+        procedural_count: revision.layers.procedural.len(),
         unclassified_count: revision.unclassified.len(),
         procedural_pending_count: revision
-            .unclassified
+            .layers
+            .procedural
             .iter()
-            .filter(|item| item.reason == UnclassifiedMemoryReason::ProceduralNeedsR5Link)
+            .filter(|item| item.link_state == ProceduralMemoryLinkState::PendingR5)
             .count(),
         preference_pending_count: revision
             .unclassified
@@ -5792,7 +5854,7 @@ fn revision_matches_projection(
 
 fn validate_layered_document(document: &LayeredMemoryDocument) -> Result<(), String> {
     if document.schema_version != LAYERED_MEMORY_SCHEMA_VERSION {
-        return Err("layer-index-v2.json usa una versión desconocida".into());
+        return Err("layer-index-v3.json usa una versión desconocida".into());
     }
     let mut revision_ids = HashSet::with_capacity(document.revisions.len());
     for (index, revision) in document.revisions.iter().enumerate() {
@@ -5816,6 +5878,13 @@ fn validate_layered_document(document: &LayeredMemoryDocument) -> Result<(), Str
             .iter()
             .chain(revision.layers.taught_facts.iter())
             .map(|item| item.record_id.as_str())
+            .chain(
+                revision
+                    .layers
+                    .procedural
+                    .iter()
+                    .map(|item| item.record_id.as_str()),
+            )
             .chain(
                 revision
                     .unclassified
@@ -5987,7 +6056,7 @@ fn write_layered_document_at(
         .map_err(|error| format!("No se pudo crear memory/backups: {error}"))?;
     let path = layered_memory_path(data_root);
     if path.exists() {
-        fs::copy(&path, backups.join("layer-index-v2.backup.json"))
+        fs::copy(&path, backups.join("layer-index-v3.backup.json"))
             .map_err(|error| format!("No se pudo respaldar el índice R6: {error}"))?;
     }
     let content = serde_json::to_string_pretty(document).map_err(|error| error.to_string())?;
@@ -7052,15 +7121,20 @@ mod tests {
         assert!(!preview.content_copied);
         assert!(!preview.automatic_classification);
         assert_eq!(
-            preview.episodic_count + preview.taught_fact_count + preview.unclassified_count,
+            preview.episodic_count
+                + preview.taught_fact_count
+                + preview.procedural_count
+                + preview.unclassified_count,
             preview.record_count
         );
         eprintln!(
-            "R6_CANONICAL records={} working={} episodic={} taughtFacts={} unclassified={} filesIntact={}",
+            "R6_CANONICAL records={} working={} episodic={} taughtFacts={} procedural={} proceduralPendingR5={} unclassified={} filesIntact={}",
             preview.record_count,
             preview.working_count,
             preview.episodic_count,
             preview.taught_fact_count,
+            preview.procedural_count,
+            preview.procedural_pending_count,
             preview.unclassified_count,
             before.len()
         );
@@ -7394,7 +7468,7 @@ mod tests {
     }
 
     #[test]
-    fn validity_confirmation_changes_only_review_evidence_and_preserves_exact_backup() {
+    fn validity_confirmation_declares_missing_source_and_preserves_exact_backup() {
         let root = temporary_probe_root("validity-confirm");
         let mut memory = legacy_memory();
         memory.finished_at = Some("2026-08-20T12:00:00Z".into());
@@ -7429,6 +7503,7 @@ mod tests {
                 record_id: memory.id.clone(),
                 expected_record_sha256: reference.record_sha256,
                 action: MemoryValidityAssessmentAction::ConfirmCurrent,
+                declared_source: Some("Fixture local controlado".into()),
                 confirmed: true,
             },
             "2026-08-22T10:00:00Z".into(),
@@ -7476,6 +7551,7 @@ mod tests {
         assert_eq!(stored.storage_strength, memory.storage_strength);
         assert_eq!(stored.summary, memory.summary);
         assert_eq!(stored.intention, memory.intention);
+        assert_eq!(stored.source.as_deref(), Some("Fixture local controlado"));
         let assessed_reference = result
             .lifecycle
             .preview
@@ -7493,6 +7569,7 @@ mod tests {
                 record_id: memory.id,
                 expected_record_sha256: assessed_reference.record_sha256.clone(),
                 action: MemoryValidityAssessmentAction::MarkConflict,
+                declared_source: None,
                 confirmed: true,
             },
             "2026-08-22T10:01:00Z".into(),
@@ -7525,6 +7602,7 @@ mod tests {
                 record_id: memory.id.clone(),
                 expected_record_sha256: reference.record_sha256,
                 action: MemoryValidityAssessmentAction::MarkConflict,
+                declared_source: Some("Fixture local controlado".into()),
                 confirmed: true,
             },
             "2026-08-22T10:10:00Z".into(),
@@ -7560,6 +7638,7 @@ mod tests {
             record_id: memory.id,
             expected_record_sha256: reference.record_sha256,
             action: MemoryValidityAssessmentAction::ConfirmCurrent,
+            declared_source: Some("Fixture local controlado".into()),
             confirmed: true,
         };
 
@@ -7567,6 +7646,12 @@ mod tests {
         unconfirmed.confirmed = false;
         assert!(
             assess_memory_validity_at(&root, unconfirmed, "2026-08-22T10:20:00Z".into()).is_err()
+        );
+        let mut missing_source = base_input.clone();
+        missing_source.declared_source = None;
+        assert!(
+            assess_memory_validity_at(&root, missing_source, "2026-08-22T10:20:00Z".into())
+                .is_err()
         );
         let mut stale_source = base_input.clone();
         stale_source.expected_source_sha256 = format!("sha256:{}", "a".repeat(64));
@@ -7580,6 +7665,37 @@ mod tests {
         );
         assert_eq!(file_hashes(&root), before);
         fs::remove_dir_all(root).expect("remove validity rejection fixture");
+    }
+
+    #[test]
+    fn validity_assessment_cannot_replace_existing_provenance() {
+        let root = temporary_probe_root("validity-provenance-preserved");
+        let mut memory = legacy_memory();
+        memory.source = Some("Procedencia original confirmada".into());
+        let source_content = write_layered_fixture(&root, std::slice::from_ref(&memory));
+        let reference = memory_lifecycle_preview_at(&root)
+            .preview
+            .expect("validity preview")
+            .references
+            .remove(0);
+        let before = file_hashes(&root);
+
+        let result = assess_memory_validity_at(
+            &root,
+            AssessMemoryValidityInput {
+                expected_source_sha256: memory_subject_digest(&source_content),
+                record_id: memory.id,
+                expected_record_sha256: reference.record_sha256,
+                action: MemoryValidityAssessmentAction::ConfirmCurrent,
+                declared_source: Some("Procedencia sustituta".into()),
+                confirmed: true,
+            },
+            "2026-08-22T10:25:00Z".into(),
+        );
+
+        assert!(result.is_err());
+        assert_eq!(file_hashes(&root), before);
+        fs::remove_dir_all(root).expect("remove provenance preservation fixture");
     }
 
     #[test]
@@ -7602,6 +7718,7 @@ mod tests {
                 record_id: memory.id,
                 expected_record_sha256: reference.record_sha256,
                 action: MemoryValidityAssessmentAction::ConfirmCurrent,
+                declared_source: Some("Fixture local controlado".into()),
                 confirmed: true,
             },
             "2026-08-22T10:30:00Z".into(),
@@ -8912,7 +9029,8 @@ mod tests {
         assert_eq!(preview.working_count, 0);
         assert_eq!(preview.episodic_count, 1);
         assert_eq!(preview.taught_fact_count, 1);
-        assert_eq!(preview.unclassified_count, 2);
+        assert_eq!(preview.procedural_count, 1);
+        assert_eq!(preview.unclassified_count, 1);
         assert_eq!(preview.procedural_pending_count, 1);
         assert_eq!(preview.preference_pending_count, 1);
         assert!(!preview.content_copied);

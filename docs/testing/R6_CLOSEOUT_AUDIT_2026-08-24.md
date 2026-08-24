@@ -1,7 +1,7 @@
 # Auditoría de cierre R6 — Memoria por capas y consolidación v2
 
 Fecha: 2026-08-24  
-Resultado: implementación técnica aprobada; aceptación canónica pendiente
+Resultado: implementación R6.6-A aprobada; aceptación canónica pendiente de nueve revisiones del propietario
 
 ## Alcance
 
@@ -37,17 +37,33 @@ CANONICAL_FILES_AFTER=21
 CANONICAL_HASH_DELTA=0
 ```
 
+## Remediación R6.6-A
+
+La auditoría inicial detectó que el único registro sin capa ya declaraba `memoryType=procedural`, fuente y vigencia. R6.6-A no lo relabeló: creó el contrato paralelo `layer-index-v3.json`, donde conserva la capa `procedural` y `linkState=pendingR5`. Ese estado no crea una habilidad ni permite ejecución.
+
+La nueva sonda canónica fue exclusivamente de sólo lectura:
+
+```text
+R6_CANONICAL records=20 working=0 episodic=19 taughtFacts=0 procedural=1 proceduralPendingR5=1 unclassified=0 filesIntact=21
+CANONICAL_FILES_BEFORE=21
+CANONICAL_FILES_AFTER=21
+CANONICAL_HASH_DELTA=0
+V3_CREATED=False
+```
+
+El índice v2 activo no fue reescrito. La interfaz permite revisar v3 y activarlo posteriormente sobre la huella final. Para los nueve recuerdos sin procedencia, la misma operación gobernada de vigencia exige ahora una declaración de procedencia; crea respaldo exacto, reemplaza atómicamente y audita. No puede cambiar una procedencia existente.
+
 ## Criterios de aceptación
 
 | Criterio | Estado | Evidencia |
 |---|---|---|
-| Cada recuerdo tiene capa, origen, estado y reglas de vigencia | Pendiente | 1 recuerdo sin capa; 9 sin procedencia explícita y sin evaluación de vigencia |
+| Cada recuerdo tiene capa, origen, estado y reglas de vigencia | Pendiente | v3 proyecta las 20 capas; 9 recuerdos aún requieren procedencia explícita y evaluación de vigencia |
 | Los conflictos no se resuelven silenciosamente | Aprobado | Contratos `keepSeparate`, revisión y estados explícitos |
 | La consolidación ofrece vista previa y respaldo | Aprobado | Vista previa, respaldo exacto, recibo durable y restauración gobernada |
 | La memoria de trabajo puede descartarse sin borrar memoria duradera | Aprobado | RAM nativa separada y borrado por generación |
 | Los índices derivados pueden reconstruirse desde la fuente de verdad | Aprobado | Proyecciones R6.1 y R6.5 releídas desde `records.json` |
 
-El criterio pendiente afecta diez recuerdos y exige diecinueve decisiones de campo: asignar la capa del recuerdo `unclassified`, declarar la procedencia de nueve recuerdos y confirmar o marcar en conflicto esos mismos nueve recuerdos `notAssessed`. El recuerdo sin capa es distinto de los nueve sin procedencia y vigencia. No se completan automáticamente porque hacerlo fabricaría conocimiento sobre datos personales reales.
+El criterio pendiente afecta nueve recuerdos y exige dieciocho decisiones humanas: declarar nueve procedencias y confirmar o marcar en conflicto esos mismos nueve recuerdos `notAssessed`. Después deberá activarse la proyección v3 sobre la huella resultante. No se completan automáticamente porque hacerlo fabricaría conocimiento sobre datos personales reales.
 
 ## Puerta completa de calidad
 
@@ -57,7 +73,7 @@ El criterio pendiente afecta diez recuerdos y exige diecinueve decisiones de cam
 | `npm test` | 335/335 aprobadas en 40 archivos |
 | `npm run build` | Aprobado; sólo advertencias conocidas por chunks mayores a 500 kB |
 | `cargo fmt --check` | Aprobado |
-| `cargo test` | 227 aprobadas, 18 ignoradas, 0 fallidas |
+| `cargo test` | 228 aprobadas, 18 ignoradas, 0 fallidas |
 | `cargo clippy --all-targets --all-features -- -D warnings` | Aprobado |
 | `cargo build` | Aprobado |
 
@@ -65,4 +81,4 @@ Las 18 pruebas ignoradas requieren autorización o condiciones externas concreta
 
 ## Decisión de fase
 
-La arquitectura y los contratos de R6.1–R6.5-J quedan técnicamente validados. R6 permanece abierta únicamente por el primer criterio de aceptación. No se inicia R7 ni se altera la memoria canónica hasta que el propietario revise los diez recuerdos afectados desde las superficies gobernadas de Memoria.
+La arquitectura y los contratos de R6.1–R6.6-A quedan técnicamente validados. R6 permanece abierta únicamente por el primer criterio de aceptación. No se inicia R7. El propietario debe revisar los nueve recuerdos desde **Memoria → Ciclo** y, al terminar, revisar y activar v3 desde **Memoria → Capas R6**.

@@ -1,8 +1,8 @@
 # Contrato R6 — Memoria por capas y migración reversible
 
-Versión: R6.1  
+Versión: R6.6-A  
 Estado: implementado y validado  
-Fecha: 2026-08-13
+Fecha: 2026-08-24
 
 ## Propósito
 
@@ -11,7 +11,8 @@ R6 separa memoria de trabajo, episodios y hechos enseñados sin reinterpretar si
 ## Fuentes de verdad
 
 - `records.json` continúa siendo la fuente histórica editable durante R6.1.
-- `layer-index-v2.json` contiene únicamente referencias, clasificación, procedencia y revisiones de migración.
+- `layer-index-v2.json` conserva el contrato R6.1 y no se reinterpreta ni sobrescribe.
+- `layer-index-v3.json` contiene las revisiones nuevas, incorpora la capa procedimental y conserva el estado de enlace R5 pendiente.
 - Cada revisión queda ligada al SHA-256 exacto de `records.json` que la originó.
 - Una revisión anterior no se reescribe cuando cambia la fuente.
 
@@ -22,7 +23,8 @@ R6 separa memoria de trabajo, episodios y hechos enseñados sin reinterpretar si
 | `working` | Contexto explícito de la sesión actual | Vacía en la migración; no se deriva de v1 ni se conserva todavía |
 | `episodic` | Registros `Conversación` y enseñanzas declaradas `episodic` | Referencias al registro v1 |
 | `taughtFacts` | Enseñanzas directas declaradas `semantic` | Referencias al registro v1 |
-| `unclassified` | Procedimientos, preferencias o registros que no encajan sin interpretación | Referencia y código de razón; nunca promoción automática |
+| `procedural` | Registros declarados `procedural` | Referencia y `linkState=pendingR5`; no habilita ejecución ni inventa una habilidad |
+| `unclassified` | Preferencias o registros que no encajan sin interpretación | Referencia y código de razón; nunca promoción automática |
 
 Una preferencia no se convierte en hecho, y una enseñanza procedural no se convierte en memoria procedimental R5/R4 por existir en `records.json`.
 
@@ -30,7 +32,7 @@ Una preferencia no se convierte en hecho, y una enseñanza procedural no se conv
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "activeRevisionId": "sha256:…",
   "revisions": [
     {
@@ -44,7 +46,10 @@ Una preferencia no se convierte en hecho, y una enseñanza procedural no se conv
       "layers": {
         "working": [],
         "episodic": [],
-        "taughtFacts": []
+        "taughtFacts": [],
+        "procedural": [
+          { "recordId": "…", "linkState": "pendingR5" }
+        ]
       },
       "unclassified": []
     }
@@ -53,6 +58,8 @@ Una preferencia no se convierte en hecho, y una enseñanza procedural no se conv
 ```
 
 Los IDs de revisión son deterministas respecto de esquema y huella fuente. Las revisiones son inmutables; activar o revertir sólo cambia `activeRevisionId`.
+
+El índice v3 es paralelo al v2: su vista previa no crea archivos y su activación requiere una confirmación nueva. El índice v2 activo permanece disponible como evidencia histórica hasta que el propietario revise y active v3.
 
 ## Estados visibles
 

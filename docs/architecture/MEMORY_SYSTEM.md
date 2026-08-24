@@ -1,7 +1,7 @@
 # Sistema de memoria de Alice
 
-Estado: almacenamiento v1 vigente; ciclo R6.5-I con archivo reversible; rediseño funcional ADR-P-084  
-Fecha: 2026-08-23
+Estado: almacenamiento v1 vigente; ciclo R6.5-J; proyección por capas R6.6-A  
+Fecha: 2026-08-24
 
 ## Propósito
 
@@ -17,7 +17,8 @@ El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese
 memory/
 |-- manifest.json                 # Versión y contrato del almacenamiento
 |-- records.json                  # Recuerdos y enseñanzas vigentes
-|-- layer-index-v2.json           # Revisiones R6.1 derivadas, sin contenido privado
+|-- layer-index-v2.json           # Revisiones históricas R6.1, preservadas
+|-- layer-index-v3.json           # Revisiones R6.6-A con capa procedimental
 |-- lifecycle-index-v1.json       # Índice lateral opcional activado por el propietario
 |-- revisions/
 |   `-- reconsolidation-v1-*.json # Versiones desplazadas, privadas e inmutables
@@ -56,16 +57,17 @@ Campos principales: identificador, clase de registro, intención o título, cont
 
 La fuerza de almacenamiento no es una certeza científica ni una probabilidad de verdad. Es una métrica de ingeniería explicable para visualizar estabilidad y programar revisiones. Accesibilidad, confianza factual, importancia, procedencia, frecuencia de recuperación y estado deben permanecer como dimensiones independientes.
 
-## Proyección por capas R6.1
+## Proyección por capas R6.1 y R6.6-A
 
 `records.json` continúa siendo la fuente editable. La pestaña **Capas R6** genera una vista previa de sólo lectura y clasifica únicamente referencias explícitas:
 
 - conversaciones y experiencias declaradas como episodios;
 - enseñanzas semánticas como hechos enseñados;
-- procedimientos y preferencias como elementos todavía sin clasificar;
+- procedimientos en una capa propia con enlace R5 explícitamente pendiente;
+- preferencias u otros tipos sin contrato como elementos todavía sin clasificar;
 - memoria de trabajo vacía y no persistente.
 
-Activar exige confirmar el SHA-256 exacto mostrado. Rust relee la fuente antes de escribir `layer-index-v2.json`; si cambió, rechaza la operación. El índice conserva revisiones inmutables y no copia títulos, resúmenes, fuentes o conversaciones. Revertir elimina sólo el puntero de revisión activa y mantiene toda la evidencia.
+R6.6-A no modifica el `layer-index-v2.json` activo: crea una vista v3 paralela y sólo escribe `layer-index-v3.json` después de confirmar su SHA-256. Rust relee la fuente; si cambió, rechaza la operación. El índice conserva revisiones inmutables y no copia títulos, resúmenes, fuentes o conversaciones. Un procedimiento `pendingR5` tiene capa, pero no se presenta como habilidad ni puede ejecutarse.
 
 El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la decisión en [ADR-P-066](../decisions/ADR-P-066-proyeccion-memoria-por-capas.md).
 
@@ -83,11 +85,11 @@ Antes de reemplazar un índice existente se crea un respaldo ligado a su propia 
 
 ## Evaluación explícita de vigencia R6.5-D
 
-`assess_memory_validity` acepta únicamente recuerdos cuyo estado sea todavía `notAssessed`. La interfaz presenta el registro real y dos decisiones humanas: **Confirmar vigente** o **Necesita corrección**. Ningún modelo, antigüedad, frecuencia o valor de fuerza puede tomar esa decisión.
+`assess_memory_validity` acepta únicamente recuerdos cuyo estado sea todavía `notAssessed`. La interfaz presenta el registro real y dos decisiones humanas: **Confirmar vigente** o **Necesita corrección**. Si el recuerdo no posee `source`, R6.6-A exige declarar una procedencia de 1 a 300 caracteres dentro de la misma operación. Ningún modelo, antigüedad, frecuencia o valor de fuerza puede tomar esas decisiones.
 
 La solicitud queda ligada tanto a la huella completa mostrada de `records.json` como a la huella individual del recuerdo. Rust vuelve a leer ambas antes de actuar, crea `backups/validity-source-<sha>.json`, reemplaza `records.json` atómicamente y valida el archivo resultante. Si la relectura o la auditoría fallan, restaura exactamente los bytes originales.
 
-Confirmar vigencia establece `memoryStatus=confirmed`, incrementa `successfulReviews` y registra `lastReviewedAt`. Marcar conflicto establece `memoryStatus=conflict`, incrementa `correctionCount` y registra la misma evidencia temporal. Ambas operaciones preservan el texto, la fuente, importancia y `storageStrength`. Si había una revisión activa de `lifecycle-index-v1.json`, no se reescribe: pasa a `sourceChanged` y requiere revisión explícita sobre la nueva huella.
+Confirmar vigencia establece `memoryStatus=confirmed`, incrementa `successfulReviews` y registra `lastReviewedAt`. Marcar conflicto establece `memoryStatus=conflict`, incrementa `correctionCount` y registra la misma evidencia temporal. Ambas operaciones preservan texto, importancia y `storageStrength`; sólo pueden completar una fuente ausente y nunca sustituir una existente. Si había una revisión activa de `lifecycle-index-v1.json`, no se reescribe: pasa a `sourceChanged` y requiere revisión explícita sobre la nueva huella.
 
 ## Accesibilidad y reposo R6.5-E
 

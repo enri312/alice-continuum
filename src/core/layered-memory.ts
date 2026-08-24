@@ -6,6 +6,7 @@ export type LayeredMemoryPreview = {
   workingCount: number;
   episodicCount: number;
   taughtFactCount: number;
+  proceduralCount: number;
   unclassifiedCount: number;
   proceduralPendingCount: number;
   preferencePendingCount: number;
@@ -14,7 +15,7 @@ export type LayeredMemoryPreview = {
 };
 
 export type LayeredMemorySnapshot = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   state: LayeredMemoryState;
   storagePath: string;
   sourceSha256: string | null;
@@ -28,7 +29,7 @@ export type LayeredMemorySnapshot = {
 };
 
 const snapshotKeys = ["schemaVersion", "state", "storagePath", "sourceSha256", "activeRevisionId", "revisionCount", "preview", "blockedReason", "migrationRequiresConfirmation", "automaticMigration", "contentCopied"];
-const previewKeys = ["sourceSha256", "recordCount", "workingCount", "episodicCount", "taughtFactCount", "unclassifiedCount", "proceduralPendingCount", "preferencePendingCount", "contentCopied", "automaticClassification"];
+const previewKeys = ["sourceSha256", "recordCount", "workingCount", "episodicCount", "taughtFactCount", "proceduralCount", "unclassifiedCount", "proceduralPendingCount", "preferencePendingCount", "contentCopied", "automaticClassification"];
 const states: LayeredMemoryState[] = ["unavailable", "ready", "active", "sourceChanged", "rolledBack", "blocked"];
 const digest = /^sha256:[0-9a-f]{64}$/;
 
@@ -74,6 +75,7 @@ function parsePreview(value: unknown): LayeredMemoryPreview {
     workingCount: count(input.workingCount, "preview.workingCount"),
     episodicCount: count(input.episodicCount, "preview.episodicCount"),
     taughtFactCount: count(input.taughtFactCount, "preview.taughtFactCount"),
+    proceduralCount: count(input.proceduralCount, "preview.proceduralCount"),
     unclassifiedCount: count(input.unclassifiedCount, "preview.unclassifiedCount"),
     proceduralPendingCount: count(input.proceduralPendingCount, "preview.proceduralPendingCount"),
     preferencePendingCount: count(input.preferencePendingCount, "preview.preferencePendingCount"),
@@ -81,15 +83,15 @@ function parsePreview(value: unknown): LayeredMemoryPreview {
     automaticClassification: false,
   };
   if (preview.workingCount !== 0) fail("R6.1 no puede persistir memoria de trabajo");
-  if (preview.episodicCount + preview.taughtFactCount + preview.unclassifiedCount !== preview.recordCount) fail("preview no clasifica exactamente todos los registros");
-  if (preview.proceduralPendingCount + preview.preferencePendingCount > preview.unclassifiedCount) fail("los pendientes exceden los registros sin clasificar");
+  if (preview.episodicCount + preview.taughtFactCount + preview.proceduralCount + preview.unclassifiedCount !== preview.recordCount) fail("preview no clasifica exactamente todos los registros");
+  if (preview.proceduralPendingCount > preview.proceduralCount || preview.preferencePendingCount > preview.unclassifiedCount) fail("los pendientes exceden su capa o los registros sin clasificar");
   return preview;
 }
 
 export function parseLayeredMemorySnapshot(value: unknown): LayeredMemorySnapshot {
   const input = record(value, "snapshot");
   exactKeys(input, snapshotKeys, "snapshot");
-  if (input.schemaVersion !== 1) fail("schemaVersion debe ser 1");
+  if (input.schemaVersion !== 2) fail("schemaVersion debe ser 2");
   if (typeof input.state !== "string" || !states.includes(input.state as LayeredMemoryState)) fail("state es desconocido");
   if (typeof input.storagePath !== "string" || !input.storagePath.trim()) fail("storagePath está vacío");
   if (input.migrationRequiresConfirmation !== true || input.automaticMigration !== false || input.contentCopied !== false) fail("las fronteras de migración no están cerradas");
@@ -103,7 +105,7 @@ export function parseLayeredMemorySnapshot(value: unknown): LayeredMemorySnapsho
   if (state === "blocked" && !blockedReason) fail("el bloqueo requiere una razón");
   if (state !== "blocked" && blockedReason) fail("sólo blocked puede incluir una razón");
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     state,
     storagePath: input.storagePath,
     sourceSha256,

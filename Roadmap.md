@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** implementación R6.1–R6.5-J validada · cierre canónico pendiente en 10 recuerdos al 2026-08-24  
+**Estado:** implementación R6.1–R6.6-A validada · cierre canónico pendiente en 9 recuerdos al 2026-08-24  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -249,6 +249,8 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.5-J:** la eliminación durable queda separada del archivo reversible y nunca se deduce de antigüedad, fuerza, utilidad ni una salida de modelo. Sólo un recuerdo archivado por R6.5-I puede programarse mediante vista previa y segunda confirmación. La programación escribe un motivo cerrado, solicitud y fecha de elegibilidad exactamente siete días posterior; durante la espera el recuerdo permanece íntegro, archivado y la operación puede cancelarse. Vencido el plazo, `preview_memory_deletion` vuelve a verificar fuente, registro y reloj sin escribir; `confirm_memory_deletion` exige el mismo plan y otra confirmación, crea y relee un resguardo privado exacto, retira el registro de `records.json`, escribe una lápida digestada sin contenido y audita. Cualquier fallo restaura la fuente y retira la lápida incompleta. El resguardo no se presenta como borrado seguro del soporte físico.
 
+**Incremento R6.6-A:** `layer-index-v3.json` amplía la proyección sin reinterpretar ni sobrescribir el v2 activo. Un registro que ya declara `memoryType=procedural` entra en una capa procedimental con `linkState=pendingR5`; esto reconoce su clase sin inventar una habilidad ni habilitar ejecución. La decisión inicial de vigencia exige ahora una procedencia de 1 a 300 caracteres cuando el registro carece de ella y la persiste dentro del mismo respaldo, reemplazo atómico y auditoría; una procedencia existente no puede sustituirse por esta ruta. La interfaz reutiliza **Capas R6** y **Ciclo**, sin crear otra página. La sonda canónica de sólo lectura proyectó 19 episodios, 1 procedimiento pendiente de R5 y 0 sin clasificar; los 21 archivos conservaron sus SHA-256 y no se creó v3.
+
 Las futuras fuentes sensoriales —pantalla seleccionada, cámara, micrófono, reproductores, acciones accesibles y gestos— producirán primero observaciones efímeras y candidatos revisables. La señal cruda no se convertirá en memoria ni se conservará por defecto. Este alcance sigue dependiendo del registro de R1, el Gateway de R2 y la auditoría de R3, según ADR-P-043.
 
 El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será prueba de verdad. Toda métrica deberá ser explicable desde registros reales.
@@ -263,7 +265,7 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 
 R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración controlada; R6.3-E persiste el recibo y R6.3-F expone estado y restauración gobernada. Crear o ejecutar una fusión canónica continúa bloqueado y requerirá una decisión independiente.
 
-**Auditoría de cierre R6 · 2026-08-24:** las dos sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. La proyección por capas declaró 19 episodios y 1 recuerdo `unclassified`; el ciclo declaró 11 recuerdos `current` y 9 `notAssessed`; la inspección estructural encontró procedencia explícita en 11 y ausente en 9. Los nueve sin procedencia son los mismos nueve sin vigencia, mientras el recuerdo sin capa es distinto: quedan 10 recuerdos afectados y 19 decisiones de campo. Por ello la implementación queda validada, pero el primer criterio permanece abierto: Alice no puede inventar capa, procedencia ni vigencia. R7 no se inicia hasta que el propietario resuelva esas decisiones mediante los controles gobernados existentes. Evidencia completa en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
+**Auditoría de cierre R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resuelve la brecha de capa en la proyección v3: 19 episodios, 1 procedimiento `pendingR5` y 0 sin clasificar. Persisten 9 recuerdos `notAssessed` sin procedencia explícita; son 18 decisiones humanas que Alice no puede inventar. El primer criterio permanece abierto hasta declarar esas procedencias, decidir sus vigencias y activar v3 sobre la huella final. R7 no se inicia. Evidencia completa en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
 
 ### Fase R7 — Tareas programadas e intenciones
 

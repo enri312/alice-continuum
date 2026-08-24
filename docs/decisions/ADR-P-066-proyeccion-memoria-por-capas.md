@@ -20,6 +20,14 @@ La clasificación inicial usa sólo campos explícitos:
 
 La migración nunca ocurre al cargar Alice. Requiere vista previa, confirmación visible y coincidencia SHA-256 comprobada otra vez por Rust. Las revisiones son inmutables. La reversión desactiva la revisión activa sin borrar la fuente, el índice o su historial.
 
+## Ampliación R6.6-A — 2026-08-24
+
+El índice v2 activo se conserva como evidencia del contrato original. R6.6-A crea `memory/layer-index-v3.json` con `schemaVersion=2`; no migra, reescribe ni desactiva v2 automáticamente.
+
+Un registro con `memoryType=procedural` se proyecta en la capa `procedural` con `linkState=pendingR5`. Esto reconoce un dato explícito sin afirmar que exista una habilidad R5/R4, sin crear un enlace y sin habilitar ejecución. Preferencias y tipos sin contrato continúan `unclassified`.
+
+La vista previa v3 sigue siendo de sólo lectura. Crear o activar v3 exige la misma confirmación ligada al SHA-256 vigente y conserva sus propias revisiones y respaldos.
+
 ## Consecuencias
 
 - Los datos actuales permanecen recuperables y editables.
@@ -35,4 +43,3 @@ La migración nunca ocurre al cargar Alice. Requiere vista previa, confirmación
 - Clasificar con un LLM.
 - Guardar conversaciones, señal sensorial o preferencias como hechos por defecto.
 - Borrar revisiones al revertir.
-

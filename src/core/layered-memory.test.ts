@@ -3,9 +3,9 @@ import { parseLayeredMemorySnapshot } from "./layered-memory";
 
 function validSnapshot() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     state: "ready",
-    storagePath: "E:\\Alice Cognitive Core\\data\\memory\\layer-index-v2.json",
+    storagePath: "E:\\Alice Cognitive Core\\data\\memory\\layer-index-v3.json",
     sourceSha256: `sha256:${"a".repeat(64)}`,
     activeRevisionId: null,
     revisionCount: 0,
@@ -15,7 +15,8 @@ function validSnapshot() {
       workingCount: 0,
       episodicCount: 9,
       taughtFactCount: 0,
-      unclassifiedCount: 1,
+      proceduralCount: 1,
+      unclassifiedCount: 0,
       proceduralPendingCount: 1,
       preferencePendingCount: 0,
       contentCopied: false,
@@ -33,6 +34,7 @@ describe("contrato de memoria por capas R6.1", () => {
     const parsed = parseLayeredMemorySnapshot(validSnapshot());
     expect(parsed.state).toBe("ready");
     expect(parsed.preview?.episodicCount).toBe(9);
+    expect(parsed.preview?.proceduralCount).toBe(1);
     expect(parsed.preview?.proceduralPendingCount).toBe(1);
   });
 
