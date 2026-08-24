@@ -206,6 +206,12 @@ La interfaz mantiene **FUSIÓN NO DISPONIBLE**. La memoria canónica nunca pasó
 
 Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
 
+El lanzador valida Node, npm, Cargo, las dependencias locales y el puerto 5173 antes de iniciar. También impide abrir dos instancias del mismo proyecto, limita Ollama a `127.0.0.1:11434` y comparte el caché Rust canónico `.cargo-target` con los comandos Cargo del repositorio. Para comprobar el entorno sin abrir Alice:
+
+```powershell
+& '.\Iniciar Alice.cmd' --check
+```
+
 Inicio equivalente desde PowerShell:
 
 ```powershell
@@ -249,7 +255,7 @@ La credencial de Fish Audio no se lee desde documentos ni se incorpora al reposi
 
 ## Datos locales
 
-`Iniciar Alice.cmd` establece `ALICE_DATA_DIR` en `E:\Alice Cognitive Core\data`. El contenido está excluido de Git.
+`Iniciar Alice.cmd` establece `ALICE_DATA_DIR` en `E:\Alice Cognitive Core\data`. Puede apuntarse a otra ubicación definiendo esa variable antes de arrancar; el lanzador normaliza la ruta y comprueba que sea accesible. El contenido está excluido de Git.
 
 ```text
 data/
