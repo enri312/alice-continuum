@@ -8772,6 +8772,14 @@ mod tests {
         confirmed.memory_status = Some("confirmed".into());
         confirmed.summary = Some("Contenido confirmado".into());
 
+        let mut discardable = legacy_memory();
+        discardable.id = "legacy-fragment".into();
+        assert!(validate_generic_memory_update(
+            &[discardable, confirmed.clone()],
+            std::slice::from_ref(&confirmed)
+        )
+        .is_ok());
+
         let mut metadata_only = confirmed.clone();
         metadata_only.successful_recalls = 1;
         metadata_only.failed_recalls = 0;
