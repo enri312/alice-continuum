@@ -19,6 +19,8 @@
 
 Aplicación de escritorio local-first para que **Alice** gestione conversación, memoria, percepción autorizada, estado cognitivo observable y futuras señales de rostro y cuerpo bajo control de Carlos Nuñez.
 
+> **Uso cotidiano:** consulta el [Manual de uso de Alice](docs/MANUAL_DE_USO.md) para iniciar la aplicación, conversar, revisar recuerdos y entender cada pantalla sin depender de los códigos técnicos R1–R6.
+
 El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
 
 - `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: entrada `[00]`, volumen, grafo, estado, planificación, memoria y actividad cognitiva.
@@ -205,6 +207,8 @@ La interfaz mantiene **FUSIÓN NO DISPONIBLE**. La memoria canónica nunca pasó
 ## Iniciar Alice
 
 Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
+
+Para el recorrido completo de operación y solución de problemas, consulta el [Manual de uso](docs/MANUAL_DE_USO.md).
 
 El lanzador valida Node, npm, Cargo, las dependencias locales y el puerto 5173 antes de iniciar. También impide abrir dos instancias del mismo proyecto, limita Ollama a `127.0.0.1:11434` y comparte el caché Rust canónico `.cargo-target` con los comandos Cargo del repositorio. Para comprobar el entorno sin abrir Alice:
 
