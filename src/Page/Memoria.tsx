@@ -187,10 +187,21 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
 
   async function refreshLayeredMemory() {
-    if (!isTauri()) return;
+    if (!isTauri()) {
+      setOperationMessage("La vista previa por capas requiere Alice como aplicación de escritorio; el navegador no fabrica resultados.");
+      return;
+    }
     setOperationRunning(true);
-    try { setLayeredMemory(parseLayeredMemorySnapshot(await invoke<unknown>("layered_memory_status"))); }
-    catch (error) { setOperationMessage(`No se pudo verificar R6.1: ${String(error)}`); }
+    setOperationMessage("Consultando records.json y verificando la proyección v3…");
+    try {
+      const snapshot = parseLayeredMemorySnapshot(await invoke<unknown>("layered_memory_status"));
+      setLayeredMemory(snapshot);
+      const preview = snapshot.preview;
+      setOperationMessage(preview
+        ? `Vista previa v3 actualizada: ${preview.recordCount} registros · ${preview.episodicCount} episodios · ${preview.proceduralCount} procedimientos · ${preview.unclassifiedCount} sin clasificar. Estado: ${snapshot.state === "sourceChanged" ? "la fuente cambió desde la revisión activa" : snapshot.state}.`
+        : snapshot.state === "unavailable" ? "No existe records.json; no se creó ningún índice." : "La proyección v3 no devolvió una vista previa.");
+    }
+    catch (error) { setOperationMessage(`No se pudo verificar la proyección v3: ${String(error)}`); }
     finally { setOperationRunning(false); }
   }
 
@@ -638,10 +649,11 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     </section>}
     {view === "layers" && <section className={`memory-layer-panel memory-view-panel state-${layeredMemory?.state ?? "loading"}`} aria-labelledby="memory-layer-title">
       <header><div><p className="eyebrow">R6.6-A · ÍNDICE V3 REVERSIBLE</p><h3 id="memory-layer-title">Memoria por capas</h3><p>Clasifica referencias explícitas sin copiar contenido ni modificar <code>records.json</code>. Un procedimiento sin enlace R5 conserva su capa, pero no se presenta como habilidad ejecutable.</p></div><span>{layeredMemory?.state === "active" ? "ACTIVA" : layeredMemory?.state === "sourceChanged" ? "FUENTE CAMBIÓ" : layeredMemory?.state === "rolledBack" ? "REVERTIDA" : layeredMemory?.state === "blocked" ? "BLOQUEADA" : layeredMemory?.state === "unavailable" ? "SIN FUENTE" : "LISTA PARA REVISAR"}</span></header>
+      {operationMessage && <p className="memory-operation-message" role="status" aria-live="polite">{operationMessage}</p>}
       {layeredMemory?.blockedReason && <p className="memory-layer-blocked" role="alert">{layeredMemory.blockedReason}</p>}
+      {layeredMemory?.state === "sourceChanged" && <p className="memory-layer-blocked">La revisión activa corresponde a una versión anterior de records.json. La vista previa inferior ya refleja la fuente actual; revisala antes de activar una revisión nueva.</p>}
       {layeredMemory?.preview ? <><div className="memory-layer-grid"><article><strong>{layeredMemory.preview.workingCount}</strong><span>TRABAJO EN ÍNDICE</span><small>La RAM real se consulta en Trabajo RAM</small></article><article><strong>{layeredMemory.preview.episodicCount}</strong><span>EPISODIOS</span><small>Conversaciones y experiencias explícitas</small></article><article><strong>{layeredMemory.preview.taughtFactCount}</strong><span>HECHOS ENSEÑADOS</span><small>Sólo enseñanza semántica directa</small></article><article className={layeredMemory.preview.proceduralPendingCount || layeredMemory.preview.unclassifiedCount ? "pending" : ""}><strong>{layeredMemory.preview.proceduralCount}</strong><span>PROCEDIMIENTOS</span><small>{layeredMemory.preview.proceduralPendingCount} sin enlace R5 · {layeredMemory.preview.unclassifiedCount} sin clasificar</small></article></div><div className="memory-layer-evidence"><span>FUENTE · {layeredMemory.preview.recordCount} REGISTROS</span><code>{layeredMemory.preview.sourceSha256}</code><span>{layeredMemory.revisionCount} REVISIONES INMUTABLES V3</span></div></> : <div className="memory-layer-empty">{operationRunning ? "Verificando la fuente local…" : "No existe una vista previa disponible."}</div>}
       <footer><div><strong>CERO CONTENIDO COPIADO</strong><span>Sin LLM · sin señal sensorial · sin migración automática</span></div><div><button className="secondary" onClick={() => void refreshLayeredMemory()} disabled={operationRunning}>Actualizar vista previa</button>{(layeredMemory?.state === "ready" || layeredMemory?.state === "rolledBack" || layeredMemory?.state === "sourceChanged") && <button className="primary" onClick={() => void activateLayers()} disabled={operationRunning || !layeredMemory.preview}>Revisé la huella · activar</button>}{(layeredMemory?.state === "active" || layeredMemory?.state === "sourceChanged") && <button className="danger" onClick={() => void rollbackLayers()} disabled={operationRunning || !layeredMemory.activeRevisionId}>Desactivar proyección</button>}</div></footer>
-      {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     </section>}
     {view === "profile" && <section className="memory-view-panel owner-profile-panel" aria-labelledby="owner-profile-title"><header><div><p className="eyebrow">PERFIL DEL PROPIETARIO · PRIVADO · SOLO LECTURA</p><h3 id="owner-profile-title">Lo que Alice conoce de Carlos</h3><p>Hechos confirmados por Carlos y derivados de fuentes preservadas de Gemini y Claude. Las instrucciones internas de esos documentos no se ejecutan.</p></div><span>{ownerProfile?.state === "available" ? "CONFIRMADO" : "NO DISPONIBLE"}</span></header>{ownerProfile?.state === "available" ? <><div className="memory-evidence"><span>{ownerProfile.records.length} RECUERDOS DE PERFIL</span><span>{ownerProfile.sourceFiles.length} FUENTES</span><span>CONFIRMÓ · {ownerProfile.confirmedBy}</span></div><div className="memory-list">{ownerProfile.records.map((record) => <article className="memory-record" key={record.id}><div className="memory-meta"><span className="tag">PERFIL</span><small>{record.id}</small></div><div className="memory-body"><h3>{record.intention}</h3><p>{record.summary}</p><div className="memory-evidence"><span>FUENTE · {record.source}</span><span>ESTADO · CONFIRMADO</span></div></div></article>)}</div><footer><code>{ownerProfile.storagePath}</code><span>Solo se adjunta a una conversación cuando autorizás “Recuerdos relevantes”.</span></footer></> : <div className="memory-empty"><h3>Perfil privado no cargado</h3><p>Abre Alice como aplicación de escritorio para validar el archivo local.</p></div>}</section>}
     {view === "review" && <section className={`memory-review-panel memory-view-panel state-${lifecyclePreview?.state ?? "unavailable"}`} aria-labelledby="memory-review-title">
