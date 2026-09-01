@@ -1,0 +1,186 @@
+/*
+ * Affordance común para acciones textuales.
+ * Se carga después del tema para que un botón disponible, pulsado o bloqueado
+ * nunca se confunda con una etiqueta decorativa.
+ */
+:is(
+  .primary,
+  .secondary,
+  .danger,
+  .console-button,
+  .memory-lifecycle-actions button,
+  .memory-review-actions button,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer button,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+) {
+  position: relative;
+  min-height: 36px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition:
+    transform 90ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+
+:is(
+  .primary,
+  .memory-lifecycle-actions .primary,
+  .memory-review-actions .primary,
+  .memory-layer-panel > footer .primary
+) {
+  border-color: #67e8f9;
+  background: linear-gradient(180deg, #67d9fa 0%, #38bdf8 58%, #0ea5e9 100%);
+  color: #02131d;
+  box-shadow:
+    inset 0 -3px 0 #0369a1,
+    inset 0 1px 0 rgba(255, 255, 255, .34),
+    0 3px 0 #020817,
+    0 5px 12px rgba(2, 132, 199, .2);
+}
+
+:is(
+  .secondary,
+  .console-button,
+  .memory-lifecycle-actions .secondary,
+  .memory-review-actions .secondary,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer .secondary,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+) {
+  border-color: #52677a;
+  background: linear-gradient(180deg, #223247 0%, #172235 62%, #101827 100%);
+  color: #d7e8f2;
+  box-shadow:
+    inset 0 -3px 0 #080d17,
+    inset 0 1px 0 rgba(148, 163, 184, .17),
+    0 3px 0 #020617;
+}
+
+:is(
+  .danger,
+  .memory-lifecycle-actions .danger,
+  .memory-review-actions .danger,
+  .memory-layer-panel > footer .danger
+) {
+  border-color: #b91c1c;
+  background: linear-gradient(180deg, #491923 0%, #2b1019 62%, #1b0b12 100%);
+  color: #fecaca;
+  box-shadow:
+    inset 0 -3px 0 #450a0a,
+    inset 0 1px 0 rgba(254, 202, 202, .16),
+    0 3px 0 #090307;
+}
+
+:is(
+  .primary,
+  .secondary,
+  .danger,
+  .console-button,
+  .memory-lifecycle-actions button,
+  .memory-review-actions button,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer button,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+):hover:not(:disabled) {
+  z-index: 1;
+  transform: translateY(-1px);
+  filter: brightness(1.12);
+}
+
+:is(
+  .primary,
+  .secondary,
+  .danger,
+  .console-button,
+  .memory-lifecycle-actions button,
+  .memory-review-actions button,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer button,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+):active:not(:disabled) {
+  transform: translateY(2px);
+  filter: brightness(.96);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .48), 0 1px 0 #020617;
+}
+
+:is(
+  .primary,
+  .secondary,
+  .danger,
+  .console-button,
+  .memory-lifecycle-actions button,
+  .memory-review-actions button,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer button,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+):focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+:is(
+  .primary,
+  .secondary,
+  .danger,
+  .console-button,
+  .memory-lifecycle-actions button,
+  .memory-review-actions button,
+  .memory-tool-actions button,
+  .memory-layer-panel > footer button,
+  .permission-actions button,
+  .permission-ledger button,
+  .permission-dialog button
+):disabled {
+  border-color: #29384a;
+  background: #111827;
+  color: #526274;
+  cursor: not-allowed;
+  opacity: .58;
+  filter: saturate(.35);
+  box-shadow: inset 0 0 0 1px rgba(2, 6, 23, .42);
+  transform: none;
+}
+
+.memory-lifecycle-actions button {
+  min-width: 106px;
+  padding: 9px 12px;
+  font-weight: 900;
+  letter-spacing: .025em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .primary,
+    .secondary,
+    .danger,
+    .console-button,
+    .memory-lifecycle-actions button,
+    .memory-review-actions button,
+    .memory-tool-actions button,
+    .memory-layer-panel > footer button,
+    .permission-actions button,
+    .permission-ledger button,
+    .permission-dialog button
+  ) {
+    transition: none;
+  }
+}
