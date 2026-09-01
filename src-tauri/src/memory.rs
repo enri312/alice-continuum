@@ -8940,7 +8940,7 @@ mod tests {
         let after = file_hashes(&root);
 
         assert_eq!(after, before);
-        assert_eq!(snapshot.state, MemoryLifecyclePreviewState::Ready);
+        assert_eq!(snapshot.state, MemoryLifecyclePreviewState::Active);
         assert!(snapshot.lifecycle_writes_available);
         let preview = snapshot.preview.expect("canonical lifecycle preview");
         assert_eq!(preview.references.len(), preview.record_count);

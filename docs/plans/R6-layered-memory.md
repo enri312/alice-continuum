@@ -1,7 +1,7 @@
 # Plan de implementación R6 — Memoria por capas y consolidación v2
 
-Estado: en curso · R6.1, R6.2-C, R6.3-F y R6.4-C validados  
-Fecha: 2026-08-20
+Estado: completado · ciclo canónico activado y verificado  
+Fecha de cierre: 2026-09-01
 
 ## R6.1 — Proyección inicial y migración reversible
 
@@ -66,7 +66,7 @@ Estado: R6.3-F validado; ejecución canónica de fusión pendiente.
 - [x] Comando gobernado de restauración ligado a recibo, huellas y confirmación.
 - [x] Auditoría previa, cierre posterior e idempotencia sin doble auditoría.
 - [x] Sonda canónica de estado con 17 recuerdos y 20 archivos intactos.
-- [ ] Ejecución manual canónica confirmada.
+- [x] Ejecución canónica no requerida: la fuente final no contiene duplicados exactos y fabricar una fusión violaría el criterio de datos reales.
 
 R6.3 no detecta contradicciones semánticas generales porque el formato v1 no posee campos estructurados de sujeto, predicado y valor. Un mismo tema con contenido diferente se presenta como revisión requerida, nunca como contradicción confirmada. R6.3-B sólo permite `keepSeparate`; R6.3-C calcula un plan; R6.3-D ensaya recuperación; R6.3-E la continúa después de perder la RAM y R6.3-F expone estado y restauración gobernada. Ninguno crea o ejecuta una fusión canónica.
 
@@ -95,3 +95,11 @@ R6.4-C no entrena el modelo, no promueve respuestas automáticamente y acepta ce
 Alice podrá estudiar carpetas de proyectos elegidas explícitamente por Carlos Nuñez después de definir una capacidad R1 y un grant R2 de solo lectura. El primer alcance leerá estructura, documentación y metadatos; excluirá secretos, `.git`, dependencias, builds, binarios y archivos grandes. Sus resultados serán observaciones efímeras y candidatos revisables, no recuerdos automáticos ni ejecución de código.
 
 Este explorador no forma parte de R6.1 y no autoriza acceso general a discos.
+
+## Cierre canónico R6
+
+El propietario completó las decisiones pendientes y retiró registros inconclusos. La fuente final contiene 15 recuerdos reales: 13 `confirmed`, 2 `conflict` y 0 `notAssessed`. Los conflictos se conservan visibles, no se promueven a verdad y no se resuelven automáticamente.
+
+`layer-index-v3.json` y `lifecycle-index-v1.json` tienen revisiones activas ligadas al SHA-256 vigente de `records.json`. La proyección final contiene 14 episodios, 1 procedimiento `pendingR5`, 0 hechos enseñados, 0 memoria de trabajo persistente y 0 elementos sin clasificar. El procedimiento pendiente reconoce su tipo, pero no crea ni ejecuta una habilidad.
+
+Las sondas canónicas `live_canonical_r6_preview_is_read_only` y `live_canonical_lifecycle_preview_is_read_only` aprobaron contra `data/` real. Antes y después se conservaron 35 archivos y el mismo digest agregado. La puerta completa aprobó 418 pruebas TypeScript, 229 pruebas Rust normales, formato, clippy estricto y ambos builds. El detalle verificable está en `docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md`.

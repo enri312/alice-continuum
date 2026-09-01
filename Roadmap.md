@@ -188,7 +188,7 @@ Alice podrá generar un candidato únicamente a partir de ejecuciones exitosas y
 
 ### Fase R6 — Memoria por capas y consolidación v2
 
-**Estado:** implementación R6.1–R6.6-A validada · cierre canónico pendiente en 9 recuerdos al 2026-08-24  
+**Estado:** completada el 2026-09-01 · ciclo canónico activado y verificado  
 **Dependencia:** Fase R3; se integra con Fase R5  
 **Objetivo:** separar lo que Alice está usando ahora de lo que recuerda de manera duradera.
 
@@ -257,7 +257,7 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 
 **Criterios de aceptación:**
 
-- [ ] Cada recuerdo tiene capa, origen, estado y reglas de vigencia.
+- [x] Cada recuerdo tiene capa, origen, estado y reglas de vigencia.
 - [x] Los conflictos no se resuelven silenciosamente.
 - [x] La consolidación ofrece vista previa y respaldo.
 - [x] La memoria de trabajo puede descartarse sin borrar memoria duradera.
@@ -265,7 +265,9 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 
 R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración controlada; R6.3-E persiste el recibo y R6.3-F expone estado y restauración gobernada. Crear o ejecutar una fusión canónica continúa bloqueado y requerirá una decisión independiente.
 
-**Auditoría de cierre R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resuelve la brecha de capa en la proyección v3: 19 episodios, 1 procedimiento `pendingR5` y 0 sin clasificar. Persisten 9 recuerdos `notAssessed` sin procedencia explícita; son 18 decisiones humanas que Alice no puede inventar. El primer criterio permanece abierto hasta declarar esas procedencias, decidir sus vigencias y activar v3 sobre la huella final. R7 no se inicia. Evidencia completa en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
+**Preauditoría R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resolvió la brecha estructural de capa, pero quedaron nueve recuerdos `notAssessed` sin procedencia explícita. Esa evidencia histórica y el bloqueo correcto se conservan en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
+
+**Cierre final R6 · 2026-09-01:** después de las decisiones explícitas del propietario y la retirada de registros inconclusos, `records.json` contiene 15 recuerdos reales: 13 vigentes y 2 conflictivos, sin recuerdos no evaluados ni procedencia faltante. La proyección `layer-index-v3.json` activa clasifica 14 episodios y 1 procedimiento `pendingR5`, sin elementos no clasificados. El ciclo `lifecycle-index-v1.json` también está activo sobre el mismo SHA-256 vigente. Las dos sondas canónicas de sólo lectura conservaron exactamente los 35 archivos de `data/` y su digest agregado. Los 2 conflictos permanecen visibles y excluidos de recuperación como conocimiento vigente; no bloquean el cierre porque R6 exige preservarlos, no resolverlos silenciosamente. Evidencia completa en `docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md`.
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -382,7 +384,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R5** están completadas y **R6 está en curso**. R6.5-I ya retira y restaura recuerdos de forma explícita sin perder vigencia, conflicto, reposo, supresión, contenido o versión. El siguiente incremento deberá diseñar la **retención y eliminación durable gobernada**, separada del archivo reversible, con exportación o respaldo obligatorio, período de espera y sin inferencias automáticas. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
+Las **Fases R1 a R6** están completadas. El próximo incremento autorizado pertenece a **R7 — Tareas programadas e intenciones** y deberá comenzar por su contrato, sin convertir recuerdos en acciones ni reusar los 2 conflictos como conocimiento vigente. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
 
 ## Identidad adoptada — Alice Cognitive Core
 
