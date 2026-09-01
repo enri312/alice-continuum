@@ -114,6 +114,13 @@ export type MemorySuppressionAssessmentResult = {
   lifecycle: MemoryLifecyclePreviewSnapshot;
 };
 
+export function retainLifecycleEntriesForKnownRecords<T extends { recordId: string }>(
+  entries: readonly T[],
+  knownRecordIds: ReadonlySet<string>,
+): T[] {
+  return entries.filter((entry) => knownRecordIds.has(entry.recordId));
+}
+
 const digest = /^sha256:[0-9a-f]{64}$/;
 const snapshotKeys = ["schemaVersion", "state", "storagePath", "sourceSha256", "activeRevisionId", "revisionCount", "preview", "blockedReason", "migrationRequiresConfirmation", "lifecycleWritesAvailable", "recordsModified"];
 const previewKeys = ["sourceSha256", "recordCount", "currentCount", "conflictCount", "archivedCount", "notAssessedCount", "accessibilityAssessedCount", "accessibleCount", "dormantCount", "retrievalEligibleCount", "retrievalBlockedCount", "retrievalOutcomeCount", "functionalAssessmentCount", "weakeningReviewRequiredCount", "retentionAssessedCount", "suppressedCount", "reconsolidatedCount", "references", "weakeningAssessments", "recordsModified", "contentCopied", "automaticInference"];

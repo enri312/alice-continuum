@@ -4,7 +4,7 @@ import { buildReviewQueue } from "../core/memory-consolidation";
 import type { ReviewOutcome } from "../core/memory-consolidation";
 import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStatusSnapshot, type ConsolidationRecoveryStep } from "../core/memory-consolidation-preview";
 import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../core/layered-memory";
-import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, type MemoryAccessibilityAssessmentAction, type MemoryLifecyclePreviewSnapshot, type MemorySuppressionAction, type MemorySuppressionReason, type MemoryValidityAssessmentAction } from "../core/memory-lifecycle";
+import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, retainLifecycleEntriesForKnownRecords, type MemoryAccessibilityAssessmentAction, type MemoryLifecyclePreviewSnapshot, type MemorySuppressionAction, type MemorySuppressionReason, type MemoryValidityAssessmentAction } from "../core/memory-lifecycle";
 import { parseMemoryArchivePreview, parseMemoryArchiveResult, type MemoryArchiveAction, type MemoryArchivePreview, type MemoryArchiveReason } from "../core/memory-archive";
 import { parseMemoryDeletionPreview, parseMemoryDeletionResult, parseMemoryDeletionSchedulePreview, parseMemoryDeletionScheduleResult, type MemoryDeletionPreview, type MemoryDeletionReason, type MemoryDeletionScheduleAction, type MemoryDeletionSchedulePreview } from "../core/memory-deletion";
 import { parseMemoryReconsolidationPreview, parseMemoryReconsolidationResult, type MemoryReconsolidationPreview, type MemoryReconsolidationReason } from "../core/memory-reconsolidation";
@@ -167,24 +167,27 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     return text.includes(query.toLocaleLowerCase().trim());
   }), [query, remembered]);
   const sessionsById = useMemo(() => new Map(sessions.map((session) => [session.id, session])), [sessions]);
-  const unassessedValidity = useMemo(() => lifecyclePreview?.preview?.references
+  const sessionIds = useMemo(() => new Set(sessionsById.keys()), [sessionsById]);
+  const currentLifecycleReferences = useMemo(() => retainLifecycleEntriesForKnownRecords(lifecyclePreview?.preview?.references ?? [], sessionIds), [lifecyclePreview, sessionIds]);
+  const currentWeakeningAssessments = useMemo(() => retainLifecycleEntriesForKnownRecords(lifecyclePreview?.preview?.weakeningAssessments ?? [], sessionIds), [lifecyclePreview, sessionIds]);
+  const unassessedValidity = useMemo(() => currentLifecycleReferences
     .filter((reference) => reference.validity === "notAssessed")
-    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
-  const currentAccessibility = useMemo(() => lifecyclePreview?.preview?.references
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId)! })), [currentLifecycleReferences, sessionsById]);
+  const currentAccessibility = useMemo(() => currentLifecycleReferences
     .filter((reference) => reference.validity === "current")
-    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
-  const weakeningEvidence = useMemo(() => lifecyclePreview?.preview?.weakeningAssessments
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId)! })), [currentLifecycleReferences, sessionsById]);
+  const weakeningEvidence = useMemo(() => currentWeakeningAssessments
     .filter((assessment) => assessment.state !== "notAssessed")
-    .map((assessment) => ({ assessment, memory: sessionsById.get(assessment.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
-  const suppressionCandidates = useMemo(() => lifecyclePreview?.preview?.references
+    .map((assessment) => ({ assessment, memory: sessionsById.get(assessment.recordId)! })), [currentWeakeningAssessments, sessionsById]);
+  const suppressionCandidates = useMemo(() => currentLifecycleReferences
     .filter((reference) => reference.validity === "current" || reference.suppressed)
-    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
-  const archiveCandidates = useMemo(() => lifecyclePreview?.preview?.references
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId)! })), [currentLifecycleReferences, sessionsById]);
+  const archiveCandidates = useMemo(() => currentLifecycleReferences
     .filter((reference) => reference.validity === "current" || reference.validity === "conflict")
-    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
-  const deletionCandidates = useMemo(() => lifecyclePreview?.preview?.references
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId)! })), [currentLifecycleReferences, sessionsById]);
+  const deletionCandidates = useMemo(() => currentLifecycleReferences
     .filter((reference) => reference.archived && reference.validity !== "archived")
-    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId) })) ?? [], [lifecyclePreview, sessionsById]);
+    .map((reference) => ({ reference, memory: sessionsById.get(reference.recordId)! })), [currentLifecycleReferences, sessionsById]);
 
   async function refreshLayeredMemory() {
     if (!isTauri()) {
@@ -579,6 +582,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
     setOperationMessage("");
     try {
       const recordCount = await onDelete(session.id);
+      await refreshLifecyclePreview();
       setOperationMessage(`Fragmento heredado descartado con persistencia verificada. El respaldo anterior quedó conservado; permanecen ${recordCount} recuerdos.`);
     } catch (error) {
       setOperationMessage(`No se descartó el fragmento; la interfaz restauró el estado anterior: ${String(error)}`);

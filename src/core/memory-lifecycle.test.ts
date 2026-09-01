@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult } from "./memory-lifecycle";
+import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, retainLifecycleEntriesForKnownRecords } from "./memory-lifecycle";
 
 const sha = (letter: string) => `sha256:${letter.repeat(64)}`;
 
@@ -33,6 +33,13 @@ function validSnapshot() {
 }
 
 describe("vista previa del ciclo funcional de memoria", () => {
+  it("oculta referencias obsoletas después de descartar un registro", () => {
+    const references = validSnapshot().preview.references;
+    const visible = retainLifecycleEntriesForKnownRecords(references, new Set(["current", "conflict", "archived"]));
+    expect(visible.map((reference) => reference.recordId)).toEqual(["current", "conflict", "archived"]);
+    expect(visible.some((reference) => reference.recordId === "legacy")).toBe(false);
+  });
+
   it("acepta una proyección cerrada y completamente trazable", () => {
     const parsed = parseMemoryLifecyclePreview(validSnapshot());
     expect(parsed.preview?.references).toHaveLength(4);
