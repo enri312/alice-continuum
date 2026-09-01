@@ -1312,6 +1312,7 @@ mod tests {
     use crate::cloud::CloudCapabilityProbe;
     use crate::memory::{MemoryCapabilityProbe, MemoryResourceState};
     use crate::observation::ObservationCapabilityProbe;
+    use crate::tasks::{TaskCapabilityProbe, TaskRegistryState};
     use std::fs;
 
     pub(super) fn registry() -> CapabilityRegistrySnapshot {
@@ -1338,6 +1339,10 @@ mod tests {
                     size_bytes: 0,
                 }),
                 sensory: Err("runtime no necesario para validar manifiestos".into()),
+                tasks: TaskCapabilityProbe {
+                    state: TaskRegistryState::Missing,
+                    task_count: 0,
+                },
             },
         )
         .unwrap()
@@ -1413,9 +1418,9 @@ mod tests {
     }
 
     #[test]
-    fn valid_draft_uses_the_real_26_capability_registry() {
+    fn valid_draft_uses_the_real_27_capability_registry() {
         let registry = registry();
-        assert_eq!(registry.capabilities.len(), 26);
+        assert_eq!(registry.capabilities.len(), 27);
         manifest().validate_new_draft(&registry).unwrap();
     }
 

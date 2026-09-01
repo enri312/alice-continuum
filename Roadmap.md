@@ -271,7 +271,7 @@ R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6
 
 ### Fase R7 — Tareas programadas e intenciones
 
-**Estado:** base visual trazable iniciada; asociaciones persistentes pendientes  
+**Estado:** R7.1 implementado · contrato e inspección pasiva; sin scheduler  
 **Dependencia:** Fases R2, R3 y R6  
 **Objetivo:** diferenciar recuerdos, recordatorios temporales y acciones condicionadas.
 
@@ -284,6 +284,8 @@ La primera versión permitirá recordatorios locales y comprobaciones de solo le
 - [ ] Una tarea vencida o revocada no puede actuar.
 - [ ] El historial diferencia programación, intento, omisión y resultado.
 - [ ] El modo en segundo plano puede desactivarse completamente.
+
+**Incremento R7.1:** `tasks-v1.json` queda reservado como un registro separado de `records.json`. El contrato cerrado distingue `localReminder` de `readOnlyCheck`, exige UUID, origen confirmado por el propietario, próxima ejecución, alcance, estado y cancelabilidad coherentes, y no admite comandos ni parámetros ejecutables. `task_registry_status` relee sin crear carpetas, bloquea archivos corruptos sin repararlos y siempre devuelve `automaticExecution=false`. R1 incorpora `tasks.registry.inspect` como consulta local implementada. Las pruebas físicas preservaron los bytes de fixtures válidos y corruptos; la sonda canónica confirmó la ausencia honesta del registro sin modificar `data/`.
 
 ### Fase R8 — Grafo de conocimiento y recuperación semántica
 
@@ -384,7 +386,7 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R6** están completadas. El próximo incremento autorizado pertenece a **R7 — Tareas programadas e intenciones** y deberá comenzar por su contrato, sin convertir recuerdos en acciones ni reusar los 2 conflictos como conocimiento vigente. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
+Las **Fases R1 a R6** están completadas y **R7.1** establece el contrato pasivo sin scheduler. El próximo incremento autorizado es **R7.2 — vista previa y persistencia gobernada de un recordatorio único**, sin convertir recuerdos en acciones ni reusar los 2 conflictos como conocimiento vigente. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
 
 ## Identidad adoptada — Alice Cognitive Core
 

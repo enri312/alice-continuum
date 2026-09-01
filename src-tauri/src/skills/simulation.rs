@@ -513,6 +513,7 @@ mod tests {
     use crate::memory::{MemoryCapabilityProbe, MemoryResourceState};
     use crate::observation::{ObservationCapabilityProbe, ObservationStore};
     use crate::sensory::SensorLeaseStore;
+    use crate::tasks::{TaskCapabilityProbe, TaskRegistryState};
     use std::fs;
     use std::path::{Path, PathBuf};
 
@@ -540,6 +541,10 @@ mod tests {
                     size_bytes: 0,
                 }),
                 sensory: Err("runtime no necesario para simulación estática".into()),
+                tasks: TaskCapabilityProbe {
+                    state: TaskRegistryState::Missing,
+                    task_count: 0,
+                },
             },
         )
         .unwrap()

@@ -3,6 +3,7 @@ use crate::cloud::{cloud_capability_probe, CloudCapabilityProbe};
 use crate::memory::{memory_capability_probe, MemoryCapabilityProbe, MemoryResourceState};
 use crate::observation::{ObservationCapabilityProbe, ObservationStore};
 use crate::sensory::{SensorCapabilityProbe, SensorLeaseStore};
+use crate::tasks::{task_capability_probe, TaskCapabilityProbe, TaskRegistryState};
 use crate::util::alice_data_root_path;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -69,6 +70,7 @@ pub(crate) enum CapabilityDomain {
     Perception,
     Memory,
     Avatar,
+    Task,
     Output,
 }
 
@@ -163,6 +165,7 @@ pub(crate) struct CapabilityProbeSnapshot {
     pub(crate) memory: MemoryCapabilityProbe,
     pub(crate) avatar: Result<AvatarCapabilityProbe, String>,
     pub(crate) sensory: Result<SensorCapabilityProbe, String>,
+    pub(crate) tasks: TaskCapabilityProbe,
 }
 
 impl CapabilityProbeSnapshot {
@@ -177,6 +180,7 @@ impl CapabilityProbeSnapshot {
             memory: memory_capability_probe(data_root),
             avatar: avatar_capability_probe(),
             sensory: sensor_store.capability_probe(),
+            tasks: task_capability_probe(data_root),
         }
     }
 }
@@ -185,7 +189,7 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(26);
+    let mut capabilities = Vec::with_capacity(27);
     capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
     capabilities.extend(memory_capabilities(
@@ -195,6 +199,7 @@ pub(crate) fn capability_registry_from_probes(
     ));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
     capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
+    capabilities.extend(task_capabilities(&generated_at, &probes.tasks));
     capabilities.extend(planned_output_capabilities());
 
     let snapshot = CapabilityRegistrySnapshot {
@@ -930,6 +935,52 @@ fn avatar_capabilities(
     ]
 }
 
+fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<CapabilityDescriptor> {
+    let (state, health_status, summary) = match probe.state {
+        TaskRegistryState::Missing => (
+            CapabilityState::Unavailable,
+            CapabilityHealthStatus::Unavailable,
+            "El registro R7 todavía no existe; la inspección no creó carpetas ni tareas."
+                .to_string(),
+        ),
+        TaskRegistryState::Ready => (
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            format!(
+                "El registro R7 contiene {} tareas válidas; no se ejecutó ninguna.",
+                probe.task_count
+            ),
+        ),
+        TaskRegistryState::Invalid => (
+            CapabilityState::Error,
+            CapabilityHealthStatus::Error,
+            "El registro R7 existe, pero no cumple el contrato cerrado.".to_string(),
+        ),
+    };
+
+    vec![capability(
+        "tasks.registry.inspect",
+        "Inspeccionar tareas locales",
+        "Lee un registro R7 validado y distingue recordatorios de comprobaciones de solo lectura sin programar ni ejecutar acciones.",
+        CapabilityDomain::Task,
+        CapabilityKind::Query,
+        CapabilityMaturity::Implemented,
+        "tasks",
+        &["task_registry_status"],
+        state,
+        CapabilityRisk::Low,
+        &[CapabilityEffect::LocalRead],
+        &["taskRegistryMetadata"],
+        &["Registro local R7 válido"],
+        permission(
+            CapabilityPermissionMode::ImplicitRead,
+            CapabilityPermissionEnforcer::Native,
+            "Rust sólo relee y valida el registro; no crea tareas ni activa un scheduler.",
+        ),
+        health(health_status, summary, Some(checked_at)),
+    )]
+}
+
 fn planned_output_capabilities() -> Vec<CapabilityDescriptor> {
     [
         (
@@ -1515,6 +1566,10 @@ mod tests {
                 size_bytes: 0,
             }),
             sensory: Err("runtime sensorial no disponible en fixture".into()),
+            tasks: TaskCapabilityProbe {
+                state: TaskRegistryState::Missing,
+                task_count: 0,
+            },
         }
     }
 
@@ -1561,6 +1616,7 @@ mod tests {
                 CapabilityDomain::Perception,
                 CapabilityDomain::Memory,
                 CapabilityDomain::Avatar,
+                CapabilityDomain::Task,
                 CapabilityDomain::Output,
             ])
             .unwrap(),
@@ -1570,6 +1626,7 @@ mod tests {
                 "perception",
                 "memory",
                 "avatar",
+                "task",
                 "output"
             ])
         );
@@ -1797,7 +1854,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 26);
+        assert_eq!(snapshot.capabilities.len(), 27);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1825,6 +1882,15 @@ mod tests {
         assert_eq!(
             registered(&snapshot, "avatar.vrm.render").state,
             CapabilityState::Unavailable
+        );
+        let tasks = registered(&snapshot, "tasks.registry.inspect");
+        assert_eq!(tasks.domain, CapabilityDomain::Task);
+        assert_eq!(tasks.state, CapabilityState::Unavailable);
+        assert_eq!(tasks.operations, vec!["task_registry_status"]);
+        assert_eq!(tasks.effects, vec![CapabilityEffect::LocalRead]);
+        assert_eq!(
+            tasks.permission.enforced_by,
+            CapabilityPermissionEnforcer::Native
         );
 
         let planned = snapshot
@@ -2013,7 +2079,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 26);
+        assert_eq!(snapshot.capabilities.len(), 27);
         assert!(!root.exists());
     }
 
