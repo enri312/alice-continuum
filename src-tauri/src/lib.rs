@@ -62,7 +62,10 @@ use skills::{
     simulate_skill_plan, skill_draft_store_status, skill_lifecycle_status,
     transition_skill_lifecycle, SkillDraftStore,
 };
-use tasks::{confirm_task_mutation, preview_task_mutation, task_registry_status};
+use tasks::{
+    confirm_task_mutation, preview_task_mutation, set_task_engine_enabled,
+    spawn_task_engine_thread, task_engine_status, task_registry_status, TaskEngineStore,
+};
 use tauri::Manager;
 use visual_learning::analyze_screen_frame;
 use working_memory::{clear_working_memory, working_memory_status, WorkingMemoryStore};
@@ -74,6 +77,7 @@ pub fn run() {
     let skill_store = SkillDraftStore::default();
     let procedure_store = ProcedureCandidateStore::default();
     let working_memory_store = WorkingMemoryStore::default();
+    let task_engine_store = TaskEngineStore::default();
     tauri::Builder::default()
         .manage(observation_store.clone())
         .manage(permission_gateway.clone())
@@ -81,6 +85,7 @@ pub fn run() {
         .manage(skill_store)
         .manage(procedure_store)
         .manage(working_memory_store)
+        .manage(task_engine_store.clone())
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
@@ -99,6 +104,7 @@ pub fn run() {
                 permission_gateway.clone(),
                 app.handle().clone(),
             );
+            spawn_task_engine_thread(task_engine_store.clone(), app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -171,7 +177,9 @@ pub fn run() {
             confirm_learning_candidate,
             task_registry_status,
             preview_task_mutation,
-            confirm_task_mutation
+            confirm_task_mutation,
+            task_engine_status,
+            set_task_engine_enabled
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar Alice Cognitive Core");

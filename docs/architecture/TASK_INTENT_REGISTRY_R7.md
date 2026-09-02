@@ -8,7 +8,7 @@ R7 separa tres conceptos que no deben confundirse:
 - un **recordatorio local** solicita presentar un aviso en una fecha revisada;
 - una **comprobación de solo lectura** propone consultar una capacidad R1 sin modificar el equipo.
 
-R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. R7.2-B hace visible esa transacción bajo control del propietario. Ninguno de esos incrementos ejecuta tareas, inicia un scheduler o convierte recuerdos en acciones.
+R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. R7.2-B hace visible esa transacción bajo control del propietario. R7.3-A incorpora evaluación temporal observable sin convertir un vencimiento en acción.
 
 ## Fuente durable
 
@@ -77,14 +77,26 @@ La interfaz:
 
 Los contratos TypeScript son cerrados y rechazan claves adicionales, fechas o UUID no canónicos y cualquier respuesta que declare ejecución automática. Preparar o descartar una vista previa no escribe. Sólo la confirmación explícita invoca la mutación nativa.
 
+## Sentido temporal R7.3-A
+
+`task_engine_status` relee el registro validado y compara `nextRunAt` con una fecha UTC canónica. Devuelve una proyección cerrada:
+
+- `waiting`: recordatorio programado para el futuro;
+- `due`: fecha alcanzada o superada, sin que eso constituya un intento;
+- `excluded`: tarea pausada, completada o cancelada, con razón explícita.
+
+`set_task_engine_enabled` controla un hilo local que empieza apagado en cada proceso. Cuando el propietario lo activa, evalúa una vez por segundo y conserva solamente el último pulso o error en RAM. Detenerlo limpia ese pulso. La lectura no crea la raíz ausente ni modifica bytes del registro.
+
+La respuesta declara siempre `automaticExecution=false`, `notificationsEnabled=false` y `writesPerformed=false`. La capacidad R1 `tasks.temporal.evaluate` es observacional, de lectura local y estado inicial `disabled`.
+
 ## Límites actuales
 
 - La escritura nativa tiene una pantalla visible, pero todavía no se usó sobre datos canónicos: el registro permanece ausente y contiene 0 tareas.
 - Sin recurrencia, zona horaria configurable o cálculo de vencimiento.
-- Sin hilo en segundo plano.
+- El hilo temporal es opcional y está apagado al iniciar; no sobrevive a un reinicio.
 - Sin notificaciones del sistema operativo.
 - Sin ejecución de capacidades, red, procesos o acciones externas.
-- La auditoría cubre programación y cancelación; todavía no existen intentos de ejecución.
+- La auditoría cubre programación y cancelación; todavía no existen intentos de ejecución ni ledger de vencimientos.
 - Sin enlace automático desde recuerdos, conversación o salidas de modelos.
 
-El siguiente incremento será R7.3, el motor local de vencimiento. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no es necesario fabricar uno para validar R7.2.
+El siguiente incremento será R7.3-B: ledger durable de intentos e idempotencia antes de cualquier salida. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no es necesario fabricarlo para validar el reloj.

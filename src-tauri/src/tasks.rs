@@ -7,8 +7,11 @@ use std::collections::HashSet;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, Weak};
+use std::thread;
+use std::time::Duration;
 use tauri::AppHandle;
+use tauri::State;
 use uuid::Uuid;
 
 #[cfg(windows)]
@@ -208,6 +211,102 @@ pub(crate) struct TaskRegistrySnapshot {
     tasks: Vec<TaskRecord>,
     error: Option<String>,
     automatic_execution: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum TaskTemporalState {
+    Waiting,
+    Due,
+    Excluded,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum TaskTemporalReason {
+    Paused,
+    Completed,
+    Cancelled,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TaskTemporalEntry {
+    task_id: String,
+    title: String,
+    kind: TaskKind,
+    registry_status: TaskStatus,
+    scheduled_for: Option<String>,
+    temporal_state: TaskTemporalState,
+    reason: Option<TaskTemporalReason>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TaskEngineSnapshot {
+    schema_version: u32,
+    registry_state: TaskRegistryState,
+    evaluated_at: String,
+    background_enabled: bool,
+    last_background_evaluation_at: Option<String>,
+    waiting_count: usize,
+    due_count: usize,
+    excluded_count: usize,
+    next_wake_at: Option<String>,
+    items: Vec<TaskTemporalEntry>,
+    error: Option<String>,
+    automatic_execution: bool,
+    notifications_enabled: bool,
+    writes_performed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SetTaskEngineEnabledInput {
+    enabled: bool,
+}
+
+#[derive(Default)]
+struct TaskEngineRuntime {
+    enabled: bool,
+    last_background_evaluation_at: Option<String>,
+    last_error: Option<String>,
+}
+
+#[derive(Clone, Default)]
+pub(crate) struct TaskEngineStore {
+    inner: Arc<Mutex<TaskEngineRuntime>>,
+}
+
+impl TaskEngineStore {
+    fn weak(&self) -> Weak<Mutex<TaskEngineRuntime>> {
+        Arc::downgrade(&self.inner)
+    }
+
+    fn status(&self) -> Result<(bool, Option<String>, Option<String>), String> {
+        let runtime = self
+            .inner
+            .lock()
+            .map_err(|_| "El estado temporal R7 quedó envenenado".to_string())?;
+        Ok((
+            runtime.enabled,
+            runtime.last_background_evaluation_at.clone(),
+            runtime.last_error.clone(),
+        ))
+    }
+
+    fn set_enabled(&self, enabled: bool) -> Result<(), String> {
+        let mut runtime = self
+            .inner
+            .lock()
+            .map_err(|_| "El estado temporal R7 quedó envenenado".to_string())?;
+        runtime.enabled = enabled;
+        runtime.last_error = None;
+        if !enabled {
+            runtime.last_background_evaluation_at = None;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -1019,12 +1118,164 @@ pub(crate) fn task_registry_snapshot_at(data_root: &Path) -> TaskRegistrySnapsho
     }
 }
 
+fn task_engine_snapshot_at(
+    data_root: &Path,
+    evaluated_at: String,
+    background_enabled: bool,
+    last_background_evaluation_at: Option<String>,
+    runtime_error: Option<String>,
+) -> Result<TaskEngineSnapshot, String> {
+    validate_task_timestamp("evaluatedAt", &evaluated_at)?;
+    let registry = task_registry_snapshot_at(data_root);
+    let mut items = Vec::with_capacity(registry.tasks.len());
+    let mut waiting_count = 0;
+    let mut due_count = 0;
+    let mut excluded_count = 0;
+    let mut next_wake_at: Option<String> = None;
+
+    if registry.state == TaskRegistryState::Ready {
+        for task in registry.tasks {
+            let (temporal_state, reason) = match task.status {
+                TaskStatus::Scheduled => {
+                    let scheduled_for = task
+                        .schedule
+                        .next_run_at
+                        .as_deref()
+                        .ok_or("Una tarea programada perdió nextRunAt")?;
+                    if scheduled_for <= evaluated_at.as_str() {
+                        due_count += 1;
+                        (TaskTemporalState::Due, None)
+                    } else {
+                        waiting_count += 1;
+                        if next_wake_at
+                            .as_deref()
+                            .is_none_or(|current| scheduled_for < current)
+                        {
+                            next_wake_at = Some(scheduled_for.to_string());
+                        }
+                        (TaskTemporalState::Waiting, None)
+                    }
+                }
+                TaskStatus::Paused => {
+                    excluded_count += 1;
+                    (
+                        TaskTemporalState::Excluded,
+                        Some(TaskTemporalReason::Paused),
+                    )
+                }
+                TaskStatus::Completed => {
+                    excluded_count += 1;
+                    (
+                        TaskTemporalState::Excluded,
+                        Some(TaskTemporalReason::Completed),
+                    )
+                }
+                TaskStatus::Cancelled => {
+                    excluded_count += 1;
+                    (
+                        TaskTemporalState::Excluded,
+                        Some(TaskTemporalReason::Cancelled),
+                    )
+                }
+            };
+            items.push(TaskTemporalEntry {
+                task_id: task.task_id,
+                title: task.title,
+                kind: task.kind,
+                registry_status: task.status,
+                scheduled_for: task.schedule.next_run_at,
+                temporal_state,
+                reason,
+            });
+        }
+    }
+
+    Ok(TaskEngineSnapshot {
+        schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+        registry_state: registry.state,
+        evaluated_at,
+        background_enabled,
+        last_background_evaluation_at,
+        waiting_count,
+        due_count,
+        excluded_count,
+        next_wake_at,
+        items,
+        error: registry.error.or(runtime_error),
+        automatic_execution: false,
+        notifications_enabled: false,
+        writes_performed: false,
+    })
+}
+
+pub(crate) fn spawn_task_engine_thread(store: TaskEngineStore, app: AppHandle) {
+    let weak = store.weak();
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_secs(1));
+        let Some(inner) = weak.upgrade() else {
+            break;
+        };
+        let enabled = match inner.lock() {
+            Ok(runtime) => runtime.enabled,
+            Err(_) => break,
+        };
+        if !enabled {
+            continue;
+        }
+
+        let evaluation = alice_data_root_path(&app).and_then(|data_root| {
+            let evaluated_at = current_utc_timestamp()?;
+            task_engine_snapshot_at(&data_root, evaluated_at, true, None, None)
+        });
+        let mut runtime = match inner.lock() {
+            Ok(runtime) => runtime,
+            Err(_) => break,
+        };
+        if !runtime.enabled {
+            continue;
+        }
+        match evaluation {
+            Ok(snapshot) => {
+                runtime.last_background_evaluation_at = Some(snapshot.evaluated_at);
+                runtime.last_error = snapshot.error;
+            }
+            Err(error) => runtime.last_error = Some(error),
+        }
+    });
+}
+
 pub(crate) fn task_capability_probe(data_root: &Path) -> TaskCapabilityProbe {
     let snapshot = task_registry_snapshot_at(data_root);
     TaskCapabilityProbe {
         state: snapshot.state,
         task_count: snapshot.task_count,
     }
+}
+
+#[tauri::command]
+pub(crate) fn task_engine_status(
+    store: State<TaskEngineStore>,
+    app: AppHandle,
+) -> Result<TaskEngineSnapshot, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let (enabled, last_evaluation, runtime_error) = store.status()?;
+    task_engine_snapshot_at(
+        &data_root,
+        current_utc_timestamp()?,
+        enabled,
+        last_evaluation,
+        runtime_error,
+    )
+}
+
+#[tauri::command]
+pub(crate) fn set_task_engine_enabled(
+    store: State<TaskEngineStore>,
+    app: AppHandle,
+    input: SetTaskEngineEnabledInput,
+) -> Result<TaskEngineSnapshot, String> {
+    store.set_enabled(input.enabled)?;
+    task_engine_status(store, app)
 }
 
 #[tauri::command]
@@ -1443,6 +1694,96 @@ mod tests {
         .unwrap_err()
         .contains("cambió desde la vista previa"));
         fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn temporal_engine_classifies_due_waiting_and_excluded_without_writing() {
+        let root = temporary_root("temporal-engine");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+
+        let due = scheduled_reminder();
+        let mut waiting = scheduled_reminder();
+        waiting.task_id = "26e040be-b3d9-46e8-b04a-e20569dfab57".into();
+        waiting.title = "Esperar hasta más tarde".into();
+        waiting.schedule.next_run_at = Some("2026-09-02T20:00:00Z".into());
+        let mut paused = scheduled_reminder();
+        paused.task_id = "86194a6a-ab45-46a9-8af3-05dd837b6783".into();
+        paused.title = "Pausa explícita".into();
+        paused.status = TaskStatus::Paused;
+        let mut completed = scheduled_reminder();
+        completed.task_id = "e4d61366-3439-456e-bf21-f4e0f2dbf332".into();
+        completed.title = "Resultado ya registrado".into();
+        completed.status = TaskStatus::Completed;
+        completed.schedule.next_run_at = None;
+        completed.cancellable = false;
+        let mut cancelled = completed.clone();
+        cancelled.task_id = "c7191be0-623f-4810-90c1-8e4ef274dfc5".into();
+        cancelled.title = "Intención retirada".into();
+        cancelled.status = TaskStatus::Cancelled;
+
+        let path = directory.join(TASK_FILE);
+        let bytes = serialize_json(&document(vec![due, waiting, paused, completed, cancelled]))
+            .expect("serialize fixture");
+        fs::write(&path, &bytes).expect("write fixture");
+
+        let snapshot =
+            task_engine_snapshot_at(&root, "2026-09-02T19:00:00Z".into(), false, None, None)
+                .expect("evaluate temporal state");
+
+        assert_eq!(snapshot.registry_state, TaskRegistryState::Ready);
+        assert_eq!(snapshot.due_count, 1);
+        assert_eq!(snapshot.waiting_count, 1);
+        assert_eq!(snapshot.excluded_count, 3);
+        assert_eq!(
+            snapshot.next_wake_at.as_deref(),
+            Some("2026-09-02T20:00:00Z")
+        );
+        assert_eq!(snapshot.items[0].temporal_state, TaskTemporalState::Due);
+        assert_eq!(snapshot.items[1].temporal_state, TaskTemporalState::Waiting);
+        assert_eq!(snapshot.items[2].reason, Some(TaskTemporalReason::Paused));
+        assert_eq!(
+            snapshot.items[3].reason,
+            Some(TaskTemporalReason::Completed)
+        );
+        assert_eq!(
+            snapshot.items[4].reason,
+            Some(TaskTemporalReason::Cancelled)
+        );
+        assert!(!snapshot.background_enabled);
+        assert!(!snapshot.automatic_execution);
+        assert!(!snapshot.notifications_enabled);
+        assert!(!snapshot.writes_performed);
+        assert_eq!(fs::read(&path).expect("reread fixture"), bytes);
+        fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn temporal_engine_missing_state_does_not_create_storage() {
+        let root = temporary_root("temporal-missing");
+        let snapshot =
+            task_engine_snapshot_at(&root, "2026-09-02T19:00:00Z".into(), false, None, None)
+                .expect("evaluate missing registry");
+
+        assert_eq!(snapshot.registry_state, TaskRegistryState::Missing);
+        assert!(snapshot.items.is_empty());
+        assert_eq!(snapshot.due_count, 0);
+        assert!(!root.exists());
+    }
+
+    #[test]
+    fn temporal_background_control_starts_off_and_can_be_fully_disabled() {
+        let store = TaskEngineStore::default();
+        assert_eq!(store.status().unwrap(), (false, None, None));
+
+        store.set_enabled(true).expect("enable evaluation");
+        assert!(store.status().unwrap().0);
+        {
+            let mut runtime = store.inner.lock().unwrap();
+            runtime.last_background_evaluation_at = Some("2026-09-02T19:00:00Z".into());
+        }
+        store.set_enabled(false).expect("disable evaluation");
+        assert_eq!(store.status().unwrap(), (false, None, None));
     }
 
     #[test]

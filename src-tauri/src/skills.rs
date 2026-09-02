@@ -1418,9 +1418,9 @@ mod tests {
     }
 
     #[test]
-    fn valid_draft_uses_the_real_28_capability_registry() {
+    fn valid_draft_uses_the_real_29_capability_registry() {
         let registry = registry();
-        assert_eq!(registry.capabilities.len(), 28);
+        assert_eq!(registry.capabilities.len(), 29);
         manifest().validate_new_draft(&registry).unwrap();
     }
 

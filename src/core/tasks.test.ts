@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localDateTimeToUtc, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskRegistrySnapshot } from "./tasks";
+import { localDateTimeToUtc, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskRegistrySnapshot } from "./tasks";
 
 const id = "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd";
 const revision = "0c39b61b-83b9-4f02-a06f-7c6ea9640b71";
@@ -52,5 +52,29 @@ describe("contrato visible R7.2-B", () => {
   it("convierte una fecha local válida a UTC canónico", () => {
     expect(localDateTimeToUtc("2026-09-03T18:00")).toMatch(/^2026-09-0[3-4]T\d{2}:00:00Z$/);
     expect(() => localDateTimeToUtc("")).toThrow(/fecha y hora válidas/);
+  });
+
+  it("acepta una evaluación temporal cerrada y sin efectos", () => {
+    const snapshot = parseTaskEngineSnapshot({
+      schemaVersion: 1, registryState: "ready", evaluatedAt: "2026-09-02T19:00:00Z",
+      backgroundEnabled: true, lastBackgroundEvaluationAt: "2026-09-02T18:59:59Z",
+      waitingCount: 1, dueCount: 1, excludedCount: 1, nextWakeAt: "2026-09-02T20:00:00Z",
+      items: [
+        { taskId: id, title: "Futura", kind: "localReminder", registryStatus: "scheduled", scheduledFor: "2026-09-02T20:00:00Z", temporalState: "waiting", reason: null },
+        { taskId: revision, title: "Vencida", kind: "localReminder", registryStatus: "scheduled", scheduledFor: "2026-09-02T18:00:00Z", temporalState: "due", reason: null },
+        { taskId: "46ce7f93-ea5a-4f56-a77c-24452f482fb4", title: "Retirada", kind: "localReminder", registryStatus: "cancelled", scheduledFor: null, temporalState: "excluded", reason: "cancelled" },
+      ], error: null, automaticExecution: false, notificationsEnabled: false, writesPerformed: false,
+    });
+    expect(snapshot.dueCount).toBe(1);
+    expect(snapshot.items[2]?.reason).toBe("cancelled");
+  });
+
+  it("rechaza telemetría temporal inventada o con efectos habilitados", () => {
+    expect(() => parseTaskEngineSnapshot({
+      schemaVersion: 1, registryState: "missing", evaluatedAt: "2026-09-02T19:00:00Z",
+      backgroundEnabled: false, lastBackgroundEvaluationAt: null,
+      waitingCount: 0, dueCount: 0, excludedCount: 0, nextWakeAt: null, items: [], error: null,
+      automaticExecution: false, notificationsEnabled: true, writesPerformed: false,
+    })).toThrow(/no puede ejecutar, notificar ni escribir/);
   });
 });

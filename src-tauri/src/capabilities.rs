@@ -936,10 +936,11 @@ fn avatar_capabilities(
 }
 
 fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<CapabilityDescriptor> {
-    let (inspect_state, write_state, health_status, summary) = match probe.state {
+    let (inspect_state, write_state, engine_state, health_status, summary) = match probe.state {
         TaskRegistryState::Missing => (
             CapabilityState::Unavailable,
             CapabilityState::Idle,
+            CapabilityState::Disabled,
             CapabilityHealthStatus::Healthy,
             "El registro R7 todavía no existe; una vista previa puede prepararlo sin escribir."
                 .to_string(),
@@ -947,6 +948,7 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
         TaskRegistryState::Ready => (
             CapabilityState::Idle,
             CapabilityState::Idle,
+            CapabilityState::Disabled,
             CapabilityHealthStatus::Healthy,
             format!(
                 "El registro R7 contiene {} tareas válidas; no se ejecutó ninguna.",
@@ -954,6 +956,7 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
             ),
         ),
         TaskRegistryState::Invalid => (
+            CapabilityState::Error,
             CapabilityState::Error,
             CapabilityState::Error,
             CapabilityHealthStatus::Error,
@@ -1003,6 +1006,31 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
                 "Rust rechaza planes alterados o obsoletos y no contiene motor de ejecución ni notificaciones.",
             ),
             health(health_status, summary, Some(checked_at)),
+        ),
+        capability(
+            "tasks.temporal.evaluate",
+            "Evaluar intenciones temporales",
+            "Compara el reloj local con la programación R7 y distingue intenciones futuras, vencidas o excluidas sin intentar ejecutarlas.",
+            CapabilityDomain::Task,
+            CapabilityKind::Observation,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["task_engine_status", "set_task_engine_enabled"],
+            engine_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["taskScheduleMetadata"],
+            &["Registro R7 válido o ausencia controlada"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La evaluación periódica comienza apagada y sólo cambia desde el control visible del propietario.",
+            ),
+            health(
+                health_status,
+                "El clasificador temporal no notifica, no ejecuta y no escribe en el registro de tareas.",
+                Some(checked_at),
+            ),
         ),
     ]
 }
@@ -1880,7 +1908,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 28);
+        assert_eq!(snapshot.capabilities.len(), 29);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1933,6 +1961,19 @@ mod tests {
         assert_eq!(
             task_write.permission.mode,
             CapabilityPermissionMode::ExplicitConfirmation
+        );
+        let temporal = registered(&snapshot, "tasks.temporal.evaluate");
+        assert_eq!(temporal.domain, CapabilityDomain::Task);
+        assert_eq!(temporal.state, CapabilityState::Disabled);
+        assert_eq!(temporal.kind, CapabilityKind::Observation);
+        assert_eq!(
+            temporal.operations,
+            vec!["task_engine_status", "set_task_engine_enabled"]
+        );
+        assert_eq!(temporal.effects, vec![CapabilityEffect::LocalRead]);
+        assert_eq!(
+            temporal.permission.enforced_by,
+            CapabilityPermissionEnforcer::CurrentUi
         );
 
         let planned = snapshot
@@ -2121,7 +2162,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 28);
+        assert_eq!(snapshot.capabilities.len(), 29);
         assert!(!root.exists());
     }
 

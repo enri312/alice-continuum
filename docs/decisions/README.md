@@ -60,3 +60,7 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-082](ADR-P-082-candidatos-aprendizaje-local.md) | Extracción local de candidatos con evidencia literal y confirmación humana |
 | [ADR-P-083](ADR-P-083-confirmacion-transaccional-aprendizaje.md) | Confirmación nativa, atómica, auditable e idempotente de aprendizaje |
 | [ADR-P-084](ADR-P-084-memoria-funcional-y-volumen-trazable.md) | Ciclo funcional de memoria y nodos cognitivos vinculados a registros reales |
+| [ADR-P-085](ADR-P-085-registro-tareas-intenciones-solo-lectura.md) | Registro R7 separado de memoria, cerrado y de solo lectura inicial |
+| [ADR-P-086](ADR-P-086-persistencia-gobernada-tareas.md) | Persistencia y cancelación de tareas mediante vista previa ligada e idempotente |
+| [ADR-P-087](ADR-P-087-conversacion-temporal-sin-consolidacion-automatica.md) | Conversación en RAM sin promoción automática de respuestas a memoria durable |
+| [ADR-P-088](ADR-P-088-sentido-temporal-observable-r7.md) | Reloj R7.3-A observable, apagable y sin ejecución, notificación o escritura |

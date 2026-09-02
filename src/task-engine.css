@@ -1,0 +1,172 @@
+.task-clock {
+  margin: 0 12px 12px;
+  border: 1px solid #26364a;
+  background: linear-gradient(110deg, rgb(5 12 23 / 96%), rgb(9 15 31 / 94%));
+}
+
+.task-clock > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  border-bottom: 1px solid #26364a;
+  background: #08121f;
+}
+
+.task-clock > header > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.task-clock > header span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  font-size: .5rem;
+  font-weight: 900;
+}
+
+.task-clock > header strong,
+.task-clock > header small {
+  display: block;
+}
+
+.task-clock > header strong {
+  color: #dbeafe;
+  font-size: .55rem;
+}
+
+.task-clock > header small {
+  margin-top: 3px;
+  color: #526779;
+  font-size: .43rem;
+}
+
+.task-clock > header b {
+  border: 1px solid #475569;
+  padding: 6px 8px;
+  color: #94a3b8;
+  font-size: .46rem;
+}
+
+.task-clock.active {
+  border-color: #0e7490;
+  box-shadow: inset 3px 0 rgb(34 211 238 / 55%);
+}
+
+.task-clock.active > header b {
+  border-color: #0e7490;
+  color: #67e8f9;
+  box-shadow: 0 0 12px rgb(34 211 238 / 12%);
+}
+
+.task-clock-body {
+  display: grid;
+  grid-template-columns: minmax(390px, 1.4fr) minmax(250px, .6fr);
+  gap: 14px;
+  padding: 12px;
+}
+
+.task-clock-body dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid #1d2c3d;
+}
+
+.task-clock-body dl div {
+  min-width: 0;
+  padding: 10px;
+  border-right: 1px solid #1d2c3d;
+}
+
+.task-clock-body dl div:last-child {
+  border-right: 0;
+}
+
+.task-clock-body dt {
+  color: #526779;
+  font-size: .42rem;
+}
+
+.task-clock-body dd {
+  overflow: hidden;
+  margin: 6px 0 0;
+  color: #cbd5e1;
+  font-size: .63rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-clock-body dd.due {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgb(251 191 36 / 30%);
+}
+
+.task-clock-body > div {
+  display: grid;
+  align-content: space-between;
+  gap: 9px;
+}
+
+.task-clock-body p {
+  margin: 0;
+  color: #73879a;
+  font-size: .47rem;
+  line-height: 1.5;
+}
+
+.task-clock-body button {
+  width: 100%;
+  border: 1px solid #0e7490;
+  padding: 9px;
+  background: #09212b;
+  color: #67e8f9;
+  font: 900 .5rem Consolas, monospace;
+}
+
+.task-clock.active .task-clock-body button {
+  border-color: #b45309;
+  background: #27180c;
+  color: #fbbf24;
+}
+
+.task-clock > footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 7px 11px;
+  border-top: 1px solid #1d2c3d;
+  color: #526779;
+  font-size: .41rem;
+  font-weight: 900;
+}
+
+.task-clock > footer span {
+  padding-right: 9px;
+  border-right: 1px solid #26364a;
+}
+
+@media (max-width: 900px) {
+  .task-clock-body {
+    grid-template-columns: 1fr;
+  }
+
+  .task-clock-body dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-clock-body dl div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .task-clock-body dl div:nth-child(-n + 2) {
+    border-bottom: 1px solid #1d2c3d;
+  }
+}

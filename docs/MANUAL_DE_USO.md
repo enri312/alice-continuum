@@ -151,9 +151,13 @@ control del propietario. Para preparar un recordatorio único:
 4. marcá la casilla de revisión y recién entonces pulsá **Confirmar programación**.
 
 El registro inferior muestra sólo tareas reales. **Preparar cancelación** tampoco
-cambia nada hasta completar la misma revisión y confirmación. En R7.2 no hay reloj
-en segundo plano, notificación ni ejecución automática; esas funciones pertenecen
-a fases posteriores.
+cambia nada hasta completar la misma revisión y confirmación.
+
+**Sentido temporal R7.3-A** puede comparar el reloj con esas tareas. Empieza
+**APAGADO** cada vez que se abre Alice. **Activar reloj interno** inicia sólo la
+evaluación local; muestra futuras, vencidas, excluidas, próximo vencimiento y último
+pulso. **Detener evaluación** la apaga por completo. Esta función no notifica, no
+marca tareas como completadas, no registra intentos y no ejecuta acciones.
 
 ### Memoria
 

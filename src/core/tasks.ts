@@ -76,6 +76,36 @@ export type TaskMutationReceipt = {
   automaticExecution: false;
 };
 
+export type TaskTemporalState = "waiting" | "due" | "excluded";
+export type TaskTemporalReason = "paused" | "completed" | "cancelled";
+
+export type TaskTemporalEntry = {
+  taskId: string;
+  title: string;
+  kind: TaskKind;
+  registryStatus: TaskStatus;
+  scheduledFor: string | null;
+  temporalState: TaskTemporalState;
+  reason: TaskTemporalReason | null;
+};
+
+export type TaskEngineSnapshot = {
+  schemaVersion: typeof TASK_REGISTRY_SCHEMA_VERSION;
+  registryState: TaskRegistryState;
+  evaluatedAt: string;
+  backgroundEnabled: boolean;
+  lastBackgroundEvaluationAt: string | null;
+  waitingCount: number;
+  dueCount: number;
+  excludedCount: number;
+  nextWakeAt: string | null;
+  items: TaskTemporalEntry[];
+  error: string | null;
+  automaticExecution: false;
+  notificationsEnabled: false;
+  writesPerformed: false;
+};
+
 function fail(message: string): never {
   throw new Error(`Contrato R7 inválido: ${message}`);
 }
@@ -234,6 +264,55 @@ export function parseTaskMutationReceipt(value: unknown): TaskMutationReceipt {
     auditWritten: bool(source.auditWritten, "receipt.auditWritten"),
     idempotent: bool(source.idempotent, "receipt.idempotent"),
     automaticExecution: false,
+  };
+}
+
+function parseTaskTemporalEntry(value: unknown, field: string): TaskTemporalEntry {
+  const source = object(value, field);
+  exactKeys(source, ["taskId", "title", "kind", "registryStatus", "scheduledFor", "temporalState", "reason"], field);
+  const temporalState = oneOf(source.temporalState, ["waiting", "due", "excluded"] as const, `${field}.temporalState`);
+  const reason = source.reason === null ? null : oneOf(source.reason, ["paused", "completed", "cancelled"] as const, `${field}.reason`);
+  if ((temporalState === "excluded") !== (reason !== null)) fail(`${field} tiene motivo temporal incoherente`);
+  return {
+    taskId: uuid(source.taskId, `${field}.taskId`),
+    title: text(source.title, `${field}.title`),
+    kind: oneOf(source.kind, ["localReminder", "readOnlyCheck"] as const, `${field}.kind`),
+    registryStatus: oneOf(source.registryStatus, ["scheduled", "paused", "completed", "cancelled"] as const, `${field}.registryStatus`),
+    scheduledFor: source.scheduledFor === null ? null : timestamp(source.scheduledFor, `${field}.scheduledFor`),
+    temporalState,
+    reason,
+  };
+}
+
+export function parseTaskEngineSnapshot(value: unknown): TaskEngineSnapshot {
+  const source = object(value, "taskEngine");
+  exactKeys(source, ["schemaVersion", "registryState", "evaluatedAt", "backgroundEnabled", "lastBackgroundEvaluationAt", "waitingCount", "dueCount", "excludedCount", "nextWakeAt", "items", "error", "automaticExecution", "notificationsEnabled", "writesPerformed"], "taskEngine");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION) fail("taskEngine.schemaVersion desconocido");
+  if (!Array.isArray(source.items)) fail("taskEngine.items debe ser una lista");
+  if (source.automaticExecution !== false || source.notificationsEnabled !== false || source.writesPerformed !== false) fail("el reloj R7.3-A no puede ejecutar, notificar ni escribir");
+  const items = source.items.map((item, index) => parseTaskTemporalEntry(item, `taskEngine.items[${index}]`));
+  const waitingCount = integer(source.waitingCount, "taskEngine.waitingCount");
+  const dueCount = integer(source.dueCount, "taskEngine.dueCount");
+  const excludedCount = integer(source.excludedCount, "taskEngine.excludedCount");
+  if (waitingCount + dueCount + excludedCount !== items.length) fail("taskEngine contiene conteos incoherentes");
+  if (items.filter((item) => item.temporalState === "waiting").length !== waitingCount
+    || items.filter((item) => item.temporalState === "due").length !== dueCount
+    || items.filter((item) => item.temporalState === "excluded").length !== excludedCount) fail("taskEngine no coincide con sus estados temporales");
+  return {
+    schemaVersion: TASK_REGISTRY_SCHEMA_VERSION,
+    registryState: oneOf(source.registryState, ["missing", "ready", "invalid"] as const, "taskEngine.registryState"),
+    evaluatedAt: timestamp(source.evaluatedAt, "taskEngine.evaluatedAt"),
+    backgroundEnabled: bool(source.backgroundEnabled, "taskEngine.backgroundEnabled"),
+    lastBackgroundEvaluationAt: source.lastBackgroundEvaluationAt === null ? null : timestamp(source.lastBackgroundEvaluationAt, "taskEngine.lastBackgroundEvaluationAt"),
+    waitingCount,
+    dueCount,
+    excludedCount,
+    nextWakeAt: source.nextWakeAt === null ? null : timestamp(source.nextWakeAt, "taskEngine.nextWakeAt"),
+    items,
+    error: nullableText(source.error, "taskEngine.error"),
+    automaticExecution: false,
+    notificationsEnabled: false,
+    writesPerformed: false,
   };
 }
 

@@ -1,6 +1,6 @@
 # Plan de implementación R7 — Tareas programadas e intenciones
 
-Estado: en curso · R7.2 completado  
+Estado: en curso · R7.3-A completado  
 Inicio: 2026-09-01
 
 ## R7.1 — Contrato e inspección pasiva
@@ -30,10 +30,15 @@ El backend R7.2-A persiste únicamente después de recibir el plan completo devu
 
 ## R7.3 — Motor local de vencimiento
 
-- [ ] Resolver el reloj y tareas vencidas sin duplicar tras reinicio.
+- [x] Evaluar el reloj y distinguir tareas futuras, vencidas y excluidas sin efectos.
+- [x] Exponer el pulso real y permitir apagar completamente el modo en segundo plano.
+- [x] Reiniciar siempre con el reloj apagado y sin persistir pulsos.
+- [ ] Crear un ledger durable de intentos antes de producir salidas.
+- [ ] Evitar intentos duplicados tras reinicio.
 - [ ] Distinguir programación, intento, omisión y resultado.
 - [ ] Mantener tareas pausadas, canceladas o vencidas fuera de ejecución.
-- [ ] Permitir apagar completamente el modo en segundo plano.
+
+R7.3-A es sentido temporal observable: `waiting`, `due` y `excluded` se calculan desde la fuente validada; no existen intentos, notificaciones, escrituras ni ejecución. R7.3-B añadirá el ledger durable y la idempotencia sin habilitar todavía la notificación.
 
 ## R7.4 — Recordatorio local
 
