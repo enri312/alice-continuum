@@ -177,6 +177,9 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
             AuditSource::Avatar => {
                 add_region(&mut regions, "motor", event, weight);
             }
+            AuditSource::Task => {
+                add_region(&mut regions, "workspace", event, weight);
+            }
             AuditSource::Procedure => {}
             AuditSource::Permission | AuditSource::Capability => {
                 add_region(&mut regions, "permission", event, weight);

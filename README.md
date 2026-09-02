@@ -7,9 +7,9 @@
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6-completado-16a34a?style=flat-square)
-![R7](https://img.shields.io/badge/R7.1-contrato%20pasivo-0f766e?style=flat-square)
+![R7](https://img.shields.io/badge/R7.2A-persistencia%20gobernada-0f766e?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-418%2F418%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-235%20aprobadas%20%7C%2019%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-238%20aprobadas%20%7C%2019%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
@@ -35,17 +35,17 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 
 | Área | Estado real |
 |---|---|
-| Registro de capacidades R1 | Validado: snapshot nativo v1 con 26 capacidades |
+| Registro de capacidades R1 | Validado: snapshot nativo v1 con 28 capacidades |
 | Gateway de permisos R2 | Ventana, cámara y micrófono protegidos; permiso facial separado disponible sin ejecución |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
 | Memoria por capas R6 | Completada: 15 recuerdos reales, 13 vigentes, 2 conflictivos, 0 no evaluados; capas v3 y ciclo v1 activos sobre la huella vigente |
-| Tareas e intenciones R7 | R7.1 implementado: contrato e inspección pasiva; 0 tareas, sin scheduler ni ejecución automática |
-| Capacidades implementadas o parciales | 18 |
+| Tareas e intenciones R7 | R7.2-A implementado: vista previa y persistencia nativa gobernada; interfaz pendiente, 0 tareas canónicas y sin scheduler |
+| Capacidades implementadas o parciales | 19 |
 | Capacidades planificadas | 9, sin adaptador y no disponibles |
 | Pruebas TypeScript | 418/418 aprobadas |
-| Pruebas Rust | 235 normales aprobadas; diecinueve sondas vivas disponibles por separado |
+| Pruebas Rust | 238 normales aprobadas; diecinueve sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -53,7 +53,7 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Datos privados preservados | 35 archivos en `data/` conservaron el mismo digest agregado durante las sondas finales R6 |
 | Avatar privado | Preservado y excluido de Git |
 
-La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md), [el cierre final R6](docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md) y [el informe R7.1](docs/testing/R7_TASK_REGISTRY_REPORT_2026-09-01.md).
+La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md), [el cierre final R6](docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md), [el informe R7.1](docs/testing/R7_TASK_REGISTRY_REPORT_2026-09-01.md) y [la validación R7.2-A](docs/testing/R7_2A_TASK_MUTATION_REPORT_2026-09-01.md).
 
 ## Límites actuales
 

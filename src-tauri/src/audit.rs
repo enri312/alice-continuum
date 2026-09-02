@@ -24,6 +24,7 @@ pub(crate) enum AuditSource {
     Skill,
     Avatar,
     Procedure,
+    Task,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -269,6 +270,32 @@ impl AuditEvent {
         Ok(event)
     }
 
+    pub(crate) fn task_mutation(
+        operation_id: String,
+        operation: String,
+        subject_digest: String,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Task,
+            capability_id: Some("tasks.registry.write".into()),
+            operation,
+            stage: AuditStage::Execution,
+            decision: None,
+            outcome: AuditOutcome::Success,
+            duration_ms: None,
+            subject_digest: Some(subject_digest),
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -376,6 +403,23 @@ impl AuditEvent {
                 || self.subject_digest.is_none()
             {
                 return Err("El evento de decisión R5 no cumple el contrato R3 cerrado".into());
+            }
+        }
+        if self.source == AuditSource::Task {
+            let valid = matches!(
+                (self.operation.as_str(), self.reason_code.as_str()),
+                ("tasks.reminder.schedule", "TASK_REMINDER_CONFIRMED")
+                    | ("tasks.registry.cancel", "TASK_CANCELLED")
+            );
+            if self.capability_id.as_deref() != Some("tasks.registry.write")
+                || !valid
+                || self.stage != AuditStage::Execution
+                || self.outcome != AuditOutcome::Success
+                || self.decision.is_some()
+                || self.duration_ms.is_some()
+                || self.subject_digest.is_none()
+            {
+                return Err("El evento de tareas R7 no cumple el contrato R3 cerrado".into());
             }
         }
         Ok(())

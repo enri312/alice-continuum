@@ -936,14 +936,16 @@ fn avatar_capabilities(
 }
 
 fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<CapabilityDescriptor> {
-    let (state, health_status, summary) = match probe.state {
+    let (inspect_state, write_state, health_status, summary) = match probe.state {
         TaskRegistryState::Missing => (
             CapabilityState::Unavailable,
-            CapabilityHealthStatus::Unavailable,
-            "El registro R7 todavía no existe; la inspección no creó carpetas ni tareas."
+            CapabilityState::Idle,
+            CapabilityHealthStatus::Healthy,
+            "El registro R7 todavía no existe; una vista previa puede prepararlo sin escribir."
                 .to_string(),
         ),
         TaskRegistryState::Ready => (
+            CapabilityState::Idle,
             CapabilityState::Idle,
             CapabilityHealthStatus::Healthy,
             format!(
@@ -953,32 +955,56 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
         ),
         TaskRegistryState::Invalid => (
             CapabilityState::Error,
+            CapabilityState::Error,
             CapabilityHealthStatus::Error,
             "El registro R7 existe, pero no cumple el contrato cerrado.".to_string(),
         ),
     };
 
-    vec![capability(
-        "tasks.registry.inspect",
-        "Inspeccionar tareas locales",
-        "Lee un registro R7 validado y distingue recordatorios de comprobaciones de solo lectura sin programar ni ejecutar acciones.",
-        CapabilityDomain::Task,
-        CapabilityKind::Query,
-        CapabilityMaturity::Implemented,
-        "tasks",
-        &["task_registry_status"],
-        state,
-        CapabilityRisk::Low,
-        &[CapabilityEffect::LocalRead],
-        &["taskRegistryMetadata"],
-        &["Registro local R7 válido"],
-        permission(
-            CapabilityPermissionMode::ImplicitRead,
-            CapabilityPermissionEnforcer::Native,
-            "Rust sólo relee y valida el registro; no crea tareas ni activa un scheduler.",
+    vec![
+        capability(
+            "tasks.registry.inspect",
+            "Inspeccionar tareas locales",
+            "Lee un registro R7 validado y distingue recordatorios de comprobaciones de solo lectura sin programar ni ejecutar acciones.",
+            CapabilityDomain::Task,
+            CapabilityKind::Query,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["task_registry_status"],
+            inspect_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["taskRegistryMetadata"],
+            &["Registro local R7 válido"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::Native,
+                "Rust sólo relee y valida el registro; no crea tareas ni activa un scheduler.",
+            ),
+            health(health_status, summary.clone(), Some(checked_at)),
         ),
-        health(health_status, summary, Some(checked_at)),
-    )]
+        capability(
+            "tasks.registry.write",
+            "Programar o cancelar una tarea local",
+            "Prepara sin escribir y confirma un recordatorio único o su cancelación con identidad, hora, alcance, respaldo, revisión y auditoría releídos.",
+            CapabilityDomain::Task,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["preview_task_mutation", "confirm_task_mutation"],
+            write_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["taskRegistry", "taskRevisionIndex", "taskAudit"],
+            &["Vista previa R7 confirmada sin cambios posteriores"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::Native,
+                "Rust rechaza planes alterados o obsoletos y no contiene motor de ejecución ni notificaciones.",
+            ),
+            health(health_status, summary, Some(checked_at)),
+        ),
+    ]
 }
 
 fn planned_output_capabilities() -> Vec<CapabilityDescriptor> {
@@ -1854,7 +1880,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 27);
+        assert_eq!(snapshot.capabilities.len(), 28);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1891,6 +1917,22 @@ mod tests {
         assert_eq!(
             tasks.permission.enforced_by,
             CapabilityPermissionEnforcer::Native
+        );
+        let task_write = registered(&snapshot, "tasks.registry.write");
+        assert_eq!(task_write.domain, CapabilityDomain::Task);
+        assert_eq!(task_write.state, CapabilityState::Idle);
+        assert_eq!(task_write.kind, CapabilityKind::Mutation);
+        assert_eq!(
+            task_write.operations,
+            vec!["preview_task_mutation", "confirm_task_mutation"]
+        );
+        assert_eq!(
+            task_write.effects,
+            vec![CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite]
+        );
+        assert_eq!(
+            task_write.permission.mode,
+            CapabilityPermissionMode::ExplicitConfirmation
         );
 
         let planned = snapshot
@@ -2079,7 +2121,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 27);
+        assert_eq!(snapshot.capabilities.len(), 28);
         assert!(!root.exists());
     }
 
