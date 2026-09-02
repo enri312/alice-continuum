@@ -8,7 +8,7 @@ R7 separa tres conceptos que no deben confundirse:
 - un **recordatorio local** solicita presentar un aviso en una fecha revisada;
 - una **comprobación de solo lectura** propone consultar una capacidad R1 sin modificar el equipo.
 
-R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. Ninguno de los dos incrementos ejecuta tareas, inicia un scheduler o convierte recuerdos en acciones.
+R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. R7.2-B hace visible esa transacción bajo control del propietario. Ninguno de esos incrementos ejecuta tareas, inicia un scheduler o convierte recuerdos en acciones.
 
 ## Fuente durable
 
@@ -62,9 +62,24 @@ La capacidad R1 `tasks.registry.inspect` registra esta consulta como lectura loc
 
 La cancelación conserva el registro, cambia su estado a `cancelled`, retira `nextRunAt` y vuelve `cancellable=false`. Repetir exactamente la misma confirmación devuelve un recibo idempotente sin otra revisión ni otro evento de auditoría.
 
+## Interfaz R7.2-B
+
+El bloque **R7 · Control del propietario** vive en la pantalla Planificador, pero está separado del plan cognitivo descriptivo. La ubicación reúne intención y control temporal sin presentar la escritura como una decisión autónoma de Alice ni añadir una pestaña de Memoria.
+
+La interfaz:
+
+1. consulta el registro nativo real al abrir;
+2. acepta un título y una fecha y hora locales para un recordatorio único;
+3. convierte la hora a UTC antes de solicitar la vista previa;
+4. vuelve a mostrar operación, identidad UUID, título, hora local, alcance, respaldo y ejecución apagada;
+5. exige una casilla de revisión antes de habilitar la confirmación;
+6. presenta las tareas reales y prepara su cancelación mediante la misma transacción gobernada.
+
+Los contratos TypeScript son cerrados y rechazan claves adicionales, fechas o UUID no canónicos y cualquier respuesta que declare ejecución automática. Preparar o descartar una vista previa no escribe. Sólo la confirmación explícita invoca la mutación nativa.
+
 ## Límites actuales
 
-- La escritura nativa existe, pero aún no tiene una pantalla visible y no se usó sobre datos canónicos.
+- La escritura nativa tiene una pantalla visible, pero todavía no se usó sobre datos canónicos: el registro permanece ausente y contiene 0 tareas.
 - Sin recurrencia, zona horaria configurable o cálculo de vencimiento.
 - Sin hilo en segundo plano.
 - Sin notificaciones del sistema operativo.
@@ -72,4 +87,4 @@ La cancelación conserva el registro, cambia su estado a `cancelled`, retira `ne
 - La auditoría cubre programación y cancelación; todavía no existen intentos de ejecución.
 - Sin enlace automático desde recuerdos, conversación o salidas de modelos.
 
-El siguiente incremento integrará la vista previa y la confirmación en la interfaz antes de crear el primer recordatorio canónico. El scheduler seguirá fuera de alcance hasta R7.3.
+El siguiente incremento será R7.3, el motor local de vencimiento. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no es necesario fabricar uno para validar R7.2.

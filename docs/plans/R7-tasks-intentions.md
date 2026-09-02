@@ -1,6 +1,6 @@
 # Plan de implementación R7 — Tareas programadas e intenciones
 
-Estado: en curso · R7.2-A nativo implementado  
+Estado: en curso · R7.2 completado  
 Inicio: 2026-09-01
 
 ## R7.1 — Contrato e inspección pasiva
@@ -24,9 +24,9 @@ R7.1 no programa ni ejecuta. `automaticExecution=false` forma parte de la respue
 - [x] Crear respaldo, revisión inmutable e índice antes de confirmar el reemplazo.
 - [x] Cancelar de forma explícita e idempotente.
 - [x] Auditar programación y cancelación sin texto privado.
-- [ ] Integrar la revisión y confirmación en una pantalla visible para el propietario.
+- [x] Integrar la revisión y confirmación en una pantalla visible para el propietario.
 
-El backend R7.2-A persiste únicamente después de recibir el plan completo devuelto por la vista previa y `confirmed=true`. Todavía no existe scheduler, notificación ni ejecución automática; la primera tarea canónica se creará desde la futura pantalla, no desde una prueba.
+El backend R7.2-A persiste únicamente después de recibir el plan completo devuelto por la vista previa y `confirmed=true`. R7.2-B expone esa transacción en **Planificador**, dentro de un bloque separado de control del propietario: permite preparar un recordatorio único, releer identidad, título, hora local, alcance, respaldo y estado de ejecución, confirmar mediante una casilla explícita, inspeccionar el registro y preparar una cancelación. Todavía no existe scheduler, notificación ni ejecución automática. La validación de interfaz usó sólo una vista previa y conservó el registro canónico ausente.
 
 ## R7.3 — Motor local de vencimiento
 

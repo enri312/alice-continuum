@@ -120,6 +120,20 @@ seleccionada cuando existe. Actualmente es principalmente descriptivo:
 - no ejecuta una acción por sí solo;
 - no reemplaza la autorización del propietario.
 
+Debajo aparece **R7 · Recordatorios e intenciones temporales**, un bloque separado de
+control del propietario. Para preparar un recordatorio único:
+
+1. escribí un título concreto y elegí la fecha y hora local;
+2. pulsá **Preparar vista previa**; esto todavía no guarda nada;
+3. releé operación, título, hora, identidad, alcance, respaldo y que la ejecución
+   figure **APAGADA**;
+4. marcá la casilla de revisión y recién entonces pulsá **Confirmar programación**.
+
+El registro inferior muestra sólo tareas reales. **Preparar cancelación** tampoco
+cambia nada hasta completar la misma revisión y confirmación. En R7.2 no hay reloj
+en segundo plano, notificación ni ejecución automática; esas funciones pertenecen
+a fases posteriores.
+
 ### Memoria
 
 Administra el ciclo de vida de los recuerdos. Debido a su importancia, está

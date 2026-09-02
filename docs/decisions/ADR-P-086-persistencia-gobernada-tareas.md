@@ -22,7 +22,8 @@ Una cancelación no elimina la tarea: cambia el estado a `cancelled`, retira la 
 - La historia puede reconstruirse desde revisiones y respaldos locales.
 - La capacidad `tasks.registry.write` describe una mutación local de riesgo medio con confirmación nativa.
 - Persistir no equivale a ejecutar: no hay reloj, scheduler, notificación, red ni procesos.
-- La primera escritura canónica deberá originarse en una pantalla visible, no en una prueba.
+- R7.2-B materializa la pantalla visible dentro de Planificador como un bloque separado de control del propietario.
+- La prueba de interfaz prepara y descarta una vista previa real sin escritura; la primera tarea canónica deberá surgir de una decisión del propietario, no de una prueba.
 
 ## Alternativas rechazadas
 
