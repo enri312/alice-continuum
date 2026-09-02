@@ -27,7 +27,6 @@ import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWork
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
 import { parseOwnerProfileSnapshot } from "./core/owner-profile";
 import type { OwnerProfileSnapshot } from "./core/owner-profile";
-import { buildConversationEpisode } from "./core/conversation-learning";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
@@ -320,10 +319,9 @@ export function App() {
       : "La activación requiere un grant de sesión en el Gateway R2");
   }
 
-  async function sendCloudMessage(request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) {
+  async function sendCloudMessage(request: CloudRequest, recalledMemoryIds: string[]) {
     setCloudPending(true);
     recordEvent("PERCEPTION", "INFERENCE_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · RAG ${request.memoryCount}`);
-    const requestStartedAt = new Date().toISOString();
     try {
       const response = await invoke<CloudResponse>("send_cloud_message", { request });
       const now = new Date().toISOString();
@@ -348,22 +346,6 @@ export function App() {
         ]);
       }
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
-      if (rememberLocally) {
-        updateSessions((current) => {
-          return [buildConversationEpisode({
-            id: crypto.randomUUID(),
-            userMessage: request.message,
-            assistantMessage: response.text,
-            provider: response.provider,
-            model: response.model,
-            startedAt: requestStartedAt,
-            finishedAt: new Date().toISOString(),
-          }), ...current];
-        });
-      }
-      if (rememberLocally) {
-        recordEvent("MEMORY", "CONVERSATION_EPISODE_COMMIT", `Episodio real guardado · ${response.provider}/${response.model}`);
-      }
       if (recalledMemoryIds.length) recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} usado${recalledMemoryIds.length === 1 ? "" : "s"} · utilidad aún no confirmada`);
       recordEvent("OUTPUT", "CLOUD_RESPONSE", `${response.provider}/${response.model} · ${response.inputTokens} entrada · ${response.outputTokens} salida`);
       return response;

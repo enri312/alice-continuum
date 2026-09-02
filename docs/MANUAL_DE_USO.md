@@ -86,6 +86,27 @@ Incluye el panel **[00] CONVERSATION / PERCEPTION INPUT**.
   **CONVERSE**, **INSPECT** y **REPLAY** son indicadores o funciones en desarrollo;
   no supongas que todos ejecutan una operación real si aparecen deshabilitados.
 
+#### Control de contexto de la conversación
+
+Las casillas de la columna derecha autorizan qué contexto puede recibir el modelo.
+Una casilla marcada significa **seleccionada**, no necesariamente que ya existan
+datos:
+
+- **Historial reciente** utiliza mensajes que todavía viven en la memoria de
+  trabajo. Con `0 mensajes`, no adjunta contenido.
+- **RAG local de recuerdos** espera el mensaje actual para buscar coincidencias. La
+  vista previa muestra cuántas encontró antes de procesar.
+- **Ventana actual** permanece deshabilitada hasta que el Gateway autorice el
+  observador y existan metadatos. El botón abre esa configuración; no concede el
+  permiso directamente.
+- Sólo son elegibles el nombre del proceso y el título de la ventana. Cámara,
+  micrófono, fotogramas y audio no se adjuntan desde este panel.
+
+Después de una respuesta, el intercambio permanece en **memoria de trabajo RAM**.
+No se guarda automáticamente en la memoria durable y el texto del modelo no se
+declara un hecho confirmado. Una futura promoción a episodio deberá ser explícita y
+revisable.
+
 ### Volumen cognitivo
 
 Representa en 3D señales y relaciones derivadas de la actividad disponible.

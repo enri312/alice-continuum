@@ -116,13 +116,13 @@ La entrada se lee sólo mediante Gamepad API mientras la prueba está activada. 
 
 El control de contexto integrado en `[00] CONVERSATION / PERCEPTION INPUT` es la última revisión antes de una inferencia local o una solicitud de nube:
 
-- con Ollama, historial reciente y RAG local comienzan activados y permanecen visibles en la previsualización; para proveedores remotos continúan desmarcados;
+- con Ollama, historial reciente y RAG local comienzan seleccionados, pero la interfaz distingue esa selección de la disponibilidad real de mensajes o coincidencias; para proveedores remotos continúan desmarcados;
 - observar una ventana localmente no implica enviarla;
 - cámara, micrófono, fotogramas y audio no son fuentes elegibles;
-- `Aprendizaje episódico local` empieza activado: después de una respuesta real guarda pregunta, respuesta, proveedor y modelo como una experiencia privada; puede desmarcarse antes de enviar y no controla qué sale a Internet;
-- un episodio confirma que la conversación ocurrió, no convierte la respuesta del modelo en un hecho semántico verificado;
-- proveedor y modelo se muestran como destino de solo lectura y solo se cambian en Configuración;
-- el botón de ventana abre el Gateway R2: no activa ni detiene directamente.
+- cada intercambio permanece en la memoria de trabajo temporal; la conversación no guarda automáticamente la respuesta del modelo como recuerdo duradero ni como hecho confirmado;
+- la promoción futura de un intercambio a episodio durable deberá ser explícita y pasar por revisión;
+- proveedor y modelo se muestran como motor seleccionado sin herramientas y sólo se cambian en Configuración;
+- el botón de ventana abre el Gateway R2 para configurar o administrar el observador: no activa ni detiene directamente.
 
 El informe completo del alcance inicial está en [R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md](docs/testing/R2_PERMISSION_GATEWAY_REPORT_2026-08-09.md).
 
@@ -247,7 +247,7 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 | xAI | `XAI_API_KEY` | `XAI_MODEL` |
 | Compatible con Chat Completions | `ALICE_COMPATIBLE_API_KEY` y `ALICE_COMPATIBLE_BASE_URL` | `ALICE_COMPATIBLE_MODEL` |
 
-`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato conversacional local usa contexto 4096, desactiva herramientas, streaming y razonamiento visible, limita la salida a 900 tokens y mantiene la previsualización obligatoria. OpenRouter no aparece en Configuración y Rust rechaza cualquier solicitud directa hacia él. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3, memoria de trabajo y, si Carlos lo autoriza, aprendizaje episódico local. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [ADR-P-080](docs/decisions/ADR-P-080-contexto-rag-local.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
+`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato conversacional local usa contexto 4096, desactiva herramientas, streaming y razonamiento visible, limita la salida a 900 tokens y mantiene la previsualización obligatoria. OpenRouter no aparece en Configuración y Rust rechaza cualquier solicitud directa hacia él. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3 y memoria de trabajo temporal. Ninguna respuesta del modelo se consolida automáticamente como recuerdo durable. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [ADR-P-080](docs/decisions/ADR-P-080-contexto-rag-local.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
 
 ## Observación visual local
 

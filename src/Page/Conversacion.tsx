@@ -4,6 +4,7 @@ import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
 import type { RetrievalOutcome } from "../core/memory-consolidation";
 import type { WorkingMemorySnapshot } from "../core/working-memory";
+import "../conversation-context.css";
 
 export type ConversationMessage = {
   id: string;
@@ -56,7 +57,7 @@ type ConversacionProps = {
   onDraftChange: (value: string) => void;
   onMemoryRetrieval: (state: { count: number; top: string; ids: string[] }) => void;
   onOpenSettings: () => void;
-  onSend: (request: CloudRequest, rememberLocally: boolean, recalledMemoryIds: string[]) => Promise<CloudResponse>;
+  onSend: (request: CloudRequest, recalledMemoryIds: string[]) => Promise<CloudResponse>;
   onRetrievalOutcome: (recordId: string, outcome: RetrievalOutcome) => Promise<void>;
 };
 
@@ -68,7 +69,6 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
   const [includeHistory, setIncludeHistory] = useState(false);
   const [includeMemory, setIncludeMemory] = useState(false);
   const [includeWindow, setIncludeWindow] = useState(false);
-  const [rememberLocally, setRememberLocally] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [reviewRequest, setReviewRequest] = useState<CloudRequest | null>(null);
   const [reviewBudget, setReviewBudget] = useState<CloudPayloadBudget | null>(null);
@@ -147,7 +147,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
     setSending(true);
     setError("");
     try {
-      const response = await onSend(reviewRequest, rememberLocally, reviewMemoryIds);
+      const response = await onSend(reviewRequest, reviewMemoryIds);
       if (reviewMemoryIds.length) setPendingRetrievals((current) => [...current, ...reviewMemoryIds.map((recordId) => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId }))]);
       if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
       onDraftChange("");
@@ -197,18 +197,18 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       <aside className="cloud-control">
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
         <h3>{localInference ? "Qué puede procesar" : "Qué puede salir"}</h3>
-        <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>{localInference ? "HISTORIAL + RAG ACTIVOS" : "TODO DESMARCADO POR DEFECTO"}</span></div>
-        <label className="context-toggle"><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length} mensajes locales disponibles · máximo 10</small></span></label>
-        <label className="context-toggle"><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos · ${dormantMemoryCount} en reposo · ${suppressedMemoryCount} suprimidos` : "escribí un mensaje para buscar"}</small></span></label>
+        <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>FUENTES SELECCIONADAS · DATOS REALES</span></div>
+        <label className={`context-toggle ${recentHistory.length ? "available" : "waiting"}`}><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length ? `${recentHistory.length} mensajes temporales disponibles · máximo 10` : "seleccionado · todavía no hay mensajes temporales"}</small></span></label>
+        <label className={`context-toggle ${draft.trim() ? "available" : "waiting"}`}><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos · ${dormantMemoryCount} en reposo · ${suppressedMemoryCount} suprimidos` : "seleccionado · espera un mensaje para buscar"}</small></span></label>
         {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se {localInference ? "procesarán" : "enviarán"} mientras esta casilla siga desmarcada.</p>}
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3 · REPOSO Y SUPRESIÓN EXCLUIDOS</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos accesibles relacionados. No se adjuntará memoria.</p>}</div>}
-        <label className="context-toggle"><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? foregroundContext.processName : "sin contexto observado"}</small></span></label>
-        <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? localInference ? "La ventana sólo se procesará si marcas la casilla y autorizas la inferencia." : "La ventana sólo saldrá si marcas la casilla y autorizas el envío." : "No hay metadatos de ventana disponibles para adjuntar."}</small></span></div>
-        {desktopApp && <button className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Abrir Gateway para detener" : "Abrir Gateway para activar"}</button>}
-        <p className="context-sensor-boundary">Cámara, micrófono, fotogramas y audio no son fuentes elegibles para este envío.</p>
-        <div className="context-section-label local"><strong>ALMACENAMIENTO LOCAL</strong><span>NO SALE A LA NUBE</span></div>
-        <label className="context-toggle memory-choice"><input type="checkbox" checked={rememberLocally} onChange={(event) => setRememberLocally(event.target.checked)} /><span><strong>Aprendizaje episódico local</strong><small>Guarda el intercambio real como experiencia; no lo declara un hecho verificado</small></span></label>
-        <div className="conversation-route"><strong>DESTINO ACTUAL · SOLO LECTURA</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
+        <label className={`context-toggle ${foregroundContext ? "available" : "waiting"}`}><input type="checkbox" checked={includeWindow} disabled={!observationEnabled || !foregroundContext} onChange={(event) => { setIncludeWindow(event.target.checked); setReviewing(false); }} /><span><strong>Ventana actual</strong><small>{foregroundContext ? `${foregroundContext.processName} · metadatos disponibles` : "no seleccionable · observador sin contexto"}</small></span></label>
+        <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? localInference ? "Hay metadatos locales. Sólo se procesarán al marcar Ventana actual y autorizar." : "Hay metadatos locales. Sólo saldrán al marcar Ventana actual y autorizar." : "No está autorizado ni está capturando metadatos de la ventana."}</small></span></div>
+        {desktopApp && <button type="button" className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Administrar observador en Gateway" : "Configurar observador en Gateway"}</button>}
+        <p className="context-sensor-boundary">Esta conversación sólo admite el nombre del proceso y el título de la ventana. Cámara, micrófono, fotogramas y audio quedan fuera.</p>
+        <div className="context-section-label local"><strong>MEMORIA DE TRABAJO</strong><span>RAM · TEMPORAL</span></div>
+        <div className="conversation-working-memory"><i /><span><strong>CONVERSACIÓN TEMPORAL</strong><small>El intercambio permanece en la memoria de trabajo de Alice. No se convierte automáticamente en recuerdo duradero ni en hecho confirmado.</small></span></div>
+        <div className="conversation-route"><strong>MOTOR SELECCIONADO · SIN HERRAMIENTAS</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
         <div className="cloud-rule"><strong>{localInference ? "POLÍTICA DE INFERENCIA" : "POLÍTICA DE ENVÍO"}</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · {localInference ? "contexto 4096 · máximo 900 tokens de salida" : "máximo 1200 tokens de salida"} · sin herramientas · previsualización obligatoria</span></div>
         <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
       </aside>
