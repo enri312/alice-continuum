@@ -296,6 +296,30 @@ impl AuditEvent {
         Ok(event)
     }
 
+    pub(crate) fn task_reservation(
+        operation_id: String,
+        subject_digest: String,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Task,
+            capability_id: Some("tasks.dispatch.reserve".into()),
+            operation: "tasks.dispatch.reserve".into(),
+            stage: AuditStage::Authorization,
+            decision: Some(AuditDecision::Allow),
+            outcome: AuditOutcome::Pending,
+            duration_ms: None,
+            subject_digest: Some(subject_digest),
+            reason_code: "TASK_DISPATCH_RESERVED".into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -410,12 +434,41 @@ impl AuditEvent {
                 (self.operation.as_str(), self.reason_code.as_str()),
                 ("tasks.reminder.schedule", "TASK_REMINDER_CONFIRMED")
                     | ("tasks.registry.cancel", "TASK_CANCELLED")
+                    | ("tasks.dispatch.reserve", "TASK_DISPATCH_RESERVED")
             );
-            if self.capability_id.as_deref() != Some("tasks.registry.write")
+            let capability_valid = matches!(
+                (self.operation.as_str(), self.capability_id.as_deref()),
+                ("tasks.reminder.schedule", Some("tasks.registry.write"))
+                    | ("tasks.registry.cancel", Some("tasks.registry.write"))
+                    | ("tasks.dispatch.reserve", Some("tasks.dispatch.reserve"))
+            );
+            let stage_valid = matches!(
+                (
+                    self.operation.as_str(),
+                    self.stage,
+                    self.outcome,
+                    self.decision
+                ),
+                (
+                    "tasks.reminder.schedule",
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    None
+                ) | (
+                    "tasks.registry.cancel",
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    None
+                ) | (
+                    "tasks.dispatch.reserve",
+                    AuditStage::Authorization,
+                    AuditOutcome::Pending,
+                    Some(AuditDecision::Allow)
+                )
+            );
+            if !capability_valid
                 || !valid
-                || self.stage != AuditStage::Execution
-                || self.outcome != AuditOutcome::Success
-                || self.decision.is_some()
+                || !stage_valid
                 || self.duration_ms.is_some()
                 || self.subject_digest.is_none()
             {

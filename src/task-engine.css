@@ -153,6 +153,25 @@
   border-right: 1px solid #26364a;
 }
 
+.task-reserve-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-top: 1px solid #1d2c3d;
+  color: #cbd5e1;
+  font: 700 .48rem Consolas, monospace;
+}
+
+.task-reserve-row button {
+  border: 1px solid #a16207;
+  padding: 7px 9px;
+  background: #281906;
+  color: #fbbf24;
+  font: 900 .45rem Consolas, monospace;
+}
+
 @media (max-width: 900px) {
   .task-clock-body {
     grid-template-columns: 1fr;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localDateTimeToUtc, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskRegistrySnapshot } from "./tasks";
+import { localDateTimeToUtc, parseTaskAttemptLedgerSnapshot, parseTaskAttemptReservationReceipt, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskRegistrySnapshot } from "./tasks";
 
 const id = "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd";
 const revision = "0c39b61b-83b9-4f02-a06f-7c6ea9640b71";
@@ -76,5 +76,12 @@ describe("contrato visible R7.2-B", () => {
       waitingCount: 0, dueCount: 0, excludedCount: 0, nextWakeAt: null, items: [], error: null,
       automaticExecution: false, notificationsEnabled: true, writesPerformed: false,
     })).toThrow(/no puede ejecutar, notificar ni escribir/);
+  });
+
+  it("acepta una reserva durable pero rechaza cualquier salida declarada", () => {
+    const ledger = parseTaskAttemptLedgerSnapshot({ schemaVersion: 1, state: "ready", storageExists: true, reservationCount: 1, reservations: [{ attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", state: "reserved" }], error: null, notificationsEnabled: false, outputPerformed: false });
+    const receipt = parseTaskAttemptReservationReceipt({ schemaVersion: 1, operationId: revision, attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", idempotent: false, ledgerWritten: true, auditWritten: true, notificationSent: false, outputPerformed: false, taskStateChanged: false });
+    expect(ledger.reservationCount).toBe(1);
+    expect(receipt.outputPerformed).toBe(false);
   });
 });

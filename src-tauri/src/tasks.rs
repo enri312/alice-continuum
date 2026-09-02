@@ -27,9 +27,11 @@ pub(crate) const TASK_REGISTRY_SCHEMA_VERSION: u32 = 1;
 const TASK_DIRECTORY: &str = "tasks";
 const TASK_FILE: &str = "tasks-v1.json";
 const TASK_REVISION_INDEX_FILE: &str = "revision-index-v1.json";
+const TASK_ATTEMPT_LEDGER_FILE: &str = "attempt-ledger-v1.json";
 const MAX_TASKS: usize = 200;
 const MAX_TASK_FILE_BYTES: u64 = 1024 * 1024;
 const MAX_TASK_REVISIONS: usize = 1000;
+const MAX_TASK_ATTEMPTS: usize = 1000;
 static TASK_WRITE_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -266,6 +268,71 @@ pub(crate) struct SetTaskEngineEnabledInput {
     enabled: bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum TaskAttemptState {
+    Reserved,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TaskAttemptRecord {
+    attempt_id: String,
+    idempotency_key: String,
+    task_id: String,
+    task_revision_id: String,
+    scheduled_for: String,
+    reserved_at: String,
+    state: TaskAttemptState,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TaskAttemptLedgerDocument {
+    schema_version: u32,
+    attempts: Vec<TaskAttemptRecord>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TaskAttemptLedgerSnapshot {
+    schema_version: u32,
+    state: TaskRegistryState,
+    storage_exists: bool,
+    reservation_count: usize,
+    reservations: Vec<TaskAttemptRecord>,
+    error: Option<String>,
+    notifications_enabled: bool,
+    output_performed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct ReserveTaskAttemptInput {
+    task_id: String,
+    scheduled_for: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TaskAttemptReservationReceipt {
+    schema_version: u32,
+    operation_id: String,
+    attempt_id: String,
+    idempotency_key: String,
+    task_id: String,
+    task_revision_id: String,
+    scheduled_for: String,
+    reserved_at: String,
+    idempotent: bool,
+    ledger_written: bool,
+    audit_written: bool,
+    notification_sent: bool,
+    output_performed: bool,
+    task_state_changed: bool,
+}
+
 #[derive(Default)]
 struct TaskEngineRuntime {
     enabled: bool,
@@ -384,6 +451,43 @@ impl TaskRecord {
     }
 }
 
+impl TaskAttemptLedgerDocument {
+    fn validate(&self) -> Result<(), String> {
+        if self.schema_version != TASK_REGISTRY_SCHEMA_VERSION {
+            return Err("Versión desconocida del ledger de reservas R7".into());
+        }
+        if self.attempts.len() > MAX_TASK_ATTEMPTS {
+            return Err(format!(
+                "El ledger supera el máximo de {MAX_TASK_ATTEMPTS} reservas"
+            ));
+        }
+        let mut ids = HashSet::with_capacity(self.attempts.len());
+        let mut keys = HashSet::with_capacity(self.attempts.len());
+        for attempt in &self.attempts {
+            validate_uuid("attemptId", &attempt.attempt_id)?;
+            validate_sha256("idempotencyKey", &attempt.idempotency_key)?;
+            validate_uuid("taskId", &attempt.task_id)?;
+            validate_uuid("taskRevisionId", &attempt.task_revision_id)?;
+            validate_task_timestamp("scheduledFor", &attempt.scheduled_for)?;
+            validate_task_timestamp("reservedAt", &attempt.reserved_at)?;
+            if attempt.scheduled_for > attempt.reserved_at {
+                return Err("Una reserva no puede preceder al vencimiento de la tarea".into());
+            }
+            if attempt.idempotency_key
+                != task_attempt_idempotency_key(&attempt.task_id, &attempt.scheduled_for)
+            {
+                return Err("El ledger contiene una clave de idempotencia incoherente".into());
+            }
+            if !ids.insert(attempt.attempt_id.as_str())
+                || !keys.insert(attempt.idempotency_key.as_str())
+            {
+                return Err("El ledger contiene reservas duplicadas".into());
+            }
+        }
+        Ok(())
+    }
+}
+
 fn validate_uuid(field: &str, value: &str) -> Result<(), String> {
     let parsed = Uuid::parse_str(value).map_err(|_| format!("{field} debe ser un UUID válido"))?;
     if parsed.hyphenated().to_string() == value {
@@ -428,11 +532,21 @@ fn task_revision_index_path(data_root: &Path) -> PathBuf {
         .join(TASK_REVISION_INDEX_FILE)
 }
 
+fn task_attempt_ledger_path(data_root: &Path) -> PathBuf {
+    data_root
+        .join(TASK_DIRECTORY)
+        .join(TASK_ATTEMPT_LEDGER_FILE)
+}
+
 fn sha256_digest(bytes: impl AsRef<[u8]>) -> String {
     format!(
         "sha256:{}",
         encode_hex_lower(Sha256::digest(bytes.as_ref()))
     )
+}
+
+fn task_attempt_idempotency_key(task_id: &str, scheduled_for: &str) -> String {
+    sha256_digest(format!("task-attempt-v1\n{task_id}\n{scheduled_for}").as_bytes())
 }
 
 fn serialize_json<T: Serialize>(value: &T) -> Result<Vec<u8>, String> {
@@ -461,6 +575,63 @@ fn read_registry_source(
         .map_err(|error| format!("El registro no es JSON R7 válido: {error}"))?;
     document.validate()?;
     Ok((Some(bytes), Some(document)))
+}
+
+fn read_attempt_ledger(
+    data_root: &Path,
+) -> Result<Option<(Vec<u8>, TaskAttemptLedgerDocument)>, String> {
+    let path = task_attempt_ledger_path(data_root);
+    if !path.exists() {
+        return Ok(None);
+    }
+    let metadata = fs::metadata(&path)
+        .map_err(|error| format!("No se pudo inspeccionar el ledger R7: {error}"))?;
+    if metadata.len() > MAX_TASK_FILE_BYTES {
+        return Err(format!(
+            "El ledger R7 supera el máximo de {MAX_TASK_FILE_BYTES} bytes"
+        ));
+    }
+    let bytes =
+        fs::read(&path).map_err(|error| format!("No se pudo leer el ledger R7: {error}"))?;
+    let ledger = serde_json::from_slice::<TaskAttemptLedgerDocument>(&bytes)
+        .map_err(|error| format!("El ledger de reservas R7 es inválido: {error}"))?;
+    ledger.validate()?;
+    Ok(Some((bytes, ledger)))
+}
+
+pub(crate) fn task_attempt_ledger_snapshot_at(data_root: &Path) -> TaskAttemptLedgerSnapshot {
+    match read_attempt_ledger(data_root) {
+        Ok(Some((_, ledger))) => TaskAttemptLedgerSnapshot {
+            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+            state: TaskRegistryState::Ready,
+            storage_exists: true,
+            reservation_count: ledger.attempts.len(),
+            reservations: ledger.attempts,
+            error: None,
+            notifications_enabled: false,
+            output_performed: false,
+        },
+        Ok(None) => TaskAttemptLedgerSnapshot {
+            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+            state: TaskRegistryState::Missing,
+            storage_exists: false,
+            reservation_count: 0,
+            reservations: Vec::new(),
+            error: None,
+            notifications_enabled: false,
+            output_performed: false,
+        },
+        Err(error) => TaskAttemptLedgerSnapshot {
+            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+            state: TaskRegistryState::Invalid,
+            storage_exists: true,
+            reservation_count: 0,
+            reservations: Vec::new(),
+            error: Some(error),
+            notifications_enabled: false,
+            output_performed: false,
+        },
+    }
 }
 
 fn plan_sha256(plan: &TaskMutationPlan) -> Result<String, String> {
@@ -1025,6 +1196,134 @@ pub(crate) fn confirm_task_mutation_at(
     })
 }
 
+pub(crate) fn reserve_task_attempt_at(
+    data_root: &Path,
+    input: ReserveTaskAttemptInput,
+    reserved_at: String,
+) -> Result<TaskAttemptReservationReceipt, String> {
+    if !input.confirmed {
+        return Err("La reserva R7.3-B requiere confirmación explícita".into());
+    }
+    validate_uuid("taskId", &input.task_id)?;
+    validate_task_timestamp("scheduledFor", &input.scheduled_for)?;
+    validate_task_timestamp("reservedAt", &reserved_at)?;
+    let _guard = TASK_WRITE_LOCK
+        .lock()
+        .map_err(|_| "El bloqueo de escritura R7 quedó envenenado".to_string())?;
+    let (_, registry) = read_registry_source(data_root)?;
+    let registry = registry.ok_or("No existe una tarea local que reservar")?;
+    let task = registry
+        .tasks
+        .iter()
+        .find(|task| task.task_id == input.task_id)
+        .ok_or("La tarea solicitada ya no existe")?;
+    if task.kind != TaskKind::LocalReminder || task.status != TaskStatus::Scheduled {
+        return Err("Sólo un recordatorio local programado puede reservar despacho".into());
+    }
+    let scheduled_for = task
+        .schedule
+        .next_run_at
+        .as_deref()
+        .ok_or("La tarea programada perdió nextRunAt")?;
+    if scheduled_for != input.scheduled_for {
+        return Err("La hora de la tarea cambió; releé el estado antes de reservar".into());
+    }
+    if scheduled_for > reserved_at.as_str() {
+        return Err("La tarea todavía no está vencida y no puede reservarse".into());
+    }
+
+    let idempotency_key = task_attempt_idempotency_key(&input.task_id, scheduled_for);
+    let previous = read_attempt_ledger(data_root)?;
+    if let Some((_, ledger)) = previous.as_ref() {
+        if let Some(existing) = ledger
+            .attempts
+            .iter()
+            .find(|attempt| attempt.idempotency_key == idempotency_key)
+        {
+            return Ok(TaskAttemptReservationReceipt {
+                schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+                operation_id: new_operation_id(),
+                attempt_id: existing.attempt_id.clone(),
+                idempotency_key,
+                task_id: existing.task_id.clone(),
+                task_revision_id: existing.task_revision_id.clone(),
+                scheduled_for: existing.scheduled_for.clone(),
+                reserved_at: existing.reserved_at.clone(),
+                idempotent: true,
+                ledger_written: false,
+                audit_written: false,
+                notification_sent: false,
+                output_performed: false,
+                task_state_changed: false,
+            });
+        }
+    }
+
+    let mut ledger = previous
+        .as_ref()
+        .map(|(_, ledger)| ledger.clone())
+        .unwrap_or(TaskAttemptLedgerDocument {
+            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+            attempts: Vec::new(),
+        });
+    if ledger.attempts.len() >= MAX_TASK_ATTEMPTS {
+        return Err(format!(
+            "El ledger alcanzó el máximo de {MAX_TASK_ATTEMPTS} reservas"
+        ));
+    }
+    let attempt = TaskAttemptRecord {
+        attempt_id: Uuid::new_v4().to_string(),
+        idempotency_key: idempotency_key.clone(),
+        task_id: input.task_id,
+        task_revision_id: registry.revision_id,
+        scheduled_for: scheduled_for.to_string(),
+        reserved_at,
+        state: TaskAttemptState::Reserved,
+    };
+    ledger.attempts.push(attempt.clone());
+    ledger.validate()?;
+    let bytes = serialize_json(&ledger)?;
+    if bytes.len() > MAX_TASK_FILE_BYTES as usize {
+        return Err("El ledger R7 excede 1 MiB".into());
+    }
+    let ledger_path = task_attempt_ledger_path(data_root);
+    let previous_bytes = previous.as_ref().map(|(bytes, _)| bytes.as_slice());
+    atomic_replace(&ledger_path, &bytes, "ledger R7")?;
+
+    let audit = AuditEvent::task_reservation(
+        new_operation_id(),
+        sha256_digest(attempt.task_id.as_bytes()),
+    )
+    .and_then(|event| append_event_at(data_root, &event, AUDIT_MAX_BYTES));
+    if let Err(error) = audit {
+        let rollback = restore_file(&ledger_path, previous_bytes, "ledger R7 durante rollback");
+        return match rollback {
+            Ok(()) => Err(format!(
+                "Falló la auditoría R7.3-B y la reserva fue restaurada: {error}"
+            )),
+            Err(rollback_error) => Err(format!(
+                "Falló la auditoría R7.3-B ({error}); rollback={rollback_error}"
+            )),
+        };
+    }
+    Ok(TaskAttemptReservationReceipt {
+        schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+        operation_id: new_operation_id(),
+        attempt_id: attempt.attempt_id,
+        idempotency_key: attempt.idempotency_key,
+        task_id: attempt.task_id,
+        task_revision_id: attempt.task_revision_id,
+        scheduled_for: attempt.scheduled_for,
+        reserved_at: attempt.reserved_at,
+        idempotent: false,
+        ledger_written: true,
+        audit_written: true,
+        notification_sent: false,
+        output_performed: false,
+        task_state_changed: false,
+    })
+}
+
 fn missing_snapshot() -> TaskRegistrySnapshot {
     TaskRegistrySnapshot {
         schema_version: TASK_REGISTRY_SCHEMA_VERSION,
@@ -1282,6 +1581,23 @@ pub(crate) fn set_task_engine_enabled(
 pub(crate) fn task_registry_status(app: AppHandle) -> Result<TaskRegistrySnapshot, String> {
     let data_root = alice_data_root_path(&app)?;
     Ok(task_registry_snapshot_at(&data_root))
+}
+
+#[tauri::command]
+pub(crate) fn task_attempt_ledger_status(
+    app: AppHandle,
+) -> Result<TaskAttemptLedgerSnapshot, String> {
+    let data_root = alice_data_root_path(&app)?;
+    Ok(task_attempt_ledger_snapshot_at(&data_root))
+}
+
+#[tauri::command]
+pub(crate) fn reserve_task_attempt(
+    app: AppHandle,
+    input: ReserveTaskAttemptInput,
+) -> Result<TaskAttemptReservationReceipt, String> {
+    let data_root = alice_data_root_path(&app)?;
+    reserve_task_attempt_at(&data_root, input, current_utc_timestamp()?)
 }
 
 #[tauri::command]
@@ -1769,6 +2085,85 @@ mod tests {
         assert!(snapshot.items.is_empty());
         assert_eq!(snapshot.due_count, 0);
         assert!(!root.exists());
+    }
+
+    #[test]
+    fn due_reservation_is_durable_idempotent_and_does_not_change_the_task() {
+        let root = temporary_root("attempt-ledger");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+        let source_path = directory.join(TASK_FILE);
+        let source =
+            serialize_json(&document(vec![scheduled_reminder()])).expect("serialize registry");
+        fs::write(&source_path, &source).expect("write fixture registry");
+        let input = ReserveTaskAttemptInput {
+            task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+            scheduled_for: "2026-09-02T18:00:00Z".into(),
+            confirmed: true,
+        };
+
+        let first = reserve_task_attempt_at(&root, input.clone(), "2026-09-02T19:00:00Z".into())
+            .expect("reserve due occurrence");
+        assert!(first.ledger_written);
+        assert!(first.audit_written);
+        assert!(!first.notification_sent);
+        assert!(!first.output_performed);
+        assert!(!first.task_state_changed);
+        assert_eq!(fs::read(&source_path).expect("reread registry"), source);
+        let snapshot = task_attempt_ledger_snapshot_at(&root);
+        assert_eq!(snapshot.state, TaskRegistryState::Ready);
+        assert_eq!(snapshot.reservation_count, 1);
+        assert!(!snapshot.notifications_enabled);
+        assert!(!snapshot.output_performed);
+
+        let retry = reserve_task_attempt_at(&root, input, "2026-09-02T19:01:00Z".into())
+            .expect("retry same occurrence");
+        assert!(retry.idempotent);
+        assert!(!retry.ledger_written);
+        assert!(!retry.audit_written);
+        assert_eq!(retry.attempt_id, first.attempt_id);
+        assert_eq!(
+            fs::read(&source_path).expect("registry remains immutable"),
+            source
+        );
+        let audit =
+            fs::read_to_string(root.join("audit").join("events-v1.jsonl")).expect("read audit");
+        assert_eq!(audit.matches("TASK_DISPATCH_RESERVED").count(), 1);
+        fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn reservation_rejects_future_or_unconfirmed_occurrences_without_writing() {
+        let root = temporary_root("attempt-guards");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+        fs::write(
+            directory.join(TASK_FILE),
+            serialize_json(&document(vec![scheduled_reminder()])).unwrap(),
+        )
+        .expect("write fixture registry");
+        let input = ReserveTaskAttemptInput {
+            task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+            scheduled_for: "2026-09-02T18:00:00Z".into(),
+            confirmed: false,
+        };
+        assert!(
+            reserve_task_attempt_at(&root, input, "2026-09-02T19:00:00Z".into())
+                .unwrap_err()
+                .contains("confirmación explícita")
+        );
+        let future = ReserveTaskAttemptInput {
+            task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+            scheduled_for: "2026-09-02T18:00:00Z".into(),
+            confirmed: true,
+        };
+        assert!(
+            reserve_task_attempt_at(&root, future, "2026-09-02T17:59:59Z".into())
+                .unwrap_err()
+                .contains("todavía no está vencida")
+        );
+        assert!(!task_attempt_ledger_path(&root).exists());
+        fs::remove_dir_all(root).expect("remove fixture");
     }
 
     #[test]

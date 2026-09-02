@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
   localDateTimeToUtc,
+  parseTaskAttemptLedgerSnapshot,
+  parseTaskAttemptReservationReceipt,
   parseTaskEngineSnapshot,
   parseTaskMutationPlan,
   parseTaskMutationReceipt,
@@ -10,6 +12,8 @@ import {
   type TaskMutationReceipt,
   type TaskRecord,
   type TaskEngineSnapshot,
+  type TaskAttemptLedgerSnapshot,
+  type TaskAttemptReservationReceipt,
   type TaskRegistrySnapshot,
 } from "../core/tasks";
 import "../task-registry.css";
@@ -38,6 +42,8 @@ function localMinimum() {
 export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
   const [snapshot, setSnapshot] = useState<TaskRegistrySnapshot | null>(null);
   const [engine, setEngine] = useState<TaskEngineSnapshot | null>(null);
+  const [ledger, setLedger] = useState<TaskAttemptLedgerSnapshot | null>(null);
+  const [reservationReceipt, setReservationReceipt] = useState<TaskAttemptReservationReceipt | null>(null);
   const [title, setTitle] = useState("");
   const [nextRunLocal, setNextRunLocal] = useState("");
   const [plan, setPlan] = useState<TaskMutationPlan | null>(null);
@@ -51,12 +57,14 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
     if (!desktopApp) return;
     setPending("status");
     try {
-      const [registryValue, engineValue] = await Promise.all([
+      const [registryValue, engineValue, ledgerValue] = await Promise.all([
         invoke<unknown>("task_registry_status"),
         invoke<unknown>("task_engine_status"),
+        invoke<unknown>("task_attempt_ledger_status"),
       ]);
       setSnapshot(parseTaskRegistrySnapshot(registryValue));
       setEngine(parseTaskEngineSnapshot(engineValue));
+      setLedger(parseTaskAttemptLedgerSnapshot(ledgerValue));
       setError("");
     } catch (cause) {
       setError(String(cause));
@@ -140,6 +148,20 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
     }
   }
 
+  async function reserveDueTask(taskId: string, scheduledFor: string) {
+    if (!window.confirm("Reservar una sola vez esta tarea vencida para un futuro despacho. No enviará aviso ni modificará la tarea ahora.")) return;
+    setPending("confirm"); setError(""); setReservationReceipt(null);
+    try {
+      const receipt = parseTaskAttemptReservationReceipt(await invoke<unknown>("reserve_task_attempt", { input: { taskId, scheduledFor, confirmed: true } }));
+      setReservationReceipt(receipt);
+      await refresh();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setPending(null);
+    }
+  }
+
   return <section className="task-registry" aria-labelledby="task-registry-title">
     <header className="task-registry-heading">
       <div><p className="eyebrow">R7 · CONTROL DEL PROPIETARIO</p><h3 id="task-registry-title">Recordatorios e intenciones temporales</h3><p>Preparar no guarda. Confirmar vuelve a leer identidad, hora, alcance y huella antes de escribir.</p></div>
@@ -176,6 +198,7 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
 
       {error && <div className="task-registry-error" role="alert"><strong>OPERACIÓN BLOQUEADA</strong><span>{error}</span></div>}
       {receipt && <div className="task-registry-receipt" role="status"><strong>{receipt.idempotent ? "OPERACIÓN YA APLICADA" : "OPERACIÓN CONFIRMADA"}</strong><span>Revisión {receipt.revisionId} · auditoría {receipt.auditWritten ? "escrita" : "sin duplicar"} · ejecución automática apagada</span></div>}
+      {reservationReceipt && <div className="task-registry-receipt" role="status"><strong>{reservationReceipt.idempotent ? "RESERVA YA EXISTENTE" : "RESERVA DURABLE CREADA"}</strong><span>Sin aviso, salida ni cambio de tarea · auditoría {reservationReceipt.auditWritten ? "escrita" : "sin duplicar"}</span></div>}
 
       <section className={`task-clock ${engine?.backgroundEnabled ? "active" : "off"}`}>
         <header><div><span>03</span><div><strong>SENTIDO TEMPORAL · R7.3-A</strong><small>Clasifica el tiempo; no intenta actuar</small></div></div><b>{engine?.backgroundEnabled ? "EVALUACIÓN ACTIVA" : "APAGADO"}</b></header>
@@ -189,6 +212,12 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
           <div><p>{engine?.backgroundEnabled ? "Alice relee el reloj una vez por segundo. El estado vive sólo en RAM y vuelve apagado al reiniciar." : "La evaluación periódica está detenida. La lectura manual de esta pantalla no escribe ni activa procesos de salida."}</p><button type="button" onClick={() => void toggleTemporalEngine()} disabled={!engine || pending !== null || engine.registryState === "invalid"}>{engine?.backgroundEnabled ? "DETENER EVALUACIÓN" : "ACTIVAR RELOJ INTERNO"}</button></div>
         </div>
         <footer><span>EJECUCIÓN OFF</span><span>NOTIFICACIONES OFF</span><span>ESCRITURAS 0</span><span>{engine?.lastBackgroundEvaluationAt ? `ÚLTIMO PULSO ${presentTimestamp(engine.lastBackgroundEvaluationAt)}` : "SIN PULSOS EN SEGUNDO PLANO"}</span></footer>
+      </section>
+
+      <section className="task-clock">
+        <header><div><span>03B</span><div><strong>RESERVAS DE DESPACHO · R7.3-B</strong><small>Protección contra duplicados antes de una futura salida</small></div></div><b>{ledger?.reservationCount ?? 0} RESERVAS</b></header>
+        <div className="task-clock-body"><dl><div><dt>LEDGER</dt><dd>{ledger?.state === "ready" ? "VÁLIDO" : ledger?.state === "invalid" ? "BLOQUEADO" : "VACÍO"}</dd></div><div><dt>RESERVAS</dt><dd>{ledger?.reservationCount ?? 0}</dd></div><div><dt>AVISOS</dt><dd>OFF</dd></div><div><dt>SALIDA</dt><dd>OFF</dd></div></dl><div><p>Una reserva sólo puede crearse con confirmación para una tarea local ya vencida. La misma tarea y fecha no se duplican después de reiniciar.</p></div></div>
+        {engine?.items.filter((item) => item.temporalState === "due" && item.scheduledFor).map((item) => <div className="task-reserve-row" key={item.taskId}><span>{item.title} · {presentTimestamp(item.scheduledFor)}</span><button type="button" disabled={pending !== null || ledger?.state === "invalid"} onClick={() => void reserveDueTask(item.taskId, item.scheduledFor!)}>RESERVAR UNA VEZ</button></div>)}
       </section>
 
       <section className="task-list">

@@ -936,33 +936,37 @@ fn avatar_capabilities(
 }
 
 fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<CapabilityDescriptor> {
-    let (inspect_state, write_state, engine_state, health_status, summary) = match probe.state {
-        TaskRegistryState::Missing => (
-            CapabilityState::Unavailable,
-            CapabilityState::Idle,
-            CapabilityState::Disabled,
-            CapabilityHealthStatus::Healthy,
-            "El registro R7 todavía no existe; una vista previa puede prepararlo sin escribir."
-                .to_string(),
-        ),
-        TaskRegistryState::Ready => (
-            CapabilityState::Idle,
-            CapabilityState::Idle,
-            CapabilityState::Disabled,
-            CapabilityHealthStatus::Healthy,
-            format!(
-                "El registro R7 contiene {} tareas válidas; no se ejecutó ninguna.",
-                probe.task_count
+    let (inspect_state, write_state, engine_state, reserve_state, health_status, summary) =
+        match probe.state {
+            TaskRegistryState::Missing => (
+                CapabilityState::Unavailable,
+                CapabilityState::Idle,
+                CapabilityState::Disabled,
+                CapabilityState::Unavailable,
+                CapabilityHealthStatus::Healthy,
+                "El registro R7 todavía no existe; una vista previa puede prepararlo sin escribir."
+                    .to_string(),
             ),
-        ),
-        TaskRegistryState::Invalid => (
-            CapabilityState::Error,
-            CapabilityState::Error,
-            CapabilityState::Error,
-            CapabilityHealthStatus::Error,
-            "El registro R7 existe, pero no cumple el contrato cerrado.".to_string(),
-        ),
-    };
+            TaskRegistryState::Ready => (
+                CapabilityState::Idle,
+                CapabilityState::Idle,
+                CapabilityState::Disabled,
+                CapabilityState::Idle,
+                CapabilityHealthStatus::Healthy,
+                format!(
+                    "El registro R7 contiene {} tareas válidas; no se ejecutó ninguna.",
+                    probe.task_count
+                ),
+            ),
+            TaskRegistryState::Invalid => (
+                CapabilityState::Error,
+                CapabilityState::Error,
+                CapabilityState::Error,
+                CapabilityState::Error,
+                CapabilityHealthStatus::Error,
+                "El registro R7 existe, pero no cumple el contrato cerrado.".to_string(),
+            ),
+        };
 
     vec![
         capability(
@@ -1006,6 +1010,27 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
                 "Rust rechaza planes alterados o obsoletos y no contiene motor de ejecución ni notificaciones.",
             ),
             health(health_status, summary, Some(checked_at)),
+        ),
+        capability(
+            "tasks.dispatch.reserve",
+            "Reservar despacho vencido",
+            "Registra una reserva durable e idempotente para un recordatorio ya vencido antes de cualquier futura salida; no muestra aviso ni cambia la tarea.",
+            CapabilityDomain::Task,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["task_attempt_ledger_status", "reserve_task_attempt"],
+            reserve_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["taskRegistry", "taskAttemptLedger", "taskAudit"],
+            &["Confirmación explícita de una tarea local vencida"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::Native,
+                "Rust relee identidad, hora y vencimiento; la misma ocurrencia sólo admite una reserva durable.",
+            ),
+            health(health_status, "R7.3-B reserva una futura salida sin producirla todavía.", Some(checked_at)),
         ),
         capability(
             "tasks.temporal.evaluate",
@@ -1908,7 +1933,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 29);
+        assert_eq!(snapshot.capabilities.len(), 30);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1974,6 +1999,17 @@ mod tests {
         assert_eq!(
             temporal.permission.enforced_by,
             CapabilityPermissionEnforcer::CurrentUi
+        );
+        let reservation = registered(&snapshot, "tasks.dispatch.reserve");
+        assert_eq!(reservation.domain, CapabilityDomain::Task);
+        assert_eq!(reservation.kind, CapabilityKind::Mutation);
+        assert_eq!(
+            reservation.operations,
+            vec!["task_attempt_ledger_status", "reserve_task_attempt"]
+        );
+        assert_eq!(
+            reservation.permission.mode,
+            CapabilityPermissionMode::ExplicitConfirmation
         );
 
         let planned = snapshot
@@ -2162,7 +2198,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 29);
+        assert_eq!(snapshot.capabilities.len(), 30);
         assert!(!root.exists());
     }
 

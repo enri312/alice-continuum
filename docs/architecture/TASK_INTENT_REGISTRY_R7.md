@@ -89,6 +89,12 @@ Los contratos TypeScript son cerrados y rechazan claves adicionales, fechas o UU
 
 La respuesta declara siempre `automaticExecution=false`, `notificationsEnabled=false` y `writesPerformed=false`. La capacidad R1 `tasks.temporal.evaluate` es observacional, de lectura local y estado inicial `disabled`.
 
+## Reservas durables R7.3-B
+
+`data/tasks/attempt-ledger-v1.json` permanece ausente hasta que el propietario confirma una reserva para un recordatorio local ya vencido. Cada entrada contiene sólo UUID de intento, UUID de tarea y revisión, fecha programada, fecha de reserva, estado `reserved` y una clave SHA-256 determinista de tarea + fecha. No conserva título ni contenido privado.
+
+`reserve_task_attempt` vuelve a leer la tarea, exige que su fecha coincida y que ya esté vencida, y escribe la reserva junto con una auditoría R3. Repetir la misma ocurrencia devuelve el mismo intento sin volver a escribir ni auditar. No envía avisos, no invoca capacidades, no cambia el estado de la tarea y no produce una salida. La capacidad `tasks.dispatch.reserve` exige confirmación nativa explícita.
+
 ## Límites actuales
 
 - La escritura nativa tiene una pantalla visible, pero todavía no se usó sobre datos canónicos: el registro permanece ausente y contiene 0 tareas.
@@ -96,7 +102,7 @@ La respuesta declara siempre `automaticExecution=false`, `notificationsEnabled=f
 - El hilo temporal es opcional y está apagado al iniciar; no sobrevive a un reinicio.
 - Sin notificaciones del sistema operativo.
 - Sin ejecución de capacidades, red, procesos o acciones externas.
-- La auditoría cubre programación y cancelación; todavía no existen intentos de ejecución ni ledger de vencimientos.
+- La auditoría cubre programación, cancelación y reserva. Aún no existe ejecución, notificación ni resultado de despacho.
 - Sin enlace automático desde recuerdos, conversación o salidas de modelos.
 
 El siguiente incremento será R7.3-B: ledger durable de intentos e idempotencia antes de cualquier salida. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no es necesario fabricarlo para validar el reloj.

@@ -63,8 +63,9 @@ use skills::{
     transition_skill_lifecycle, SkillDraftStore,
 };
 use tasks::{
-    confirm_task_mutation, preview_task_mutation, set_task_engine_enabled,
-    spawn_task_engine_thread, task_engine_status, task_registry_status, TaskEngineStore,
+    confirm_task_mutation, preview_task_mutation, reserve_task_attempt, set_task_engine_enabled,
+    spawn_task_engine_thread, task_attempt_ledger_status, task_engine_status, task_registry_status,
+    TaskEngineStore,
 };
 use tauri::Manager;
 use visual_learning::analyze_screen_frame;
@@ -179,7 +180,9 @@ pub fn run() {
             preview_task_mutation,
             confirm_task_mutation,
             task_engine_status,
-            set_task_engine_enabled
+            set_task_engine_enabled,
+            task_attempt_ledger_status,
+            reserve_task_attempt
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar Alice Cognitive Core");

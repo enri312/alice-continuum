@@ -106,6 +106,44 @@ export type TaskEngineSnapshot = {
   writesPerformed: false;
 };
 
+export type TaskAttemptReservation = {
+  attemptId: string;
+  idempotencyKey: string;
+  taskId: string;
+  taskRevisionId: string;
+  scheduledFor: string;
+  reservedAt: string;
+  state: "reserved";
+};
+
+export type TaskAttemptLedgerSnapshot = {
+  schemaVersion: typeof TASK_REGISTRY_SCHEMA_VERSION;
+  state: TaskRegistryState;
+  storageExists: boolean;
+  reservationCount: number;
+  reservations: TaskAttemptReservation[];
+  error: string | null;
+  notificationsEnabled: false;
+  outputPerformed: false;
+};
+
+export type TaskAttemptReservationReceipt = {
+  schemaVersion: typeof TASK_REGISTRY_SCHEMA_VERSION;
+  operationId: string;
+  attemptId: string;
+  idempotencyKey: string;
+  taskId: string;
+  taskRevisionId: string;
+  scheduledFor: string;
+  reservedAt: string;
+  idempotent: boolean;
+  ledgerWritten: boolean;
+  auditWritten: boolean;
+  notificationSent: false;
+  outputPerformed: false;
+  taskStateChanged: false;
+};
+
 function fail(message: string): never {
   throw new Error(`Contrato R7 inválido: ${message}`);
 }
@@ -314,6 +352,35 @@ export function parseTaskEngineSnapshot(value: unknown): TaskEngineSnapshot {
     notificationsEnabled: false,
     writesPerformed: false,
   };
+}
+
+function parseTaskAttemptReservation(value: unknown, field: string): TaskAttemptReservation {
+  const source = object(value, field);
+  exactKeys(source, ["attemptId", "idempotencyKey", "taskId", "taskRevisionId", "scheduledFor", "reservedAt", "state"], field);
+  return {
+    attemptId: uuid(source.attemptId, `${field}.attemptId`), idempotencyKey: sha256(source.idempotencyKey, `${field}.idempotencyKey`),
+    taskId: uuid(source.taskId, `${field}.taskId`), taskRevisionId: uuid(source.taskRevisionId, `${field}.taskRevisionId`),
+    scheduledFor: timestamp(source.scheduledFor, `${field}.scheduledFor`), reservedAt: timestamp(source.reservedAt, `${field}.reservedAt`),
+    state: oneOf(source.state, ["reserved"] as const, `${field}.state`),
+  };
+}
+
+export function parseTaskAttemptLedgerSnapshot(value: unknown): TaskAttemptLedgerSnapshot {
+  const source = object(value, "taskAttemptLedger");
+  exactKeys(source, ["schemaVersion", "state", "storageExists", "reservationCount", "reservations", "error", "notificationsEnabled", "outputPerformed"], "taskAttemptLedger");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.notificationsEnabled !== false || source.outputPerformed !== false) fail("el ledger R7.3-B no puede notificar ni producir salida");
+  if (!Array.isArray(source.reservations)) fail("taskAttemptLedger.reservations debe ser una lista");
+  const reservations = source.reservations.map((item, index) => parseTaskAttemptReservation(item, `reservations[${index}]`));
+  const reservationCount = integer(source.reservationCount, "taskAttemptLedger.reservationCount");
+  if (reservationCount !== reservations.length) fail("taskAttemptLedger no coincide con sus reservas");
+  return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, state: oneOf(source.state, ["missing", "ready", "invalid"] as const, "taskAttemptLedger.state"), storageExists: bool(source.storageExists, "taskAttemptLedger.storageExists"), reservationCount, reservations, error: nullableText(source.error, "taskAttemptLedger.error"), notificationsEnabled: false, outputPerformed: false };
+}
+
+export function parseTaskAttemptReservationReceipt(value: unknown): TaskAttemptReservationReceipt {
+  const source = object(value, "taskAttemptReceipt");
+  exactKeys(source, ["schemaVersion", "operationId", "attemptId", "idempotencyKey", "taskId", "taskRevisionId", "scheduledFor", "reservedAt", "idempotent", "ledgerWritten", "auditWritten", "notificationSent", "outputPerformed", "taskStateChanged"], "taskAttemptReceipt");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.notificationSent !== false || source.outputPerformed !== false || source.taskStateChanged !== false) fail("el recibo R7.3-B declara efectos no permitidos");
+  return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, operationId: uuid(source.operationId, "taskAttemptReceipt.operationId"), attemptId: uuid(source.attemptId, "taskAttemptReceipt.attemptId"), idempotencyKey: sha256(source.idempotencyKey, "taskAttemptReceipt.idempotencyKey"), taskId: uuid(source.taskId, "taskAttemptReceipt.taskId"), taskRevisionId: uuid(source.taskRevisionId, "taskAttemptReceipt.taskRevisionId"), scheduledFor: timestamp(source.scheduledFor, "taskAttemptReceipt.scheduledFor"), reservedAt: timestamp(source.reservedAt, "taskAttemptReceipt.reservedAt"), idempotent: bool(source.idempotent, "taskAttemptReceipt.idempotent"), ledgerWritten: bool(source.ledgerWritten, "taskAttemptReceipt.ledgerWritten"), auditWritten: bool(source.auditWritten, "taskAttemptReceipt.auditWritten"), notificationSent: false, outputPerformed: false, taskStateChanged: false };
 }
 
 export function localDateTimeToUtc(value: string): string {
