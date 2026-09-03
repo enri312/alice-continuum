@@ -806,25 +806,33 @@ export function AvatarViewer({ sourceUrl, animationUrls, onTelemetry, onMotorTra
   }, [animationUrls, onMotorTransition, onTelemetry, sourceUrl]);
 
   return <div className="avatar-viewer-shell">
-    <div ref={hostRef} className="avatar-viewer" />
-    <div className={`avatar-viewer-state state-${viewerState}`} aria-live="polite">
-      <i />{viewerState === "loading" ? "CARGANDO VRM LOCAL" : viewerState === "ready" ? "VRM LISTO" : "ERROR DE VISOR"}
+    <div className="avatar-control-dock">
+      <div className={`avatar-viewer-state state-${viewerState}`} aria-live="polite">
+        <i />{viewerState === "loading" ? "CARGANDO VRM LOCAL" : viewerState === "ready" ? "VRM LISTO" : "ERROR DE VISOR"}
+      </div>
+      {viewerState === "ready" && <>
+        <div className="avatar-viewer-actions" role="group" aria-label="Controles corporales de Alice">
+          <button className={`avatar-gamepad ${manualMode === "gamepad" ? "active" : ""}`} type="button" aria-pressed={manualMode === "gamepad"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "gamepad" ? "off" : "gamepad"); }}>{manualMode === "gamepad" ? "Detener control PS5" : "Probar control PS5"}</button>
+          <button className={`avatar-gait-test ${manualMode === "diagnostic" ? "active" : ""}`} type="button" aria-pressed={manualMode === "diagnostic"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "diagnostic" ? "off" : "diagnostic"); }}>{manualMode === "diagnostic" ? "Detener ensayo" : "Ensayar marcha"}</button>
+          <button className="avatar-posture" type="button" disabled={poseMode === "reference" || isBodyTransition(bodyStateTelemetry) || !animationUrls["standing-up"] || !animationUrls["sitting-idle"]} onClick={() => { postureToggleRef.current = true; }}>{bodyStateTelemetry === "sitting-idle" ? "Levantar a Alice" : "Sentar a Alice"}</button>
+          <button className="avatar-pose" type="button" disabled={manualMode !== "off" || bodyStateTelemetry !== "standing-idle"} onClick={() => { const next = poseMode === "idle" ? "reference" : "idle"; poseRef.current(next); setPoseMode(next); }}>{poseMode === "idle" ? "Ver pose de referencia" : "Volver a postura de reposo"}</button>
+        </div>
+        <div className="avatar-camera-actions" role="group" aria-label="Controles de cámara">
+          <button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button>
+        </div>
+      </>}
     </div>
-    {viewerState === "ready" && <div className="avatar-viewer-actions">
-      <button className={`avatar-gamepad ${manualMode === "gamepad" ? "active" : ""}`} type="button" aria-pressed={manualMode === "gamepad"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "gamepad" ? "off" : "gamepad"); }}>{manualMode === "gamepad" ? "Detener control PS5" : "Probar control PS5"}</button>
-      <button className={`avatar-gait-test ${manualMode === "diagnostic" ? "active" : ""}`} type="button" aria-pressed={manualMode === "diagnostic"} onClick={() => { setPoseMode("idle"); setManualMode((mode) => mode === "diagnostic" ? "off" : "diagnostic"); }}>{manualMode === "diagnostic" ? "Detener ensayo" : "Ensayar marcha"}</button>
-      <button className="avatar-posture" type="button" disabled={poseMode === "reference" || isBodyTransition(bodyStateTelemetry) || !animationUrls["standing-up"] || !animationUrls["sitting-idle"]} onClick={() => { postureToggleRef.current = true; }}>{bodyStateTelemetry === "sitting-idle" ? "Levantar a Alice" : "Sentar a Alice"}</button>
-      <button className="avatar-pose" type="button" disabled={manualMode !== "off" || bodyStateTelemetry !== "standing-idle"} onClick={() => { const next = poseMode === "idle" ? "reference" : "idle"; poseRef.current(next); setPoseMode(next); }}>{poseMode === "idle" ? "Ver pose de referencia" : "Volver a postura de reposo"}</button>
-      <button className="avatar-reset" type="button" onClick={() => resetRef.current()}>Restablecer cámara</button>
-    </div>}
-    {manualMode !== "off" && <div className={`avatar-gamepad-status ${manualControl.state}`} aria-live="polite">
-      <strong>{manualMode === "diagnostic" ? "ENSAYO PROCEDURAL · CONTROL TÉCNICO" : manualControl.state === "connected" ? "DUALSENSE · CONTROL HUMANO" : "ESPERANDO ENTRADA GAMEPAD"}</strong>
-      <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
-      <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
-      <code className="avatar-body-motion">ESTADO {bodyStateLabels[bodyStateTelemetry]} · ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
-      <code className="avatar-body-motion">IK APOYO · {bodyMotion.ikApplied ? "ACTIVO" : "LIBRE"} · ERROR {(bodyMotion.ikResidual * 100).toFixed(1)} CM</code>
-    </div>}
-    {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
-    <p className="avatar-viewer-help">FSM · {bodyStateLabels[bodyStateTelemetry]}&nbsp;&nbsp; {manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO · ARRANQUE · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
+    <div className="avatar-viewer-viewport">
+      <div ref={hostRef} className="avatar-viewer" />
+      {manualMode !== "off" && <div className={`avatar-gamepad-status ${manualControl.state}`} aria-live="polite">
+        <strong>{manualMode === "diagnostic" ? "ENSAYO PROCEDURAL · CONTROL TÉCNICO" : manualControl.state === "connected" ? "DUALSENSE · CONTROL HUMANO" : "ESPERANDO ENTRADA GAMEPAD"}</strong>
+        <span>{manualControl.state === "connected" ? manualControl.device : "Presioná un botón o mové un stick para que WebView active el mando."}</span>
+        <code>LX {manualControl.input.moveX.toFixed(2)} · LY {manualControl.input.moveZ.toFixed(2)} · RX {manualControl.input.turn.toFixed(2)} · X {manualControl.input.jump ? "SALTO" : "—"} · L2 {manualControl.input.leftTrigger.toFixed(2)} · R2 {manualControl.input.rightTrigger.toFixed(2)}</code>
+        <code className="avatar-body-motion">ESTADO {bodyStateLabels[bodyStateTelemetry]} · ANIM {bodyMotion.animation.toUpperCase()} · {bodyMotion.speed.toFixed(2)} M/S · PIE {bodyMotion.lockedFoot === "left" ? "IZQ" : bodyMotion.lockedFoot === "right" ? "DER" : "LIBRE"} · LOCK {(bodyMotion.footOffset * 100).toFixed(1)} CM · SUELO {(bodyMotion.groundCorrection * 100).toFixed(1)} CM</code>
+        <code className="avatar-body-motion">IK APOYO · {bodyMotion.ikApplied ? "ACTIVO" : "LIBRE"} · ERROR {(bodyMotion.ikResidual * 100).toFixed(1)} CM</code>
+      </div>}
+      {viewerState === "error" && <div className="avatar-viewer-error"><strong>No se pudo mostrar Alice</strong><span>{error}</span></div>}
+      <p className="avatar-viewer-help">FSM · {bodyStateLabels[bodyStateTelemetry]}&nbsp;&nbsp; {manualMode === "gamepad" ? "PS5 · STICK IZQ MOVER · STICK DER GIRAR · X SALTAR · DETENER RESTABLECE" : manualMode === "diagnostic" ? "ENSAYO · ARRANQUE · MARCHA · CARRERA · RETROCESO · LATERAL · GIRO · REPOSO" : <>POSTURA · {poseMode === "idle" ? "REPOSO ANIMADO" : "REFERENCIA DEL RIG"}&nbsp;&nbsp; ARRASTRAR · GIRAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; CLIC DERECHO · MOVER</>}</p>
+    </div>
   </div>;
 }

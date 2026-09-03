@@ -184,3 +184,191 @@
     transition: none;
   }
 }
+
+/*
+ * Carcasa industrial común para todos los botones visibles de Alice.
+ * Replica el material de los iconos (metal oscuro, bisel especular y señal
+ * neón), pero conserva la geometría y el color semántico de cada pantalla.
+ * Los nodos de la línea temporal se excluyen: son puntos de un gráfico, no
+ * superficies mecánicas, aunque mantienen foco de teclado propio.
+ */
+:root {
+  --alice-button-metal-high: #34465a;
+  --alice-button-metal-mid: #172235;
+  --alice-button-metal-low: #070d17;
+  --alice-button-edge: #52677a;
+}
+
+.shell button:not(.timeline-node) {
+  --alice-button-accent: #38bdf8;
+  --alice-button-accent-rgb: 56 189 248;
+  position: relative;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--alice-button-accent) 24%, var(--alice-button-edge));
+  border-radius: 3px;
+  background-image:
+    linear-gradient(135deg, transparent 0 5px, rgb(var(--alice-button-accent-rgb) / .5) 5px 6px, transparent 6px),
+    linear-gradient(315deg, transparent 0 5px, rgb(var(--alice-button-accent-rgb) / .34) 5px 6px, transparent 6px),
+    linear-gradient(112deg, transparent 0 13%, rgba(248, 250, 252, .09) 15%, transparent 18% 67%, rgba(148, 163, 184, .055) 70%, transparent 74%),
+    linear-gradient(180deg, rgba(71, 85, 105, .2), rgba(15, 23, 42, .08) 30%, rgba(2, 6, 23, .3) 100%);
+  background-position: top left, bottom right, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 14px 14px, 14px 14px, 100% 100%, 100% 100%;
+  background-clip: padding-box;
+  color: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(248, 250, 252, .17),
+    inset 0 -2px 0 rgba(2, 6, 23, .82),
+    0 2px 0 #020409,
+    0 5px 12px rgba(0, 0, 0, .22);
+  text-shadow: 0 1px 0 #020409;
+  transition:
+    transform 90ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    background-position 160ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+
+.shell button:not(.timeline-node):hover:not(:disabled) {
+  z-index: 2;
+  transform: translateY(-1px);
+  border-color: var(--alice-button-accent);
+  filter: brightness(1.1) saturate(1.08);
+  box-shadow:
+    inset 0 1px 0 rgba(248, 250, 252, .28),
+    inset 0 -2px 0 rgba(2, 6, 23, .82),
+    0 2px 0 #020409,
+    0 0 12px rgb(var(--alice-button-accent-rgb) / .22),
+    0 7px 15px rgba(0, 0, 0, .3);
+}
+
+.shell button:not(.timeline-node):active:not(:disabled) {
+  transform: translateY(2px);
+  filter: brightness(.94);
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, .62),
+    inset 0 0 0 1px rgb(var(--alice-button-accent-rgb) / .2),
+    0 1px 0 #020409;
+}
+
+.shell button:not(.timeline-node):focus-visible,
+.timeline-node:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.shell button:not(.timeline-node):is(.selected, .active, [aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], [aria-current="page"]) {
+  border-color: var(--alice-button-accent);
+  background-image:
+    linear-gradient(135deg, transparent 0 5px, rgb(var(--alice-button-accent-rgb) / .95) 5px 6px, transparent 6px),
+    linear-gradient(315deg, transparent 0 5px, rgb(var(--alice-button-accent-rgb) / .7) 5px 6px, transparent 6px),
+    linear-gradient(112deg, transparent 0 13%, rgba(248, 250, 252, .15) 15%, transparent 18% 67%, rgb(var(--alice-button-accent-rgb) / .08) 70%, transparent 74%),
+    linear-gradient(180deg, rgb(var(--alice-button-accent-rgb) / .14), rgba(15, 23, 42, .06) 45%, rgb(var(--alice-button-accent-rgb) / .07));
+  background-position: top left, bottom right, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 14px 14px, 14px 14px, 100% 100%, 100% 100%;
+  box-shadow:
+    inset 0 1px 0 rgba(248, 250, 252, .28),
+    inset 0 -2px 0 rgb(var(--alice-button-accent-rgb) / .42),
+    inset 0 0 18px rgb(var(--alice-button-accent-rgb) / .1),
+    0 2px 0 #020409,
+    0 0 11px rgb(var(--alice-button-accent-rgb) / .2);
+}
+
+.shell button:not(.timeline-node):disabled {
+  border-color: #29384a;
+  background-image:
+    linear-gradient(112deg, transparent 0 14%, rgba(148, 163, 184, .045) 16%, transparent 19%),
+    linear-gradient(180deg, rgba(51, 65, 85, .1), rgba(2, 6, 23, .3));
+  color: #526274;
+  cursor: not-allowed;
+  opacity: .58;
+  filter: saturate(.28);
+  box-shadow: inset 0 1px 0 rgba(148, 163, 184, .08), inset 0 -2px 0 rgba(2, 6, 23, .72);
+  transform: none;
+}
+
+/* Variantes de señal: el material permanece igual y sólo cambia el neón. */
+.shell button.primary {
+  --alice-button-accent: #22d3ee;
+  --alice-button-accent-rgb: 34 211 238;
+  border-color: #22d3ee;
+  background-color: #0a2634;
+  color: #cffafe;
+  box-shadow:
+    inset 0 1px 0 rgba(240, 253, 250, .25),
+    inset 0 -2px 0 #083344,
+    inset 0 0 16px rgba(34, 211, 238, .09),
+    0 2px 0 #020409,
+    0 0 10px rgba(34, 211, 238, .15);
+}
+
+.shell button.secondary {
+  --alice-button-accent: #94a3b8;
+  --alice-button-accent-rgb: 148 163 184;
+  color: #d7e8f2;
+}
+
+.shell button:is(.approve, .is-approve),
+.shell .procedure-choice button:not(.dismiss) {
+  --alice-button-accent: #2dd4bf;
+  --alice-button-accent-rgb: 45 212 191;
+  color: #ccfbf1;
+}
+
+.shell button:is(.danger, .is-danger, .is-deny, .dismiss) {
+  --alice-button-accent: #fb7185;
+  --alice-button-accent-rgb: 251 113 133;
+  color: #fecdd3;
+}
+
+.shell button:is(.warning, .is-warning, .observing, .restore, .avatar-gamepad) {
+  --alice-button-accent: #f59e0b;
+  --alice-button-accent-rgb: 245 158 11;
+  color: #fde68a;
+}
+
+.shell button.avatar-gait-test,
+.shell .core-system-selector button.governance {
+  --alice-button-accent: #a78bfa;
+  --alice-button-accent-rgb: 167 139 250;
+}
+
+.shell button.avatar-posture {
+  --alice-button-accent: #f472b6;
+  --alice-button-accent-rgb: 244 114 182;
+}
+
+.shell .core-system-selector button.body {
+  --alice-button-accent: #f59e0b;
+  --alice-button-accent-rgb: 245 158 11;
+}
+
+/* Pestañas con SVG: bisel tenue para que el icono siga siendo protagonista. */
+.shell :is(.screen-tabs, .neuro-view-tabs, .bridge-view-tabs) button {
+  background-color: #08111d;
+  box-shadow:
+    inset 0 1px 0 rgba(226, 232, 240, .12),
+    inset 0 -2px 0 #020617,
+    0 2px 0 #020409;
+}
+
+.shell :is(.screen-tabs, .neuro-view-tabs, .bridge-view-tabs) button:is(.selected, [aria-selected="true"], [aria-current="page"]) {
+  background-color: #0b1b2a;
+}
+
+/* Selectores que representan datos: misma aleación, menor profundidad. */
+.shell button:is(.metric-row, .control-row, .retrieved-row, .planner-response, .planner-trace, .skills-template) {
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, .08),
+    inset 0 -1px 0 rgba(2, 6, 23, .62);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell button:not(.timeline-node) {
+    transition: none;
+  }
+}

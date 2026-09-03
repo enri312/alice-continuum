@@ -3,10 +3,19 @@ dist/
 .env
 *.log
 *.tsbuildinfo
+.env.*
+*.key
+*.pem
 src-tauri/target/
 .cargo-target/
 data/*
 !data/README.md
+
+# Evidencia local, borradores de agentes y documentos personales: nunca publicar.
+/.openchamber/
+/scratch/
+/artifacts/
+docs/*.docx
 
 # Avatares privados: se cargan localmente y no se redistribuyen con Alice.
 Assets/*.vrm

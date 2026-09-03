@@ -1,7 +1,7 @@
-import volumeSvg from "../../icons/nucleus-volume.svg?raw";
-import flowSvg from "../../icons/nucleus-flow.svg?raw";
-import stateSvg from "../../icons/nucleus-state.svg?raw";
-import plannerSvg from "../../icons/nucleus-planner.svg?raw";
+import volumeSvg from "../../icons/cognitive-neural-volume.svg?raw";
+import flowSvg from "../../icons/cognitive-evidence-flow.svg?raw";
+import stateSvg from "../../icons/cognitive-state-controls.svg?raw";
+import plannerSvg from "../../icons/cognitive-action-planner.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
 export type NucleusViewIconKind = "volume" | "flow" | "state" | "planner";

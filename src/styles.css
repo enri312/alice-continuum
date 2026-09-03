@@ -45,6 +45,6 @@ label { display: grid; gap: 8px; margin-top: 17px; color: #d8e0d3; font-size: .8
 .nucleus-page-stage { min-height:450px; overflow:hidden; border:1px solid #3e513d; border-radius:16px; background:#07101b; }
 .nucleus-page-stage .neural-volume { min-height:450px; border:0; border-radius:0; }
 .screen-tabs.grouped { flex-wrap:wrap; gap:8px; }
-.screen-tabs.grouped button { flex:0 0 108px; width:108px; height:112px; padding:5px; }
-.screen-tabs.grouped .screen-tab-icon { width:98px; height:98px; }
+.screen-tabs.grouped button { flex:0 0 128px; width:128px; height:132px; padding:4px; }
+.screen-tabs.grouped .screen-tab-icon { width:120px; height:120px; }
 .screen-tabs.grouped .screen-tab-icon svg { width:100%; height:100%; }

@@ -1,6 +1,6 @@
-import overviewSvg from "../../icons/bridge-overview.svg?raw";
-import faceSvg from "../../icons/bridge-face.svg?raw";
-import bodySvg from "../../icons/bridge-body.svg?raw";
+import overviewSvg from "../../icons/governance-capability-registry.svg?raw";
+import faceSvg from "../../icons/embodiment-face-calibration.svg?raw";
+import bodySvg from "../../icons/embodiment-body-solver.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
 export type BridgeViewIconKind = "overview" | "face" | "body";

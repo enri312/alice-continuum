@@ -1,23 +1,21 @@
-import conversationSvg from "../../icons/nav-conversation.svg?raw";
-import nucleusSvg from "../../icons/nav-nucleus.svg?raw";
-import memorySvg from "../../icons/nav-memory.svg?raw";
-import activitySvg from "../../icons/nav-activity.svg?raw";
-import auditSvg from "../../icons/nav-audit.svg?raw";
-import bridgesSvg from "../../icons/nav-bridges.svg?raw";
-import avatarSvg from "../../icons/nav-avatar.svg?raw";
-import identificationSvg from "../../icons/nav-identification.svg?raw";
-import settingsSvg from "../../icons/nav-settings.svg?raw";
-import skillsSvg from "../../icons/nav-skills.svg?raw";
-import proceduresSvg from "../../icons/nav-procedures.svg?raw";
-import faceSvg from "../../icons/bridge-face.svg?raw";
-import bodySvg from "../../icons/bridge-body.svg?raw";
-import volumeSvg from "../../icons/nucleus-volume.svg?raw";
-import flowSvg from "../../icons/nucleus-flow.svg?raw";
-import stateSvg from "../../icons/nucleus-state.svg?raw";
-import plannerSvg from "../../icons/nucleus-planner.svg?raw";
+import memorySvg from "../../icons/cognitive-memory-vault.svg?raw";
+import activitySvg from "../../icons/cognitive-activity-timeline.svg?raw";
+import auditSvg from "../../icons/governance-audit-diagnostics.svg?raw";
+import bridgesSvg from "../../icons/governance-permissions-gateway.svg?raw";
+import avatarSvg from "../../icons/embodiment-avatar-vrm.svg?raw";
+import identificationSvg from "../../icons/cognitive-input-identification.svg?raw";
+import settingsSvg from "../../icons/governance-system-settings.svg?raw";
+import skillsSvg from "../../icons/governance-skill-workshop.svg?raw";
+import proceduresSvg from "../../icons/governance-procedure-observer.svg?raw";
+import faceSvg from "../../icons/embodiment-face-calibration.svg?raw";
+import bodySvg from "../../icons/embodiment-body-solver.svg?raw";
+import volumeSvg from "../../icons/cognitive-neural-volume.svg?raw";
+import flowSvg from "../../icons/cognitive-evidence-flow.svg?raw";
+import stateSvg from "../../icons/cognitive-state-controls.svg?raw";
+import plannerSvg from "../../icons/cognitive-action-planner.svg?raw";
 import { InlineSvgIcon } from "./InlineSvgIcon";
 
-export type NavigationIconKind = "conversation" | "nucleus" | "memory" | "activity" | "audit" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
+export type NavigationIconKind = "memory" | "activity" | "audit" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
 
 type NavigationIconProps = {
   kind: NavigationIconKind;
@@ -25,8 +23,6 @@ type NavigationIconProps = {
 };
 
 const sources: Record<NavigationIconKind, string> = {
-  conversation: conversationSvg,
-  nucleus: nucleusSvg,
   memory: memorySvg,
   activity: activitySvg,
   audit: auditSvg,
