@@ -11,9 +11,11 @@ El fundamento funcional y sus límites científicos están documentados en [Mode
 
 ## Directorio de datos
 
-El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese directorio Alice crea `memory/` y conserva la auditoría de proveedores en `cloud/`:
+El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese directorio Alice crea `memory/`, conserva el historial de diálogo en `conversation/` y la auditoría de proveedores en `cloud/`:
 
 ```text
+conversation/
+`-- history-v1.json              # Diálogo local durable; no es memoria R6 confirmada
 memory/
 |-- manifest.json                 # Versión y contrato del almacenamiento
 |-- records.json                  # Recuerdos y enseñanzas vigentes
@@ -33,6 +35,12 @@ memory/
 |-- attachments/                  # Reservado para adjuntos autorizados
 `-- indexes/                      # Reservado para índices derivados y regenerables
 ```
+
+`conversation/history-v1.json` conserva hasta 1.000 intercambios reales y se
+recupera al iniciar. Su escritura es atómica y R3 registra sólo SHA-256, nunca el
+texto. El historial no se incorpora automáticamente a `records.json`, a las capas
+R6 ni al RAG. La memoria de trabajo mantiene únicamente la ventana inmediata en
+RAM y puede vaciarse sin borrar el historial.
 
 La pantalla Memoria debe mostrar la ruta real y ofrecer un botón para abrirla. `data/*` está excluido de Git, salvo su README explicativo, de modo que los recuerdos no se publican al compartir el código.
 

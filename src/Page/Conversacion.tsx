@@ -4,6 +4,7 @@ import { buildCloudPayloadReview, type CloudPayloadBudget } from "../core/cloud-
 import { selectReinforceableMemoryIds } from "../core/memory-consolidation";
 import type { RetrievalOutcome } from "../core/memory-consolidation";
 import type { WorkingMemorySnapshot } from "../core/working-memory";
+import type { ConversationHistorySnapshot } from "../core/conversation-history";
 import "../conversation-context.css";
 
 export type ConversationMessage = {
@@ -38,6 +39,8 @@ export type CloudResponse = {
   outputTokens: number;
   workingMemory: WorkingMemorySnapshot | null;
   workingMemoryError: string | null;
+  conversationHistory: ConversationHistorySnapshot | null;
+  conversationHistoryError: string | null;
 };
 
 type MemoryExcerpt = { id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived"; accessibilityStatus?: "accessible" | "dormant"; suppressionStatus?: "suppressed"; archiveStatus?: "archived" };
@@ -150,6 +153,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
       const response = await onSend(reviewRequest, reviewMemoryIds);
       if (reviewMemoryIds.length) setPendingRetrievals((current) => [...current, ...reviewMemoryIds.map((recordId) => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId }))]);
       if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
+      if (response.conversationHistoryError) setError(`La respuesta llegó, pero el historial local no pudo guardarse: ${response.conversationHistoryError}`);
       onDraftChange("");
       setReviewing(false);
       setReviewBudget(null);
@@ -198,7 +202,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <p className="eyebrow">CONTROL DE CONTEXTO</p>
         <h3>{localInference ? "Qué puede procesar" : "Qué puede salir"}</h3>
         <div className="context-section-label"><strong>{localInference ? "CONTEXTO LOCAL AUTORIZADO" : "SALIDA A LA NUBE"}</strong><span>FUENTES SELECCIONADAS · DATOS REALES</span></div>
-        <label className={`context-toggle ${recentHistory.length ? "available" : "waiting"}`}><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length ? `${recentHistory.length} mensajes temporales disponibles · máximo 10` : "seleccionado · todavía no hay mensajes temporales"}</small></span></label>
+        <label className={`context-toggle ${recentHistory.length ? "available" : "waiting"}`}><input type="checkbox" checked={includeHistory} onChange={(event) => { setIncludeHistory(event.target.checked); setReviewing(false); }} /><span><strong>Historial reciente</strong><small>{recentHistory.length ? `${recentHistory.length} mensajes locales disponibles · máximo 10 por consulta` : "seleccionado · todavía no hay mensajes guardados"}</small></span></label>
         <label className={`context-toggle ${draft.trim() ? "available" : "waiting"}`}><input type="checkbox" checked={includeMemory} onChange={(event) => { setIncludeMemory(event.target.checked); setReviewing(false); }} /><span><strong>{localInference ? "RAG local de recuerdos" : "Recuerdos relevantes"}</strong><small>{draft.trim() ? `${memoryMatches.length} coincidencias de ${memories.length} recuerdos · ${dormantMemoryCount} en reposo · ${suppressedMemoryCount} suprimidos` : "seleccionado · espera un mensaje para buscar"}</small></span></label>
         {draft.trim() && memoryMatches.length > 0 && !includeMemory && <p className="memory-authorization-warning" role="status">Alice encontró {memoryMatches.length} recuerdos, pero no se {localInference ? "procesarán" : "enviarán"} mientras esta casilla siga desmarcada.</p>}
         {draft.trim() && <div className="memory-retrieval-preview" aria-live="polite"><div><strong>RECUPERACIÓN LOCAL</strong><span>LEXICAL · MÁX. 3 · REPOSO Y SUPRESIÓN EXCLUIDOS</span></div>{memoryMatches.length ? memoryMatches.map((match) => <article key={match.memory.id ?? `${match.memory.intention}-${match.score}`}><header><strong>{match.memory.intention}</strong><span>{match.score.toFixed(3)}</span></header><p>{match.reason}</p></article>) : <p className="retrieval-empty">No hay recuerdos accesibles relacionados. No se adjuntará memoria.</p>}</div>}
@@ -206,8 +210,8 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <div className={`conversation-observer-state ${observationEnabled ? "active" : ""}`}><i /><span><strong>{observationEnabled ? "OBSERVADOR LOCAL ACTIVO" : "OBSERVADOR LOCAL INACTIVO"}</strong><small>{observationEnabled ? localInference ? "Hay metadatos locales. Sólo se procesarán al marcar Ventana actual y autorizar." : "Hay metadatos locales. Sólo saldrán al marcar Ventana actual y autorizar." : "No está autorizado ni está capturando metadatos de la ventana."}</small></span></div>
         {desktopApp && <button type="button" className={observationEnabled ? "console-button observing" : "console-button"} onClick={onToggleObservation}>{observationEnabled ? "Administrar observador en Gateway" : "Configurar observador en Gateway"}</button>}
         <p className="context-sensor-boundary">Esta conversación sólo admite el nombre del proceso y el título de la ventana. Cámara, micrófono, fotogramas y audio quedan fuera.</p>
-        <div className="context-section-label local"><strong>MEMORIA DE TRABAJO</strong><span>RAM · TEMPORAL</span></div>
-        <div className="conversation-working-memory"><i /><span><strong>CONVERSACIÓN TEMPORAL</strong><small>El intercambio permanece en la memoria de trabajo de Alice. No se convierte automáticamente en recuerdo duradero ni en hecho confirmado.</small></span></div>
+        <div className="context-section-label local"><strong>CONTINUIDAD LOCAL</strong><span>HISTORIAL + RAM</span></div>
+        <div className="conversation-working-memory"><i /><span><strong>CONVERSACIÓN GUARDADA LOCALMENTE</strong><small>Cada intercambio exitoso se conserva para continuar después de reiniciar. También entra en la RAM inmediata, pero no se convierte automáticamente en recuerdo ni en hecho confirmado.</small></span></div>
         <div className="conversation-route"><strong>MOTOR SELECCIONADO · SIN HERRAMIENTAS</strong><span>{selectedProvider?.label ?? provider}</span><small>{model || "modelo sin configurar"}</small></div>
         <div className="cloud-rule"><strong>{localInference ? "POLÍTICA DE INFERENCIA" : "POLÍTICA DE ENVÍO"}</strong><span>{selectedProvider?.protocol ?? "adaptador nativo"} · {selectedProvider?.retentionMode ?? "retención según proveedor"} · {localInference ? "contexto 4096 · máximo 900 tokens de salida" : "máximo 1200 tokens de salida"} · sin herramientas · previsualización obligatoria</span></div>
         <button type="button" className="conversation-settings-link" onClick={onOpenSettings}>Cambiar proveedor o modelo en Configuración</button>
@@ -223,7 +227,7 @@ export function Conversacion({ embedded = false, desktopApp, draft, status, prov
         <footer><span>TOTAL EXACTO DEL PAYLOAD</span><strong>{reviewBudget?.totalCharacters.toLocaleString("es-PY") ?? 0} caracteres</strong><em>{reviewBudget?.totalUtf8Bytes.toLocaleString("es-PY") ?? 0} bytes UTF-8</em></footer>
       </div>
       <pre>{reviewRequest?.payload}</pre>
-      <p className="review-note">Además se incluye una política breve: responder en español, no afirmar acciones no realizadas y pedir aprobación antes de acciones externas o costosas.</p>
+      <p className="review-note">Además se incluye una política breve: responder en español, no afirmar acciones no realizadas y pedir aprobación antes de acciones externas o costosas. Si la respuesta llega, el intercambio se guardará en el historial local de Alice sin promoverlo automáticamente a recuerdo.</p>
       {!desktopApp && <p className="cloud-error">La inferencia sólo funciona desde la aplicación de escritorio.</p>}
       {desktopApp && !selectedProvider?.configured && <p className="cloud-error">{localInference ? "Ollama local no está iniciado. Abrí Alice mediante Iniciar Alice.cmd." : "Este proveedor todavía no tiene sus variables de entorno configuradas. Alice no puede enviar la consulta."}</p>}
       {error && <p className="cloud-error">{error}</p>}

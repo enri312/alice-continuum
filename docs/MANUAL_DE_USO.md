@@ -55,7 +55,8 @@ revisar y **Actividad** si querés comprobar qué ocurrió.
 5. Recién entonces pulsá **Autorizar y procesar localmente** o **Autorizar y enviar
    a la nube**, según corresponda.
 6. Leé la respuesta de Alice.
-7. Si aparece **¿ESTE RECUERDO AYUDÓ?**, marcá **Sí, fue útil** o **No ayudó**. Esa
+7. El intercambio exitoso queda en el historial local y reaparece al reiniciar.
+8. Si aparece **¿ESTE RECUERDO AYUDÓ?**, marcá **Sí, fue útil** o **No ayudó**. Esa
    evaluación real sirve para ajustar la recuperación futura.
 
 La vista previa es obligatoria a propósito: evita que una acción invisible decida
@@ -92,8 +93,8 @@ Las casillas de la columna derecha autorizan qué contexto puede recibir el mode
 Una casilla marcada significa **seleccionada**, no necesariamente que ya existan
 datos:
 
-- **Historial reciente** utiliza mensajes que todavía viven en la memoria de
-  trabajo. Con `0 mensajes`, no adjunta contenido.
+- **Historial reciente** utiliza como máximo los diez mensajes locales más nuevos.
+  Con `0 mensajes`, no adjunta contenido.
 - **RAG local de recuerdos** espera el mensaje actual para buscar coincidencias. La
   vista previa muestra cuántas encontró antes de procesar.
 - **Ventana actual** permanece deshabilitada hasta que el Gateway autorice el
@@ -102,10 +103,12 @@ datos:
 - Sólo son elegibles el nombre del proceso y el título de la ventana. Cámara,
   micrófono, fotogramas y audio no se adjuntan desde este panel.
 
-Después de una respuesta, el intercambio permanece en **memoria de trabajo RAM**.
-No se guarda automáticamente en la memoria durable y el texto del modelo no se
-declara un hecho confirmado. Una futura promoción a episodio deberá ser explícita y
-revisable.
+Después de una respuesta, el intercambio se conserva en
+`data/conversation/history-v1.json` y también entra en **memoria de trabajo RAM**.
+El historial permite continuar el diálogo después de reiniciar, pero no participa
+entero en cada consulta: sólo los mensajes revisados y autorizados se adjuntan. El
+texto del modelo no se declara un hecho confirmado. Cualquier promoción a recuerdo
+R6 deberá ser explícita y revisable.
 
 ### Volumen cognitivo
 
@@ -218,6 +221,7 @@ sin convertir cada frase en recuerdo permanente.
 - Limpiar RAM no elimina recuerdos durables.
 - RAM no significa memoria física del equipo reservada permanentemente; es el
   espacio de trabajo temporal de Alice.
+- Limpiar RAM ya no elimina el historial local de conversación.
 
 ### 5.3 Perfil
 
@@ -376,16 +380,18 @@ activá la nueva revisión sólo si coincide con el estado que esperabas.
 
 ### Alice pierde rápido el contexto
 
-El contexto de conversación y la memoria durable son cosas diferentes. Un modelo
-local pequeño puede olvidar partes del diálogo aunque el RAG funcione. Revisá:
+El historial de conversación, la RAM y la memoria R6 son cosas diferentes. Un
+modelo local pequeño puede olvidar partes del diálogo aunque el historial esté
+guardado, porque cada consulta recibe un contexto limitado. Revisá:
 
 - qué contexto autorizaste en la vista previa;
 - si los recuerdos útiles están confirmados y accesibles;
 - si el modelo configurado cabe correctamente en la memoria disponible;
 - si marcaste la utilidad de los recuerdos recuperados.
 
-No guardes toda la conversación como solución automática: eso genera ruido y puede
-empeorar la recuperación.
+El historial completo se conserva para continuidad y trazabilidad, pero no se
+inyecta entero ni se indexa automáticamente como recuerdo. Convertir cada frase en
+RAG sí generaría ruido y empeoraría la recuperación.
 
 ### El volumen cognitivo tiene poca actividad
 

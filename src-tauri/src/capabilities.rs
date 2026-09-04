@@ -678,6 +678,34 @@ fn memory_capabilities(
             ),
         ),
         capability(
+            "memory.conversation.history",
+            "Conservar historial de conversación",
+            "Guarda intercambios reales en un historial local durable y los recupera al reiniciar, sin convertirlos automáticamente en recuerdos.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Mutation,
+            CapabilityMaturity::Implemented,
+            "conversation-history",
+            &[
+                "conversation_history_status",
+                "record_real_conversation_exchange",
+            ],
+            CapabilityState::Idle,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["conversationHistory", "conversationHistoryAuditDigests"],
+            &["Respuesta real recibida después de una previsualización autorizada"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "La previsualización informa que el intercambio exitoso se guardará localmente; Rust valida, reemplaza atómicamente y audita sólo digests.",
+            ),
+            health(
+                CapabilityHealthStatus::Healthy,
+                "El historial es local, durable y separado de la memoria R6 confirmada.",
+                Some(checked_at),
+            ),
+        ),
+        capability(
             "memory.records.read",
             "Leer memoria local",
             "Lee y valida registros locales sin utilizar la red.",
@@ -1955,7 +1983,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 31);
+        assert_eq!(snapshot.capabilities.len(), 32);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -1979,6 +2007,13 @@ mod tests {
         assert_eq!(
             registered(&snapshot, "memory.working.manage").maturity,
             CapabilityMaturity::Implemented
+        );
+        let conversation_history = registered(&snapshot, "memory.conversation.history");
+        assert_eq!(conversation_history.domain, CapabilityDomain::Memory);
+        assert_eq!(conversation_history.kind, CapabilityKind::Mutation);
+        assert_eq!(
+            conversation_history.effects,
+            vec![CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite]
         );
         assert_eq!(
             registered(&snapshot, "avatar.vrm.render").state,
@@ -2227,7 +2262,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 31);
+        assert_eq!(snapshot.capabilities.len(), 32);
         assert!(!root.exists());
     }
 

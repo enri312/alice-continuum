@@ -2,6 +2,7 @@ mod audit;
 mod avatar;
 mod capabilities;
 mod cloud;
+mod conversation_history;
 mod core_activity;
 mod diagnostics;
 mod face_readiness;
@@ -29,6 +30,7 @@ use audit::{audit_snapshot, record_process_started};
 use avatar::{avatar_animation_status, avatar_status, record_avatar_motor_transition};
 use capabilities::capability_registry_status;
 use cloud::{cloud_status, send_cloud_message};
+use conversation_history::conversation_history_status;
 use core_activity::core_activity_snapshot;
 use diagnostics::diagnostic_snapshot;
 use face_readiness::face_readiness_status;
@@ -171,6 +173,7 @@ pub fn run() {
             avatar_animation_status,
             record_avatar_motor_transition,
             cloud_status,
+            conversation_history_status,
             working_memory_status,
             clear_working_memory,
             send_cloud_message,

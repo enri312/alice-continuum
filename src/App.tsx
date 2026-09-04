@@ -23,8 +23,9 @@ import { loadCompatibleArray } from "./core/storage-migration";
 import { parsePermissionGatewayStatus } from "./core/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
 import type { Screen } from "./core/workspaces";
-import { messagesFromWorkingMemory, parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/working-memory";
+import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
+import { messagesFromConversationHistory, parseConversationHistorySnapshot } from "./core/conversation-history";
 import { parseOwnerProfileSnapshot } from "./core/owner-profile";
 import type { OwnerProfileSnapshot } from "./core/owner-profile";
 
@@ -196,7 +197,6 @@ export function App() {
         setWorkingMemory(snapshot);
         if (snapshot.generation !== workingMemoryGeneration.current) {
           workingMemoryGeneration.current = snapshot.generation;
-          setMessages(messagesFromWorkingMemory(snapshot));
         }
       } catch (error) {
         if (!cancelled && workingMemoryGeneration.current < 0) {
@@ -208,6 +208,19 @@ export function App() {
     void refresh();
     const timer = window.setInterval(refresh, 5_000);
     return () => { cancelled = true; window.clearInterval(timer); };
+  }, [desktopApp]);
+
+  useEffect(() => {
+    if (!desktopApp) return;
+    invoke<unknown>("conversation_history_status").then((raw) => {
+      const snapshot = parseConversationHistorySnapshot(raw);
+      if (snapshot.state === "invalid") {
+        recordEvent("SECURITY", "CONVERSATION_HISTORY_INVALID", snapshot.error ?? "Historial bloqueado", "WARN");
+        return;
+      }
+      setMessages(messagesFromConversationHistory(snapshot));
+      if (snapshot.state === "ready") recordEvent("MEMORY", "CONVERSATION_HISTORY_LOADED", `${snapshot.messageCount} mensajes locales recuperados · sin promoción automática a recuerdo`);
+    }).catch((error) => recordEvent("SECURITY", "CONVERSATION_HISTORY_LOAD_ERROR", String(error), "WARN"));
   }, [desktopApp]);
 
   useEffect(() => {
@@ -330,14 +343,22 @@ export function App() {
           const snapshot = parseWorkingMemorySnapshot(response.workingMemory);
           workingMemoryGeneration.current = snapshot.generation;
           setWorkingMemory(snapshot);
-          setMessages(messagesFromWorkingMemory(snapshot));
           recordEvent("MEMORY", "WORKING_MEMORY_RECORDED", `${snapshot.messageCount}/${snapshot.maximumMessages} mensajes reales en RAM · TTL ${snapshot.ttlSeconds}s`);
+        } catch (error) {
+          recordEvent("SECURITY", "WORKING_MEMORY_CONTRACT_ERROR", String(error), "WARN");
+        }
+      }
+      if (response.conversationHistory) {
+        try {
+          const history = parseConversationHistorySnapshot(response.conversationHistory);
+          setMessages(messagesFromConversationHistory(history));
+          recordEvent("MEMORY", "CONVERSATION_HISTORY_APPENDED", `${history.messageCount} mensajes persistentes · memoria confirmada sin cambios`);
         } catch (error) {
           setMessages((current) => [...current,
             { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
             { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
           ]);
-          recordEvent("SECURITY", "WORKING_MEMORY_CONTRACT_ERROR", String(error), "WARN");
+          recordEvent("SECURITY", "CONVERSATION_HISTORY_CONTRACT_ERROR", String(error), "WARN");
         }
       } else {
         setMessages((current) => [...current,
@@ -346,6 +367,7 @@ export function App() {
         ]);
       }
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
+      if (response.conversationHistoryError) recordEvent("SECURITY", "CONVERSATION_HISTORY_RECORD_ERROR", response.conversationHistoryError, "WARN");
       if (recalledMemoryIds.length) recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} usado${recalledMemoryIds.length === 1 ? "" : "s"} · utilidad aún no confirmada`);
       recordEvent("OUTPUT", "CLOUD_RESPONSE", `${response.provider}/${response.model} · ${response.inputTokens} entrada · ${response.outputTokens} salida`);
       return response;
@@ -370,7 +392,6 @@ export function App() {
       const result = parseWorkingMemoryOperationResult(await invoke<unknown>("clear_working_memory", { input: { expectedGeneration, confirmed: true } }));
       workingMemoryGeneration.current = result.snapshot.generation;
       setWorkingMemory(result.snapshot);
-      setMessages(messagesFromWorkingMemory(result.snapshot));
       recordEvent("MEMORY", "WORKING_MEMORY_CLEARED", `RAM vaciada en generación ${result.snapshot.generation}`);
       if (result.warning) recordEvent("SECURITY", "WORKING_MEMORY_CLEAR_AUDIT_WARNING", result.warning, "WARN");
       return result;

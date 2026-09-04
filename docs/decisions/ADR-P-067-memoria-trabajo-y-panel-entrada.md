@@ -5,6 +5,11 @@ Estado: aceptada
 
 Nota 2026-08-20: ADR-P-080 amplía los límites operativos de RAM y activa historial/RAG por defecto exclusivamente para Ollama. La separación entre RAM y recuerdo duradero establecida aquí permanece vigente.
 
+Nota 2026-09-04: ADR-P-091 conserva la RAM efímera pero añade un historial local
+durable separado. Por tanto, la afirmación de que cerrar Alice descarta toda la
+conversación ya no está vigente; sigue vigente que el diálogo no se promueve
+automáticamente a recuerdo R6.
+
 ## Contexto
 
 La interfaz tenía una pantalla Conversación y un panel `[00] CONVERSATION / PERCEPTION INPUT` separado. Ambos representaban la misma entrada y alejaban el diagnóstico cognitivo de la referencia funcional. Al mismo tiempo, R6 necesitaba contexto reciente real sin convertir cada respuesta en memoria duradera.

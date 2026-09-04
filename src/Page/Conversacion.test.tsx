@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Conversacion } from "./Conversacion";
 
 describe("control de contexto de conversación", () => {
-  it("expone fuentes reales y conserva la conversación sólo en memoria de trabajo", () => {
+  it("expone fuentes reales y separa historial durable de memoria confirmada", () => {
     const markup = renderToStaticMarkup(<Conversacion
       desktopApp
       draft=""
@@ -23,10 +23,11 @@ describe("control de contexto de conversación", () => {
     />);
 
     expect(markup).toContain("FUENTES SELECCIONADAS · DATOS REALES");
-    expect(markup).toContain("seleccionado · todavía no hay mensajes temporales");
+    expect(markup).toContain("seleccionado · todavía no hay mensajes guardados");
     expect(markup).toContain("Configurar observador en Gateway");
-    expect(markup).toContain("MEMORIA DE TRABAJO");
-    expect(markup).toContain("No se convierte automáticamente en recuerdo duradero ni en hecho confirmado");
+    expect(markup).toContain("CONTINUIDAD LOCAL");
+    expect(markup).toContain("CONVERSACIÓN GUARDADA LOCALMENTE");
+    expect(markup).toContain("no se convierte automáticamente en recuerdo ni en hecho confirmado");
     expect(markup).not.toContain("Aprendizaje episódico local");
   });
 });

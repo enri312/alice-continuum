@@ -1,6 +1,7 @@
 use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
+use crate::conversation_history::{record_real_conversation_exchange, ConversationHistorySnapshot};
 use crate::util::{alice_data_root, timestamp_ms};
 use crate::working_memory::{
     record_real_cloud_exchange, WorkingMemorySnapshot, WorkingMemoryStore,
@@ -63,6 +64,8 @@ pub(crate) struct CloudResponse {
     output_tokens: u64,
     working_memory: Option<WorkingMemorySnapshot>,
     working_memory_error: Option<String>,
+    conversation_history: Option<ConversationHistorySnapshot>,
+    conversation_history_error: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -380,6 +383,17 @@ pub(crate) async fn send_cloud_message(
                 }
                 Err(error) => response.working_memory_error = Some(error),
             }
+            match record_real_conversation_exchange(
+                &app,
+                &response.response_id,
+                &request.message,
+                &response.text,
+                &response.provider,
+                &response.model,
+            ) {
+                Ok(snapshot) => response.conversation_history = Some(snapshot),
+                Err(error) => response.conversation_history_error = Some(error),
+            }
             Ok(response)
         }
         Err(error) => {
@@ -570,7 +584,7 @@ async fn send_cloud_message_inner(
             .get("created_at")
             .and_then(|item| item.as_str())
             .map(|created_at| format!("local:{created_at}"))
-            .unwrap_or_else(|| "local:sin-id".into())
+            .unwrap_or_else(|| format!("local:{}", new_operation_id()))
     } else {
         value
             .get(if request.provider == "google" {
@@ -579,8 +593,8 @@ async fn send_cloud_message_inner(
                 "id"
             })
             .and_then(|item| item.as_str())
-            .unwrap_or("sin-id")
-            .to_string()
+            .map(str::to_string)
+            .unwrap_or_else(|| format!("generated:{}", new_operation_id()))
     };
     let returned_model = value
         .get(if request.provider == "google" {
@@ -636,6 +650,8 @@ async fn send_cloud_message_inner(
         output_tokens,
         working_memory: None,
         working_memory_error: None,
+        conversation_history: None,
+        conversation_history_error: None,
     })
 }
 
