@@ -1,4 +1,4 @@
-use crate::audit::{append_event_at, new_operation_id, AuditEvent, AUDIT_MAX_BYTES};
+use crate::audit::{append_event_at, new_operation_id, AuditEvent, AuditOutcome, AUDIT_MAX_BYTES};
 use crate::capabilities::{current_utc_timestamp, validate_timestamp};
 use crate::util::{alice_data_root_path, encode_hex_lower};
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,7 @@ use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 use tauri::State;
+use tauri_plugin_notification::NotificationExt;
 use uuid::Uuid;
 
 #[cfg(windows)]
@@ -272,6 +273,16 @@ pub(crate) struct SetTaskEngineEnabledInput {
 #[serde(rename_all = "camelCase")]
 enum TaskAttemptState {
     Reserved,
+    Dispatching,
+    Accepted,
+    Failed,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum TaskDispatchReason {
+    AcceptedByOs,
+    NotificationError,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -284,6 +295,10 @@ struct TaskAttemptRecord {
     scheduled_for: String,
     reserved_at: String,
     state: TaskAttemptState,
+    dispatch_operation_id: Option<String>,
+    dispatch_started_at: Option<String>,
+    dispatch_finished_at: Option<String>,
+    dispatch_reason: Option<TaskDispatchReason>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -330,6 +345,33 @@ pub(crate) struct TaskAttemptReservationReceipt {
     audit_written: bool,
     notification_sent: bool,
     output_performed: bool,
+    task_state_changed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct DispatchTaskNotificationInput {
+    attempt_id: String,
+    idempotency_key: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TaskNotificationReceipt {
+    schema_version: u32,
+    operation_id: String,
+    attempt_id: String,
+    task_id: String,
+    state: TaskAttemptState,
+    dispatch_reason: TaskDispatchReason,
+    dispatch_started_at: String,
+    dispatch_finished_at: String,
+    notification_accepted: bool,
+    audit_written: bool,
+    idempotent: bool,
+    network_used: bool,
+    process_spawned: bool,
     task_state_changed: bool,
 }
 
@@ -478,6 +520,54 @@ impl TaskAttemptLedgerDocument {
             {
                 return Err("El ledger contiene una clave de idempotencia incoherente".into());
             }
+            if let Some(operation_id) = &attempt.dispatch_operation_id {
+                validate_uuid("dispatchOperationId", operation_id)?;
+            }
+            if let Some(started_at) = &attempt.dispatch_started_at {
+                validate_task_timestamp("dispatchStartedAt", started_at)?;
+                if started_at < &attempt.reserved_at {
+                    return Err("El despacho no puede preceder a su reserva".into());
+                }
+            }
+            if let Some(finished_at) = &attempt.dispatch_finished_at {
+                validate_task_timestamp("dispatchFinishedAt", finished_at)?;
+                if attempt
+                    .dispatch_started_at
+                    .as_ref()
+                    .is_none_or(|started_at| finished_at < started_at)
+                {
+                    return Err("El resultado no puede preceder al despacho".into());
+                }
+            }
+            let dispatch_shape_valid = match attempt.state {
+                TaskAttemptState::Reserved => {
+                    attempt.dispatch_operation_id.is_none()
+                        && attempt.dispatch_started_at.is_none()
+                        && attempt.dispatch_finished_at.is_none()
+                        && attempt.dispatch_reason.is_none()
+                }
+                TaskAttemptState::Dispatching => {
+                    attempt.dispatch_operation_id.is_some()
+                        && attempt.dispatch_started_at.is_some()
+                        && attempt.dispatch_finished_at.is_none()
+                        && attempt.dispatch_reason.is_none()
+                }
+                TaskAttemptState::Accepted => {
+                    attempt.dispatch_operation_id.is_some()
+                        && attempt.dispatch_started_at.is_some()
+                        && attempt.dispatch_finished_at.is_some()
+                        && attempt.dispatch_reason == Some(TaskDispatchReason::AcceptedByOs)
+                }
+                TaskAttemptState::Failed => {
+                    attempt.dispatch_operation_id.is_some()
+                        && attempt.dispatch_started_at.is_some()
+                        && attempt.dispatch_finished_at.is_some()
+                        && attempt.dispatch_reason == Some(TaskDispatchReason::NotificationError)
+                }
+            };
+            if !dispatch_shape_valid {
+                return Err("El ledger contiene un estado de despacho incoherente".into());
+            }
             if !ids.insert(attempt.attempt_id.as_str())
                 || !keys.insert(attempt.idempotency_key.as_str())
             {
@@ -601,16 +691,22 @@ fn read_attempt_ledger(
 
 pub(crate) fn task_attempt_ledger_snapshot_at(data_root: &Path) -> TaskAttemptLedgerSnapshot {
     match read_attempt_ledger(data_root) {
-        Ok(Some((_, ledger))) => TaskAttemptLedgerSnapshot {
-            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
-            state: TaskRegistryState::Ready,
-            storage_exists: true,
-            reservation_count: ledger.attempts.len(),
-            reservations: ledger.attempts,
-            error: None,
-            notifications_enabled: false,
-            output_performed: false,
-        },
+        Ok(Some((_, ledger))) => {
+            let output_performed = ledger
+                .attempts
+                .iter()
+                .any(|attempt| attempt.state == TaskAttemptState::Accepted);
+            TaskAttemptLedgerSnapshot {
+                schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+                state: TaskRegistryState::Ready,
+                storage_exists: true,
+                reservation_count: ledger.attempts.len(),
+                reservations: ledger.attempts,
+                error: None,
+                notifications_enabled: false,
+                output_performed,
+            }
+        }
         Ok(None) => TaskAttemptLedgerSnapshot {
             schema_version: TASK_REGISTRY_SCHEMA_VERSION,
             state: TaskRegistryState::Missing,
@@ -1279,6 +1375,10 @@ pub(crate) fn reserve_task_attempt_at(
         scheduled_for: scheduled_for.to_string(),
         reserved_at,
         state: TaskAttemptState::Reserved,
+        dispatch_operation_id: None,
+        dispatch_started_at: None,
+        dispatch_finished_at: None,
+        dispatch_reason: None,
     };
     ledger.attempts.push(attempt.clone());
     ledger.validate()?;
@@ -1320,6 +1420,178 @@ pub(crate) fn reserve_task_attempt_at(
         audit_written: true,
         notification_sent: false,
         output_performed: false,
+        task_state_changed: false,
+    })
+}
+
+fn dispatch_task_notification_at<N, C>(
+    data_root: &Path,
+    input: DispatchTaskNotificationInput,
+    started_at: String,
+    notifier: N,
+    finished_clock: C,
+) -> Result<TaskNotificationReceipt, String>
+where
+    N: FnOnce(&str) -> Result<(), String>,
+    C: FnOnce() -> Result<String, String>,
+{
+    if !input.confirmed {
+        return Err("El despacho R7.4 requiere confirmación explícita".into());
+    }
+    validate_uuid("attemptId", &input.attempt_id)?;
+    validate_sha256("idempotencyKey", &input.idempotency_key)?;
+    validate_task_timestamp("dispatchStartedAt", &started_at)?;
+    let _guard = TASK_WRITE_LOCK
+        .lock()
+        .map_err(|_| "El bloqueo de escritura R7 quedó envenenado".to_string())?;
+    let (_, registry) = read_registry_source(data_root)?;
+    let registry = registry.ok_or("No existe el registro de la tarea reservada")?;
+    let previous =
+        read_attempt_ledger(data_root)?.ok_or("No existe un ledger de reservas que despachar")?;
+    let mut ledger = previous.1.clone();
+    let attempt_index = ledger
+        .attempts
+        .iter()
+        .position(|attempt| attempt.attempt_id == input.attempt_id)
+        .ok_or("La reserva solicitada no existe")?;
+    if ledger.attempts[attempt_index].idempotency_key != input.idempotency_key {
+        return Err("La clave de idempotencia no corresponde a la reserva".into());
+    }
+    let existing = &ledger.attempts[attempt_index];
+    if matches!(
+        existing.state,
+        TaskAttemptState::Accepted | TaskAttemptState::Failed
+    ) {
+        let reason = existing
+            .dispatch_reason
+            .ok_or("El resultado terminal perdió su motivo")?;
+        return Ok(TaskNotificationReceipt {
+            schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+            operation_id: existing
+                .dispatch_operation_id
+                .clone()
+                .ok_or("El resultado terminal perdió operationId")?,
+            attempt_id: existing.attempt_id.clone(),
+            task_id: existing.task_id.clone(),
+            state: existing.state,
+            dispatch_reason: reason,
+            dispatch_started_at: existing
+                .dispatch_started_at
+                .clone()
+                .ok_or("El resultado terminal perdió su inicio")?,
+            dispatch_finished_at: existing
+                .dispatch_finished_at
+                .clone()
+                .ok_or("El resultado terminal perdió su cierre")?,
+            notification_accepted: existing.state == TaskAttemptState::Accepted,
+            audit_written: false,
+            idempotent: true,
+            network_used: false,
+            process_spawned: false,
+            task_state_changed: false,
+        });
+    }
+    if existing.state == TaskAttemptState::Dispatching {
+        return Err(
+            "La reserva quedó en despacho incierto; se bloquea el reintento para evitar duplicados"
+                .into(),
+        );
+    }
+    let task = registry
+        .tasks
+        .iter()
+        .find(|task| task.task_id == existing.task_id)
+        .ok_or("La tarea reservada ya no existe")?;
+    if task.kind != TaskKind::LocalReminder || task.status != TaskStatus::Scheduled {
+        return Err("La tarea fue pausada, cancelada o cerrada; no puede despacharse".into());
+    }
+    if task.schedule.next_run_at.as_deref() != Some(existing.scheduled_for.as_str()) {
+        return Err("La programación cambió después de reservar; el despacho fue bloqueado".into());
+    }
+    if existing.scheduled_for > started_at {
+        return Err("La reserva todavía no está vencida".into());
+    }
+
+    let operation_id = new_operation_id();
+    let subject_digest = sha256_digest(existing.task_id.as_bytes());
+    {
+        let attempt = &mut ledger.attempts[attempt_index];
+        attempt.state = TaskAttemptState::Dispatching;
+        attempt.dispatch_operation_id = Some(operation_id.clone());
+        attempt.dispatch_started_at = Some(started_at.clone());
+    }
+    ledger.validate()?;
+    let ledger_path = task_attempt_ledger_path(data_root);
+    let dispatching_bytes = serialize_json(&ledger)?;
+    atomic_replace(&ledger_path, &dispatching_bytes, "ledger R7.4 en despacho")?;
+    let start_audit = AuditEvent::task_notification(
+        operation_id.clone(),
+        AuditOutcome::Pending,
+        subject_digest.clone(),
+        "TASK_NOTIFICATION_STARTED",
+    )
+    .and_then(|event| append_event_at(data_root, &event, AUDIT_MAX_BYTES));
+    if let Err(error) = start_audit {
+        restore_file(
+            &ledger_path,
+            Some(previous.0.as_slice()),
+            "ledger R7.4 durante rollback",
+        )?;
+        return Err(format!(
+            "No se pudo auditar el inicio; la reserva fue restaurada: {error}"
+        ));
+    }
+
+    let notification = notifier(&task.title);
+    let finished_at = finished_clock()?;
+    validate_task_timestamp("dispatchFinishedAt", &finished_at)?;
+    let (state, reason, outcome, reason_code) = if notification.is_ok() {
+        (
+            TaskAttemptState::Accepted,
+            TaskDispatchReason::AcceptedByOs,
+            AuditOutcome::Success,
+            "TASK_NOTIFICATION_ACCEPTED",
+        )
+    } else {
+        (
+            TaskAttemptState::Failed,
+            TaskDispatchReason::NotificationError,
+            AuditOutcome::Error,
+            "TASK_NOTIFICATION_FAILED",
+        )
+    };
+    {
+        let attempt = &mut ledger.attempts[attempt_index];
+        attempt.state = state;
+        attempt.dispatch_finished_at = Some(finished_at.clone());
+        attempt.dispatch_reason = Some(reason);
+    }
+    ledger.validate()?;
+    let terminal_bytes = serialize_json(&ledger)?;
+    atomic_replace(
+        &ledger_path,
+        &terminal_bytes,
+        "resultado de notificación R7.4",
+    )?;
+    let audit_written =
+        AuditEvent::task_notification(operation_id.clone(), outcome, subject_digest, reason_code)
+            .and_then(|event| append_event_at(data_root, &event, AUDIT_MAX_BYTES))
+            .is_ok();
+
+    Ok(TaskNotificationReceipt {
+        schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+        operation_id,
+        attempt_id: input.attempt_id,
+        task_id: task.task_id.clone(),
+        state,
+        dispatch_reason: reason,
+        dispatch_started_at: started_at,
+        dispatch_finished_at: finished_at,
+        notification_accepted: state == TaskAttemptState::Accepted,
+        audit_written,
+        idempotent: false,
+        network_used: false,
+        process_spawned: false,
         task_state_changed: false,
     })
 }
@@ -1598,6 +1870,30 @@ pub(crate) fn reserve_task_attempt(
 ) -> Result<TaskAttemptReservationReceipt, String> {
     let data_root = alice_data_root_path(&app)?;
     reserve_task_attempt_at(&data_root, input, current_utc_timestamp()?)
+}
+
+#[tauri::command]
+pub(crate) fn dispatch_task_notification(
+    app: AppHandle,
+    input: DispatchTaskNotificationInput,
+) -> Result<TaskNotificationReceipt, String> {
+    let data_root = alice_data_root_path(&app)?;
+    let notifier_app = app.clone();
+    dispatch_task_notification_at(
+        &data_root,
+        input,
+        current_utc_timestamp()?,
+        move |body| {
+            notifier_app
+                .notification()
+                .builder()
+                .title("Alice · Recordatorio")
+                .body(body)
+                .show()
+                .map_err(|error| format!("El sistema operativo rechazó la notificación: {error}"))
+        },
+        current_utc_timestamp,
+    )
 }
 
 #[tauri::command]
@@ -2163,6 +2459,165 @@ mod tests {
                 .contains("todavía no está vencida")
         );
         assert!(!task_attempt_ledger_path(&root).exists());
+        fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn notification_dispatch_is_terminal_audited_and_idempotent() {
+        let root = temporary_root("notification-success");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+        fs::write(
+            directory.join(TASK_FILE),
+            serialize_json(&document(vec![scheduled_reminder()])).unwrap(),
+        )
+        .expect("write registry");
+        let reservation = reserve_task_attempt_at(
+            &root,
+            ReserveTaskAttemptInput {
+                task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+                scheduled_for: "2026-09-02T18:00:00Z".into(),
+                confirmed: true,
+            },
+            "2026-09-02T19:00:00Z".into(),
+        )
+        .expect("reserve occurrence");
+        let dispatch = DispatchTaskNotificationInput {
+            attempt_id: reservation.attempt_id.clone(),
+            idempotency_key: reservation.idempotency_key.clone(),
+            confirmed: true,
+        };
+        let body_seen = std::cell::RefCell::new(String::new());
+        let receipt = dispatch_task_notification_at(
+            &root,
+            dispatch.clone(),
+            "2026-09-02T19:01:00Z".into(),
+            |body| {
+                body_seen.replace(body.to_string());
+                Ok(())
+            },
+            || Ok("2026-09-02T19:01:01Z".into()),
+        )
+        .expect("deliver notification");
+        assert_eq!(body_seen.borrow().as_str(), "Recordar revisar el Roadmap");
+        assert_eq!(receipt.state, TaskAttemptState::Accepted);
+        assert!(receipt.notification_accepted);
+        assert!(receipt.audit_written);
+        assert!(!receipt.network_used);
+        assert!(!receipt.process_spawned);
+        let snapshot = task_attempt_ledger_snapshot_at(&root);
+        assert!(snapshot.output_performed);
+        assert!(!snapshot.notifications_enabled);
+
+        let retry = dispatch_task_notification_at(
+            &root,
+            dispatch,
+            "2026-09-02T19:02:00Z".into(),
+            |_| panic!("an accepted occurrence must not notify twice"),
+            || panic!("an accepted occurrence must not open a new result"),
+        )
+        .expect("idempotent terminal receipt");
+        assert!(retry.idempotent);
+        assert_eq!(retry.operation_id, receipt.operation_id);
+        let audit =
+            fs::read_to_string(root.join("audit").join("events-v1.jsonl")).expect("read audit");
+        assert_eq!(audit.matches("TASK_NOTIFICATION_STARTED").count(), 1);
+        assert_eq!(audit.matches("TASK_NOTIFICATION_ACCEPTED").count(), 1);
+        fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn notification_failure_is_terminal() {
+        let root = temporary_root("notification-failure");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+        fs::write(
+            directory.join(TASK_FILE),
+            serialize_json(&document(vec![scheduled_reminder()])).unwrap(),
+        )
+        .expect("write registry");
+        let reservation = reserve_task_attempt_at(
+            &root,
+            ReserveTaskAttemptInput {
+                task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+                scheduled_for: "2026-09-02T18:00:00Z".into(),
+                confirmed: true,
+            },
+            "2026-09-02T19:00:00Z".into(),
+        )
+        .unwrap();
+        let input = DispatchTaskNotificationInput {
+            attempt_id: reservation.attempt_id,
+            idempotency_key: reservation.idempotency_key,
+            confirmed: true,
+        };
+        let failed = dispatch_task_notification_at(
+            &root,
+            input,
+            "2026-09-02T19:01:00Z".into(),
+            |_| Err("controlled operating-system rejection".into()),
+            || Ok("2026-09-02T19:01:01Z".into()),
+        )
+        .expect("record terminal failure");
+        assert_eq!(failed.state, TaskAttemptState::Failed);
+        assert!(!failed.notification_accepted);
+        assert_eq!(
+            failed.dispatch_reason,
+            TaskDispatchReason::NotificationError
+        );
+        assert!(!fs::read_to_string(task_attempt_ledger_path(&root))
+            .expect("read ledger")
+            .contains("controlled operating-system rejection"));
+        fs::remove_dir_all(root).expect("remove fixture");
+    }
+
+    #[test]
+    fn cancelled_task_never_reaches_notification_adapter() {
+        let root = temporary_root("notification-cancelled");
+        let directory = root.join(TASK_DIRECTORY);
+        fs::create_dir_all(&directory).expect("create fixture directory");
+        let registry_path = directory.join(TASK_FILE);
+        fs::write(
+            &registry_path,
+            serialize_json(&document(vec![scheduled_reminder()])).unwrap(),
+        )
+        .expect("write registry");
+        let reservation = reserve_task_attempt_at(
+            &root,
+            ReserveTaskAttemptInput {
+                task_id: "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd".into(),
+                scheduled_for: "2026-09-02T18:00:00Z".into(),
+                confirmed: true,
+            },
+            "2026-09-02T19:00:00Z".into(),
+        )
+        .expect("reserve occurrence");
+        let mut cancelled = scheduled_reminder();
+        cancelled.status = TaskStatus::Cancelled;
+        cancelled.cancellable = false;
+        cancelled.schedule.next_run_at = None;
+        fs::write(
+            registry_path,
+            serialize_json(&document(vec![cancelled])).unwrap(),
+        )
+        .expect("replace registry with cancelled task");
+
+        let error = dispatch_task_notification_at(
+            &root,
+            DispatchTaskNotificationInput {
+                attempt_id: reservation.attempt_id,
+                idempotency_key: reservation.idempotency_key,
+                confirmed: true,
+            },
+            "2026-09-02T19:01:00Z".into(),
+            |_| panic!("a cancelled task must not reach the notification adapter"),
+            || panic!("a blocked dispatch must not request a finish timestamp"),
+        )
+        .expect_err("cancelled task must be blocked");
+        assert!(error.contains("pausada, cancelada o cerrada"));
+        let snapshot = task_attempt_ledger_snapshot_at(&root);
+        assert_eq!(snapshot.reservations[0].state, TaskAttemptState::Reserved);
+        assert!(!snapshot.output_performed);
         fs::remove_dir_all(root).expect("remove fixture");
     }
 

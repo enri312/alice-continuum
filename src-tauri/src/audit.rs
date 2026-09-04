@@ -320,6 +320,32 @@ impl AuditEvent {
         Ok(event)
     }
 
+    pub(crate) fn task_notification(
+        operation_id: String,
+        outcome: AuditOutcome,
+        subject_digest: String,
+        reason_code: impl Into<String>,
+    ) -> Result<Self, String> {
+        let event = Self {
+            schema_version: AUDIT_SCHEMA_VERSION,
+            event_id: Uuid::new_v4().to_string(),
+            operation_id,
+            timestamp_ms: u64::try_from(timestamp_ms()?)
+                .map_err(|_| "El reloj del sistema excede el rango de auditoría".to_string())?,
+            source: AuditSource::Task,
+            capability_id: Some("tasks.notification.deliver".into()),
+            operation: "tasks.notification.deliver".into(),
+            stage: AuditStage::Execution,
+            decision: None,
+            outcome,
+            duration_ms: None,
+            subject_digest: Some(subject_digest),
+            reason_code: reason_code.into(),
+        };
+        event.validate()?;
+        Ok(event)
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.schema_version != AUDIT_SCHEMA_VERSION {
             return Err(format!("schemaVersion debe ser {AUDIT_SCHEMA_VERSION}"));
@@ -431,16 +457,46 @@ impl AuditEvent {
         }
         if self.source == AuditSource::Task {
             let valid = matches!(
-                (self.operation.as_str(), self.reason_code.as_str()),
-                ("tasks.reminder.schedule", "TASK_REMINDER_CONFIRMED")
-                    | ("tasks.registry.cancel", "TASK_CANCELLED")
-                    | ("tasks.dispatch.reserve", "TASK_DISPATCH_RESERVED")
+                (
+                    self.operation.as_str(),
+                    self.reason_code.as_str(),
+                    self.outcome
+                ),
+                (
+                    "tasks.reminder.schedule",
+                    "TASK_REMINDER_CONFIRMED",
+                    AuditOutcome::Success
+                ) | (
+                    "tasks.registry.cancel",
+                    "TASK_CANCELLED",
+                    AuditOutcome::Success
+                ) | (
+                    "tasks.dispatch.reserve",
+                    "TASK_DISPATCH_RESERVED",
+                    AuditOutcome::Pending
+                ) | (
+                    "tasks.notification.deliver",
+                    "TASK_NOTIFICATION_STARTED",
+                    AuditOutcome::Pending
+                ) | (
+                    "tasks.notification.deliver",
+                    "TASK_NOTIFICATION_ACCEPTED",
+                    AuditOutcome::Success
+                ) | (
+                    "tasks.notification.deliver",
+                    "TASK_NOTIFICATION_FAILED",
+                    AuditOutcome::Error
+                )
             );
             let capability_valid = matches!(
                 (self.operation.as_str(), self.capability_id.as_deref()),
                 ("tasks.reminder.schedule", Some("tasks.registry.write"))
                     | ("tasks.registry.cancel", Some("tasks.registry.write"))
                     | ("tasks.dispatch.reserve", Some("tasks.dispatch.reserve"))
+                    | (
+                        "tasks.notification.deliver",
+                        Some("tasks.notification.deliver")
+                    )
             );
             let stage_valid = matches!(
                 (
@@ -464,6 +520,21 @@ impl AuditEvent {
                     AuditStage::Authorization,
                     AuditOutcome::Pending,
                     Some(AuditDecision::Allow)
+                ) | (
+                    "tasks.notification.deliver",
+                    AuditStage::Execution,
+                    AuditOutcome::Pending,
+                    None
+                ) | (
+                    "tasks.notification.deliver",
+                    AuditStage::Execution,
+                    AuditOutcome::Success,
+                    None
+                ) | (
+                    "tasks.notification.deliver",
+                    AuditStage::Execution,
+                    AuditOutcome::Error,
+                    None
                 )
             );
             if !capability_valid

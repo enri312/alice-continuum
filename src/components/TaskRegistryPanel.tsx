@@ -7,6 +7,7 @@ import {
   parseTaskEngineSnapshot,
   parseTaskMutationPlan,
   parseTaskMutationReceipt,
+  parseTaskNotificationReceipt,
   parseTaskRegistrySnapshot,
   type TaskMutationPlan,
   type TaskMutationReceipt,
@@ -14,6 +15,7 @@ import {
   type TaskEngineSnapshot,
   type TaskAttemptLedgerSnapshot,
   type TaskAttemptReservationReceipt,
+  type TaskNotificationReceipt,
   type TaskRegistrySnapshot,
 } from "../core/tasks";
 import "../task-registry.css";
@@ -44,6 +46,7 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
   const [engine, setEngine] = useState<TaskEngineSnapshot | null>(null);
   const [ledger, setLedger] = useState<TaskAttemptLedgerSnapshot | null>(null);
   const [reservationReceipt, setReservationReceipt] = useState<TaskAttemptReservationReceipt | null>(null);
+  const [notificationReceipt, setNotificationReceipt] = useState<TaskNotificationReceipt | null>(null);
   const [title, setTitle] = useState("");
   const [nextRunLocal, setNextRunLocal] = useState("");
   const [plan, setPlan] = useState<TaskMutationPlan | null>(null);
@@ -162,6 +165,22 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
     }
   }
 
+  async function dispatchReservation(attemptId: string, idempotencyKey: string) {
+    if (!window.confirm("Enviar ahora este recordatorio al sistema operativo. La entrega quedará registrada y no podrá repetirse para esta reserva.")) return;
+    setPending("confirm"); setError(""); setNotificationReceipt(null);
+    try {
+      const delivered = parseTaskNotificationReceipt(await invoke<unknown>("dispatch_task_notification", {
+        input: { attemptId, idempotencyKey, confirmed: true },
+      }));
+      setNotificationReceipt(delivered);
+      await refresh();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setPending(null);
+    }
+  }
+
   return <section className="task-registry" aria-labelledby="task-registry-title">
     <header className="task-registry-heading">
       <div><p className="eyebrow">R7 · CONTROL DEL PROPIETARIO</p><h3 id="task-registry-title">Recordatorios e intenciones temporales</h3><p>Preparar no guarda. Confirmar vuelve a leer identidad, hora, alcance y huella antes de escribir.</p></div>
@@ -199,6 +218,7 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
       {error && <div className="task-registry-error" role="alert"><strong>OPERACIÓN BLOQUEADA</strong><span>{error}</span></div>}
       {receipt && <div className="task-registry-receipt" role="status"><strong>{receipt.idempotent ? "OPERACIÓN YA APLICADA" : "OPERACIÓN CONFIRMADA"}</strong><span>Revisión {receipt.revisionId} · auditoría {receipt.auditWritten ? "escrita" : "sin duplicar"} · ejecución automática apagada</span></div>}
       {reservationReceipt && <div className="task-registry-receipt" role="status"><strong>{reservationReceipt.idempotent ? "RESERVA YA EXISTENTE" : "RESERVA DURABLE CREADA"}</strong><span>Sin aviso, salida ni cambio de tarea · auditoría {reservationReceipt.auditWritten ? "escrita" : "sin duplicar"}</span></div>}
+      {notificationReceipt && <div className={`task-registry-receipt ${notificationReceipt.notificationAccepted ? "" : "failed"}`} role="status"><strong>{notificationReceipt.notificationAccepted ? "NOTIFICACIÓN ACEPTADA POR EL SISTEMA" : "NOTIFICACIÓN RECHAZADA"}</strong><span>{notificationReceipt.idempotent ? "Resultado terminal recuperado sin repetir" : "Resultado nuevo"} · red OFF · procesos externos 0 · auditoría {notificationReceipt.auditWritten ? "escrita" : "pendiente"}</span></div>}
 
       <section className={`task-clock ${engine?.backgroundEnabled ? "active" : "off"}`}>
         <header><div><span>03</span><div><strong>SENTIDO TEMPORAL · R7.3-A</strong><small>Clasifica el tiempo; no intenta actuar</small></div></div><b>{engine?.backgroundEnabled ? "EVALUACIÓN ACTIVA" : "APAGADO"}</b></header>
@@ -216,8 +236,11 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
 
       <section className="task-clock">
         <header><div><span>03B</span><div><strong>RESERVAS DE DESPACHO · R7.3-B</strong><small>Protección contra duplicados antes de una futura salida</small></div></div><b>{ledger?.reservationCount ?? 0} RESERVAS</b></header>
-        <div className="task-clock-body"><dl><div><dt>LEDGER</dt><dd>{ledger?.state === "ready" ? "VÁLIDO" : ledger?.state === "invalid" ? "BLOQUEADO" : "VACÍO"}</dd></div><div><dt>RESERVAS</dt><dd>{ledger?.reservationCount ?? 0}</dd></div><div><dt>AVISOS</dt><dd>OFF</dd></div><div><dt>SALIDA</dt><dd>OFF</dd></div></dl><div><p>Una reserva sólo puede crearse con confirmación para una tarea local ya vencida. La misma tarea y fecha no se duplican después de reiniciar.</p></div></div>
-        {engine?.items.filter((item) => item.temporalState === "due" && item.scheduledFor).map((item) => <div className="task-reserve-row" key={item.taskId}><span>{item.title} · {presentTimestamp(item.scheduledFor)}</span><button type="button" disabled={pending !== null || ledger?.state === "invalid"} onClick={() => void reserveDueTask(item.taskId, item.scheduledFor!)}>RESERVAR UNA VEZ</button></div>)}
+        <div className="task-clock-body"><dl><div><dt>LEDGER</dt><dd>{ledger?.state === "ready" ? "VÁLIDO" : ledger?.state === "invalid" ? "BLOQUEADO" : "VACÍO"}</dd></div><div><dt>RESERVAS</dt><dd>{ledger?.reservationCount ?? 0}</dd></div><div><dt>ACEPTADAS</dt><dd>{ledger?.reservations.filter((item) => item.state === "accepted").length ?? 0}</dd></div><div><dt>AUTOMÁTICAS</dt><dd>OFF</dd></div></dl><div><p>Reservar no muestra nada. Entregar exige otra confirmación y registra el resultado antes de permitir cualquier reintento.</p></div></div>
+        {engine?.items.filter((item) => item.temporalState === "due" && item.scheduledFor).map((item) => {
+          const reservation = ledger?.reservations.find((entry) => entry.taskId === item.taskId && entry.scheduledFor === item.scheduledFor);
+          return <div className={`task-reserve-row ${reservation?.state ?? "unreserved"}`} key={item.taskId}><span>{item.title} · {presentTimestamp(item.scheduledFor)}</span>{!reservation ? <button type="button" disabled={pending !== null || ledger?.state === "invalid"} onClick={() => void reserveDueTask(item.taskId, item.scheduledFor!)}>RESERVAR UNA VEZ</button> : reservation.state === "reserved" ? <button type="button" disabled={pending !== null} onClick={() => void dispatchReservation(reservation.attemptId, reservation.idempotencyKey)}>ENTREGAR AVISO LOCAL</button> : <b>{reservation.state === "accepted" ? "ACEPTADA POR EL SISTEMA" : reservation.state === "failed" ? "ENTREGA FALLIDA" : "RESULTADO INCIERTO · NO REINTENTAR"}</b>}</div>;
+        })}
       </section>
 
       <section className="task-list">
@@ -228,6 +251,6 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
         </article>)}</div> : <div className="task-list-empty"><strong>0 TAREAS REALES</strong><span>No se fabricaron tareas para poblar esta pantalla.</span></div>}
       </section>
     </>}
-    <footer><span>DESPACHO OFF</span><span>NOTIFICACIONES OFF</span><span>RED OFF</span><span>AUTOMATIC EXECUTION FALSE</span></footer>
+    <footer><span>DESPACHO MANUAL</span><span>NOTIFICACIONES AUTOMÁTICAS OFF</span><span>RED OFF</span><span>AUTOMATIC EXECUTION FALSE</span></footer>
   </section>;
 }

@@ -113,7 +113,11 @@ export type TaskAttemptReservation = {
   taskRevisionId: string;
   scheduledFor: string;
   reservedAt: string;
-  state: "reserved";
+  state: "reserved" | "dispatching" | "accepted" | "failed";
+  dispatchOperationId: string | null;
+  dispatchStartedAt: string | null;
+  dispatchFinishedAt: string | null;
+  dispatchReason: "acceptedByOs" | "notificationError" | null;
 };
 
 export type TaskAttemptLedgerSnapshot = {
@@ -124,7 +128,7 @@ export type TaskAttemptLedgerSnapshot = {
   reservations: TaskAttemptReservation[];
   error: string | null;
   notificationsEnabled: false;
-  outputPerformed: false;
+  outputPerformed: boolean;
 };
 
 export type TaskAttemptReservationReceipt = {
@@ -141,6 +145,23 @@ export type TaskAttemptReservationReceipt = {
   auditWritten: boolean;
   notificationSent: false;
   outputPerformed: false;
+  taskStateChanged: false;
+};
+
+export type TaskNotificationReceipt = {
+  schemaVersion: typeof TASK_REGISTRY_SCHEMA_VERSION;
+  operationId: string;
+  attemptId: string;
+  taskId: string;
+  state: "accepted" | "failed";
+  dispatchReason: "acceptedByOs" | "notificationError";
+  dispatchStartedAt: string;
+  dispatchFinishedAt: string;
+  notificationAccepted: boolean;
+  auditWritten: boolean;
+  idempotent: boolean;
+  networkUsed: false;
+  processSpawned: false;
   taskStateChanged: false;
 };
 
@@ -356,24 +377,36 @@ export function parseTaskEngineSnapshot(value: unknown): TaskEngineSnapshot {
 
 function parseTaskAttemptReservation(value: unknown, field: string): TaskAttemptReservation {
   const source = object(value, field);
-  exactKeys(source, ["attemptId", "idempotencyKey", "taskId", "taskRevisionId", "scheduledFor", "reservedAt", "state"], field);
+  exactKeys(source, ["attemptId", "idempotencyKey", "taskId", "taskRevisionId", "scheduledFor", "reservedAt", "state", "dispatchOperationId", "dispatchStartedAt", "dispatchFinishedAt", "dispatchReason"], field);
+  const state = oneOf(source.state, ["reserved", "dispatching", "accepted", "failed"] as const, `${field}.state`);
+  const dispatchOperationId = source.dispatchOperationId === null ? null : uuid(source.dispatchOperationId, `${field}.dispatchOperationId`);
+  const dispatchStartedAt = source.dispatchStartedAt === null ? null : timestamp(source.dispatchStartedAt, `${field}.dispatchStartedAt`);
+  const dispatchFinishedAt = source.dispatchFinishedAt === null ? null : timestamp(source.dispatchFinishedAt, `${field}.dispatchFinishedAt`);
+  const dispatchReason = source.dispatchReason === null ? null : oneOf(source.dispatchReason, ["acceptedByOs", "notificationError"] as const, `${field}.dispatchReason`);
+  const validShape = state === "reserved" ? !dispatchOperationId && !dispatchStartedAt && !dispatchFinishedAt && !dispatchReason
+    : state === "dispatching" ? !!dispatchOperationId && !!dispatchStartedAt && !dispatchFinishedAt && !dispatchReason
+      : state === "accepted" ? !!dispatchOperationId && !!dispatchStartedAt && !!dispatchFinishedAt && dispatchReason === "acceptedByOs"
+        : !!dispatchOperationId && !!dispatchStartedAt && !!dispatchFinishedAt && dispatchReason === "notificationError";
+  if (!validShape) fail(`${field} tiene un estado de despacho incoherente`);
   return {
     attemptId: uuid(source.attemptId, `${field}.attemptId`), idempotencyKey: sha256(source.idempotencyKey, `${field}.idempotencyKey`),
     taskId: uuid(source.taskId, `${field}.taskId`), taskRevisionId: uuid(source.taskRevisionId, `${field}.taskRevisionId`),
     scheduledFor: timestamp(source.scheduledFor, `${field}.scheduledFor`), reservedAt: timestamp(source.reservedAt, `${field}.reservedAt`),
-    state: oneOf(source.state, ["reserved"] as const, `${field}.state`),
+    state, dispatchOperationId, dispatchStartedAt, dispatchFinishedAt, dispatchReason,
   };
 }
 
 export function parseTaskAttemptLedgerSnapshot(value: unknown): TaskAttemptLedgerSnapshot {
   const source = object(value, "taskAttemptLedger");
   exactKeys(source, ["schemaVersion", "state", "storageExists", "reservationCount", "reservations", "error", "notificationsEnabled", "outputPerformed"], "taskAttemptLedger");
-  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.notificationsEnabled !== false || source.outputPerformed !== false) fail("el ledger R7.3-B no puede notificar ni producir salida");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.notificationsEnabled !== false) fail("el ledger R7 no puede habilitar notificaciones automáticas");
   if (!Array.isArray(source.reservations)) fail("taskAttemptLedger.reservations debe ser una lista");
   const reservations = source.reservations.map((item, index) => parseTaskAttemptReservation(item, `reservations[${index}]`));
   const reservationCount = integer(source.reservationCount, "taskAttemptLedger.reservationCount");
   if (reservationCount !== reservations.length) fail("taskAttemptLedger no coincide con sus reservas");
-  return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, state: oneOf(source.state, ["missing", "ready", "invalid"] as const, "taskAttemptLedger.state"), storageExists: bool(source.storageExists, "taskAttemptLedger.storageExists"), reservationCount, reservations, error: nullableText(source.error, "taskAttemptLedger.error"), notificationsEnabled: false, outputPerformed: false };
+  const outputPerformed = bool(source.outputPerformed, "taskAttemptLedger.outputPerformed");
+  if (outputPerformed !== reservations.some((reservation) => reservation.state === "accepted")) fail("taskAttemptLedger.outputPerformed no coincide con sus entregas aceptadas");
+  return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, state: oneOf(source.state, ["missing", "ready", "invalid"] as const, "taskAttemptLedger.state"), storageExists: bool(source.storageExists, "taskAttemptLedger.storageExists"), reservationCount, reservations, error: nullableText(source.error, "taskAttemptLedger.error"), notificationsEnabled: false, outputPerformed };
 }
 
 export function parseTaskAttemptReservationReceipt(value: unknown): TaskAttemptReservationReceipt {
@@ -381,6 +414,17 @@ export function parseTaskAttemptReservationReceipt(value: unknown): TaskAttemptR
   exactKeys(source, ["schemaVersion", "operationId", "attemptId", "idempotencyKey", "taskId", "taskRevisionId", "scheduledFor", "reservedAt", "idempotent", "ledgerWritten", "auditWritten", "notificationSent", "outputPerformed", "taskStateChanged"], "taskAttemptReceipt");
   if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.notificationSent !== false || source.outputPerformed !== false || source.taskStateChanged !== false) fail("el recibo R7.3-B declara efectos no permitidos");
   return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, operationId: uuid(source.operationId, "taskAttemptReceipt.operationId"), attemptId: uuid(source.attemptId, "taskAttemptReceipt.attemptId"), idempotencyKey: sha256(source.idempotencyKey, "taskAttemptReceipt.idempotencyKey"), taskId: uuid(source.taskId, "taskAttemptReceipt.taskId"), taskRevisionId: uuid(source.taskRevisionId, "taskAttemptReceipt.taskRevisionId"), scheduledFor: timestamp(source.scheduledFor, "taskAttemptReceipt.scheduledFor"), reservedAt: timestamp(source.reservedAt, "taskAttemptReceipt.reservedAt"), idempotent: bool(source.idempotent, "taskAttemptReceipt.idempotent"), ledgerWritten: bool(source.ledgerWritten, "taskAttemptReceipt.ledgerWritten"), auditWritten: bool(source.auditWritten, "taskAttemptReceipt.auditWritten"), notificationSent: false, outputPerformed: false, taskStateChanged: false };
+}
+
+export function parseTaskNotificationReceipt(value: unknown): TaskNotificationReceipt {
+  const source = object(value, "taskNotificationReceipt");
+  exactKeys(source, ["schemaVersion", "operationId", "attemptId", "taskId", "state", "dispatchReason", "dispatchStartedAt", "dispatchFinishedAt", "notificationAccepted", "auditWritten", "idempotent", "networkUsed", "processSpawned", "taskStateChanged"], "taskNotificationReceipt");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION || source.networkUsed !== false || source.processSpawned !== false || source.taskStateChanged !== false) fail("el recibo R7.4 declara efectos no permitidos");
+  const state = oneOf(source.state, ["accepted", "failed"] as const, "taskNotificationReceipt.state");
+  const dispatchReason = oneOf(source.dispatchReason, ["acceptedByOs", "notificationError"] as const, "taskNotificationReceipt.dispatchReason");
+  const notificationAccepted = bool(source.notificationAccepted, "taskNotificationReceipt.notificationAccepted");
+  if ((state === "accepted") !== notificationAccepted || (state === "accepted") !== (dispatchReason === "acceptedByOs")) fail("el resultado R7.4 es incoherente");
+  return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, operationId: uuid(source.operationId, "taskNotificationReceipt.operationId"), attemptId: uuid(source.attemptId, "taskNotificationReceipt.attemptId"), taskId: uuid(source.taskId, "taskNotificationReceipt.taskId"), state, dispatchReason, dispatchStartedAt: timestamp(source.dispatchStartedAt, "taskNotificationReceipt.dispatchStartedAt"), dispatchFinishedAt: timestamp(source.dispatchFinishedAt, "taskNotificationReceipt.dispatchFinishedAt"), notificationAccepted, auditWritten: bool(source.auditWritten, "taskNotificationReceipt.auditWritten"), idempotent: bool(source.idempotent, "taskNotificationReceipt.idempotent"), networkUsed: false, processSpawned: false, taskStateChanged: false };
 }
 
 export function localDateTimeToUtc(value: string): string {

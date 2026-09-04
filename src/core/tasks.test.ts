@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localDateTimeToUtc, parseTaskAttemptLedgerSnapshot, parseTaskAttemptReservationReceipt, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskRegistrySnapshot } from "./tasks";
+import { localDateTimeToUtc, parseTaskAttemptLedgerSnapshot, parseTaskAttemptReservationReceipt, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskNotificationReceipt, parseTaskRegistrySnapshot } from "./tasks";
 
 const id = "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd";
 const revision = "0c39b61b-83b9-4f02-a06f-7c6ea9640b71";
@@ -79,9 +79,23 @@ describe("contrato visible R7.2-B", () => {
   });
 
   it("acepta una reserva durable pero rechaza cualquier salida declarada", () => {
-    const ledger = parseTaskAttemptLedgerSnapshot({ schemaVersion: 1, state: "ready", storageExists: true, reservationCount: 1, reservations: [{ attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", state: "reserved" }], error: null, notificationsEnabled: false, outputPerformed: false });
+    const ledger = parseTaskAttemptLedgerSnapshot({ schemaVersion: 1, state: "ready", storageExists: true, reservationCount: 1, reservations: [{ attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", state: "reserved", dispatchOperationId: null, dispatchStartedAt: null, dispatchFinishedAt: null, dispatchReason: null }], error: null, notificationsEnabled: false, outputPerformed: false });
     const receipt = parseTaskAttemptReservationReceipt({ schemaVersion: 1, operationId: revision, attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", idempotent: false, ledgerWritten: true, auditWritten: true, notificationSent: false, outputPerformed: false, taskStateChanged: false });
     expect(ledger.reservationCount).toBe(1);
     expect(receipt.outputPerformed).toBe(false);
+  });
+
+  it("refleja una entrega aceptada en el historial sin habilitar automatización", () => {
+    const ledger = parseTaskAttemptLedgerSnapshot({ schemaVersion: 1, state: "ready", storageExists: true, reservationCount: 1, reservations: [{ attemptId: id, idempotencyKey: digest, taskId: revision, taskRevisionId: id, scheduledFor: "2026-09-02T18:00:00Z", reservedAt: "2026-09-02T19:00:00Z", state: "accepted", dispatchOperationId: revision, dispatchStartedAt: "2026-09-02T19:01:00Z", dispatchFinishedAt: "2026-09-02T19:01:01Z", dispatchReason: "acceptedByOs" }], error: null, notificationsEnabled: false, outputPerformed: true });
+    expect(ledger.outputPerformed).toBe(true);
+    expect(ledger.notificationsEnabled).toBe(false);
+    expect(() => parseTaskAttemptLedgerSnapshot({ ...ledger, outputPerformed: false })).toThrow(/no coincide/);
+  });
+
+  it("acepta un resultado local terminal sin red ni procesos", () => {
+    const receipt = parseTaskNotificationReceipt({ schemaVersion: 1, operationId: id, attemptId: revision, taskId: id, state: "accepted", dispatchReason: "acceptedByOs", dispatchStartedAt: "2026-09-02T19:00:00Z", dispatchFinishedAt: "2026-09-02T19:00:01Z", notificationAccepted: true, auditWritten: true, idempotent: false, networkUsed: false, processSpawned: false, taskStateChanged: false });
+    expect(receipt.notificationAccepted).toBe(true);
+    expect(receipt.networkUsed).toBe(false);
+    expect(() => parseTaskNotificationReceipt({ ...receipt, state: "failed" })).toThrow(/incoherente/);
   });
 });

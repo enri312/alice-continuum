@@ -159,6 +159,19 @@ evaluación local; muestra futuras, vencidas, excluidas, próximo vencimiento y 
 pulso. **Detener evaluación** la apaga por completo. Esta función no notifica, no
 marca tareas como completadas, no registra intentos y no ejecuta acciones.
 
+Cuando un recordatorio figura como **VENCIDO**, el flujo de aviso sigue siendo
+manual y tiene dos pasos deliberados:
+
+1. pulsá **Reservar despacho** y aceptá la confirmación para crear una reserva
+   durable; reservar todavía no muestra una notificación;
+2. en esa reserva pulsá **Entregar aviso local**, releé la advertencia y confirmá.
+
+**ACEPTADO POR WINDOWS** significa que el sistema operativo recibió el aviso, no que
+la persona necesariamente lo leyó. **FALLO TERMINAL** no se reintenta solo. Si aparece
+**ENTREGA INCIERTA**, Alice se cerró después de iniciar la operación y bloqueó otra
+entrega para no duplicarla. El reloj no despacha avisos automáticamente y reinicia
+apagado.
+
 ### Memoria
 
 Administra el ciclo de vida de los recuerdos. Debido a su importancia, está

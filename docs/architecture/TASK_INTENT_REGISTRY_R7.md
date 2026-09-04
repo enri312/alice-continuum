@@ -8,7 +8,7 @@ R7 separa tres conceptos que no deben confundirse:
 - un **recordatorio local** solicita presentar un aviso en una fecha revisada;
 - una **comprobación de solo lectura** propone consultar una capacidad R1 sin modificar el equipo.
 
-R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. R7.2-B hace visible esa transacción bajo control del propietario. R7.3-A incorpora evaluación temporal observable sin convertir un vencimiento en acción.
+R7.1 implementó el contrato y la inspección nativa. R7.2-A agregó una transacción gobernada para preparar, confirmar y cancelar un recordatorio único. R7.2-B hace visible esa transacción bajo control del propietario. R7.3 incorpora evaluación temporal y reservas durables. R7.4 entrega una reserva confirmada al adaptador local de notificaciones sin red ni procesos libres.
 
 ## Fuente durable
 
@@ -95,14 +95,36 @@ La respuesta declara siempre `automaticExecution=false`, `notificationsEnabled=f
 
 `reserve_task_attempt` vuelve a leer la tarea, exige que su fecha coincida y que ya esté vencida, y escribe la reserva junto con una auditoría R3. Repetir la misma ocurrencia devuelve el mismo intento sin volver a escribir ni auditar. No envía avisos, no invoca capacidades, no cambia el estado de la tarea y no produce una salida. La capacidad `tasks.dispatch.reserve` exige confirmación nativa explícita.
 
+## Entrega local R7.4
+
+`dispatch_task_notification` acepta únicamente una reserva `reserved`, su clave de
+idempotencia exacta y `confirmed=true`. Antes de llamar al sistema operativo cambia
+el intento a `dispatching` y registra `TASK_NOTIFICATION_STARTED`. Después conserva
+un resultado terminal:
+
+- `accepted` + `acceptedByOs`: el adaptador del sistema operativo aceptó el aviso;
+- `failed` + `notificationError`: el adaptador rechazó el aviso, sin almacenar su
+  texto de error dentro del ledger.
+
+Los estados terminales devuelven el recibo original ante una repetición y no vuelven
+a invocar el adaptador. Un estado `dispatching` encontrado tras un cierre inesperado
+es una entrega incierta: se bloquea el reintento para evitar un aviso duplicado. El
+ledger informa `outputPerformed=true` si contiene al menos una aceptación real, pero
+`notificationsEnabled=false` sigue indicando que no existe despacho automático en
+segundo plano. La tarea programada no se marca completada en esta fase.
+
+La capacidad `tasks.notification.deliver` es R2, requiere confirmación explícita y
+declara lectura local, escritura local y notificación al usuario. El recibo declara
+`networkUsed=false`, `processSpawned=false` y `taskStateChanged=false`.
+
 ## Límites actuales
 
 - La escritura nativa tiene una pantalla visible, pero todavía no se usó sobre datos canónicos: el registro permanece ausente y contiene 0 tareas.
 - Sin recurrencia, zona horaria configurable o cálculo de vencimiento.
 - El hilo temporal es opcional y está apagado al iniciar; no sobrevive a un reinicio.
-- Sin notificaciones del sistema operativo.
+- Sin entrega automática: cada aviso requiere reserva y confirmación manuales.
 - Sin ejecución de capacidades, red, procesos o acciones externas.
-- La auditoría cubre programación, cancelación y reserva. Aún no existe ejecución, notificación ni resultado de despacho.
+- La auditoría cubre programación, cancelación, reserva, inicio y resultado de notificación.
 - Sin enlace automático desde recuerdos, conversación o salidas de modelos.
 
-El siguiente incremento será R7.3-B: ledger durable de intentos e idempotencia antes de cualquier salida. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no es necesario fabricarlo para validar el reloj.
+El siguiente incremento será R7.5: comprobaciones gobernadas de sólo lectura. El primer recordatorio canónico sólo se creará cuando el propietario decida confirmarlo desde la pantalla; no fue necesario fabricarlo para validar R7.4.

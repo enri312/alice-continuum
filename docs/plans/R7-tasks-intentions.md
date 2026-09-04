@@ -1,6 +1,6 @@
 # Plan de implementación R7 — Tareas programadas e intenciones
 
-Estado: en curso · R7.3-A completado  
+Estado: en curso · R7.4 completado  
 Inicio: 2026-09-01
 
 ## R7.1 — Contrato e inspección pasiva
@@ -36,15 +36,21 @@ El backend R7.2-A persiste únicamente después de recibir el plan completo devu
 - [x] Crear un ledger durable de reservas antes de producir salidas.
 - [x] Evitar reservas duplicadas tras reinicio.
 - [x] Distinguir programación, reserva y resultado futuro.
-- [ ] Mantener tareas pausadas, canceladas o vencidas fuera de ejecución.
+- [x] Mantener tareas pausadas, canceladas o terminales fuera de despacho.
 
 R7.3-A es sentido temporal observable: `waiting`, `due` y `excluded` se calculan desde la fuente validada; no existen intentos, notificaciones, escrituras ni ejecución. R7.3-B añade una reserva durable, explícita e idempotente para un recordatorio local vencido. La reserva no es un aviso ni un resultado: sólo impide duplicar una futura salida después de reiniciar.
 
 ## R7.4 — Recordatorio local
 
-- [ ] Mostrar una notificación local autorizada.
-- [ ] No requerir red ni procesos libres.
-- [ ] Registrar resultado y conservar idempotencia.
+- [x] Mostrar una notificación local autorizada.
+- [x] No requerir red ni procesos libres.
+- [x] Registrar resultado y conservar idempotencia.
+
+R7.4 consume una reserva únicamente después de otra confirmación visible. Primero
+persiste `dispatching`, luego solicita el aviso al sistema operativo y finalmente
+cierra el intento como `accepted` o `failed`. Una aceptación o fallo terminal no se
+reintenta; un `dispatching` recuperado después de un cierre inesperado se considera
+incierto y tampoco se repite automáticamente.
 
 ## R7.5 — Comprobación de solo lectura
 

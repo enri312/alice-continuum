@@ -128,6 +128,7 @@ pub(crate) enum CapabilityEffect {
     CameraObserve,
     MicrophoneObserve,
     ScreenObserve,
+    UserNotification,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1033,6 +1034,27 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
             health(health_status, "R7.3-B reserva una futura salida sin producirla todavía.", Some(checked_at)),
         ),
         capability(
+            "tasks.notification.deliver",
+            "Entregar recordatorio local",
+            "Entrega al sistema operativo un recordatorio reservado y registra un resultado terminal sin red ni procesos libres.",
+            CapabilityDomain::Task,
+            CapabilityKind::Presentation,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["dispatch_task_notification"],
+            reserve_state,
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite, CapabilityEffect::UserNotification],
+            &["taskRegistry", "taskAttemptLedger", "taskAudit", "localNotification"],
+            &["Reserva R7.3-B válida y confirmación explícita"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::Native,
+                "Rust marca el despacho antes de llamar al sistema operativo y no reintenta estados inciertos o terminales.",
+            ),
+            health(health_status, "La entrega es local, manual e idempotente; el scheduler automático permanece apagado.", Some(checked_at)),
+        ),
+        capability(
             "tasks.temporal.evaluate",
             "Evaluar intenciones temporales",
             "Compara el reloj local con la programación R7 y distingue intenciones futuras, vencidas o excluidas sin intentar ejecutarlas.",
@@ -1933,7 +1955,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 30);
+        assert_eq!(snapshot.capabilities.len(), 31);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -2011,6 +2033,13 @@ mod tests {
             reservation.permission.mode,
             CapabilityPermissionMode::ExplicitConfirmation
         );
+        let notification = registered(&snapshot, "tasks.notification.deliver");
+        assert_eq!(notification.domain, CapabilityDomain::Task);
+        assert_eq!(notification.kind, CapabilityKind::Presentation);
+        assert_eq!(notification.operations, vec!["dispatch_task_notification"]);
+        assert!(notification
+            .effects
+            .contains(&CapabilityEffect::UserNotification));
 
         let planned = snapshot
             .capabilities
@@ -2198,7 +2227,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 30);
+        assert_eq!(snapshot.capabilities.len(), 31);
         assert!(!root.exists());
     }
 

@@ -172,6 +172,28 @@
   font: 900 .45rem Consolas, monospace;
 }
 
+.task-reserve-row b {
+  border: 1px solid #334155;
+  padding: 7px 9px;
+  color: #94a3b8;
+  font-size: .43rem;
+}
+
+.task-reserve-row.accepted b {
+  border-color: #047857;
+  color: #6ee7b7;
+}
+
+.task-reserve-row.failed b,
+.task-registry-receipt.failed strong {
+  color: #fca5a5;
+}
+
+.task-reserve-row.dispatching b {
+  border-color: #b45309;
+  color: #fbbf24;
+}
+
 @media (max-width: 900px) {
   .task-clock-body {
     grid-template-columns: 1fr;
