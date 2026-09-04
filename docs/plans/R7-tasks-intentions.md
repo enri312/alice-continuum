@@ -1,6 +1,6 @@
 # Plan de implementación R7 — Tareas programadas e intenciones
 
-Estado: en curso · R7.5 implementado; validación viva pendiente  
+Estado: cerrado · R7.5 validado en la aplicación de escritorio  
 Inicio: 2026-09-01
 
 ## R7.1 — Contrato e inspección pasiva
@@ -62,6 +62,7 @@ incierto y tampoco se repite automáticamente.
 R7.5 no ejecuta la capacidad elegida: relee exclusivamente su descriptor R1 y los
 grants R2 vigentes. Sólo declara aptas las consultas u observaciones con efectos
 `none`, `localRead` o `credentialPresenceRead`; bloquea toda mutación, salida,
-proceso, red, notificación o percepción. La primera validación viva deberá hacerse
-después de reiniciar Alice con el binario actualizado, sin tocar la conversación RAM
-actual.
+proceso, red, notificación o percepción. La validación viva se realizó el
+2026-09-04, después de reiniciar Alice con el binario actualizado: la capacidad
+seleccionada devolvió `COMPROBACIÓN BLOQUEADA · capabilityUnavailable · R2 REQUIRED`
+y confirmó `EJECUCIÓN 0 · MEMORIA 0 · ESCRITURAS 0 · RED 0`.
