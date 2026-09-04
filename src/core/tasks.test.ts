@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localDateTimeToUtc, parseTaskAttemptLedgerSnapshot, parseTaskAttemptReservationReceipt, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskNotificationReceipt, parseTaskRegistrySnapshot } from "./tasks";
+import { localDateTimeToUtc, parseReadOnlyCapabilityCheckReceipt, parseTaskAttemptLedgerSnapshot, parseTaskAttemptReservationReceipt, parseTaskEngineSnapshot, parseTaskMutationPlan, parseTaskMutationReceipt, parseTaskNotificationReceipt, parseTaskRegistrySnapshot } from "./tasks";
 
 const id = "0cf3f714-d16a-4e06-b9d8-d8fc3e8683bd";
 const revision = "0c39b61b-83b9-4f02-a06f-7c6ea9640b71";
@@ -97,5 +97,16 @@ describe("contrato visible R7.2-B", () => {
     expect(receipt.notificationAccepted).toBe(true);
     expect(receipt.networkUsed).toBe(false);
     expect(() => parseTaskNotificationReceipt({ ...receipt, state: "failed" })).toThrow(/incoherente/);
+  });
+
+  it("acepta una comprobación R7.5 sin ejecución ni memoria y rechaza efectos", () => {
+    const receipt = parseReadOnlyCapabilityCheckReceipt({
+      schemaVersion: 1, checkedAt: "2026-09-04T15:00:00Z", capabilityId: "memory.records.read",
+      capabilityState: "eligible", reason: "eligible", r2Required: false, r2Active: false,
+      capabilityExecuted: false, memoryCreated: false, writesPerformed: false, networkUsed: false,
+    });
+    expect(receipt.capabilityExecuted).toBe(false);
+    expect(() => parseReadOnlyCapabilityCheckReceipt({ ...receipt, memoryCreated: true })).toThrow(/efectos no permitidos/);
+    expect(() => parseReadOnlyCapabilityCheckReceipt({ ...receipt, capabilityState: "blocked" })).toThrow(/incoherente/);
   });
 });

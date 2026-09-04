@@ -8,6 +8,7 @@ import {
   parseTaskMutationPlan,
   parseTaskMutationReceipt,
   parseTaskNotificationReceipt,
+  parseReadOnlyCapabilityCheckReceipt,
   parseTaskRegistrySnapshot,
   type TaskMutationPlan,
   type TaskMutationReceipt,
@@ -16,8 +17,10 @@ import {
   type TaskAttemptLedgerSnapshot,
   type TaskAttemptReservationReceipt,
   type TaskNotificationReceipt,
+  type ReadOnlyCapabilityCheckReceipt,
   type TaskRegistrySnapshot,
 } from "../core/tasks";
+import { parseCapabilityRegistrySnapshot, type CapabilityDescriptor } from "../core/capabilities";
 import "../task-registry.css";
 import "../task-engine.css";
 
@@ -47,12 +50,15 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
   const [ledger, setLedger] = useState<TaskAttemptLedgerSnapshot | null>(null);
   const [reservationReceipt, setReservationReceipt] = useState<TaskAttemptReservationReceipt | null>(null);
   const [notificationReceipt, setNotificationReceipt] = useState<TaskNotificationReceipt | null>(null);
+  const [readOnlyCheckReceipt, setReadOnlyCheckReceipt] = useState<ReadOnlyCapabilityCheckReceipt | null>(null);
+  const [capabilities, setCapabilities] = useState<CapabilityDescriptor[]>([]);
+  const [readOnlyCapabilityId, setReadOnlyCapabilityId] = useState("");
   const [title, setTitle] = useState("");
   const [nextRunLocal, setNextRunLocal] = useState("");
   const [plan, setPlan] = useState<TaskMutationPlan | null>(null);
   const [receipt, setReceipt] = useState<TaskMutationReceipt | null>(null);
   const [reviewed, setReviewed] = useState(false);
-  const [pending, setPending] = useState<"status" | "preview" | "confirm" | null>(null);
+  const [pending, setPending] = useState<"status" | "preview" | "confirm" | "check" | null>(null);
   const [error, setError] = useState("");
   const minimum = useMemo(localMinimum, []);
 
@@ -60,14 +66,18 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
     if (!desktopApp) return;
     setPending("status");
     try {
-      const [registryValue, engineValue, ledgerValue] = await Promise.all([
+      const [registryValue, engineValue, ledgerValue, capabilitiesValue] = await Promise.all([
         invoke<unknown>("task_registry_status"),
         invoke<unknown>("task_engine_status"),
         invoke<unknown>("task_attempt_ledger_status"),
+        invoke<unknown>("capability_registry_status"),
       ]);
       setSnapshot(parseTaskRegistrySnapshot(registryValue));
       setEngine(parseTaskEngineSnapshot(engineValue));
       setLedger(parseTaskAttemptLedgerSnapshot(ledgerValue));
+      const currentCapabilities = parseCapabilityRegistrySnapshot(capabilitiesValue).capabilities;
+      setCapabilities(currentCapabilities);
+      setReadOnlyCapabilityId((current) => current || currentCapabilities.find((item) => item.kind === "query" || item.kind === "observation")?.id || "");
       setError("");
     } catch (cause) {
       setError(String(cause));
@@ -181,6 +191,22 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
     }
   }
 
+  async function runReadOnlyCheck() {
+    if (!readOnlyCapabilityId) return;
+    setPending("check"); setError(""); setReadOnlyCheckReceipt(null);
+    try {
+      const checked = parseReadOnlyCapabilityCheckReceipt(await invoke<unknown>("run_read_only_capability_check", {
+        input: { capabilityId: readOnlyCapabilityId, confirmed: true },
+      }));
+      setReadOnlyCheckReceipt(checked);
+      await refresh();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setPending(null);
+    }
+  }
+
   return <section className="task-registry" aria-labelledby="task-registry-title">
     <header className="task-registry-heading">
       <div><p className="eyebrow">R7 · CONTROL DEL PROPIETARIO</p><h3 id="task-registry-title">Recordatorios e intenciones temporales</h3><p>Preparar no guarda. Confirmar vuelve a leer identidad, hora, alcance y huella antes de escribir.</p></div>
@@ -219,6 +245,12 @@ export function TaskRegistryPanel({ desktopApp }: TaskRegistryPanelProps) {
       {receipt && <div className="task-registry-receipt" role="status"><strong>{receipt.idempotent ? "OPERACIÓN YA APLICADA" : "OPERACIÓN CONFIRMADA"}</strong><span>Revisión {receipt.revisionId} · auditoría {receipt.auditWritten ? "escrita" : "sin duplicar"} · ejecución automática apagada</span></div>}
       {reservationReceipt && <div className="task-registry-receipt" role="status"><strong>{reservationReceipt.idempotent ? "RESERVA YA EXISTENTE" : "RESERVA DURABLE CREADA"}</strong><span>Sin aviso, salida ni cambio de tarea · auditoría {reservationReceipt.auditWritten ? "escrita" : "sin duplicar"}</span></div>}
       {notificationReceipt && <div className={`task-registry-receipt ${notificationReceipt.notificationAccepted ? "" : "failed"}`} role="status"><strong>{notificationReceipt.notificationAccepted ? "NOTIFICACIÓN ACEPTADA POR EL SISTEMA" : "NOTIFICACIÓN RECHAZADA"}</strong><span>{notificationReceipt.idempotent ? "Resultado terminal recuperado sin repetir" : "Resultado nuevo"} · red OFF · procesos externos 0 · auditoría {notificationReceipt.auditWritten ? "escrita" : "pendiente"}</span></div>}
+
+      <section className="task-clock">
+        <header><div><span>05</span><div><strong>COMPROBACIÓN R7.5 · SÓLO LECTURA</strong><small>Relee R1 ahora; no ejecuta la capacidad elegida</small></div></div><b>MEMORIA OFF</b></header>
+        <div className="task-clock-body"><div><p>La comprobación bloquea mutaciones, red, procesos, notificaciones, cámara, micrófono y pantalla. Si una capacidad exige R2, verifica que su grant siga activo; nunca lo crea ni lo consume.</p><label>CAPACIDAD R1<select value={readOnlyCapabilityId} onChange={(event) => { setReadOnlyCapabilityId(event.target.value); setReadOnlyCheckReceipt(null); }}>{capabilities.filter((item) => item.kind === "query" || item.kind === "observation").map((item) => <option key={item.id} value={item.id}>{item.label} · {item.id}</option>)}</select></label><button type="button" disabled={pending !== null || !readOnlyCapabilityId} onClick={() => void runReadOnlyCheck()}>{pending === "check" ? "COMPROBANDO…" : "COMPROBAR ESTADO ACTUAL"}</button></div></div>
+        {readOnlyCheckReceipt && <footer><span>{readOnlyCheckReceipt.capabilityState === "eligible" ? "APTA PARA LECTURA" : "COMPROBACIÓN BLOQUEADA"}</span><span>{readOnlyCheckReceipt.reason}</span><span>R2 {readOnlyCheckReceipt.r2Required ? (readOnlyCheckReceipt.r2Active ? "ACTIVO" : "REQUERIDO") : "NO REQUERIDO"}</span><span>EJECUCIÓN 0 · MEMORIA 0 · ESCRITURAS 0 · RED 0</span></footer>}
+      </section>
 
       <section className={`task-clock ${engine?.backgroundEnabled ? "active" : "off"}`}>
         <header><div><span>03</span><div><strong>SENTIDO TEMPORAL · R7.3-A</strong><small>Clasifica el tiempo; no intenta actuar</small></div></div><b>{engine?.backgroundEnabled ? "EVALUACIÓN ACTIVA" : "APAGADO"}</b></header>

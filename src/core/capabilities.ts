@@ -1,6 +1,6 @@
 export const CAPABILITY_REGISTRY_SCHEMA_VERSION = 1 as const;
 
-export type CapabilityDomain = "cloud" | "context" | "perception" | "memory" | "avatar" | "output";
+export type CapabilityDomain = "cloud" | "context" | "perception" | "memory" | "avatar" | "output" | "task";
 export type CapabilityKind = "observation" | "query" | "mutation" | "export" | "process" | "presentation";
 export type CapabilityMaturity = "implemented" | "partial" | "planned";
 export type CapabilityState = "unavailable" | "disabled" | "idle" | "active" | "degraded" | "error";
@@ -16,6 +16,7 @@ export type CapabilityEffect =
   | "assetRender"
   | "cameraObserve"
   | "microphoneObserve"
+  | "screenObserve"
   | "userNotification";
 export type CapabilityHealthStatus = "unchecked" | "healthy" | "degraded" | "unavailable" | "error";
 export type CapabilityPermissionMode = "implicitRead" | "sessionOptIn" | "explicitPreview" | "explicitConfirmation";
@@ -66,12 +67,12 @@ export type CapabilityRegistryResult = {
   snapshot: CapabilityRegistrySnapshot;
 };
 
-const domains = ["cloud", "context", "perception", "memory", "avatar", "output"] as const;
+const domains = ["cloud", "context", "perception", "memory", "avatar", "output", "task"] as const;
 const kinds = ["observation", "query", "mutation", "export", "process", "presentation"] as const;
 const maturities = ["implemented", "partial", "planned"] as const;
 const states = ["unavailable", "disabled", "idle", "active", "degraded", "error"] as const;
 const risks = ["none", "low", "medium", "high", "critical"] as const;
-const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "credentialPresenceRead", "assetRender", "cameraObserve", "microphoneObserve", "userNotification"] as const;
+const effects = ["none", "localRead", "localWrite", "networkSend", "processLaunch", "windowMetadataRead", "credentialPresenceRead", "assetRender", "cameraObserve", "microphoneObserve", "screenObserve", "userNotification"] as const;
 const healthStatuses = ["unchecked", "healthy", "degraded", "unavailable", "error"] as const;
 const permissionModes = ["implicitRead", "sessionOptIn", "explicitPreview", "explicitConfirmation"] as const;
 const permissionEnforcers = ["native", "currentUi", "operatingSystem", "none"] as const;

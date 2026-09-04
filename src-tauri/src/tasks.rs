@@ -1,5 +1,11 @@
 use crate::audit::{append_event_at, new_operation_id, AuditEvent, AuditOutcome, AUDIT_MAX_BYTES};
-use crate::capabilities::{current_utc_timestamp, validate_timestamp};
+use crate::capabilities::{
+    current_capability_registry, current_utc_timestamp, validate_timestamp, CapabilityEffect,
+    CapabilityKind, CapabilityPermissionMode, CapabilityRegistrySnapshot, CapabilityState,
+};
+use crate::observation::ObservationStore;
+use crate::permissions::{PermissionGateway, PermissionGrantState};
+use crate::sensory::SensorLeaseStore;
 use crate::util::{alice_data_root_path, encode_hex_lower};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -373,6 +379,47 @@ pub(crate) struct TaskNotificationReceipt {
     network_used: bool,
     process_spawned: bool,
     task_state_changed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct RunReadOnlyCapabilityCheckInput {
+    capability_id: String,
+    confirmed: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum ReadOnlyCapabilityCheckState {
+    Eligible,
+    Blocked,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum ReadOnlyCapabilityCheckReason {
+    Eligible,
+    CapabilityUnknown,
+    CapabilityUnavailable,
+    CapabilityNotReadOnly,
+    ExternalEffect,
+    PermissionRequired,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ReadOnlyCapabilityCheckReceipt {
+    schema_version: u32,
+    checked_at: String,
+    capability_id: String,
+    capability_state: ReadOnlyCapabilityCheckState,
+    reason: ReadOnlyCapabilityCheckReason,
+    r2_required: bool,
+    r2_active: bool,
+    capability_executed: bool,
+    memory_created: bool,
+    writes_performed: bool,
+    network_used: bool,
 }
 
 #[derive(Default)]
@@ -1872,6 +1919,147 @@ pub(crate) fn reserve_task_attempt(
     reserve_task_attempt_at(&data_root, input, current_utc_timestamp()?)
 }
 
+fn read_only_capability_receipt(
+    checked_at: String,
+    capability_id: &str,
+    capability_state: ReadOnlyCapabilityCheckState,
+    reason: ReadOnlyCapabilityCheckReason,
+    r2_required: bool,
+    r2_active: bool,
+) -> ReadOnlyCapabilityCheckReceipt {
+    ReadOnlyCapabilityCheckReceipt {
+        schema_version: TASK_REGISTRY_SCHEMA_VERSION,
+        checked_at,
+        capability_id: capability_id.to_string(),
+        capability_state,
+        reason,
+        r2_required,
+        r2_active,
+        capability_executed: false,
+        memory_created: false,
+        writes_performed: false,
+        network_used: false,
+    }
+}
+
+fn run_read_only_capability_check_at(
+    registry: &CapabilityRegistrySnapshot,
+    active_r2_capability_ids: &HashSet<String>,
+    input: &RunReadOnlyCapabilityCheckInput,
+    checked_at: String,
+) -> Result<ReadOnlyCapabilityCheckReceipt, String> {
+    if !input.confirmed {
+        return Err("La comprobación R7.5 requiere confirmación explícita".into());
+    }
+    validate_capability_id(&input.capability_id)?;
+    validate_task_timestamp("checkedAt", &checked_at)?;
+
+    let Some(capability) = registry
+        .capabilities
+        .iter()
+        .find(|capability| capability.id == input.capability_id)
+    else {
+        return Ok(read_only_capability_receipt(
+            checked_at,
+            &input.capability_id,
+            ReadOnlyCapabilityCheckState::Blocked,
+            ReadOnlyCapabilityCheckReason::CapabilityUnknown,
+            false,
+            false,
+        ));
+    };
+
+    let r2_required = capability.permission.mode == CapabilityPermissionMode::SessionOptIn;
+    let r2_active = r2_required && active_r2_capability_ids.contains(&capability.id);
+
+    if !matches!(
+        capability.state,
+        CapabilityState::Idle | CapabilityState::Active
+    ) {
+        return Ok(read_only_capability_receipt(
+            checked_at,
+            &capability.id,
+            ReadOnlyCapabilityCheckState::Blocked,
+            ReadOnlyCapabilityCheckReason::CapabilityUnavailable,
+            r2_required,
+            r2_active,
+        ));
+    }
+    if !matches!(
+        capability.kind,
+        CapabilityKind::Query | CapabilityKind::Observation
+    ) {
+        return Ok(read_only_capability_receipt(
+            checked_at,
+            &capability.id,
+            ReadOnlyCapabilityCheckState::Blocked,
+            ReadOnlyCapabilityCheckReason::CapabilityNotReadOnly,
+            r2_required,
+            r2_active,
+        ));
+    }
+    let effects_are_local_reads = capability.effects.iter().all(|effect| {
+        matches!(
+            effect,
+            CapabilityEffect::None
+                | CapabilityEffect::LocalRead
+                | CapabilityEffect::CredentialPresenceRead
+        )
+    });
+    if !effects_are_local_reads {
+        return Ok(read_only_capability_receipt(
+            checked_at,
+            &capability.id,
+            ReadOnlyCapabilityCheckState::Blocked,
+            ReadOnlyCapabilityCheckReason::ExternalEffect,
+            r2_required,
+            r2_active,
+        ));
+    }
+    if r2_required && !r2_active {
+        return Ok(read_only_capability_receipt(
+            checked_at,
+            &capability.id,
+            ReadOnlyCapabilityCheckState::Blocked,
+            ReadOnlyCapabilityCheckReason::PermissionRequired,
+            true,
+            false,
+        ));
+    }
+    Ok(read_only_capability_receipt(
+        checked_at,
+        &capability.id,
+        ReadOnlyCapabilityCheckState::Eligible,
+        ReadOnlyCapabilityCheckReason::Eligible,
+        r2_required,
+        r2_active,
+    ))
+}
+
+#[tauri::command]
+pub(crate) fn run_read_only_capability_check(
+    app: AppHandle,
+    gateway: State<PermissionGateway>,
+    observation: State<ObservationStore>,
+    sensors: State<SensorLeaseStore>,
+    input: RunReadOnlyCapabilityCheckInput,
+) -> Result<ReadOnlyCapabilityCheckReceipt, String> {
+    let registry = current_capability_registry(&app, &observation, &sensors)?;
+    let permissions = gateway.status()?;
+    let active_r2_capability_ids = permissions
+        .grants
+        .into_iter()
+        .filter(|grant| grant.state == PermissionGrantState::Active)
+        .map(|grant| grant.capability_id)
+        .collect();
+    run_read_only_capability_check_at(
+        &registry,
+        &active_r2_capability_ids,
+        &input,
+        current_utc_timestamp()?,
+    )
+}
+
 #[tauri::command]
 pub(crate) fn dispatch_task_notification(
     app: AppHandle,
@@ -1917,6 +2105,10 @@ pub(crate) fn confirm_task_mutation(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capabilities::{
+        CapabilityDescriptor, CapabilityDomain, CapabilityHealth, CapabilityHealthStatus,
+        CapabilityMaturity, CapabilityPermission, CapabilityPermissionEnforcer, CapabilityRisk,
+    };
     use crate::util::encode_hex_lower;
     use serde_json::json;
     use sha2::{Digest, Sha256};
@@ -1952,6 +2144,46 @@ mod tests {
             },
             origin: TaskOrigin::OwnerConfirmed,
             cancellable: true,
+        }
+    }
+
+    fn read_only_registry(
+        id: &str,
+        kind: CapabilityKind,
+        effects: Vec<CapabilityEffect>,
+        permission_mode: CapabilityPermissionMode,
+        state: CapabilityState,
+    ) -> CapabilityRegistrySnapshot {
+        CapabilityRegistrySnapshot {
+            schema_version: 1,
+            generated_at: "2026-09-04T15:00:00Z".into(),
+            capabilities: vec![CapabilityDescriptor {
+                id: id.into(),
+                version: 1,
+                label: "Lectura controlada".into(),
+                description: "Fixture aislado para R7.5".into(),
+                domain: CapabilityDomain::Memory,
+                kind,
+                maturity: CapabilityMaturity::Implemented,
+                adapter: "fixture".into(),
+                operations: vec!["readFixture".into()],
+                state,
+                risk: CapabilityRisk::Low,
+                effects,
+                data_scopes: vec!["fixtureMetadata".into()],
+                requirements: Vec::new(),
+                permission: CapabilityPermission {
+                    mode: permission_mode,
+                    enforced_by: CapabilityPermissionEnforcer::Native,
+                    summary: "Fixture de prueba".into(),
+                },
+                health: CapabilityHealth {
+                    status: CapabilityHealthStatus::Healthy,
+                    summary: "Fixture disponible".into(),
+                    checked_at: Some("2026-09-04T15:00:00Z".into()),
+                },
+                last_execution: None,
+            }],
         }
     }
 
@@ -2124,6 +2356,133 @@ mod tests {
 
         check.scope.capability_id = Some("PowerShell free form".into());
         assert!(check.validate().is_err());
+    }
+
+    #[test]
+    fn r7_5_resolves_current_capabilities_without_executing_or_learning() {
+        let input = RunReadOnlyCapabilityCheckInput {
+            capability_id: "memory.records.read".into(),
+            confirmed: true,
+        };
+        let eligible = run_read_only_capability_check_at(
+            &read_only_registry(
+                &input.capability_id,
+                CapabilityKind::Query,
+                vec![CapabilityEffect::LocalRead],
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityState::Idle,
+            ),
+            &HashSet::new(),
+            &input,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .expect("eligible local read");
+        assert_eq!(
+            eligible.capability_state,
+            ReadOnlyCapabilityCheckState::Eligible
+        );
+        assert_eq!(eligible.reason, ReadOnlyCapabilityCheckReason::Eligible);
+        assert!(!eligible.capability_executed);
+        assert!(!eligible.memory_created);
+        assert!(!eligible.writes_performed);
+        assert!(!eligible.network_used);
+
+        let mut active = HashSet::new();
+        active.insert(input.capability_id.clone());
+        let missing_r2 = run_read_only_capability_check_at(
+            &read_only_registry(
+                &input.capability_id,
+                CapabilityKind::Query,
+                vec![CapabilityEffect::LocalRead],
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityState::Idle,
+            ),
+            &HashSet::new(),
+            &input,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .expect("blocked missing R2");
+        assert_eq!(
+            missing_r2.reason,
+            ReadOnlyCapabilityCheckReason::PermissionRequired
+        );
+        let active_r2 = run_read_only_capability_check_at(
+            &read_only_registry(
+                &input.capability_id,
+                CapabilityKind::Query,
+                vec![CapabilityEffect::LocalRead],
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityState::Idle,
+            ),
+            &active,
+            &input,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .expect("active R2");
+        assert_eq!(
+            active_r2.capability_state,
+            ReadOnlyCapabilityCheckState::Eligible
+        );
+    }
+
+    #[test]
+    fn r7_5_blocks_mutations_external_effects_and_unconfirmed_attempts() {
+        let input = RunReadOnlyCapabilityCheckInput {
+            capability_id: "memory.records.read".into(),
+            confirmed: true,
+        };
+        let mutation = run_read_only_capability_check_at(
+            &read_only_registry(
+                &input.capability_id,
+                CapabilityKind::Mutation,
+                vec![CapabilityEffect::LocalRead],
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityState::Idle,
+            ),
+            &HashSet::new(),
+            &input,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .unwrap();
+        assert_eq!(
+            mutation.reason,
+            ReadOnlyCapabilityCheckReason::CapabilityNotReadOnly
+        );
+        let external = run_read_only_capability_check_at(
+            &read_only_registry(
+                &input.capability_id,
+                CapabilityKind::Query,
+                vec![CapabilityEffect::NetworkSend],
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityState::Idle,
+            ),
+            &HashSet::new(),
+            &input,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .unwrap();
+        assert_eq!(
+            external.reason,
+            ReadOnlyCapabilityCheckReason::ExternalEffect
+        );
+        let unconfirmed = RunReadOnlyCapabilityCheckInput {
+            confirmed: false,
+            ..input
+        };
+        assert!(run_read_only_capability_check_at(
+            &read_only_registry(
+                "memory.records.read",
+                CapabilityKind::Query,
+                vec![CapabilityEffect::LocalRead],
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityState::Idle,
+            ),
+            &HashSet::new(),
+            &unconfirmed,
+            "2026-09-04T15:00:01Z".into(),
+        )
+        .unwrap_err()
+        .contains("confirmación explícita"));
     }
 
     fn schedule_input(title: &str) -> PreviewTaskMutationInput {

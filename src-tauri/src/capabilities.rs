@@ -1020,6 +1020,27 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
             health(health_status, summary.clone(), Some(checked_at)),
         ),
         capability(
+            "tasks.capability.readcheck",
+            "Comprobar una capacidad en modo lectura",
+            "Vuelve a resolver R1 para una capacidad elegida y bloquea efectos externos, mutaciones o permisos R2 ausentes sin ejecutar la capacidad.",
+            CapabilityDomain::Task,
+            CapabilityKind::Query,
+            CapabilityMaturity::Implemented,
+            "tasks",
+            &["run_read_only_capability_check"],
+            inspect_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["capabilityRegistryMetadata", "permissionGrantMetadata"],
+            &["Confirmación explícita del propietario"],
+            permission(
+                CapabilityPermissionMode::ExplicitConfirmation,
+                CapabilityPermissionEnforcer::Native,
+                "Rust resuelve R1 y el estado R2 vigentes en cada intento; no llama al adaptador evaluado.",
+            ),
+            health(health_status, "R7.5 sólo presenta elegibilidad actual; no ejecuta, no aprende y no escribe.", Some(checked_at)),
+        ),
+        capability(
             "tasks.registry.write",
             "Programar o cancelar una tarea local",
             "Prepara sin escribir y confirma un recordatorio único o su cancelación con identidad, hora, alcance, respaldo, revisión y auditoría releídos.",
@@ -1983,7 +2004,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 32);
+        assert_eq!(snapshot.capabilities.len(), 33);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -2028,6 +2049,14 @@ mod tests {
             tasks.permission.enforced_by,
             CapabilityPermissionEnforcer::Native
         );
+        let read_check = registered(&snapshot, "tasks.capability.readcheck");
+        assert_eq!(read_check.domain, CapabilityDomain::Task);
+        assert_eq!(read_check.kind, CapabilityKind::Query);
+        assert_eq!(
+            read_check.operations,
+            vec!["run_read_only_capability_check"]
+        );
+        assert_eq!(read_check.effects, vec![CapabilityEffect::LocalRead]);
         let task_write = registered(&snapshot, "tasks.registry.write");
         assert_eq!(task_write.domain, CapabilityDomain::Task);
         assert_eq!(task_write.state, CapabilityState::Idle);
@@ -2262,7 +2291,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 32);
+        assert_eq!(snapshot.capabilities.len(), 33);
         assert!(!root.exists());
     }
 

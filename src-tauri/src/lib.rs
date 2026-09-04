@@ -66,8 +66,8 @@ use skills::{
 };
 use tasks::{
     confirm_task_mutation, dispatch_task_notification, preview_task_mutation, reserve_task_attempt,
-    set_task_engine_enabled, spawn_task_engine_thread, task_attempt_ledger_status,
-    task_engine_status, task_registry_status, TaskEngineStore,
+    run_read_only_capability_check, set_task_engine_enabled, spawn_task_engine_thread,
+    task_attempt_ledger_status, task_engine_status, task_registry_status, TaskEngineStore,
 };
 use tauri::Manager;
 use visual_learning::analyze_screen_frame;
@@ -187,6 +187,7 @@ pub fn run() {
             set_task_engine_enabled,
             task_attempt_ledger_status,
             reserve_task_attempt,
+            run_read_only_capability_check,
             dispatch_task_notification
         ])
         .run(tauri::generate_context!())

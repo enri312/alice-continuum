@@ -165,6 +165,20 @@ export type TaskNotificationReceipt = {
   taskStateChanged: false;
 };
 
+export type ReadOnlyCapabilityCheckReceipt = {
+  schemaVersion: typeof TASK_REGISTRY_SCHEMA_VERSION;
+  checkedAt: string;
+  capabilityId: string;
+  capabilityState: "eligible" | "blocked";
+  reason: "eligible" | "capabilityUnknown" | "capabilityUnavailable" | "capabilityNotReadOnly" | "externalEffect" | "permissionRequired";
+  r2Required: boolean;
+  r2Active: boolean;
+  capabilityExecuted: false;
+  memoryCreated: false;
+  writesPerformed: false;
+  networkUsed: false;
+};
+
 function fail(message: string): never {
   throw new Error(`Contrato R7 inválido: ${message}`);
 }
@@ -425,6 +439,34 @@ export function parseTaskNotificationReceipt(value: unknown): TaskNotificationRe
   const notificationAccepted = bool(source.notificationAccepted, "taskNotificationReceipt.notificationAccepted");
   if ((state === "accepted") !== notificationAccepted || (state === "accepted") !== (dispatchReason === "acceptedByOs")) fail("el resultado R7.4 es incoherente");
   return { schemaVersion: TASK_REGISTRY_SCHEMA_VERSION, operationId: uuid(source.operationId, "taskNotificationReceipt.operationId"), attemptId: uuid(source.attemptId, "taskNotificationReceipt.attemptId"), taskId: uuid(source.taskId, "taskNotificationReceipt.taskId"), state, dispatchReason, dispatchStartedAt: timestamp(source.dispatchStartedAt, "taskNotificationReceipt.dispatchStartedAt"), dispatchFinishedAt: timestamp(source.dispatchFinishedAt, "taskNotificationReceipt.dispatchFinishedAt"), notificationAccepted, auditWritten: bool(source.auditWritten, "taskNotificationReceipt.auditWritten"), idempotent: bool(source.idempotent, "taskNotificationReceipt.idempotent"), networkUsed: false, processSpawned: false, taskStateChanged: false };
+}
+
+export function parseReadOnlyCapabilityCheckReceipt(value: unknown): ReadOnlyCapabilityCheckReceipt {
+  const source = object(value, "readOnlyCapabilityCheck");
+  exactKeys(source, ["schemaVersion", "checkedAt", "capabilityId", "capabilityState", "reason", "r2Required", "r2Active", "capabilityExecuted", "memoryCreated", "writesPerformed", "networkUsed"], "readOnlyCapabilityCheck");
+  if (source.schemaVersion !== TASK_REGISTRY_SCHEMA_VERSION) fail("readOnlyCapabilityCheck.schemaVersion desconocido");
+  const capabilityState = oneOf(source.capabilityState, ["eligible", "blocked"] as const, "readOnlyCapabilityCheck.capabilityState");
+  const reason = oneOf(source.reason, ["eligible", "capabilityUnknown", "capabilityUnavailable", "capabilityNotReadOnly", "externalEffect", "permissionRequired"] as const, "readOnlyCapabilityCheck.reason");
+  const r2Required = bool(source.r2Required, "readOnlyCapabilityCheck.r2Required");
+  const r2Active = bool(source.r2Active, "readOnlyCapabilityCheck.r2Active");
+  if ((capabilityState === "eligible") !== (reason === "eligible")) fail("readOnlyCapabilityCheck tiene resultado incoherente");
+  if (r2Active && !r2Required) fail("readOnlyCapabilityCheck no puede declarar R2 activo si no se exige");
+  if (source.capabilityExecuted !== false || source.memoryCreated !== false || source.writesPerformed !== false || source.networkUsed !== false) {
+    fail("readOnlyCapabilityCheck declara efectos no permitidos");
+  }
+  return {
+    schemaVersion: TASK_REGISTRY_SCHEMA_VERSION,
+    checkedAt: timestamp(source.checkedAt, "readOnlyCapabilityCheck.checkedAt"),
+    capabilityId: text(source.capabilityId, "readOnlyCapabilityCheck.capabilityId"),
+    capabilityState,
+    reason,
+    r2Required,
+    r2Active,
+    capabilityExecuted: false,
+    memoryCreated: false,
+    writesPerformed: false,
+    networkUsed: false,
+  };
 }
 
 export function localDateTimeToUtc(value: string): string {

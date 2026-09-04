@@ -17,7 +17,7 @@ import type {
 
 type RegistryLoadState = "loading" | "ready" | "error";
 
-const domainOrder: CapabilityDomain[] = ["cloud", "context", "perception", "memory", "avatar", "output"];
+const domainOrder: CapabilityDomain[] = ["cloud", "context", "perception", "memory", "avatar", "output", "task"];
 const domainLabels: Record<CapabilityDomain, string> = {
   cloud: "NUBE",
   context: "CONTEXTO",
@@ -25,6 +25,7 @@ const domainLabels: Record<CapabilityDomain, string> = {
   memory: "MEMORIA",
   avatar: "AVATAR",
   output: "SALIDAS",
+  task: "TAREAS",
 };
 const domainGlyphs: Record<CapabilityDomain, string> = {
   cloud: "CLD",
@@ -33,6 +34,7 @@ const domainGlyphs: Record<CapabilityDomain, string> = {
   memory: "MEM",
   avatar: "AVR",
   output: "OUT",
+  task: "TSK",
 };
 const stateLabels: Record<CapabilityDescriptor["state"], string> = {
   unavailable: "NO DISPONIBLE",

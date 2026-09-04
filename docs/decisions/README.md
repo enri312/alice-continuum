@@ -64,3 +64,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-086](ADR-P-086-persistencia-gobernada-tareas.md) | Persistencia y cancelación de tareas mediante vista previa ligada e idempotente |
 | [ADR-P-087](ADR-P-087-conversacion-temporal-sin-consolidacion-automatica.md) | Conversación en RAM sin promoción automática de respuestas a memoria durable |
 | [ADR-P-088](ADR-P-088-sentido-temporal-observable-r7.md) | Reloj R7.3-A observable, apagable y sin ejecución, notificación o escritura |
+| [ADR-P-092](ADR-P-092-comprobacion-r7-5-solo-lectura.md) | Resolución R1/R2 por intento sin ejecutar la capacidad ni aprender |
