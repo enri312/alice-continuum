@@ -76,4 +76,17 @@ describe("recuperación local de memoria", () => {
     ];
     expect(retrieveMemories("Proyecto Alice", candidates).map((match) => match.memory.id)).toEqual(["available"]);
   });
+
+  it("no usa una respuesta histórica de modelo como evidencia para recuperar una conversación", () => {
+    const candidates = [{
+      id: "episode",
+      kind: "Conversación",
+      intention: "¿Qué versión de Linux existe?",
+      summary: "La versión inventada Nebulosa 99 ya fue publicada.",
+      memoryStatus: "confirmed" as const,
+    }];
+
+    expect(retrieveMemories("Nebulosa 99", candidates)).toEqual([]);
+    expect(retrieveMemories("versión Linux", candidates).map((match) => match.memory.id)).toEqual(["episode"]);
+  });
 });

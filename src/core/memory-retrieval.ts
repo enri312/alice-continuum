@@ -1,5 +1,6 @@
 export type RetrievableMemory = {
   id?: string;
+  kind?: string;
   intention: string;
   summary?: string;
   nextStep?: string;
@@ -68,7 +69,16 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
   if (!queryTokens.length || !memories.length || limit <= 0) return [];
 
   const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && memory.archiveStatus !== "archived");
-  const documentTokens = eligibleMemories.map((memory) => new Set(tokens(`${memory.intention} ${memory.summary ?? ""} ${memory.nextStep ?? ""}`)));
+  // En una conversación, `intention` es la entrada real del propietario y
+  // `summary` contiene la antigua respuesta del modelo. Esa respuesta puede estar
+  // equivocada o desactualizada y no debe funcionar como evidencia RAG.
+  const searchableFields = (memory: T) => memory.kind === "Conversación"
+    ? { title: memory.intention, summary: "", nextStep: "" }
+    : { title: memory.intention, summary: memory.summary ?? "", nextStep: memory.nextStep ?? "" };
+  const documentTokens = eligibleMemories.map((memory) => {
+    const fields = searchableFields(memory);
+    return new Set(tokens(`${fields.title} ${fields.summary} ${fields.nextStep}`));
+  });
   const documentFrequency = new Map<string, number>();
   for (const token of queryTokens) {
     documentFrequency.set(token, documentTokens.filter((document) => document.has(token)).length);
@@ -77,9 +87,7 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
   const normalizedQuery = normalize(query);
   return eligibleMemories
     .map((memory, index): MemoryMatch<T> | null => {
-      const title = memory.intention;
-      const summary = memory.summary ?? "";
-      const nextStep = memory.nextStep ?? "";
+      const { title, summary, nextStep } = searchableFields(memory);
       const matchedTerms: string[] = [];
       const matchedFields = new Set<string>();
       let score = 0;

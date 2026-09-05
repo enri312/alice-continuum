@@ -62,6 +62,9 @@ function memoryEvidenceLabel(memory: PayloadMemory) {
 
 function formatMemory(memory: PayloadMemory) {
   const source = memory.source ? ` · Fuente: ${memory.source}` : "";
+  if (memory.kind === "Conversación") {
+    return `- [${memoryEvidenceLabel(memory)}] Carlos dijo o preguntó: ${memory.intention}. La respuesta histórica del modelo no se incorpora como conocimiento.${source}`;
+  }
   return `- [${memoryEvidenceLabel(memory)}] ${memory.intention}: ${memory.summary || "sin resumen"}${memory.nextStep ? ` · Próximo paso: ${memory.nextStep}` : ""}${source}`;
 }
 

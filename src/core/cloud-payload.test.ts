@@ -56,7 +56,10 @@ describe("buildCloudPayload", () => {
     });
 
     expect(payload).toContain("[EPISODIO DE CONVERSACIÓN · NO ES UN HECHO VERIFICADO]");
+    expect(payload).toContain("Carlos dijo o preguntó: Investigamos una tecnología");
+    expect(payload).toContain("La respuesta histórica del modelo no se incorpora como conocimiento");
     expect(payload).toContain("Fuente: Intercambio real autorizado · OpenRouter · openrouter/free");
+    expect(payload).not.toContain("El modelo produjo una respuesta");
     expect(payload).not.toContain("HECHO ENSEÑADO Y CONFIRMADO");
   });
 

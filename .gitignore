@@ -26,3 +26,5 @@ Assets/Animations/private/
 
 # Modelos locales de visión: se verifican por SHA-256 y no se redistribuyen.
 Assets/Models/private/
+# Prototipos externos en cuarentena: no forman parte del runtime ni del repositorio.
+/adapters/

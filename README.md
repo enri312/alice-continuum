@@ -7,10 +7,10 @@
 ![R4](https://img.shields.io/badge/R4-validado-16a34a?style=flat-square)
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6-completado-16a34a?style=flat-square)
-![R7](https://img.shields.io/badge/R7.3--A-sentido%20temporal-0f766e?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-348%2F348%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-241%20aprobadas%20%7C%2019%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
-![Python](https://img.shields.io/badge/Python-adaptador%20sensorial%20local-3776ab?style=flat-square&logo=python&logoColor=white)
+![R7](https://img.shields.io/badge/R7-validado-16a34a?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-433%2F433%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-251%20aprobadas%20%7C%2019%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Python](https://img.shields.io/badge/Python-prototipos%20en%20cuarentena-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
@@ -20,7 +20,7 @@
 
 Aplicación de escritorio local-first para que **Alice** gestione conversación, memoria, percepción autorizada, estado cognitivo observable y futuras señales de rostro y cuerpo bajo control de Carlos Nuñez.
 
-> **Uso cotidiano:** consulta el [Manual de uso de Alice](docs/MANUAL_DE_USO.md) para iniciar la aplicación, conversar, revisar recuerdos y entender cada pantalla sin depender de los códigos técnicos R1–R6.
+> **Uso cotidiano:** consulta el [Manual de uso de Alice](docs/MANUAL_DE_USO.md) para iniciar la aplicación, conversar, revisar recuerdos y entender cada pantalla sin depender de los códigos técnicos R1–R7.
 
 El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
 
@@ -29,23 +29,23 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 2 de septiembre de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges de pruebas reflejan la validación local real del 4 de septiembre de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
 
 ## Estado verificado
 
 | Área | Estado real |
 |---|---|
-| Registro de capacidades R1 | Validado: snapshot nativo v1 con 29 capacidades |
+| Registro de capacidades R1 | Validado: snapshot nativo v1 con 33 capacidades |
 | Gateway de permisos R2 | Ventana, cámara y micrófono protegidos; permiso facial separado disponible sin ejecución |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
 | Memoria por capas R6 | Completada: 15 recuerdos reales, 13 vigentes, 2 conflictivos, 0 no evaluados; capas v3 y ciclo v1 activos sobre la huella vigente |
-| Tareas e intenciones R7 | R7.3-A completado: reloj observable, apagable y sin ejecución, notificación ni escritura; 0 tareas canónicas |
-| Capacidades implementadas o parciales | 20 |
+| Tareas e intenciones R7 | R7.5 validado: registro gobernado, reloj apagable, recordatorio local explícito y comprobación de solo lectura; 0 tareas canónicas persistidas durante el cierre |
+| Capacidades implementadas o parciales | 24 |
 | Capacidades planificadas | 9, sin adaptador y no disponibles |
-| Pruebas TypeScript | 348/348 aprobadas en el árbol publicado; 423/423 en el workspace con el rediseño visual aún pendiente |
-| Pruebas Rust | 241 normales aprobadas; diecinueve sondas vivas disponibles por separado |
+| Pruebas TypeScript | 433/433 aprobadas localmente |
+| Pruebas Rust | 251 normales aprobadas; diecinueve sondas vivas disponibles por separado |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
@@ -53,7 +53,9 @@ El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa t
 | Datos privados preservados | 35 archivos en `data/` conservaron el mismo digest agregado durante las sondas finales R6 |
 | Avatar privado | Preservado y excluido de Git |
 
-La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md), [el cierre final R6](docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md), [el informe R7.1](docs/testing/R7_TASK_REGISTRY_REPORT_2026-09-01.md), [la validación R7.2-A](docs/testing/R7_2A_TASK_MUTATION_REPORT_2026-09-01.md), [la prueba visible R7.2-B](docs/testing/R7_2B_TASK_UI_REPORT_2026-09-02.md) y [el cierre del sentido temporal R7.3-A](docs/testing/R7_3A_TEMPORAL_ENGINE_REPORT_2026-09-02.md).
+La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md), [el cierre final R6](docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md), [el informe R7.1](docs/testing/R7_TASK_REGISTRY_REPORT_2026-09-01.md), [la validación R7.2-A](docs/testing/R7_2A_TASK_MUTATION_REPORT_2026-09-01.md), [la prueba visible R7.2-B](docs/testing/R7_2B_TASK_UI_REPORT_2026-09-02.md), [el sentido temporal R7.3-A](docs/testing/R7_3A_TEMPORAL_ENGINE_REPORT_2026-09-02.md), [el recordatorio local R7.4](docs/testing/R7_4_LOCAL_NOTIFICATION_REPORT_2026-09-04.md), [la comprobación R7.5](docs/testing/R7_5_READ_ONLY_CAPABILITY_CHECK_REPORT_2026-09-04.md) y [su validación viva](docs/testing/R7_5_LIVE_VALIDATION_2026-09-04.md).
+
+La memoria conversacional conserva la pregunta real, pero no reutiliza una antigua respuesta de modelo como conocimiento: consulta el [informe del límite de evidencia RAG](docs/testing/MEMORY_RAG_EVIDENCE_BOUNDARY_REPORT_2026-09-04.md).
 
 ## Límites actuales
 
@@ -103,6 +105,8 @@ Como evaluación de una alternativa accesible a un visor con seguimiento facial,
 La pestaña **Rostro** consulta además una comprobación nativa pasiva: vuelve a calcular la huella del modelo local y verifica Python, OpenCV, MediaPipe y NumPy. Sólo expone preparación, nunca abre cámara ni lee landmarks; `sensorOpened` se valida como `false`. El panel también permite preparar y decidir el permiso facial R2 `critical` de 60 segundos. Incluso aprobado, el grant queda sin ejecutar y puede revocarse desde el mismo panel; todos los canales permanecen en reserva.
 
 La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
+
+Los prototipos Python aportados externamente permanecen en una carpeta local excluida de Git y no forman parte del runtime. Una auditoría estática encontró ideas recuperables para lectura documental, OCR, STT, visión, TTS y conocimiento, pero también dependencias ausentes y límites incompletos de rutas, red, procesos y mutación. Ninguno se conecta hasta ser reescrito como una capacidad gobernada y probado por separado. Consulta la [política de cuarentena](docs/architecture/ADAPTER_QUARANTINE.md) y el [informe técnico](docs/research/ADAPTER_STATIC_AUDIT_2026-09-04.md).
 
 Más detalles en [el informe inicial de hardware](docs/testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md), [el informe de leases R2](docs/testing/R2_SENSOR_LEASE_REPORT_2026-08-09.md), [el informe de preparación facial](docs/testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md), [el informe pasivo del panel Rostro](docs/testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md), [el informe del permiso facial](docs/testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md), [ADR-P-043](docs/decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md), [ADR-P-071](docs/decisions/ADR-P-071-sonda-facial-webcam-local.md) y [ADR-P-072](docs/decisions/ADR-P-072-permiso-facial-r2-separado.md).
 
