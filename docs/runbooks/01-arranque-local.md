@@ -1,6 +1,6 @@
 # Arrancar Alice localmente
 
-1. Ejecutar `Iniciar Alice.cmd` desde la raíz del proyecto.
+1. Ejecutar `Iniciar Alice Continuum.cmd` desde la raíz del proyecto.
 2. Esperar a que Tauri abra la ventana de Alice.
 3. Verificar en Conversación que al menos un proveedor aparezca como `LISTO`.
 4. Verificar en Memoria que el estado indique `ARCHIVO LOCAL`.
@@ -10,7 +10,7 @@ El lanzador detiene el inicio con un mensaje claro si Alice ya está abierta, si
 Para comprobar el entorno sin abrir Alice ni iniciar Ollama:
 
 ```powershell
-& '.\Iniciar Alice.cmd' --check
+& '.\Iniciar Alice Continuum.cmd' --check
 ```
 
 Si el proyecto todavía no tiene dependencias instaladas, ejecutar `npm install` una vez desde la raíz.

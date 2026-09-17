@@ -1,4 +1,4 @@
-# Revisión técnica de Project AIRI para Alice Cognitive Core
+# Revisión técnica de Project AIRI para Alice Continuum
 
 Fecha: 2026-08-13  
 Fuente: `moeru-ai/airi`  
@@ -7,7 +7,7 @@ Estado: investigación; no modifica el Roadmap ni autoriza incorporación de có
 
 ## Dictamen
 
-AIRI es una referencia valiosa para la **presencia** de Alice —voz en tiempo real, VRM, mirada, parpadeo, sincronización labial, proveedores intercambiables y telemetría del escenario—, pero no es un reemplazo de Alice Cognitive Core ni una base adecuada para R6.
+AIRI es una referencia valiosa para la **presencia** de Alice —voz en tiempo real, VRM, mirada, parpadeo, sincronización labial, proveedores intercambiables y telemetría del escenario—, pero no es un reemplazo de Alice Continuum ni una base adecuada para R6.
 
 Su centro actual es un personaje virtual gobernado por LLM y distribuido en web, escritorio y móvil. Alice, en cambio, está construyendo primero una fuente de verdad local, capacidades cerradas, permisos nativos, auditoría y aprendizaje gobernado. Conviene adaptar patrones aislados y verificables; no hacer fork, fusionar runtimes ni trasladar su monorepo.
 

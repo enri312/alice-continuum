@@ -28,7 +28,7 @@ Las respuestas de OpenAI/xAI, Anthropic, Google, OpenRouter y un servicio compat
 
 ## Alcance
 
-- Arranque mediante `Iniciar Alice.cmd`.
+- Arranque mediante `Iniciar Alice Continuum.cmd`.
 - Almacenamiento activo en el disco E.
 - Carga y renderizado de memoria.
 - Previsualización y autorización de una conversación real.

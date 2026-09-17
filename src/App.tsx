@@ -1,37 +1,44 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { Conversacion } from "./Page/Conversacion";
-import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage } from "./Page/Conversacion";
-import { Volumen } from "./Page/Volumen";
-import { Flujo } from "./Page/Flujo";
-import { Estado } from "./Page/Estado";
-import { Planificador } from "./Page/Planificador";
-import { Memoria } from "./Page/Memoria";
-import { Actividad } from "./Page/Actividad";
-import { Puentes } from "./Page/Puentes";
-import { Identificacion } from "./Page/Identificacion";
-import { Configuracion } from "./Page/Configuracion";
-import { Habilidades } from "./Page/Habilidades";
-import { Procedimientos } from "./Page/Procedimientos";
-import { buildBrainSnapshot } from "./core/brain";
-import { createCognitiveEvent } from "./core/cognitive-events";
-import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive-events";
-import { NavigationIcon } from "./components/NavigationIcon";
-import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory-consolidation";
-import type { RetrievalOutcome, ReviewOutcome } from "./core/memory-consolidation";
-import { loadCompatibleArray } from "./core/storage-migration";
-import { parsePermissionGatewayStatus } from "./core/permissions";
-import { workspaceForScreen, workspaceScreens } from "./core/workspaces";
-import type { Screen } from "./core/workspaces";
-import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/working-memory";
-import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/working-memory";
-import { messagesFromConversationHistory, parseConversationHistorySnapshot } from "./core/conversation-history";
-import { parseOwnerProfileSnapshot } from "./core/owner-profile";
-import type { OwnerProfileSnapshot } from "./core/owner-profile";
+import { Conversacion } from "./pages/conversation/ConversationPage";
+import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./pages/conversation/ConversationPage";
+import { Volumen } from "./pages/cognitive/NeuralVolumePage";
+import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
+import { Estado } from "./pages/cognitive/StateControlsPage";
+import { Planificador } from "./pages/cognitive/ActionPlannerPage";
+import { Memoria } from "./pages/memory/MemoryVaultPage";
+import { Actividad } from "./pages/cognitive/ActivityPage";
+import { Puentes } from "./pages/governance/CapabilityRegistryPage";
+import { Identificacion } from "./pages/cognitive/InputIdentificationPage";
+import { Configuracion } from "./pages/governance/SystemSettingsPage";
+import { Habilidades } from "./pages/governance/SkillWorkshopPage";
+import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
+import { buildBrainSnapshot } from "./core/cognitive/brain";
+import { createCognitiveEvent } from "./core/cognitive/cognitive-events";
+import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive/cognitive-events";
+import { NavigationIcon } from "./components/icons/NavigationIcon";
+import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
+import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
+import { loadCompatibleArray } from "./core/shared/storage-migration";
+import { parsePermissionGatewayStatus } from "./core/governance/permissions";
+import { workspaceForScreen, workspaceScreens } from "./core/navigation/workspaces";
+import type { Screen } from "./core/navigation/workspaces";
+import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/memory/working-memory";
+import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/memory/working-memory";
+import { messagesFromConversationHistory, parseConversationHistorySnapshot } from "./core/conversation/conversation-history";
+import { parseOwnerProfileSnapshot } from "./core/conversation/owner-profile";
+import type { OwnerProfileSnapshot } from "./core/conversation/owner-profile";
+import { parseConversationLearningConfirmation, parseConversationLearningPreview } from "./core/conversation/conversation-learning";
+import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "./core/conversation/conversation-learning";
+import { parseVoiceOutputPreview, parseVoiceOutputResult } from "./core/voice/voice-output";
+import type { VoiceOutputPreview, VoiceOutputResult } from "./core/voice/voice-output";
+import { parseVoiceTurnTranscript } from "./core/voice/voice-input";
+import type { VoiceTurnTranscript } from "./core/voice/voice-input";
 
 type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
 
 type Session = {
+  affects?: import("./core/cognitive/affect").MemoryAffect[];
   id: string;
   kind: SessionKind;
   intention: string;
@@ -75,7 +82,25 @@ type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boole
 const storageKey = "alice-cognitive-core-sessions-v1";
 const legacyStorageKeys = ["proyecto-p-sessions-v1"];
 const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
-const Avatar = lazy(() => import("./Page/Avatar").then((module) => ({ default: module.Avatar })));
+const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
+
+const screenTechnicalTitles: Record<Screen, string> = {
+  identificacion: "COGNITIVE IDENTIFICATION",
+  nucleo: "COGNITIVE VOLUME",
+  flujo: "EVIDENCE FLOW",
+  estado: "STATE & CONTROLS",
+  planificador: "ACTION PLANNER",
+  memoria: "MEMORY VAULT",
+  actividad: "COGNITIVE ACTIVITY",
+  rostro: "FACE CALIBRATION",
+  cuerpo: "BODY SOLVER",
+  avatar: "AVATAR VRM",
+  puentes: "CAPABILITY REGISTRY",
+  auditoria: "AUDIT & DIAGNOSTICS",
+  habilidades: "SKILL WORKSHOP",
+  procedimientos: "PROCEDURE OBSERVER",
+  configuracion: "SYSTEM SETTINGS",
+};
 
 function loadCloudSelection() {
   try {
@@ -112,6 +137,7 @@ export function App() {
   const [cloudPending, setCloudPending] = useState(false);
   const [memoryRetrieval, setMemoryRetrieval] = useState<{ count: number; top: string; ids: string[] }>({ count: 0, top: "", ids: [] });
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
+    { id: "llamacpp", label: "Gemma local · llama.cpp", configured: false, defaultModel: "gemma-4-E2B-it-Q4_K_M", protocol: "Local · inicio manual", retentionMode: "Sin nube" },
     { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
     { id: "openai", label: "OpenAI", configured: false, defaultModel: "gpt-5.6-terra", protocol: "Responses API", retentionMode: "store: false" },
     { id: "anthropic", label: "Anthropic", configured: false, defaultModel: "", protocol: "Messages API", retentionMode: "solicitud sin estado local" },
@@ -379,6 +405,67 @@ export function App() {
     }
   }
 
+  async function previewHybridMemoryRetrieval(request: HybridRetrievalRequest) {
+    if (!desktopApp) throw new Error("La ampliación con Gemma requiere la aplicación de escritorio.");
+    try {
+      const preview = await invoke<HybridRetrievalPreview>("preview_hybrid_memory_retrieval", { request });
+      recordEvent("MEMORY", "HYBRID_RETRIEVAL_PREVIEW", `${preview.matches.length} candidatos ordenados localmente · no persistidos · revisión humana requerida`);
+      return preview;
+    } catch (error) {
+      recordEvent("SECURITY", "HYBRID_RETRIEVAL_PREVIEW_ERROR", String(error), "WARN");
+      throw error;
+    }
+  }
+
+  async function previewConversationLearning(exchangeId: string) {
+    if (!desktopApp) throw new Error("La propuesta de recuerdo requiere la aplicación de escritorio.");
+    const preview = parseConversationLearningPreview(await invoke<unknown>("preview_conversation_learning", { input: { exchangeId } }));
+    recordEvent("MEMORY", "CONVERSATION_LEARNING_PREVIEW", `${preview.candidates.length} propuestas locales · no persistidas · sólo evidencia del propietario`);
+    return preview;
+  }
+
+  async function confirmConversationLearning(preview: ConversationLearningPreview, candidate: ConversationLearningCandidate, approved: ConversationLearningApproval) {
+    if (!desktopApp) throw new Error("La confirmación de recuerdo requiere la aplicación de escritorio.");
+    const result = parseConversationLearningConfirmation(await invoke<unknown>("confirm_conversation_learning", { input: {
+      exchangeId: preview.exchangeId,
+      expectedConversationSha256: preview.sourceSha256,
+      expectedMemorySha256: preview.memorySha256,
+      candidate,
+      approved,
+      confirmed: true,
+    } }));
+    await reloadMemoryFromDisk();
+    recordEvent("MEMORY", result.alreadyConfirmed ? "CONVERSATION_LEARNING_DUPLICATE" : "CONVERSATION_LEARNING_CONFIRMED", `${result.recordId} · confirmado por el propietario · ${result.recordCount} recuerdos locales`);
+    return result;
+  }
+
+  async function previewVoiceOutput(exchangeId: string): Promise<VoiceOutputPreview> {
+    if (!desktopApp) throw new Error("La voz de Alice requiere la aplicación de escritorio.");
+    const preview = parseVoiceOutputPreview(await invoke<unknown>("preview_voice_output", { input: { exchangeId } }));
+    recordEvent("OUTPUT", "VOICE_OUTPUT_PREVIEW", `${preview.characterCount}/${preview.characterLimit} caracteres · Fish Audio · sin audio persistente`);
+    return preview;
+  }
+
+  async function confirmVoiceOutput(requestId: string): Promise<VoiceOutputResult> {
+    if (!desktopApp) throw new Error("La voz de Alice requiere la aplicación de escritorio.");
+    const result = parseVoiceOutputResult(await invoke<unknown>("confirm_voice_output", { input: { requestId, confirmed: true } }));
+    recordEvent("OUTPUT", "VOICE_OUTPUT_COMPLETE", `${result.characterCount} caracteres · ${result.durationMs} ms · MP3 temporal · sin memoria ni archivo`);
+    return result;
+  }
+
+  async function cancelVoiceOutput(requestId: string): Promise<void> {
+    if (!desktopApp) return;
+    await invoke<unknown>("cancel_voice_output", { input: { requestId } });
+    recordEvent("OUTPUT", "VOICE_OUTPUT_CANCELLED", "Vista previa descartada antes de enviar texto a Fish Audio.");
+  }
+
+  async function transcribeVoiceTurn(audioBase64: string, mimeType: string): Promise<VoiceTurnTranscript> {
+    if (!desktopApp) throw new Error("La transcripción de voz requiere la aplicación de escritorio.");
+    const result = parseVoiceTurnTranscript(await invoke<unknown>("transcribe_voice_turn", { input: { audioBase64, mimeType, confirmed: true } }));
+    recordEvent("PERCEPTION", result.noSpeech ? "VOICE_TURN_NO_SPEECH" : "VOICE_TURN_TRANSCRIBED", `${result.durationMs} ms · audio descartado · borrador no enviado`);
+    return result;
+  }
+
   async function assessRetrievalOutcome(recordId: string, outcome: RetrievalOutcome) {
     const target = sessionsRef.current.find((session) => session.id === recordId);
     if (!target || target.kind !== "Enseñanza" || target.memoryStatus !== "confirmed" || target.archiveStatus === "archived") throw new Error("El recuerdo ya no admite una evaluación de recuperación.");
@@ -450,8 +537,9 @@ export function App() {
 
   return <main className="shell">
     <header className="hero">
-      <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE · NÚCLEO OBSERVABLE</p><span className="privacy-badge"><i />Local-first</span></div>
-      <h1>Una presencia digital,<br /><em>bajo tu control.</em></h1>
+      <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA</p></div>
+      <h1><span>Una presencia digital,</span> <em>bajo tu control.</em></h1>
+      <span className="privacy-badge"><i />Local-first</span>
     </header>
 
     <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
@@ -468,7 +556,7 @@ export function App() {
 
     <section className={`core-system-frame system-${workspace}`} aria-labelledby="active-system-title">
       <header className="core-system-heading">
-        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SYS.00] OWNER GOVERNANCE"}</span><h2 id="active-system-title">{workspace === "governance" ? "ALICE_LOCAL_CONTROL" : "ALICE_NEURAL_CORE"} <em>// {workspace === "cognitive" ? "COGNITIVE IDENTIFICATION" : workspace === "body" ? "BODY SOLVER" : "GOVERNANCE"}</em></h2></div>
+        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SYS.00] OWNER GOVERNANCE"}</span><h2 id="active-system-title">{workspace === "governance" ? "ALICE_LOCAL_CONTROL" : "ALICE_NEURAL_CORE"} <em>// {screenTechnicalTitles[screen]}</em></h2></div>
         <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "OWNER CONTROL · LOCAL ONLY"}</p>
       </header>
 
@@ -501,7 +589,7 @@ export function App() {
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
     {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}

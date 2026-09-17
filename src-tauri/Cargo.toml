@@ -1,11 +1,11 @@
 [package]
-name = "alice-cognitive-core"
+name = "alice-continuum"
 version = "0.1.0"
-description = "Asistente personal local con contexto explícito"
+description = "Alice Continuum: plataforma local de memoria, cognición y presencia digital"
 edition = "2021"
 
 [lib]
-name = "alice_cognitive_core_lib"
+name = "alice_continuum_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -19,4 +19,13 @@ tauri = { version = "2", features = ["protocol-asset", "image-png"] }
 tauri-plugin-notification = "2"
 uuid = { version = "1", features = ["v4"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+base64 = "0.22"
 windows = { version = "0.62", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging"] }
+
+# Alice prioriza no acumular varios GB de artefactos incrementales reproducibles.
+# Cargo conserva las dependencias compiladas, pero no el historial interno por edición.
+[profile.dev]
+incremental = false
+
+[profile.test]
+incremental = false

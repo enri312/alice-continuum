@@ -32,6 +32,8 @@ pub(crate) struct MemoryContextEvent {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct MemorySession {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    affects: Vec<crate::memory_affect::MemoryAffect>,
     id: String,
     kind: String,
     intention: String,
@@ -87,6 +89,20 @@ pub(crate) struct MemorySnapshot {
 pub(crate) struct ConfirmedLearningAppendInput {
     pub(crate) candidate_id: String,
     pub(crate) source_record_id: String,
+    pub(crate) model: String,
+    pub(crate) intention: String,
+    pub(crate) summary: String,
+    pub(crate) memory_type: String,
+    pub(crate) importance: u8,
+    pub(crate) confirmed_at: String,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct ConfirmedConversationLearningAppendInput {
+    pub(crate) affects: Vec<crate::memory_affect::MemoryAffect>,
+    pub(crate) candidate_id: String,
+    pub(crate) conversation_exchange_id: String,
+    pub(crate) conversation_source_sha256: String,
     pub(crate) model: String,
     pub(crate) intention: String,
     pub(crate) summary: String,
@@ -366,6 +382,148 @@ pub(crate) struct MemoryLifecycleReference {
     archived: bool,
     base_version: u32,
     reconsolidation_count: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryGraphLayer {
+    Episodic,
+    TaughtFact,
+    Procedural,
+    Unclassified,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum MemoryGraphEvidenceUse {
+    Blocked,
+    EpisodeOnly,
+    OwnerConfirmedContent,
+    ProcedureReferenceOnly,
+    ReviewRequired,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct MemoryGraphReference {
+    node_id: String,
+    record_version: u32,
+    lifecycle: MemoryLifecycleReference,
+    layer: MemoryGraphLayer,
+    has_declared_source: bool,
+    evidence_use: MemoryGraphEvidenceUse,
+}
+
+// R8 consumes the existing R6 validation and classification rather than inferring
+// facts from model responses or maintaining a second lifecycle policy.
+pub(crate) fn graph_references_from_source(
+    content: &str,
+) -> Result<Vec<MemoryGraphReference>, String> {
+    let sessions: Vec<MemorySession> = serde_json::from_str(content)
+        .map_err(|_| "La fuente del grafo no contiene registros de memoria válidos".to_string())?;
+    if sessions.len() > 10_000 {
+        return Err("La fuente del grafo supera el límite de 10.000 registros".into());
+    }
+    validate_memory_sessions(&sessions)?;
+    let classified = classify_layered_memory(content, &sessions, String::new());
+    let episodic: HashSet<_> = classified
+        .layers
+        .episodic
+        .iter()
+        .map(|r| r.record_id.as_str())
+        .collect();
+    let taught: HashSet<_> = classified
+        .layers
+        .taught_facts
+        .iter()
+        .map(|r| r.record_id.as_str())
+        .collect();
+    let procedural: HashSet<_> = classified
+        .layers
+        .procedural
+        .iter()
+        .map(|r| r.record_id.as_str())
+        .collect();
+    let mut references = Vec::with_capacity(sessions.len());
+    for session in &sessions {
+        let lifecycle = lifecycle_reference(session)?;
+        let layer = if episodic.contains(session.id.as_str()) {
+            MemoryGraphLayer::Episodic
+        } else if taught.contains(session.id.as_str()) {
+            MemoryGraphLayer::TaughtFact
+        } else if procedural.contains(session.id.as_str()) {
+            MemoryGraphLayer::Procedural
+        } else {
+            MemoryGraphLayer::Unclassified
+        };
+        let has_declared_source = session
+            .source
+            .as_deref()
+            .is_some_and(|s| !s.trim().is_empty());
+        let evidence_use = if !matches!(
+            lifecycle.retrieval_policy,
+            MemoryRetrievalPolicy::Eligible | MemoryRetrievalPolicy::LegacyEligible
+        ) {
+            MemoryGraphEvidenceUse::Blocked
+        } else {
+            match layer {
+                MemoryGraphLayer::Episodic => MemoryGraphEvidenceUse::EpisodeOnly,
+                MemoryGraphLayer::TaughtFact
+                    if has_declared_source
+                        && lifecycle.validity == MemoryValidityState::Current =>
+                {
+                    MemoryGraphEvidenceUse::OwnerConfirmedContent
+                }
+                MemoryGraphLayer::Procedural => MemoryGraphEvidenceUse::ProcedureReferenceOnly,
+                _ => MemoryGraphEvidenceUse::ReviewRequired,
+            }
+        };
+        references.push(MemoryGraphReference {
+            node_id: format!("record:{}", session.id),
+            record_version: session.memory_version.unwrap_or(1),
+            lifecycle,
+            layer,
+            has_declared_source,
+            evidence_use,
+        });
+    }
+    references.sort_by(|left, right| left.node_id.cmp(&right.node_id));
+    Ok(references)
+}
+
+// R8.2 only accepts exact author input from eligible episodes, never model replies.
+pub(crate) fn validate_graph_episode_evidence(
+    content: &str,
+    id: &str,
+    version: u32,
+    hash: &str,
+    quote: &str,
+) -> Result<(usize, usize), String> {
+    if quote.trim().is_empty() || quote.len() > 2048 {
+        return Err("La evidencia debe contener texto y no superar 2048 bytes".into());
+    }
+    let references = graph_references_from_source(content)?;
+    let reference = references
+        .iter()
+        .find(|r| r.lifecycle.record_id == id)
+        .ok_or("La fuente ya no existe")?;
+    if reference.record_version != version || reference.lifecycle.record_sha256 != hash {
+        return Err("La fuente cambió: reconstruya la propuesta".into());
+    }
+    if reference.evidence_use != MemoryGraphEvidenceUse::EpisodeOnly {
+        return Err("La fuente no es un episodio recuperable".into());
+    }
+    let sessions: Vec<MemorySession> =
+        serde_json::from_str(content).map_err(|_| "Fuente inválida")?;
+    let session = sessions
+        .iter()
+        .find(|r| r.id == id)
+        .ok_or("La fuente ya no existe")?;
+    let start = session
+        .intention
+        .find(quote)
+        .ok_or("La cita no aparece en la entrada del episodio")?;
+    Ok((start, start + quote.len()))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1274,6 +1432,7 @@ pub(crate) struct RollbackLayeredMemoryInput {
 fn validate_memory_sessions(sessions: &[MemorySession]) -> Result<(), String> {
     let mut ids = HashSet::with_capacity(sessions.len());
     for (index, session) in sessions.iter().enumerate() {
+        crate::memory_affect::validate_affects(&session.affects, None)?;
         let record = index + 1;
         if session.id.trim().is_empty() || !ids.insert(session.id.trim()) {
             return Err(format!(
@@ -4829,6 +4988,7 @@ fn append_confirmed_learning_at(
     sessions.insert(
         0,
         MemorySession {
+            affects: Vec::new(),
             id: record_id.clone(),
             kind: "Enseñanza".into(),
             intention: input.intention.trim().to_string(),
@@ -4937,6 +5097,205 @@ pub(crate) fn append_confirmed_learning(
         &subject_digest,
         "LOCAL_LEARNING_CANDIDATE_CONFIRMED",
         || append_confirmed_learning_at(&data_root, expected_source_sha256, input),
+    )
+}
+
+fn confirmed_conversation_learning_source(
+    input: &ConfirmedConversationLearningAppendInput,
+) -> String {
+    format!(
+        "Gemma local · {} · intercambio {} · fuente {} · candidato {}",
+        input.model,
+        input.conversation_exchange_id,
+        input.conversation_source_sha256,
+        input.candidate_id
+    )
+}
+
+fn validate_confirmed_conversation_learning_append(
+    input: &ConfirmedConversationLearningAppendInput,
+) -> Result<(), String> {
+    if !is_sha256(&input.candidate_id) || !is_sha256(&input.conversation_source_sha256) {
+        return Err("La propuesta de conversación no posee huellas válidas".into());
+    }
+    if uuid::Uuid::parse_str(&input.conversation_exchange_id)
+        .map(|id| id.to_string() != input.conversation_exchange_id)
+        .unwrap_or(true)
+    {
+        return Err("El intercambio de conversación no posee un UUID válido".into());
+    }
+    validate_confirmed_learning_append(&ConfirmedLearningAppendInput {
+        candidate_id: input.candidate_id.clone(),
+        source_record_id: input.conversation_exchange_id.clone(),
+        model: input.model.clone(),
+        intention: input.intention.clone(),
+        summary: input.summary.clone(),
+        memory_type: input.memory_type.clone(),
+        importance: input.importance,
+        confirmed_at: input.confirmed_at.clone(),
+    })
+}
+
+fn append_confirmed_conversation_learning_at(
+    data_root: &Path,
+    expected_memory_sha256: &str,
+    input: ConfirmedConversationLearningAppendInput,
+) -> Result<ConfirmedLearningAppendResult, String> {
+    if !is_sha256(expected_memory_sha256) {
+        return Err("La huella revisada de la memoria no es válida".into());
+    }
+    validate_confirmed_conversation_learning_append(&input)?;
+    let source_path = data_root.join("memory").join("records.json");
+    let source_content = fs::read_to_string(&source_path)
+        .map_err(|error| format!("No se pudo releer records.json para confirmar: {error}"))?;
+    let mut sessions = serde_json::from_str::<Vec<MemorySession>>(&source_content)
+        .map_err(|error| format!("records.json no es una memoria válida: {error}"))?;
+    validate_memory_sessions(&sessions)?;
+    let current_memory_sha256 = memory_subject_digest(&source_content);
+    let provenance = confirmed_conversation_learning_source(&input);
+    if let Some(existing) = sessions.iter().find(|session| {
+        session.kind == "Enseñanza" && session.source.as_deref() == Some(provenance.as_str())
+    }) {
+        let exact_retry = existing.intention == input.intention.trim()
+            && existing.summary.as_deref() == Some(input.summary.trim())
+            && existing.memory_type.as_deref() == Some(input.memory_type.as_str())
+            && existing.importance == Some(input.importance)
+            && existing.affects == input.affects
+            && existing.memory_status.as_deref() == Some("confirmed");
+        if !exact_retry {
+            return Err(
+                "La propuesta ya fue confirmada con otro contenido; revisá el recuerdo existente"
+                    .into(),
+            );
+        }
+        return Ok(ConfirmedLearningAppendResult {
+            record_id: existing.id.clone(),
+            record_count: sessions.len(),
+            source_sha256: current_memory_sha256,
+            backup_sha256: expected_memory_sha256.to_string(),
+            storage_path: source_path.display().to_string(),
+            already_confirmed: true,
+            audit_written: false,
+        });
+    }
+    if current_memory_sha256 != expected_memory_sha256 {
+        return Err(
+            "La memoria cambió después de la vista previa; revisá la propuesta nuevamente".into(),
+        );
+    }
+    let record_id = uuid::Uuid::new_v4().to_string();
+    sessions.insert(
+        0,
+        MemorySession {
+            affects: input.affects,
+            id: record_id.clone(),
+            kind: "Enseñanza".into(),
+            intention: input.intention.trim().to_string(),
+            started_at: input.confirmed_at.clone(),
+            finished_at: Some(input.confirmed_at),
+            summary: Some(input.summary.trim().to_string()),
+            next_step: None,
+            memory_type: Some(input.memory_type),
+            source: Some(provenance),
+            importance: Some(input.importance),
+            storage_strength: Some(0.18),
+            memory_status: Some("confirmed".into()),
+            accessibility_status: None,
+            accessibility_updated_at: None,
+            suppression_status: None,
+            suppression_reason: None,
+            suppression_updated_at: None,
+            archive_status: None,
+            archive_reason: None,
+            archive_updated_at: None,
+            deletion_status: None,
+            deletion_reason: None,
+            deletion_requested_at: None,
+            deletion_eligible_at: None,
+            memory_version: None,
+            reconsolidated_at: None,
+            reconsolidation_reason: None,
+            previous_version_sha256: None,
+            successful_recalls: 0,
+            failed_recalls: 0,
+            last_recalled_at: None,
+            retrieval_evidence_version: None,
+            successful_reviews: 0,
+            correction_count: 0,
+            last_reviewed_at: None,
+            context_events: Vec::new(),
+        },
+    );
+    validate_memory_sessions(&sessions)?;
+    let projected = serde_json::to_string_pretty(&sessions).map_err(|error| error.to_string())?;
+    let backup_path = data_root
+        .join("memory")
+        .join("backups")
+        .join("records.backup.json");
+    fs::create_dir_all(
+        backup_path
+            .parent()
+            .ok_or("El respaldo no posee directorio")?,
+    )
+    .map_err(|error| format!("No se pudo preparar el respaldo de memoria: {error}"))?;
+    atomic_replace_text_file(
+        &backup_path,
+        &source_content,
+        "conversation-learning-backup.tmp",
+        "respaldo de aprendizaje",
+    )?;
+    atomic_replace_text_file(
+        &source_path,
+        &projected,
+        "conversation-learning-records.tmp",
+        "records.json de aprendizaje",
+    )?;
+    if let Err(audit_error) = append_memory_audit(
+        &source_path,
+        "confirm-conversation-learning",
+        sessions.len(),
+        &projected,
+    ) {
+        if let Err(restore_error) = atomic_replace_text_file(
+            &source_path,
+            &source_content,
+            "conversation-learning-restore.tmp",
+            "restauración de aprendizaje",
+        ) {
+            return Err(format!(
+                "Falló la auditoría ({audit_error}) y también la restauración ({restore_error})"
+            ));
+        }
+        return Err(format!(
+            "La auditoría falló y records.json fue restaurado: {audit_error}"
+        ));
+    }
+    Ok(ConfirmedLearningAppendResult {
+        record_id,
+        record_count: sessions.len(),
+        source_sha256: memory_subject_digest(&projected),
+        backup_sha256: current_memory_sha256,
+        storage_path: source_path.display().to_string(),
+        already_confirmed: false,
+        audit_written: true,
+    })
+}
+
+pub(crate) fn append_confirmed_conversation_learning(
+    app: &AppHandle,
+    expected_memory_sha256: &str,
+    input: ConfirmedConversationLearningAppendInput,
+) -> Result<ConfirmedLearningAppendResult, String> {
+    let _write_guard = acquire_memory_write_lock()?;
+    let data_root = alice_data_root_path(app)?;
+    let subject_digest = input.candidate_id.clone();
+    audited_memory_operation(
+        app,
+        "memory.records.write",
+        "memory.conversationlearning.confirm",
+        &subject_digest,
+        "CONVERSATION_LEARNING_CONFIRMED",
+        || append_confirmed_conversation_learning_at(&data_root, expected_memory_sha256, input),
     )
 }
 
@@ -6982,6 +7341,7 @@ mod tests {
     #[test]
     fn memory_session_round_trip_preserves_camel_case_contract() {
         let session = MemorySession {
+            affects: Vec::new(),
             id: "s1".into(),
             kind: "Proyecto".into(),
             intention: "Probar memoria".into(),
@@ -10228,6 +10588,68 @@ mod tests {
             importance: 4,
             confirmed_at: "2026-08-20T23:30:00Z".into(),
         }
+    }
+
+    fn confirmed_conversation_learning_fixture() -> ConfirmedConversationLearningAppendInput {
+        ConfirmedConversationLearningAppendInput {
+            affects: vec![crate::memory_affect::MemoryAffect {
+                emotion: "joy".into(),
+                intensity: 0.8,
+                evidence: "Me siento feliz".into(),
+            }],
+            candidate_id: format!("sha256:{}", "b".repeat(64)),
+            conversation_exchange_id: "4d5d2b38-9ea2-4b8b-a711-5a0fc6cdaee7".into(),
+            conversation_source_sha256: format!("sha256:{}", "c".repeat(64)),
+            model: "gemma-local".into(),
+            intention: "Me siento feliz con este avance".into(),
+            summary: "Carlos expresó felicidad por el avance.".into(),
+            memory_type: "episodic".into(),
+            importance: 4,
+            confirmed_at: "2026-09-08T21:30:00Z".into(),
+        }
+    }
+
+    #[test]
+    fn confirmed_conversation_persists_reviewed_affect_once() {
+        let root = temporary_probe_root("conversation-affect-confirm");
+        let original = write_layered_fixture(&root, &[legacy_memory()]);
+        let original_sha256 = memory_subject_digest(&original);
+
+        let first = append_confirmed_conversation_learning_at(
+            &root,
+            &original_sha256,
+            confirmed_conversation_learning_fixture(),
+        )
+        .expect("confirm conversation memory with affect");
+        let stored = fs::read_to_string(root.join("memory").join("records.json"))
+            .expect("read confirmed memory");
+        let sessions: Vec<MemorySession> =
+            serde_json::from_str(&stored).expect("decode confirmed memory");
+
+        assert_eq!(sessions[0].affects.len(), 1);
+        assert_eq!(sessions[0].affects[0].emotion, "joy");
+        assert_eq!(sessions[0].importance, Some(4));
+        assert!(first.audit_written);
+
+        let retry = append_confirmed_conversation_learning_at(
+            &root,
+            &original_sha256,
+            confirmed_conversation_learning_fixture(),
+        )
+        .expect("idempotent conversation confirmation");
+        assert!(retry.already_confirmed);
+        let mut changed = confirmed_conversation_learning_fixture();
+        changed.affects[0].intensity = 0.4;
+        assert!(
+            append_confirmed_conversation_learning_at(&root, &original_sha256, changed)
+                .unwrap_err()
+                .contains("otro contenido")
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("memory").join("records.json")).unwrap(),
+            stored
+        );
+        fs::remove_dir_all(root).expect("remove conversation affect fixture");
     }
 
     #[test]

@@ -37,7 +37,7 @@ La memoria canónica no contiene duplicados exactos ni pares de revisión. Alice
 
 | Comando | Resultado |
 |---|---|
-| `npx vitest run src/core/memory-consolidation-preview.test.ts` | 6/6 aprobadas |
+| `npx vitest run src/core/memory/memory-consolidation-preview.test.ts` | 6/6 aprobadas |
 | `npm test` | 282/282 aprobadas |
 | `npm run build` | aprobado; advertencia informativa por tamaño de chunks |
 | `cargo test r6_3_c_merge_preview_requires_exact_pair_and_never_writes` | 1/1 aprobada |

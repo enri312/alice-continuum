@@ -11,7 +11,7 @@ El archivo declara uso del creador, atribución requerida, redistribución prohi
 
 ## Decisión
 
-- Crear una pantalla `src/Page/Avatar.tsx` y un visor WebGL reutilizable.
+- Crear una pantalla `src/pages/embodiment/AvatarPage.tsx` y un visor WebGL reutilizable.
 - Cargar VRM 1.0 con Three.js, `GLTFLoader` y `VRMLoaderPlugin` de `@pixiv/three-vrm`.
 - Exponer solamente el archivo exacto `E:\Alice Cognitive Core\Assets\Alice.vrm` mediante el protocolo local de Tauri. No se habilitarán comodines sobre el disco E ni la carpeta personal.
 - Obtener la ruta y el estado desde un comando Rust; React no adivina rutas ni examina carpetas.

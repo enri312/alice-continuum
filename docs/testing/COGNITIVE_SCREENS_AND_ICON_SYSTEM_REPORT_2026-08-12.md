@@ -8,16 +8,16 @@ Las cuatro áreas que estaban bajo Núcleo se separaron en páginas React reales
 
 | Pantalla | Archivo | Ruta de interfaz |
 |---|---|---|
-| Volumen cognitivo | `src/Page/Volumen.tsx` | `nucleo` (alias de compatibilidad) |
-| Flujo cognitivo | `src/Page/Flujo.tsx` | `flujo` |
-| Estado y controles | `src/Page/Estado.tsx` | `estado` |
-| Planificador de acción | `src/Page/Planificador.tsx` | `planificador` |
+| Volumen cognitivo | `src/pages/cognitive/NeuralVolumePage.tsx` | `nucleo` (alias de compatibilidad) |
+| Flujo cognitivo | `src/pages/cognitive/EvidenceFlowPage.tsx` | `flujo` |
+| Estado y controles | `src/pages/cognitive/StateControlsPage.tsx` | `estado` |
+| Planificador de acción | `src/pages/cognitive/ActionPlannerPage.tsx` | `planificador` |
 
-Las cuatro reutilizan el snapshot nativo R3 mediante `src/Page/nucleus-shared.tsx`. Separar las pantallas no agrega capacidad cognitiva ni convierte métricas en emociones o decisiones.
+Las cuatro reutilizan el snapshot nativo R3 mediante `src/pages/shared/nucleus-shared.tsx`. Separar las pantallas no agrega capacidad cognitiva ni convierte métricas en emociones o decisiones.
 
 ## Iconos
 
-Dieciocho SVG funcionales se generan desde cero en una familia técnica de `200 × 200`; `nav-memory.svg` y la base visual de `nav-conversation.svg` fueron aportados por el propietario, auditados como SVG autónomos y adaptados como fuentes manuales. `nav-avatar.svg` y `bridge-face.svg` se diseñaron manualmente desde cero y quedaron protegidos contra regeneración. Se revisó la colección de Cyrcetech para identificar su gramática visual real: capas de chasis, retículas, anillos discontinuos, tornillos, LEDs, plataformas isométricas, caras laterales, sombras y reflejos. Ningún recurso de `E:\proyect2026\Cyrcetech\apps\web\icons` fue importado o enlazado. La fuente reproducible de los otros 18 iconos se conserva en `scripts/generate-alice-icon-system.mjs`.
+Dieciocho SVG funcionales se generan desde cero en una familia técnica de `200 × 200`; `nav-memory.svg` y la base visual de `nav-conversation.svg` fueron aportados por el propietario, auditados como SVG autónomos y adaptados como fuentes manuales. `nav-avatar.svg` y `bridge-face.svg` se diseñaron manualmente desde cero y quedaron protegidos contra regeneración. Se revisó la colección de Cyrcetech para identificar su gramática visual real: capas de chasis, retículas, anillos discontinuos, tornillos, LEDs, plataformas isométricas, caras laterales, sombras y reflejos. Ningún recurso de `E:\proyect2026\Cyrcetech\apps\web\icons` fue importado o enlazado. La fuente reproducible de los otros 18 iconos se conserva en `scripts/icons/generate-icons.mjs`.
 
 La segunda revisión semántica sustituyó los adornos genéricos por componentes de cada pantalla: privacidad y salida a nube en Conversación; timeline R3 en Actividad; registro pasivo y `SAFE OFF` en Puentes; tokens, fuente e intención en Identificación; manifiesto, simulación y SHA-256 en Habilidades; evidencia R3 y conversión a borrador R4 en Procedimientos; y señales verificables o bloqueadas en las cuatro vistas cognitivas. La revisión de agosto rehízo Avatar y Rostro como instrumentos claramente distintos y eliminó facciones frontales que perdían legibilidad al reducirse. Avatar representa una estación de personalización VRM: cabello, conjunto techwear, arnés, botas, rig humanoide, 12 clips y DualSense son módulos separados; ningún elemento cambia de posición y la animación se limita a dos pulsos lentos de luminosidad. Rostro representa una cámara de calibración y un perfil humano abstracto, cinco dependencias inactivas, ocho canales reservados, cero landmarks, cero FPS y persistencia de video desactivada.
 

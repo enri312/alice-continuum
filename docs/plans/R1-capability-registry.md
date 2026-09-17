@@ -47,7 +47,7 @@ Materializar el contrato de `docs/architecture/CAPABILITY_REGISTRY_R1.md` sin a�
 
 ### Paso 4 — Contrato TypeScript
 
-- Crear tipos en `src/core/capabilities.ts`.
+- Crear tipos en `src/core/governance/capabilities.ts`.
 - Validar de forma defensiva el snapshot recibido.
 - Definir un fallback de navegador marcado como entorno de desarrollo, no como backend real.
 
@@ -81,8 +81,8 @@ Materializar el contrato de `docs/architecture/CAPABILITY_REGISTRY_R1.md` sin a�
 | `src-tauri/src/observation.rs` | Lectura del estado vigente sin activar captura. |
 | `src-tauri/src/memory.rs` | Sonda estrictamente pasiva de ruta y existencia. |
 | `src-tauri/src/avatar.rs` | Helper pasivo de disponibilidad. |
-| `src/core/capabilities.ts` | Tipos y validación defensiva. |
-| `src/Page/Puentes.tsx` | Consumo y presentación del snapshot. |
+| `src/core/governance/capabilities.ts` | Tipos y validación defensiva. |
+| `src/pages/governance/CapabilityRegistryPage.tsx` | Consumo y presentación del snapshot. |
 
 La lista es una previsión, no autorización para ampliar responsabilidades de esos módulos.
 

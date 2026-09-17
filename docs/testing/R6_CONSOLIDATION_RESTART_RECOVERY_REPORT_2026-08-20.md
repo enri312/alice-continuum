@@ -31,7 +31,7 @@ CANONICAL_HASH_CHANGES=0
 
 | Comando | Resultado |
 |---|---|
-| `npx vitest run src/core/memory-consolidation-preview.test.ts` | 6/6 aprobadas |
+| `npx vitest run src/core/memory/memory-consolidation-preview.test.ts` | 6/6 aprobadas |
 | `npm test` | 282/282 aprobadas |
 | `npm run build` | aprobado; advertencia informativa por tamaño de chunks |
 | `cargo test r6_3_e_durable_receipt_recovers_after_restart_and_retries_audit` | 1/1 aprobada |

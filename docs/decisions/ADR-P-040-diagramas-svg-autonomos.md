@@ -24,4 +24,4 @@ La versión 0.13 del documento maestro contenía bloques conceptuales y tablas, 
 
 ## Evidencia
 
-Los seis SVG se validan en `docs/testing/MASTER_DOCUMENT_REPORT_2026-08-08.md` y se integran en `docs/alice_documento_maestro.html`.
+Los seis SVG se validan en `docs/testing/MASTER_DOCUMENT_REPORT_2026-08-08.md` y se integran en `docs/especificacion_alice_continuum.html`.

@@ -14,7 +14,7 @@ Fecha: 2026-09-02
 ## Evidencia de ejecución
 
 - `cargo test -q --lib`: 243 aprobadas, 0 fallidas, 19 ignoradas.
-- `npm run test -- --run src/core/tasks.test.ts src/Page/Planificador.test.tsx`: 7 aprobadas, 0 fallidas.
+- `npm run test -- --run src/core/governance/tasks.test.ts src/pages/cognitive/ActionPlannerPage.test.tsx`: 7 aprobadas, 0 fallidas.
 - `npm run build`: compilación TypeScript y Vite aprobada; permanece el aviso preexistente de chunks grandes.
 - `cargo clippy --all-targets -- -D warnings`: aprobado.
 

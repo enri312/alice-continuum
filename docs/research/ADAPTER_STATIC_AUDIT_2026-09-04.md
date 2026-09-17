@@ -27,7 +27,7 @@ Dependencias halladas en el Python activo: `requests`, `numpy`, `cv2`, `mediapip
 | `stt.py` | transcripción local por archivo | descarga/carga modelos fuera de un contrato explícito; no limita audio, duración o salida | candidato R9 después de estabilizar percepción |
 | `windows-ocr.py` | OCR de una imagen local | dependencia ausente/no validada; no limita ruta, formato o tamaño y expone ruta absoluta | evaluar junto con observación visual R9 |
 | `vision-analyzer.py` | análisis visual mediante Ollama | `--ollama-host` acepta destinos arbitrarios y puede exfiltrar la imagen; no valida loopback, tamaño ni modelo | rescatar sólo tras fijar loopback y contrato de privacidad |
-| `knowledge-graph.py` | experimento de entidades y relaciones | puede enviar recuerdos a un host arbitrario, escribe un directorio libre y depende del almacenamiento interno de LightRAG | no usar como base de R8; conservar sólo como referencia conceptual |
+| `knowledge-graph.py` | experimento de entidades y relaciones | acepta un host y directorio arbitrarios y depende del almacenamiento interno de LightRAG | no conectar el script actual; evaluar LightRAG como motor bajo el contrato R8 |
 | `tts.py` | futura voz Fish Audio | red externa, archivo sobrescribible y contrato HTTP no validado; el texto viaja como argumento de proceso | reservar para R9 y rehacer tras verificar la API oficial |
 | `video-analyzer.py` | ideas de frames y transcripción | descarga URLs, inicia procesos y escribe libremente; exige `yt-dlp` incluso para archivos; `showinfo` queda oculto por `loglevel error`, por lo que los tiempos pueden quedar en cero | alto riesgo; no integrar |
 | `web-searcher.py` | resultados web básicos | red sin vista previa, procedencia fuerte, allowlist ni control de volumen | futuro con capacidad R1/R2/R3 propia |
@@ -47,6 +47,30 @@ Dependencias halladas en el Python activo: `requests`, `numpy`, `cv2`, `mediapip
    almacenamiento opt-in y auditoría R3 sin contenido sensible.
 5. Mantener TTS, web, video y actuadores fuera del runtime hasta disponer de contratos
    de red/proceso/mutación y pruebas reales separadas.
+
+## Aclaración al comenzar R8
+
+La evaluación del script no descarta LightRAG. La documentación oficial describe
+extracción de entidades/relaciones, búsquedas por grafos y vectores, citas y eliminación
+documental. Son funciones aprovechables. Alice necesita enlazarlas con la identidad,
+versión, vigencia, supresión y evidencia de sus recuerdos antes de adoptarlas.
+
+El prototipo recibe un archivo completo como texto: no filtra estados R6 ni distingue
+afirmaciones del propietario de respuestas históricas del modelo. Tampoco conserva
+en su salida el ID y la versión de cada recuerdo que respalda una relación. Permite
+cambiar el modelo de embeddings mientras fija su dimensión en 768, y no declara una
+política de reconstrucción al cambiar modelo o fuente. Estos son problemas del
+adaptador; no prueban que LightRAG sea incapaz de soportar una integración correcta.
+
+Referencia: [documentación oficial de LightRAG](https://github.com/HKUDS/LightRAG),
+consultada el 2026-09-04. Decisión: [contrato R8](../architecture/KNOWLEDGE_GRAPH_R8.md).
+
+"Efectos externos" incluye operaciones observables fuera del cálculo: enviar texto
+a Fish Audio, consultar una web, descargar video, crear audio o cambiar volumen y
+brillo. Aislar estos prototipos significa que Alice aún no los invoca. No significa
+que se hayan descartado o que toda acción deba pedir permiso repetidamente: se
+integrarán con el alcance y la autorización vigentes, tratamiento de errores,
+indicadores y cancelación cuando la operación lo permita.
 
 ## Hashes congelados
 

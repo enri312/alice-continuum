@@ -288,13 +288,14 @@ async fn preview_inner(
         .map(|value| !value.trim().is_empty())
         .unwrap_or(false)
     {
-        return Err("Ollama local no está listo. Iniciá Alice con Iniciar Alice.cmd".into());
+        return Err("Ollama local no está listo. Iniciá Alice con Iniciar Alice Continuum.cmd".into());
     }
     let evidence_fragments = literal_evidence_fragments(source);
     if evidence_fragments.is_empty() {
         return Err("El recuerdo no contiene fragmentos literales aptos como evidencia".into());
     }
-    let response = reqwest::Client::new()
+    let _local_permit = crate::local_inference::acquire_ollama(&input.model).await?;
+    let response = crate::local_inference::client()?
         .post(OLLAMA_LOCAL_CHAT_ENDPOINT)
         .timeout(Duration::from_secs(180))
         .json(&ollama_body(input, source, &evidence_fragments))

@@ -16,7 +16,7 @@ El favicon vigente muestra solamente una letra A y el ejecutable conserva un `.i
 - Utilizar la misma fuente para favicon y para generar el conjunto de iconos de Tauri.
 - Conservar los archivos derivados en `src-tauri/icons/` y declarar el conjunto en `tauri.conf.json`.
 - Asignar también `icons/icon.png` a la ventana principal durante el arranque. Así el modo de desarrollo no depende únicamente del recurso del ejecutable ni de la caché visual de Windows.
-- Mantener un único destino de compilación en `src-tauri/target` desde `Iniciar Alice.cmd` para evitar abrir una copia anterior de Alice.
+- Mantener un único destino de compilación en `src-tauri/target` desde `Iniciar Alice Continuum.cmd` para evitar abrir una copia anterior de Alice.
 
 ## Criterios de aceptación
 

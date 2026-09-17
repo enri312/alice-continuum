@@ -28,3 +28,5 @@ Assets/Animations/private/
 Assets/Models/private/
 # Prototipos externos en cuarentena: no forman parte del runtime ni del repositorio.
 /adapters/
+/.venv-adapters/
+__pycache__/

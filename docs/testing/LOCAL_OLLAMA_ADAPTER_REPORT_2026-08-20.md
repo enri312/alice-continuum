@@ -28,7 +28,7 @@ La primera variante, a temperatura predeterminada, atribuyó una comprobación n
 
 ## Ensayo real del iniciador
 
-Se ejecutó `Iniciar Alice.cmd`, no una reproducción parcial de sus órdenes. El iniciador detectó Ollama como listo, levantó Vite, compiló Tauri y ejecutó `target\debug\alice-cognitive-core.exe`. Durante la ejecución se verificó:
+Se ejecutó `Iniciar Alice Continuum.cmd`, no una reproducción parcial de sus órdenes. El iniciador detectó Ollama como listo, levantó Vite, compiló Tauri y ejecutó `target\debug\alice-cognitive-core.exe`. Durante la ejecución se verificó:
 
 - un único listener `127.0.0.1:11434`, propiedad de `E:\Ollama\app\ollama.exe serve`;
 - versión real `0.32.13`;

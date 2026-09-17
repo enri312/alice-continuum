@@ -45,14 +45,14 @@ pub(crate) enum ConversationHistoryState {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct ConversationHistoryExchange {
-    exchange_id: String,
-    response_id: String,
-    user_text: String,
-    assistant_text: String,
-    created_at: String,
-    provider: String,
-    model: String,
-    source: String,
+    pub(crate) exchange_id: String,
+    pub(crate) response_id: String,
+    pub(crate) user_text: String,
+    pub(crate) assistant_text: String,
+    pub(crate) created_at: String,
+    pub(crate) provider: String,
+    pub(crate) model: String,
+    pub(crate) source: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -238,6 +238,20 @@ pub(crate) fn conversation_history_snapshot_at(data_root: &Path) -> Conversation
         Ok(None) => missing_snapshot(),
         Err(error) => invalid_snapshot(error),
     }
+}
+
+pub(crate) fn verified_conversation_exchange_at(
+    data_root: &Path,
+    exchange_id: &str,
+) -> Result<ConversationHistoryExchange, String> {
+    validate_uuid_v4("exchangeId", exchange_id)?;
+    let (_, document) = read_document(data_root)?
+        .ok_or("No existe historial local para revisar ese intercambio")?;
+    document
+        .exchanges
+        .into_iter()
+        .find(|exchange| exchange.exchange_id == exchange_id)
+        .ok_or("El intercambio ya no existe en el historial local".into())
 }
 
 fn serialize_document(document: &ConversationHistoryDocument) -> Result<Vec<u8>, String> {

@@ -1,7 +1,7 @@
-# Roadmap de Alice
+# Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última revisión: 2026-08-15  
+Última revisión de identidad: 2026-09-16; planificación funcional revisada el 2026-09-11.  
 Estado: vigente
 
 ## Propósito
@@ -28,7 +28,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Bloque | Estado | Evidencia actual |
 |---|---|---|
 | Contrato y límites | Completo | Documento maestro, decisiones y diagramas de ingeniería. |
-| Núcleo observable | Base completa | Volumen compacto con anclas de memoria, pulso R3 separado y afecto apagado sin señal; flujo, estado, planificador y actividad por pestañas. |
+| Núcleo observable | Base completa | Observatorio con nodos reales, tamaño por importancia, color afectivo confirmado, brillo de actividad y aristas R8 revisadas; flujo, estado, planificador y actividad por pestañas. |
 | Conversación de nube | Funcional | Proveedores intercambiables, previsualización y autorización expresa. |
 | Memoria enseñable v1 | Funcional en evolución | Registros locales, respaldo, exportación, recuperación lexical y edición. |
 | Consolidación v1 | Funcional en evolución | Repaso manual y refuerzo por recuperación autorizada. |
@@ -123,10 +123,10 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 
 ### Línea transversal — Simulación afectiva explicable
 
-**Estado:** contrato visual implementado; motor pendiente  
+**Estado:** asociación afectiva de recuerdos implementada; motor temporal pendiente  
 **Dependencia:** R3 para evidencia; R6 para memoria por capas; R9 para expresión
 
-Alice tendrá diez canales funcionales: Alegría, Tristeza, Ira, Temor, Desagrado, Ansiedad, Envidia, Aburrimiento, Vergüenza y Nostalgia. Los colores identifican circuitos y el brillo representa actividad; actualmente todos los canales permanecen en `0.00`, sin emoción dominante.
+Alice tiene diez canales definidos: Alegría, Tristeza, Ira, Temor, Desagrado, Ansiedad, Envidia, Aburrimiento, Vergüenza y Nostalgia. Un recuerdo conversacional nuevo puede conservar hasta tres emociones explícitas, cada una con intensidad y cita literal revisada por Carlos. El volumen mezcla esos colores; tamaño e intensidad siguen siendo magnitudes separadas. El estado afectivo efímero de Alice permanece apagado, sin emoción dominante.
 
 El futuro motor deberá explicar qué señal modificó cada canal, aplicar decaimiento, separar estado efímero de memoria y permitir desactivar su influencia sobre comportamiento y avatar. No se presentará como conciencia, sentimiento biológico ni diagnóstico del usuario. El diseño completo está en `docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md`.
 
@@ -271,7 +271,7 @@ R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6
 
 ### Fase R7 — Tareas programadas e intenciones
 
-**Estado:** R7.2 completado · persistencia e interfaz gobernadas; sin scheduler  
+**Estado:** completada · R7.5 validado el 2026-09-04  
 **Dependencia:** Fases R2, R3 y R6  
 **Objetivo:** diferenciar recuerdos, recordatorios temporales y acciones condicionadas.
 
@@ -279,11 +279,16 @@ La primera versión permitirá recordatorios locales y comprobaciones de solo le
 
 **Criterios de aceptación:**
 
-- [ ] Cada tarea muestra próxima ejecución, alcance, estado y opción de cancelación.
-- [ ] Reiniciar Alice no duplica ejecuciones.
-- [ ] Una tarea vencida o revocada no puede actuar.
-- [ ] El historial diferencia programación, intento, omisión y resultado.
-- [ ] El modo en segundo plano puede desactivarse completamente.
+- [x] Cada tarea muestra próxima ejecución, alcance, estado y opción de cancelación.
+- [x] Reiniciar Alice no duplica ejecuciones.
+- [x] Una tarea cancelada o terminal no puede volver a actuar.
+- [x] El historial diferencia programación, intento, omisión y resultado.
+- [x] El modo en segundo plano puede desactivarse completamente.
+
+Cierre y alcance precisos en [el plan R7](docs/plans/R7-tasks-intentions.md) y
+[la validación viva R7.5](docs/testing/R7_5_LIVE_VALIDATION_2026-09-04.md).
+El reloj detecta vencimientos; las salidas requieren una decisión explícita y
+mantienen reservas durables para evitar duplicados.
 
 **Incremento R7.1:** `tasks-v1.json` queda reservado como un registro separado de `records.json`. El contrato cerrado distingue `localReminder` de `readOnlyCheck`, exige UUID, origen confirmado por el propietario, próxima ejecución, alcance, estado y cancelabilidad coherentes, y no admite comandos ni parámetros ejecutables. `task_registry_status` relee sin crear carpetas, bloquea archivos corruptos sin repararlos y siempre devuelve `automaticExecution=false`. R1 incorpora `tasks.registry.inspect` como consulta local implementada. Las pruebas físicas preservaron los bytes de fixtures válidos y corruptos; la sonda canónica confirmó la ausencia honesta del registro sin modificar `data/`.
 
@@ -293,7 +298,7 @@ La primera versión permitirá recordatorios locales y comprobaciones de solo le
 
 ### Fase R8 — Grafo de conocimiento y recuperación semántica
 
-**Estado:** pendiente  
+**Estado:** completada el 2026-09-11 · grafo, recuperación e integración visual verificadas  
 **Dependencia:** Fase R6  
 **Objetivo:** convertir el volumen neuronal en una vista fiel de recuerdos y asociaciones persistentes.
 
@@ -301,21 +306,47 @@ Las aristas tendrán tipo, fuerza, procedencia y evidencia. La búsqueda híbrid
 
 SQLite se adoptará solamente cuando las relaciones, transacciones o el volumen demuestren que JSON dejó de ser suficiente, mediante migración respaldada y reversible.
 
+R8.1 reconstruye referencias desde `records.json` con identidad, huella, versión y
+política R6. Distingue episodios, enseñanzas confirmadas por el propietario y
+procedimientos. No extrae asociaciones ni duplica contenidos. El perfil separado,
+las notas y la búsqueda semántica se integrarán en los siguientes incrementos.
+R8.2 agrega relaciones `relatedExperience` revisables, reversibles y respaldadas
+por citas exactas; no infiere asociaciones automáticamente ni alimenta todavía el
+volumen. R8.3 comparó recuperación léxica, embeddings y reranqueo con datos reales.
+Los embeddings de Gemma fueron rechazados; su reranqueo Top-3 quedó disponible
+únicamente mediante el botón manual `Ampliar con Gemma` en Conversación, sin
+persistir su salida ni presentarla como verdad. El recorrido integrado se validó con
+18 candidatos accesibles y tres resultados visibles; no se creó un índice derivado.
+R8.4 conecta las referencias y su evidencia al volumen cognitivo. Una línea violeta
+aparece únicamente para una relación confirmada y vigente; su ficha abre las dos citas
+reales. El observatorio distingue estado vacío, normal, fuente cambiada y error. La
+sonda final reconstruyó 3 nodos desde la memoria canónica actual y preservó 42 archivos
+sin escrituras ni índices persistentes.
+Contrato: [KNOWLEDGE_GRAPH_R8.md](docs/architecture/KNOWLEDGE_GRAPH_R8.md).
+Plan: [R8-knowledge-graph.md](docs/plans/R8-knowledge-graph.md).
+
 **Criterios de aceptación:**
 
-- [ ] Cada nodo abre su registro real y cada arista explica su evidencia.
-- [ ] Una instalación sin recuerdos muestra un grafo vacío.
-- [ ] Corregir o eliminar un recuerdo actualiza sus relaciones.
-- [ ] La búsqueda indica por qué recuperó cada resultado.
-- [ ] Reconstruir índices no modifica la fuente original.
+- [x] Cada nodo abre su registro real y cada arista explica su evidencia.
+- [x] Una instalación sin recuerdos muestra un grafo vacío.
+- [x] Corregir o eliminar un recuerdo actualiza sus relaciones.
+- [x] La búsqueda indica por qué recuperó cada resultado.
+- [x] Reconstruir índices no modifica la fuente original.
 
 ### Fase R9 — Presencia, voz y cuerpo mediante puentes
 
-**Estado:** futura  
+**Estado:** en diseño — R9.1 definido; sin puentes nuevos activos  
 **Dependencia:** Fases R1 a R3  
 **Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
 
 Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, animaciones, entrada facial o corporal y finalmente Active Ragdoll. Fish Audio continúa como candidato de voz sujeto a licencia, privacidad, costo y pruebas. Cada adaptador deberá registrarse como una capacidad independiente.
+
+R9.1 fija antes el contrato de presencia: la transcripción manual local, la futura
+salida TTS, las expresiones VRM y los sensores son puentes unidireccionales
+separados. Ninguno escribe recuerdos, decide por Alice o se activa al iniciar. La
+voz externa sólo podrá recibir una respuesta ya visible después de previsualización
+del texto, autorización por intento, límite, cancelación y descarte. Consulta el
+[plan R9](docs/plans/R9-presence-voice-body.md) y [ADR-P-094](docs/decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md).
 
 **Base corporal local ya comprobada:** el visor manual dispone de doce clips privados, mezcla locomotora, IK de apoyo y una FSM de siete estados para reposo, arranque, locomoción, salto, sentarse y levantarse. Sus transiciones generan telemetría R3 mínima con procedencia humana o diagnóstica; alimentan una región `Motor manual` aislada y no activan el puente cognitivo. El aprendizaje motor futuro deberá correlacionar intención, acción, telemetría y resultado en R3, exigir repeticiones válidas y proponer memoria procedural bajo confirmación; nunca inferir aprendizaje por la sola existencia o reproducción de un clip.
 
@@ -390,21 +421,32 @@ npm run build
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R6** están completadas y **R7.2** aporta la transacción nativa y su interfaz gobernada sin scheduler. El próximo incremento es **R7.3 — motor local de vencimiento**, con resolución idempotente del reloj y apagado completo del modo en segundo plano; no incluirá aún notificaciones. Los 2 conflictos de memoria no se convierten en tareas ni conocimiento vigente. “Dreaming”, análisis general de proyectos, transcripción y ejecución de habilidades continúan fuera de alcance. Fish Audio permanece reservado para R9 y no se configura desde archivos de notas.
+Las **Fases R1 a R8** están completadas en sus alcances documentados. El siguiente
+paso autorizado es definir el primer incremento de **R9 — presencia, voz y cuerpo
+mediante puentes**. R9 debe comenzar por contratos y permisos; cerrar R8 no activa
+micrófono, cámara, TTS, avatar ni acciones externas.
+Los prototipos externos siguen disponibles para evaluación posterior; su presencia
+no significa que sus capacidades estén integradas.
 
-## Identidad adoptada — Alice Cognitive Core
+## Identidad adoptada — Alice Continuum
 
-Carlos Nuñez aprobó **Alice Cognitive Core** como identidad técnica. La marca visible de la asistente continúa siendo **Alice**.
+Carlos Nuñez aprobó **Alice Continuum** como identidad técnica. La marca visible de la asistente continúa siendo **Alice**.
 
 La migración del nombre deberá revisar de forma explícita:
 
 - carpeta raíz del proyecto;
 - `package.json`, configuración de Tauri e identificador de la aplicación;
-- `Iniciar Alice.cmd` y la variable `ALICE_DATA_DIR`;
+- `Iniciar Alice Continuum.cmd` y la variable `ALICE_DATA_DIR`;
 - rutas del avatar y otros activos privados;
 - enlaces absolutos o ejemplos dentro de la documentación;
 - nombre del ejecutable, ventana, iconos e instalador;
 - estrategia de copia y verificación de `data/` sin borrar la ubicación anterior;
-- repositorio de GitHub `alice-cognitive-core`, que deberá mantenerse **privado**.
+- repositorio de GitHub `alice-continuum`, que deberá mantenerse **privado**.
 
-La migración fue verificada en `E:\Alice Cognitive Core`: código, historial, memoria y avatar coinciden con el origen. El repositorio `enri312/alice-cognitive-core` está publicado con visibilidad privada y la rama local sigue `origin/master`. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase.
+La migración fue verificada en `E:\Alice Cognitive Core`: código, historial, memoria y avatar coinciden con el origen. El repositorio `enri312/alice-continuum` está publicado con visibilidad privada y la rama local sigue `origin/master`. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase.
+## Identidad vigente: Alice Continuum
+
+Desde el 2026-09-16 la plataforma se denomina **Alice Continuum**; Alice mantiene
+su nombre como personaje. Esta adopción no modifica el alcance ni el estado de
+las fases. Consulta [ADR-P-095](docs/decisions/ADR-P-095-identidad-alice-continuum.md)
+y la [matriz de compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md).

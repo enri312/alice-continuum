@@ -190,18 +190,57 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(27);
+    let mut capabilities = Vec::with_capacity(39);
+    let document_available = crate::documents::available();
+    capabilities.push(capability(
+        "memory.document.preview",
+        "Leer documento seleccionado",
+        "Extrae texto local de PDF, MD y TXT; no guarda recuerdos ni consulta modelos.",
+        CapabilityDomain::Memory,
+        CapabilityKind::Query,
+        CapabilityMaturity::Implemented,
+        "document-reader",
+        &["preview_document"],
+        if document_available {
+            CapabilityState::Idle
+        } else {
+            CapabilityState::Unavailable
+        },
+        CapabilityRisk::Low,
+        &[
+            CapabilityEffect::LocalRead,
+            CapabilityEffect::LocalWrite,
+            CapabilityEffect::ProcessLaunch,
+        ],
+        &["selectedDocument", "auditMetadata"],
+        &["Entorno .venv-adapters con PyMuPDF"],
+        permission(
+            CapabilityPermissionMode::ExplicitPreview,
+            CapabilityPermissionEnforcer::CurrentUi,
+            "Selección y botón visibles; backend valida formato y límites. Sólo metadatos en R3.",
+        ),
+        health(
+            if document_available {
+                CapabilityHealthStatus::Unchecked
+            } else {
+                CapabilityHealthStatus::Unavailable
+            },
+            "Se verifica la presencia del entorno; la extracción comprueba sus dependencias.",
+            None,
+        ),
+    ));
     capabilities.extend(cloud_capabilities(&generated_at, &probes.cloud));
     capabilities.extend(observation_capabilities(&generated_at, &probes.observation));
     capabilities.extend(memory_capabilities(
         &generated_at,
         &probes.memory,
         probes.cloud.ollama_configured,
+        crate::local_inference::installed(),
     ));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
     capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
     capabilities.extend(task_capabilities(&generated_at, &probes.tasks));
-    capabilities.extend(planned_output_capabilities());
+    capabilities.extend(output_capabilities(&generated_at));
 
     let snapshot = CapabilityRegistrySnapshot {
         schema_version: CAPABILITY_REGISTRY_SCHEMA_VERSION,
@@ -284,6 +323,51 @@ fn sensory_capabilities(
                 CapabilityHealthStatus::Healthy,
                 "El selector WebView2 y el backend Ollama completaron cinco muestras reales autorizadas; ninguna captura fue persistida.",
                 Some(checked_at),
+            ),
+        ),
+        capability(
+            "perception.voice.transcribe",
+            "Transcribir un turno de voz",
+            "Convierte una toma WebM autorizada en un borrador revisable con el mismo Gemma local; descarta el audio y no envía el texto.",
+            CapabilityDomain::Perception,
+            CapabilityKind::Query,
+            CapabilityMaturity::Partial,
+            "WebView2 MediaRecorder + FFmpeg + Gemma local",
+            &["transcribe_voice_turn"],
+            if runtime_available && crate::local_inference::installed() {
+                CapabilityState::Idle
+            } else {
+                CapabilityState::Degraded
+            },
+            CapabilityRisk::High,
+            &[
+                CapabilityEffect::MicrophoneObserve,
+                CapabilityEffect::ProcessLaunch,
+                CapabilityEffect::LocalRead,
+            ],
+            &["microphoneAudioEphemeral", "transcriptDraft"],
+            &[
+                "Permiso de micrófono del sistema operativo",
+                "Gemma local iniciado explícitamente",
+                "FFmpeg disponible",
+            ],
+            permission(
+                CapabilityPermissionMode::SessionOptIn,
+                CapabilityPermissionEnforcer::OperatingSystem,
+                "WebView2 solicita el micrófono al abrir cada toma; finalizar y transcribir son acciones separadas y visibles.",
+            ),
+            health(
+                if runtime_available && crate::local_inference::installed() {
+                    CapabilityHealthStatus::Unchecked
+                } else {
+                    CapabilityHealthStatus::Degraded
+                },
+                "La toma vive sólo en RAM y la transcripción se entrega como borrador sin envío automático.",
+                if runtime_available && crate::local_inference::installed() {
+                    None
+                } else {
+                    Some(checked_at)
+                },
             ),
         ),
     ];
@@ -609,6 +693,7 @@ fn memory_capabilities(
     checked_at: &str,
     probe: &MemoryCapabilityProbe,
     ollama_configured: bool,
+    gemma_installed: bool,
 ) -> Vec<CapabilityDescriptor> {
     let (records_state, records_health, records_summary) = memory_records_health(probe);
     let (directory_state, directory_health, directory_summary) = if probe.directory_exists {
@@ -747,6 +832,7 @@ fn memory_capabilities(
                 "activate_layered_memory",
                 "resolve_consolidation_candidate",
                 "confirm_learning_candidate",
+                "confirm_conversation_learning",
                 "confirm_memory_archive",
                 "confirm_memory_deletion_schedule",
                 "confirm_memory_deletion",
@@ -853,6 +939,45 @@ fn memory_capabilities(
             health(records_health, records_summary, Some(checked_at)),
         ),
         capability(
+            "memory.retrieval.hybrid.preview",
+            "Ampliar recuperación con Gemma",
+            "Reranquea localmente hasta tres recuerdos para revisión sin verificar su verdad ni guardarlos.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Partial,
+            "hybrid-retrieval",
+            &["preview_hybrid_memory_retrieval"],
+            if records_state == CapabilityState::Idle && gemma_installed {
+                CapabilityState::Idle
+            } else {
+                CapabilityState::Unavailable
+            },
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
+            &["memoryRecords", "ownerProfile", "localQueryText", "localRanking"],
+            &["Memoria local válida", "Gemma iniciada manualmente en loopback"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "Sólo se ejecuta al pulsar el botón visible; devuelve candidatos revisables y no escribe memoria.",
+            ),
+            health(
+                if records_state == CapabilityState::Idle && gemma_installed {
+                    CapabilityHealthStatus::Healthy
+                } else {
+                    CapabilityHealthStatus::Unavailable
+                },
+                if !gemma_installed {
+                    "El modelo local evaluado no está instalado."
+                } else if records_state != CapabilityState::Idle {
+                    "La memoria local no está disponible para ampliar la búsqueda."
+                } else {
+                    "La vista previa está disponible cuando Gemma se inicia explícitamente."
+                },
+                Some(checked_at),
+            ),
+        ),
+        capability(
             "memory.learning.propose",
             "Proponer aprendizaje desde memoria",
             "Analiza un recuerdo con Ollama local y devuelve candidatos revisables sin guardarlos.",
@@ -890,6 +1015,77 @@ fn memory_capabilities(
                 },
                 Some(checked_at),
             ),
+        ),
+        capability(
+            "memory.conversationlearning.propose",
+            "Proponer recuerdo desde conversación",
+            "Analiza sólo el mensaje del propietario en un intercambio real y devuelve propuestas revisables sin guardarlas.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Partial,
+            "conversation-learning",
+            &["preview_conversation_learning"],
+            if records_state == CapabilityState::Idle && gemma_installed {
+                CapabilityState::Idle
+            } else {
+                CapabilityState::Unavailable
+            },
+            CapabilityRisk::Medium,
+            &[CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
+            &["conversationHistory", "ownerMessage", "memoryRecords", "localLearningCandidates"],
+            &["Intercambio local real", "Gemma iniciada manualmente en loopback", "memoria local válida"],
+            permission(
+                CapabilityPermissionMode::ExplicitPreview,
+                CapabilityPermissionEnforcer::CurrentUi,
+                "El propietario pulsa una acción visible; la respuesta de Alice queda excluida y confirmar exige otra decisión visible.",
+            ),
+            health(
+                if records_state == CapabilityState::Idle && gemma_installed {
+                    CapabilityHealthStatus::Healthy
+                } else {
+                    CapabilityHealthStatus::Unavailable
+                },
+                if records_state != CapabilityState::Idle {
+                    "La memoria local no está disponible para revisar una propuesta."
+                } else if !gemma_installed {
+                    "El modelo local evaluado no está instalado."
+                } else {
+                    "La propuesta se habilita sólo al pulsarla después de un intercambio real."
+                },
+                Some(checked_at),
+            ),
+        ),
+        capability(
+            "memory.graph.inspect",
+            "Inspeccionar fuentes del grafo",
+            "Reconstruye referencias versionadas desde memoria R6 sin generar asociaciones ni copiar contenido.",
+            CapabilityDomain::Memory,
+            CapabilityKind::Query,
+            CapabilityMaturity::Implemented,
+            "knowledge-graph",
+            &["knowledge_graph_snapshot", "preview_knowledge_graph_association", "knowledge_graph_associations"],
+            records_state,
+            CapabilityRisk::Low,
+            &[CapabilityEffect::LocalRead],
+            &["memoryRecords"],
+            &["Memoria R6 válida; máximo 8 MiB y 10.000 registros"],
+            permission(
+                CapabilityPermissionMode::ImplicitRead,
+                CapabilityPermissionEnforcer::Native,
+                "Consulta local de referencias; no ejecuta inferencia ni escribe índices.",
+            ),
+            health(records_health, records_summary, Some(checked_at)),
+        ),
+        capability(
+            "memory.graph.manage", "Revisar relaciones entre episodios",
+            "Conserva decisiones explícitas con revisiones inmutables; retira o restaura relaciones sin editar recuerdos.",
+            CapabilityDomain::Memory, CapabilityKind::Mutation, CapabilityMaturity::Implemented,
+            "knowledge-graph", &["confirm_knowledge_graph_association", "set_knowledge_graph_association_withdrawn"],
+            records_state, CapabilityRisk::Medium, &[CapabilityEffect::LocalRead, CapabilityEffect::LocalWrite],
+            &["memoryRecords", "associationRevisions", "auditMetadata"], &["Fuentes y revisión vigentes; confirmación explícita"],
+            permission(CapabilityPermissionMode::ExplicitConfirmation, CapabilityPermissionEnforcer::CurrentUi,
+                "Revisión visible; el backend exige confirmación, fuentes exactas y revisión actual. No concede autonomía."),
+            health(records_health, records_summary, Some(checked_at)),
         ),
     ]
 }
@@ -1131,7 +1327,20 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
     ]
 }
 
-fn planned_output_capabilities() -> Vec<CapabilityDescriptor> {
+fn output_capabilities(checked_at: &str) -> Vec<CapabilityDescriptor> {
+    let voice_ready = std::env::var("FISH_API_KEY")
+        .map(|value| !value.trim().is_empty())
+        .unwrap_or(false)
+        && std::env::var("ALICE_FISH_REFERENCE_ID")
+            .map(|value| !value.trim().is_empty())
+            .unwrap_or(false);
+    output_capabilities_for_configuration(checked_at, voice_ready)
+}
+
+fn output_capabilities_for_configuration(
+    checked_at: &str,
+    voice_ready: bool,
+) -> Vec<CapabilityDescriptor> {
     [
         (
             "output.text.external",
@@ -1178,29 +1387,35 @@ fn planned_output_capabilities() -> Vec<CapabilityDescriptor> {
     ]
     .into_iter()
     .map(|(id, label, description, kind, operation)| {
+        let is_voice = id == "output.voice.synthesize";
         capability(
             id,
             label,
-            description,
+            if is_voice {
+                "Convierte sólo una respuesta visible y confirmada en audio temporal; no guarda audio ni crea recuerdos."
+            } else {
+                description
+            },
             CapabilityDomain::Output,
             kind,
-            CapabilityMaturity::Planned,
-            "none",
+            if is_voice { CapabilityMaturity::Partial } else { CapabilityMaturity::Planned },
+            if is_voice { "fish-audio-native" } else { "none" },
             &[operation],
-            CapabilityState::Unavailable,
+            if is_voice && voice_ready { CapabilityState::Idle } else { CapabilityState::Unavailable },
             CapabilityRisk::Medium,
-            &[CapabilityEffect::None],
-            &[],
-            &["Adaptador real y ADR propia"],
+            if is_voice { &[CapabilityEffect::NetworkSend, CapabilityEffect::CredentialPresenceRead] } else { &[CapabilityEffect::None] },
+            if is_voice { &["visibleAssistantText", "audioEphemeral", "auditMetadata"] } else { &[] },
+            if is_voice { &["FISH_API_KEY", "ALICE_FISH_REFERENCE_ID", "Confirmación por respuesta"] } else { &["Adaptador real y ADR propia"] },
             permission(
                 CapabilityPermissionMode::ExplicitConfirmation,
-                CapabilityPermissionEnforcer::None,
-                "No existe permiso aplicable porque la capacidad no está implementada.",
+                if is_voice { CapabilityPermissionEnforcer::Native } else { CapabilityPermissionEnforcer::None },
+                if is_voice { "Rust comprueba que el texto pertenece al historial local y exige confirmar cada síntesis." } else { "No existe permiso aplicable porque la capacidad no está implementada." },
             ),
             health(
-                CapabilityHealthStatus::Unavailable,
-                "Capacidad planificada sin adaptador; no se ejecutó ninguna sonda.",
-                None,
+                if is_voice && voice_ready { CapabilityHealthStatus::Unchecked } else { CapabilityHealthStatus::Unavailable },
+                if is_voice && voice_ready { "Adaptador nativo listo; la primera llamada sigue requiriendo tu confirmación." } else if is_voice { "Falta la clave o la identidad de voz local; no se enviará texto." } else { "Capacidad planificada sin adaptador; no se ejecutó ninguna sonda." },
+                // Configured is not probed: never timestamp an unchecked service.
+                if is_voice && !voice_ready { Some(checked_at) } else { None },
             ),
         )
     })
@@ -2001,10 +2216,61 @@ mod tests {
     }
 
     #[test]
+    fn voice_configuration_never_claims_an_unperformed_health_check() {
+        let checked_at = "2026-09-16T12:00:00Z";
+        for ready in [false, true] {
+            let outputs = output_capabilities_for_configuration(checked_at, ready);
+            let voice = outputs.iter().find(|item| item.id == "output.voice.synthesize").unwrap();
+            assert!(voice.validate().is_ok());
+            assert_eq!(voice.health.status, if ready {
+                CapabilityHealthStatus::Unchecked
+            } else {
+                CapabilityHealthStatus::Unavailable
+            });
+            assert_eq!(voice.health.checked_at.as_deref(), if ready { None } else { Some(checked_at) });
+            assert!(voice.last_execution.is_none());
+        }
+    }
+
+    #[test]
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 33);
+        assert_eq!(snapshot.capabilities.len(), 39);
+        let hybrid = registered(&snapshot, "memory.retrieval.hybrid.preview");
+        assert_eq!(hybrid.operations, vec!["preview_hybrid_memory_retrieval"]);
+        assert_eq!(
+            hybrid.permission.mode,
+            CapabilityPermissionMode::ExplicitPreview
+        );
+        assert!(!hybrid.effects.contains(&CapabilityEffect::LocalWrite));
+        let conversation_learning = registered(&snapshot, "memory.conversationlearning.propose");
+        assert_eq!(
+            conversation_learning.operations,
+            vec!["preview_conversation_learning"]
+        );
+        assert_eq!(
+            conversation_learning.permission.mode,
+            CapabilityPermissionMode::ExplicitPreview
+        );
+        assert!(!conversation_learning
+            .effects
+            .contains(&CapabilityEffect::LocalWrite));
+        let graph = registered(&snapshot, "memory.graph.inspect");
+        assert_eq!(
+            graph.operations,
+            vec![
+                "knowledge_graph_snapshot",
+                "preview_knowledge_graph_association",
+                "knowledge_graph_associations"
+            ]
+        );
+        assert_eq!(graph.effects, vec![CapabilityEffect::LocalRead]);
+        assert_eq!(
+            graph.permission.enforced_by,
+            CapabilityPermissionEnforcer::Native
+        );
+        assert_eq!(graph.state, CapabilityState::Unavailable);
         assert_eq!(
             registered(&snapshot, "cloud.providers.inspect").state,
             CapabilityState::Idle
@@ -2110,13 +2376,31 @@ mod tests {
             .iter()
             .filter(|capability| capability.maturity == CapabilityMaturity::Planned)
             .collect::<Vec<_>>();
-        assert_eq!(planned.len(), 9);
+        assert_eq!(planned.len(), 8);
         assert!(planned.iter().all(|capability| {
             capability.state == CapabilityState::Unavailable
                 && capability.adapter == "none"
                 && capability.last_execution.is_none()
                 && capability.health.checked_at.is_none()
         }));
+        let voice = registered(&snapshot, "output.voice.synthesize");
+        assert_eq!(voice.maturity, CapabilityMaturity::Partial);
+        assert_eq!(voice.adapter, "fish-audio-native");
+        assert_eq!(
+            voice.permission.mode,
+            CapabilityPermissionMode::ExplicitConfirmation
+        );
+        assert_eq!(
+            voice.permission.enforced_by,
+            CapabilityPermissionEnforcer::Native
+        );
+        assert!(voice.effects.contains(&CapabilityEffect::NetworkSend));
+        let voice_input = registered(&snapshot, "perception.voice.transcribe");
+        assert_eq!(voice_input.maturity, CapabilityMaturity::Partial);
+        assert_eq!(voice_input.operations, vec!["transcribe_voice_turn"]);
+        assert!(voice_input
+            .effects
+            .contains(&CapabilityEffect::MicrophoneObserve));
 
         for id in [
             "perception.media.inspect",
@@ -2211,7 +2495,9 @@ mod tests {
             "memory.records.restore",
             "memory.directory.open",
             "memory.retrieval.lexical",
+            "memory.retrieval.hybrid.preview",
             "memory.learning.propose",
+            "memory.conversationlearning.propose",
             "avatar.vrm.inspect",
             "avatar.vrm.render",
         ] {
@@ -2291,7 +2577,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 33);
+        assert_eq!(snapshot.capabilities.len(), 39);
         assert!(!root.exists());
     }
 

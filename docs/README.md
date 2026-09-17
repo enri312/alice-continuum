@@ -1,10 +1,14 @@
-# Centro de documentación de Alice
+# Centro de documentación de Alice Continuum
 
-Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [alice_documento_maestro.html](alice_documento_maestro.html).
+Alice es el personaje; Alice Continuum es la plataforma local de memoria,
+cognición y presencia. Consulta la [identidad vigente y su compatibilidad](architecture/CONTINUUM_IDENTITY.md)
+y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
+
+Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
 ## Lectura recomendada
 
-1. [Documento maestro](alice_documento_maestro.html)
+1. [Documento maestro](especificacion_alice_continuum.html)
 2. [Sistema de memoria](architecture/MEMORY_SYSTEM.md)
 3. [Cómo iniciar Alice](runbooks/01-arranque-local.md)
 4. [Respaldar y restaurar memoria](runbooks/02-operar-memoria.md)
@@ -19,9 +23,9 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 13. [Informe del documento maestro v0.16](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
 14. [Contrato e inventario del Registro de Capacidades R1](architecture/CAPABILITY_REGISTRY_R1.md)
 15. [Plan de implementación R1](plans/R1-capability-registry.md)
-16. [Decisión de identidad Alice Cognitive Core](decisions/ADR-P-042-identidad-alice-cognitive-core.md)
+16. [Identidad histórica anterior](decisions/ADR-P-042-identidad-alice-cognitive-core.md) y [adopción de Alice Continuum](decisions/ADR-P-095-identidad-alice-continuum.md)
 17. [Plan de migración de identidad](plans/identity-migration.md)
-18. [Informe de migración Alice Cognitive Core](testing/IDENTITY_MIGRATION_REPORT_2026-08-08.md)
+18. [Informe de migración Alice Continuum](testing/IDENTITY_MIGRATION_REPORT_2026-08-08.md)
 19. [Informe de validación R1](testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md)
 20. [Decisión de aprendizaje sensorial gobernado](decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md)
 21. [Informe real de cámara y micrófono](testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md)
@@ -67,6 +71,13 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 61. [Informe real de RAG y aprendizaje visual](testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md)
 62. [Investigación funcional sobre memoria humana](research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md)
 63. [ADR-P-084: memoria funcional y volumen cognitivo trazable](decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md)
+64. [Cierre R8.4 del volumen cognitivo](testing/R8_4_VOLUME_CLOSEOUT_2026-09-11.md)
+65. [Plan R9: presencia, voz y cuerpo](plans/R9-presence-voice-body.md)
+66. [ADR-P-094: puentes de presencia, voz y cuerpo](decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md)
+67. [Prechequeo de Fish Audio para R9.2](research/FISH_AUDIO_R9_PRECHECK_2026-09-12.md)
+68. [Identidad de voz de Alice para R9](architecture/ALICE_VOICE_IDENTITY_R9.md)
+69. [Terna inicial de voces Fish para Alice](research/ALICE_FISH_VOICE_SHORTLIST_2026-09-12.md)
+70. [Diseño de voz original para Alice](architecture/ALICE_ORIGINAL_VOICE_DESIGN_R9.md)
 
 ## Secciones
 

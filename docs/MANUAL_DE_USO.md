@@ -1,6 +1,6 @@
-# Manual de uso de Alice Cognitive Core
+# Manual de uso de Alice Continuum
 
-**Versión del manual:** 25 de agosto de 2026  
+**Actualización de identidad y rutas:** 16 de septiembre de 2026; contenido funcional basado en el manual del 25 de agosto y sus incrementos posteriores.  
 **Dirigido a:** Carlos Nuñez, propietario y operador de Alice  
 **Carpeta canónica:** `E:\Alice Cognitive Core`
 
@@ -15,7 +15,7 @@ códigos internos R1–R6 para operar Alice.
 ## 1. Inicio rápido
 
 1. Abrí `E:\Alice Cognitive Core`.
-2. Hacé doble clic en **Iniciar Alice.cmd**.
+2. Hacé doble clic en **Iniciar Alice Continuum.cmd**.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
 5. Entrá en **Configuración** para comprobar el proveedor de conversación.
@@ -24,7 +24,7 @@ códigos internos R1–R6 para operar Alice.
 Para revisar el entorno sin abrir la aplicación:
 
 ```powershell
-& 'E:\Alice Cognitive Core\Iniciar Alice.cmd' --check
+& 'E:\Alice Cognitive Core\Iniciar Alice Continuum.cmd' --check
 ```
 
 Si Alice ya está abierta, no vuelvas a iniciar otra instancia. El lanzador protege
@@ -58,6 +58,17 @@ revisar y **Actividad** si querés comprobar qué ocurrió.
 7. El intercambio exitoso queda en el historial local y reaparece al reiniciar.
 8. Si aparece **¿ESTE RECUERDO AYUDÓ?**, marcá **Sí, fue útil** o **No ayudó**. Esa
    evaluación real sirve para ajustar la recuperación futura.
+9. Si tu mensaje contiene un dato que querés conservar, debajo de la respuesta más
+   reciente usá **Proponer recuerdo de este intercambio**. Gemma local recibe sólo
+   tu mensaje, propone evidencia literal y no guarda nada todavía. Revisá cada
+   propuesta y pulsá **Confirmar y guardar** únicamente si describe un dato real.
+   Antes de confirmar, elegí **Importancia del recuerdo** (1–5; valor inicial 3).
+   Este valor determina el tamaño del nodo. La confianza de extracción del modelo
+   ya no se convierte en importancia; los recuerdos existentes conservan su valor.
+   Si el mensaje declara una emoción, también puede aparecer una interpretación
+   con color, intensidad y cita literal. Revisala: confirmar guarda esa asociación
+   junto al recuerdo. Si no aparece, queda sin evaluación emocional. Esto no es
+   todavía el estado emocional actual de Alice.
 
 La vista previa es obligatoria a propósito: evita que una acción invisible decida
 qué información sale de tu equipo.
@@ -403,7 +414,7 @@ acciones reales registradas.
 ### El lanzador informa puerto ocupado o instancia existente
 
 Cerrá la ventana anterior de Alice y su terminal. Si no sabés qué proceso sigue
-activo, ejecutá primero `Iniciar Alice.cmd --check` y no finalices procesos al azar.
+activo, ejecutá primero `Iniciar Alice Continuum.cmd --check` y no finalices procesos al azar.
 
 ## 10. Datos, respaldo y privacidad
 
@@ -455,7 +466,64 @@ Cuando Codex u otro agente agregue una función visible debe dejar claro:
 Un código como **R6.3-F** puede aparecer como referencia de auditoría, pero nunca
 debe ser la única explicación ofrecida al propietario.
 
-## 13. Documentación de apoyo
+## 13. Leer un documento sin guardarlo como recuerdo
+
+En **Identificación**, buscá **Documento local · Vista previa**:
+
+1. Seleccioná un archivo PDF, MD o TXT de hasta 16 MiB.
+2. Pulsá **Autorizar lectura y ver texto**.
+3. Abrí los fragmentos para ver el texto y su página. Un PDF escaneado puede no
+   contener texto extraíble: este lector todavía no realiza OCR.
+4. **Descartar vista previa** quita el contenido de esa vista. El original no cambia.
+
+La lectura es local: no llama a Ollama ni a servicios externos, no enseña hechos
+a Alice y no adjunta el documento al chat. Su finalidad actual es comprobar la
+extracción y procedencia antes de integrar conocimiento. Sólo se registra la huella
+del archivo y el resultado en auditoría, no su texto ni su nombre.
+
+Si falta el entorno documental, seguí la [preparación del lector](../scripts/adapters/README.md).
+No hace falta cambiar el Python principal. Después de actualizar el backend,
+cerrá y volvé a iniciar Alice para cargar los nuevos comandos.
+
+## 14. Relacionar dos experiencias
+
+En el volumen, el tamaño de cada recuerdo depende de su importancia registrada
+(1–5). Un recuerdo sin evaluación permanece pequeño. Recuperarlo modifica el
+brillo, sin aumentar su tamaño duradero. La perspectiva y el zoom también afectan
+el tamaño aparente. Esta importancia todavía no es una evaluación de impacto
+emocional: los colores actuales corresponden a categorías de memoria hasta que
+se conecte el sistema afectivo. El tamaño no modifica conservación ni eliminación.
+
+El observatorio centra la red al abrir. **Buscar un recuerdo o proceso** despliega
+el selector **Explorar un nodo**, para seleccionarlo también con teclado. La ficha
+aparece sólo al seleccionar y **Cerrar ficha** devuelve toda la vista a la red.
+**Fuente y detalles técnicos** despliega versión, fuente y estado del recuerdo.
+Las prolongaciones cortas de las células son parte del dibujo: no representan
+asociaciones ni agregan nodos. La órbita
+automática comienza pausada y se activa desde su botón. La paleta emocional
+identifica los canales. Los recuerdos nuevos con una asociación confirmada usan
+su color o una mezcla ponderada; los demás quedan sin evaluación. Las líneas
+de asociaciones conservadas no emiten pulsos de actividad por el solo hecho de existir.
+
+En **Flujo cognitivo → Relaciones entre recuerdos**:
+
+1. Elegí dos experiencias distintas. Sólo aparecen episodios recuperables.
+2. Abrí **Leer entrada original** y copiá una cita literal de cada entrada.
+3. Pulsá **Revisar relación**. Se comprueba que ambas citas existen en sus fuentes actuales.
+4. Revisá las citas y pulsá **Confirmar y guardar relación** sólo si, a tu criterio,
+   esas experiencias están relacionadas. No afirma causalidad ni una verdad nueva.
+5. **Retirar relación** deja de usarla sin borrar recuerdos. **Restaurar relación**
+   vuelve a habilitarla si sus fuentes siguen vigentes. Ambas piden confirmación.
+
+**Actualizar relaciones** vuelve a comprobar la vigencia. Si cambiaste una fuente,
+la relación puede figurar no vigente; no se enlaza silenciosamente con su nueva
+versión. Revisá y proponé una nueva relación si sigue teniendo sentido.
+
+El historial se guarda localmente en `memory/associations-v1/`, separado de los
+recuerdos. No se envía a modelos. Una relación activa cuyas dos fuentes sigan
+vigentes se dibuja en violeta en el volumen; una relación retirada o inválida no.
+
+## 15. Documentación de apoyo
 
 - [Arranque local](runbooks/01-arranque-local.md)
 - [Operación y recuperación de memoria](runbooks/02-operar-memoria.md)
@@ -463,3 +531,10 @@ debe ser la única explicación ofrecida al propietario.
 
 Si la interfaz contradice este manual, detené la operación sensible y registrá la
 diferencia. El manual y la pantalla deben corregirse juntos antes de continuar.
+# Gemma local: selección manual
+
+En la versión recompilada, Configuración permite iniciar/apagar Gemma. Iniciarlo también lo selecciona como proveedor de conversación; apagarlo vuelve a seleccionar Ollama, sin cargar Qwen. Si Ollama conserva otro modelo, el arranque se rechaza para evitar dos modelos residentes; esperá a que esa sesión termine antes de continuar.
+
+Después de iniciar Gemma, seleccioná **Gemma local · llama.cpp**, volvé a Conversación y usá la revisión de contexto habitual. Para volver a Ollama, apagá Gemma primero. El micrófono no se activa con estos controles; el turno de voz integrado todavía está pendiente. **Proponer recuerdo de este intercambio** usa Gemma local y analiza solamente el mensaje del propietario; la observación de pantalla y los candidatos heredados siguen usando Ollama y permanecen bloqueados mientras Gemma está activo.
+
+Detalles y límites: [Gemma en Configuración y conversación](testing/GEMMA_SETTINGS_CHAT_2026-09-05.md).

@@ -18,7 +18,7 @@ El emblema `icons/app-alice.svg` y todos los derivados de `src-tauri/icons/` per
 
 ## Contrato automatizado
 
-`src/core/icon-system.test.ts` importa las 22 fuentes mediante la misma ruta `?raw` usada por la interfaz y verifica:
+`src/core/navigation/icon-system.test.ts` importa las 22 fuentes mediante la misma ruta `?raw` usada por la interfaz y verifica:
 
 1. catálogo completo y fuentes no duplicadas;
 2. `role="img"`, `aria-label` y `title`;

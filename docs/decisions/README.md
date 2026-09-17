@@ -17,7 +17,7 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-039](ADR-P-039-documento-maestro-formal.md) | Documento maestro formal con identidad visual de Alice |
 | [ADR-P-040](ADR-P-040-diagramas-svg-autonomos.md) | Diagramas de ingeniería SVG, accesibles y sin dependencias externas |
 | [ADR-P-041](ADR-P-041-registro-de-capacidades.md) | Registro nativo, declarativo y pasivo de capacidades R1 |
-| [ADR-P-042](ADR-P-042-identidad-alice-cognitive-core.md) | Identidad técnica, ruta y repositorio privado de Alice Cognitive Core |
+| [ADR-P-042](ADR-P-042-identidad-alice-cognitive-core.md) | Identidad técnica, ruta y repositorio privado de Alice Continuum |
 | [ADR-P-043](ADR-P-043-aprendizaje-sensorial-gobernado.md) | Aprendizaje sensorial local, efímero y sujeto a confirmación |
 | [ADR-P-044](ADR-P-044-gateway-permisos-nativo.md) | Gateway nativo, efímero e idempotente para permisos R2 |
 | [ADR-P-045](ADR-P-045-auditoria-unificada-local.md) | Auditoría R3 local, correlacionada, privada y acotada |
@@ -65,3 +65,6 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-087](ADR-P-087-conversacion-temporal-sin-consolidacion-automatica.md) | Conversación en RAM sin promoción automática de respuestas a memoria durable |
 | [ADR-P-088](ADR-P-088-sentido-temporal-observable-r7.md) | Reloj R7.3-A observable, apagable y sin ejecución, notificación o escritura |
 | [ADR-P-092](ADR-P-092-comprobacion-r7-5-solo-lectura.md) | Resolución R1/R2 por intento sin ejecutar la capacidad ni aprender |
+| [ADR-P-093](ADR-P-093-referencias-nativas-grafo-r8.md) | Referencias nativas R8 con identidad, versión y política R6 sin asociaciones inferidas |
+| [ADR-P-094](ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md) | Presencia, voz y cuerpo mediante puentes independientes y revocables |
+| [ADR-P-095](ADR-P-095-identidad-alice-continuum.md) | Alice Continuum como identidad de plataforma; datos y personaje preservados |

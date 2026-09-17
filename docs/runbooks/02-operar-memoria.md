@@ -2,7 +2,7 @@
 
 ## Localizar los datos
 
-Abrir la pestaña Memoria y usar `Abrir carpeta de memoria`. Al arrancar mediante `Iniciar Alice.cmd`, la ruta activa es `E:\Alice Cognitive Core\data\memory`.
+Abrir la pestaña Memoria y usar `Abrir carpeta de memoria`. Al arrancar mediante `Iniciar Alice Continuum.cmd`, la ruta activa es `E:\Alice Cognitive Core\data\memory`.
 
 La variable `ALICE_DATA_DIR` controla la raíz. No cambiarla con Alice abierta. Para trasladar datos: cerrar Alice, copiar la carpeta completa, validar `records.json`, cambiar la variable y confirmar desde la pantalla Memoria antes de borrar la fuente anterior.
 

@@ -1,4 +1,20 @@
-# Alice Cognitive Core
+# Alice Continuum
+
+**Plataforma local de memoria, cognición y presencia digital.** Alice es el
+personaje; Alice Continuum es el programa que la sostiene.
+
+> **Identidad vigente desde el 16 de septiembre de 2026:** anteriormente Alice
+> Cognitive Core. Iniciá con `Iniciar Alice Continuum.cmd`. El código está
+> organizado por áreas en `src/pages`, `src/components` y `src/core`.
+> Consulta la [estructura actual](docs/architecture/PROJECT_STRUCTURE.md), la
+> [compatibilidad de datos](docs/architecture/CONTINUUM_IDENTITY.md) y el
+> [documento maestro](docs/especificacion_alice_continuum.html).
+>
+> El cambio de nombre no corrige los hallazgos de seguridad identificados en la
+> revisión del 14 de septiembre: protección de estados de memoria, permisos
+> locales, autorización nativa de envíos y límites de procesamiento siguen
+> requiriendo trabajo. Los informes y cifras históricos de abajo corresponden
+> a sus respectivas fechas, no a una certificación de seguridad vigente.
 
 ![Estado](https://img.shields.io/badge/estado-prototipo%20funcional-0ea5e9?style=flat-square)
 ![R1](https://img.shields.io/badge/R1-validado-16a34a?style=flat-square)
@@ -8,9 +24,10 @@
 ![R5](https://img.shields.io/badge/R5-completado-16a34a?style=flat-square)
 ![R6](https://img.shields.io/badge/R6-completado-16a34a?style=flat-square)
 ![R7](https://img.shields.io/badge/R7-validado-16a34a?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-433%2F433%20pruebas-3178c6?style=flat-square&logo=typescript&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-251%20aprobadas%20%7C%2019%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
-![Python](https://img.shields.io/badge/Python-prototipos%20en%20cuarentena-3776ab?style=flat-square&logo=python&logoColor=white)
+![R8](https://img.shields.io/badge/R8-validado-16a34a?style=flat-square)
+![TypeScript](https://img.shields.io/badge/Frontend-477%20aprobadas%20%7C%202%20sondas-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-290%20aprobadas%20%7C%2022%20sondas-b7410e?style=flat-square&logo=rust&logoColor=white)
+![Python](https://img.shields.io/badge/Python-lector%20documental%20validado-3776ab?style=flat-square&logo=python&logoColor=white)
 ![Hardware](https://img.shields.io/badge/hardware-CAM%20%2B%20MIC%20vivos-0f766e?style=flat-square)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24c8db?style=flat-square&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-087ea4?style=flat-square&logo=react&logoColor=white)
@@ -22,40 +39,49 @@ Aplicación de escritorio local-first para que **Alice** gestione conversación,
 
 > **Uso cotidiano:** consulta el [Manual de uso de Alice](docs/MANUAL_DE_USO.md) para iniciar la aplicación, conversar, revisar recuerdos y entender cada pantalla sin depender de los códigos técnicos R1–R7.
 
-El nombre técnico del sistema es **Alice Cognitive Core**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
+El nombre técnico del sistema es **Alice Continuum**. La interfaz separa tres espacios actuales y reserva un cuarto para el futuro:
 
 - `ALICE_NEURAL_CORE // COGNITIVE IDENTIFICATION`: entrada `[00]`, volumen, grafo, estado, planificación, memoria y actividad cognitiva.
 - `ALICE_NEURAL_CORE // BODY SOLVER`: rostro, cuerpo y avatar.
 - `ALICE_LOCAL_CONTROL // GOVERNANCE`: capacidades, permisos, auditoría, diagnóstico, Taller y configuración; pertenece al propietario, no al cerebro de Alice.
 - `ENVIRONMENT // OBSERVATION ROOM`: sala futura, todavía no implementada, para sesiones delimitadas de comportamiento y maduración trazable.
 
-> Los badges de pruebas reflejan la validación local real del 4 de septiembre de 2026. No representan un workflow de CI remoto; este repositorio privado todavía no contiene uno.
+> Los badges reflejan la revalidación local del cambio de identidad, realizada entre el 16 y el 17 de septiembre de 2026. No representan un workflow de CI remoto. Consulta el [informe de publicación](docs/testing/CONTINUUM_REBRAND_REPORT_2026-09-17.md); los demás informes conservan sus resultados históricos.
 
 ## Estado verificado
 
 | Área | Estado real |
 |---|---|
-| Registro de capacidades R1 | Validado: snapshot nativo v1 con 33 capacidades |
+| Registro de capacidades R1 | Validado: snapshot nativo v1 con 39 capacidades |
 | Gateway de permisos R2 | Ventana, cámara y micrófono protegidos; permiso facial separado disponible sin ejecución |
 | Auditoría unificada R3 | Validada: evidencia correlacionada, diagnóstico pasivo y actividad efímera del Núcleo |
 | Taller de habilidades R4 | Validado: editor visible, borradores, simulación, gobierno inmutable y primera habilidad de lectura; sin ejecución |
 | Aprendizaje gobernado R5 | Cinco incrementos validados: contrato, detector, decisiones, puente R4 y vigencia de evidencia; 0 conversiones canónicas |
-| Memoria por capas R6 | Completada: 15 recuerdos reales, 13 vigentes, 2 conflictivos, 0 no evaluados; capas v3 y ciclo v1 activos sobre la huella vigente |
+| Memoria por capas R6 | Completada: ciclo v1 y capas v3 activos; conjunto conversacional actual de 3 recuerdos reales y perfil confirmado conservado por separado |
 | Tareas e intenciones R7 | R7.5 validado: registro gobernado, reloj apagable, recordatorio local explícito y comprobación de solo lectura; 0 tareas canónicas persistidas durante el cierre |
-| Capacidades implementadas o parciales | 24 |
-| Capacidades planificadas | 9, sin adaptador y no disponibles |
-| Pruebas TypeScript | 433/433 aprobadas localmente |
-| Pruebas Rust | 251 normales aprobadas; diecinueve sondas vivas disponibles por separado |
+| Grafo R8 | Validado: referencias regenerables, relaciones reversibles, recuperación híbrida explicada y evidencia visible en el volumen; sin índice semántico persistente |
+| Capacidades implementadas o parciales | 31 |
+| Capacidades planificadas | 8, sin adaptador y no disponibles |
+| Pruebas frontend y herramientas | 477 aprobadas; 2 sondas opcionales omitidas |
+| Pruebas Rust | 290 normales aprobadas; 22 sondas opcionales omitidas |
 | Builds | Frontend y ejecutable Tauri aprobados |
 | Prueba viva de ventana | Win32 devolvió metadatos reales del primer plano; el contenido no se imprimió ni persistió |
 | Prueba viva sensorial | Cámara y micrófono entregaron señal real mediante leases separados; 107 archivos multimedia antes y después, delta 0 |
 | Preparación facial por webcam | Sonda diagnóstica aprobada: 53/53 análisis con rostro, 478 landmarks, 52 blendshapes y 20,71 ms de latencia media; todavía desconectada de Alice |
-| Datos privados preservados | 35 archivos en `data/` conservaron el mismo digest agregado durante las sondas finales R6 |
+| Datos privados preservados | 42 archivos en `data/` conservaron sus huellas durante la sonda final R8; `records.json` permanece fuera de Git |
 | Avatar privado | Preservado y excluido de Git |
 
 La evidencia completa está en [el informe de validación R1](docs/testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md), [el cierre final R6](docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md), [el informe R7.1](docs/testing/R7_TASK_REGISTRY_REPORT_2026-09-01.md), [la validación R7.2-A](docs/testing/R7_2A_TASK_MUTATION_REPORT_2026-09-01.md), [la prueba visible R7.2-B](docs/testing/R7_2B_TASK_UI_REPORT_2026-09-02.md), [el sentido temporal R7.3-A](docs/testing/R7_3A_TEMPORAL_ENGINE_REPORT_2026-09-02.md), [el recordatorio local R7.4](docs/testing/R7_4_LOCAL_NOTIFICATION_REPORT_2026-09-04.md), [la comprobación R7.5](docs/testing/R7_5_READ_ONLY_CAPABILITY_CHECK_REPORT_2026-09-04.md) y [su validación viva](docs/testing/R7_5_LIVE_VALIDATION_2026-09-04.md).
 
 La memoria conversacional conserva la pregunta real, pero no reutiliza una antigua respuesta de modelo como conocimiento: consulta el [informe del límite de evidencia RAG](docs/testing/MEMORY_RAG_EVIDENCE_BOUNDARY_REPORT_2026-09-04.md).
+
+R8 comenzó con [referencias nativas de fuentes](docs/testing/R8_1_SOURCE_GRAPH_REPORT_2026-09-04.md) y cerró con un volumen que abre evidencia real sin duplicarla. El [contrato R8](docs/architecture/KNOWLEDGE_GRAPH_R8.md), su [plan](docs/plans/R8-knowledge-graph.md) y el [informe final R8.4](docs/testing/R8_4_VOLUME_CLOSEOUT_2026-09-11.md) mantienen separadas las experiencias, la evidencia, las asociaciones y la actividad efímera.
+
+Identificación incorpora una [vista previa documental local](scripts/adapters/README.md)
+para PDF/MD/TXT seleccionados explícitamente. No incorpora texto al chat ni a recuerdos.
+R8 permite revisar, confirmar, retirar y restaurar relaciones entre episodios con
+citas y versiones verificables, sin modificar recuerdos. La decisión del propietario
+no se presenta como verdad semántica. [Validación R8.2](docs/testing/R8_2_ASSOCIATIONS_REPORT_2026-09-05.md).
 
 ## Límites actuales
 
@@ -65,7 +91,7 @@ La memoria conversacional conserva la pregunta real, pero no reutiliza una antig
 - Una respuesta de nube no se convierte automáticamente en recuerdo o verdad.
 - La observación vigente se limita a metadatos autorizados de la ventana activa; no registra teclas, archivos ni imágenes.
 - Cámara y micrófono son capacidades parciales con leases R2 de 60 segundos; pantalla, reproductores, acciones accesibles y gestos siguen planificados. Rostro dispone de autorización R2 separada, pero todavía no de adaptador ejecutable.
-- Voz, rostro, mirada, puente corporal y adaptadores externos permanecen desconectados. El visor posee una prueba manual DualSense que no representa salida de Alice.
+- La voz dispone de transcripción local manual y síntesis de respuestas mediante Fish Audio con revisión explícita; no hay escucha continua ni habla automática. Rostro, mirada y control corporal autónomo permanecen desconectados. El lector documental está integrado. El visor posee una prueba manual DualSense que no representa salida autónoma de Alice.
 - R1 describe capacidades; no concede permisos nuevos ni ejecuta las capacidades desde el registro.
 - R2 consume grants efímeros para ventana, cámara, micrófono o derivación facial. Aprobar no abre hardware; el grant facial ni siquiera expone activación todavía y puede cancelarse, denegarse, vencer o revocarse.
 - El envío a la nube todavía usa previsualización y confirmación en React; R1 lo declara `enforcedBy: currentUi` hasta una migración nativa futura.
@@ -83,9 +109,45 @@ El volumen `[01]` es una semilla 3D evolutiva: crece desde el centro, representa
 
 ### Sistema de insignias técnicas Alice
 
-La navegación y los controles visuales usan 23 SVG locales de alta definición con escenas técnicas propias: revisión de privacidad, señales R3, registro de capacidades, VRM y locomoción, tokens, manifiestos, evidencia de procedimientos, canales corporales y controles de cámara. El lenguaje visual se estudió auditando la colección de Cyrcetech, sin importar sus archivos ni sus figuras. El generador produce de forma reproducible 22 iconos —diecisiete de pantalla y cinco controles de cámara— como teclas redondeadas de glifo grueso con escena semántica real, etiqueta inferior y colores propios de cada área; `nav-avatar.svg` es la única composición manual protegida. Avatar reproduce su pantalla real en la misma tecla —visor con maniquí sin rostro y rig visible, estado `MODELO CARGADO`, inspector VRM con huesos, 14 expresiones, springs y 12 clips, catálogo facial de solo lectura, licencia privada, control manual DualSense auditado en R3 y las cuatro fronteras de conexión (render activo; expresión, voz y ragdoll desconectados)—. Rostro muestra el calibrador óptico con perfil humano abstracto, landmarks inactivos, cinco dependencias en cero, ocho canales reservados, cámara apagada y video no almacenado. Conversación representa entrada textual, contexto, compuerta de privacidad y autorización; mantiene el micrófono en `SAFE OFF` hasta que exista una integración real de voz. El movimiento es decorativo y acotado (escaneo, flujo de datos, parpadeos de estado) y se desactiva con `prefers-reduced-motion`. La navegación presenta los SVG a `98 × 98 px` (`86 × 86 px` en móvil) para conservar sus microdetalles. Las pruebas verifican catálogo, accesibilidad, lienzo, unicidad, semántica de Avatar/Rostro, movimiento decorativo desactivable y ausencia de recursos externos o contenido ejecutable.
+La navegación y los controles visuales usan 21 SVG locales generados de forma reproducible: dieciséis símbolos funcionales y cinco controles de cámara. La familia se reconstruyó desde cero en lenguaje industrial cyberpunk: chasis de metal oscuro, biseles, tornillería y uniones mecánicas forman la estructura; cian, ámbar, violeta, verde y magenta se reservan para núcleos, energía y señales de estado. Cada icono conserva una silueta y una escena semántica propia vinculada a su pantalla —escáner biométrico, osciloscopio, bóveda de memoria, cámara VRM, gateway de permisos, consola, planificador o volumen neuronal—, sin microetiquetas ni elementos SVG `<text>` visibles. Tampoco usa patrones, retículas de fondo ni esquinas en L repetidas. El tratamiento refinado reduce el grosor de chasis, cables y soportes, controla el halo y añade biseles internos, grabados, conectores con llave y reflejos finos para que las piezas se separen mejor al tamaño real de navegación. Toda la familia emplea tornillos de alojamiento hexagonal estratificados —anillos mecanizados, cabeza de metal, socket profundo y brillo controlado— siguiendo la referencia `screw.svg` aportada por el propietario. Las antiguas ranuras flotantes se sustituyeron por rieles de refrigeración montados, finos y alineados; solo aparecen sobre carcasas que pueden alojarlos y se retiraron de Configuración y del Registro de capacidades para evitar cruces con engranajes, conductos o señales. Memoria se representa como una bóveda técnica de tres capas indexadas, con bus RAG lateral, núcleo cifrado, compuertas de retención, cartuchos de archivo y respaldo duplicado. Permisos se representa como un gateway de política con solicitud de acceso, token de concesión, sello del propietario, núcleo bloqueado, temporizador de lease y corte físico de revocación; ya no usa las dos torres genéricas anteriores. Actividad usa tres carriles temporales, playhead, severidad y puertos de evento; Identificación separa ingreso perceptivo, huella del propietario, contexto, presupuesto de tokens y revisión local. El Registro distingue visualmente capacidades sondeadas, listas y planificadas; el Planificador compara tres candidatos mediante riesgo y utilidad, conservando un bloqueo físico de ejecución; Auditoría enlaza evidencia durable, huella de integridad y diagnóstico pasivo. Los cinco controles priorizan una lectura convencional incluso a `22 × 22 px`: cuatro flechas para desplazar, flecha orbital con cubo para rotar, lupas con más o menos para zoom y flecha circular con casa para restablecer. Los archivos usan nombres descriptivos por dominio y función: prefijos `cognitive-`, `embodiment-`, `governance-` y `camera-` reemplazan los ambiguos `nav-`, `bridge-`, `nucleus-` y `view-`. Los engranajes quedan reservados exclusivamente para Configuración, que emplea uno principal de alta precisión acompañado por tres módulos de control y un riel inferior. Avatar conserva el maniquí y su rig; Rostro conserva landmarks reservados y una cámara tachada para no fingir tracking activo. `nav-conversation.svg` y `nav-nucleus.svg`, que permanecían importados sin ningún destino real, se retiraron del catálogo. El movimiento es decorativo y acotado, y se desactiva con `prefers-reduced-motion`. Las pruebas verifican catálogo, nombres, accesibilidad, unicidad, ausencia de texto y patrones visibles, semántica, movimiento desactivable, exclusividad del engranaje y ausencia de recursos externos o contenido ejecutable.
 
-El emblema [`icons/app-alice.svg`](icons/app-alice.svg) se rediseñó el 2026-08-20 a solicitud del propietario con mayor detalle —retícula y anillo internos, tornillería, trazas de circuito entre nodos, anillo orbital con satélites, facetas del hexágono y ticks en la línea base— conservando su identidad de hemisferios y núcleo; el conjunto de iconos de Tauri (`src-tauri/icons/`) permanece intacto. La decisión vigente y la verificación están documentadas en [ADR-P-064](docs/decisions/ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md). [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) conserva el antecedente reemplazado.
+En el Registro de capacidades, el puerto de entrada y el backplane ocupan piezas separadas para evitar la superposición que parecía un engranaje. Las tres tarjetas se centran sobre el mismo eje y alinean sus conectores; cada estado incorpora símbolo propio, telemetría interna y lámpara, mientras el riel inferior conserva una sincronización limpia y sin cruces.
+
+La pasada `precision-finish-v3` refina los 22 SVG de la carpeta `icons`: reduce de forma proporcional los trazos estructurales hasta un máximo de `7.2`, conserva los microtrazos legibles y amplía el detalle material mediante gradientes metálicos de bandas finas, vidrio estratificado, menor halo, conectores con doble anillo, nodos con lente calibrada y bases con juntas mecanizadas. El emblema mantiene su composición, pero aligera chasis, hemisferios, circuitos y bus e incorpora índices de calibración alrededor del núcleo.
+
+La pasada posterior `precision-finish-v4` limita el grosor máximo a `6.4` y concentra el detalle nuevo dentro de componentes existentes: tornillos con índice radial de mecanizado, rieles de refrigeración con cuatro anclajes, anillos de calibración con pista interior y módulos técnicos con contactos inferiores. El marco de `app-alice.svg` añade costuras mecanizadas y anillos finos en nodos sin cambiar el cerebro, el monograma ni su distribución.
+
+`precision-finish-v5` amplía el acabado de componentes a los 22 SVG: nodos con contactos diagonales, sockets con pestañas cardinales de cierre, tornillería calibrada también en el emblema y grosor máximo de `6.0`. Flujo cognitivo abandona la antigua cadena de evidencia y reproduce el grafo funcional real de la pantalla: inhibición, percepción, memoria y lenguaje convergen en el espacio de trabajo global antes de una salida gobernada; las funciones futuras permanecen como satélites atenuados. Taller se reconstruye como una mesa única con biblioteca local, cartucho de manifiesto y huella, cúpula de simulación estática, bus de capacidades, columna de ciclo inmutable, llave del propietario y aislador físico de ejecución.
+
+`precision-finish-v6` baja el máximo a `5.8` y refina rodamientos, celdas de estado y controles mediante retenes, contactos e índices de guía. Permisos abandona el portal con escudo y se convierte en una esclusa R2 coherente: deny-by-default, solicitud preparada, decisión explícita, grant efímero, vencimiento, ejecución separada, revocación y drenaje no persistente. Auditoría abandona el escudo y la lupa genéricos para mostrar una consola dual: ledger R3 correlacionado y rotado, verificador de integridad, banco pasivo de cinco categorías, trampa de líneas inválidas, sonda de solo lectura y aislador sin efectos.
+
+`precision-finish-v7` reduce el grosor máximo a `5.6`, amplía la estratificación del metal compartido y reemplaza las metáforas incorrectas de Volumen y Planificador. Volumen ya no es una esfera orbital con núcleo único: muestra dos lóbulos compactos, asociaciones próximas, anclas de memoria persistente, pulsos R3 temporales, reserva afectiva inactiva y rutas independientes de entrada, contexto y salida. Planificador ya no simula tres candidatas ni una selección inexistente: es un banco vacío con checkpoint de entrada, generador sellado, cola vacía, cuatro métricas sin calcular, traza futura de cuatro etapas, cuna de respuesta vacía y aislador de ejecución. Esta descripción v7 sustituye la caracterización anterior del Planificador como comparador activo.
+
+`precision-finish-v8` reduce el máximo a `5.4`, compacta sombras y halos y reconstruye Identificación y Avatar desde sus pantallas vigentes. Identificación elimina la huella y el sello biométricos porque la identidad personal no está conectada; ahora representa ingreso local real, multiplexor de fuente, tokenización limitada, vector de procedencia, clasificación heurística, controles de ciclo, simulación afectiva apagada y failsafe local. Avatar deja de ser un maniquí orbital genérico y pasa a un banco de inspección VRM: archivo privado, render local, cuerpo techwear, rig humanoide, scanner, telemetría, catálogo de expresiones de solo lectura, springs, mando manual, registro R3 y cuatro fronteras donde sólo el render está conectado. Esta descripción sustituye las metáforas anteriores de ambos iconos.
+
+`precision-finish-v9` completa la gramática de montaje. Los dieciséis iconos que representan equipos incorporan dos patas portantes mecanizadas entre chasis y plinto, con refuerzos diagonales, placas de acople, tornillos e índices de carga; la separación inferior deja de parecer una pieza faltante. Los cinco controles de cámara permanecen como mandos ópticos independientes con sombra propia y sin plinto. `app-alice.svg` conserva su condición de emblema enmarcado. Los SVG declaran esta distinción mediante `data-mounting-grammar`, y las pruebas impiden que un equipo pierda sus soportes o que un control reciba una base incorrecta.
+
+`precision-finish-v10` convierte el antiguo conducto genérico de Configuración en un arnés inequívoco de fibra óptica blindada. Una columna distribuidora conecta físicamente el engranaje con tres ramales independientes para inferencia, privacidad y hardware; cada ramal incorpora camisa metálica, núcleo luminoso propio, férulas en ambos extremos y señal animada. Dos abrazaderas con tornillos aportan alivio de tensión y un prisma central representa el diagnóstico del bus. El SVG ya no contiene `refined-signal-conduit` en esta escena y declara `fiber-optic-bus` en su semántica.
+
+`precision-finish-v11` reconstruye el engranaje principal de Configuración como un conjunto de precisión: dieciséis dientes cortos biselados, corona de raíz mecanizada, encoder óptico de 32 marcas, ocho radios cónicos, seis limitadores de torque, jaula fija de doce bolas y acople central con llave. Sólo gira la corona exterior; el cubo y el rodamiento permanecen fijos, por lo que el movimiento ya no arrastra una pieza que debería estar anclada. El engranaje conserva el contacto físico con el arnés óptico sin invadir el distribuidor ni los tres módulos.
+
+`precision-finish-v12` elimina el gran hexágono inferior que se interpretaba como un segundo núcleo o un control sin función. En su lugar queda un soporte compacto alineado con el eje del engranaje, con acople antivibración, índices de carga y anclajes al plinto. El núcleo real añade retén axial, eje estriado de dieciséis caras, chaveta, apertura hexagonal reducida y tapa endurecida; cada capa describe transmisión o retención mecánica en vez de ornamentación.
+
+`precision-finish-v13` coloca el arnés óptico de Configuración en la capa posterior: conductos, distribuidor y férulas pasan detrás del engranaje, el soporte y los tres módulos, mientras los conectores externos conservan su lectura frontal. Memoria mantiene exactamente sus responsabilidades pero separa mejor sus componentes: cada capa recibe tapa mecanizada, ventana de estado e índice de dirección; las tres retenciones incorporan actuadores y señales; el núcleo cifrado gana jaula y balizas; la lente RAG integra retícula; los cartuchos muestran medio, contactos y estado; y el respaldo distingue dos canales espejo.
+
+`precision-finish-v14` refina los 21 SVG funcionales sin modificar `app-alice.svg`: reduce de forma moderada los respaldos negros y contornos estructurales de mayor masa —incluido el soporte común de los dieciséis equipos—, preservando señales, micrograbados y tornillería. Planificador se reconstruye como un banco de arbitraje gobernado: cargador sellado y vacío, cámara hexagonal dominante, cuatro evaluadores sin cálculo diferenciados por geometría, cuna de respuesta sin selección, traza futura de cuatro etapas y doble interbloqueo de salida. El módulo temporal R7 aparece como un dock del propietario físicamente montado pero eléctricamente aislado, con reloj detenido, bandeja de vista previa vacía, confirmación cerrada y ledger sin reservas; no sugiere decisión autónoma, despacho ni ejecución. El acabado añade violeta para arbitraje, conserva cian y ámbar para señal y seguridad, evita flechas, texto y engranajes fuera de Configuración, y limita el grosor final del catálogo generado a `4.7` unidades.
+
+La interfaz adopta `industrial-button-shell-v1` para trasladar a sus 104 botones el mismo lenguaje material de los iconos. La carcasa compartida usa metal oscuro, reflejo diagonal, marcas mecanizadas en esquinas, profundidad de presión y neón semántico; cian identifica acciones primarias, plata las secundarias, verde la aprobación, ámbar la advertencia, rosa el peligro y violeta las operaciones especiales. Pestañas con SVG y selectores de datos usan versiones menos profundas para conservar su jerarquía. Los nodos de la línea temporal permanecen como puntos gráficos, pero reciben foco de teclado visible. Estados seleccionado, presionado, bloqueado y `prefers-reduced-motion` están definidos de forma explícita.
+
+El refinamiento de movimiento evita iconos completamente estáticos: cada SVG funcional incorpora una oscilación mecánica subpíxel y suma únicamente las animaciones pertinentes a su contenido —flujo por conductos, órbitas de calibración, barridos de visor, pulsos de estado, respiración técnica o articulaciones—. Taller muestra manifiesto, cámara de simulación, aprobación, bloqueo y ciclo de vida; Procedimientos muestra evidencia repetida, correlador, candidato, decisión del propietario y aislamiento de ejecución. Cuerpo expone rig, rodamientos, restricciones IK y objetivos de apoyo con la entrada sensorial sellada. Avatar separa visor VRM, geometría, rig, materiales MToon, spring bones y control manual. Rostro conserva la cámara apagada mientras anima solamente guías y landmarks reservados. `app-alice.svg` mantiene su composición y añade un flujo neuronal y orbital leve. Todo movimiento queda anulado por `prefers-reduced-motion`.
+
+Flujo cognitivo deja de ser una curva abstracta y se representa como un circuito de evidencia trazable: paquetes de entrada acreditada, bus correlacionado, verificador central, reserva de contexto de memoria, compuerta de elegibilidad de salida, ledger de integridad y canal no acreditado rechazado. El recorrido usa pulsos y trazos discontinuos animados, nunca flechas, y no representa una ejecución autónoma. Una pasada adicional reduce con moderación los trazos estructurales medianos y gruesos de los 21 iconos generados sin alterar su geometría semántica.
+
+En Estado y controles, los cuatro rectángulos inferiores sin significado se reemplazan por cuatro bancos dobles que condensan los ocho controles de comportamiento reales de la pantalla. Cada banco muestra dos faders inmóviles, estado bloqueado y un LED técnico; el interlock central enfatiza que el panel es de solo lectura y no puede cambiar la conducta de Alice. Los indicadores pueden pulsar, pero los faders no se animan ni presentan valores inventados.
+
+El acabado `precision-finish-v2` aplica una última reducción proporcional a los trazos estructurales pesados de los 22 SVG, incluido el emblema, sin adelgazar los micrograbados por debajo de su lectura útil. Los halos pasan a ser más estrechos y las sombras menos difusas para que tornillos, biseles, faders y conductos no se mezclen. Cada nodo estratificado incorpora cuatro índices cardinales de calibración; las pruebas limitan el grosor máximo de la familia y exigen un índice por cada nodo generado.
+
+El emblema [`icons/app-alice.svg`](icons/app-alice.svg) conserva su identidad de hemisferios y núcleo. El 2026-08-31 recibió únicamente un refinamiento ligero: fondo grafito-azul con profundidad radial, grabados mecánicos discretos, halo central más contenido y cuatro tornillos de alojamiento hexagonal; el conjunto de iconos de Tauri (`src-tauri/icons/`) permanece intacto. La decisión vigente y la verificación están documentadas en [ADR-P-064](docs/decisions/ADR-P-064-pantallas-cognitivas-e-iconos-cyrcetech.md). [ADR-P-063](docs/decisions/ADR-P-063-sistema-cyber-glyph-v2.md) conserva el antecedente reemplazado.
 
 ## Cámara, micrófono y aprendizaje sensorial
 
@@ -104,7 +166,7 @@ Como evaluación de una alternativa accesible a un visor con seguimiento facial,
 
 La pestaña **Rostro** consulta además una comprobación nativa pasiva: vuelve a calcular la huella del modelo local y verifica Python, OpenCV, MediaPipe y NumPy. Sólo expone preparación, nunca abre cámara ni lee landmarks; `sensorOpened` se valida como `false`. El panel también permite preparar y decidir el permiso facial R2 `critical` de 60 segundos. Incluso aprobado, el grant queda sin ejecutar y puede revocarse desde el mismo panel; todos los canales permanecen en reserva.
 
-La voz del avatar se evaluará posteriormente mediante la API de **Fish Audio** que posee Carlos Nuñez. Todavía no se agrega dependencia, adaptador, variable ni clave. La credencial nunca deberá escribirse en este README, el repositorio, React, la memoria o una auditoría.
+La salida manual de voz dispone de un adaptador nativo de **Fish Audio**. Requiere `FISH_API_KEY`, `ALICE_FISH_REFERENCE_ID` y confirmar cada respuesta antes de enviarla; el audio se mantiene temporal y no mueve automáticamente el avatar. La transcripción local es también manual. Las credenciales nunca deben escribirse en este README, el repositorio, React, la memoria o una auditoría. Las pruebas de identidad no realizaron llamadas pagadas ni activaron micrófono o cámara.
 
 Los prototipos Python aportados externamente permanecen en una carpeta local excluida de Git y no forman parte del runtime. Una auditoría estática encontró ideas recuperables para lectura documental, OCR, STT, visión, TTS y conocimiento, pero también dependencias ausentes y límites incompletos de rutas, red, procesos y mutación. Ninguno se conecta hasta ser reescrito como una capacidad gobernada y probado por separado. Consulta la [política de cuarentena](docs/architecture/ADAPTER_QUARANTINE.md) y el [informe técnico](docs/research/ADAPTER_STATIC_AUDIT_2026-09-04.md).
 
@@ -212,14 +274,14 @@ La interfaz mantiene **FUSIÓN NO DISPONIBLE**. La memoria canónica nunca pasó
 
 ## Iniciar Alice
 
-Hacer doble clic en [`Iniciar Alice.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
+Hacer doble clic en [`Iniciar Alice Continuum.cmd`](Iniciar%20Alice.cmd). La terminal debe permanecer abierta mientras se usa la aplicación.
 
 Para el recorrido completo de operación y solución de problemas, consulta el [Manual de uso](docs/MANUAL_DE_USO.md).
 
 El lanzador valida Node, npm, Cargo, las dependencias locales y el puerto 5173 antes de iniciar. También impide abrir dos instancias del mismo proyecto, limita Ollama a `127.0.0.1:11434` y comparte el caché Rust canónico `.cargo-target` con los comandos Cargo del repositorio. Para comprobar el entorno sin abrir Alice:
 
 ```powershell
-& '.\Iniciar Alice.cmd' --check
+& '.\Iniciar Alice Continuum.cmd' --check
 ```
 
 Inicio equivalente desde PowerShell:
@@ -243,7 +305,7 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 
 | Proveedor | Variable requerida | Modelo opcional |
 |---|---|---|
-| Ollama local | ninguna; `Iniciar Alice.cmd` verifica el runtime | `ALICE_OLLAMA_MODEL` (por defecto `qwen3.5:4b`) |
+| Ollama local | ninguna; `Iniciar Alice Continuum.cmd` verifica el runtime | `ALICE_OLLAMA_MODEL` (por defecto `qwen3.5:4b`) |
 | OpenRouter | **PAUSADO**; su clave no lo habilita | adaptador preservado para una decisión futura |
 | OpenAI | `OPENAI_API_KEY` | `OPENAI_MODEL` |
 | Anthropic | `ANTHROPIC_API_KEY` | `ANTHROPIC_MODEL` |
@@ -251,7 +313,7 @@ La selección de proveedor y modelo vive en **Configuración**, no en la portada
 | xAI | `XAI_API_KEY` | `XAI_MODEL` |
 | Compatible con Chat Completions | `ALICE_COMPATIBLE_API_KEY` y `ALICE_COMPATIBLE_BASE_URL` | `ALICE_COMPATIBLE_MODEL` |
 
-`Iniciar Alice.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato conversacional local usa contexto 4096, desactiva herramientas, streaming y razonamiento visible, limita la salida a 900 tokens y mantiene la previsualización obligatoria. OpenRouter no aparece en Configuración y Rust rechaza cualquier solicitud directa hacia él. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3 y memoria de trabajo temporal. Ninguna respuesta del modelo se consolida automáticamente como recuerdo durable. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [ADR-P-080](docs/decisions/ADR-P-080-contexto-rag-local.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
+`Iniciar Alice Continuum.cmd` comprueba Ollama y, si hace falta, inicia `ollama serve` limitado a `127.0.0.1:11434`; Alice no acepta una URL local configurable, no reutiliza la excepción HTTPS del proveedor Compatible y rechaza identificadores Ollama terminados en `:cloud` o `-cloud`. El contrato conversacional local usa contexto 4096, desactiva herramientas, streaming y razonamiento visible, limita la salida a 900 tokens y mantiene la previsualización obligatoria. OpenRouter no aparece en Configuración y Rust rechaza cualquier solicitud directa hacia él. Ejecutar Ollama en reposo no crea actividad cognitiva: sólo una solicitud y una respuesta reales producen eventos R3 y memoria de trabajo temporal. Ninguna respuesta del modelo se consolida automáticamente como recuerdo durable. Consulta [ADR-P-079](docs/decisions/ADR-P-079-inferencia-ollama-loopback.md), [ADR-P-080](docs/decisions/ADR-P-080-contexto-rag-local.md), [el inventario de modelos](docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md) y [el informe de pruebas](docs/testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md).
 
 ## Observación visual local
 
@@ -265,7 +327,7 @@ La credencial de Fish Audio no se lee desde documentos ni se incorpora al reposi
 
 ## Datos locales
 
-`Iniciar Alice.cmd` establece `ALICE_DATA_DIR` en `E:\Alice Cognitive Core\data`. Puede apuntarse a otra ubicación definiendo esa variable antes de arrancar; el lanzador normaliza la ruta y comprueba que sea accesible. El contenido está excluido de Git.
+`Iniciar Alice Continuum.cmd` establece `ALICE_DATA_DIR` en `E:\Alice Cognitive Core\data`. Puede apuntarse a otra ubicación definiendo esa variable antes de arrancar; el lanzador normaliza la ruta y comprueba que sea accesible. El contenido está excluido de Git.
 
 ```text
 data/
@@ -289,7 +351,7 @@ La memoria es visible, editable, exportable y respaldable. Las auditorías conse
 
 ```text
 src/
-├── Page/                 pantallas React
+├── pages/                pantallas React agrupadas por área
 ├── components/           paneles, iconos y visualizaciones
 └── core/                 contratos R1/R2 y lógica TypeScript comprobable
 
@@ -318,7 +380,7 @@ src-tauri/src/
 └── lib.rs                estado y registro de comandos Tauri
 ```
 
-Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md), [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [LAYERED_MEMORY_R6.md](docs/architecture/LAYERED_MEMORY_R6.md) y [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/alice_documento_maestro.html) conserva la especificación completa.
+Los contratos vigentes son [CAPABILITY_REGISTRY_R1.md](docs/architecture/CAPABILITY_REGISTRY_R1.md), [PERMISSION_GATEWAY_R2.md](docs/architecture/PERMISSION_GATEWAY_R2.md), [UNIFIED_AUDIT_R3.md](docs/architecture/UNIFIED_AUDIT_R3.md), [SKILL_MANIFEST_R4.md](docs/architecture/SKILL_MANIFEST_R4.md), [GOVERNED_PROCEDURE_CANDIDATE_R5.md](docs/architecture/GOVERNED_PROCEDURE_CANDIDATE_R5.md), [LAYERED_MEMORY_R6.md](docs/architecture/LAYERED_MEMORY_R6.md) y [WORKING_MEMORY_R6.md](docs/architecture/WORKING_MEMORY_R6.md). El [Roadmap](Roadmap.md) gobierna el orden R1–R10 y el [documento maestro](docs/especificacion_alice_continuum.html) conserva la especificación completa.
 
 Las investigaciones externas son referencias, no autoridad de implementación. Están revisadas en [OpenClaw + Tencent](docs/research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md) y [Project AIRI](docs/research/REVIEW_AIRI_2026-08-13.md). AIRI aporta patrones útiles para el futuro puente de voz y VRM de R9, pero no sustituye el núcleo Tauri/Rust ni el diseño propio de memoria R6.
 
@@ -350,7 +412,7 @@ Las pruebas del registro verifican serialización, esquema, IDs únicos, estados
 
 ## Repositorio y continuidad
 
-- Repositorio canónico privado: `enri312/alice-cognitive-core`.
+- Repositorio canónico privado: [enri312/alice-continuum](https://github.com/enri312/alice-continuum).
 - Rama vigente: `master`.
 - El avatar privado y `data/` no se versionan.
 - No se deben publicar claves, recuerdos, grabaciones ni capturas privadas.

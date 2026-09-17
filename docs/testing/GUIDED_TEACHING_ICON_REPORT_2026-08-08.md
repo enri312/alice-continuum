@@ -22,7 +22,7 @@ El SVG no contiene animaciones ni reutiliza el avatar VRM. Con el comando oficia
 
 ## Corrección de arranque
 
-Durante la revisión se detectó que una instancia manual antigua se había abierto desde `.cargo-target/debug`, conservando el icono anterior. `Iniciar Alice.cmd` ahora fija `CARGO_TARGET_DIR=src-tauri\target`, de modo que el arranque y la recompilación utilizan un único ejecutable. La caché antigua no se utiliza ni se modifica. Además, el backend carga `src-tauri/icons/icon.png` y lo aplica a la ventana `main`, lo que evita depender de la caché del icono del proceso durante el desarrollo.
+Durante la revisión se detectó que una instancia manual antigua se había abierto desde `.cargo-target/debug`, conservando el icono anterior. `Iniciar Alice Continuum.cmd` ahora fija `CARGO_TARGET_DIR=src-tauri\target`, de modo que el arranque y la recompilación utilizan un único ejecutable. La caché antigua no se utiliza ni se modifica. Además, el backend carga `src-tauri/icons/icon.png` y lo aplica a la ventana `main`, lo que evita depender de la caché del icono del proceso durante el desarrollo.
 
 ## Resultados
 

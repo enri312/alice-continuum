@@ -1,11 +1,11 @@
 {
-  "name": "alice-cognitive-core",
+  "name": "alice-continuum",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "icons:generate": "node scripts/generate-alice-icon-system.mjs",
+    "icons:generate": "node scripts/icons/generate-icons.mjs",
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:watch": "vitest",

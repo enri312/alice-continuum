@@ -5,7 +5,7 @@ Estado: aprobado
 
 ## Objetivo
 
-Convertir `docs/alice_documento_maestro.html` en el documento rector formal de Alice, con la identidad visual del producto y una cobertura comparable a una práctica académica completa de Ingeniería de Software.
+Convertir `docs/especificacion_alice_continuum.html` en el documento rector formal de Alice, con la identidad visual del producto y una cobertura comparable a una práctica académica completa de Ingeniería de Software.
 
 ## Referencia documental
 

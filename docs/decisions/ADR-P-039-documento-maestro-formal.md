@@ -9,7 +9,7 @@ El documento maestro ya reunía la evolución técnica de Alice, pero su present
 
 ## Decisión
 
-- Mantener `docs/alice_documento_maestro.html` como fuente de verdad legible sin servidor.
+- Mantener `docs/especificacion_alice_continuum.html` como fuente de verdad legible sin servidor.
 - Adoptar el lenguaje visual del producto: fondo azul marino, cuadrícula, cian operativo, ámbar de advertencia y violeta del Núcleo.
 - Separar el tema en `docs/assets/alice-documento.css` para que contenido y presentación puedan evolucionar sin mezclarse.
 - Incluir portada formal, índice navegable, actores, requisitos, diez casos de uso, restricciones, arquitectura, seguridad, operación, calidad, trazabilidad, decisiones, historial, glosario y créditos.

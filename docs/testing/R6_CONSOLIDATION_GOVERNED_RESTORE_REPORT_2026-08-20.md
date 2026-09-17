@@ -33,7 +33,7 @@ El resultado `idle` significa que Alice no tiene una consolidación interrumpida
 
 | Comando | Resultado |
 |---|---|
-| `npx vitest run src/core/memory-consolidation-preview.test.ts src/core/icon-system.test.ts` | 104/104 aprobadas |
+| `npx vitest run src/core/memory/memory-consolidation-preview.test.ts src/core/navigation/icon-system.test.ts` | 104/104 aprobadas |
 | `npm test` | 284/284 aprobadas |
 | `npm run build` | aprobado; advertencia informativa por tamaño de chunks |
 | `cargo test r6_3_f_exposes_native_status_and_governed_restore_without_merge_command` | 1/1 aprobada |

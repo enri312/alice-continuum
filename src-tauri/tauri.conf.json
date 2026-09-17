@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Alice",
+  "productName": "Alice Continuum",
   "version": "0.1.0",
   "identifier": "com.carlosnunez.alicecognitivecore",
   "build": {
@@ -22,7 +22,7 @@
     },
     "windows": [
       {
-        "title": "Alice — Núcleo observable",
+        "title": "Alice Continuum — Memoria, cognición y presencia",
         "width": 1000,
         "height": 800,
         "resizable": true

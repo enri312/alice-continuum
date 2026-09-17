@@ -69,7 +69,7 @@ El criterio pendiente afecta nueve recuerdos y exige dieciocho decisiones humana
 
 | Comando | Resultado |
 |---|---|
-| `npx vitest run src/core/icon-system.test.ts` | 96/96 aprobadas |
+| `npx vitest run src/core/navigation/icon-system.test.ts` | 96/96 aprobadas |
 | `npm test` | 335/335 aprobadas en 40 archivos |
 | `npm run build` | Aprobado; sólo advertencias conocidas por chunks mayores a 500 kB |
 | `cargo fmt --check` | Aprobado |

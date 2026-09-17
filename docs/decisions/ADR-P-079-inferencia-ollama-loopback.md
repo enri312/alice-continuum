@@ -13,7 +13,7 @@ Alice ya conversa mediante adaptadores remotos y registra respuestas reales en R
 
 - Registrar `ollama` como proveedor independiente.
 - Fijar su único endpoint en `http://127.0.0.1:11434/api/chat`; no aceptar host, puerto ni URL desde React o variables de entorno.
-- Habilitarlo sólo cuando `Iniciar Alice.cmd` compruebe una respuesta real de Ollama y verifique que todos los listeners del puerto 11434 son loopback.
+- Habilitarlo sólo cuando `Iniciar Alice Continuum.cmd` compruebe una respuesta real de Ollama y verifique que todos los listeners del puerto 11434 son loopback.
 - Si no hay servidor, el iniciador ejecuta `ollama serve` con `OLLAMA_HOST=127.0.0.1:11434` en una ventana oculta y espera hasta diez segundos.
 - Usar `qwen3.5:4b` por defecto, sustituible mediante `ALICE_OLLAMA_MODEL` sin descargar ni borrar modelos.
 - Rechazar identificadores Ollama terminados en `:cloud` o `-cloud`; la ruta local no puede delegar inferencia al servicio remoto de Ollama.

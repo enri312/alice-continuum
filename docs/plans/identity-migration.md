@@ -1,5 +1,9 @@
 # Plan de migración — Alice Cognitive Core
 
+> Antecedente histórico de agosto de 2026. La identidad vigente es
+> [Alice Continuum](../architecture/CONTINUUM_IDENTITY.md); las rutas y resultados
+> de este plan documentan la migración anterior.
+
 Estado: completa y verificada  
 Fecha: 2026-08-08
 
