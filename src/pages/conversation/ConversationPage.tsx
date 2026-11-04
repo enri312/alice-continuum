@@ -1,3 +1,4 @@
+import type { ConversationMessage, CloudStatus, CloudRequest, CloudResponse, HybridRetrievalCandidate, HybridRetrievalRequest, HybridRetrievalPreview } from "../../core/conversation/conversation-contracts";
 import { HandsFreeVoice } from "../../components/conversation/HandsFreeVoice";
 import { AudioInputSettings } from "../../components/conversation/AudioInputSettings";
 import type { NoiseStatus } from "../../core/voice/noise-types";
@@ -8,8 +9,6 @@ import { buildRetrievalQuery, retrieveMemories } from "../../core/memory/memory-
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../../core/conversation/cloud-payload";
 import { selectReinforceableMemoryIds } from "../../core/memory/memory-consolidation";
 import type { RetrievalOutcome } from "../../core/memory/memory-consolidation";
-import type { WorkingMemorySnapshot } from "../../core/memory/working-memory";
-import type { ConversationHistorySnapshot } from "../../core/conversation/conversation-history";
 import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "../../core/conversation/conversation-learning";
 import type { VoiceOutputPreview, VoiceOutputResult } from "../../core/voice/voice-output";
 import { bytesToBase64 } from "../../core/voice/voice-input";
@@ -18,21 +17,6 @@ import type { VoiceTurnTranscript } from "../../core/voice/voice-input";
 import { affectPalette } from "../../core/cognitive/affect";
 import "../../styles/conversation-context.css";
 
-export type ConversationMessage = {
-  id: string;
-  role: "user" | "assistant";
-  text: string;
-  createdAt: string;
-  model?: string;
-  exchangeId?: string;
-};
-
-export type CloudStatus = {
-  providers: CloudProvider[];
-};
-
-export type CloudProvider = { id: string; label: string; configured: boolean; defaultModel: string; protocol: string; retentionMode: string };
-
 const conversationMemoryTypeLabels: Record<ConversationLearningCandidate["memoryType"], string> = {
   semantic: "SEMÁNTICA",
   preference: "PREFERENCIA",
@@ -40,45 +24,6 @@ const conversationMemoryTypeLabels: Record<ConversationLearningCandidate["memory
 };
 
 const INITIAL_VISIBLE_MESSAGES = 12;
-
-export type CloudRequest = {
-  voiceSessionId?: string;
-  message: string;
-  payload: string;
-  provider: string;
-  model: string;
-  historyCount: number;
-  memoryCount: number;
-};
-
-export type CloudResponse = {
-  text: string;
-  provider: string;
-  model: string;
-  responseId: string;
-  inputTokens: number;
-  outputTokens: number;
-  workingMemory: WorkingMemorySnapshot | null;
-  workingMemoryError: string | null;
-  conversationHistory: ConversationHistorySnapshot | null;
-  conversationHistoryError: string | null;
-};
-
-export type HybridRetrievalCandidate = { id: string; text: string };
-
-export type HybridRetrievalRequest = {
-  query: string;
-  candidates: HybridRetrievalCandidate[];
-};
-
-export type HybridRetrievalPreview = {
-  matches: { id: string; rank: number; reason: string }[];
-  model: string;
-  elapsedMs: number;
-  persisted: boolean;
-  truthVerified: boolean;
-  requiresOwnerReview: boolean;
-};
 
 type MemoryExcerpt = { automaticLearning?: boolean; ownerReviewed?: boolean; id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived"; accessibilityStatus?: "accessible" | "dormant"; suppressionStatus?: "suppressed"; archiveStatus?: "archived"; deletionStatus?: "scheduled" };
 

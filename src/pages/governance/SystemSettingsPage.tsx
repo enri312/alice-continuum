@@ -1,4 +1,4 @@
-import type { CloudStatus } from "../conversation/ConversationPage";
+import type { CloudStatus } from "../../core/conversation/conversation-contracts";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "../../styles/settings-runtime.css";

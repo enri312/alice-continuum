@@ -6,7 +6,7 @@ import type { AutomaticMemorySnapshot, AutomaticMemoryReview, AutomaticLearningP
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./pages/conversation/ConversationPage";
-import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./pages/conversation/ConversationPage";
+import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
 import { Volumen } from "./pages/cognitive/NeuralVolumePage";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { Estado } from "./pages/cognitive/StateControlsPage";
@@ -25,6 +25,7 @@ import { NavigationIcon } from "./components/icons/NavigationIcon";
 import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
 import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
 import { loadCompatibleArray } from "./core/shared/storage-migration";
+import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/navigation/workspaces";
 import type { Screen } from "./core/navigation/workspaces";
@@ -219,24 +220,26 @@ export function App() {
 
   useEffect(() => {
     if (!desktopApp || !observationEnabled) return;
-    const refresh = async () => {
-      try {
+    return startSerializedPolling({
+      intervalMs: 2_000,
+      read: async () => {
         const [context, rawGateway] = await Promise.all([
           invoke<ForegroundContext | null>("get_foreground_context"),
           invoke<unknown>("permission_gateway_status"),
         ]);
         const gateway = parsePermissionGatewayStatus(rawGateway);
         const active = gateway.grants.some((grant) => grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active");
+        return { context, active };
+      },
+      onValue: ({ context, active }) => {
         setObservationEnabled(active);
         setForegroundContext(active ? context : null);
-      } catch {
+      },
+      onError: () => {
         setObservationEnabled(false);
         setForegroundContext(null);
-      }
-    };
-    refresh();
-    const timer = window.setInterval(refresh, 2000);
-    return () => window.clearInterval(timer);
+      },
+    });
   }, [desktopApp, observationEnabled]);
 
   useEffect(() => {
@@ -255,25 +258,22 @@ export function App() {
 
   useEffect(() => {
     if (!desktopApp) return;
-    let cancelled = false;
-    const refresh = async () => {
-      try {
-        const snapshot = parseWorkingMemorySnapshot(await invoke<unknown>("working_memory_status"));
-        if (cancelled) return;
+    return startSerializedPolling({
+      intervalMs: 5_000,
+      read: async () => parseWorkingMemorySnapshot(await invoke<unknown>("working_memory_status")),
+      onValue: snapshot => {
+        // A read started before a confirmed clear/response must not restore its old view.
+        if (snapshot.generation < workingMemoryGeneration.current) return;
         setWorkingMemory(snapshot);
-        if (snapshot.generation !== workingMemoryGeneration.current) {
-          workingMemoryGeneration.current = snapshot.generation;
-        }
-      } catch (error) {
-        if (!cancelled && workingMemoryGeneration.current < 0) {
+        workingMemoryGeneration.current = snapshot.generation;
+      },
+      onError: error => {
+        if (workingMemoryGeneration.current < 0) {
           workingMemoryGeneration.current = 0;
           recordEvent("SECURITY", "WORKING_MEMORY_STATUS_ERROR", String(error), "WARN");
         }
-      }
-    };
-    void refresh();
-    const timer = window.setInterval(refresh, 5_000);
-    return () => { cancelled = true; window.clearInterval(timer); };
+      },
+    });
   }, [desktopApp]);
 
   useEffect(() => {

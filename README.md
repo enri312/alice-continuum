@@ -4,7 +4,7 @@
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
 **Estado al 4 de noviembre de 2026:** prototipo funcional, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.56**.
+La versión del producto es **0.1.0** y el documento maestro **0.57**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -101,10 +101,10 @@ en el manual; OpenRouter permanece pausado por decisión del propietario.
 
 Última validación local, **4 de noviembre de 2026**:
 
-- **557 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **563 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **321 pruebas Rust aprobadas**, 27 sondas opcionales omitidas.
 - Compilaciones frontend y nativa, formato y Clippy aprobados.
-- HTML v0.56 revisado, con portada primero y enlaces locales comprobados.
+- HTML v0.57 revisado, con portada primero y enlaces locales comprobados.
 
 ```powershell
 npm test
@@ -120,6 +120,12 @@ un aviso de tamaño de paquetes de más de 500 kB. Las pruebas de hardware, serv
 y voz real se ejecutan por separado y no se dan por aprobadas por las unitarias.
 
 ## Estructura del proyecto
+
+Monolito de escritorio parcialmente modularizado, con capas técnicas y áreas
+funcionales. Los contratos de conversación están separados de las pantallas React
+y los sondeos de estado evitan consultas superpuestas. Este primer incremento
+mantiene las funciones existentes y no constituye una migración completa a
+Clean Architecture o Vertical Slice. [Decisión y verificación](docs/decisions/ADR-P-107-contratos-conversacion-y-sondeos.md).
 
 ```text
 src/pages/             pantallas de conversación, memoria, núcleo y gobierno

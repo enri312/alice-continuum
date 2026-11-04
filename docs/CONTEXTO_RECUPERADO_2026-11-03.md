@@ -353,3 +353,14 @@ activación por nombre, eco e interrupción y menor demora de voz. No ampliar
 acciones fuera de Spotify, YouTube/Chrome y aperturas D:/E: ya delegadas.
 Ver [ADR-P-106](decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) e
 [informe](testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+
+## Primer incremento arquitectónico — 2026-11-04
+
+La revisión identifica un monolito de escritorio parcialmente modularizado, por
+capas técnicas y áreas funcionales. Se extraen los contratos de conversación de
+la pantalla React y se serializan los sondeos de ventana/memoria, con descarte de
+resultados después del cierre y snapshots antiguos de memoria. Suite frontend:
+563 aprobadas, dos sondas omitidas; compilación aprobada. Sin cambios Rust ni de
+modelos. HTML v0.57. La separación de casos de uso y persistencia de `memory.rs`
+queda para el siguiente incremento; no se ha migrado toda la arquitectura. Ver
+[ADR-P-107](decisions/ADR-P-107-contratos-conversacion-y-sondeos.md).

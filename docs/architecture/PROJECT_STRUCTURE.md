@@ -1,5 +1,15 @@
 # Estructura del proyecto
 
+Actualización arquitectónica 2026-11-04 —
+[ADR-P-107](../decisions/ADR-P-107-contratos-conversacion-y-sondeos.md): el proyecto
+es un monolito de escritorio parcialmente modularizado, con capas técnicas y
+áreas funcionales. Todavía no aplica Clean Architecture estricta ni organiza
+todo por Vertical Slice. Los contratos compartidos de conversación viven en
+`src/core/conversation/conversation-contracts.ts`, fuera de las pantallas React.
+`src/core/shared/polling.ts` serializa los sondeos de ventana y memoria de trabajo
+y descarta sus resultados después de cerrar la suscripción. La siguiente
+separación importante corresponde a casos de uso y persistencia de memoria.
+
 Actualización de interfaz 2026-11-03: `InputIdentificationPage.tsx` presenta ahora
 Conversación y monta el diagnóstico secundario desde `InputDiagnostics.tsx` sólo
 al abrirlo. Se conserva la ruta `identificacion`. El icono actual se genera desde

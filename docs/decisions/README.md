@@ -81,3 +81,4 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-104](ADR-P-104-musica-spotify-youtube-chrome.md) | Tus me gusta en Spotify y música de YouTube en Chrome con controles verificados |
 | [ADR-P-105](ADR-P-105-supresion-local-ruido-vite.md) | RNNoise local, detección de voz, micrófono seleccionable y Vite 8.3.5 |
 | [ADR-P-106](ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) | Whisper CPU, sesión oral estable, tiempos visibles y rumbo sin domótica |
+| [ADR-P-107](ADR-P-107-contratos-conversacion-y-sondeos.md) | Contratos fuera de React y sondeos serializados con descarte de resultados tardíos |
