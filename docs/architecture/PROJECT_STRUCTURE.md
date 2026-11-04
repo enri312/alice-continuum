@@ -1,5 +1,13 @@
 # Estructura del proyecto
 
+Incremento 2026-11-04 — [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md):
+`src-tauri/src/memory.rs` conserva 28 comandos y la auditoría como fachada de 611
+líneas. `src-tauri/src/memory/` separa modelo, validación, consultas, registros,
+primitivas de archivos, rutas, capas, ciclo de vida, evaluación, retención,
+reconsolidación, consolidación, aprendizaje y pruebas. Los casos básicos reciben
+rutas; las consultas no inicializan almacenes. Se mantienen firmas y formatos.
+React/React DOM 19.3.1 y tipos 19.3.0 verificados.
+
 Actualización arquitectónica 2026-11-04 —
 [ADR-P-107](../decisions/ADR-P-107-contratos-conversacion-y-sondeos.md): el proyecto
 es un monolito de escritorio parcialmente modularizado, con capas técnicas y

@@ -364,3 +364,20 @@ resultados después del cierre y snapshots antiguos de memoria. Suite frontend:
 modelos. HTML v0.57. La separación de casos de uso y persistencia de `memory.rs`
 queda para el siguiente incremento; no se ha migrado toda la arquitectura. Ver
 [ADR-P-107](decisions/ADR-P-107-contratos-conversacion-y-sondeos.md).
+
+## Memoria modular y React — 2026-11-04
+
+Se completa el siguiente incremento autorizado: `memory.rs` pasa de 10.875 a 611
+líneas y conserva 28 comandos como fachada. Catorce archivos subordinados separan
+modelo, validación, consultas, registros, primitivas de archivos, rutas, casos de
+uso y pruebas. Los casos básicos reciben rutas y las consultas no crean memoria.
+Se conservan los 104 cuerpos de tipos y 137 funciones originales; cinco comandos
+delegan ahora el trabajo. Las reglas avanzadas mantienen sus transacciones.
+
+React y React DOM 19.3.1; tipos 19.3.0. Pasan 563 pruebas frontend y 326 Rust,
+con dos y 28 sondas omitidas respectivamente, además de una lectura canónica
+explícita: tres registros y cinco notas, sin cambiar archivos. Clippy con todos
+los targets aprobado y npm audit sin vulnerabilidades. HTML v0.58. No es una
+migración completa a Clean Architecture ni una reducción medida de latencia IA.
+Ver [ADR-P-108](decisions/ADR-P-108-memoria-modular-react-19-3.md) e
+[informe](testing/MEMORY_MODULAR_REACT_REPORT_2026-11-04.md).

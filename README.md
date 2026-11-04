@@ -4,7 +4,7 @@
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
 **Estado al 4 de noviembre de 2026:** prototipo funcional, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.57**.
+La versión del producto es **0.1.0** y el documento maestro **0.58**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -59,7 +59,7 @@ Entorno verificado en Windows con WebView2 y herramientas de compilación para T
 | Node.js / npm | 26.13.0 LTS / 11.20.0 |
 | Rust / Cargo | 1.99.1, fijada en `rust-toolchain.toml` |
 | Vite / Vitest | 8.3.5 / 4.1.12 |
-| Interfaz y escritorio | React 19, TypeScript y Tauri 2 |
+| Interfaz y escritorio | React/React DOM 19.3.1, tipos 19.3.0, TypeScript y Tauri 2 |
 
 Desde la raíz del proyecto:
 
@@ -102,9 +102,9 @@ en el manual; OpenRouter permanece pausado por decisión del propietario.
 Última validación local, **4 de noviembre de 2026**:
 
 - **563 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
-- **321 pruebas Rust aprobadas**, 27 sondas opcionales omitidas.
+- **326 pruebas Rust aprobadas**, 28 sondas opcionales omitidas; lectura canónica adicional aprobada.
 - Compilaciones frontend y nativa, formato y Clippy aprobados.
-- HTML v0.57 revisado, con portada primero y enlaces locales comprobados.
+- HTML v0.58 revisado, con portada primero y enlaces locales comprobados.
 
 ```powershell
 npm test
@@ -126,6 +126,11 @@ funcionales. Los contratos de conversación están separados de las pantallas Re
 y los sondeos de estado evitan consultas superpuestas. Este primer incremento
 mantiene las funciones existentes y no constituye una migración completa a
 Clean Architecture o Vertical Slice. [Decisión y verificación](docs/decisions/ADR-P-107-contratos-conversacion-y-sondeos.md).
+
+El backend de memoria conserva una fachada de 611 líneas y 28 comandos estables;
+sus contratos, validaciones, consultas, persistencia, casos de uso y pruebas
+viven en `src-tauri/src/memory/`. El almacenamiento básico se prueba por rutas,
+conservando respaldos, auditoría y formatos. [Modularización y React 19.3.1](docs/decisions/ADR-P-108-memoria-modular-react-19-3.md).
 
 ```text
 src/pages/             pantallas de conversación, memoria, núcleo y gobierno

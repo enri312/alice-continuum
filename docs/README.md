@@ -116,3 +116,5 @@ Los recuerdos reales, auditorías y respaldos viven en `data/`, fuera de `docs/`
 87. [Transcripción Whisper y estabilidad oral](decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md)
 88. [Prueba nativa de sesión y cancelación](testing/CONVERSATION_SESSION_REPORT_2026-11-04.md)
 89. [Contratos de conversación y sondeos serializados](decisions/ADR-P-107-contratos-conversacion-y-sondeos.md)
+90. [Memoria modular y React 19.3.1](decisions/ADR-P-108-memoria-modular-react-19-3.md)
+91. [Verificación de memoria y actualización React](testing/MEMORY_MODULAR_REACT_REPORT_2026-11-04.md)

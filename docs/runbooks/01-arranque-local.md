@@ -8,6 +8,11 @@ Actualización 2026-11-04: Vite **8.3.5**, Vitest **4.1.12** y filtro local RNNo
 **2025.1.5** fijados en el lockfile. Ejecutar `npm ci` al sincronizar estos cambios.
 El filtro y sus avisos de licencia se incluyen con Alice; no necesitan un CDN.
 
+React y React DOM se actualizaron a **19.3.1**, con tipos **19.3.0**. El lockfile
+conserva la combinación probada; usar `npm ci` al sincronizar el repositorio.
+La memoria nativa ahora se organiza en `src-tauri/src/memory/`; sus 28 comandos
+mantienen nombres y formatos. Ver [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md).
+
 La transcripción vigente usa **Whisper base CPU** instalado fuera de Git. Para
 reproducirla: `scripts/testing/install-whisper-local.ps1`; descarga oficial con
 hashes fijados y sin modificar PATH ni servicios. No se descarga al abrir Alice.
