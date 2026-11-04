@@ -6,7 +6,7 @@ import navActivity from "../../../icons/cognitive-activity-timeline.svg?raw";
 import navAudit from "../../../icons/governance-audit-diagnostics.svg?raw";
 import navAvatar from "../../../icons/embodiment-avatar-vrm.svg?raw";
 import navBridges from "../../../icons/governance-permissions-gateway.svg?raw";
-import navIdentification from "../../../icons/cognitive-input-identification.svg?raw";
+import navIdentification from "../../../icons/cognitive-conversation-channel.svg?raw";
 import navMemory from "../../../icons/cognitive-memory-vault.svg?raw";
 import navProcedures from "../../../icons/governance-procedure-observer.svg?raw";
 import navSettings from "../../../icons/governance-system-settings.svg?raw";
@@ -36,7 +36,7 @@ const expectedIconFileNames = [
   "cognitive-action-planner.svg",
   "cognitive-activity-timeline.svg",
   "cognitive-evidence-flow.svg",
-  "cognitive-input-identification.svg",
+  "cognitive-conversation-channel.svg",
   "cognitive-memory-vault.svg",
   "cognitive-neural-volume.svg",
   "cognitive-state-controls.svg",
@@ -66,7 +66,7 @@ const expectedSemantics: Record<keyof typeof functionalIcons, string> = {
   navAudit: "audit integrity diagnostic evidence",
   navAvatar: "local-vrm-inspection rig manual-motor read-only-boundaries",
   navBridges: "permission-gateway grants leases revocation",
-  navIdentification: "local-perception-diagnostic real-input tokenization provenance heuristic-intent",
+  navIdentification: "conversation-channel text-dialogue filtered-voice-session contextual-vision speech-output",
   navMemory: "layered-memory rag lifecycle archive backup",
   navProcedures: "observed-repetition evidence owner-decision",
   navSettings: "settings inference privacy hardware fiber-optic-bus",
@@ -74,7 +74,7 @@ const expectedSemantics: Record<keyof typeof functionalIcons, string> = {
   nucleusFlow: "cognitive-flow evidenced-links input-memory-output",
   nucleusPlanner: "governed-arbitration empty-planning-bench uncalculated-metrics no-selection no-execution owner-temporal-dock",
   nucleusState: "observable-internal-state readiness controls",
-  nucleusVolume: "stereoscopic-neural-volume memories processes associations routes",
+  nucleusVolume: "organic-neural-volume cortex dendrites memories provenance",
   viewPan: "camera pan tactile-control",
   viewReset: "camera reset home-dock",
   viewRotate: "camera three-axis orbit",
@@ -355,35 +355,15 @@ describe("sistema de iconos funcionales", () => {
     expect(navActivity).toContain('.timeline-optical-index{animation:none}');
   });
 
-  it("representa Identificación como diagnóstico local trazable sin biometría ficticia", () => {
-    expect(navIdentification).toContain('data-detail="local-perception-diagnostic-chassis"');
-    expect(navIdentification).toContain('data-detail="real-local-input-ingress"');
-    expect(navIdentification).toContain('data-detail="active-input-inspection-cassette"');
-    expect(navIdentification).toContain('data-detail="local-source-multiplexer"');
-    expect(navIdentification).toContain('data-source="draft"');
-    expect(navIdentification).toContain('data-source="last-user-message"');
-    expect(navIdentification).toContain('data-detail="token-inspection-optic"');
-    expect(navIdentification).toContain('data-detail="optic-calibration-index"');
-    expect(navIdentification).toContain('data-detail="tokenized-message-window"');
-    expect(navIdentification).toContain('data-detail="real-input-token-cells"');
-    expect(navIdentification.match(/data-token-index=/g)).toHaveLength(8);
-    expect(navIdentification).toContain('data-detail="isolated-document-preview" data-flow="preview-only" data-memory-write="false"');
-    expect(navIdentification).toContain('data-detail="perception-provenance-vector"');
-    expect(navIdentification.match(/data-detail="provenance-field-cell"/g)).toHaveLength(4);
-    expect(navIdentification).toContain('data-field="source" data-evidence="observed"');
-    expect(navIdentification).toContain('data-field="speaker" data-evidence="observed"');
-    expect(navIdentification).toContain('data-field="intent" data-evidence="heuristic"');
-    expect(navIdentification).toContain('data-field="confidence" data-evidence="heuristic"');
-    expect(navIdentification).toContain('data-detail="diagnostic-mode-deck"');
-    expect(navIdentification.match(/data-detail="diagnostic-mode-cell"/g)).toHaveLength(4);
-    expect(navIdentification).toContain('data-detail="affect-simulation-off"');
-    expect(navIdentification).toContain('data-detail="local-failsafe-isolator"');
-    expect(navIdentification).toContain('class="input-lens-glint"');
-    expect(navIdentification).toContain('class="input-reader-index"');
-    expect(navIdentification).toContain('.input-lens-glint,.input-reader-index{animation:none}');
+  it("representa diálogo, voz filtrada y visión opcional por sesión", () => {
+    for (const detail of ["conversation-channel-chassis", "conversation-turns", "text-message-input", "owner-voice-microphone", "conversational-voice-output", "speech-waveform", "local-noise-filter", "optional-visual-context"]) {
+      expect(navIdentification).toContain(`data-detail="${detail}"`);
+    }
+    expect(navIdentification).toContain('data-activation="started-session"');
+    expect(navIdentification).toContain('data-processing="local-before-transcription"');
+    expect(navIdentification).not.toContain('data-detail="turn-review-switch"');
+    expect(navIdentification).not.toContain('data-detail="token-inspection-optic"');
     expect(navIdentification).not.toContain('data-detail="biometric-owner-print"');
-    expect(navIdentification).not.toContain('data-detail="owner-verification-seal"');
-    expect(navIdentification).not.toContain('data-detail="context-window"');
   });
 
   it("representa Capacidades con siete dominios, madurez y estado separados", () => {
@@ -446,12 +426,13 @@ describe("sistema de iconos funcionales", () => {
     expect(nucleusPlanner).not.toContain('data-detail="utility-meter"');
   });
 
-  it("representa el Volumen como proyección trazable, sin anatomía cerebral", () => {
-    expect(nucleusVolume).toContain('data-detail="stereoscopic-volume-chamber"');
+  it("representa el Volumen con corteza ilustrativa y dendritas trazables", () => {
+    expect(nucleusVolume).toContain('data-detail="organic-cortex-projection"');
     expect(nucleusVolume).not.toContain('data-detail="left-memory-lobe"');
     expect(nucleusVolume).not.toContain('data-detail="right-process-lobe"');
-    expect(nucleusVolume).toContain('data-detail="confirmed-memory-associations"');
-    expect(nucleusVolume).toContain('data-authority="owner-confirmed"');
+    expect(nucleusVolume).toContain('data-detail="cortical-folds"');
+    expect(nucleusVolume).toContain('data-representation="illustrative-not-live"');
+    expect(nucleusVolume.match(/data-detail="branching-dendrites"/g)).toHaveLength(12);
     expect(nucleusVolume).toContain('data-detail="persistent-memory-anchors"');
     expect(nucleusVolume.match(/data-node-kind="memory"/g)).toHaveLength(12);
     expect(nucleusVolume.match(/data-node-kind="process"/g)).toHaveLength(3);
@@ -459,7 +440,6 @@ describe("sistema de iconos funcionales", () => {
     expect(nucleusVolume).toContain('data-detail="volume-provenance-inspector"');
     expect(nucleusVolume.match(/data-layer=/g)).toHaveLength(6);
     expect(nucleusVolume).toContain('data-detail="volume-navigation-deck"');
-    expect(nucleusVolume).toContain('data-detail="inactive-affect-reserve"');
     expect(nucleusVolume).toContain('data-detail="volume-orientation-cradle"');
     expect(nucleusVolume).not.toContain('data-detail="central-neural-core"');
     expect(nucleusVolume).not.toContain('class="orbit"');

@@ -1,7 +1,33 @@
 # R9 — Presencia, voz y cuerpo mediante puentes
 
 Inicio de diseño: 2026-09-12  
-Estado: R9.1 definido; no hay adaptadores nuevos activos.
+Actualización: 2026-11-04. Sesión automática de voz implementada: una acción de
+inicio, detección de pausas, transcripción Whisper local y respuesta Fish sin confirmar
+cada turno. El micrófono vuelve a escuchar al terminar la reproducción. Se
+mantiene el modo manual y queda pendiente aceptación acústica y de latencia con
+el propietario. Gemma 4 se mantiene; el avatar queda al final. Node 26.13.0 LTS
+y npm 11.20.0 verificados. Ver [ADR-P-099](../decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
+
+Incremento posterior: orden directa **Detén la conversación, Alice** durante
+escucha, interpretación de referentes y Rust 1.99.1. Ver
+[ADR-P-100](../decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
+
+Incremento vigente — [ADR-P-106](../decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md):
+Whisper base CPU reconoce el español y Gemma mantiene el diálogo. Se comprueba
+el ciclo nativo de dos respuestas y parada con audio sintético; se rechazan
+respuestas tardías después de detener y se conserva el texto si falla Fish.
+El detalle **Último mensaje atendido** muestra transcripción y tiempos reales.
+Aceptación con Carlos y música real pendiente. La activación dedicada por nombre
+y la interrupción durante reproducción requieren trabajo posterior. La prioridad
+es conversación y acciones de PC ya delegadas, sin domótica; Nerumi queda como
+referencia futura y el avatar sigue al final. Ver
+[el informe](../testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+
+> El contrato inicial que sigue se conserva como antecedente. En la sesión de
+> voz vigente, iniciar autoriza el ciclo hasta detener, salir o vencer a las dos
+> horas. La confirmación de cada texto sólo corresponde al modo manual. El
+> diálogo de la sesión mantiene el hilo; el historial anterior y los recuerdos
+> dependen de sus casillas. No se habilitan herramientas ni memoria confirmada.
 
 ## Propósito
 
@@ -206,3 +232,43 @@ puede seguir leyéndose cuando TTS no está configurado, y si cancelar la
 previsualización o una solicitud no cambia la conversación, la memoria, el VRM ni
 el historial de tareas. La auditoría debe permitir reconstruir el intento sin
 revelar texto, audio ni secreto.
+
+
+Incremento 2026-11-03: [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
+autoriza memoria automática independiente para nuevos mensajes Gemma. La selección
+no necesita aprobación por recuerdo; la configuración global y las correcciones
+permanecen en Memoria. El Volumen incorpora formas orgánicas y sólo nodos reales.
+Los contratos manuales anteriores siguen siendo antecedentes de sus adaptadores.
+
+Incremento 2026-11-03 — [ADR-P-102](../decisions/ADR-P-102-vision-conversacional-local.md):
+visión de cámara y escritorio por turno conectada a conversación Gemma, controles
+visibles y dispositivo seleccionable. No cierra R9: la percepción continua, la
+identificación del propietario y el avatar siguen fuera de este incremento.
+
+Incremento 2026-11-03 — [ADR-P-103](../decisions/ADR-P-103-actividad-y-herramientas-delegadas.md):
+latido técnico desde arranque, coordenadas de procesos dentro del contorno y
+aperturas limitadas a Spotify y D:/E:, con función Gemma para variantes naturales.
+No incluye ejecución general, control musical o autenticación facial.
+
+Incremento posterior 2026-11-03 — [ADR-P-104](../decisions/ADR-P-104-musica-spotify-youtube-chrome.md):
+el propietario amplía la delegación a reproducir Tus me gusta, pausar/reanudar
+Spotify y reproducir canciones pedidas en YouTube con Google Chrome. Se verificó
+Spotify desde Alice con datos separados y se dejó pausado. YouTube queda
+pendiente de aceptación con la canción que el propietario indique. No cierra R9.
+
+Corrección posterior: las órdenes habladas compuestas y sus repeticiones
+transcritas deben activar el control nativo. Se evita que una petición musical
+incompleta termine en una promesa sin ejecución y se conserva la sesión ante
+errores de selección. Ver [regresión](../testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+
+Aceptación reanudada el 2026-11-04: desde Alice nativa, la transcripción que
+fallaba reprodujo Tus me gusta; pausa, continuación y pausa final se completaron
+con recibos correctos y datos separados. El HTML v0.54 recupera la portada y
+agrupa las notas de avances en su historial. YouTube mantiene pendiente su
+canción de aceptación y el avatar continúa pospuesto.
+
+Incremento 2026-11-04 — [ADR-P-105](../decisions/ADR-P-105-supresion-local-ruido-vite.md):
+RNNoise local antes de ambas grabaciones, detección de voz en lugar de sólo
+volumen, selección de micrófono y filtro opcional de dirección «Alice». Vite
+8.3.5 y Vitest 4.1.12. Aceptación con música real de ambos orígenes y separación
+de la voz del propietario siguen pendientes; R9 permanece en progreso.

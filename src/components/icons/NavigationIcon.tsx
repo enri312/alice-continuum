@@ -3,7 +3,7 @@ import activitySvg from "../../../icons/cognitive-activity-timeline.svg?raw";
 import auditSvg from "../../../icons/governance-audit-diagnostics.svg?raw";
 import bridgesSvg from "../../../icons/governance-permissions-gateway.svg?raw";
 import avatarSvg from "../../../icons/embodiment-avatar-vrm.svg?raw";
-import identificationSvg from "../../../icons/cognitive-input-identification.svg?raw";
+import identificationSvg from "../../../icons/cognitive-conversation-channel.svg?raw";
 import settingsSvg from "../../../icons/governance-system-settings.svg?raw";
 import skillsSvg from "../../../icons/governance-skill-workshop.svg?raw";
 import proceduresSvg from "../../../icons/governance-procedure-observer.svg?raw";

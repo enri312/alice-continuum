@@ -13,7 +13,7 @@ import { memoryRepositoryScene } from "./scenes/cognitive-memory-vault.mjs";
 import { volumeObservatoryScene } from "./scenes/cognitive-neural-volume.mjs";
 import { avatarMiniatureScene } from "./scenes/embodiment-avatar-vrm.mjs";
 import { faceCalibrationScene } from "./scenes/embodiment-face-calibration.mjs";
-import { inputIdentificationScene } from "./scenes/cognitive-input-identification.mjs";
+import { conversationChannelScene } from "./scenes/cognitive-conversation-channel.mjs";
 import { evidenceFlowScene } from "./scenes/cognitive-evidence-flow.mjs";
 import { permissionGatewayScene } from "./scenes/governance-permissions-gateway.mjs";
 import { actionPlanningScene } from "./scenes/cognitive-action-planner.mjs";
@@ -347,7 +347,7 @@ const definitions = [
   ["governance-audit-diagnostics.svg", "audit", "Auditoría y diagnóstico", "audit integrity diagnostic evidence", "#fb7185", "#60a5fa"],
   ["embodiment-avatar-vrm.svg", "avatar", "Avatar", "local-vrm-inspection rig manual-motor read-only-boundaries", "#f472b6", "#38bdf8"],
   ["governance-permissions-gateway.svg", "gateway", "Capacidades y permisos", "permission-gateway grants leases revocation", "#38bdf8", "#fb923c"],
-  ["cognitive-input-identification.svg", "identification", "Entrada e identificación", "local-perception-diagnostic real-input tokenization provenance heuristic-intent", "#22d3ee", "#8b5cf6"],
+  ["cognitive-conversation-channel.svg", "identification", "Conversación con Alice", "conversation-channel text-dialogue filtered-voice-session contextual-vision speech-output", "#22d3ee", "#8b5cf6"],
   ["cognitive-memory-vault.svg", "memory", "Memoria", "layered-memory rag lifecycle archive backup", "#60a5fa", "#a78bfa"],
   ["governance-procedure-observer.svg", "procedures", "Procedimientos", "observed-repetition evidence owner-decision", "#10b981", "#f59e0b"],
   ["governance-system-settings.svg", "settings", "Configuración", "settings inference privacy hardware fiber-optic-bus", "#22d3ee", "#fb923c"],
@@ -355,7 +355,7 @@ const definitions = [
   ["cognitive-evidence-flow.svg", "flow", "Flujo cognitivo", "cognitive-flow evidenced-links input-memory-output", "#8b5cf6", "#ec4899"],
   ["cognitive-action-planner.svg", "planner", "Planificador", "governed-arbitration empty-planning-bench uncalculated-metrics no-selection no-execution owner-temporal-dock", "#f59e0b", "#38bdf8"],
   ["cognitive-state-controls.svg", "state", "Estado y controles", "observable-internal-state readiness controls", "#10b981", "#f59e0b"],
-  ["cognitive-neural-volume.svg", "volume", "Volumen cognitivo", "stereoscopic-neural-volume memories processes associations routes", "#22d3ee", "#8b5cf6"],
+  ["cognitive-neural-volume.svg", "volume", "Volumen cognitivo", "organic-neural-volume cortex dendrites memories provenance", "#22d3ee", "#8b5cf6"],
   ["camera-pan-control.svg", "pan", "Desplazar vista", "camera pan tactile-control", "#38bdf8", "#22d3ee", true],
   ["camera-reset-control.svg", "reset", "Restablecer vista", "camera reset home-dock", "#a78bfa", "#f472b6", true],
   ["camera-orbit-control.svg", "rotate", "Rotar vista", "camera three-axis orbit", "#22d3ee", "#fb923c", true],
@@ -422,7 +422,7 @@ scenes.memory = (a, b) => memoryRepositoryScene(a, b, { plinth, fastener, socket
 scenes.volume = (a, b) => volumeObservatoryScene(a, b, { plinth, fastener, socket });
 scenes.avatar = (a, b) => avatarMiniatureScene(a, b, { plinth, fastener });
 scenes.face = (a, b) => faceCalibrationScene(a, b, { plinth, fastener });
-scenes.identification = (a, b) => inputIdentificationScene(a, b, { plinth, fastener });
+scenes.identification = (a, b) => conversationChannelScene(a, b, { plinth, fastener });
 scenes.flow = (a, b) => evidenceFlowScene(a, b, { plinth, fastener });
 scenes.gateway = (a, b) => permissionGatewayScene(a, b, { plinth, fastener });
 scenes.planner = (a, b) => actionPlanningScene(a, b, { plinth, fastener });
@@ -449,8 +449,13 @@ function renderIcon([file, id, title, semantic, accent, secondary, compact = fal
 `;
 }
 
-for (const definition of definitions) {
+const requestedFiles = new Set(process.argv.slice(2));
+const selectedDefinitions = requestedFiles.size ? definitions.filter(([file]) => requestedFiles.has(file)) : definitions;
+if (requestedFiles.size && selectedDefinitions.length !== requestedFiles.size) {
+  throw new Error("Unknown icon filename; use filenames from icons/.");
+}
+for (const definition of selectedDefinitions) {
   writeFileSync(join(outputDirectory, definition[0]), renderIcon(definition), "utf8");
 }
 
-console.log(`Generated ${definitions.length} context-specific Alice icons from zero; preserved app-alice.svg.`);
+console.log(`Generated ${selectedDefinitions.length} context-specific Alice icons; preserved app-alice.svg.`);

@@ -1,4 +1,12 @@
 .context-toggle.available small { color:#66879a; }
+.conversation-page .conversation-layout-focused { display:flex; flex-direction:column; }
+.conversation-context-drawer { border:1px solid #345064; border-radius:12px; background:#0a1521; }
+.conversation-context-drawer > summary { padding:16px; cursor:pointer; color:#d9f5ff; font-weight:600; }
+.conversation-context-drawer > summary span { display:block; margin-top:6px; color:#a1b9ca; font-size:.8rem; font-weight:400; }
+.conversation-context-drawer > .cloud-control { display:block; width:auto; max-height:none; overflow:visible; border:0; }
+.conversation-context-drawer .context-toggle small { white-space:normal; line-height:1.5; color:#a1b9ca; }
+.conversation-layout-focused > .chat-column { border-right:0; }
+.conversation-context-drawer > summary:focus-visible { outline:2px solid #38bdf8; outline-offset:3px; }
 .context-toggle.waiting small { color:#526779; }
 .context-toggle input:focus-visible { outline:2px solid #38bdf8; outline-offset:3px; }
 
@@ -157,6 +165,8 @@
 .voice-turn-panel>header i { width:10px; height:10px; border:1px solid #475569; border-radius:50%; background:#1e293b; }
 .voice-turn-panel>header i.active { border-color:#fb7185; background:#ef4444; box-shadow:0 0 10px rgba(239,68,68,.7); animation:voice-recording-pulse 1.15s ease-in-out infinite; }
 .voice-turn-panel>p { margin:0; padding:10px 11px; color:#a8bfd0; font:500 .55rem/1.5 Consolas,monospace; }
+.voice-turn-steps { display:flex; flex-wrap:wrap; gap:8px 24px; margin:0; padding:0 24px 12px; color:#a5d9e8; font:500 .65rem/1.5 Consolas,monospace; }
+.composer textarea:disabled { opacity:.65; cursor:wait; }
 .voice-turn-observation { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; margin:0 11px 10px; border:1px solid rgba(14,116,144,.55); background:rgba(8,47,73,.35); }
 .voice-turn-observation span { display:grid; gap:3px; padding:8px; color:#68879a; font:600 .44rem/1.3 Consolas,monospace; text-transform:uppercase; }
 .voice-turn-observation span+span { border-left:1px solid rgba(14,116,144,.45); }

@@ -45,6 +45,34 @@ enum VoiceConfiguration {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct VoicePreviewInput {
     exchange_id: String,
+    #[serde(default)]
+    delivery: VoiceDelivery,
+}
+
+#[derive(Clone, Copy, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum VoiceDelivery {
+    Original,
+    #[default]
+    Contextual,
+    Warm,
+    Calm,
+    Cheerful,
+}
+
+fn directed_speech(text: &str, delivery: VoiceDelivery) -> String {
+    let spoken = spoken_response(text);
+    if spoken.is_empty() {
+        return spoken;
+    }
+    let cue = match delivery {
+        VoiceDelivery::Original => return spoken,
+        VoiceDelivery::Contextual => "[warm, conversational]",
+        VoiceDelivery::Warm => "[warm, conversational]",
+        VoiceDelivery::Calm => "[calm, gentle]",
+        VoiceDelivery::Cheerful => "[gently cheerful]",
+    };
+    format!("{cue} {spoken}")
 }
 
 #[derive(Deserialize)]
@@ -63,6 +91,7 @@ pub(crate) struct VoiceCancellationInput {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct VoiceOutputPreview {
+    spoken_text: String,
     request_id: String,
     exchange_id: String,
     text_sha256: String,
@@ -91,6 +120,10 @@ pub(crate) struct VoiceOutputResult {
 pub(crate) struct VoiceCancellationResult {
     request_id: String,
     cancelled: bool,
+}
+
+pub(crate) fn voice_is_configured() -> bool {
+    matches!(voice_configuration(), VoiceConfiguration::Ready)
 }
 
 fn voice_configuration() -> VoiceConfiguration {
@@ -124,6 +157,14 @@ fn text_digest(text: &str) -> String {
     )
 }
 
+fn spoken_response(text: &str) -> String {
+    text.trim()
+        .strip_prefix("Conocimiento interno no verificado:")
+        .unwrap_or(text.trim())
+        .trim()
+        .to_string()
+}
+
 fn valid_request_id(value: &str) -> Result<(), String> {
     let parsed = Uuid::parse_str(value).map_err(|_| "requestId no es UUID".to_string())?;
     if parsed.get_version() != Some(uuid::Version::Random) || parsed.to_string() != value {
@@ -132,6 +173,8 @@ fn valid_request_id(value: &str) -> Result<(), String> {
     Ok(())
 }
 
+// Keep the same explicit metadata fields as audit::record_producer_audit.
+#[allow(clippy::too_many_arguments)]
 fn record_voice_audit(
     app: &AppHandle,
     operation_id: String,
@@ -191,7 +234,7 @@ pub(crate) fn preview_voice_output(
 ) -> Result<VoiceOutputPreview, String> {
     let data_root = alice_data_root_path(&app)?;
     let exchange = verified_conversation_exchange_at(&data_root, &input.exchange_id)?;
-    let text = exchange.assistant_text.trim().to_string();
+    let text = directed_speech(&exchange.assistant_text, input.delivery);
     let character_count = text.chars().count();
     if character_count == 0 {
         return Err("La respuesta seleccionada no contiene texto para convertir a voz".into());
@@ -222,7 +265,7 @@ pub(crate) fn preview_voice_output(
         .map_err(|_| "El puente de voz quedó bloqueado".to_string())?;
     *pending = Some(VoiceOutputRequest {
         request_id: request_id.clone(),
-        text,
+        text: text.clone(),
         text_sha256: digest.clone(),
         character_count,
         created_at: Instant::now(),
@@ -242,6 +285,7 @@ pub(crate) fn preview_voice_output(
         },
     )?;
     Ok(VoiceOutputPreview {
+        spoken_text: text,
         request_id,
         exchange_id: input.exchange_id,
         text_sha256: digest,
@@ -276,6 +320,43 @@ pub(crate) fn cancel_voice_output(
         request_id: request.request_id,
         cancelled: true,
     })
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct SessionSpeechInput {
+    session_id: String,
+    exchange_id: String,
+}
+
+#[tauri::command]
+pub(crate) async fn speak_voice_session_response(
+    app: AppHandle,
+    state: State<'_, VoiceOutputStore>,
+    session: State<'_, crate::voice_session::VoiceSessionStore>,
+    input: SessionSpeechInput,
+) -> Result<VoiceOutputResult, String> {
+    session.require(&input.session_id)?;
+    let preview = preview_voice_output(
+        app.clone(),
+        state.clone(),
+        VoicePreviewInput {
+            exchange_id: input.exchange_id,
+            delivery: VoiceDelivery::Contextual,
+        },
+    )?;
+    session.require(&input.session_id)?;
+    let result = confirm_voice_output(
+        app,
+        state,
+        VoiceConfirmationInput {
+            request_id: preview.request_id,
+            confirmed: true,
+        },
+    )
+    .await?;
+    session.require(&input.session_id)?;
+    Ok(result)
 }
 
 #[tauri::command]
@@ -326,7 +407,9 @@ pub(crate) async fn confirm_voice_output(
             "text": request.text,
             "reference_id": reference_id.trim(),
             "format": "mp3",
-            "temperature": 0.45,
+            "temperature": 0.6,
+            "latency": "balanced",
+            "prosody": {"speed": 1.0, "normalize_loudness": true},
             "normalize": true,
         }))
         .send()
@@ -465,6 +548,55 @@ pub(crate) async fn confirm_voice_output(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn delivery_is_bounded_and_part_of_the_reviewed_text() {
+        assert_eq!(directed_speech("Hola.", VoiceDelivery::Original), "Hola.");
+        assert_eq!(
+            directed_speech("Hola.", VoiceDelivery::Warm),
+            "[warm, conversational] Hola."
+        );
+        assert_eq!(
+            directed_speech("Hola.", VoiceDelivery::Calm),
+            "[calm, gentle] Hola."
+        );
+        assert_eq!(
+            directed_speech("Hola.", VoiceDelivery::Cheerful),
+            "[gently cheerful] Hola."
+        );
+        assert!(
+            directed_speech("Conocimiento interno no verificado:", VoiceDelivery::Warm).is_empty()
+        );
+        assert!(serde_json::from_str::<VoicePreviewInput>(
+            r#"{"exchangeId":"test","delivery":"arbitrary"}"#
+        )
+        .is_err());
+        let default_input =
+            serde_json::from_str::<VoicePreviewInput>(r#"{"exchangeId":"test"}"#).unwrap();
+        assert!(matches!(default_input.delivery, VoiceDelivery::Contextual));
+        let contextual = directed_speech("Vamos paso a paso.", default_input.delivery);
+        assert!(contextual.ends_with(" Vamos paso a paso."));
+        assert!(contextual.starts_with("[warm, conversational]"));
+        assert_ne!(text_digest(&contextual), text_digest("Vamos paso a paso."));
+        assert!(directed_speech(
+            "Conocimiento interno no verificado:",
+            VoiceDelivery::Contextual
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn speech_omits_only_the_leading_interface_notice() {
+        assert_eq!(
+            spoken_response("Conocimiento interno no verificado:\n\nNo estoy segura de esa fecha."),
+            "No estoy segura de esa fecha."
+        );
+        assert_eq!(
+            spoken_response("Una cita: Conocimiento interno no verificado:"),
+            "Una cita: Conocimiento interno no verificado:"
+        );
+        assert_eq!(spoken_response("Conocimiento interno no verificado:"), "");
+    }
 
     #[test]
     fn voice_profile_is_an_opaque_safe_identifier() {

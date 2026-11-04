@@ -1,3 +1,8 @@
+import { ConversationVision, type ConversationVisionHandle } from "./components/conversation/ConversationVision";
+import { listen } from "@tauri-apps/api/event";
+import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
+import { automaticMemoryForConversation, parseAutomaticMemorySnapshot } from "./core/memory/automatic-memory";
+import type { AutomaticMemorySnapshot, AutomaticMemoryReview, AutomaticLearningPhase } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./pages/conversation/ConversationPage";
@@ -85,7 +90,7 @@ const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
 
 const screenTechnicalTitles: Record<Screen, string> = {
-  identificacion: "COGNITIVE IDENTIFICATION",
+  identificacion: "CONVERSATION",
   nucleo: "COGNITIVE VOLUME",
   flujo: "EVIDENCE FLOW",
   estado: "STATE & CONTROLS",
@@ -120,10 +125,45 @@ function saveSessions(sessions: Session[]) {
 }
 
 export function App() {
+  const visionRef = useRef<ConversationVisionHandle>(null);
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
+  const [automaticMemory, setAutomaticMemory] = useState<AutomaticMemorySnapshot | null>(null);
+  const [automaticPhase, setAutomaticPhase] = useState<AutomaticLearningPhase>("idle");
+  const [automaticError, setAutomaticError] = useState("");
+  useEffect(() => {
+    if (!desktopApp) return;
+    let active = true;
+    let off: (() => void) | undefined;
+    const refresh = async () => {
+      try {
+        const snapshot = parseAutomaticMemorySnapshot(await invoke("automatic_memory_status"));
+        if (active) setAutomaticMemory(snapshot);
+      } catch (error) { if (active) setAutomaticError(String(error)); }
+    };
+    void refresh();
+    void listen<{phase: AutomaticLearningPhase; error?: string | null}>("automatic-memory-updated", event => {
+      if (!active) return;
+      setAutomaticPhase(event.payload.phase);
+      setAutomaticError(event.payload.error ?? "");
+      if (event.payload.phase !== "evaluating") void refresh();
+    }).then(unlisten => { if (active) off = unlisten; else unlisten(); }).catch(error => { if (active) setAutomaticError(String(error)); });
+    return () => { active = false; off?.(); };
+  }, [desktopApp]);
+
+  async function toggleAutomaticMemory(enabled: boolean) {
+    setAutomaticMemory(parseAutomaticMemorySnapshot(await invoke("set_automatic_memory_enabled", {input:{enabled}})));
+    setAutomaticError("");
+    setAutomaticPhase("idle");
+  }
+  async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
+    setAutomaticMemory(parseAutomaticMemorySnapshot(await invoke("review_automatic_memory", {input})));
+    setMemoryRetrieval({count:0,top:"",ids:[]});
+  }
+
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [showFullHistory, setShowFullHistory] = useState(false);
   const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
@@ -156,7 +196,7 @@ export function App() {
   const workingMemoryGeneration = useRef(-1);
 
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
-  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered], [ownerProfile, remembered]);
+  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory)], [ownerProfile, remembered, automaticMemory]);
   const ollamaProvider = cloudStatus.providers.find((provider) => provider.id === "ollama");
   const ollamaModel = cloudSelection.provider === "ollama" && cloudSelection.model.trim() ? cloudSelection.model : ollamaProvider?.defaultModel ?? "qwen3.5:4b";
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
@@ -362,7 +402,8 @@ export function App() {
     setCloudPending(true);
     recordEvent("PERCEPTION", "INFERENCE_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · RAG ${request.memoryCount}`);
     try {
-      const response = await invoke<CloudResponse>("send_cloud_message", { request });
+      const vision = await visionRef.current?.capture();
+      const response = await invoke<CloudResponse>("send_cloud_message", { request: {...request, ...(vision ? {vision} : {})} });
       const now = new Date().toISOString();
       if (response.workingMemory) {
         try {
@@ -378,7 +419,7 @@ export function App() {
         try {
           const history = parseConversationHistorySnapshot(response.conversationHistory);
           setMessages(messagesFromConversationHistory(history));
-          recordEvent("MEMORY", "CONVERSATION_HISTORY_APPENDED", `${history.messageCount} mensajes persistentes · memoria confirmada sin cambios`);
+          recordEvent("MEMORY", "CONVERSATION_HISTORY_APPENDED", `${history.messageCount} mensajes persistentes · aprendizaje automático se evalúa aparte`);
         } catch (error) {
           setMessages((current) => [...current,
             { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
@@ -459,10 +500,37 @@ export function App() {
     recordEvent("OUTPUT", "VOICE_OUTPUT_CANCELLED", "Vista previa descartada antes de enviar texto a Fish Audio.");
   }
 
-  async function transcribeVoiceTurn(audioBase64: string, mimeType: string): Promise<VoiceTurnTranscript> {
+  async function prepareVoiceTurn(): Promise<void> {
+    if (!desktopApp) throw new Error("La voz requiere la aplicación de escritorio.");
+    const runtime = await invoke<{ running: boolean }>("start_local_runtime");
+    if (!runtime.running) throw new Error("Gemma no está listo para escuchar.");
+    selectCloudProvider("llamacpp");
+    recordEvent("PERCEPTION", "VOICE_TURN_READY", "Gemma preparado por solicitud del propietario; micrófono todavía apagado.");
+  }
+
+  async function startVoiceSession(): Promise<string> {
+    const session = await invoke<{ sessionId: string }>("start_voice_session");
+    try {
+      await prepareVoiceTurn();
+      return session.sessionId;
+    } catch (error) {
+      await stopVoiceSession(session.sessionId).catch(() => undefined);
+      throw error;
+    }
+  }
+
+  async function stopVoiceSession(sessionId: string): Promise<void> {
+    await invoke("stop_voice_session", { input: { sessionId } });
+  }
+
+  async function speakVoiceSession(exchangeId: string, sessionId: string): Promise<VoiceOutputResult> {
+    return parseVoiceOutputResult(await invoke("speak_voice_session_response", { input: { exchangeId, sessionId } }));
+  }
+
+  async function transcribeVoiceTurn(audioBase64: string, mimeType: string, sessionId?: string): Promise<VoiceTurnTranscript> {
     if (!desktopApp) throw new Error("La transcripción de voz requiere la aplicación de escritorio.");
-    const result = parseVoiceTurnTranscript(await invoke<unknown>("transcribe_voice_turn", { input: { audioBase64, mimeType, confirmed: true } }));
-    recordEvent("PERCEPTION", result.noSpeech ? "VOICE_TURN_NO_SPEECH" : "VOICE_TURN_TRANSCRIBED", `${result.durationMs} ms · audio descartado · borrador no enviado`);
+    const result = parseVoiceTurnTranscript(await invoke<unknown>("transcribe_voice_turn", { input: { audioBase64, mimeType, confirmed: true, ...(sessionId ? { sessionId } : {}) } }));
+    recordEvent("PERCEPTION", result.noSpeech ? "VOICE_TURN_NO_SPEECH" : "VOICE_TURN_TRANSCRIBED", `${result.model} · ${result.durationMs} ms · audio descartado · borrador no enviado`);
     return result;
   }
 
@@ -535,7 +603,7 @@ export function App() {
 
   const workspace = workspaceForScreen(screen);
 
-  return <main className="shell">
+  return <main className={`shell ${screen === "identificacion" ? "is-conversation" : screen === "nucleo" ? "is-volume" : ""}`}>
     <header className="hero">
       <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA</p></div>
       <h1><span>Una presencia digital,</span> <em>bajo tu control.</em></h1>
@@ -560,9 +628,9 @@ export function App() {
         <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "OWNER CONTROL · LOCAL ONLY"}</p>
       </header>
 
-    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas de Cognitive Identification" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
+    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas del núcleo cognitivo" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
       {workspace === "cognitive" && <>
-      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Entrada e identificación cognitiva" data-tooltip="Entrada e identificación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Entrada e identificación</span></button>
+      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Conversación con Alice" data-tooltip="Conversación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Conversación</span></button>
       <button className={screen === "nucleo" ? "selected" : ""} aria-label="Volumen cognitivo" data-tooltip="Volumen cognitivo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="volume" active={screen === "nucleo"} /><span className="screen-tab-label">Volumen cognitivo</span></button>
       <button className={screen === "flujo" ? "selected" : ""} aria-label="Flujo cognitivo" data-tooltip="Flujo cognitivo" aria-current={screen === "flujo" ? "page" : undefined} onClick={() => setScreen("flujo")}><NavigationIcon kind="flow" active={screen === "flujo"} /><span className="screen-tab-label">Flujo cognitivo</span></button>
       <button className={screen === "estado" ? "selected" : ""} aria-label="Estado y controles" data-tooltip="Estado y controles" aria-current={screen === "estado" ? "page" : undefined} onClick={() => setScreen("estado")}><NavigationIcon kind="state" active={screen === "estado"} /><span className="screen-tab-label">Estado y controles</span></button>
@@ -589,13 +657,13 @@ export function App() {
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
-    {screen === "memoria" && <Memoria sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion visionPanel={<ConversationVision ref={visionRef} desktopApp={desktopApp} provider={cloudSelection.provider} />} automaticLearning={automaticMemory ? {enabled:automaticMemory.enabled, count:automaticMemory.activeCount, phase:automaticPhase, onOpen:() => setScreen("memoria")} : undefined} showFullHistory={showFullHistory} embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession} onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
+    {screen === "memoria" && <Memoria automaticMemoryPanel={<AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} />} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
-    {screen === "configuracion" && <Configuracion desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
+    {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setShowFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
     {screen === "puentes" && <Puentes fixedView="overview" onObservationStateChange={setObservationEnabled} />}
     {screen === "rostro" && <Puentes fixedView="face" onObservationStateChange={setObservationEnabled} />}
     {screen === "cuerpo" && <Puentes fixedView="body" onObservationStateChange={setObservationEnabled} />}

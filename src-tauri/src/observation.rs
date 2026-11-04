@@ -215,7 +215,9 @@ pub(crate) fn spawn_observer_thread(
                 if !context
                     .process_name
                     .eq_ignore_ascii_case("alice-continuum.exe")
-                    && !context.process_name.eq_ignore_ascii_case("alice-cognitive-core.exe")
+                    && !context
+                        .process_name
+                        .eq_ignore_ascii_case("alice-cognitive-core.exe")
                     && !context.process_name.eq_ignore_ascii_case("proyecto-p.exe")
                 {
                     store.update_latest(context);

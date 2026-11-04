@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use std::io::Write;
 use std::process::{Command, Stdio};
 use std::time::Instant;
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
 const MAX_AUDIO_BASE64_CHARACTERS: usize = 12_000_000;
 const MAX_AUDIO_BYTES: usize = 8 * 1024 * 1024;
@@ -21,6 +21,8 @@ pub(crate) struct VoiceTurnInput {
     audio_base64: String,
     mime_type: String,
     confirmed: bool,
+    #[serde(default)]
+    session_id: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -159,7 +161,11 @@ fn parse_transcript(value: &serde_json::Value) -> Result<(String, bool), String>
 pub(crate) async fn transcribe_voice_turn(
     app: AppHandle,
     input: VoiceTurnInput,
+    session: State<'_, crate::voice_session::VoiceSessionStore>,
 ) -> Result<VoiceTurnTranscript, String> {
+    if let Some(id) = &input.session_id {
+        session.require(id)?;
+    }
     validate_input(&input)?;
     let audio_digest = format!(
         "sha256:{}",
@@ -179,20 +185,46 @@ pub(crate) async fn transcribe_voice_turn(
         "VOICE_TURN_TRANSCRIPTION_REQUESTED",
     )?;
     let started = Instant::now();
+    let use_whisper = crate::whisper_input::available();
     let decoded =
         tauri::async_runtime::spawn_blocking(move || decode_webm_to_wav(input.audio_base64))
             .await
             .map_err(|_| "Se interrumpió el decodificador local".to_string());
     let result = match decoded {
-        Ok(Ok(wav)) => crate::local_inference::gemma_chat(transcription_body(&wav))
-            .await
-            .and_then(|value| parse_transcript(&value)),
+        Ok(Ok(wav)) => {
+            let authorization = input
+                .session_id
+                .as_ref()
+                .map_or(Ok(()), |id| session.require(id));
+            match authorization {
+                Ok(()) if use_whisper => {
+                    let store = session.inner().clone();
+                    let id = input.session_id.clone();
+                    tauri::async_runtime::spawn_blocking(move || {
+                        crate::whisper_input::transcribe(wav, || {
+                            id.as_ref().is_some_and(|id| store.require(id).is_err())
+                        })
+                    })
+                    .await
+                    .map_err(|_| "Se interrumpió el reconocedor local".to_string())?
+                }
+                Ok(()) => crate::local_inference::gemma_chat(transcription_body(&wav))
+                    .await
+                    .and_then(|value| parse_transcript(&value)),
+                Err(error) => Err(error),
+            }
+        }
         Ok(Err(error)) => Err(error),
         Err(error) => Err(error),
     };
     let duration_ms = u64::try_from(started.elapsed().as_millis())
         .unwrap_or(86_400_000)
         .min(86_400_000);
+    let result = if let Some(id) = &input.session_id {
+        session.complete(id, result)
+    } else {
+        result
+    };
     match result {
         Ok((text, no_speech)) => {
             let transcript_digest = format!(
@@ -218,7 +250,11 @@ pub(crate) async fn transcribe_voice_turn(
             Ok(VoiceTurnTranscript {
                 text,
                 no_speech,
-                model: crate::local_inference::GEMMA_MODEL,
+                model: if use_whisper {
+                    crate::whisper_input::MODEL_NAME
+                } else {
+                    crate::local_inference::GEMMA_MODEL
+                },
                 duration_ms,
                 ephemeral_audio: true,
                 sent_to_conversation: false,
@@ -253,6 +289,7 @@ mod tests {
             audio_base64: "A".repeat(128),
             mime_type: "audio/webm;codecs=opus".into(),
             confirmed: true,
+            session_id: None,
         };
         assert!(validate_input(&valid).is_ok());
         assert!(validate_input(&VoiceTurnInput {
@@ -270,6 +307,40 @@ mod tests {
         assert_eq!(
             parse_transcript(&speech).unwrap(),
             ("Hola Alice.".into(), false)
+        );
+    }
+
+    #[test]
+    #[ignore = "requiere fixture sintética ALICE_VOICE_TEST_WEBM, motor instalado y Ollama inactivo"]
+    fn live_synthetic_voice_transcription() {
+        // Exercises the same decoder and request builder used by the IPC command,
+        // without an AppHandle, audit writes, personal audio or conversation data.
+        let fixture = std::env::var_os("ALICE_VOICE_TEST_WEBM").expect("fixture requerida");
+        let webm = std::fs::read(fixture).expect("fixture WebM local");
+        let wav = decode_webm_to_wav(base64::engine::general_purpose::STANDARD.encode(webm))
+            .expect("conversión FFmpeg");
+        let runtime = crate::local_inference::runtime();
+        struct StopRuntime(std::sync::Arc<crate::local_inference::LocalInferenceRuntime>);
+        impl Drop for StopRuntime {
+            fn drop(&mut self) {
+                let _ = self.0.stop();
+            }
+        }
+        let _cleanup = StopRuntime(runtime.clone());
+        runtime.start().expect("inicio propio de Gemma");
+        let value = tauri::async_runtime::block_on(crate::local_inference::gemma_chat(
+            transcription_body(&wav),
+        ))
+        .expect("inferencia acústica local");
+        let (text, no_speech) = parse_transcript(&value).expect("contrato de transcripción");
+        assert!(!no_speech);
+        assert!(
+            text.to_lowercase().contains("java"),
+            "no recuperó Java de la fixture"
+        );
+        assert!(
+            text.to_lowercase().contains("python"),
+            "no recuperó Python de la fixture"
         );
     }
 }

@@ -16,10 +16,18 @@ const context = {
 };
 
 describe("buildCloudPayload", () => {
+  it("conserva ambos lados del diálogo de voz como diálogo y respeta excluir historial", () => {
+    const payload = buildCloudPayload({ ...context, includeHistory: true, includeAssistantDialogue: true });
+    expect(payload).toContain("LAS RESPUESTAS DE ALICE NO SON EVIDENCIA FACTUAL");
+    expect(payload).toContain("Carlos: mensaje privado anterior");
+    expect(payload).toContain("Alice (respuesta anterior no verificada): respuesta anterior");
+    expect(payload).not.toContain("dato privado");
+    expect(buildCloudPayload({ ...context, includeAssistantDialogue: true })).not.toContain("respuesta anterior");
+  });
   it("envía únicamente el mensaje cuando no se autoriza contexto adicional", () => {
     const payload = buildCloudPayload(context);
 
-    expect(payload).toBe("MENSAJE ACTUAL\nAyúdame con programación");
+    expect(payload).toBe("MENSAJE ACTUAL\nCarlos Nuñez → Alice:\nAyúdame con programación");
     expect(payload).not.toContain("mensaje privado anterior");
     expect(payload).not.toContain("dato privado");
     expect(payload).not.toContain("Proyecto secreto");
@@ -42,7 +50,7 @@ describe("buildCloudPayload", () => {
     });
 
     expect(payload).not.toContain("dato alucinado");
-    expect(payload).toBe("MENSAJE ACTUAL\nAyúdame con programación");
+    expect(payload).toBe("MENSAJE ACTUAL\nCarlos Nuñez → Alice:\nAyúdame con programación");
   });
 
   it("incluye únicamente los recuerdos recuperados y autorizados", () => {

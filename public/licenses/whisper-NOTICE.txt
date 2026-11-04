@@ -1,0 +1,16 @@
+Alice uses Whisper base (multilingual) for local Spanish speech recognition.
+Whisper is an ASR component; Gemma remains the conversational model.
+
+Runtime: ggml-org/whisper.cpp v1.9.2, official Windows CPU x64 package.
+https://github.com/ggml-org/whisper.cpp/releases/tag/v1.9.2
+License: whisper.cpp-MIT.txt (MIT).
+
+Model: OpenAI Whisper base, converted to ggml by ggerganov/whisper.cpp.
+https://huggingface.co/ggerganov/whisper.cpp
+https://github.com/openai/whisper
+License: whisper-model-MIT.txt (MIT).
+
+Portable binaries and model weights are stored outside this repository.
+Installation and pinned SHA-256 checks: scripts/testing/install-whisper-local.ps1.
+Alice pipes WAV from RAM into whisper-cli and reads text from stdout.
+No transcript/output-format flags are enabled and no audio files are created.

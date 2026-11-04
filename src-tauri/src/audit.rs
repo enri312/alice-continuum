@@ -164,7 +164,10 @@ impl AuditEvent {
         subject_digest: Option<String>,
         reason_code: impl Into<String>,
     ) -> Result<Self, String> {
-        if !matches!(source, AuditSource::Memory | AuditSource::Cloud) {
+        let delegated_desktop = source == AuditSource::Capability
+            && ((capability_id == "desktop.approved.open" && operation == "desktop.open")
+                || (capability_id == "desktop.approved.media" && operation == "desktop.media"));
+        if !matches!(source, AuditSource::Memory | AuditSource::Cloud) && !delegated_desktop {
             return Err("El productor R3 debe ser memory o cloud".into());
         }
         let event = Self {

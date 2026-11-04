@@ -6,6 +6,8 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
+
 ## Lectura recomendada
 
 1. [Documento maestro](especificacion_alice_continuum.html)
@@ -78,6 +80,13 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 68. [Identidad de voz de Alice para R9](architecture/ALICE_VOICE_IDENTITY_R9.md)
 69. [Terna inicial de voces Fish para Alice](research/ALICE_FISH_VOICE_SHORTLIST_2026-09-12.md)
 70. [Diseño de voz original para Alice](architecture/ALICE_ORIGINAL_VOICE_DESIGN_R9.md)
+71. [Sesión automática de voz y Node 26 LTS](decisions/ADR-P-099-sesion-de-voz-y-node-26.md)
+72. [Pruebas de sesión de voz y actualización del entorno](testing/R9_HANDS_FREE_NODE26_REPORT_2026-11-03.md)
+73. [Referentes, parada por voz y Rust 1.99.1](decisions/ADR-P-100-referentes-parada-de-voz-rust.md)
+74. [Evaluación de referentes y orden de parada](testing/R9_REFERENCES_VOICE_STOP_RUST_REPORT_2026-11-03.md)
+
+75. [Aprendizaje automático y volumen orgánico](decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
+76. [Pruebas de memoria automática y visualización](testing/AUTOMATIC_MEMORY_VOLUME_REPORT_2026-11-03.md)
 
 ## Secciones
 
@@ -91,3 +100,18 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 | `testing/` | Informes verificables de pruebas funcionales y regresión |
 
 Los recuerdos reales, auditorías y respaldos viven en `data/`, fuera de `docs/`, y están excluidos de Git. Las claves continúan únicamente en variables de entorno y nunca se escriben en esa carpeta.
+
+76. [Cámara y escritorio en conversación](decisions/ADR-P-102-vision-conversacional-local.md)
+77. [Validación de visión conversacional](testing/CONVERSATION_VISION_REPORT_2026-11-03.md)
+
+78. [Actividad y herramientas delegadas](decisions/ADR-P-103-actividad-y-herramientas-delegadas.md)
+79. [Validación de actividad, aperturas y tool calling](testing/ACTIVITY_DESKTOP_TOOLS_REPORT_2026-11-03.md)
+80. [Música en Spotify y YouTube en Chrome](decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
+81. [Pruebas de reproducción musical](testing/MEDIA_PLAYBACK_REPORT_2026-11-03.md)
+82. [Corrección de órdenes habladas y reproducción](testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md)
+83. [Portada e historial del documento maestro](testing/DOCUMENT_PRESENTATION_REPORT_2026-11-04.md)
+84. [Reducción de ruido y Vite 8.3.5](decisions/ADR-P-105-supresion-local-ruido-vite.md)
+85. [Validación de audio filtrado y entorno](testing/VOICE_NOISE_VITE_REPORT_2026-11-04.md)
+86. [Icono de Conversación actualizado](testing/CONVERSATION_ICON_REPORT_2026-11-04.md)
+87. [Transcripción Whisper y estabilidad oral](decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md)
+88. [Prueba nativa de sesión y cancelación](testing/CONVERSATION_SESSION_REPORT_2026-11-04.md)

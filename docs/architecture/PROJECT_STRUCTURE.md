@@ -1,7 +1,29 @@
 # Estructura del proyecto
 
+Actualización de interfaz 2026-11-03: `InputIdentificationPage.tsx` presenta ahora
+Conversación y monta el diagnóstico secundario desde `InputDiagnostics.tsx` sólo
+al abrirlo. Se conserva la ruta `identificacion`. El icono actual se genera desde
+`scripts/icons/scenes/cognitive-conversation-channel.mjs`. Ver [ADR-P-098](../decisions/ADR-P-098-inicio-centrado-en-conversacion.md).
+
+La sesión automática de voz se presenta en
+`src/components/conversation/HandsFreeVoice.tsx`. La captura, el detector de pausa
+y el ciclo viven en `src/core/voice/`; `src-tauri/src/voice_session.rs` mantiene la
+sesión nativa revocable. `.node-version` y `package.json` fijan la rama Node 26
+LTS. Ver [ADR-P-099](../decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
+
+Las instrucciones conversacionales legibles viven en
+`src-tauri/src/prompts/conversation.txt`, incluidas en el binario mediante
+`include_str!`. `src/core/voice/voice-commands.ts` reconoce la orden directa de
+parada antes de inferencia conversacional. `rust-toolchain.toml` fija Rust 1.99.1.
+
 Reorganización: 2026-09-14. Identidad actualizada: 2026-09-16. Esta guía describe la reorganización de archivos, no un
 cambio de funcionalidades ni de contratos de Alice.
+
+La memoria automática vive en `src-tauri/src/automatic_memory.rs` y su proyección
+se valida en `src/core/memory/automatic-memory.ts`. `AutomaticMemoryPanel.tsx`
+ofrece pausa, corrección y retirada. `src/core/cognitive/neural-geometry.ts`
+define la forma ilustrativa y `NeuralVolume.tsx` dibuja los registros reales.
+Ver [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 
 ## Organización actual
 
@@ -32,7 +54,7 @@ Alice Continuum/
 │   │   ├── memory/                ciclo de memoria, recuperación y grafo
 │   │   ├── navigation/            espacios de trabajo y pruebas de iconos
 │   │   ├── shared/                compatibilidad del almacenamiento
-│   │   └── voice/                 contratos de entrada y salida de voz
+│   │   └── voice/                 entrada/salida, sesión y filtro RNNoise local
 │   ├── styles/                    estilos globales y de áreas funcionales
 │   └── types/                     declaraciones de recursos SVG
 ├── src-tauri/                     backend Rust y configuración de Tauri
@@ -171,3 +193,20 @@ Validaciones realizadas:
 Persiste el aviso previo de Vite sobre paquetes JavaScript superiores a 500 kB.
 No se cambió la estrategia de carga en esta reorganización. Las sondas vivas de
 modelos, voz, cámara o proveedores externos no se ejecutaron.
+
+Visión conversacional (ADR-P-102): `src-tauri/src/conversation_vision.rs` mantiene
+la sesión efímera, valida cámaras y captura escritorio con GDI; `cloud.rs` construye
+la petición multimodal local. `src/core/conversation/vision-session.ts` controla
+cámara y cancelaciones; `ConversationVision.tsx` expone controles y selector.
+
+Aperturas delegadas: `src-tauri/src/desktop_actions.rs` contiene intención actual,
+esquema de función, validación de llamadas y ejecutor de destinos cerrados.
+`cloud.rs` conecta acciones, conversación y voz. R1 y R3 registran la capacidad.
+
+Música delegada (ADR-P-104): `src-tauri/src/media_actions.rs` valida la orden y
+la función Gemma; `media_windows.rs` controla Tus me gusta mediante UI Automation,
+pausa/reanuda Spotify con transporte multimedia de Windows y busca/reproduce
+YouTube en Chrome mediante sus controles accesibles. No se usan scripts de shell.
+La gramática musical admite órdenes habladas compuestas y devuelve aclaraciones
+sin inventar recibos. Pausa/reanudación de Spotify tiene respaldo mediante el
+grupo de controles del reproductor si Windows no expone su sesión multimedia.

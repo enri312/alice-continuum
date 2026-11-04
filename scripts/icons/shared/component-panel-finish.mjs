@@ -11,7 +11,7 @@ const panels = {
   face:['vrm-read-only-inspector','camera-off-shutter','expression-reserve-bank','r2-permission-interlock'],
   flow:['perception-input-node','memory-context-node','language-process-node','governed-response-port','r3-evidence-monitor'],
   gateway:['prepared-request-capsule','explicit-owner-decision','ephemeral-grant-cartridge','revocation-breaker','separate-execution-port'],
-  identification:['active-input-inspection-cassette','perception-provenance-vector','isolated-document-preview','diagnostic-mode-deck'],
+  identification:['text-message-input','conversational-voice-output','local-noise-filter'],
   memory:['memory-layer','volatile-working-memory','archive-cartridge','retention-gate','backup-rail'],
   planner:['governed-arbitration-chamber','sealed-candidate-generator','uncalculated-metric-bank','owner-temporal-dock'],
   procedures:['correlated-occurrence','procedure-candidate-capsule','owner-decision-gate','owner-authorized-draft-conversion'],

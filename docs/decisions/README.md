@@ -68,3 +68,16 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-093](ADR-P-093-referencias-nativas-grafo-r8.md) | Referencias nativas R8 con identidad, versión y política R6 sin asociaciones inferidas |
 | [ADR-P-094](ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md) | Presencia, voz y cuerpo mediante puentes independientes y revocables |
 | [ADR-P-095](ADR-P-095-identidad-alice-continuum.md) | Alice Continuum como identidad de plataforma; datos y personaje preservados |
+| [ADR-P-096](ADR-P-096-prioridad-conversacional-y-voz-contextual.md) | Comprensión y continuidad antes del VRM; voz contextual todavía en validación |
+| [ADR-P-097](ADR-P-097-conversacion-por-turnos-de-voz.md) | Turnos de voz guiados: inicio de Gemma, captura, transcripción y respuesta Fish revisada |
+| [ADR-P-098](ADR-P-098-inicio-centrado-en-conversacion.md) | Conversación como inicio cotidiano; diagnóstico y documentos secundarios e icono de diálogo y voz |
+| [ADR-P-099](ADR-P-099-sesion-de-voz-y-node-26.md) | Sesión de voz sin autorizaciones por turno, diálogo oral y actualización a Node 26 LTS |
+| [ADR-P-100](ADR-P-100-referentes-parada-de-voz-rust.md) | Referentes Alice/Carlos/terceros, parada directa por voz y Rust 1.99.1 |
+| [ADR-P-101](ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md) | Aprendizaje automático delegado y volumen orgánico con nodos reales |
+
+| [ADR-P-102](ADR-P-102-vision-conversacional-local.md) | Visión con cámara seleccionable y escritorio en la conversación Gemma; icono orgánico |
+
+| [ADR-P-103](ADR-P-103-actividad-y-herramientas-delegadas.md) | Latido técnico, procesos ordenados y aperturas limitadas con tool calling Gemma |
+| [ADR-P-104](ADR-P-104-musica-spotify-youtube-chrome.md) | Tus me gusta en Spotify y música de YouTube en Chrome con controles verificados |
+| [ADR-P-105](ADR-P-105-supresion-local-ruido-vite.md) | RNNoise local, detección de voz, micrófono seleccionable y Vite 8.3.5 |
+| [ADR-P-106](ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) | Whisper CPU, sesión oral estable, tiempos visibles y rumbo sin domótica |

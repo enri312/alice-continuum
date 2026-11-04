@@ -1,6 +1,6 @@
 # Manual de uso de Alice Continuum
 
-**Actualización de identidad y rutas:** 16 de septiembre de 2026; contenido funcional basado en el manual del 25 de agosto y sus incrementos posteriores.  
+**Actualización de interfaz y conversación:** 4 de noviembre de 2026; los apartados históricos conservan sus alcances documentados.  
 **Dirigido a:** Carlos Nuñez, propietario y operador de Alice  
 **Carpeta canónica:** `E:\Alice Cognitive Core`
 
@@ -8,9 +8,28 @@ Este manual explica **qué hace cada parte visible**, cuándo conviene usarla y 
 consecuencias tiene cada acción. No hace falta conocer TypeScript, Rust ni los
 códigos internos R1–R6 para operar Alice.
 
-> **Regla principal:** Alice no aprende, envía información, modifica recuerdos ni
-> ejecuta acciones físicas sin una operación visible y autorizada. Las pantallas
+> **Regla principal:** iniciar una sesión de voz autoriza sus turnos y respuestas
+> Fish hasta detenerla. Los recuerdos nuevos y las acciones conservan sus
+> operaciones específicas. Las pantallas
 > técnicas muestran actividad o preparan decisiones; no son prueba de conciencia.
+
+### Aprender conversando
+
+El aprendizaje automático está activado para las nuevas conversaciones con Gemma.
+Después de responder, Alice decide si tu mensaje contiene algo útil para conservar.
+No guarda cada saludo ni necesita que confirmes cada recuerdo. El indicador del
+chat muestra si está evaluando y cuántos recuerdos automáticos conserva.
+
+En **Memoria → Lo que Alice decide conservar** podés leer la cita original,
+corregir el contenido, **Retirar del contexto** o **Volver a usar**. Retirar impide
+su recuperación sin destruirlo. La casilla **Aprendizaje automático** pausa o
+reanuda nuevas selecciones. **Recuerdos activos** en Conversación controla la
+lectura RAG por separado y comienza activada.
+
+El Volumen muestra los recuerdos nuevos como nodos orgánicos. El contorno cerebral
+es ilustrativo. Verde significa que dos recuerdos provienen del mismo intercambio;
+violeta identifica asociaciones confirmadas. Seleccionar un nodo abre su contenido
+y procedencia. Guardar información no entrena los pesos de Gemma.
 
 ## 1. Inicio rápido
 
@@ -19,7 +38,7 @@ códigos internos R1–R6 para operar Alice.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
 5. Entrá en **Configuración** para comprobar el proveedor de conversación.
-6. Volvé a **Entrada e identificación** para conversar.
+6. Volvé a **Conversación** para conversar.
 
 Para revisar el entorno sin abrir la aplicación:
 
@@ -42,14 +61,17 @@ diferentes:
 | **Governance Core** | Permisos, auditoría, diagnóstico, habilidades, procedimientos y configuración. | No forma parte de la personalidad o memoria de Alice. Es control del propietario. |
 
 No es necesario visitar todas las páginas en cada sesión. Para un uso normal basta
-con **Configuración**, **Entrada e identificación**, **Memoria** cuando haya algo que
+con **Configuración**, **Conversación**, **Memoria** cuando haya algo que
 revisar y **Actividad** si querés comprobar qué ocurrió.
 
-## 3. Recorrido recomendado para una conversación
+## 3. Conversación escrita con revisión
+
+Para conversar hablando sin confirmar cada turno, usá **Iniciar conversación por
+voz**, explicado en el apartado siguiente.
 
 1. En **Configuración**, elegí el proveedor y el modelo.
-2. En **Entrada e identificación**, escribí el mensaje.
-3. Pulsá **Revisar contexto local** si usás Ollama o **Ver qué se enviará** si algún
+2. En **Conversación**, escribí el mensaje.
+3. Pulsá **Revisar mensaje** si usás Ollama o **Ver qué se enviará** si algún
    día volvés a habilitar un proveedor en la nube.
 4. Leé la vista previa. Ahí se muestra qué recuerdos o contexto participarán.
 5. Recién entonces pulsá **Autorizar y procesar localmente** o **Autorizar y enviar
@@ -70,12 +92,14 @@ revisar y **Actividad** si querés comprobar qué ocurrió.
    junto al recuerdo. Si no aparece, queda sin evaluación emocional. Esto no es
    todavía el estado emocional actual de Alice.
 
-La vista previa es obligatoria a propósito: evita que una acción invisible decida
-qué información sale de tu equipo.
+La vista previa corresponde al modo escrito/manual. En una sesión de voz,
+el inicio autoriza el ciclo y **Detener conversación** lo termina.
 
 ### Proveedor recomendado actualmente
 
-- **Ollama local:** procesa en la notebook y es la opción activa recomendada.
+- **Gemma 4 local:** modelo principal de conversación y visión. **Iniciar conversación por voz** prepara el motor antes de solicitar el micrófono.
+- **Whisper base local:** transcribe la voz en español por CPU. Gemma conserva la ruta de transcripción anterior si Whisper no está instalado. **Último mensaje atendido** permite revisar el texto reconocido y las demoras; si Fish falla, la respuesta queda en texto y Alice vuelve a escuchar.
+- **Ollama local:** ruta alternativa existente; no cargar otro modelo mientras Gemma esté activo.
 - **OpenRouter:** permanece desactivado por decisión del propietario.
 - **RAG:** aporta recuerdos relevantes al modelo local; no reemplaza la memoria ni
   convierte automáticamente cada conversación en un recuerdo permanente.
@@ -85,22 +109,56 @@ repositorio ni capturas compartidas.
 
 ## 4. Cognitive Core, página por página
 
-### Entrada e identificación
+### Conversación
 
-Es el punto de entrada para conversar y observar cómo se interpreta el mensaje.
-Incluye el panel **[00] CONVERSATION / PERCEPTION INPUT**.
+Es el espacio principal para leer el historial, escribir y hablar. El historial
+aparece arriba y el cuadro de mensaje debajo. El estado indica qué operación
+está ocurriendo: micrófono apagado, captura, transcripción, preparación de la
+respuesta o reproducción de voz. Abrir el panel de voz no abre el micrófono.
 
-- El cuadro grande contiene la entrada o percepción activa.
-- Los tokens muestran cómo se segmentó el texto.
-- El vector de percepción presenta fuente, hablante, intención y confianza cuando
-  esos datos existen.
-- Los controles **LIVE**, **STEP**, **PAUSE**, **AUTO_REND**, **OBSERVE**,
-  **CONVERSE**, **INSPECT** y **REPLAY** son indicadores o funciones en desarrollo;
-  no supongas que todos ejecutan una operación real si aparecen deshabilitados.
+Para hablar sin revisar cada turno, pulsá **Iniciar conversación por voz**.
+Alice prepara Gemma, escucha y detecta una pausa de un segundo, transcribe la
+frase, responde con Fish y vuelve a escucharte. **Detener conversación** termina
+la sesión. El aviso al iniciar explica que Gemma procesa localmente y Fish recibe
+las respuestas. La sesión también termina al salir de la pantalla, cerrar Alice
+o llegar a dos horas. El micrófono se apaga mientras procesa o habla.
+
+Cuando indique **Te escucho**, podés decir **«Detén la conversación, Alice»**.
+La sesión se detiene después de transcribir esa orden y muestra un aviso. Durante
+procesamiento o reproducción, usá el botón: todavía no hay interrupción por voz.
+
+Para revisar y corregir antes de enviar, abrí **Dictado con revisión manual**.
+Ver [el runbook de voz](runbooks/03-conversacion-y-voz.md).
+
+**Audio de entrada · reducción de ruido local** permite elegir el micrófono.
+**Actualizar micrófonos** consulta dispositivos sin iniciar una grabación; los
+nombres pueden aparecer después de la primera toma. El filtro local funciona
+en ambos modos de voz y no requiere otra IA de conversación ni confirmaciones
+por turno. Durante su arranque aparece **Preparando micrófono y filtro**.
+
+Si hay voces de televisión, de otras personas o de una canción, activá antes de
+iniciar **Sólo si digo Alice** y empezá tus frases con «Alice» u «Hola, Alice».
+Es opcional: desactivada conserva la conversación habitual. Las frases que no
+se dirigen a Alice se descartan después de la transcripción local, sin entrar al
+chat ni enviarse a Fish. La orden de detener funciona en ambos casos.
+
+El filtro reduce ruido y no identifica tu voz. La eliminación de música de la
+notebook depende de la cancelación de eco que confirme el equipo; la música
+externa con voces todavía puede interferir. Acercar el micrófono a tu boca o
+usar auriculares mejora la relación entre voz y música. Si falla el filtro,
+Alice descarta la toma y avisa. [Contrato de audio](decisions/ADR-P-105-supresion-local-ruido-vite.md).
+
+Al pie hay dos accesos opcionales:
+
+- **Diagnóstico de entrada:** muestra palabras, origen y clasificación por reglas
+  locales. Capturar o congelar el diagnóstico sólo afecta a esa vista. No pausa
+  a Gemma ni detiene el micrófono. Su tiempo de análisis no mide la inferencia.
+- **Documentos locales:** abre una vista previa independiente del chat. La lectura
+  no adjunta automáticamente el documento al modelo.
 
 #### Control de contexto de la conversación
 
-Las casillas de la columna derecha autorizan qué contexto puede recibir el modelo.
+Las casillas de **Contexto y permisos**, debajo del mensaje, autorizan qué contexto puede recibir el modelo.
 Una casilla marcada significa **seleccionada**, no necesariamente que ya existan
 datos:
 
@@ -468,7 +526,7 @@ debe ser la única explicación ofrecida al propietario.
 
 ## 13. Leer un documento sin guardarlo como recuerdo
 
-En **Identificación**, buscá **Documento local · Vista previa**:
+En **Conversación**, abrí **Documentos locales** para acceder a **Documento local · Vista previa**:
 
 1. Seleccioná un archivo PDF, MD o TXT de hasta 16 MiB.
 2. Pulsá **Autorizar lectura y ver texto**.
@@ -535,6 +593,101 @@ diferencia. El manual y la pantalla deben corregirse juntos antes de continuar.
 
 En la versión recompilada, Configuración permite iniciar/apagar Gemma. Iniciarlo también lo selecciona como proveedor de conversación; apagarlo vuelve a seleccionar Ollama, sin cargar Qwen. Si Ollama conserva otro modelo, el arranque se rechaza para evitar dos modelos residentes; esperá a que esa sesión termine antes de continuar.
 
-Después de iniciar Gemma, seleccioná **Gemma local · llama.cpp**, volvé a Conversación y usá la revisión de contexto habitual. Para volver a Ollama, apagá Gemma primero. El micrófono no se activa con estos controles; el turno de voz integrado todavía está pendiente. **Proponer recuerdo de este intercambio** usa Gemma local y analiza solamente el mensaje del propietario; la observación de pantalla y los candidatos heredados siguen usando Ollama y permanecen bloqueados mientras Gemma está activo.
+Después de iniciar Gemma, seleccioná **Gemma local · llama.cpp**, volvé a Conversación y usá la revisión de contexto habitual. Para volver a Ollama, apagá Gemma primero. El micrófono se activa por separado con Iniciar conversación; los turnos de voz ya están integrados. **Proponer recuerdo de este intercambio** usa Gemma local y analiza solamente el mensaje del propietario; la observación de pantalla y los candidatos heredados siguen usando Ollama y permanecen bloqueados mientras Gemma está activo.
 
 Detalles y límites: [Gemma en Configuración y conversación](testing/GEMMA_SETTINGS_CHAT_2026-09-05.md).
+
+## Ver con Alice: cámara y escritorio
+
+1. Abre **Conversación** usando Gemma local.
+2. Pulsa **Activar cámara**. Si Windows pide acceso, concede el permiso para Alice.
+   Revisa el selector **Cámara para Alice**: puedes cambiar del celular conectado
+   a la cámara integrada de la notebook. **Ver vistas** muestra la imagen.
+3. Pulsa **Compartir escritorio** para incluir lo visible en todos tus monitores.
+   La miniatura es la captura inicial; cada pregunta toma otra imagen.
+4. Escribe o inicia la conversación por voz y pregunta, por ejemplo:
+   «Alice, ¿qué objeto tengo frente a la cámara?» o «¿Qué ventana ves en mi pantalla?».
+5. Usa **Apagar cámara**, **Dejar de compartir** o **Detener vistas** cuando termines.
+   Salir de Conversación también detiene ambas fuentes. No se reactivan al abrir Alice.
+
+La vista se mantiene hasta dos horas y no pide autorización en cada turno. Las
+imágenes se procesan localmente con el mismo Gemma; sus respuestas quedan en el
+chat normal. El modo de voz conserva el uso autorizado de Fish para leerlas.
+No se guardan imágenes como recuerdos. Alice ve capturas, no vídeo continuo:
+puede confundirse con detalles pequeños y no puede abrir archivos o ver ventanas
+minimizadas. Esta vista todavía no verifica tu identidad ni bloquea a terceros.
+
+Con vistas activas, usa mensajes de hasta 1600 caracteres. Se acorta el contexto
+anterior para dejar espacio a las imágenes; si falta un referente, nómbralo en la
+pregunta. Si Windows deniega la cámara o otro programa la ocupa, el error aparece
+en la tarjeta y la sesión se cierra. Tras recargas de desarrollo debes reactivar
+las fuentes. Contrato: [ADR-P-102](decisions/ADR-P-102-vision-conversacional-local.md).
+
+## Abrir Spotify y los discos autorizados
+
+Con Gemma seleccionado, puedes decir en la sesión de voz o escribir:
+
+- «Alice, abre Spotify».
+- «Abre el disco E».
+- «Abre la unidad D».
+- «Alice, me abres la aplicación Spotify en mi equipo» (selección por tool calling).
+
+Pide un destino por vez. Las órdenes simples evitan una inferencia adicional;
+las frases naturales reconocidas requieren Gemma iniciado. En texto se conserva
+la revisión manual del mensaje; en la sesión de voz la apertura no pide otra
+confirmación. Windows recibe la orden de apertura; Alice no confirma que la
+ventana esté visible sin observarla. La reproducción musical se amplía en la
+sección siguiente; siguen sin habilitarse consola, otras unidades o archivos
+arbitrarios.
+
+En Volumen, «Núcleo en ejecución» pulsa mientras responde el proceso nativo. El
+arranque real también ilumina Contexto. Ese latido es distinto de las señales de
+conversación o aprendizaje: no aumenta la cantidad de recuerdos ni inventa rutas.
+Ver [ADR-P-103](decisions/ADR-P-103-actividad-y-herramientas-delegadas.md).
+
+## Música: Tus me gusta y YouTube en Chrome
+
+Puedes escribir o decir durante la sesión de voz:
+
+- «Alice, reproduce mis me gusta»: abre Spotify y reproduce **Tus me gusta**.
+- «Abre Spotify y reproduce mi música» o «abres Spotify y reproduces mi playlist»:
+  abre y reproduce esa misma colección. También admite repeticiones de voz como
+  «abre abre» y «mi mi música».
+- «Pausa Spotify» y «Continúa Spotify»: pausa y reanuda su reproducción.
+- «Reproduce [canción] de [artista] en YouTube»: busca y reproduce en Google Chrome.
+- «Pausa YouTube» y «Continúa YouTube»: controla el vídeo identificable de YouTube.
+- «Abre YouTube»: abre su inicio; tú eliges después la canción.
+
+Después de una apertura o reproducción correcta también puedes decir «reproduce»,
+«pausa» o «continúa» para el último servicio controlado por Alice. Tras reiniciar
+nombra Spotify o YouTube. Spotify utiliza tu colección Tus me gusta; todavía no
+admite elegir otras playlists por nombre.
+
+«Mi música» y «mi playlist» significan **Tus me gusta**, según tu elección para
+este proyecto. No necesitas memorizar una única frase exacta. Si una orden queda
+incompleta, Alice indica que no la ejecutó y muestra ejemplos. Decir sólo
+«Spotify» no ejecuta una acción pendiente del historial. Una promesa generada
+por el modelo no cuenta como comprobación de reproducción.
+
+Si Spotify estaba cerrado puede tardar en cargar o actualizarse: Alice espera
+hasta un minuto para encontrar el reproductor. Con Spotify abierto, el límite
+es de 18 segundos; normalmente termina antes. Si aparece un error de espera,
+deja que Spotify termine de iniciar y vuelve a pedir la reproducción.
+
+Para pausa y continuación Alice consulta primero el control multimedia de
+Windows. Si no está disponible, utiliza los botones del reproductor de Spotify
+y comprueba el resultado; puede restaurar su ventana si estaba minimizada.
+
+No se pide otra autorización por cada control musical. Las órdenes sencillas
+evitan inferencia; variantes como «¿Puedes reproducir mis me gusta en Spotify?»
+usan tool calling de Gemma con validación nativa. Se mantiene la revisión manual
+del mensaje escrito y la continuidad de la sesión de voz ya iniciada.
+
+Debes tener Spotify con tu cuenta y Google Chrome disponibles. Si YouTube pide
+iniciar sesión, muestra un consentimiento o impide comprobar el reproductor,
+Alice comunica el fallo. Tampoco afirma éxito ante ventanas ambiguas. No cambies
+de ventana durante la selección del vídeo. La reproducción de Spotify se probó
+con Tus me gusta; la primera prueba real de YouTube queda para tu canción.
+
+Contrato y verificación: [ADR-P-104](decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
+e [informe de música](testing/MEDIA_PLAYBACK_REPORT_2026-11-03.md).

@@ -1,0 +1,70 @@
+/* Keep record metadata inside its own column, including long origin labels. */
+.memory-list {
+  container: memory-records / inline-size;
+  gap: 14px;
+}
+
+.memory-record {
+  grid-template-columns: 12rem minmax(0, 1fr);
+}
+
+.memory-meta {
+  min-width: 0;
+  gap: 20px;
+  padding: 16px;
+  border-color: var(--alice-border);
+  overflow-wrap: anywhere;
+}
+
+.memory-meta .tag {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.memory-meta .memory-type {
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+.memory-body {
+  min-width: 0;
+  padding: 18px 20px;
+  overflow-wrap: anywhere;
+}
+
+.memory-body h3 {
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.memory-body .memory-evidence {
+  gap: 8px 14px;
+  margin: 12px 0;
+  padding: 10px 12px;
+}
+
+.memory-body .memory-evidence span {
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* Use the available panel width, not the desktop window width. */
+@container memory-records (max-width: 600px) {
+  .memory-record {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .memory-meta {
+    gap: 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--alice-border);
+  }
+
+  .memory-body {
+    padding: 16px;
+  }
+}

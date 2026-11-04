@@ -39,6 +39,7 @@ describe("control de contexto de conversación", () => {
       onPreviewVoiceOutput={vi.fn()}
       onConfirmVoiceOutput={vi.fn()}
       onCancelVoiceOutput={vi.fn()}
+      onStartVoiceSession={vi.fn()} onStopVoiceSession={vi.fn()} onSpeakVoiceSession={vi.fn()} onPrepareVoiceTurn={vi.fn()}
       onTranscribeVoiceTurn={vi.fn()}
       onOpenSettings={vi.fn()}
       onSend={vi.fn()}
@@ -46,6 +47,11 @@ describe("control de contexto de conversación", () => {
     />);
 
     expect(markup).toContain("FUENTES SELECCIONADAS · DATOS REALES");
+    expect(markup).toContain('<details class="conversation-context-drawer">');
+    expect(markup).toContain("Contexto y permisos");
+    expect(markup).not.toContain("Interpretación de la voz");
+    expect(markup).not.toContain("voice-delivery-control");
+    expect(markup).not.toContain("conversation-history-gate");
     expect(markup).toContain("seleccionado · todavía no hay mensajes guardados");
     expect(markup).toContain("Configurar observador en Gateway");
     expect(markup).toContain("CONTINUIDAD LOCAL");
@@ -79,6 +85,7 @@ describe("control de contexto de conversación", () => {
       onPreviewVoiceOutput={vi.fn()}
       onConfirmVoiceOutput={vi.fn()}
       onCancelVoiceOutput={vi.fn()}
+      onStartVoiceSession={vi.fn()} onStopVoiceSession={vi.fn()} onSpeakVoiceSession={vi.fn()} onPrepareVoiceTurn={vi.fn()}
       onTranscribeVoiceTurn={vi.fn()}
       onOpenSettings={vi.fn()}
       onSend={vi.fn()}
@@ -128,6 +135,7 @@ describe("control de contexto de conversación", () => {
       onPreviewVoiceOutput={vi.fn()}
       onConfirmVoiceOutput={vi.fn()}
       onCancelVoiceOutput={vi.fn()}
+      onStartVoiceSession={vi.fn()} onStopVoiceSession={vi.fn()} onSpeakVoiceSession={vi.fn()} onPrepareVoiceTurn={vi.fn()}
       onTranscribeVoiceTurn={vi.fn()}
       onOpenSettings={vi.fn()}
       onSend={vi.fn()}
@@ -136,7 +144,8 @@ describe("control de contexto de conversación", () => {
 
     expect(markup).toContain("Proponer recuerdo de este intercambio");
     expect(markup).toContain("Escuchar con la voz de Alice");
-    expect(markup).toContain("Abrir turno de voz");
+    expect(markup).toContain("Hablar con Alice");
+    expect(markup).toContain("MIC APAGADO");
     expect(markup).toContain("sólo analiza tu mensaje");
     expect(onPreviewConversationLearning).not.toHaveBeenCalled();
   });

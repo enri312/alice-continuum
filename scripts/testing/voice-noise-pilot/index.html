@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; img-src 'self' data:">
+<title>Prueba local de reducción de ruido</title>
+<style>body{background:#081521;color:#d5eef5;font:16px/1.6 system-ui;margin:32px;max-width:1100px}button{padding:12px;background:#68e1df;border:0;border-radius:6px}pre{white-space:pre-wrap;font:13px/1.6 Consolas,monospace}</style></head>
+<body><h1>Reducción de ruido · prueba sintética</h1><p>Sin micrófono, altavoces, Gemma, Fish ni escritura de conversaciones. Ejecuta el mismo procesador local utilizado en Alice.</p>
+<button id="start">Ejecutar prueba de audio sintético</button><p id="status" role="status">Preparada</p><pre id="results"></pre>
+<script type="module" src="./client.ts"></script></body></html>

@@ -1,0 +1,12 @@
+Alice Continuum includes @shiguredo/rnnoise-wasm 2025.1.5, unmodified.
+Copyright 2021-2025, Takeru Ohta (Original Author)
+Copyright 2021-2025, Shiguredo Inc.
+Licensed under Apache License 2.0: rnnoise-wasm-Apache-2.0.txt
+Source: https://github.com/shiguredo/rnnoise-wasm/tree/2025.1.5
+
+The embedded RNNoise library and model use the RNNoise BSD license:
+rnnoise-BSD-3-Clause.txt
+Source revision: 70f1d256acd4b34a572f999a05c87bf00b67730d
+https://github.com/xiph/rnnoise/tree/70f1d256acd4b34a572f999a05c87bf00b67730d
+
+These notices are bundled locally in licenses/ alongside the application assets.

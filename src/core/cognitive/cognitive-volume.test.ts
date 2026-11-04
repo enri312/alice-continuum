@@ -33,6 +33,14 @@ const activity: CoreActivitySnapshot = {
 };
 
 describe("grafo trazable del volumen cognitivo", () => {
+  it("muestra un latido técnico sólo cuando el núcleo nativo respondió y lo mantiene dentro del volumen", () => {
+    const idle=buildCognitiveVolumeGraph([], null, [], true);
+    expect(idle.nodes.map(n=>n.id)).toEqual(["process:runtime"]);
+    expect(idle.nodes[0].detail).toContain("no indica razonamiento");
+    expect(idle.edges).toEqual([]);expect(idle.persistentNodeCount).toBe(0);
+    const graph=buildCognitiveVolumeGraph([], {...activity,regions:activity.regions.map(r=>({...r,eventCount:1,signal:.5}))},[],true);
+    for(const node of graph.nodes){expect(Math.abs(node.x)).toBeLessThan(.65);expect(Math.abs(node.y)).toBeLessThan(.5);expect(Math.abs(node.z)).toBeLessThan(.3);}
+  });
   it("representa importancia creciente con tamaño acotado y ausencia de evaluación explícita", () => {
     expect([1, 2, 3, 4, 5].map(cognitiveMemoryRadius)).toEqual([5, 7, 9, 11, 13]);
     expect(cognitiveMemoryRadius(null)).toBe(5);

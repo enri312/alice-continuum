@@ -4,6 +4,20 @@ Autor y propietario: Carlos Nuñez
 Última revisión de identidad: 2026-09-16; planificación funcional revisada el 2026-09-11.  
 Estado: vigente
 
+**Prioridad funcional del 4 de noviembre de 2026:** conversación oral y acciones
+de PC ya delegadas, tomando Atlas como referencia y excluyendo domótica. Gemma 4
+mantiene el diálogo; Whisper base CPU transcribe el español y Fish da voz. La
+prueba nativa con muestras sintéticas pasó dos respuestas y parada; aceptación
+con Carlos y música real pendiente. Se añaden tiempos visibles, recuperación
+ante fallo de Fish y rechazo de respuestas tardías. R9 continúa en progreso.
+
+Siguiente orden: aceptar conversación real y continuidad; después evaluar
+activación por nombre, interrupción con control de eco y menor latencia. Nerumi
+queda como referencia posterior para compañía y presencia de escritorio; avatar
+al final. No se anuncian sus funciones como ya disponibles en Alice. Ver
+[ADR-P-106](docs/decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) y
+[pruebas](docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+
 ## Propósito
 
 Esta hoja de ruta ordena la evolución de Alice desde el prototipo actual hacia una asistente personal con memoria, habilidades y capacidades locales gobernadas. Cada fase debe terminar con evidencia verificable antes de comenzar la siguiente.
@@ -335,7 +349,13 @@ Plan: [R8-knowledge-graph.md](docs/plans/R8-knowledge-graph.md).
 
 ### Fase R9 — Presencia, voz y cuerpo mediante puentes
 
-**Estado:** en diseño — R9.1 definido; sin puentes nuevos activos  
+**Estado:** parcial — sesión automática de voz implementada el 2026-11-03:
+pausa, transcripción Gemma, respuesta Fish y nueva escucha sin confirmación por
+turno. Aceptación acústica y de latencia pendiente. Node 26.13.0 LTS actualizado.
+Gemma 4 se mantiene y el avatar queda al final según [ADR-P-099](docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).  
+Se añade parada mediante orden directa durante escucha y evaluación de referentes
+Alice/Carlos/terceros con [ADR-P-100](docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
+El compilador del proyecto queda actualizado a Rust 1.99.1 estable.
 **Dependencia:** Fases R1 a R3  
 **Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
 
@@ -344,8 +364,9 @@ Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, an
 R9.1 fija antes el contrato de presencia: la transcripción manual local, la futura
 salida TTS, las expresiones VRM y los sensores son puentes unidireccionales
 separados. Ninguno escribe recuerdos, decide por Alice o se activa al iniciar. La
-voz externa sólo podrá recibir una respuesta ya visible después de previsualización
-del texto, autorización por intento, límite, cancelación y descarte. Consulta el
+voz externa recibe una respuesta ya persistida. En la sesión automática, iniciar
+autoriza sus turnos hasta detener, salir o vencer; en modo manual se mantiene la
+vista previa por intento. Se conservan límites y descarte. Consulta el
 [plan R9](docs/plans/R9-presence-voice-body.md) y [ADR-P-094](docs/decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md).
 
 **Base corporal local ya comprobada:** el visor manual dispone de doce clips privados, mezcla locomotora, IK de apoyo y una FSM de siete estados para reposo, arranque, locomoción, salto, sentarse y levantarse. Sus transiciones generan telemetría R3 mínima con procedencia humana o diagnóstica; alimentan una región `Motor manual` aislada y no activan el puente cognitivo. El aprendizaje motor futuro deberá correlacionar intención, acción, telemetría y resultado en R3, exigir repeticiones válidas y proponer memoria procedural bajo confirmación; nunca inferir aprendizaje por la sola existencia o reproducción de un clip.
@@ -419,6 +440,14 @@ npm test
 npm run build
 ```
 
+## Actualización autorizada — aprendizaje conversacional
+
+El 2026-11-03 se implementa la selección y persistencia automática de citas de
+nuevos mensajes Gemma, con pausa, corrección y retirada, RAG activo y proyección
+orgánica del volumen. El almacén automático conserva procedencia y no reescribe
+memoria confirmada. Ver [ADR-P-101](docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+Las secciones siguientes conservan el alcance histórico; el avatar continúa al final.
+
 ## Próximo paso autorizado
 
 Las **Fases R1 a R8** están completadas en sus alcances documentados. El siguiente
@@ -450,3 +479,15 @@ Desde el 2026-09-16 la plataforma se denomina **Alice Continuum**; Alice mantien
 su nombre como personaje. Esta adopción no modifica el alcance ni el estado de
 las fases. Consulta [ADR-P-095](docs/decisions/ADR-P-095-identidad-alice-continuum.md)
 y la [matriz de compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md).
+
+Incremento R9 del 2026-11-03: [música delegada](docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
+con Tus me gusta en Spotify y canciones pedidas en YouTube mediante Chrome.
+Spotify pasó la prueba de reproducir, pausar, continuar y pausar desde Alice con
+datos separados. La reproducción real de YouTube espera la canción del
+propietario. El avatar sigue pospuesto; este incremento no cierra R9.
+
+Seguimiento del mismo día: se corrigen las órdenes habladas compuestas que
+recibían promesas sin reproducción, y se amplía la espera de Spotify al arrancar
+sin ventana. [Regresión y pruebas](docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+
+Incremento R9 del 2026-11-04: [reducción local de ruido](docs/decisions/ADR-P-105-supresion-local-ruido-vite.md) antes de grabar, detector de voz y micrófono seleccionable. Dirección Alice opcional para otras voces. Vite 8.3.5 y Vitest 4.1.12; falta aceptación acústica con la voz del propietario y música de ambos orígenes. El avatar permanece al final.

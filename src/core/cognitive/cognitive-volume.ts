@@ -12,14 +12,14 @@ export type CognitiveVolumeNode = {
   z: number;
   signal: number;
   memory: CognitiveMemoryNode | null;
-  processRegion: CoreActivityRegionId | "retrieval" | null;
+  processRegion: CoreActivityRegionId | "retrieval" | "runtime" | null;
 };
 
 export type CognitiveVolumeEdge = {
   id: string;
   from: string;
   to: string;
-  kind: "association" | "audit" | "retrieval";
+  kind: "association" | "audit" | "retrieval" | "coLearning";
   evidenceCount: number;
   signal: number;
 };
@@ -48,13 +48,13 @@ export type CognitiveVolumeGraph = {
 };
 
 const processPositions: Record<CoreActivityRegionId, readonly [number, number, number]> = {
-  permission: [-0.96, -0.48, -0.08],
-  perception: [-0.9, 0.12, 0.04],
-  language: [-0.56, 0.55, -0.02],
-  memory: [0, -0.04, 0.46],
-  workspace: [0.5, 0.12, 0.1],
-  output: [0.88, 0.5, -0.03],
-  motor: [0.94, -0.48, -0.08],
+  permission: [-0.43, -0.27, 0.08],
+  perception: [-0.56, 0.04, 0.04],
+  language: [-0.38, 0.36, -0.1],
+  memory: [-0.21, -0.07, 0.22],
+  workspace: [0.24, -0.05, 0.2],
+  output: [0.45, 0.32, -0.06],
+  motor: [0.56, -0.2, -0.08],
 };
 
 export const memoryLayerColors: Record<CognitiveMemoryLayer, readonly [number, number, number]> = {
@@ -103,6 +103,7 @@ export function buildCognitiveVolumeGraph(
   memoryNodes: CognitiveMemoryNode[],
   activity: CoreActivitySnapshot | null,
   associations: readonly ConfirmedMemoryAssociation[] = [],
+  runtimeActive = false,
 ): CognitiveVolumeGraph {
   const nodes: CognitiveVolumeNode[] = memoryNodes.map((memory) => ({
     id: `memory:${memory.id}`,
@@ -116,6 +117,9 @@ export function buildCognitiveVolumeGraph(
     memory,
     processRegion: null,
   }));
+  if (runtimeActive) nodes.push({id:"process:runtime",kind:"process",label:"Núcleo en ejecución",
+    detail:"La aplicación nativa responde. Latido de presencia técnica; no indica razonamiento, aprendizaje ni eventos R3 inventados.",
+    x:0.17,y:-0.42,z:0.03,signal:.18,memory:null,processRegion:"runtime"});
   const activeRegions = activity?.regions.filter((region) => region.eventCount > 0) ?? [];
   for (const region of activeRegions) {
     const [x, y, z] = processPositions[region.id];
@@ -140,9 +144,9 @@ export function buildCognitiveVolumeGraph(
       kind: "process",
       label: "Recuperación actual",
       detail: `${retrieved.length} recuerdos seleccionados por la consulta local`,
-      x: 0.15,
-      y: 0.08,
-      z: 0.58,
+      x: 0.12,
+      y: 0.21,
+      z: 0.23,
       signal: 1,
       memory: null,
       processRegion: "retrieval",
@@ -173,6 +177,19 @@ export function buildCognitiveVolumeGraph(
     if (!nodeIds.has(from) || !nodeIds.has(to)) continue;
     associationIds.add(association.id);
     edges.push({ id: `association:${association.id}`, from, to, kind: "association", evidenceCount: recordIds.length, signal: .34 });
+  }
+
+  // A shared source is evidence of co-learning, not a semantic association.
+  const sources = new Map<string, typeof memoryNodes>();
+  for (const memory of memoryNodes) {
+    if (memory.conversationExchangeId && !memory.archived) {
+      const group = sources.get(memory.conversationExchangeId) ?? [];
+      group.push(memory); sources.set(memory.conversationExchangeId, group);
+    }
+  }
+  for (const [source, group] of sources) {
+    const ordered = [...group].sort((a, b) => a.id.localeCompare(b.id));
+    for (let i = 1; i < ordered.length; i++) edges.push({id:`co-learning:${source}:${i}`, from:`memory:${ordered[i - 1].id}`, to:`memory:${ordered[i].id}`, kind:"coLearning", evidenceCount:1, signal:0});
   }
 
   return {

@@ -19,7 +19,7 @@ export function Volumen(props: NucleusPageProps) {
       .catch(() => { if (active) { setAssociations([]); setInvalidatedAssociationCount(0); setAssociationStatus("error"); } });
     return () => { active = false; };
   }, [props.desktopApp]);
-  return <NucleusFrame code="[01]" title="Volumen cognitivo" description="Proyección 3D trazable de recuerdos persistentes y procesos cognitivos comprobados." activity={activity} activityStatus={activityStatus} footnote="Cada círculo corresponde a un registro real; cada rombo, a una recuperación actual o señal R3. Una línea violeta sólo aparece si dos fuentes siguen vigentes y vos confirmaste expresamente su relación. La posición es una distribución visual determinista, no anatomía cerebral.">
-    <div className="nucleus-page-stage volume-page-stage"><NeuralVolume snapshot={effectiveSnapshot} activity={activity} associations={associations} associationStatus={associationStatus} invalidatedAssociationCount={invalidatedAssociationCount} /></div>
+  return <NucleusFrame code="[01]" title="Volumen cognitivo" description="Una red viva de recuerdos guardados, aprendizaje automático y procesos observables de Alice." activity={activity} activityStatus={activityStatus} footnote="Cada nodo abre un recuerdo real. Verde: recuerdos del mismo intercambio; violeta: asociación confirmada. El contorno cerebral y las ramificaciones son ilustrativos.">
+    <div className="nucleus-page-stage volume-page-stage"><NeuralVolume runtimeActive={activityStatus === "ready"} snapshot={effectiveSnapshot} activity={activity} associations={associations} associationStatus={associationStatus} invalidatedAssociationCount={invalidatedAssociationCount} /></div>
   </NucleusFrame>;
 }

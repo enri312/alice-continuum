@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildReviewQueue } from "../../core/memory/memory-consolidation";
@@ -55,6 +56,7 @@ type MemorySession = {
 };
 
 type MemoriaProps = {
+  automaticMemoryPanel?: ReactNode;
   sessions: MemorySession[];
   ownerProfile: OwnerProfileSnapshot | null;
   workingMemory: WorkingMemorySnapshot | null;
@@ -128,7 +130,7 @@ const recoveryStepLabels: Record<ConsolidationRecoveryStep, string> = {
   verifyRestoredSource: "VERIFICAR RESTAURACIÓN",
 };
 
-export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
+export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
   const initialView: MemoryView = requestedView === "working" || requestedView === "profile" || requestedView === "layers" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
   const [view, setView] = useState<MemoryView>(initialView);
@@ -646,6 +648,7 @@ export function Memoria({ sessions, ownerProfile, workingMemory, onClearWorkingM
 
   return <section className="memory-page" aria-labelledby="memory-title">
     <div className="memory-heading"><div><p className="eyebrow">ALMACÉN COGNITIVO · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Acá se inspecciona lo que Alice ya conserva: recuerdos, contexto de trabajo, perfil confirmado, capas, vigencia, consolidación y recuperación.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count memory-count-breakdown" aria-label={`${consultableCount} elementos consultables: ${remembered.length} recuerdos y ${profileCount} hechos de perfil`}><strong>{consultableCount}</strong><span>elementos<br />consultables</span><small><b>{remembered.length}</b> recuerdos · <b>{profileCount}</b> perfil</small></div></div></div>
+    {automaticMemoryPanel}
     <nav className="memory-view-tabs" role="tablist" aria-label="Funciones de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "profile"} className={view === "profile" ? "selected" : ""} onClick={() => setView("profile")}><span>03</span>PERFIL <em>{ownerProfile?.records.length ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>04</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>05</span>CICLO <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>06</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>07</span>RESPALDO</button></nav>
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>

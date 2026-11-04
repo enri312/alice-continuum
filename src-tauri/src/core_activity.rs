@@ -158,7 +158,11 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
         }
 
         match event.source {
-            AuditSource::System => {}
+            AuditSource::System => {
+                if event.operation == "process.startup" && event.reason_code == "PROCESS_STARTED" {
+                    add_region(&mut regions, "workspace", event, weight);
+                }
+            }
             AuditSource::Memory => {
                 add_region(&mut regions, "memory", event, weight);
                 add_region(&mut regions, "workspace", event, weight);
@@ -182,6 +186,19 @@ fn derive_at(events: &[AuditEvent], audit_healthy: bool, now_ms: u64) -> CoreAct
             }
             AuditSource::Procedure => {}
             AuditSource::Permission | AuditSource::Capability => {
+                if matches!(
+                    event.capability_id.as_deref(),
+                    Some("desktop.approved.open" | "desktop.approved.media")
+                ) {
+                    add_region(&mut regions, "workspace", event, weight);
+                    if event.stage == AuditStage::Execution
+                        && event.outcome == AuditOutcome::Success
+                    {
+                        add_region(&mut regions, "output", event, weight);
+                        add_link(&mut links, "workspace-output", weight);
+                    }
+                    continue;
+                }
                 add_region(&mut regions, "permission", event, weight);
                 if relevant_perception_capability(event) {
                     add_region(&mut regions, "perception", event, weight);
@@ -382,6 +399,27 @@ mod tests {
         assert!(snapshot.overall_signal > 0.0);
         assert!(snapshot.regions.iter().all(|region| region.signal == 0.0));
         assert!(snapshot.links.iter().all(|link| link.signal == 0.0));
+    }
+
+    #[test]
+    fn actual_startup_is_visible_in_context_without_fabricating_routes() {
+        let mut startup = event(
+            AuditSource::System,
+            None,
+            AuditStage::Execution,
+            AuditOutcome::Success,
+            0,
+        );
+        startup.operation = "process.startup".into();
+        startup.reason_code = "PROCESS_STARTED".into();
+        let snapshot = derive_at(&[startup], true, NOW);
+        assert!(region(&snapshot, "workspace").signal > 0.0);
+        assert!(snapshot
+            .regions
+            .iter()
+            .filter(|r| r.id != "workspace")
+            .all(|r| r.signal == 0.0));
+        assert!(snapshot.links.iter().all(|l| l.signal == 0.0));
     }
 
     #[test]

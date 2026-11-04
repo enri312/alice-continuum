@@ -9,6 +9,16 @@ La memoria de Alice conserva experiencias, conocimiento confirmado, procedimient
 
 El fundamento funcional y sus límites científicos están documentados en [Modelo funcional de memoria humana aplicable a Alice](../research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md). La decisión de arquitectura vigente es [ADR-P-084](../decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md).
 
+## Aprendizaje automático vigente — 2026-11-03
+
+Por delegación del propietario, Alice selecciona citas útiles de nuevas conversaciones
+Gemma y las conserva sin confirmación por recuerdo. Viven en `memory/automatic-v1.json`,
+con respaldo anterior, procedencia y estado reversible. Conversación y volumen combinan
+ese almacén con los recuerdos confirmados, distinguiendo la selección automática.
+**Memoria → Lo que Alice decide conservar** permite pausar, corregir y retirar.
+Los contratos R6 siguientes siguen aplicándose a los archivos confirmados originales.
+Ver [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+
 ## Directorio de datos
 
 El iniciador define `ALICE_DATA_DIR=E:\Alice Cognitive Core\data`. Dentro de ese directorio Alice crea `memory/`, conserva el historial de diálogo en `conversation/` y la auditoría de proveedores en `cloud/`:

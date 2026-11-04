@@ -1,12 +1,17 @@
 import { parseMemoryAffects, type MemoryAffect } from "../cognitive/affect";
+import { neuralMemoryPosition } from "../cognitive/neural-geometry";
 export type CognitiveMemoryLayer = "episodic" | "semantic" | "procedural" | "preference" | "self" | "unclassified";
-export type CognitiveMemoryStatus = "confirmed" | "conflict" | "archived" | "historical";
+export type CognitiveMemoryStatus = "confirmed" | "conflict" | "archived" | "historical" | "learned";
 
 export type CognitiveMemoryInput = {
+  automaticLearning?: boolean;
+  conversationExchangeId?: string;
+  ownerReviewed?: boolean;
   affects?: MemoryAffect[];
   id?: string;
   kind?: string;
   intention: string;
+  summary?: string;
   memoryType?: "semantic" | "procedural" | "preference" | "episodic";
   source?: string;
   importance?: number;
@@ -22,9 +27,11 @@ export type CognitiveMemoryInput = {
 };
 
 export type CognitiveMemoryNode = {
+  conversationExchangeId?: string;
   affects: MemoryAffect[];
   id: string;
   label: string;
+  content?: string;
   layer: CognitiveMemoryLayer;
   status: CognitiveMemoryStatus;
   accessibility: "notAssessed" | "accessible" | "dormant";
@@ -43,15 +50,6 @@ export type CognitiveMemoryNode = {
   z: number;
 };
 
-const layerCenters: Record<CognitiveMemoryLayer, readonly [number, number, number]> = {
-  episodic: [-0.48, 0.05, -0.05],
-  semantic: [0, 0.2, 0],
-  procedural: [0.48, -0.02, 0.04],
-  preference: [-0.12, -0.48, 0.06],
-  self: [0.08, 0.52, -0.03],
-  unclassified: [0, 0, 0],
-};
-
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 function finiteRange(value: number | undefined, minimum: number, maximum: number) {
@@ -64,15 +62,6 @@ function nonNegativeInteger(value: number | undefined) {
   return value;
 }
 
-function stableHash(value: string, seed: number) {
-  let hash = (2166136261 ^ seed) >>> 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619) >>> 0;
-  }
-  return hash / 4294967295;
-}
-
 export function resolveCognitiveMemoryLayer(memory: CognitiveMemoryInput): CognitiveMemoryLayer {
   if (memory.kind === "Perfil") return "self";
   if (memory.memoryType) return memory.memoryType;
@@ -81,6 +70,7 @@ export function resolveCognitiveMemoryLayer(memory: CognitiveMemoryInput): Cogni
 }
 
 export function resolveCognitiveMemoryStatus(memory: CognitiveMemoryInput): CognitiveMemoryStatus {
+  if (memory.automaticLearning) return memory.ownerReviewed ? "confirmed" : "learned";
   return memory.memoryStatus ?? "historical";
 }
 
@@ -101,16 +91,14 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
     const layer = resolveCognitiveMemoryLayer(memory);
     const status = resolveCognitiveMemoryStatus(memory);
     const archived = status === "archived" || memory.archiveStatus === "archived";
-    const center = layerCenters[layer];
-    const angle = stableHash(id, 17) * Math.PI * 2;
-    const radial = 0.08 + Math.sqrt(stableHash(id, 41)) * 0.24;
-    const depth = (stableHash(id, 73) * 2 - 1) * 0.32;
     const strength = finiteRange(memory.storageStrength, 0, 1);
     const importance = finiteRange(memory.importance, 1, 5);
     nodes.push({
+      ...(memory.conversationExchangeId ? { conversationExchangeId: memory.conversationExchangeId } : {}),
       affects: (memory.memoryVersion ?? 1) === 1 ? parseMemoryAffects(memory.affects) : [],
       id,
       label,
+      ...(memory.summary ? {content:memory.summary} : {}),
       layer,
       status,
       accessibility: memory.accessibilityStatus ?? "notAssessed",
@@ -124,9 +112,7 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       successfulRecalls: nonNegativeInteger(memory.successfulRecalls),
       successfulReviews: nonNegativeInteger(memory.successfulReviews),
       retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && retrieved.has(id),
-      x: Number((center[0] + Math.cos(angle) * radial).toFixed(6)),
-      y: Number((center[1] + Math.sin(angle) * radial * 0.72).toFixed(6)),
-      z: Number((center[2] + depth).toFixed(6)),
+      ...neuralMemoryPosition(id),
     });
   }
   return nodes;

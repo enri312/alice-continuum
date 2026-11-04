@@ -42,6 +42,10 @@ echo [ALICE] Datos    : %ALICE_DATA_DIR%
 echo [ALICE] Caché    : %CARGO_TARGET_DIR%
 echo.
 
+rem Runtime verificado de Alice, disponible también sin modificar la instalación global.
+for /f "usebackq delims=" %%N in ("%ALICE_PROJECT_ROOT%\.node-version") do set "ALICE_NODE_REQUIRED=%%N"
+if exist "%LOCALAPPDATA%\Programs\AliceNode\node-v%ALICE_NODE_REQUIRED%-win-x64\node.exe" set "PATH=%LOCALAPPDATA%\Programs\AliceNode\node-v%ALICE_NODE_REQUIRED%-win-x64;%PATH%"
+
 call :require_command node "Node.js"
 if errorlevel 1 goto :fatal
 call :require_command npm "npm"
@@ -49,11 +53,11 @@ if errorlevel 1 goto :fatal
 call :require_command cargo "Rust/Cargo"
 if errorlevel 1 goto :fatal
 
-rem Vite 8 requiere Node 20.19+ o 22.12+.
-node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a===20&&b>=19||a===22&&b>=12||a>22?0:1)" >nul 2>nul
+rem Alice se valida con Node 26 LTS (mínimo 26.13).
+node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a===26&&b>=13?0:1)" >nul 2>nul
 if errorlevel 1 (
-  echo [ALICE] ERROR: la versión instalada de Node no es compatible con Vite 8.
-  echo [ALICE] Instale Node 20.19 o una versión 22.12 o superior.
+  echo [ALICE] ERROR: Alice requiere Node 26.13 o superior de la rama 26 LTS.
+  echo [ALICE] Instale Node 26 LTS desde nodejs.org.
   goto :fatal
 )
 

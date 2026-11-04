@@ -25,3 +25,8 @@ El panel distingue una fuente seleccionada de una fuente con datos disponibles. 
 - Mantener la casilla activada por defecto: el consentimiento visual no corrige la promoción indiscriminada.
 - Marcar todas las respuestas como episodios de baja fuerza: baja fuerza sigue siendo persistencia durable.
 - Declarar el texto del modelo como confirmado porque la conversación ocurrió: confunde procedencia del evento con verdad del contenido.
+
+
+Actualización 2026-11-03: [ADR-P-101](ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
+autoriza un almacén separado de citas elegidas automáticamente desde mensajes del
+propietario. No promueve respuestas de Alice a hechos confirmados.

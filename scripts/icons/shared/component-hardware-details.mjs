@@ -52,8 +52,8 @@ const hardware = {
     'prepared-request-capsule': () => latch(29.7,88,10)+seam('M58 94v9'),
   },
   identification: {
-    'perception-provenance-vector': () => contacts(145,60,13)+contacts(147,128,14),
-    'active-input-inspection-cassette': () => contacts(64,132,19)+seam('M48 72v11m0 19v11'),
+    'text-message-input': () => contacts(67,51,26),
+    'conversational-voice-output': () => contacts(113,140,12),
   },
   memory: {
     'memory-layer': ([,y]) => contacts(79,y+1.8,20)+latch(120,y+10,9),

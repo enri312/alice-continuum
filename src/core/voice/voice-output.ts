@@ -1,6 +1,7 @@
 export type VoiceConfiguration = "ready" | "missingApiKey" | "missingVoiceProfile";
 
 export type VoiceOutputPreview = {
+  spokenText: string;
   requestId: string;
   exchangeId: string;
   textSha256: string;
@@ -22,7 +23,7 @@ export type VoiceOutputResult = {
   ephemeral: true;
 };
 
-const previewKeys = ["requestId", "exchangeId", "textSha256", "characterCount", "characterLimit", "provider", "model", "configuration", "canConfirm", "ephemeral"];
+const previewKeys = ["spokenText", "requestId", "exchangeId", "textSha256", "characterCount", "characterLimit", "provider", "model", "configuration", "canConfirm", "ephemeral"];
 const resultKeys = ["requestId", "mimeType", "audioBase64", "characterCount", "durationMs", "ephemeral"];
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const sha256 = /^sha256:[0-9a-f]{64}$/;
@@ -75,6 +76,7 @@ export function parseVoiceOutputPreview(value: unknown): VoiceOutputPreview {
   return {
     requestId: uuid(input.requestId, "requestId"),
     exchangeId: uuid(input.exchangeId, "exchangeId"),
+    spokenText: text(input.spokenText, "spokenText"),
     textSha256: input.textSha256,
     characterCount,
     characterLimit,

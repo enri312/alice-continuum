@@ -145,7 +145,9 @@ async fn analyze_screen_frame_inner(
         .map(|value| !value.trim().is_empty())
         .unwrap_or(false)
     {
-        return Err("Ollama local no está listo. Iniciá Alice con Iniciar Alice Continuum.cmd".into());
+        return Err(
+            "Ollama local no está listo. Iniciá Alice con Iniciar Alice Continuum.cmd".into(),
+        );
     }
     let _local_permit = crate::local_inference::acquire_ollama(&input.model).await?;
     let response = crate::local_inference::client()?

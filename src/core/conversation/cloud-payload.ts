@@ -1,5 +1,7 @@
 export type PayloadMessage = { role: "user" | "assistant"; text: string };
 export type PayloadMemory = {
+  automaticLearning?: boolean;
+  ownerReviewed?: boolean;
   kind?: string;
   intention: string;
   summary?: string;
@@ -12,6 +14,7 @@ export type PayloadWindow = { windowTitle: string; processName: string };
 export type CloudPayloadInput = {
   draft: string;
   includeHistory: boolean;
+  includeAssistantDialogue?: boolean;
   recentHistory: PayloadMessage[];
   includeMemory: boolean;
   memories: PayloadMemory[];
@@ -61,6 +64,9 @@ function memoryEvidenceLabel(memory: PayloadMemory) {
 }
 
 function formatMemory(memory: PayloadMemory) {
+  if (memory.automaticLearning) {
+    return `- [${memory.ownerReviewed ? "CORRECCIÓN DEL PROPIETARIO" : "DECLARACIÓN DE CARLOS · SELECCIÓN AUTOMÁTICA · SIN REVISIÓN MANUAL"}] Carlos declaró: ${memory.summary || memory.intention}. Fuente: ${memory.source || "conversación local"}`;
+  }
   const source = memory.source ? ` · Fuente: ${memory.source}` : "";
   if (memory.kind === "Conversación") {
     return `- [${memoryEvidenceLabel(memory)}] Carlos dijo o preguntó: ${memory.intention}. La respuesta histórica del modelo no se incorpora como conocimiento.${source}`;
@@ -71,20 +77,22 @@ function formatMemory(memory: PayloadMemory) {
 // Devuelve la cadena exacta y un presupuesto Unicode/UTF-8 derivado de esa misma
 // composición. No estima tokens: esa tokenización depende del proveedor y modelo.
 export function buildCloudPayloadReview(input: CloudPayloadInput): CloudPayloadReview {
-  // Las respuestas previas del modelo siguen visibles en la interfaz y en el
-  // historial local, pero no vuelven a entrar al prompt como supuesta evidencia.
+  // Las respuestas previas sólo regresan como diálogo cuando el modo de voz lo
+  // solicita; nunca se presentan como evidencia factual ni como recuerdos RAG.
   const ownerHistory = input.recentHistory.filter((item) => item.role === "user");
+  const history = input.includeAssistantDialogue ? input.recentHistory : ownerHistory;
+  const historyText = input.includeAssistantDialogue
+    ? `DIÁLOGO RECIENTE AUTORIZADO · LAS RESPUESTAS DE ALICE NO SON EVIDENCIA FACTUAL\n${history.map(item => `${item.role === "user" ? "Carlos" : "Alice (respuesta anterior no verificada)"}: ${item.text}`).join("\n")}`
+    : `HISTORIAL LOCAL AUTORIZADO · SOLO MENSAJES DEL PROPIETARIO\n${ownerHistory.map(item => `Carlos Nuñez: ${item.text}`).join("\n")}`;
   const fragments = [
-    fragment("history", "Historial reciente", true, input.includeHistory && ownerHistory.length
-      ? `HISTORIAL LOCAL AUTORIZADO · SOLO MENSAJES DEL PROPIETARIO\n${ownerHistory.map((item) => `Carlos Nuñez: ${item.text}`).join("\n")}`
-      : null),
+    fragment("history", "Historial reciente", true, input.includeHistory && history.length ? historyText : null),
     fragment("memory", "Recuerdos relevantes", true, input.includeMemory && input.memories.length
       ? `RECUERDOS LOCALES RECUPERADOS Y AUTORIZADOS\n${input.memories.map(formatMemory).join("\n")}`
       : null),
     fragment("window", "Ventana actual", true, input.includeWindow && input.observationEnabled && input.foregroundContext
       ? `VENTANA AUTORIZADA\nPrograma: ${input.foregroundContext.processName}\nTítulo: ${input.foregroundContext.windowTitle}`
       : null),
-    fragment("message", "Mensaje actual", false, `MENSAJE ACTUAL\n${input.draft.trim()}`),
+    fragment("message", "Mensaje actual", false, `MENSAJE ACTUAL\nCarlos Nuñez → Alice:\n${input.draft.trim()}`),
   ];
   const included = fragments.filter((item) => item.content !== null);
   const payload = included.map((item) => item.content).join("\n\n");

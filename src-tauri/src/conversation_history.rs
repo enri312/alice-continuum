@@ -81,6 +81,18 @@ pub(crate) struct ConversationHistorySnapshot {
     error: Option<String>,
 }
 
+impl ConversationHistorySnapshot {
+    pub(crate) fn exchange_for_response(
+        &self,
+        response_id: &str,
+    ) -> Option<ConversationHistoryExchange> {
+        self.exchanges
+            .iter()
+            .find(|e| e.response_id == response_id)
+            .cloned()
+    }
+}
+
 impl ConversationHistoryDocument {
     fn validate(&self) -> Result<(), String> {
         if self.schema_version != SCHEMA_VERSION {

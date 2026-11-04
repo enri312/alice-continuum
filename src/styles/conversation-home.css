@@ -1,0 +1,120 @@
+.conversation-home { min-width:0; border:1px solid #254353; border-radius:12px; background:#07111c; overflow:hidden; }
+.conversation-home-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px 16px; border-bottom:1px solid #203342; }
+.conversation-home-heading h2 { margin:0; color:#edf7fb; font-size:1.45rem; letter-spacing:-.03em; }
+.conversation-home-heading p { margin:6px 0 0; color:#9eb2c3; font-size:.9rem; }
+.conversation-home-label { color:#7eb6c7; font:600 .65rem Consolas,monospace; white-space:nowrap; letter-spacing:.07em; }
+.conversation-home .conversation-page.embedded { background:transparent; }
+.conversation-home .conversation-status { display:flex; align-items:center; gap:9px; padding:11px 24px; color:#a5bdcc; font-size:.85rem; border-bottom:1px solid #1b303e; }
+.conversation-status>i { width:7px; height:7px; flex:0 0 auto; border-radius:50%; background:#7899aa; }
+.conversation-status.is-busy>i { background:#fbbf24; }
+.conversation-status.is-recording>i { background:#fb7185; }
+.conversation-status.is-speaking>i { background:#34d399; }
+.conversation-status.is-error>i { background:#f87171; }
+.conversation-status strong { font-weight:600; }
+.conversation-status>span { margin-left:auto; font-size:.75rem; color:#809cac; }
+.conversation-home .conversation-page.embedded .conversation-layout { min-height:0; gap:0; }
+.conversation-home .chat-column { border:0; }
+.conversation-home .conversation-page.embedded .message-stream { order:0; min-height:220px; height:clamp(220px,32dvh,460px); max-height:520px; padding:22px 24px; flex:0 1 auto; background:linear-gradient(145deg,#081521,#060e18); }
+.conversation-home .conversation-page.embedded .chat-empty { min-height:185px; margin:auto; color:#93aabc; }
+.conversation-home .conversation-page.embedded .message-stream.is-empty { height:160px; min-height:160px; }
+.conversation-home .conversation-page.embedded .message-stream.is-empty .chat-empty { display:grid; min-height:0; padding:0; gap:6px; justify-items:center; align-content:center; }
+.conversation-home .message-stream.is-empty .chat-empty>span { width:32px; height:32px; font-size:1rem; }
+.conversation-home .message-stream.is-empty .chat-empty h3,.conversation-home .message-stream.is-empty .chat-empty p { margin:0; }
+.conversation-home .chat-empty p,.conversation-home .chat-message p { letter-spacing:normal; text-shadow:none; }
+.conversation-home .chat-empty h3 { color:#e2f0f7; font-size:1.1rem; }
+.conversation-home .chat-empty p { max-width:370px; font:400 .9rem/1.6 "Segoe UI",sans-serif; }
+.conversation-home .chat-message { max-width:86%; padding:14px 16px; border-radius:12px; }
+.conversation-home .chat-message p { font:400 .95rem/1.65 "Segoe UI",sans-serif; }
+.conversation-home .message-author { font:700 .65rem/1.4 Consolas,monospace; }
+.conversation-home .message-model { font-size:.65rem; }
+.conversation-home .conversation-page.embedded .composer { order:2; display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"label label" "message message" "voice send"; gap:10px 16px; padding:16px 24px; border-top:1px solid #203c4c; border-bottom:0; background:#0a1724; }
+.conversation-home .composer>label { grid-area:label; font-size:.73rem; letter-spacing:.04em; }
+.conversation-home .conversation-page.embedded .composer textarea { grid-area:message; box-sizing:border-box; min-height:72px; max-height:220px; margin:0; padding:12px 14px; border:1px solid #395568; border-radius:8px; color:#e9f3f9; background:#050f1b; font:400 .95rem/1.5 "Segoe UI",sans-serif; }
+.conversation-home .composer>.voice-turn { grid-area:voice; margin:0; align-self:center; }
+.conversation-home .composer:has(.automatic-voice-entry) { grid-template-areas:"label label" "message message" "voice voice" "send send"; }
+.hands-free-voice { padding:12px; border:1px solid #285367; border-radius:8px; background:#081c29; }
+.hands-free-controls { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.hands-free-controls button { min-height:42px; padding:10px 14px; font-size:.85rem; }
+.hands-free-controls strong { color:#bce9ef; font-size:.85rem; font-weight:500; }
+.hands-free-voice p { margin:10px 0 0; color:#95aebe; font:400 .78rem/1.55 "Segoe UI",sans-serif; }
+.hands-free-voice p[role="alert"] { color:#fecaca; }
+.hands-free-voice.active { border-color:#348fa1; }
+.voice-session-observation { margin-top:12px; color:#9cb9c8; font:400 .78rem/1.55 "Segoe UI",sans-serif; }
+.voice-session-observation summary { cursor:pointer; }
+.voice-session-observation dl { display:flex; flex-wrap:wrap; gap:12px 24px; margin:10px 0; }
+.voice-session-observation dl>div { display:grid; gap:3px; }
+.voice-session-observation dt { color:#89a5b5; }
+.voice-session-observation dd { margin:0; color:#bdeaf2; font-variant-numeric:tabular-nums; }
+.audio-focus-option { display:flex; align-items:center; gap:8px; margin-top:12px; color:#abc4d1; font:400 .78rem/1.5 "Segoe UI",sans-serif; }
+.audio-focus-option input { flex:0 0 auto; width:16px; height:16px; accent-color:#45cdd5; }
+.audio-input-settings { margin-top:10px; color:#9fbac9; font:400 .78rem/1.55 "Segoe UI",sans-serif; }
+.audio-input-settings>summary { cursor:pointer; padding:7px 0; }
+.audio-input-settings p { margin:8px 0; max-width:70ch; }
+.audio-input-devices { display:flex; align-items:flex-end; flex-wrap:wrap; gap:10px; }
+.audio-input-devices label { display:grid; flex:1 1 200px; min-width:0; gap:5px; }
+.audio-input-devices select { min-height:38px; max-width:100%; padding:7px; background:#071522; border:1px solid #395568; border-radius:6px; color:#d9edf4; }
+.audio-input-devices button { min-height:38px; font-size:.76rem; }
+.manual-voice-options { margin-top:10px; font-size:.78rem; color:#93adbf; }
+.manual-voice-options>summary { cursor:pointer; padding:7px 0; }
+.conversation-home .composer-footer { grid-area:send; justify-content:flex-end; }
+.conversation-home .composer-footer>span { display:none; }
+.conversation-home .composer-footer button { min-height:42px; font-size:.82rem; padding:10px 16px; }
+.conversation-home .voice-turn-toggle { min-height:42px; padding:9px 12px; border-radius:7px; font-size:.82rem; }
+.conversation-home .voice-turn-toggle span { margin-left:16px; font-size:.62rem; }
+.conversation-home .composer:has(.voice-turn.open) { grid-template-areas:"label label" "message message" "voice voice" "send send"; }
+.conversation-home .voice-turn-panel { border-radius:0 0 8px 8px; }
+.conversation-home .voice-turn-panel>header strong { font-size:.78rem; }
+.conversation-home .voice-turn-panel>header span { font-size:.7rem; }
+.conversation-home .voice-turn-panel>p { font:400 .87rem/1.55 "Segoe UI",sans-serif; }
+.conversation-home .voice-turn-panel>small { font:400 .75rem/1.5 "Segoe UI",sans-serif; }
+.conversation-home .voice-turn-actions button { min-height:40px; font-size:.8rem; }
+.conversation-home .voice-turn-measurements { padding:0 12px 8px; color:#91acbd; font-size:.78rem; }
+.conversation-home .voice-turn-measurements>summary { cursor:pointer; padding:5px 0; }
+.conversation-home .voice-turn-observation { margin:8px 0; }
+.conversation-home .voice-turn-observation span { font-size:.66rem; }
+.conversation-home .voice-turn-observation strong { font-size:.8rem; }
+.conversation-home .conversation-context-drawer { margin:0 24px 18px; border-radius:8px; }
+.conversation-home .conversation-context-drawer>summary { padding:11px 14px; font-size:.82rem; }
+.conversation-home .conversation-context-drawer>summary span { display:inline; margin-left:10px; font-size:.72rem; }
+.conversation-secondary-tools { display:flex; flex-wrap:wrap; gap:0 22px; padding:0 24px; border-top:1px solid #203342; background:#08131e; }
+.conversation-secondary-panel { min-width:0; flex:1 1 280px; }
+.conversation-secondary-panel>summary { padding:15px 0; cursor:pointer; color:#afc4d2; font-size:.82rem; }
+.conversation-secondary-panel>summary span { display:block; margin:5px 0 0 17px; color:#7e96a8; font-size:.73rem; }
+.conversation-secondary-panel[open] { flex-basis:100%; padding-bottom:18px; }
+.conversation-secondary-panel>summary:focus-visible { outline:2px solid #67e8f9; outline-offset:-2px; border-radius:4px; }
+.conversation-secondary-panel .identification-page { background:#07121e; border-radius:8px; background-image:none; }
+.conversation-secondary-panel .identification-header h3 { margin:0; color:#c9e7ef; font-size:1rem; }
+.conversation-secondary-panel .identification-controls { flex-wrap:wrap; }
+.conversation-secondary-panel .identification-controls button { min-height:36px; padding:8px 10px; font-size:.74rem; }
+.conversation-secondary-panel .identification-telemetry dt { font-size:.62rem; }
+.conversation-secondary-panel .identification-telemetry dd { font-size:.75rem; }
+.conversation-secondary-panel .diagnostic-explanation { margin:0; padding:12px; color:#a5b9c8; font:400 .83rem/1.55 "Segoe UI",sans-serif; }
+.conversation-secondary-panel .identification-body { display:grid; grid-template-columns:minmax(0,1fr); }
+.conversation-secondary-panel .perception-vector h4,.conversation-secondary-panel .identification-input h4 { margin:0; color:#a8d9e7; font-size:.8rem; }
+.conversation-secondary-panel .identification-input .identification-processed { border:0; }
+.conversation-secondary-panel .perception-vector dd strong { font-size:.8rem; }
+.conversation-secondary-panel .perception-vector dd small { font-size:.73rem; line-height:1.5; }
+.shell:is(.is-conversation,.is-volume)::before { margin-bottom:14px; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped { gap:6px; margin-bottom:0; padding:6px 9px; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped button { flex:0 0 88px; width:88px; height:78px; padding:3px 4px 5px; grid-template-rows:48px 20px; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-tab-icon { width:58px; height:54px; margin:auto; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-tab-label { height:20px; font-size:.64rem; line-height:1.15; }
+.shell:is(.is-conversation,.is-volume) .core-system-selector button { min-height:44px; }
+.shell:is(.is-conversation,.is-volume) .core-system-selector button small { display:none; }
+.shell:is(.is-conversation,.is-volume) .core-system-heading { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); padding:0; white-space:nowrap; }
+.shell:is(.is-conversation,.is-volume) .core-system-content { padding:12px; }
+@media(max-width:640px) {
+  .conversation-home-heading { padding:16px; }
+  .conversation-home-heading h2 { font-size:1.2rem; }
+  .conversation-home-label { display:none; }
+  .conversation-home .conversation-status { flex-wrap:wrap; padding:10px 16px; }
+  .conversation-status>span { margin-left:16px; }
+  .conversation-home .conversation-page.embedded .message-stream { padding:16px; min-height:200px; }
+  .conversation-home .conversation-page.embedded .composer { padding:14px 16px; grid-template-columns:minmax(0,1fr); grid-template-areas:"label" "message" "voice" "send"; }
+  .conversation-home .composer:has(.voice-turn.open) { grid-template-areas:"label" "message" "voice" "send"; }
+  .conversation-home .composer-footer button { width:100%; }
+  .conversation-home .conversation-context-drawer { margin:0 16px 14px; }
+  .conversation-home .conversation-context-drawer>summary span { display:block; margin:5px 0 0; }
+  .conversation-secondary-tools { padding:0 16px; }
+  .conversation-home .chat-message { max-width:95%; }
+}

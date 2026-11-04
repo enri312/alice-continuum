@@ -10,9 +10,11 @@ type ConfiguracionProps = {
   model: string;
   onProviderChange: (provider: string) => void;
   onModelChange: (model: string) => void;
+  showFullHistory?: boolean;
+  onShowFullHistoryChange?: (show: boolean) => void;
 };
 
-export function Configuracion({ desktopApp, status, provider, model, onProviderChange, onModelChange }: ConfiguracionProps) {
+export function Configuracion({ desktopApp, status, provider, model, onProviderChange, onModelChange, showFullHistory = false, onShowFullHistoryChange }: ConfiguracionProps) {
   const [running, setRunning] = useState(false);
   const [runtimePending, setRuntimePending] = useState(false);
   const [runtimeMessage, setRuntimeMessage] = useState("");
@@ -48,12 +50,16 @@ export function Configuracion({ desktopApp, status, provider, model, onProviderC
     </header>
 
     <div className="settings-grid">
+      <section className="settings-card" aria-labelledby="conversation-display-title">
+        <header><div><p className="eyebrow">CONVERSACIÓN</p><h3 id="conversation-display-title">Historial visible</h3></div></header>
+        <label className="context-toggle"><input type="checkbox" checked={showFullHistory} disabled={!onShowFullHistoryChange} onChange={event => onShowFullHistoryChange?.(event.target.checked)} /><span><strong>Mostrar todo el historial en el chat</strong><small>Desactivado: sólo los últimos 12 mensajes. Cambia la vista, no borra conversaciones ni modifica el contexto autorizado o los recuerdos. Se aplica durante esta sesión de la aplicación.</small></span></label>
+      </section>
       <section className="settings-card inference-settings" aria-labelledby="inference-settings-title">
         <header><span>01</span><div><p className="eyebrow">RUTA DE INFERENCIA</p><h3 id="inference-settings-title">Proveedor y modelo</h3></div></header>
         <p>Elegí explícitamente la ruta local. OpenRouter permanece pausado. Iniciar Gemma también lo selecciona; cambiar una tarjeta de proveedor no inicia ni apaga modelos.</p>
         <div className="settings-policy settings-runtime">
           <strong>GEMMA LOCAL · {running ? "INICIADO" : "APAGADO O SIN VERIFICAR"}</strong>
-          <p>Un solo motor. Si Ollama conserva un modelo cargado, el inicio se rechazará; no se cerrará una sesión ajena. Pantalla y candidatos de aprendizaje todavía usan Ollama y quedan bloqueados mientras Gemma está activo.</p>
+          <p>Un solo motor. Si Ollama conserva un modelo cargado, el inicio se rechazará; no se cerrará una sesión ajena. La conversación, transcripción y memoria automática usan Gemma. Los adaptadores antiguos que requieren Ollama quedan bloqueados mientras Gemma está activo.</p>
           <div className="settings-runtime-actions">
             <button className="runtime-start" type="button" disabled={!desktopApp || running || runtimePending} onClick={() => void changeRuntime(true)}>Iniciar Gemma local</button>
             <button className="runtime-stop" type="button" disabled={!desktopApp || (!running && !runtimePending)} onClick={() => void changeRuntime(false)}>{runtimePending ? "Cancelar inicio / apagar" : "Apagar Gemma"}</button>

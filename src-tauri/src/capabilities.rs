@@ -190,7 +190,7 @@ pub(crate) fn capability_registry_from_probes(
     generated_at: String,
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    let mut capabilities = Vec::with_capacity(39);
+    let mut capabilities = Vec::with_capacity(42);
     let document_available = crate::documents::available();
     capabilities.push(capability(
         "memory.document.preview",
@@ -239,8 +239,50 @@ pub(crate) fn capability_registry_from_probes(
     ));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
     capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
+    capabilities.push(capability(
+        "perception.conversation.vision",
+        "Vista de Alice en conversación",
+        "Conversa con Gemma sobre fotogramas efímeros de la cámara elegida y los monitores visibles.",
+        CapabilityDomain::Perception, CapabilityKind::Observation, CapabilityMaturity::Implemented,
+        "WebView2 cámara + Windows GDI + Gemma local",
+        &["start_vision_session", "stop_vision_session", "preview_vision_desktop", "send_cloud_message"],
+        CapabilityState::Idle, CapabilityRisk::High,
+        &[CapabilityEffect::CameraObserve, CapabilityEffect::ScreenObserve, CapabilityEffect::LocalRead],
+        &["cameraFramesEphemeral", "desktopPixelsEphemeral"],
+        &["Gemma y proyector instalados", "Activación visible en Conversación", "Permiso de cámara del sistema operativo"],
+        permission(CapabilityPermissionMode::SessionOptIn, CapabilityPermissionEnforcer::CurrentUi,
+            "Controles por fuente y token nativo con vencimiento de dos horas; Detener y salir revocan la sesión. No requiere un grant R2 por turno."),
+        health(CapabilityHealthStatus::Unchecked,
+            "Adaptador implementado. El acceso al dispositivo y la captura se comprueban al activar cada fuente.", None),
+    ));
     capabilities.extend(task_capabilities(&generated_at, &probes.tasks));
+    capabilities.push(capability(
+        "desktop.approved.open", "Abrir destinos delegados",
+        "Abre únicamente Spotify o las raíces D: y E: ante una orden directa actual de Carlos.",
+        CapabilityDomain::Output, CapabilityKind::Process, CapabilityMaturity::Implemented,
+        "Lista nativa cerrada de destinos Windows", &["send_cloud_message"],
+        CapabilityState::Idle, CapabilityRisk::Low,
+        &[CapabilityEffect::ProcessLaunch, CapabilityEffect::LocalRead],
+        &["spotifyApplication", "driveD", "driveE"],
+        &["Orden directa del propietario", "Destino disponible en Windows"],
+        permission(CapabilityPermissionMode::SessionOptIn, CapabilityPermissionEnforcer::CurrentUi,
+            "Delegación del propietario para estos tres destinos. El backend sólo admite órdenes directas; no ejecuta texto de recuerdos, imágenes o respuestas del modelo."),
+        health(CapabilityHealthStatus::Unchecked, "La disponibilidad del destino se verifica antes de abrirlo.", None),
+    ));
     capabilities.extend(output_capabilities(&generated_at));
+    capabilities.push(capability(
+        "desktop.approved.media", "Reproducir música delegada",
+        "Reproduce Tus me gusta en Spotify o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación.",
+        CapabilityDomain::Output, CapabilityKind::Process, CapabilityMaturity::Implemented,
+        "Windows Media Control + UI Automation de Spotify y YouTube", &["send_cloud_message"],
+        CapabilityState::Idle, CapabilityRisk::Low,
+        &[CapabilityEffect::ProcessLaunch, CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
+        &["spotifyLikedSongs", "spotifyPlaybackStatus", "youtubeSongQuery", "youtubeChromePlayer"],
+        &["Orden directa del propietario", "Spotify iniciado con su cuenta", "Google Chrome instalado", "Reproductor accesible"],
+        permission(CapabilityPermissionMode::SessionOptIn, CapabilityPermissionEnforcer::CurrentUi,
+            "Delegación específica para reproducir y pausar música. Canción literal, sitio YouTube, controles del reproductor y recibo verificado; sin consola ni rutas libres."),
+        health(CapabilityHealthStatus::Unchecked, "La reproducción y el destino se verifican en cada petición; si el servicio requiere interacción se informa sin simular éxito.", None),
+    ));
 
     let snapshot = CapabilityRegistrySnapshot {
         schema_version: CAPABILITY_REGISTRY_SCHEMA_VERSION,
@@ -328,11 +370,11 @@ fn sensory_capabilities(
         capability(
             "perception.voice.transcribe",
             "Transcribir un turno de voz",
-            "Convierte una toma WebM autorizada en un borrador revisable con el mismo Gemma local; descarta el audio y no envía el texto.",
+            "Transcribe una toma WebM autorizada con Whisper local si está instalado, o con Gemma como respaldo. Descarta el audio; la sesión continua puede atender el texto y el modo manual entrega un borrador.",
             CapabilityDomain::Perception,
             CapabilityKind::Query,
             CapabilityMaturity::Partial,
-            "WebView2 MediaRecorder + FFmpeg + Gemma local",
+            "WebView2 MediaRecorder + RNNoise + FFmpeg + Whisper CPU / Gemma local",
             &["transcribe_voice_turn"],
             if runtime_available && crate::local_inference::installed() {
                 CapabilityState::Idle
@@ -348,13 +390,13 @@ fn sensory_capabilities(
             &["microphoneAudioEphemeral", "transcriptDraft"],
             &[
                 "Permiso de micrófono del sistema operativo",
-                "Gemma local iniciado explícitamente",
+                "Whisper local instalado o Gemma local iniciado",
                 "FFmpeg disponible",
             ],
             permission(
                 CapabilityPermissionMode::SessionOptIn,
                 CapabilityPermissionEnforcer::OperatingSystem,
-                "WebView2 solicita el micrófono al abrir cada toma; finalizar y transcribir son acciones separadas y visibles.",
+                "El propietario inicia y detiene la sesión continua. El modo manual permite revisar el borrador antes de enviarlo; ambos usan el permiso de micrófono de Windows.",
             ),
             health(
                 if runtime_available && crate::local_inference::installed() {
@@ -362,7 +404,7 @@ fn sensory_capabilities(
                 } else {
                     CapabilityHealthStatus::Degraded
                 },
-                "La toma vive sólo en RAM y la transcripción se entrega como borrador sin envío automático.",
+                "Audio sólo en RAM. Whisper se ejecuta en CPU con tuberías; el modo manual entrega un borrador y la sesión continua atiende el turno autorizado.",
                 if runtime_available && crate::local_inference::installed() {
                     None
                 } else {
@@ -489,7 +531,21 @@ pub(crate) fn capability_registry_status(
     observation_store: State<ObservationStore>,
     sensor_store: State<SensorLeaseStore>,
 ) -> Result<CapabilityRegistrySnapshot, String> {
-    current_capability_registry(&app, &observation_store, &sensor_store)
+    let mut snapshot = current_capability_registry(&app, &observation_store, &sensor_store)?;
+    use tauri::Manager;
+    if app
+        .try_state::<crate::conversation_vision::VisionSessionStore>()
+        .is_some_and(|state| state.is_active())
+    {
+        if let Some(view) = snapshot
+            .capabilities
+            .iter_mut()
+            .find(|c| c.id == "perception.conversation.vision")
+        {
+            view.state = CapabilityState::Active;
+        }
+    }
+    Ok(snapshot)
 }
 
 pub(crate) fn current_capability_registry(
@@ -2220,14 +2276,23 @@ mod tests {
         let checked_at = "2026-09-16T12:00:00Z";
         for ready in [false, true] {
             let outputs = output_capabilities_for_configuration(checked_at, ready);
-            let voice = outputs.iter().find(|item| item.id == "output.voice.synthesize").unwrap();
+            let voice = outputs
+                .iter()
+                .find(|item| item.id == "output.voice.synthesize")
+                .unwrap();
             assert!(voice.validate().is_ok());
-            assert_eq!(voice.health.status, if ready {
-                CapabilityHealthStatus::Unchecked
-            } else {
-                CapabilityHealthStatus::Unavailable
-            });
-            assert_eq!(voice.health.checked_at.as_deref(), if ready { None } else { Some(checked_at) });
+            assert_eq!(
+                voice.health.status,
+                if ready {
+                    CapabilityHealthStatus::Unchecked
+                } else {
+                    CapabilityHealthStatus::Unavailable
+                }
+            );
+            assert_eq!(
+                voice.health.checked_at.as_deref(),
+                if ready { None } else { Some(checked_at) }
+            );
             assert!(voice.last_execution.is_none());
         }
     }
@@ -2236,7 +2301,7 @@ mod tests {
     fn registry_contains_the_approved_inventory_without_invented_activity() {
         let snapshot = registry(&unavailable_probes());
 
-        assert_eq!(snapshot.capabilities.len(), 39);
+        assert_eq!(snapshot.capabilities.len(), 42);
         let hybrid = registered(&snapshot, "memory.retrieval.hybrid.preview");
         assert_eq!(hybrid.operations, vec!["preview_hybrid_memory_retrieval"]);
         assert_eq!(
@@ -2577,7 +2642,7 @@ mod tests {
         );
         let snapshot = registry(&probes);
 
-        assert_eq!(snapshot.capabilities.len(), 39);
+        assert_eq!(snapshot.capabilities.len(), 42);
         assert!(!root.exists());
     }
 

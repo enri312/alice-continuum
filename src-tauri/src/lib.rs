@@ -28,12 +28,19 @@ mod procedure_store;
 mod permissions;
 mod sensory;
 // R4 conserva borradores locales verificables; ningún comando ejecuta pasos.
+mod automatic_memory;
+mod conversation_vision;
+mod desktop_actions;
+mod media_actions;
+mod media_windows;
 mod skills;
 mod tasks;
 mod util;
 mod visual_learning;
 mod voice_input;
 mod voice_output;
+mod voice_session;
+mod whisper_input;
 mod working_memory;
 
 use audit::{audit_snapshot, record_process_started};
@@ -104,6 +111,7 @@ pub fn run() {
     let working_memory_store = WorkingMemoryStore::default();
     let task_engine_store = TaskEngineStore::default();
     let voice_output_store = VoiceOutputStore::default();
+    let voice_session_store = voice_session::VoiceSessionStore::default();
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .manage(observation_store.clone())
@@ -114,6 +122,9 @@ pub fn run() {
         .manage(working_memory_store)
         .manage(task_engine_store.clone())
         .manage(voice_output_store)
+        .manage(voice_session_store)
+        .manage(conversation_vision::VisionSessionStore::default())
+        .manage(media_actions::MediaPlaybackStore::default())
         .setup(move |app| {
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
@@ -136,6 +147,12 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            conversation_vision::start_vision_session,
+            conversation_vision::stop_vision_session,
+            conversation_vision::preview_vision_desktop,
+            automatic_memory::automatic_memory_status,
+            automatic_memory::set_automatic_memory_enabled,
+            automatic_memory::review_automatic_memory,
             local_inference::local_runtime_status,
             local_inference::start_local_runtime,
             local_inference::stop_local_runtime,
@@ -214,6 +231,9 @@ pub fn run() {
             preview_conversation_learning,
             confirm_conversation_learning,
             transcribe_voice_turn,
+            voice_session::start_voice_session,
+            voice_session::stop_voice_session,
+            voice_output::speak_voice_session_response,
             preview_voice_output,
             confirm_voice_output,
             cancel_voice_output,
