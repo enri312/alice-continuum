@@ -1,25 +1,24 @@
 //! CPU speech recognition with WAV/stdout pipes. No audio or transcript files.
 use std::io::{Read, Write};
-use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 pub(crate) const MODEL_NAME: &str = "Whisper base · local CPU";
-const ENGINE: &str =
-    "D:/Alice-model-evaluation/runtimes/whisper-v1.9.2/bin/Release/whisper-cli.exe";
-const MODEL: &str = "D:/Alice-model-evaluation/models/whisper/ggml-base.bin";
 const MAX_TEXT: usize = 6_000;
 
 pub(crate) fn available() -> bool {
-    Path::new(ENGINE).is_file() && Path::new(MODEL).is_file()
+    [
+        crate::runtime_paths::whisper_bin(),
+        crate::runtime_paths::whisper_model(),
+    ]
+    .iter()
+    .all(|p| p.as_ref().is_ok_and(|p| p.is_file()))
 }
 
 fn arguments() -> Vec<&'static str> {
     // v1.9.2 treats input '-' as an output prefix too. A non-dash prefix keeps
     // results on stdout. No --output-* format is enabled, so no file is written.
     vec![
-        "-m",
-        MODEL,
         "-l",
         "es",
         "-t",
@@ -74,8 +73,10 @@ pub(crate) fn transcribe(
     if is_silent(&wav) {
         return Ok((String::new(), true));
     }
-    let mut command = Command::new(ENGINE);
+    let mut command = Command::new(crate::runtime_paths::whisper_bin()?);
     command
+        .arg("-m")
+        .arg(crate::runtime_paths::whisper_model()?)
         .args(arguments())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

@@ -170,6 +170,7 @@ pub(crate) fn validate_tool_call(
     Ok(arguments.target)
 }
 
+#[cfg(windows)]
 fn destination(target: DesktopTarget) -> Result<(PathBuf, Vec<String>), String> {
     match target {
         DesktopTarget::Spotify => {
@@ -197,6 +198,14 @@ fn destination(target: DesktopTarget) -> Result<(PathBuf, Vec<String>), String> 
             Ok((explorer, vec![root.into()]))
         }
     }
+}
+
+#[cfg(not(windows))]
+fn destination(_target: DesktopTarget) -> Result<(PathBuf, Vec<String>), String> {
+    Err(
+        "Las aperturas delegadas de Spotify y D:/E: están disponibles sólo en Windows por ahora."
+            .into(),
+    )
 }
 
 pub(crate) fn execute(app: &AppHandle, target: DesktopTarget) -> Result<String, String> {

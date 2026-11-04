@@ -602,7 +602,12 @@ pub(crate) fn open_memory_directory(app: AppHandle) -> Result<String, String> {
         .arg(&directory)
         .spawn()
         .map_err(|error| format!("No se pudo abrir la carpeta de memoria: {error}"))?;
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "linux")]
+    std::process::Command::new("xdg-open")
+        .arg(&directory)
+        .spawn()
+        .map_err(|error| format!("No se pudo abrir la carpeta de memoria: {error}"))?;
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
     return Err("Abrir la carpeta está implementado solo para Windows en esta fase".into());
     Ok(directory.display().to_string())
 }

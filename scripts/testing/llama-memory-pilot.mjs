@@ -33,7 +33,7 @@ if (audioBytes) {
   if (!found) throw new Error('No WAV data chunk');
 }
 const data = path.join(root, 'data');
-const out = path.join(root, `artifacts/gemma-evaluation/${audioBytes ? 'human-audio-pilot' : 'memory-pilot'}-${backend}${extended ? '-extended' : ''}${audioPromptEnglish ? '-prompt-en' : ''}${label ? '-' + label : ''}.json`);
+const out = path.join(root, `local/artifacts/gemma-evaluation/${audioBytes ? 'human-audio-pilot' : 'memory-pilot'}-${backend}${extended ? '-extended' : ''}${audioPromptEnglish ? '-prompt-en' : ''}${label ? '-' + label : ''}.json`);
 function snapshot(dir) {
   return fs.readdirSync(dir).sort().flatMap(name => {
     const p = path.join(dir, name), st = fs.lstatSync(p);

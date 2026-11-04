@@ -11,6 +11,7 @@ export default defineConfig({
     watch: {
       ignored: [
         "**/.git/**",
+        "**/local/**",
         "**/.cargo-target/**",
         "**/node_modules/**",
         "**/.venv-adapters/**",

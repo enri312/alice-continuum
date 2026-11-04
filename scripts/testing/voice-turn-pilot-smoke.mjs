@@ -15,14 +15,14 @@ async function post(id, body, type, headers = {}) {
 }
 try {
   assert.equal((await post('empty', Buffer.alloc(0), 'audio/wav')).inference, false);
-  const wav = fs.readFileSync('artifacts/gemma-evaluation/human-spanish-2026-09-05.wav');
+  const wav = fs.readFileSync('local/artifacts/gemma-evaluation/human-spanish-2026-09-05.wav');
   const silence = Buffer.from(wav);
   for (let p = 12; p + 8 <= silence.length;) { const n = silence.readUInt32LE(p + 4); if (silence.toString('ascii', p, p + 4) === 'data') silence.fill(0, p + 8, p + 8 + n); p += 8 + n + n % 2; }
   assert.equal((await post('digital_silence', silence, 'audio/wav')).inference, false);
   assert.equal((await post('invalid', Buffer.from('not audio'), 'audio/wav')).status, 400);
   assert.equal((await post('wrong_origin', wav, 'audio/wav', { Origin: 'http://example.invalid' })).status, 403);
   assert.equal((await post('missing_token', wav, 'audio/wav', { 'X-Pilot-Token': '' })).status, 403);
-  const real = await post('real_recording_webm', fs.readFileSync('artifacts/gemma-evaluation/human-spanish-pilot.webm'), 'audio/webm');
+  const real = await post('real_recording_webm', fs.readFileSync('local/artifacts/gemma-evaluation/human-spanish-pilot.webm'), 'audio/webm');
   assert.equal(real.status, 200); assert.equal(real.inference, true); assert.match(real.text, /Java/i); assert.match(real.text, /Python/i);
   const require = createRequire('C:/Users/enri3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json');
   const { chromium } = require('playwright');
@@ -39,11 +39,11 @@ try {
     await page.locator('#text').fill('Texto revisable de prueba, no enviado');
     assert.equal(await page.locator('#copy').isDisabled(), false); assert.equal(transcriptions, 0);
     await page.locator('#text').fill('');
-    await page.screenshot({ path: 'artifacts/gemma-evaluation/voice-turn-pilot.png', fullPage: true });
+    await page.screenshot({ path: 'local/artifacts/gemma-evaluation/voice-turn-pilot.png', fullPage: true });
     rows.push({ id: 'browser_idle', micRequests, transcriptions, result: 'pass' });
   } finally { await browser.close(); }
 } finally {
   const unchanged = JSON.stringify(before) === JSON.stringify(snapshot('data'));
-  fs.writeFileSync('artifacts/gemma-evaluation/voice-turn-pilot-smoke.json', JSON.stringify({ date: new Date().toISOString(), canonicalDataUnchanged: unchanged, files: before.length, rows }, null, 2));
+  fs.writeFileSync('local/artifacts/gemma-evaluation/voice-turn-pilot-smoke.json', JSON.stringify({ date: new Date().toISOString(), canonicalDataUnchanged: unchanged, files: before.length, rows }, null, 2));
   assert(unchanged); console.log(JSON.stringify({ cases: rows.length, canonicalDataUnchanged: unchanged, files: before.length }));
 }

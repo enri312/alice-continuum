@@ -48,10 +48,8 @@ struct FaceRuntimeReadiness {
 }
 
 fn local_face_model_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")))
-        .join("Assets")
+    crate::runtime_paths::local_dir()
+        .join("assets")
         .join("Models")
         .join("private")
         .join(FACE_MODEL_FILE)
@@ -130,7 +128,7 @@ fn face_model_readiness_at(path: &Path, expected_hash: &str) -> FaceModelReadine
 }
 
 fn face_runtime_readiness() -> FaceRuntimeReadiness {
-    let mut command = Command::new("python");
+    let mut command = Command::new(if cfg!(windows) { "python" } else { "python3" });
     command
         .args([
             "-c",

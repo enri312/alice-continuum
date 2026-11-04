@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-const output=path.resolve('artifacts/conversation-session-2026-11-04');
+const output=path.resolve('local/artifacts/conversation-session-2026-11-04');
 const stored=name=>process.env[name]||execFileSync('powershell.exe',['-NoProfile','-Command',`[Console]::Write([Environment]::GetEnvironmentVariable('${name}','User'))`],{encoding:'utf8',windowsHide:true}).trim();
 const key=stored('FISH_API_KEY'), reference=stored('ALICE_FISH_REFERENCE_ID');
 if(!key||!reference)throw Error('Falta configuración local de voz; no se generaron muestras.');

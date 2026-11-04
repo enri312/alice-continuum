@@ -1,6 +1,6 @@
 // Compare identical local image via native and compatible endpoints. No memory writes.
 import fs from 'node:fs';
-const root='artifacts/gemma-evaluation';
+const root='local/artifacts/gemma-evaluation';
 const image=fs.readFileSync(root+'/vision.png').toString('base64');
 async function api(route,body){const r=await fetch('http://127.0.0.1:11434'+route,{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(180000)});if(!r.ok)throw Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);return r.json();}
 if((await api('/api/ps')).models.length)throw Error('Another model is loaded');

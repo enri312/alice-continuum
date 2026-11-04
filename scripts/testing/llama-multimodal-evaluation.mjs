@@ -1,6 +1,6 @@
 // Actual local inference with controlled fixtures; never writes Alice's memories.
 import fs from 'node:fs';
-const root='artifacts/gemma-evaluation';
+const root='local/artifacts/gemma-evaluation';
 const profile=process.argv[2]??'default';
 if(!['default','image1120','image1120-gpu'].includes(profile))throw Error('Unknown evaluation profile');
 const image=fs.readFileSync(root+'/vision.png').toString('base64');

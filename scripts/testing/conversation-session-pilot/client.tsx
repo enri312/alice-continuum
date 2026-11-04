@@ -45,11 +45,11 @@ function Pilot() {
     getMicrophone: async () => {
       const index = fixture.current++;
       if (index >= 3) throw Error("Se agotaron las frases sintéticas sin reconocer la parada de voz.");
-      const metadata = await (await fetch('/artifacts/conversation-session-2026-11-04/fixture-meta.json')).json();
+      const metadata = await (await fetch('/local/artifacts/conversation-session-2026-11-04/fixture-meta.json')).json();
       if(!metadata.ready)throw Error("Las muestras españolas todavía no están preparadas.");
       const context = new AudioContext({sampleRate:48000}); inputContext.current = context;
       await context.resume();
-      const spoken = await context.decodeAudioData(await (await fetch(`/artifacts/conversation-session-2026-11-04/fixture-${index}.wav`)).arrayBuffer());
+      const spoken = await context.decodeAudioData(await (await fetch(`/local/artifacts/conversation-session-2026-11-04/fixture-${index}.wav`)).arrayBuffer());
       const padded = context.createBuffer(1, spoken.length + 3*48000, 48000);
       padded.copyToChannel(spoken.getChannelData(0),0,72000);
       const source = context.createBufferSource(); source.buffer = padded;

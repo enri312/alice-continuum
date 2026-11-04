@@ -1,6 +1,6 @@
 // Synthetic English speech fixture; actual model inference, not a microphone/Spanish test.
 import fs from 'node:fs';
-const root='artifacts/gemma-evaluation';
+const root='local/artifacts/gemma-evaluation';
 const wav=fs.readFileSync(root+'/speech.wav');
 const silent=Buffer.from(wav);
 // Keep WAV structure, zero only PCM data. System.Speech writes signed 16-bit PCM.

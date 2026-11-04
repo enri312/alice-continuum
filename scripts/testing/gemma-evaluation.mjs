@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root = 'artifacts/gemma-evaluation';
+const root = 'local/artifacts/gemma-evaluation';
 fs.mkdirSync(root, { recursive: true });
 async function api(route, body) {
   const r = await fetch('http://127.0.0.1:11434' + route, { method: body ? 'POST' : 'GET',

@@ -14,8 +14,8 @@ const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary
     assert.equal(await page.locator('.runtime-start').evaluate(b => getComputedStyle(b).opacity), '1');
     await stop.focus();
     assert.equal(await stop.evaluate(b => getComputedStyle(b).outlineStyle), 'solid');
-    fs.mkdirSync('artifacts/gemma-evaluation', { recursive: true });
-    await page.screenshot({ path: 'artifacts/gemma-evaluation/settings-runtime-buttons.png' });
+    fs.mkdirSync('local/artifacts/gemma-evaluation', { recursive: true });
+    await page.screenshot({ path: 'local/artifacts/gemma-evaluation/settings-runtime-buttons.png' });
     await page.setViewportSize({ width: 390, height: 600 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
     console.log('PASS: active contrast colors, readable disabled state, 44px target, keyboard focus, narrow viewport');

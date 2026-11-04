@@ -30,3 +30,13 @@ Assets/Models/private/
 /adapters/
 /.venv-adapters/
 __pycache__/
+
+# Recursos privados y resultados locales; sólo se publican las guías.
+/local/*
+!/local/README.md
+!/local/assets/
+/local/assets/**
+!/local/assets/Animations/
+!/local/assets/Animations/README.md
+!/local/assets/Models/
+!/local/assets/Models/README.md

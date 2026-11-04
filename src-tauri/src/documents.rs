@@ -17,12 +17,12 @@ const SCRIPT: &str = include_str!("../../scripts/adapters/document_reader.py");
 const MAX_BYTES: usize = 16 * 1024 * 1024;
 static READER: Mutex<()> = Mutex::new(());
 
-fn python_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../.venv-adapters/Scripts/python.exe")
+fn python_path() -> Result<PathBuf, String> {
+    crate::runtime_paths::python()
 }
 
 pub(crate) fn available() -> bool {
-    python_path().is_file()
+    python_path().is_ok_and(|p| p.is_file())
 }
 
 fn extract(python: &Path, bytes: Vec<u8>, format: &str) -> Result<Value, String> {
@@ -39,7 +39,7 @@ fn extract(python: &Path, bytes: Vec<u8>, format: &str) -> Result<Value, String>
     }
     let mut child = command
         .spawn()
-        .map_err(|_| "Falta el entorno documental .venv-adapters")?;
+        .map_err(|_| "Falta el entorno documental local/venv o ALICE_PYTHON_BIN")?;
     let mut input = child
         .stdin
         .take()
@@ -153,7 +153,7 @@ pub(crate) async fn preview_document(
 ) -> Result<Value, String> {
     let root = alice_data_root_path(&app)?;
     tauri::async_runtime::spawn_blocking(move || {
-        preview_at(&root, &python_path(), bytes, &format, confirmed)
+        preview_at(&root, &python_path()?, bytes, &format, confirmed)
     })
     .await
     .map_err(|_| "Se interrumpió el lector documental")?
@@ -176,7 +176,7 @@ mod tests {
         let bytes =
             std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/MANUAL_DE_USO.md"))
                 .unwrap();
-        let result = preview_at(&root, &python_path(), bytes, "md", true).unwrap();
+        let result = preview_at(&root, &python_path().unwrap(), bytes, "md", true).unwrap();
         assert_eq!(result["memoryWritten"], false);
         assert!(!result["chunks"].as_array().unwrap().is_empty());
         assert!(!root.join("memory").exists());

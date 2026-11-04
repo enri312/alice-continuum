@@ -403,6 +403,9 @@ impl SensorLeaseStore {
 }
 
 pub(crate) fn sensor_runtime_available() -> Result<bool, String> {
+    if !cfg!(windows) {
+        return Ok(false);
+    }
     let mut command = Command::new("python");
     command
         .args([
@@ -425,6 +428,9 @@ pub(crate) fn sensor_runtime_available() -> Result<bool, String> {
 }
 
 fn spawn_helper(kind: SensorKind, duration_seconds: u32) -> Result<Child, String> {
+    if !cfg!(windows) {
+        return Err("El diagnóstico DirectShow está disponible sólo en Windows; usa las fuentes de Conversación.".into());
+    }
     let mut command = Command::new("python");
     command
         .args([

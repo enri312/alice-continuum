@@ -152,15 +152,32 @@ fn validate_avatar_path(path: PathBuf) -> Result<PathBuf, String> {
     Ok(path)
 }
 
+pub(crate) fn configure_asset_scope(app: &tauri::AppHandle) -> Result<(), String> {
+    use tauri::Manager;
+    // Keep access limited to the configured avatar and known animation files.
+    // A fresh clone without private assets must still start normally.
+    let scope = app.asset_protocol_scope();
+    let avatar = local_avatar_path()?;
+    if avatar.is_file() {
+        scope.allow_file(avatar).map_err(|e| e.to_string())?;
+    }
+    let directory = local_animation_directory()?;
+    for (_, name) in AVATAR_ANIMATION_FILES {
+        let path = directory.join(name);
+        if path.is_file() {
+            scope.allow_file(path).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 fn local_avatar_path() -> Result<PathBuf, String> {
     let path = std::env::var_os("ALICE_AVATAR_PATH")
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
         .unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")))
-                .join("Assets")
+            crate::runtime_paths::local_dir()
+                .join("assets")
                 .join("Alice.vrm")
         });
     validate_avatar_path(path)
@@ -171,10 +188,8 @@ fn local_animation_directory() -> Result<PathBuf, String> {
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
         .unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")))
-                .join("Assets")
+            crate::runtime_paths::local_dir()
+                .join("assets")
                 .join("Animations")
                 .join("private")
                 .join("mixamo")

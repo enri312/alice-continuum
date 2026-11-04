@@ -7,11 +7,16 @@ use sha2::Sha256;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
+#[cfg(windows)]
 use std::os::windows::ffi::OsStrExt;
 use std::path::Path;
+#[cfg(windows)]
 use windows::core::PCWSTR;
+#[cfg(windows)]
 use windows::Win32::Storage::FileSystem::MoveFileExW;
+#[cfg(windows)]
 use windows::Win32::Storage::FileSystem::MOVEFILE_REPLACE_EXISTING;
+#[cfg(windows)]
 use windows::Win32::Storage::FileSystem::MOVEFILE_WRITE_THROUGH;
 
 pub(super) fn append_memory_audit(
@@ -92,6 +97,7 @@ pub(super) fn create_or_verify_exact_file(
     Ok(())
 }
 
+#[cfg(windows)]
 pub(super) fn nul_terminated_path(path: &Path) -> Vec<u16> {
     path.as_os_str().encode_wide().chain(Some(0)).collect()
 }
@@ -116,15 +122,20 @@ pub(super) fn atomic_replace_text_file(
         return Err(format!("No se pudo preparar el reemplazo {label}: {error}"));
     }
     drop(file);
-    let temporary_wide = nul_terminated_path(&temporary);
-    let destination_wide = nul_terminated_path(destination);
-    let replace = unsafe {
-        MoveFileExW(
-            PCWSTR(temporary_wide.as_ptr()),
-            PCWSTR(destination_wide.as_ptr()),
-            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
-        )
+    #[cfg(windows)]
+    let replace = {
+        let temporary_wide = nul_terminated_path(&temporary);
+        let destination_wide = nul_terminated_path(destination);
+        unsafe {
+            MoveFileExW(
+                PCWSTR(temporary_wide.as_ptr()),
+                PCWSTR(destination_wide.as_ptr()),
+                MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+            )
+        }
     };
+    #[cfg(not(windows))]
+    let replace = fs::rename(&temporary, destination);
     if let Err(error) = replace {
         let _ = fs::remove_file(&temporary);
         return Err(format!("Falló el reemplazo atómico {label}: {error}"));

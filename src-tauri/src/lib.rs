@@ -33,6 +33,7 @@ mod conversation_vision;
 mod desktop_actions;
 mod media_actions;
 mod media_windows;
+mod runtime_paths;
 mod skills;
 mod tasks;
 mod util;
@@ -126,6 +127,7 @@ pub fn run() {
         .manage(conversation_vision::VisionSessionStore::default())
         .manage(media_actions::MediaPlaybackStore::default())
         .setup(move |app| {
+            avatar::configure_asset_scope(app.handle())?;
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
                 window.set_icon(window_icon)?;

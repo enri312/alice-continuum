@@ -14,6 +14,9 @@
 *.ts text eol=lf
 *.tsx text eol=lf
 *.xml text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
 
 # El iniciador se ejecuta de forma nativa en Windows.
 *.cmd text eol=crlf

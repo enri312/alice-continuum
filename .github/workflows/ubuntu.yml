@@ -1,0 +1,48 @@
+name: Ubuntu
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, 'codex/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  ubuntu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Dependencias de Tauri y audio
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev python3-venv ffmpeg xvfb dbus-x11 gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
+          rustup show
+      - name: Entorno documental
+        run: |
+          python3 -m venv local/venv
+          local/venv/bin/python -m pip install -r scripts/adapters/requirements.txt
+          local/venv/bin/python -B -m unittest discover -s scripts/adapters -p 'test_*.py' -v
+      - name: Interfaz
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Núcleo nativo
+        run: |
+          cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+          cargo test --locked --manifest-path src-tauri/Cargo.toml
+          cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+          cargo build --locked --manifest-path src-tauri/Cargo.toml
+      - name: Lanzador y arranque aislado
+        run: |
+          bash -n 'Iniciar Alice Continuum.sh'
+          bash 'Iniciar Alice Continuum.sh' --check
+          dbus-run-session -- xvfb-run -a python3 scripts/testing/ubuntu-startup-smoke.py

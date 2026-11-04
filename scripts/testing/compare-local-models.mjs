@@ -61,9 +61,9 @@ for (const model of models) {
       console.log(JSON.stringify({ model, case: test.id, error: error.message }));
       break;
     }
-    fs.writeFileSync('artifacts/local-model-comparison.json', JSON.stringify(report, null, 2));
+    fs.writeFileSync('local/artifacts/local-model-comparison.json', JSON.stringify(report, null, 2));
   }
   entry.runtime = (await request('/api/ps')).models?.find(m => m.name === model);
   await request('/api/generate', { model, keep_alive: 0 }, 15000).catch(() => {});
-  fs.writeFileSync('artifacts/local-model-comparison.json', JSON.stringify(report, null, 2));
+  fs.writeFileSync('local/artifacts/local-model-comparison.json', JSON.stringify(report, null, 2));
 }

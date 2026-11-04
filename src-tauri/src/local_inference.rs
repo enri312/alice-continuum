@@ -2,15 +2,11 @@
 //! Explicit runtime controls and shared text, vision and ephemeral voice transport.
 use serde::Serialize;
 use std::net::{SocketAddr, TcpStream};
-use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
-const ENGINE: &str = "D:/Alice-model-evaluation/runtimes/llama-b10809/bin/llama-server.exe";
-const MODEL: &str = "D:/Alice-model-evaluation/models/gemma4-e2b/gemma-4-E2B-it-Q4_K_M.gguf";
-const PROJECTOR: &str = "D:/Alice-model-evaluation/models/gemma4-e2b/mmproj-F16.gguf";
 const ADDRESS: &str = "127.0.0.1:18089";
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -29,9 +25,13 @@ pub(crate) struct LocalInferenceRuntime {
 
 pub(crate) const GEMMA_MODEL: &str = "gemma-4-E2B-it-Q4_K_M";
 pub(crate) fn installed() -> bool {
-    [ENGINE, MODEL, PROJECTOR]
-        .iter()
-        .all(|p| Path::new(p).is_file())
+    [
+        crate::runtime_paths::llama_server(),
+        crate::runtime_paths::gemma_model(),
+        crate::runtime_paths::gemma_projector(),
+    ]
+    .iter()
+    .all(|p| p.as_ref().is_ok_and(|p| p.is_file()))
 }
 pub(crate) fn runtime() -> Arc<LocalInferenceRuntime> {
     static RUNTIME: OnceLock<Arc<LocalInferenceRuntime>> = OnceLock::new();
@@ -284,18 +284,25 @@ impl LocalInferenceRuntime {
                 "El puerto local pertenece a otro proceso; no se adoptará ni cerrará".into(),
             );
         }
-        for file in [ENGINE, MODEL, PROJECTOR] {
-            if !Path::new(file).is_file() {
-                return Err(format!("Falta un archivo del motor evaluado: {file}"));
+        let engine = crate::runtime_paths::llama_server()?;
+        let model = crate::runtime_paths::gemma_model()?;
+        let projector = crate::runtime_paths::gemma_projector()?;
+        let gpu_layers = crate::runtime_paths::gpu_layers()?;
+        for file in [&engine, &model, &projector] {
+            if !file.is_file() {
+                return Err(format!(
+                    "Falta un archivo del motor evaluado: {}",
+                    file.display()
+                ));
             }
         }
-        let mut command = Command::new(ENGINE);
+        let mut command = Command::new(engine);
         command
+            .arg("-m")
+            .arg(model)
+            .arg("--mmproj")
+            .arg(projector)
             .args([
-                "-m",
-                MODEL,
-                "--mmproj",
-                PROJECTOR,
                 "--host",
                 "127.0.0.1",
                 "--port",
@@ -305,7 +312,7 @@ impl LocalInferenceRuntime {
                 "-np",
                 "1",
                 "-ngl",
-                "24",
+                &gpu_layers,
                 "--mmproj-offload",
                 "--reasoning",
                 "off",

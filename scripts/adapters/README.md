@@ -1,15 +1,15 @@
 # Adaptadores adaptados para Alice
 
-Esta carpeta contiene versiones revisadas. Los originales de `adapters/` se
+Esta carpeta contiene versiones revisadas. Los originales de `local/reference-adapters/` se
 conservan intactos y excluidos de Git. Nada aquí se ejecuta al iniciar Alice.
 
 ## Lector documental
 
 ```powershell
-python -m venv .venv-adapters
-.\.venv-adapters\Scripts\python.exe -m pip install -r scripts/adapters/requirements.txt
-.\.venv-adapters\Scripts\python.exe -B scripts/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
-.\.venv-adapters\Scripts\python.exe -B -m unittest discover -s scripts/adapters -p 'test_*.py' -v
+python -m venv local/venv
+.\local/venv\Scripts\python.exe -m pip install -r scripts/adapters/requirements.txt
+.\local/venv\Scripts\python.exe -B scripts/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
+.\local/venv\Scripts\python.exe -B -m unittest discover -s scripts/adapters -p 'test_*.py' -v
 ```
 
 `--root` define la carpeta autorizada; `--file` selecciona el documento. La salida
