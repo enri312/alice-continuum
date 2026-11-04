@@ -4,7 +4,7 @@
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
 **Estado al 4 de noviembre de 2026:** prototipo funcional, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.58**.
+La versión del producto es **0.1.0** y el documento maestro **0.59**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -97,6 +97,21 @@ en el manual; OpenRouter permanece pausado por decisión del propietario.
 
 [Arranque y recuperación](docs/runbooks/01-arranque-local.md) · [Identidad y compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md)
 
+## Ubuntu y recursos locales
+
+Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
+`drafts`, `artifacts` y `venv`. `src`, `src-tauri`, `.cargo`, `.git`,
+`node_modules` y `dist` conservan los nombres esperados por sus herramientas.
+La memoria sigue en `data/`; los motores actuales permanecen en D:.
+
+Ubuntu dispone de lanzador Bash, dependencias nativas delimitadas y rutas
+configurables para Gemma, Whisper y Python. Las funciones de escritorio y música
+que usan las API de Windows siguen pendientes de portado. Audio, cámara e
+inferencia requieren aceptación en el equipo Ubuntu real.
+
+[Instalación Ubuntu y matriz de compatibilidad](docs/runbooks/04-ubuntu.md) ·
+[Organización y verificación](docs/testing/ORGANIZATION_UBUNTU_REPORT_2026-11-04.md)
+
 ## Verificación
 
 Última validación local, **4 de noviembre de 2026**:
@@ -115,7 +130,8 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 cargo build --manifest-path src-tauri/Cargo.toml
 ```
 
-Son resultados locales documentados, no un workflow de CI remoto. Vite conserva
+El workflow [Ubuntu](.github/workflows/ubuntu.yml) verifica además Linux con
+datos aislados. Los resultados de cada plataforma figuran en el informe. Vite conserva
 un aviso de tamaño de paquetes de más de 500 kB. Las pruebas de hardware, servicios
 y voz real se ejecutan por separado y no se dan por aprobadas por las unitarias.
 
@@ -127,7 +143,7 @@ y los sondeos de estado evitan consultas superpuestas. Este primer incremento
 mantiene las funciones existentes y no constituye una migración completa a
 Clean Architecture o Vertical Slice. [Decisión y verificación](docs/decisions/ADR-P-107-contratos-conversacion-y-sondeos.md).
 
-El backend de memoria conserva una fachada de 611 líneas y 28 comandos estables;
+El backend de memoria conserva una fachada breve y 28 comandos estables;
 sus contratos, validaciones, consultas, persistencia, casos de uso y pruebas
 viven en `src-tauri/src/memory/`. El almacenamiento básico se prueba por rutas,
 conservando respaldos, auditoría y formatos. [Modularización y React 19.3.1](docs/decisions/ADR-P-108-memoria-modular-react-19-3.md).
@@ -137,6 +153,9 @@ src/pages/             pantallas de conversación, memoria, núcleo y gobierno
 src/components/        componentes, controles de voz y visualizaciones
 src/core/              contratos, recuperación y procesamiento de audio
 src-tauri/src/         memoria, modelos, permisos y adaptadores nativos
+local/                 activos privados, entorno Python, borradores y evidencias
+data/                  conversación, memoria y auditorías privadas
+.cargo-target/         caché Rust compartido (no se publica)
 icons/                 recursos SVG editables
 public/licenses/       avisos de RNNoise y Whisper
 scripts/testing/       pilotos y evaluación reproducible

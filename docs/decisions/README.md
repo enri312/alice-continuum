@@ -83,3 +83,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-106](ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) | Whisper CPU, sesión oral estable, tiempos visibles y rumbo sin domótica |
 | [ADR-P-107](ADR-P-107-contratos-conversacion-y-sondeos.md) | Contratos fuera de React y sondeos serializados con descarte de resultados tardíos |
 | [ADR-P-108](ADR-P-108-memoria-modular-react-19-3.md) | Memoria por responsabilidades, casos básicos con rutas y React/React DOM 19.3.1 |
+
+| [ADR-P-109](ADR-P-109-organizacion-local-y-ubuntu.md) | Recursos privados agrupados, rutas configurables y soporte inicial de Ubuntu |

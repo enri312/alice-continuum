@@ -1,8 +1,14 @@
 # Estructura del proyecto
 
+Organización 2026-11-04 — [ADR-P-109](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md):
+los recursos privados se agrupan en `local/`; se conservan las carpetas
+convencionales de Tauri, Rust y Vite. `runtime_paths.rs` concentra rutas nativas
+configurables. Las API Win32 se compilan sólo en Windows.
+[Compatibilidad Ubuntu](../runbooks/04-ubuntu.md).
+
 Incremento 2026-11-04 — [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md):
 `src-tauri/src/memory.rs` conserva 28 comandos y la auditoría como fachada de 611
-líneas. `src-tauri/src/memory/` separa modelo, validación, consultas, registros,
+líneas en ese incremento. `src-tauri/src/memory/` separa modelo, validación, consultas, registros,
 primitivas de archivos, rutas, capas, ciclo de vida, evaluación, retención,
 reconsolidación, consolidación, aprendizaje y pruebas. Los casos básicos reciben
 rutas; las consultas no inicializan almacenes. Se mantienen firmas y formatos.
@@ -15,8 +21,8 @@ es un monolito de escritorio parcialmente modularizado, con capas técnicas y
 todo por Vertical Slice. Los contratos compartidos de conversación viven en
 `src/core/conversation/conversation-contracts.ts`, fuera de las pantallas React.
 `src/core/shared/polling.ts` serializa los sondeos de ventana y memoria de trabajo
-y descarta sus resultados después de cerrar la suscripción. La siguiente
-separación importante corresponde a casos de uso y persistencia de memoria.
+y descarta sus resultados después de cerrar la suscripción. La memoria básica ya separa casos de uso y persistencia; quedan casos avanzados
+para incrementos posteriores.
 
 Actualización de interfaz 2026-11-03: `InputIdentificationPage.tsx` presenta ahora
 Conversación y monta el diagnóstico secundario desde `InputDiagnostics.tsx` sólo
@@ -87,7 +93,12 @@ Alice Continuum/
 │   ├── adapters/                  lector documental revisado y sus pruebas
 │   └── testing/                   sondas visuales y evaluaciones opcionales
 ├── docs/                          manual, arquitectura, ADR, planes e informes
-├── Assets/                        avatar, animaciones y modelos locales
+├── local/                         recursos privados y generados
+│   ├── assets/                    avatar, animaciones y modelos locales
+│   ├── reference-adapters/        prototipos originales en cuarentena
+│   ├── drafts/                    borradores y capturas útiles
+│   ├── artifacts/                 evidencias y resultados de pruebas
+│   └── venv/                      Python recreado por sistema operativo
 └── data/                          memoria y auditorías privadas
 ```
 
@@ -151,13 +162,13 @@ CSS y los formatos de almacenamiento; no hay una migración de datos.
 | `index.html`, `vite.config.ts`, `tsconfig*.json` | Puntos de descubrimiento del frontend y sus herramientas. |
 | `rust-toolchain.toml`, `.cargo/` | Selección de Rust y destino compartido de compilación. |
 | `src-tauri/` | Backend y estructura convencional de Tauri. |
-| `Assets/` | Rutas de modelos y animaciones declaradas en el backend y el alcance de recursos de Tauri. |
+| `local/assets/` | Activos privados; rutas configurables y alcance Tauri limitado a archivos conocidos. |
 | `data/` | Datos privados; el lanzador y el backend dependen de esta ruta configurable. |
-| `adapters/`, `.venv-adapters/` | Cuarentena local y entorno Python; no equivalen a `scripts/adapters/`. |
-| `artifacts/`, `scratch/`, `.openchamber/` | Evidencia local y trabajo privado, excluidos de Git. |
+| `local/reference-adapters/`, `local/venv/` | Cuarentena local y entorno Python; no equivalen a `scripts/adapters/`. |
+| `local/artifacts/`, `local/drafts/` | Evidencia local y trabajo privado, excluidos de Git. |
 | `node_modules/`, `dist/`, `.cargo-target/` | Dependencias o resultados regenerables, excluidos de Git. |
 
-No se movieron ni borraron datos, modelos, adaptadores privados o cachés. Estas
+Se agruparon recursos privados según el mapa anterior; datos y motores conservan su ubicación. Estas
 carpetas no deben fusionarse con fuentes versionadas para reducir el número de
 entradas de la raíz.
 

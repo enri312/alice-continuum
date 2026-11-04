@@ -18,6 +18,6 @@ Los archivos binarios de animación se guardan bajo `private/` y quedan excluido
 | `mixamo.idle.sitting.v1` | Adobe Mixamo | `Sitting Idle` | FBX sin piel | `0E7DD4B9A82EEB745F82D25443D53959335ADED1316EBC2B04D54DCA8FBCB49B` | Bucle de reposo sentado dentro de la FSM; no redistribuir como activo independiente |
 | `mixamo.idle.standing.v1` | Adobe Mixamo | `Idle` | FBX sin piel | `01349EA06F0B55961E415732A18AD2EB2A1810E5C00BF20635359320AAB3D288` | Uso dentro de Alice; no redistribuir como activo independiente |
 
-Rutas privadas esperadas: `Assets/Animations/private/mixamo/*.fbx`.
+Rutas privadas esperadas: `local/assets/Animations/private/mixamo/*.fbx`.
 
 Antes de incorporar un clip nuevo se debe registrar fuente, licencia, fecha, opciones de exportación y SHA-256. Retargeting, conversión o reproducción no convierten automáticamente el activo en propiedad del proyecto.

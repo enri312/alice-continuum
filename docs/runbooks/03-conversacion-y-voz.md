@@ -144,7 +144,7 @@ La evaluación aislada de referentes se ejecuta con
 `node scripts/testing/conversation-reference-eval.mjs --live`. Requiere Gemma
 instalado, Ollama sin modelos cargados y el puerto 18089 libre; inicia y detiene
 sólo su propio proceso. Usa ejemplos ficticios y escribe resultados en
-`artifacts/`, sin enviar mensajes a Fish ni modificar memoria o historial.
+`local/artifacts/`, sin enviar mensajes a Fish ni modificar memoria o historial.
 
 Registrar por separado: mensaje, respuesta, fallo de contenido, fallo acústico y
 resultado esperado. Un reporte acústico sin audio sólo es una observación del

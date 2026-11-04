@@ -3,6 +3,15 @@
 Objetivo inicial: Ubuntu 24.04 LTS x86_64 con escritorio. Este procedimiento no
 instala Ubuntu ni modifica particiones. El avatar sigue pospuesto.
 
+El propietario ya tiene Ubuntu en otro disco de 2 TB de esta computadora. Al
+arrancar ese sistema, confirma su versión con `lsb_release -ds` y clona el
+proyecto en su carpeta personal. Las pruebas automatizadas toman 24.04 como base;
+otra versión requiere verificar sus paquetes. Las letras D: y E: de Windows no
+son rutas Linux: identifica sus montajes antes de configurar modelos externos.
+Utiliza un `data/` propio en Ubuntu y copia un respaldo con Alice cerrada si
+quieres continuar con la memoria actual. Este incremento no sincroniza almacenes
+entre las dos instalaciones.
+
 ## Preparar el sistema
 
 Instala Node.js de la versión indicada en `.node-version`, npm según
