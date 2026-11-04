@@ -1,12 +1,16 @@
 //! Narrow Windows adapters: Spotify's own collection and YouTube inside Chrome.
 //! No keyboard injection, debugging ports, arbitrary URLs or system-wide media keys.
-use crate::media_actions::{youtube_watch_url, CancellationCheck, MediaOperation, YoutubeVideo};
+#[cfg(windows)]
+use crate::media_actions::{youtube_watch_url, YoutubeVideo};
+use crate::media_actions::{CancellationCheck, MediaOperation};
+#[cfg(windows)]
 use std::{
     path::PathBuf,
     process::Command,
     time::{Duration, Instant},
 };
 
+#[cfg(windows)]
 pub(crate) fn chrome_path() -> Result<PathBuf, String> {
     for (root, suffix) in [
         ("ProgramFiles", "Google/Chrome/Application/chrome.exe"),
@@ -22,6 +26,7 @@ pub(crate) fn chrome_path() -> Result<PathBuf, String> {
     }
     Err("No encontré Google Chrome instalado en este equipo".into())
 }
+#[cfg(any(windows, test))]
 pub(crate) fn allowed_youtube_url(value: &str, expected: Option<&str>) -> bool {
     let raw = if value.starts_with("www.youtube.com/") {
         format!("https://{value}")
@@ -45,6 +50,7 @@ pub(crate) fn allowed_youtube_url(value: &str, expected: Option<&str>) -> bool {
     })
 }
 
+#[cfg(windows)]
 fn allowed_search_url(value: &str, query: &str) -> bool {
     let value = if value.starts_with("www.youtube.com/") {
         format!("https://{value}")
@@ -62,6 +68,7 @@ fn allowed_search_url(value: &str, query: &str) -> bool {
                 .any(|(key, value)| key == "search_query" && value == query)
     })
 }
+#[cfg(windows)]
 pub(crate) fn open_chrome(url: &str) -> Result<(), String> {
     let parsed = reqwest::Url::parse(url).map_err(|_| "Dirección de YouTube inválida")?;
     if parsed.scheme() != "https"

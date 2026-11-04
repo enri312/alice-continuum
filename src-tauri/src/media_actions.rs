@@ -418,23 +418,27 @@ pub(crate) fn validate_tool_call(
     Ok(())
 }
 
+#[cfg(any(windows, test))]
 #[derive(Clone, Debug)]
 pub(crate) struct YoutubeVideo {
     pub id: String,
     pub title: String,
 }
+#[cfg(any(windows, test))]
 fn video_id(id: &str) -> bool {
     id.len() == 11
         && id
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
+#[cfg(any(windows, test))]
 pub(crate) fn youtube_watch_url(id: &str) -> Result<String, String> {
     if !video_id(id) {
         return Err("YouTube devolvió un identificador de vídeo inválido".into());
     }
     Ok(format!("https://www.youtube.com/watch?v={id}&autoplay=1"))
 }
+#[cfg(any(windows, test))]
 pub(crate) fn youtube_search_url(query: &str) -> Result<reqwest::Url, String> {
     reqwest::Url::parse_with_params(
         "https://www.youtube.com/results",
@@ -445,6 +449,7 @@ pub(crate) fn youtube_search_url(query: &str) -> Result<reqwest::Url, String> {
 
 // Metadata comes from the visible, requested YouTube search in Chrome.
 // Links are treated as untrusted data; only canonical YouTube watch IDs survive.
+#[cfg(any(windows, test))]
 pub(crate) fn select_youtube_link(
     links: Vec<(String, String)>,
     query: &str,
@@ -793,6 +798,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(chosen.id, "abc123_-XYZ");
+        assert_eq!(chosen.title, "Imagine John Lennon");
         assert!(select_youtube_link(vec![], "Imagine").is_err());
     }
     #[test]

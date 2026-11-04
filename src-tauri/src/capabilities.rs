@@ -161,6 +161,8 @@ pub(crate) enum CapabilityPermissionEnforcer {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct CapabilityProbeSnapshot {
+    pub(crate) gemma_installed: bool,
+    pub(crate) document_available: bool,
     pub(crate) cloud: CloudCapabilityProbe,
     pub(crate) observation: Result<ObservationCapabilityProbe, String>,
     pub(crate) memory: MemoryCapabilityProbe,
@@ -176,6 +178,8 @@ impl CapabilityProbeSnapshot {
         sensor_store: &SensorLeaseStore,
     ) -> Self {
         Self {
+            gemma_installed: crate::local_inference::installed(),
+            document_available: crate::documents::available(),
             cloud: cloud_capability_probe(),
             observation: observation_store.capability_probe(),
             memory: memory_capability_probe(data_root),
@@ -191,7 +195,7 @@ pub(crate) fn capability_registry_from_probes(
     probes: &CapabilityProbeSnapshot,
 ) -> Result<CapabilityRegistrySnapshot, String> {
     let mut capabilities = Vec::with_capacity(42);
-    let document_available = crate::documents::available();
+    let document_available = probes.document_available;
     capabilities.push(capability(
         "memory.document.preview",
         "Leer documento seleccionado",
@@ -213,7 +217,7 @@ pub(crate) fn capability_registry_from_probes(
             CapabilityEffect::ProcessLaunch,
         ],
         &["selectedDocument", "auditMetadata"],
-        &["Entorno .venv-adapters con PyMuPDF"],
+        &["Entorno local/venv con PyMuPDF"],
         permission(
             CapabilityPermissionMode::ExplicitPreview,
             CapabilityPermissionEnforcer::CurrentUi,
@@ -235,7 +239,7 @@ pub(crate) fn capability_registry_from_probes(
         &generated_at,
         &probes.memory,
         probes.cloud.ollama_configured,
-        crate::local_inference::installed(),
+        probes.gemma_installed,
     ));
     capabilities.extend(avatar_capabilities(&generated_at, &probes.avatar));
     capabilities.extend(sensory_capabilities(&generated_at, &probes.sensory));
@@ -1967,6 +1971,8 @@ mod tests {
 
     fn unavailable_probes() -> CapabilityProbeSnapshot {
         CapabilityProbeSnapshot {
+            gemma_installed: false,
+            document_available: false,
             cloud: CloudCapabilityProbe {
                 provider_count: 6,
                 configured_provider_count: 0,
@@ -2533,6 +2539,7 @@ mod tests {
     #[test]
     fn registry_maps_configured_active_and_valid_probe_states() {
         let mut probes = unavailable_probes();
+        probes.gemma_installed = true;
         probes.cloud.configured_provider_count = 1;
         probes.cloud.ollama_configured = true;
         probes.observation = Ok(ObservationCapabilityProbe {
@@ -2566,7 +2573,11 @@ mod tests {
             "avatar.vrm.inspect",
             "avatar.vrm.render",
         ] {
-            assert_eq!(registered(&snapshot, id).state, CapabilityState::Idle);
+            assert_eq!(
+                registered(&snapshot, id).state,
+                CapabilityState::Idle,
+                "{id}"
+            );
         }
         let observation = registered(&snapshot, "context.foreground.control");
         assert_eq!(observation.state, CapabilityState::Active);

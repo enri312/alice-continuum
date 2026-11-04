@@ -1319,6 +1319,8 @@ mod tests {
         capability_registry_from_probes(
             "2026-08-09T21:00:00-03:00".into(),
             &CapabilityProbeSnapshot {
+                gemma_installed: false,
+                document_available: false,
                 cloud: CloudCapabilityProbe {
                     provider_count: 6,
                     configured_provider_count: 0,
