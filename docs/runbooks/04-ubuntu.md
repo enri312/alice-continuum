@@ -3,10 +3,11 @@
 Objetivo inicial: Ubuntu 24.04 LTS x86_64 con escritorio. Este procedimiento no
 instala Ubuntu ni modifica particiones. El avatar sigue pospuesto.
 
-El propietario ya tiene Ubuntu en otro disco de 2 TB de esta computadora. Al
-arrancar ese sistema, confirma su versión con `lsb_release -ds` y clona el
-proyecto en su carpeta personal. Las pruebas automatizadas toman 24.04 como base;
-otra versión requiere verificar sus paquetes. Las letras D: y E: de Windows no
+El propietario confirmó Ubuntu **26.04.1** instalado en otro disco de 2 TB de
+esta computadora. Al arrancar ese sistema, clona el proyecto en su carpeta
+personal. Las pruebas automatizadas realizadas corresponden a **24.04**;
+la compatibilidad específica de 26.04.1 aún requiere verificar paquetes,
+arranque y dispositivos en esa instalación. Las letras D: y E: de Windows no
 son rutas Linux: identifica sus montajes antes de configurar modelos externos.
 Utiliza un `data/` propio en Ubuntu y copia un respaldo con Alice cerrada si
 quieres continuar con la memoria actual. Este incremento no sincroniza almacenes

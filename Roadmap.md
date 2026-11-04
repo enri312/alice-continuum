@@ -349,13 +349,24 @@ Plan: [R8-knowledge-graph.md](docs/plans/R8-knowledge-graph.md).
 
 ### Fase R9 — Presencia, voz y cuerpo mediante puentes
 
-**Estado:** parcial — sesión automática de voz implementada el 2026-11-03:
-pausa, transcripción Gemma, respuesta Fish y nueva escucha sin confirmación por
-turno. Aceptación acústica y de latencia pendiente. Node 26.13.0 LTS actualizado.
+**Estado:** parcial — sesión automática de voz implementada, con estabilización
+del 2026-11-04: detección de pausas, Whisper base CPU para español, diálogo Gemma,
+respuesta Fish y nueva escucha sin confirmación por turno. Dos respuestas y
+parada comprobadas con audio sintético; aceptación con Carlos y música real
+pendiente. Node 26.13.0 LTS actualizado.
 Gemma 4 se mantiene y el avatar queda al final según [ADR-P-099](docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).  
 Se añade parada mediante orden directa durante escucha y evaluación de referentes
 Alice/Carlos/terceros con [ADR-P-100](docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
 El compilador del proyecto queda actualizado a Rust 1.99.1 estable.
+**Pendiente prioritario para uso cotidiano:** aceptación de cinco turnos con la
+voz del propietario y música de notebook/otro equipo; corregir referentes y
+continuidad temática; reducir espera de respuesta y síntesis; activación dedicada
+por nombre; interrupción hablando con control de eco; aceptación de reproducción
+real de YouTube en Chrome. La cámara y el escritorio por turno ya están conectados,
+pero no equivalen a percepción continua. Avatar y cuerpo quedan pospuestos.
+La instalación Ubuntu 26.04.1 del disco de 2 TB requiere aceptación propia; CI
+comprobó Ubuntu 24.04, sin acreditar hardware o inferencia de la otra instalación.
+
 **Dependencia:** Fases R1 a R3  
 **Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
 
