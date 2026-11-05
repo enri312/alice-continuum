@@ -178,7 +178,9 @@ es una simulación biológica ni representa conciencia. Los hallazgos de segurid
 pendientes se conservan en los informes; no se anuncia una distribución endurecida.
 
 La prioridad es conversación y acciones de PC acotadas. **Domótica queda fuera
-de este tramo y el avatar va al final**. Atlas y Nerumi son referencias para
+de este tramo y el avatar va al final**. El cierre del alcance actual de R9 se
+evalúa por la fiabilidad de la asistente; el cuerpo será una salida posterior
+para expresiones y movimiento y queda fuera de su cálculo de avance. Atlas y Nerumi son referencias para
 ordenar esa evolución, no funciones ya verificadas de Alice.
 
 Repositorio privado: [enri312/alice-continuum](https://github.com/enri312/alice-continuum) · Rama: `master`.

@@ -349,6 +349,12 @@ Plan: [R8-knowledge-graph.md](docs/plans/R8-knowledge-graph.md).
 
 ### Fase R9 — Presencia, voz y cuerpo mediante puentes
 
+**Alcance activo confirmado:** hacer fiable a Alice como asistente antes de
+conectar un cuerpo. El avatar expresará mediante gestos y movimiento las salidas
+del sistema en una etapa posterior. Su integración queda fuera del cálculo de
+avance y del cierre de la entrega actual. Los criterios de conversación, escucha,
+percepción y acciones están en el [plan R9](docs/plans/R9-presence-voice-body.md).
+
 **Estado:** parcial — sesión automática de voz implementada, con estabilización
 del 2026-11-04: detección de pausas, Whisper base CPU para español, diálogo Gemma,
 respuesta Fish y nueva escucha sin confirmación por turno. Dos respuestas y
@@ -368,7 +374,9 @@ La instalación Ubuntu 26.04.1 del disco de 2 TB requiere aceptación propia; CI
 comprobó Ubuntu 24.04, sin acreditar hardware o inferencia de la otra instalación.
 
 **Dependencia:** Fases R1 a R3  
-**Objetivo:** conectar el avatar sin mezclar representación visual con decisión cognitiva.
+**Objetivo vigente:** lograr conversación, escucha, voz, percepción y acciones
+delegadas fiables. El objetivo corporal original se conserva para una entrega
+posterior, con presentación visual separada de la decisión cognitiva.
 
 Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, animaciones, entrada facial o corporal y finalmente Active Ragdoll. Fish Audio continúa como candidato de voz sujeto a licencia, privacidad, costo y pruebas. Cada adaptador deberá registrarse como una capacidad independiente.
 

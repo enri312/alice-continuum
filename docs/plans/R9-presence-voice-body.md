@@ -29,6 +29,34 @@ referencia futura y el avatar sigue al final. Ver
 > diálogo de la sesión mantiene el hilo; el historial anterior y los recuerdos
 > dependen de sus casillas. No se habilitan herramientas ni memoria confirmada.
 
+## Alcance activo: Alice antes de conectar un cuerpo
+
+Aclaración del propietario, 2026-11-04: el avatar es un cuerpo de salida para
+manifestar expresiones y movimiento. Su integración se hará después de que la
+asistente funcione correctamente. El avance y el cierre del alcance activo de
+R9 se evaluarán por conversación, escucha, voz, percepción y acciones delegadas;
+la ausencia de cuerpo no reduce ese avance ni bloquea su aceptación.
+
+Criterios pendientes para este alcance:
+
+- [ ] Mantener cinco turnos reales con Carlos, incluida una corrección de referente
+  entre Alice, Carlos y terceros, sin perder el tema.
+- [ ] Aceptar la escucha sin música, con música de la notebook y de otro equipo;
+  revisar transcripción y errores reales en cada condición.
+- [ ] Medir y mejorar la espera hasta responder y la naturalidad de la salida oral.
+- [ ] Incorporar y comprobar activación dedicada por nombre e interrupción de la
+  respuesta hablada con control de eco y parada efectiva.
+- [ ] Aceptar las acciones ya delegadas, incluida reproducción real de YouTube,
+  sin anunciar ejecución o éxito cuando no se haya comprobado.
+- [ ] Aceptar cámara y escritorio por turno en uso real, con parada e indicadores
+  coherentes y continuidad del diálogo cuando una fuente no esté disponible.
+
+La base de estos componentes ya existe; una casilla pendiente indica que todavía
+falta completar o aceptar su comportamiento cotidiano. La integración del cuerpo
+(expresiones, sincronización labial, mirada y movimiento) se conserva como trabajo
+posterior. Los porcentajes anteriores que mezclaban ambos alcances no sirven
+para medir esta entrega. La compatibilidad con Ubuntu 26.04.1 se verifica aparte.
+
 ## Propósito
 
 R9 conecta formas de presencia de Alice sin convertir el avatar en una fuente de
