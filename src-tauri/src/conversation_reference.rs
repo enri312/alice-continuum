@@ -102,6 +102,12 @@ pub(crate) fn direct_reply(message: &str) -> Option<String> {
         }
         Some(names.join(" "))
     };
+    if quote
+        .split(|c: char| !c.is_alphabetic())
+        .any(|w| matches!(folded(w).as_str(), "no" | "nunca" | "jamas"))
+    {
+        return None;
+    }
     let parts: Vec<_> = quote
         .split_whitespace()
         .map(|w| w.trim_matches(|c: char| !c.is_alphabetic()))
@@ -133,39 +139,19 @@ pub(crate) fn direct_reply(message: &str) -> Option<String> {
         | "redaccion" | "mejora" => false,
         _ => return None,
     };
-    let phrase: Vec<_> = parts[index + 1..]
-        .iter()
-        .take_while(|w| {
-            !matches!(
-                folded(w).as_str(),
-                "es" | "son"
-                    | "esta"
-                    | "estan"
-                    | "suena"
-                    | "suenan"
-                    | "se"
-                    | "fue"
-                    | "era"
-                    | "necesita"
-                    | "necesitan"
-                    | "parece"
-                    | "tiene"
-                    | "tienen"
-                    | "ha"
-                    | "han"
-            )
-        })
-        .copied()
-        .collect();
-    if phrase.is_empty()
-        || phrase.len() > 7
-        || phrase
-            .iter()
-            .any(|w| matches!(folded(w).as_str(), "y" | "o" | "mi" | "mis"))
+    // Name the possessed quality without copying a predicate or temporal
+    // modifier into it (e.g. 'tu voz hoy es...' still names 'tu voz').
+    let end = if matches!(first.as_str(), "forma" | "manera")
+        && parts.get(index + 2).is_some_and(|w| folded(w) == "de")
+        && parts
+            .get(index + 3)
+            .is_some_and(|w| !w.is_empty() && w.chars().all(char::is_alphabetic))
     {
-        return None;
-    }
-    let subject = phrase.join(" ").to_lowercase();
+        index + 4
+    } else {
+        index + 2
+    };
+    let subject = parts[index + 1..end].join(" ").to_lowercase();
     if let Some(name) = name {
         let plural = folded(possessive) == "tus";
         let article = match (masculine, plural) {
@@ -193,6 +179,7 @@ mod tests {
             "Mi hermano me dijo: «Quiero mejorar tu forma de explicar». ¿De quién estaba hablando?",
             "Mi vecina me comentó: “Tu voz se oye más tranquila”. ¿Se refería a ti o a mí?",
             "Ayer mi profesor me dijo 'Tu explicación fue clara'. ¿De quién era la explicación?",
+            "Ana me dijo «Tu explicación hoy es clara». ¿De quién hablaba?",
         ] {
             let answer = direct_reply(input).unwrap();
             assert!(answer.ends_with(", Carlos."), "{answer}");
@@ -221,6 +208,7 @@ mod tests {
             "Mi hermano me dijo «Tu voz es clara» y Ana dijo «Tu voz es grave». ¿De quién?",
             "Mi hermano me dijo «Ana dijo 'tu voz'». ¿De quién?",
             "Ana no me dijo «Tu voz es clara». ¿De quién?",
+            "Ana me dijo «Tu voz no es clara». ¿De quién hablaba?",
             "Imagina que Ana me dijo «Tu voz es clara». ¿De quién?",
             "Ana me dijo «Tu voz es clara. ¿De quién?",
             "Personaje: Ana me dijo «Tu voz es clara». ¿De quién?",
