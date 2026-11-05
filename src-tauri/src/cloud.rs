@@ -37,6 +37,25 @@ fn gemma_voice_prompt(message: &str) -> String {
     )
 }
 
+fn direct_reference_response(request: &CloudRequest) -> Option<CloudResponse> {
+    if request.provider != "llamacpp" || request.vision.is_some() {
+        return None;
+    }
+    let text = crate::conversation_reference::direct_reply(&request.message)?;
+    Some(CloudResponse {
+        text,
+        provider: "Referencia explícita del mensaje".into(),
+        model: "Lectura local de cita".into(),
+        response_id: format!("reference:{}", new_operation_id()),
+        input_tokens: 0,
+        output_tokens: 0,
+        working_memory: None,
+        working_memory_error: None,
+        conversation_history: None,
+        conversation_history_error: None,
+    })
+}
+
 const OLLAMA_LOCAL_CHAT_ENDPOINT: &str = "http://127.0.0.1:11434/api/chat";
 const OPENROUTER_PAUSED: bool = true;
 const LOCAL_UNVERIFIED_NOTICE: &str = "Conocimiento interno no verificado:";
@@ -550,6 +569,9 @@ async fn send_cloud_message_inner(
     request: &CloudRequest,
 ) -> Result<CloudResponse, String> {
     if request.provider == "llamacpp" {
+        if let Some(response) = direct_reference_response(request) {
+            return Ok(response);
+        }
         let media = crate::media_actions::parse_request(&request.message);
         let clarification = if media.is_none() {
             crate::media_actions::clarification(&request.message)
@@ -1075,6 +1097,26 @@ mod tests {
             history_count: 0,
             memory_count: 0,
         }
+    }
+
+    #[test]
+    fn explicit_reference_response_is_local_and_other_requests_keep_their_provider() {
+        let mut request = valid_cloud_request("llamacpp");
+        request.message =
+            "Mi hermano me dijo: «Quiero mejorar tu forma de explicar». ¿De quién estaba hablando?"
+                .into();
+        let response = direct_reference_response(&request).unwrap();
+        assert!(response.text.contains("tu forma de explicar, Carlos"));
+        assert_eq!(response.provider, "Referencia explícita del mensaje");
+        assert_eq!(response.input_tokens, 0);
+        assert_eq!(response.output_tokens, 0);
+        assert!(response.response_id.starts_with("reference:"));
+        assert!(response.conversation_history.is_none());
+        request.provider = "ollama".into();
+        assert!(direct_reference_response(&request).is_none());
+        request.provider = "llamacpp".into();
+        request.message = "Hola Alice, quiero mejorar tu conversación".into();
+        assert!(direct_reference_response(&request).is_none());
     }
 
     #[test]

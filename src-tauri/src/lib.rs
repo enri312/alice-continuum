@@ -4,6 +4,7 @@ mod capabilities;
 mod cloud;
 mod conversation_history;
 mod conversation_learning;
+mod conversation_reference;
 mod core_activity;
 mod diagnostics;
 mod documents;

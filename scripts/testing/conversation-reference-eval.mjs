@@ -1,4 +1,6 @@
-// Local text evaluation only. No Fish, microphone or canonical Alice stores.
+// Model/prompt experiments only, without local application handlers.
+// No Fish, microphone or canonical Alice stores. The production reference
+// shortcut is verified by the native conversation_reference/cloud tests.
 // node scripts/testing/conversation-reference-eval.mjs --live --before <cloud.rs>
 import fs from 'node:fs';
 import path from 'node:path';
@@ -70,6 +72,16 @@ const beforeIndex = process.argv.indexOf('--before');
 const variants = beforeIndex >= 0
   ? [['before', promptFrom(path.resolve(process.argv[beforeIndex + 1]))], ['after', promptFrom(path.join(root, 'src-tauri/src/cloud.rs'))]]
   : [['after', promptFrom(path.join(root, 'src-tauri/src/cloud.rs'))]];
+// Candidate prompts can be measured before changing the application's defaults.
+const temperature = Number(option('--temperature') ?? '0.2');
+if (!Number.isFinite(temperature) || temperature < 0 || temperature > 2) throw Error('Temperatura inválida.');
+const thinkingBudget = option('--thinking-budget') === undefined ? -1 : Number(option('--thinking-budget'));
+if (!Number.isInteger(thinkingBudget) || thinkingBudget < -1 || thinkingBudget > 512) throw Error('Presupuesto de razonamiento inválido.');
+for (const [variant, prompts] of variants) {
+  if (variant !== 'after') continue;
+  if (option('--prompt-file')) prompts.base = fs.readFileSync(path.resolve(option('--prompt-file')), 'utf8');
+  if (option('--greeting-file')) prompts.greeting = fs.readFileSync(path.resolve(option('--greeting-file')), 'utf8');
+}
 const log = fs.openSync(path.join(output, 'gemma-eval.log'), 'w');
 const engine = runtimePid ? null : spawn('D:/Alice-model-evaluation/runtimes/llama-b10809/bin/llama-server.exe', [
   '-m', 'D:/Alice-model-evaluation/models/gemma4-e2b/gemma-4-E2B-it-Q4_K_M.gguf',
@@ -102,14 +114,15 @@ try {
           includeMemory: false, memories: [], includeWindow: false, observationEnabled: false, foregroundContext: null });
       const started = performance.now();
       const response = await fetchLocal(`${endpoint}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        model: 'gemma-4-E2B-it-Q4_K_M', stream: false, temperature: 0.2, seed: 42, max_tokens: 240,
+        model: 'gemma-4-E2B-it-Q4_K_M', stream: false, temperature, seed: 42, max_tokens: 240,
+        ...(process.argv.includes('--thinking') ? { reasoning_effort: 'low', chat_template_kwargs: { enable_thinking: true }, reasoning_budget_tokens: thinkingBudget, max_tokens: thinkingBudget < 0 ? 1200 : 240 + thinkingBudget } : {}),
         messages: process.argv.includes('--structured-dialogue')
           ? [{role:'system',content:system},...(test.history??[]).map(([role,text])=>({role,content:text})),{role:'user',content:test.input}]
           : [{ role: 'system', content: system }, { role: 'user', content: payload }],
       }) });
       if (!response.ok) throw Error(`Gemma HTTP ${response.status}`);
       const result = await response.json();
-      const entry = { variant, ...test, response: result.choices?.[0]?.message?.content, finishReason: result.choices?.[0]?.finish_reason, elapsedMs: Math.round(performance.now() - started), usage: result.usage };
+      const entry = { variant, ...test, response: result.choices?.[0]?.message?.content, finishReason: result.choices?.[0]?.finish_reason, elapsedMs: Math.round(performance.now() - started), usage: result.usage, reasoningTokens: result.usage?.completion_tokens_details?.reasoning_tokens };
       results.push(entry);
       fs.writeFileSync(path.join(output, 'reference-results.json'), JSON.stringify(results, null, 2));
       console.log(`${variant}/${test.id}: ${entry.response}`);
