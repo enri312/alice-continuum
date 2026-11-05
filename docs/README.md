@@ -120,3 +120,5 @@ Los recuerdos reales, auditorías y respaldos viven en `data/`, fuera de `docs/`
 91. [Verificación de memoria y actualización React](testing/MEMORY_MODULAR_REACT_REPORT_2026-11-04.md)
 
 [Instalación Ubuntu](runbooks/04-ubuntu.md) · [Organización y pruebas](testing/ORGANIZATION_UBUNTU_REPORT_2026-11-04.md) · [ADR-P-109](decisions/ADR-P-109-organizacion-local-y-ubuntu.md)
+
+[Conversación: referencias explícitas, 5 de noviembre](testing/CONVERSATION_REFERENCES_REPORT_2026-11-05.md).

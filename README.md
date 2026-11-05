@@ -3,8 +3,8 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 4 de noviembre de 2026:** prototipo funcional, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.59**.
+**Estado al 5 de noviembre de 2026:** prototipo funcional, R9 en progreso.
+La versión del producto es **0.1.0** y el documento maestro **0.60**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -97,6 +97,11 @@ en el manual; OpenRouter permanece pausado por decisión del propietario.
 
 [Arranque y recuperación](docs/runbooks/01-arranque-local.md) · [Identidad y compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md)
 
+El 5 de noviembre se añade una resolución local de preguntas sobre posesivos en
+citas con destinatario explícito. Su respuesta identifica la procedencia; no
+representa comprensión general ni una modificación de Gemma.
+[Alcance y pruebas](docs/testing/CONVERSATION_REFERENCES_REPORT_2026-11-05.md).
+
 ## Ubuntu y recursos locales
 
 Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
@@ -114,10 +119,10 @@ inferencia requieren aceptación en el equipo Ubuntu real.
 
 ## Verificación
 
-Última validación local, **4 de noviembre de 2026**:
+Última validación local, **5 de noviembre de 2026**:
 
 - **563 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
-- **326 pruebas Rust aprobadas**, 28 sondas opcionales omitidas; lectura canónica adicional aprobada.
+- **330 pruebas Rust aprobadas**, 28 sondas opcionales omitidas; datos canónicos con huellas conservadas.
 - Compilaciones frontend y nativa, formato y Clippy aprobados.
 - HTML v0.58 revisado, con portada primero y enlaces locales comprobados.
 

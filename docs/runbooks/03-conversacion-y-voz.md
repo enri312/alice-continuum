@@ -232,3 +232,15 @@ Para diagnosticar otros casos, contrasta `userText` con el recibo: una acción
 multimedia real usa `responseId` con prefijo `desktop:media:`, no `chatcmpl-`.
 Una petición incompleta debe devolver aclaración, nunca un éxito inventado.
 Ver [regresión de voz y música](../testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+
+## Citas con destinatario explícito
+
+Puedes comprobar por texto: «Mi hermano me dijo: “Quiero mejorar tu forma de
+explicar”. ¿De quién estaba hablando?». La respuesta debe atribuir «tu forma de
+explicar» a Carlos, con fuente **Referencia explícita del mensaje**.
+
+También se admite «Luis le dijo a Ana: “Tu explicación necesita ejemplos”.
+¿De quién es la explicación?», atribuyéndola a Ana. Es una lectura local limitada
+a esas estructuras, no aprendizaje nuevo del modelo. Citas múltiples, referentes
+inciertos y frases sin cobertura siguen en la conversación Gemma. La prueba con
+voz real y música continúa pendiente.

@@ -29,6 +29,12 @@ referencia futura y el avatar sigue al final. Ver
 > diálogo de la sesión mantiene el hilo; el historial anterior y los recuerdos
 > dependen de sus casillas. No se habilitan herramientas ni memoria confirmada.
 
+Incremento 2026-11-05: preguntas sobre «tu explicación/voz…» en una cita con
+destinatario explícito disponen de una resolución local acotada, con procedencia
+visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
+Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
+la conversación real. [ADR-P-110](../decisions/ADR-P-110-referencias-explicitas-en-citas.md).
+
 ## Alcance activo: Alice antes de conectar un cuerpo
 
 Aclaración del propietario, 2026-11-04: el avatar es un cuerpo de salida para

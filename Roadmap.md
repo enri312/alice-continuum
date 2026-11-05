@@ -373,6 +373,12 @@ pero no equivalen a percepción continua. Avatar y cuerpo quedan pospuestos.
 La instalación Ubuntu 26.04.1 del disco de 2 TB requiere aceptación propia; CI
 comprobó Ubuntu 24.04, sin acreditar hardware o inferencia de la otra instalación.
 
+Incremento 2026-11-05: preguntas sobre «tu explicación/voz…» en una cita con
+destinatario explícito disponen de una resolución local acotada, con procedencia
+visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
+Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
+la conversación real. [ADR-P-110](docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
+
 **Dependencia:** Fases R1 a R3  
 **Objetivo vigente:** lograr conversación, escucha, voz, percepción y acciones
 delegadas fiables. El objetivo corporal original se conserva para una entrega
