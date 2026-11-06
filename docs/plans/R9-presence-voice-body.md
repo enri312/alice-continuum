@@ -44,6 +44,12 @@ turnos: esa es la siguiente prueba con el propietario.
 
 ## Alcance activo: Alice antes de conectar un cuerpo
 
+Incremento 2026-11-06 — [ADR-P-112](../decisions/ADR-P-112-espera-por-nombre-y-apagado.md):
+iniciar la escucha queda en espera de frases dirigidas a Alice. Detener la
+conversación vuelve a espera; apagar el micrófono cierra la sesión. Es un filtro
+ASR por frase, con aceptación acústica pendiente; no cierra el requisito de
+activación dedicada por nombre ni la interrupción mientras habla.
+
 Aclaración del propietario, 2026-11-04: el avatar es un cuerpo de salida para
 manifestar expresiones y movimiento. Su integración se hará después de que la
 asistente funcione correctamente. El avance y el cierre del alcance activo de

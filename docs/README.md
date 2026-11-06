@@ -8,6 +8,8 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 
 Última mejora de fiabilidad: [recuperación de memoria y control de Gemma](testing/RELIABILITY_REPORT_2026-11-05.md), conservando Rust/Tauri y el alcance de conversación R9 sin cuerpo.
 
+Continuación R9: [espera dirigida y apagado del micrófono](testing/VOICE_STANDBY_REPORT_2026-11-06.md) y [contraste del informe de frameworks](research/FRAMEWORKS_REVIEW_2026-11-06.md).
+
 Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
 
 ## Lectura recomendada

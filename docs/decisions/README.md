@@ -89,3 +89,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-110](ADR-P-110-referencias-explicitas-en-citas.md) | Resolución acotada de posesivos en citas con destinatario explícito, sin cambiar Gemma |
 
 | [ADR-P-111](ADR-P-111-persistencia-y-control-del-motor.md) | Recuperación de memoria básica ante errores y detención de Gemma durante HTTP pendiente |
+
+| [ADR-P-112](ADR-P-112-espera-por-nombre-y-apagado.md) | Espera dirigida a Alice, pausa de conversación y apagado explícito del micrófono |

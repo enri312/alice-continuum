@@ -1,6 +1,6 @@
 # Operar y evaluar conversación y voz
 
-Actualizado: 2026-11-04. Turnos con reducción local de ruido; calidad conversacional y
+Actualizado: 2026-11-06. Espera dirigida con reducción local de ruido; calidad conversacional y
 aceptación con la voz del propietario todavía en validación.
 
 ## Preparación
@@ -26,22 +26,28 @@ autoriza al iniciar.
 ## Conversación automática por voz (recomendada)
 
 1. Abrir Alice con el lanzador actualizado (Node 26 LTS).
-2. En Conversación, pulsar **Iniciar conversación por voz**. El aviso visible
+2. En Conversación, pulsar **Iniciar escucha de Alice**. El aviso visible
    explica el procesamiento local y las respuestas enviadas a Fish. Si Windows
    solicita permiso de micrófono, concederlo para poder conversar.
-3. Hablar normalmente. Una pausa de un segundo termina el turno; también se puede
+3. Esperar **En espera · di Alice para hablarme**. Incluir «Alice» en cada frase
+   dirigida a ella: «Alice, abre Spotify» o «¿Me escuchas, Alice?». Una pausa de un
+   segundo termina el turno; también se puede
    pulsar **Terminé de hablar**. El audio se transcribe con Whisper local (Gemma
    como respaldo si no está instalado) y el mensaje se
-   procesa sin otras confirmaciones. Las respuestas se guardan en el historial
+   procesa sin otras confirmaciones sólo si contiene una llamada directa.
+   Las otras frases se descartan, sin chat, herramientas ni Fish. Las respuestas se guardan en el historial
    habitual; no se crean recuerdos confirmados automáticamente.
 4. Alice responde con Fish y vuelve a escuchar después de reproducir. El micrófono
    está apagado durante procesamiento y reproducción.
-5. Pulsar **Detener conversación** para terminar. Salir de la pantalla o cerrar
+5. Pulsar **Apagar micrófono** para terminar. Salir de la pantalla o cerrar
    Alice también detiene la sesión. Duración máxima: dos horas.
 
-También se puede decir **«Detén la conversación, Alice»** mientras aparezca
-**Te escucho**. Al transcribir la orden se detiene la sesión, sin generar una
-respuesta ni enviarla a Fish. No se guarda como mensaje del chat. Una cita como
+También se puede decir **«Detén la conversación, Alice»** mientras esté en espera.
+Al transcribir la orden vuelve a esperar otra llamada, manteniendo la sesión;
+reconoce la grafía «Detend» observada en la prueba del propietario. Para cerrar
+la captura y revocar la sesión, decir **«Apaga el micrófono, Alice»** o
+**«Deja de escuchar, Alice»**. No se generan respuestas ni envíos a Fish para
+esas órdenes y no se guardan como mensajes del chat. Una cita como
 «¿qué pasa si digo detén la conversación Alice?» no es una orden de parada.
 Mientras Alice procesa o habla, usar el botón: todavía no escucha interrupciones.
 
@@ -62,7 +68,8 @@ escuchar. No hay reintentos externos automáticos.
 Abrir **Último mensaje atendido** para comprobar lo que Alice entendió y cuánto
 tardó cada etapa. Los tiempos empiezan al terminar la grabación: excluyen tu voz
 y la pausa de cierre. El detalle sólo permanece en esta pantalla; las frases
-ignoradas por **Sólo si digo Alice** no se muestran ahí.
+ignoradas por no dirigirse a Alice no se muestran ahí. Este filtro opera sobre
+la transcripción; no es un detector acústico dedicado ni verifica quién habla.
 
 Whisper base está instalado en este equipo. Para reproducir la instalación,
 ejecutar `scripts/testing/install-whisper-local.ps1` desde PowerShell. Descarga
@@ -75,15 +82,14 @@ Alice no cambia silenciosamente de reconocedor. Ver
 
 1. Abrir **Audio de entrada**, actualizar la lista y elegir el micrófono cercano
    a la boca. No cambiar dispositivos mientras la captura está activa.
-2. Iniciar conversación y esperar **Te escucho**. El filtro se aplica antes de
+2. Iniciar la escucha y esperar **En espera · di Alice**. El filtro se aplica antes de
    grabar tanto aquí como en el dictado manual. Su estado confirma la preparación
    de la última toma, sin afirmar que el micrófono siga encendido.
 3. Probar primero sin música; después con Spotify/YouTube en la notebook y luego
    con música externa al mismo volumen habitual. Probar una frase corta, una
    larga, una pausa breve y la orden de detener. Comprobar palabras y latencia.
-4. Si se cuelan otras voces, probar **Sólo si digo Alice** antes de iniciar.
-   No verifica identidad: pide dirección al comienzo de cada frase y descarta el
-   resto antes del chat. Sin esa opción no se exige decir su nombre.
+4. La dirección explícita se exige por defecto, también en las frases siguientes.
+   No verifica identidad: otra voz que se dirija a Alice puede activarla.
 5. Si falla el filtro, detener, revisar dispositivo y volver a iniciar. No se
    conmuta a audio crudo de forma silenciosa.
 

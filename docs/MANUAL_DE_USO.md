@@ -97,7 +97,7 @@ el inicio autoriza el ciclo y **Detener conversación** lo termina.
 
 ### Proveedor recomendado actualmente
 
-- **Gemma 4 local:** modelo principal de conversación y visión. **Iniciar conversación por voz** prepara el motor antes de solicitar el micrófono.
+- **Gemma 4 local:** modelo principal de conversación y visión. **Iniciar escucha de Alice** prepara el motor antes de solicitar el micrófono.
 - **Whisper base local:** transcribe la voz en español por CPU. Gemma conserva la ruta de transcripción anterior si Whisper no está instalado. **Último mensaje atendido** permite revisar el texto reconocido y las demoras; si Fish falla, la respuesta queda en texto y Alice vuelve a escuchar.
 - **Ollama local:** ruta alternativa existente; no cargar otro modelo mientras Gemma esté activo.
 - **OpenRouter:** permanece desactivado por decisión del propietario.
@@ -116,16 +116,19 @@ aparece arriba y el cuadro de mensaje debajo. El estado indica qué operación
 está ocurriendo: micrófono apagado, captura, transcripción, preparación de la
 respuesta o reproducción de voz. Abrir el panel de voz no abre el micrófono.
 
-Para hablar sin revisar cada turno, pulsá **Iniciar conversación por voz**.
-Alice prepara Gemma, escucha y detecta una pausa de un segundo, transcribe la
-frase, responde con Fish y vuelve a escucharte. **Detener conversación** termina
-la sesión. El aviso al iniciar explica que Gemma procesa localmente y Fish recibe
-las respuestas. La sesión también termina al salir de la pantalla, cerrar Alice
-o llegar a dos horas. El micrófono se apaga mientras procesa o habla.
+Para hablar sin revisar cada turno, pulsá **Iniciar escucha de Alice**.
+Alice prepara Gemma y queda **En espera · di Alice para hablarme**. Detecta una
+pausa de un segundo, transcribe localmente y atiende sólo frases dirigidas a ella.
+Las otras frases se descartan. Una frase atendida usa Gemma y su respuesta se
+envía a Fish; después vuelve a esperar. **Apagar micrófono** termina la escucha.
+También termina al salir de la pantalla, cerrar Alice o llegar a dos horas.
+El micrófono se apaga mientras transcribe, procesa o habla.
 
-Cuando indique **Te escucho**, podés decir **«Detén la conversación, Alice»**.
-La sesión se detiene después de transcribir esa orden y muestra un aviso. Durante
-procesamiento o reproducción, usá el botón: todavía no hay interrupción por voz.
+En espera, **«Detén la conversación, Alice»** vuelve a esperar sin responder ni
+apagar el micrófono. También reconoce la grafía «Detend» observada en la prueba.
+**«Apaga el micrófono, Alice»** o **«Deja de escuchar, Alice»** cierran la sesión.
+Durante procesamiento o reproducción, usá el botón: todavía no hay interrupción
+por voz. Pausar la conversación no renueva el límite de dos horas.
 
 Para revisar y corregir antes de enviar, abrí **Dictado con revisión manual**.
 Ver [el runbook de voz](runbooks/03-conversacion-y-voz.md).
@@ -136,11 +139,12 @@ nombres pueden aparecer después de la primera toma. El filtro local funciona
 en ambos modos de voz y no requiere otra IA de conversación ni confirmaciones
 por turno. Durante su arranque aparece **Preparando micrófono y filtro**.
 
-Si hay voces de televisión, de otras personas o de una canción, activá antes de
-iniciar **Sólo si digo Alice** y empezá tus frases con «Alice» u «Hola, Alice».
-Es opcional: desactivada conserva la conversación habitual. Las frases que no
-se dirigen a Alice se descartan después de la transcripción local, sin entrar al
-chat ni enviarse a Fish. La orden de detener funciona en ambos casos.
+Incluí «Alice» en cada frase que quieras que atienda, por ejemplo «Alice, abre
+Spotify» o «¿Me escuchas, Alice?». Es el comportamiento predeterminado de esta
+primera espera dirigida. Las otras frases no entran al chat, herramientas ni Fish.
+No identifica quién habla: otra persona que formule una llamada directa puede
+activarla. Este filtro posterior a ASR no es un detector acústico de palabra clave.
+[Contrato de espera y apagado](decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
 
 El filtro reduce ruido y no identifica tu voz. La eliminación de música de la
 notebook depende de la cancelación de eco que confirme el equipo; la música
