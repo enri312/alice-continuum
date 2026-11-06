@@ -6,6 +6,8 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+Última mejora de fiabilidad: [recuperación de memoria y control de Gemma](testing/RELIABILITY_REPORT_2026-11-05.md), conservando Rust/Tauri y el alcance de conversación R9 sin cuerpo.
+
 Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
 
 ## Lectura recomendada

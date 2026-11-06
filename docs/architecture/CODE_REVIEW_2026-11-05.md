@@ -71,6 +71,12 @@ con dependencias dirigidas.
 
 ## Hallazgos
 
+**Actualización posterior a esta revisión:** P1 y P2 se corrigieron mediante
+[ADR-P-111](../decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+El [informe de fiabilidad](../testing/RELIABILITY_REPORT_2026-11-05.md) registra
+las regresiones y sus límites. Las descripciones siguientes conservan la
+reproducción sobre la base original; no describen el comportamiento corregido.
+
 ### P1 — Una operación básica puede devolver error después de cambiar la memoria
 
 En [records.rs](../../src-tauri/src/memory/records.rs#L33), el guardado copia el
@@ -152,15 +158,15 @@ fuera del alcance activo de R9.
 
 ## Continuación de la revisión
 
-Primero deben atenderse la consistencia de guardado/restauración y el control del
-motor durante inferencia. Después, ampliar la revisión semántica de permisos,
+Resueltos los dos hallazgos focales, queda ampliar la revisión semántica de permisos,
 tareas, habilidades y operaciones avanzadas de memoria según el inventario. La
 prueba real de conversación continúa siendo necesaria para R9.
 
 En esta pasada no se reestructuró la aplicación, no se cambiaron dependencias ni
 se modificó el icono que ya estaba en edición. No se repitió la suite completa:
 la base tiene sus verificaciones previas y aquí se añadieron sólo las dos sondas
-de fallo en una copia aislada. Los hallazgos siguen **pendientes de corrección**.
+de fallo en una copia aislada. Su corrección y validación posterior están
+documentadas en el informe de fiabilidad enlazado arriba.
 
 Evidencia local: `local/artifacts/architecture-review-2026-11-05/` contiene el
 snapshot, el inventario detallado y `persistence-probes.log`. Las pruebas de

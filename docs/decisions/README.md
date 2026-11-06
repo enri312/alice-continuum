@@ -87,3 +87,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-109](ADR-P-109-organizacion-local-y-ubuntu.md) | Recursos privados agrupados, rutas configurables y soporte inicial de Ubuntu |
 
 | [ADR-P-110](ADR-P-110-referencias-explicitas-en-citas.md) | Resolución acotada de posesivos en citas con destinatario explícito, sin cambiar Gemma |
+
+| [ADR-P-111](ADR-P-111-persistencia-y-control-del-motor.md) | Recuperación de memoria básica ante errores y detención de Gemma durante HTTP pendiente |

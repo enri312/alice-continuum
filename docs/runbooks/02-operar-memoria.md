@@ -21,6 +21,14 @@ Pulsar `Exportar memoria`. Alice crea una copia con fecha dentro de `memory/expo
 
 Pulsar `Restaurar respaldo` y confirmar. Antes de reemplazar la memoria vigente, Alice conserva una copia en `memory/backups/records.pre-restore.json`.
 
+Guardar y restaurar reemplazan `records.json` de forma atómica. Si falla la
+auditoría interna, recuperan los bytes anteriores; si la fuente no existía,
+retiran el archivo creado. El respaldo del guardado está en
+`memory/backups/records.backup.json`. Si el error informa que también falló la
+recuperación, cerrar Alice y seguir la recuperación manual antes de reintentar.
+Estos controles no equivalen a una transacción completa frente a cortes de energía.
+Véase [ADR-P-111](../decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+
 ## Recuperación manual
 
 Si la interfaz no puede abrir:

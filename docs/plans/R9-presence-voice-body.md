@@ -35,6 +35,13 @@ visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
 Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
 la conversación real. [ADR-P-110](../decisions/ADR-P-110-referencias-explicitas-en-citas.md).
 
+Fiabilidad 2026-11-05: el estado y la detención de Gemma ya no esperan al HTTP
+de chat; se cancelan las peticiones de una generación anterior. Guardar y
+restaurar memoria básica recuperan la fuente ante errores comunicados.
+[ADR-P-111](../decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+Estas correcciones no cierran la aceptación acústica ni la continuidad de cinco
+turnos: esa es la siguiente prueba con el propietario.
+
 ## Alcance activo: Alice antes de conectar un cuerpo
 
 Aclaración del propietario, 2026-11-04: el avatar es un cuerpo de salida para
