@@ -53,8 +53,12 @@ describe("frontera HTTP del servidor de desarrollo", () => {
   it("bloquea el nombre codificado y no filtra por cambios de mayúsculas", async () => {
     expect((await fetch(`${origin}/%64ata/records.json`)).status).toBe(403);
     const response = await fetch(`${origin}/DATA/records.json`);
-    expect(response.status).not.toBe(200);
-    expect(await response.text()).not.toContain(marker);
+    const content = await response.text();
+    expect(content).not.toContain(marker);
+    // Case-sensitive filesystems have no DATA directory and may return the SPA
+    // fallback (200). That must be the public fixture HTML, never private bytes.
+    if (response.status === 200) expect(content).toContain("<title>Alice fixture</title>");
+    else expect([403,404]).toContain(response.status);
   });
   it("mantiene disponibles la interfaz y los iconos públicos del proyecto", async () => {
     for (const route of ["/", "/icons/app.svg"]) {
