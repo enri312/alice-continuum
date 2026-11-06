@@ -21,8 +21,8 @@ describe("orden directa para detener la sesión", () => {
 });
 
 describe("dirección explícita con otras voces de fondo", () => {
-  it.each(["Alice, abre Spotify", "¡Hola, Alice! ¿Me escuchas?", "Oye Alice, baja el ruido", "Por favor, Alice, explícame esto", "¿Me escuchas, Alice?", "Reproduce mi música, Alice", "Dime, Alice", '¿Qué significa "hola", Alice?', "Alice, ¿qué dijo Marta?"])("admite %s", text => expect(isAddressedToAlice(text)).toBe(true));
-  it.each(["Esta canción habla de Alice", '"Alice, abre Spotify"', "Cuando diga Alice responde", "Alicia es mi amiga", "", "Hola a todos", "Alice es una asistente", "Alice me dijo hola", "Quiero hablar con Alice", "¿Puedes preguntarle a Alice?", "Me gusta Alice", 'Marta dijo: "abre Spotify, Alice"', "Me preguntó si me escuchas, Alice"])("ignora %s", text => expect(isAddressedToAlice(text)).toBe(false));
+  it.each(["Alice, abre Spotify", "¡Hola, Alice! ¿Me escuchas?", "Oye Alice, baja el ruido", "Por favor, Alice, explícame esto", "¿Me escuchas, Alice?", "Reproduce mi música, Alice", "Dime, Alice", '¿Qué significa "hola", Alice?', "Alice, ¿qué dijo Marta?", "Alice, ¿estás ahí?", "¿Dónde estás, Alice?"])("admite %s", text => expect(isAddressedToAlice(text)).toBe(true));
+  it.each(["Esta canción habla de Alice", '"Alice, abre Spotify"', "Cuando diga Alice responde", "Alicia es mi amiga", "", "Hola a todos", "Alice es una asistente", "Alice me dijo hola", "Quiero hablar con Alice", "¿Puedes preguntarle a Alice?", "Me gusta Alice", 'Marta dijo: "abre Spotify, Alice"', "Me preguntó si me escuchas, Alice", "Alice está funcionando", "Alice no es una persona", "Alice puede hablar", "¿Dónde está Alice?", "¿Qué dijo Alice?"])("ignora %s", text => expect(isAddressedToAlice(text)).toBe(false));
 });
 
 describe("apagado explícito del micrófono", () => {
