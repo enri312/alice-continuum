@@ -122,3 +122,5 @@ Los recuerdos reales, auditorías y respaldos viven en `data/`, fuera de `docs/`
 [Instalación Ubuntu](runbooks/04-ubuntu.md) · [Organización y pruebas](testing/ORGANIZATION_UBUNTU_REPORT_2026-11-04.md) · [ADR-P-109](decisions/ADR-P-109-organizacion-local-y-ubuntu.md)
 
 [Conversación: referencias explícitas, 5 de noviembre](testing/CONVERSATION_REFERENCES_REPORT_2026-11-05.md).
+
+[Revisión de arquitectura y código, 5 de noviembre](architecture/CODE_REVIEW_2026-11-05.md) · [Inventario y alcance de lectura](architecture/CODE_REVIEW_INVENTORY_2026-11-05.md).

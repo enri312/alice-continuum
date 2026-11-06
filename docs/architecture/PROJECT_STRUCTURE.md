@@ -1,5 +1,9 @@
 # Estructura del proyecto
 
+[Revisión estructural con hallazgos, 5 de noviembre de 2026](CODE_REVIEW_2026-11-05.md).
+El inventario registra por separado lectura automática y revisión focal; las
+pruebas aprobadas no equivalen a una auditoría manual completa de cada línea.
+
 Organización 2026-11-04 — [ADR-P-109](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md):
 los recursos privados se agrupan en `local/`; se conservan las carpetas
 convencionales de Tauri, Rust y Vite. `runtime_paths.rs` concentra rutas nativas
