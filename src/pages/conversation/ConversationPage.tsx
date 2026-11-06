@@ -157,8 +157,8 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const newestExchangeId = messages.at(-1)?.exchangeId;
   const visibleMessages = showFullHistory ? messages : visibleConversationMessages(messages);
   const voiceBusy = ["requesting", "recording", "transcribing"].includes(voiceCaptureState);
-  const handsFreeLabels: Partial<Record<VoiceLoopState, string>> = { preparing: "Preparando la conversación", listening: "Te escucho", transcribing: "Entendiendo tu frase", thinking: "Alice está respondiendo", synthesizing: "Preparando la voz", speaking: "Alice está hablando" };
-  const turnStatus = handsFreeActive ? { label: handsFreeLabels[handsFreeState] ?? "Conversación activa", tone: handsFreeState === "listening" ? "recording" : handsFreeState === "speaking" ? "speaking" : "busy" }
+  const handsFreeLabels: Partial<Record<VoiceLoopState, string>> = { preparing: "Preparando la escucha", standby: "En espera · di Alice", transcribing: "Entendiendo tu frase", thinking: "Alice está respondiendo", synthesizing: "Preparando la voz", speaking: "Alice está hablando" };
+  const turnStatus = handsFreeActive ? { label: handsFreeLabels[handsFreeState] ?? "Conversación activa", tone: handsFreeState === "standby" ? "recording" : handsFreeState === "speaking" ? "speaking" : "busy" }
     : voiceCaptureState === "recording" ? { label: "Te escucho", tone: "recording" }
     : voiceCaptureState === "transcribing" ? { label: "Transcribiendo tu voz", tone: "busy" }
     : voiceCaptureState === "requesting" ? { label: "Preparando el micrófono", tone: "busy" }

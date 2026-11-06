@@ -1,6 +1,6 @@
 import { processMicrophone } from "../../../src/core/voice/noise-pipeline";
 import { SpeechEndpoint } from "../../../src/core/voice/speech-endpoint";
-import speechUrl from "../../../local/artifacts/voice-noise-2026-11-04/synthetic-speech.wav?url";
+import speechUrl from "../.fixtures/synthetic-speech.wav?url";
 
 const status = document.querySelector("#status")!;
 const results = document.querySelector("#results")!;

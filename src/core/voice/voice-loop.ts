@@ -1,8 +1,8 @@
 import type { VoiceTurnTranscript } from "./voice-input";
 import type { VoiceOutputResult } from "./voice-output";
-import { isVoiceStopCommand } from "./voice-commands";
+import { isAddressedToAlice, isMicrophoneOffCommand, isVoiceStopCommand } from "./voice-commands";
 
-export type VoiceLoopState = "idle" | "preparing" | "arming" | "listening" | "transcribing" | "thinking" | "synthesizing" | "speaking" | "error";
+export type VoiceLoopState = "idle" | "preparing" | "arming" | "standby" | "transcribing" | "thinking" | "synthesizing" | "speaking" | "error";
 type Turn = { exchangeId: string };
 export type VoiceTurnObservation = {
   transcript: string;
@@ -79,7 +79,7 @@ export class VoiceLoop {
     this.capture = capture;
     this.ports.onState("arming");
     await capture.start();
-    if (this.current(generation) && this.capture === capture) this.ports.onState("listening");
+    if (this.current(generation) && this.capture === capture) this.ports.onState("standby");
   }
 
   private async turn(take: Blob, generation: number) {
@@ -100,11 +100,16 @@ export class VoiceLoop {
       const transcript = await this.ports.transcribe(take, id);
       if (!this.current(generation)) return;
       if (transcript.noSpeech) { await this.listen(generation); return; }
-      if (isVoiceStopCommand(transcript.text)) {
-        this.stop("Conversación detenida por voz. El micrófono está apagado.");
+      if (isMicrophoneOffCommand(transcript.text)) {
+        this.stop("Micrófono apagado por voz. La sesión terminó.");
         return;
       }
-      if (this.ports.acceptTranscript && !this.ports.acceptTranscript(transcript.text)) {
+      if (isVoiceStopCommand(transcript.text)) {
+        this.ports.onNotice?.("Conversación detenida. Sigo en espera: dirigite a Alice para hablar otra vez. Para cerrar la escucha, decí «Apaga el micrófono, Alice».");
+        await this.listen(generation);
+        return;
+      }
+      if (!(this.ports.acceptTranscript ?? isAddressedToAlice)(transcript.text)) {
         await this.listen(generation); return;
       }
       const transcribed = now();

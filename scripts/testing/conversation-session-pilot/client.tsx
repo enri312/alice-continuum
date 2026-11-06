@@ -44,12 +44,14 @@ function Pilot() {
   const environment: CaptureEnvironment = {
     getMicrophone: async () => {
       const index = fixture.current++;
-      if (index >= 3) throw Error("Se agotaron las frases sintéticas sin reconocer la parada de voz.");
-      const metadata = await (await fetch('/local/artifacts/conversation-session-2026-11-04/fixture-meta.json')).json();
-      if(!metadata.ready)throw Error("Las muestras españolas todavía no están preparadas.");
       const context = new AudioContext({sampleRate:48000}); inputContext.current = context;
       await context.resume();
-      const spoken = await context.decodeAudioData(await (await fetch(`/local/artifacts/conversation-session-2026-11-04/fixture-${index}.wav`)).arrayBuffer());
+      // After the stop-conversation sample, remain in silent standby until the
+      // operator explicitly switches the microphone off. Never use a physical input.
+      if (index >= 3) return context.createMediaStreamDestination().stream;
+      const metadata = await (await fetch('/scripts/testing/.fixtures/fixture-meta.json')).json();
+      if(!metadata.ready)throw Error("Prepará las muestras con node scripts/testing/prepare-voice-fixtures.mjs.");
+      const spoken = await context.decodeAudioData(await (await fetch(`/scripts/testing/.fixtures/fixture-${index}.wav`)).arrayBuffer());
       const padded = context.createBuffer(1, spoken.length + 3*48000, 48000);
       padded.copyToChannel(spoken.getChannelData(0),0,72000);
       const source = context.createBufferSource(); source.buffer = padded;
@@ -67,9 +69,10 @@ function Pilot() {
     },
   };
   const stopped = state === "idle" && counts.current.revoked;
-  const passed = stopped && counts.current.responses === 2 && counts.current.voices === 2 && counts.current.transcripts.length === 3 && isVoiceStopCommand(lastTranscript.current);
+  const paused = state === "standby" && !counts.current.revoked;
+  const passed = paused && counts.current.responses === 2 && counts.current.voices === 2 && counts.current.transcripts.length === 3 && isVoiceStopCommand(lastTranscript.current);
   return <main><h1>Alice · prueba de conversación por voz</h1>
-    <p>Datos separados. Tres frases sintéticas atraviesan el filtro, la transcripción local y la sesión real con Gemma; las dos respuestas se envían a Fish y se reproducen. No se abre el micrófono físico. La tercera frase debe detener la sesión.</p>
+    <p>Datos separados. Primero ejecutá node scripts/testing/prepare-voice-fixtures.mjs. Tres frases sintéticas atraviesan el filtro y la transcripción local; las dos respuestas Gemma usan Fish. La tercera frase debe volver a espera sin revocar la sesión. «Apagar micrófono» la cierra. No se abre el micrófono físico.</p>
     <HandsFreeVoice desktopApp disabled={false} captureEnvironment={environment}
       onStart={async()=>{
         fixture.current=0; history.current=[]; counts.current={transcripts:[],responses:0,voices:0,revoked:false};setLog([]);

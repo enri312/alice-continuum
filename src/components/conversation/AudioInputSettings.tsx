@@ -30,6 +30,6 @@ export function AudioInputSettings({ disabled, deviceId, onDeviceChange, status 
     </div>
     {message && <p role="status">{message}</p>}
     {status && <p>Última toma preparada con filtro: {status.microphone}. {status.systemEcho ? "El equipo confirmó cancelación del sonido del sistema." : "El equipo no confirmó cancelación de toda la música del sistema."}</p>}
-    <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. Con otras voces de fondo puedes activar la opción «Sólo si digo Alice».</p>
+    <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende sólo frases dirigidas a Alice; las demás se descartan tras la transcripción local.</p>
   </details>;
 }

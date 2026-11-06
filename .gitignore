@@ -15,6 +15,7 @@ data/*
 /.openchamber/
 /scratch/
 /artifacts/
+/scripts/testing/.fixtures/
 docs/*.docx
 
 # Avatares privados: se cargan localmente y no se redistribuyen con Alice.
