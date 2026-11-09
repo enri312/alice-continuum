@@ -1,5 +1,10 @@
 # Arrancar Alice localmente
 
+Ubicación actual en Windows: `D:\Alice Continuum`. El lanzador obtiene su propia
+carpeta y utiliza `D:\Alice Continuum\data`; no hay que copiar datos desde la
+ubicación anterior para iniciar. Tras el traslado se validó el entorno con
+`--check`. Véase la [validación de recuperación](../testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
+
 Entorno validado desde 2026-11-03: **Node 26.13.0 LTS y npm 11.20.0**.
 La versión del proyecto está en `.node-version` y el lanzador verifica la rama 26.
 La instalación del equipo se actualizó mediante el MSI oficial firmado de OpenJS.

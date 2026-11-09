@@ -84,6 +84,13 @@ su sesión iniciada. Falta aceptar las órdenes habladas y la escucha con músic
 de inferencia aisladas no sustituyen la medición de latencia del turno completo.
 Ver [informe de latencia y música](../testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
+Recuperación del 2026-11-09: cambios Ubuntu conservados en el checkpoint remoto
+`7e796ee`, datos y recursos privados copiados a otro volumen y validación Windows
+desde `D:\Alice Continuum` completada. La validación Linux se ajusta a Ubuntu
+26.04 por el requisito de GStreamer para grabar WebM/Opus. Esto no cambia las
+casillas de aceptación humana anteriores.
+[Informe de recuperación y pendientes](../testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
+
 ## Propósito
 
 R9 conecta formas de presencia de Alice sin convertir el avatar en una fuente de

@@ -1,8 +1,8 @@
 # Manual de uso de Alice Continuum
 
-**Actualización de interfaz y conversación:** 4 de noviembre de 2026; los apartados históricos conservan sus alcances documentados.  
+**Actualización de rutas y controles:** 9 de noviembre de 2026; los apartados históricos conservan sus alcances documentados.  
 **Dirigido a:** Carlos Nuñez, propietario y operador de Alice  
-**Carpeta canónica:** `E:\Alice Cognitive Core`
+**Carpeta canónica en Windows:** `D:\Alice Continuum`
 
 Este manual explica **qué hace cada parte visible**, cuándo conviene usarla y qué
 consecuencias tiene cada acción. No hace falta conocer TypeScript, Rust ni los
@@ -33,7 +33,7 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 
 ## 1. Inicio rápido
 
-1. Abrí `E:\Alice Cognitive Core`.
+1. Abrí `D:\Alice Continuum`.
 2. Hacé doble clic en **Iniciar Alice Continuum.cmd**.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
@@ -43,7 +43,7 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 Para revisar el entorno sin abrir la aplicación:
 
 ```powershell
-& 'E:\Alice Cognitive Core\Iniciar Alice Continuum.cmd' --check
+& 'D:\Alice Continuum\Iniciar Alice Continuum.cmd' --check
 ```
 
 Si Alice ya está abierta, no vuelvas a iniciar otra instancia. El lanzador protege
@@ -66,8 +66,8 @@ revisar y **Actividad** si querés comprobar qué ocurrió.
 
 ## 3. Conversación escrita con revisión
 
-Para conversar hablando sin confirmar cada turno, usá **Iniciar conversación por
-voz**, explicado en el apartado siguiente.
+Para conversar hablando sin confirmar cada turno, usá **Iniciar escucha de
+Alice**, explicado en el apartado siguiente.
 
 1. En **Configuración**, elegí el proveedor y el modelo.
 2. En **Conversación**, escribí el mensaje.
@@ -93,7 +93,7 @@ voz**, explicado en el apartado siguiente.
    todavía el estado emocional actual de Alice.
 
 La vista previa corresponde al modo escrito/manual. En una sesión de voz,
-el inicio autoriza el ciclo y **Detener conversación** lo termina.
+el inicio autoriza el ciclo y **Apagar micrófono** lo termina.
 
 ### Proveedor recomendado actualmente
 
@@ -483,8 +483,8 @@ activo, ejecutá primero `Iniciar Alice Continuum.cmd --check` y no finalices pr
 Los datos operativos están bajo:
 
 ```text
-E:\Alice Cognitive Core\data
-E:\Alice Cognitive Core\data\memory
+D:\Alice Continuum\data
+D:\Alice Continuum\data\memory
 ```
 
 Reglas de seguridad:

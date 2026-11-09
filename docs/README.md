@@ -20,6 +20,8 @@ R9 Ubuntu: [mediciones de latencia, Spotify y playlist privada de YouTube](testi
 
 Ubicación actual: **Datos → Alice Continuum**. [Recuperación y traslado al volumen Datos](testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
 
+Windows: **D:\Alice Continuum**. [Respaldo remoto, copia privada y validación posterior a la recuperación](testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
+
 Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
 
 ## Lectura recomendada

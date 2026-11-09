@@ -3,8 +3,8 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 5 de noviembre de 2026:** prototipo funcional, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.60**.
+**Estado al 9 de noviembre de 2026:** proyecto recuperado en `D:\Alice Continuum`, R9 en progreso.
+La versión del producto es **0.1.0** y el documento maestro **0.63**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -16,7 +16,7 @@ proyecto anterior Alice Cognitive Core.
 |---|---|
 | Conversación | Gemma 4 E2B local mediante llama.cpp, con diálogo reciente y recuerdos recuperables. Los referentes ambiguos siguen en evaluación. |
 | Voz por turnos | RNNoise reduce ruido, Whisper base CPU transcribe español, Gemma responde y Fish Audio sintetiza. Una acción inicia la sesión; no se confirma cada turno. |
-| Parada y continuidad | «Detén la conversación, Alice» funciona durante escucha. Botón de parada en cualquier etapa, rechazo de respuestas tardías y respuesta en texto si falla la voz. |
+| Espera y continuidad | Las frases dirigidas a Alice se atienden tras la transcripción local. «Detén la conversación, Alice» vuelve a espera; «Apaga el micrófono, Alice» cierra la sesión. Rechazo de respuestas tardías y recuperación en texto si falla la voz. |
 | Memoria y RAG | Memoria confirmada y selección automática de citas útiles en almacenes separados. Se puede pausar, corregir y retirar del contexto; no se entrenan pesos por conversar. |
 | Cámara y escritorio | Fuentes seleccionables en Conversación, procesadas por Gemma mientras están activas. Fotogramas efímeros; no identifica personas ni abre archivos cerrados. |
 | Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
@@ -38,14 +38,14 @@ Evidencia: [sesión y cancelación](docs/testing/CONVERSATION_SESSION_REPORT_202
 ## Conversar con Alice
 
 1. Abrir **Iniciar Alice Continuum.cmd** y entrar en **Conversación**.
-2. Elegir el micrófono en **Audio de entrada** y pulsar **Iniciar conversación por voz**.
-3. Hablar y dejar una pausa de un segundo. Alice procesa el turno, responde y vuelve a escuchar.
+2. Elegir el micrófono en **Audio de entrada** y pulsar **Iniciar escucha de Alice**.
+3. Incluir «Alice» en cada frase que se quiera atender y dejar una pausa de un segundo. Alice procesa el turno, responde y vuelve a esperar.
 4. Si entendió algo mal, revisar **Último mensaje atendido**, que muestra el texto y las demoras de cada etapa.
-5. Decir **«Detén la conversación, Alice»** mientras escucha, o pulsar **Detener conversación** en cualquier momento.
+5. Decir **«Detén la conversación, Alice»** para volver a espera. **«Apaga el micrófono, Alice»** o el botón **Apagar micrófono** cierran la escucha.
 
 El micrófono está apagado durante procesamiento y reproducción. Todavía no hay
 interrupción hablando mientras Alice responde ni activación dedicada por nombre.
-**Sólo si digo Alice** es un filtro opcional de dirección del mensaje; no verifica
+La dirección a Alice se exige por defecto después de transcribir; no verifica
 la identidad del hablante. El dictado manual con revisión sigue disponible.
 
 [Procedimiento completo de voz y conversación](docs/runbooks/03-conversacion-y-voz.md).
@@ -71,8 +71,13 @@ npm ci
 
 El lanzador valida el entorno, evita instancias duplicadas y usa el puerto fijo
 5173. Mantiene los datos en `data/` mediante `ALICE_DATA_DIR` y comparte el caché
-Rust `.cargo-target`. La instalación actual permanece en `E:\Alice Cognitive Core`.
+Rust `.cargo-target`. La instalación actual está en `D:\Alice Continuum`.
 Un clon nuevo requiere configurar las rutas de sus recursos locales.
+
+La [validación Windows de la recuperación](docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md)
+registra el checkpoint remoto y la copia privada de datos y recursos en otro disco.
+Los datos personales, claves, modelos y activos privados quedan fuera de Git;
+el commit y su copia remota respaldan el código y la documentación.
 
 Gemma y su proyector multimodal se instalan fuera de Git. La configuración de
 esta notebook usa llama.cpp y modelos bajo `D:\Alice-model-evaluation`; no se
