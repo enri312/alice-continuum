@@ -59,6 +59,16 @@ describe("captura efímera por turnos", () => {
     expect(f.events.onStarted).not.toHaveBeenCalled();
   });
 
+  it("explica en español un rechazo del permiso sin iniciar la grabación", async () => {
+    const f = fixture();
+    f.environment.getMicrophone = vi.fn().mockRejectedValue(new DOMException("The request is not allowed", "NotAllowedError"));
+    await f.capture.start();
+    expect(f.events.onError).toHaveBeenCalledWith(expect.stringContaining("el permiso fue rechazado"));
+    expect(f.environment.createRecorder).not.toHaveBeenCalled();
+    expect(f.events.onStarted).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it("descarta la toma y no entrega callbacks pendientes tras cancelar", async () => {
     const f = fixture();
     await f.capture.start();

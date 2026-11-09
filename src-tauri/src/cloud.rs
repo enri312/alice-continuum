@@ -680,7 +680,12 @@ async fn send_cloud_message_inner(
             None
         };
         if let Some(target) = target {
-            let text = crate::desktop_actions::execute(app, target)?;
+            let action_app = app.clone();
+            let text = tauri::async_runtime::spawn_blocking(move || {
+                crate::desktop_actions::execute(&action_app, target)
+            })
+            .await
+            .map_err(|_| "Se interrumpió la apertura de la aplicación")??;
             if target == crate::desktop_actions::DesktopTarget::Spotify {
                 use tauri::Manager;
                 app.state::<crate::media_actions::MediaPlaybackStore>()
@@ -690,7 +695,12 @@ async fn send_cloud_message_inner(
                 text,
                 provider: "Acción local autorizada".into(),
                 model: if direct.is_some() {
-                    "Spotify · unidades D y E".into()
+                    if cfg!(target_os = "linux") {
+                        "Spotify · Ubuntu"
+                    } else {
+                        "Spotify · unidades D y E"
+                    }
+                    .into()
                 } else {
                     format!("{} · tool calling", crate::local_inference::GEMMA_MODEL)
                 },

@@ -19,7 +19,7 @@ proyecto anterior Alice Cognitive Core.
 | Parada y continuidad | «Detén la conversación, Alice» funciona durante escucha. Botón de parada en cualquier etapa, rechazo de respuestas tardías y respuesta en texto si falla la voz. |
 | Memoria y RAG | Memoria confirmada y selección automática de citas útiles en almacenes separados. Se puede pausar, corregir y retirar del contexto; no se entrenan pesos por conversar. |
 | Cámara y escritorio | Fuentes seleccionables en Conversación, procesadas por Gemma mientras están activas. Fotogramas efímeros; no identifica personas ni abre archivos cerrados. |
-| Spotify y PC | Abrir Spotify y las raíces D:/E:, reproducir Tus me gusta, pausar y continuar. Spotify se comprobó desde Alice. YouTube en Chrome está implementado, con aceptación de reproducción real pendiente. |
+| Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
 | Núcleo observable | Nodos respaldados por recuerdos reales, procedencia y actividad técnica. Las formas cerebrales son ilustrativas. |
 | Gobierno y diagnóstico | Registro de capacidades, permisos delimitados, auditoría local, tareas y habilidades separadas del diálogo. No hay control general del PC. |
 
@@ -110,9 +110,16 @@ Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
 La memoria sigue en `data/`; los motores actuales permanecen en D:.
 
 Ubuntu dispone de lanzador Bash, dependencias nativas delimitadas y rutas
-configurables para Gemma, Whisper y Python. Las funciones de escritorio y música
-que usan las API de Windows siguen pendientes de portado. Audio, cámara e
-inferencia requieren aceptación en el equipo Ubuntu real.
+configurables para Gemma, Whisper y Python. El 6 de noviembre se instalaron y
+verificaron en Ubuntu 26.04.1 los motores Linux, Gemma con Vulkan, Whisper y el
+arranque nativo. Python y el caché Rust Linux se separan de Windows. Se confirmó
+un turno real con micrófono, Gemma y voz Fish. Ubuntu incorpora Spotify Tus me
+gusta y el control de la playlist de YouTube mediante un perfil Chrome propio.
+Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows.
+
+[Preparación Ubuntu para R9 y resultados](docs/testing/UBUNTU_R9_SETUP_REPORT_2026-11-06.md).
+
+[Latencia de Gemma y música en Ubuntu](docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 [Instalación Ubuntu y matriz de compatibilidad](docs/runbooks/04-ubuntu.md) ·
 [Organización y verificación](docs/testing/ORGANIZATION_UBUNTU_REPORT_2026-11-04.md)

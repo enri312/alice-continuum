@@ -9,7 +9,8 @@ import time
 root = Path(__file__).resolve().parents[2]
 with tempfile.TemporaryDirectory(prefix="alice-ubuntu-smoke-") as temporary:
     env = {**os.environ, "ALICE_DATA_DIR": temporary}
-    binary = root / ".cargo-target/debug/alice-continuum"
+    target = Path(os.environ.get("CARGO_TARGET_DIR", str(root / ".cargo-target/linux")))
+    binary = target / "debug/alice-continuum"
     process = subprocess.Popen([str(binary)], env=env)
     try:
         time.sleep(10)

@@ -167,6 +167,23 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
     }
     let operation = verb_operation(&verb.text)?;
     from += 1;
+    let mut browser_play = false;
+    if operation == MediaOperation::Open {
+        let mut browser = from;
+        if all.get(browser).is_some_and(|w| w.text == "el") {
+            browser += 1;
+        }
+        if all
+            .get(browser)
+            .is_some_and(|w| matches!(w.text.as_str(), "navegador" | "chrome"))
+            && all.get(browser + 1).is_some_and(|w| w.text == "y")
+            && all.get(browser + 2).and_then(|w| verb_operation(&w.text))
+                == Some(MediaOperation::Play)
+        {
+            browser_play = true;
+            from = browser + 3;
+        }
+    }
     if operation == MediaOperation::Open {
         for _ in 0..2 {
             if all.get(from).and_then(|w| verb_operation(&w.text)) == Some(operation) {
@@ -225,7 +242,14 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
         }
     }
     // Opening and playing the same explicit service is one bounded operation.
-    let mut operation = operation;
+    if browser_play && service != Some(MediaService::Youtube) {
+        return None;
+    }
+    let mut operation = if browser_play {
+        MediaOperation::Play
+    } else {
+        operation
+    };
     if operation == MediaOperation::Open && from < end && all[from].text == "y" {
         from += 1;
         if verb_operation(&all.get(from)?.text) == Some(MediaOperation::Play) {
@@ -236,17 +260,20 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
         }
     }
     let mut explicit_song = false;
+    let mut explicit_playlist = false;
     if from < end
-        && all[from].text == "la"
+        && matches!(all[from].text.as_str(), "la" | "el")
         && all
             .get(from + 1)
             .is_some_and(|w| w.text == "cancion" || w.text == "playlist")
     {
         explicit_song = true;
+        explicit_playlist = all[from + 1].text == "playlist";
         from += 2;
     }
     if from < end && matches!(all[from].text.as_str(), "cancion" | "playlist") {
         explicit_song = true;
+        explicit_playlist = all[from].text == "playlist";
         from += 1;
     }
     let query = (from < end).then(|| {
@@ -274,6 +301,13 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
         title.trim().to_string()
     });
     let query = query.filter(|q| !q.is_empty());
+    let query = query.map(|q| {
+        if explicit_playlist && !likes(&folded(&q)) {
+            format!("playlist {q}")
+        } else {
+            q
+        }
+    });
     if service.is_none() && query.as_deref().is_some_and(|q| likes(&folded(q))) {
         service = Some(MediaService::Spotify);
     }
@@ -548,10 +582,20 @@ pub(crate) async fn execute(
         check()?;
         match service {
             MediaService::Spotify=>{
+                #[cfg(target_os = "linux")]
+                { crate::media_linux::spotify(operation_kind,query,check).map(|text|(text,None)) }
+                #[cfg(not(target_os = "linux"))]
+                {
                 if operation_kind==MediaOperation::Play && query.as_ref().is_some_and(|q|!likes(&folded(q))){return Err("En Spotify tengo preparada la colección Tus me gusta. Pide esa colección o reanudar la reproducción actual.".into());}
                 crate::media_windows::spotify(operation_kind,check).map(|text|(text,None))
+                }
             }
-            MediaService::Youtube=>crate::media_windows::youtube(operation_kind,query,previous_video,check),
+            MediaService::Youtube=>{
+                #[cfg(target_os = "linux")]
+                { crate::media_linux::youtube(operation_kind,query,previous_video,check) }
+                #[cfg(not(target_os = "linux"))]
+                { crate::media_windows::youtube(operation_kind,query,previous_video,check) }
+            },
         }
     }).await.map_err(|e|e.to_string())?;
     if let Ok((_, video_id)) = &execution {
@@ -587,6 +631,73 @@ pub(crate) async fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn named_playlists_and_browser_open_requests_keep_their_scope() {
+        let playlist =
+            parse_request("Alice, reproduce la playlist Musica para estudiar en YouTube").unwrap();
+        assert_eq!(playlist.service, Some(MediaService::Youtube));
+        assert_eq!(
+            playlist.query.as_deref(),
+            Some("playlist Musica para estudiar")
+        );
+        let liked = parse_request("Alice, reproduce el playlist Tus me gusta en Spotify").unwrap();
+        assert_eq!(liked.query, None);
+        let browser =
+            parse_request("Alice, abre el navegador y reproduce Numb de Linkin Park en YouTube")
+                .unwrap();
+        assert_eq!(browser.operation, MediaOperation::Play);
+        assert_eq!(browser.query.as_deref(), Some("Numb de Linkin Park"));
+        assert!(parse_request("abre el navegador y reproduce algo en otro sitio").is_none());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    #[ignore = "Real Spotify account and Alice's Chrome profile; isolated ALICE_DATA_DIR required"]
+    fn live_linux_owned_music_acceptance() {
+        let completed = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let outcome = completed.clone();
+        let data = std::env::var("ALICE_DATA_DIR").expect("isolated ALICE_DATA_DIR required");
+        assert!(std::path::Path::new(&data).starts_with(std::env::temp_dir()));
+        assert!(std::env::var("ALICE_YOUTUBE_PLAYLIST_URL").is_ok());
+        let mut context = tauri::generate_context!();
+        for window in &mut context.config_mut().app.windows {
+            window.visible = false;
+        }
+        let exit_code = tauri::Builder::default()
+            .any_thread()
+            .manage(MediaPlaybackStore::default())
+            .setup(move |app| {
+                let handle = app.handle().clone();
+                let outcome = outcome.clone();
+                tauri::async_runtime::spawn(async move {
+                    let check: CancellationCheck = Arc::new(|| Ok(()));
+                    for text in [
+                        "Alice, abre Spotify y reproduce Tus me gusta",
+                        "Alice, reproduce Tus me gusta en Spotify",
+                        "Alice, pausa Spotify",
+                        "Alice, reproduce mi playlist en YouTube",
+                        "Alice, pausa YouTube",
+                        "Alice, continua YouTube",
+                    ] {
+                        let result =
+                            execute(&handle, parse_request(text).unwrap(), check.clone()).await;
+                        println!("LINUX_MEDIA_ACCEPTANCE: {result:?}");
+                        if result.is_err() {
+                            handle.exit(1);
+                            return;
+                        }
+                    }
+                    outcome.store(true, std::sync::atomic::Ordering::Release);
+                    handle.exit(0);
+                });
+                Ok(())
+            })
+            .build(context)
+            .unwrap()
+            .run_return(|_, _| {});
+        assert_eq!(exit_code, 0);
+        assert!(completed.load(std::sync::atomic::Ordering::Acquire));
+    }
     #[test]
     fn actual_failed_voice_phrases_now_select_the_spotify_collection() {
         for text in [

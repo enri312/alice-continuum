@@ -203,11 +203,33 @@ pub(crate) fn client() -> Result<reqwest::Client, String> {
 }
 
 async fn check_ollama(client: &reqwest::Client) -> Result<(), String> {
-    let response = client
-        .get("http://127.0.0.1:11434/api/ps")
-        .send()
-        .await
-        .map_err(|_| "No se pudo verificar Ollama; inicio cancelado para evitar dos modelos")?;
+    check_ollama_at(client, "http://127.0.0.1:11434/api/ps").await
+}
+
+fn connection_refused(error: &(dyn std::error::Error + 'static)) -> bool {
+    let mut current = Some(error);
+    while let Some(error) = current {
+        if let Some(io) = error.downcast_ref::<std::io::Error>() {
+            return io.kind() == std::io::ErrorKind::ConnectionRefused;
+        }
+        current = error.source();
+    }
+    false
+}
+
+async fn check_ollama_at(client: &reqwest::Client, endpoint: &str) -> Result<(), String> {
+    let response = match client.get(endpoint).send().await {
+        Ok(response) => response,
+        // A refused loopback connection means no Ollama service is listening.
+        // Timeouts, permissions, malformed replies and other unknown states
+        // still block: installing Ollama is not a prerequisite for llama.cpp.
+        Err(error) if connection_refused(&error) => return Ok(()),
+        Err(_) => {
+            return Err(
+                "No se pudo verificar Ollama; inicio cancelado para evitar dos modelos".into(),
+            )
+        }
+    };
     if !response.status().is_success() {
         return Err("No se pudo verificar el estado de Ollama".into());
     }
@@ -506,6 +528,86 @@ mod tests {
         std::thread::sleep(Duration::from_secs(30));
     }
 
+    #[cfg(target_os = "linux")]
+    #[test]
+    #[ignore = "owned parent fixture; launched by Unix shutdown regression"]
+    fn termination_parent_fixture() {
+        use std::io::Write;
+        let runtime = fixture_runtime();
+        let child_pid = runtime.snapshot().unwrap().owned_pid.unwrap();
+        crate::linux_lifecycle::install_with(move || {
+            runtime.stop().unwrap();
+            std::process::exit(0);
+        })
+        .unwrap();
+        println!("ALICE_CHILD_PID={child_pid}");
+        std::io::stdout().flush().unwrap();
+        loop {
+            std::thread::park();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn unix_termination_stops_and_reaps_only_the_owned_engine() {
+        use std::io::{BufRead, BufReader};
+        for signal in ["-TERM", "-INT", "-HUP"] {
+            let mut parent = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "local_inference::tests::termination_parent_fixture",
+                    "--ignored",
+                    "--nocapture",
+                ])
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .unwrap();
+            let stdout = parent.stdout.take().unwrap();
+            let (ready_tx, ready_rx) = mpsc::sync_channel(1);
+            let reader = std::thread::spawn(move || {
+                for line in BufReader::new(stdout).lines() {
+                    let line = line.unwrap();
+                    if let Some((_, pid)) = line.split_once("ALICE_CHILD_PID=") {
+                        ready_tx.send(pid.trim().parse::<u32>().unwrap()).unwrap();
+                        break;
+                    }
+                }
+            });
+            let child_pid = match ready_rx.recv_timeout(Duration::from_secs(5)) {
+                Ok(pid) => pid,
+                Err(error) => {
+                    let _ = parent.kill();
+                    let _ = parent.wait();
+                    panic!("shutdown fixture not ready: {error}");
+                }
+            };
+            reader.join().unwrap();
+            assert!(Command::new("kill")
+                .args([signal, &parent.id().to_string()])
+                .status()
+                .unwrap()
+                .success());
+            let deadline = Instant::now() + Duration::from_secs(5);
+            loop {
+                if let Some(status) = parent.try_wait().unwrap() {
+                    assert!(status.success(), "{signal}: {status}");
+                    break;
+                }
+                if Instant::now() >= deadline {
+                    let _ = parent.kill();
+                    let _ = parent.wait();
+                    panic!("shutdown did not finish for {signal}");
+                }
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            assert!(
+                !std::path::Path::new(&format!("/proc/{child_pid}")).exists(),
+                "owned child survived {signal}"
+            );
+        }
+    }
+
     #[test]
     fn pending_http_does_not_block_status_or_owned_shutdown() {
         use std::io::{Read, Write};
@@ -668,6 +770,62 @@ mod tests {
         }
     }
     #[test]
+    fn only_connection_refused_counts_as_an_absent_ollama_service() {
+        use std::io::{Error, ErrorKind};
+        assert!(connection_refused(&Error::from(
+            ErrorKind::ConnectionRefused
+        )));
+        for kind in [
+            ErrorKind::PermissionDenied,
+            ErrorKind::TimedOut,
+            ErrorKind::ConnectionReset,
+            ErrorKind::NotFound,
+        ] {
+            assert!(!connection_refused(&Error::from(kind)));
+        }
+    }
+    #[test]
+    fn absent_ollama_does_not_require_installing_a_second_inference_engine() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("http://{}/api/ps", listener.local_addr().unwrap());
+        drop(listener);
+        assert!(
+            tauri::async_runtime::block_on(check_ollama_at(&client().unwrap(), &endpoint)).is_ok()
+        );
+    }
+    #[test]
+    fn reachable_ollama_must_report_a_valid_empty_model_list() {
+        use std::io::{Read, Write};
+        for (status, body, accepted) in [
+            ("200 OK", r#"{"models":[]}"#, true),
+            ("200 OK", r#"{"models":[{"name":"other"}]}"#, false),
+            ("200 OK", "{}", false),
+            ("200 OK", "not JSON", false),
+            ("503 Unavailable", r#"{"models":[]}"#, false),
+        ] {
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let endpoint = format!("http://{}/api/ps", listener.local_addr().unwrap());
+            let server = std::thread::spawn(move || {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(3)))
+                    .unwrap();
+                let mut buffer = [0; 2048];
+                assert!(socket.read(&mut buffer).unwrap() > 0);
+                write!(
+                    socket,
+                    "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                )
+                .unwrap();
+            });
+            let result =
+                tauri::async_runtime::block_on(check_ollama_at(&client().unwrap(), &endpoint));
+            server.join().unwrap();
+            assert_eq!(result.is_ok(), accepted, "{status}: {body}");
+        }
+    }
+    #[test]
     fn idle_stop_is_idempotent_and_has_no_process() {
         let runtime = LocalInferenceRuntime::default();
         runtime.stop().unwrap();
@@ -723,7 +881,8 @@ mod tests {
         assert!(tauri::async_runtime::block_on(gemma_chat(serde_json::json!({}))).is_err());
         assert!(!runtime.snapshot().unwrap().running);
         assert!(!port_occupied());
-        let ollama_permit = tauri::async_runtime::block_on(acquire_ollama("qwen3.5:4b")).unwrap();
+        // Exercise the shared slot without requiring Ollama to be installed.
+        let ollama_permit = ARBITER.acquire().unwrap();
         assert!(
             runtime.start().is_err(),
             "Ollama request slot blocks Gemma startup"

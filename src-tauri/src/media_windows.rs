@@ -2,6 +2,7 @@
 //! No keyboard injection, debugging ports, arbitrary URLs or system-wide media keys.
 #[cfg(windows)]
 use crate::media_actions::{youtube_watch_url, YoutubeVideo};
+#[cfg(not(target_os = "linux"))]
 use crate::media_actions::{CancellationCheck, MediaOperation};
 #[cfg(windows)]
 use std::{
@@ -640,11 +641,11 @@ mod platform {
 
 #[cfg(windows)]
 pub(crate) use platform::{spotify, youtube};
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "linux")))]
 pub(crate) fn spotify(_: MediaOperation, _: CancellationCheck) -> Result<String, String> {
     Err("La reproducción local requiere Windows".into())
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "linux")))]
 pub(crate) fn youtube(
     _: MediaOperation,
     _: Option<String>,

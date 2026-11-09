@@ -5,6 +5,13 @@ const MAX_SECONDS = 60;
 const MAX_BYTES = 8 * 1024 * 1024;
 const MIME_TYPE = "audio/webm;codecs=opus";
 
+function captureErrorMessage(cause: unknown): string {
+  if (cause && typeof cause === "object" && "name" in cause && cause.name === "NotAllowedError") {
+    return "No se pudo acceder al micrófono: el permiso fue rechazado. Revisa los permisos de audio y vuelve a iniciar la escucha de Alice.";
+  }
+  return String(cause);
+}
+
 type CaptureEvents = {
   onStarted: () => void;
   onElapsed: (seconds: number) => void;
@@ -118,7 +125,7 @@ export class VoiceCapture {
       this.events.onProcessed?.(processed.status);
       this.events.onStarted();
     } catch (cause) {
-      if (generation === this.generation) this.fail(String(cause));
+      if (generation === this.generation) this.fail(captureErrorMessage(cause));
     } finally {
       if (generation === this.generation) this.pending = false;
     }

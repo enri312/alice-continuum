@@ -262,13 +262,13 @@ pub(crate) fn capability_registry_from_probes(
     capabilities.extend(task_capabilities(&generated_at, &probes.tasks));
     capabilities.push(capability(
         "desktop.approved.open", "Abrir destinos delegados",
-        "Abre únicamente Spotify o las raíces D: y E: ante una orden directa actual de Carlos.",
+        if cfg!(target_os="linux") {"Abre Spotify ante una orden directa actual de Carlos. Las unidades D:/E: siguen siendo específicas de Windows."} else {"Abre únicamente Spotify o las raíces D: y E: ante una orden directa actual de Carlos."},
         CapabilityDomain::Output, CapabilityKind::Process, CapabilityMaturity::Implemented,
-        "Lista nativa cerrada de destinos Windows", &["send_cloud_message"],
+        if cfg!(target_os="linux") {"Spotify nativo de Ubuntu · MPRIS"} else {"Lista nativa cerrada de destinos Windows"}, &["send_cloud_message"],
         CapabilityState::Idle, CapabilityRisk::Low,
         &[CapabilityEffect::ProcessLaunch, CapabilityEffect::LocalRead],
         &["spotifyApplication", "driveD", "driveE"],
-        &["Orden directa del propietario", "Destino disponible en Windows"],
+        &["Orden directa del propietario", "Destino disponible en el equipo"],
         permission(CapabilityPermissionMode::SessionOptIn, CapabilityPermissionEnforcer::CurrentUi,
             "Delegación del propietario para estos tres destinos. El backend sólo admite órdenes directas; no ejecuta texto de recuerdos, imágenes o respuestas del modelo."),
         health(CapabilityHealthStatus::Unchecked, "La disponibilidad del destino se verifica antes de abrirlo.", None),
@@ -276,9 +276,9 @@ pub(crate) fn capability_registry_from_probes(
     capabilities.extend(output_capabilities(&generated_at));
     capabilities.push(capability(
         "desktop.approved.media", "Reproducir música delegada",
-        "Reproduce Tus me gusta en Spotify o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación.",
+        if cfg!(target_os="linux") {"Reproduce Tus me gusta en Spotify y únicamente la playlist configurada de YouTube, en orden y con repetición completa; permite pausa y reanudación."} else {"Reproduce Tus me gusta en Spotify o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación."},
         CapabilityDomain::Output, CapabilityKind::Process, CapabilityMaturity::Implemented,
-        "Windows Media Control + UI Automation de Spotify y YouTube", &["send_cloud_message"],
+        if cfg!(target_os="linux") {"MPRIS + AT-SPI de Spotify y YouTube · perfil Chrome delimitado"} else {"Windows Media Control + UI Automation de Spotify y YouTube"}, &["send_cloud_message"],
         CapabilityState::Idle, CapabilityRisk::Low,
         &[CapabilityEffect::ProcessLaunch, CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
         &["spotifyLikedSongs", "spotifyPlaybackStatus", "youtubeSongQuery", "youtubeChromePlayer"],

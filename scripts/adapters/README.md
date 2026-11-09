@@ -3,6 +3,20 @@
 Esta carpeta contiene versiones revisadas. Los originales de `local/reference-adapters/` se
 conservan intactos y excluidos de Git. Nada aquí se ejecuta al iniciar Alice.
 
+## Música en Ubuntu
+
+`linux_media_bridge.py` se integra como recurso embebido de Rust, con una petición
+JSON por stdin y un recibo acotado por stdout. Usa `/usr/bin/python3`, GI/AT-SPI
+y MPRIS de la sesión de escritorio. No usa el entorno Python documental.
+Admite Spotify Tus me gusta y exclusivamente la playlist configurada de YouTube,
+con repetición completa, pausa y reanudación. El Chrome de Alice tiene un perfil
+propio; las listas privadas requieren iniciar sesión en él.
+
+Rust cancela y limita la duración del proceso. El ayudante deja de enviar
+controles cuando termina su proceso padre; los reproductores externos conservan
+su vida independiente. No recibe claves de proveedores ni copia credenciales
+del navegador. Ver [instalación y órdenes de voz](../../docs/runbooks/04-ubuntu.md).
+
 ## Lector documental
 
 ```powershell

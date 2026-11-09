@@ -76,6 +76,14 @@ falta completar o aceptar su comportamiento cotidiano. La integración del cuerp
 posterior. Los porcentajes anteriores que mezclaban ambos alcances no sirven
 para medir esta entrega. La compatibilidad con Ubuntu 26.04.1 se verifica aparte.
 
+Avance Ubuntu del 2026-11-06: primer turno de voz confirmado por el propietario,
+medición comparativa de capas GPU y reproducción nativa de Spotify Tus me gusta.
+El propietario limita YouTube a su playlist privada y solicita repetición completa;
+se verificaron los controles nativos y el regreso del último video al primero con
+su sesión iniciada. Falta aceptar las órdenes habladas y la escucha con música. Las pruebas
+de inferencia aisladas no sustituyen la medición de latencia del turno completo.
+Ver [informe de latencia y música](../testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+
 ## Propósito
 
 R9 conecta formas de presencia de Alice sin convertir el avatar en una fuente de

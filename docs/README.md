@@ -10,6 +10,16 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 
 Continuación R9: [espera dirigida y apagado del micrófono](testing/VOICE_STANDBY_REPORT_2026-11-06.md) y [contraste del informe de frameworks](research/FRAMEWORKS_REVIEW_2026-11-06.md).
 
+Trabajo en ambos sistemas: [preparación y validación local de Ubuntu para R9](testing/UBUNTU_R9_SETUP_REPORT_2026-11-06.md), con motores Linux y entornos separados de Windows.
+
+Aceptación R9 en Ubuntu: [corrección del permiso de micrófono WebKitGTK](testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md), reproducida y comprobada con captura simulada.
+
+Inicio Ubuntu: [acceso directo, icono y cierre del motor durante reinicios](testing/UBUNTU_LAUNCHER_LIFECYCLE_REPORT_2026-11-06.md).
+
+R9 Ubuntu: [mediciones de latencia, Spotify y playlist privada de YouTube](testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+
+Ubicación actual: **Datos → Alice Continuum**. [Recuperación y traslado al volumen Datos](testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
+
 Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
 
 ## Lectura recomendada

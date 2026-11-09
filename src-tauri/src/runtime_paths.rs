@@ -88,7 +88,7 @@ pub(crate) fn python() -> Result<PathBuf, String> {
         local_dir().join(if cfg!(windows) {
             "venv/Scripts/python.exe"
         } else {
-            "venv/bin/python"
+            "venv-linux/bin/python"
         }),
     )
 }

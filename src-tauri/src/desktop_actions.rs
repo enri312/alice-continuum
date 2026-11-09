@@ -229,13 +229,25 @@ pub(crate) fn execute(app: &AppHandle, target: DesktopTarget) -> Result<String, 
         AuditOutcome::Pending,
         "OWNER_DELEGATED_OPEN_REQUEST",
     )?;
-    let result = destination(target).and_then(|(program, args)| {
-        Command::new(program)
-            .args(args)
-            .spawn()
-            .map(|_| ())
-            .map_err(|e| format!("Windows no pudo abrir el destino: {e}"))
-    });
+    let launch = || {
+        #[cfg(target_os = "linux")]
+        if target == DesktopTarget::Spotify {
+            return crate::media_linux::spotify(
+                crate::media_actions::MediaOperation::Open,
+                None,
+                std::sync::Arc::new(|| Ok(())),
+            )
+            .map(|_| ());
+        }
+        destination(target).and_then(|(program, args)| {
+            Command::new(program)
+                .args(args)
+                .spawn()
+                .map(|_| ())
+                .map_err(|e| format!("No se pudo abrir el destino: {e}"))
+        })
+    };
+    let result = launch();
     match result {
         Ok(()) => {
             // Once launched, a logging failure must not cause an automatic retry.
@@ -247,7 +259,13 @@ pub(crate) fn execute(app: &AppHandle, target: DesktopTarget) -> Result<String, 
                 eprintln!("Auditoría de apertura: {error}");
             }
             Ok(match target {
-                DesktopTarget::Spotify => "Le pedí a Windows que abra Spotify.",
+                DesktopTarget::Spotify => {
+                    if cfg!(target_os = "linux") {
+                        "Spotify está abierto en Ubuntu."
+                    } else {
+                        "Le pedí a Windows que abra Spotify."
+                    }
+                }
                 DesktopTarget::DriveD => "Le pedí a Windows que abra la unidad D en el Explorador.",
                 DesktopTarget::DriveE => "Le pedí a Windows que abra la unidad E en el Explorador.",
             }

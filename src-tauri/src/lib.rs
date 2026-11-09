@@ -32,7 +32,13 @@ mod sensory;
 mod automatic_memory;
 mod conversation_vision;
 mod desktop_actions;
+#[cfg(target_os = "linux")]
+mod linux_lifecycle;
+#[cfg(target_os = "linux")]
+mod linux_media;
 mod media_actions;
+#[cfg(target_os = "linux")]
+mod media_linux;
 mod media_windows;
 mod runtime_paths;
 mod skills;
@@ -124,14 +130,24 @@ pub fn run() {
         .manage(working_memory_store)
         .manage(task_engine_store.clone())
         .manage(voice_output_store)
-        .manage(voice_session_store)
+        .manage(voice_session_store.clone())
         .manage(conversation_vision::VisionSessionStore::default())
         .manage(media_actions::MediaPlaybackStore::default())
         .setup(move |app| {
+            #[cfg(target_os = "linux")]
+            linux_lifecycle::install(app.handle().clone())?;
             avatar::configure_asset_scope(app.handle())?;
             let window_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))?;
             if let Some(window) = app.get_webview_window("main") {
                 window.set_icon(window_icon)?;
+                #[cfg(target_os = "linux")]
+                {
+                    use gtk::prelude::GtkWindowExt;
+                    window
+                        .gtk_window()?
+                        .set_icon_name(Some("com.carlosnunez.alicecognitivecore"));
+                    linux_media::configure(&window, voice_session_store.clone())?;
+                }
             }
             if let Err(error) = record_process_started(app.handle()) {
                 eprintln!("Auditoría R3 no disponible al iniciar: {error}");
