@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'
 if ((Invoke-RestMethod 'http://127.0.0.1:11434/api/ps').models.Count -gt 0) { throw 'Ollama has an active model; evaluation aborted.' }
 if (Get-NetTCPConnection -LocalPort 18089 -State Listen -ErrorAction SilentlyContinue) { throw 'Evaluation port already in use.' }
-$evalLogRoot = 'E:\Alice Cognitive Core\local\artifacts\gemma-evaluation'
+$evalProjectRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$evalLogRoot = Join-Path $evalProjectRoot 'local\artifacts\gemma-evaluation'
+[System.IO.Directory]::CreateDirectory($evalLogRoot) | Out-Null
 $evalExe = 'D:\Alice-model-evaluation\runtimes\llama-b10809\bin\llama-server.exe'
 $evalArgs = @('-m','D:\Alice-model-evaluation\models\gemma4-e2b\gemma-4-E2B-it-Q4_K_M.gguf',
     '--mmproj','D:\Alice-model-evaluation\models\gemma4-e2b\mmproj-F16.gguf',
