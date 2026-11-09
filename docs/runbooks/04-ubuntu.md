@@ -1,10 +1,10 @@
 # Ubuntu: instalación desde el código fuente
 
-Objetivo inicial: Ubuntu 24.04 LTS x86_64 con escritorio. Este procedimiento no
+Objetivo vigente: Ubuntu 26.04 LTS x86_64 con escritorio. Este procedimiento no
 instala Ubuntu ni modifica particiones. El avatar sigue pospuesto.
 
 El propietario trabaja también en Ubuntu **26.04.1** en esta computadora.
-CI verifica **24.04**; las comprobaciones en el escritorio del propietario se
+CI verifica **26.04**; las comprobaciones en el escritorio del propietario se
 registran por separado. Las letras D: y E: de Windows no son rutas Linux:
 identifica sus montajes antes de configurar modelos externos.
 Un checkout compartido conserva el mismo `data/`; cierra Alice antes de cambiar
@@ -57,6 +57,14 @@ carga su entorno automáticamente. Linux compila en `.cargo-target/linux/`
 (o en `CARGO_TARGET_DIR` si se define); Windows conserva `.cargo-target/`.
 El Python Linux vive en `local/venv-linux/`; Windows conserva `local/venv/`.
 No se reutilizan entornos Python entre sistemas.
+
+La grabación WebM/Opus de WebKit requiere **GStreamer 1.24.9 o posterior**.
+Ubuntu 24.04 con sus paquetes estándar 1.24.2 compila y arranca Alice, pero no
+supera la comprobación de grabación de R9. Instalar los plugins por sí solo no
+resuelve esa diferencia. La validación usa Ubuntu 26.04 y conserva la exigencia
+de `MediaRecorder.isTypeSupported('audio/webm;codecs=opus')`, sin abrir dispositivos.
+Fuentes: [requisito de WebKitGTK](https://webkitgtk.org/2025/03/14/webkitgtk2.48.0-released.html)
+y [runner oficial de Ubuntu 26.04](https://github.com/actions/runner-images/issues/14747).
 
 El lanzador Linux carga opcionalmente `local/ubuntu.env`, un archivo de shell
 privado excluido de Git. Allí puedes definir rutas, `ALICE_GPU_LAYERS` y
@@ -252,7 +260,9 @@ el dispositivo en **Audio de entrada → Actualizar micrófonos**.
 | Diagnóstico sensorial DirectShow de Identificación | Sólo Windows; no se presenta como disponible en Linux |
 
 El workflow `.github/workflows/ubuntu.yml` instala dependencias y ejecuta pruebas
-frontend, Rust y Python, Clippy, compilación y arranque aislado en Ubuntu 24.04.
+frontend, Rust y Python, Clippy, compilación y arranque aislado en Ubuntu 26.04.
+Comprueba también las API WebKit de R9 y el permiso/denegación de una captura
+simulada; ninguna de esas pruebas usa el micrófono físico.
 Un resultado correcto allí no demuestra entrada/salida de audio, inferencia con
 modelos, cámara, Wayland ni aceleración GPU. La prueba final debe hacerse en la
 instalación Ubuntu elegida por el propietario.
