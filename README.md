@@ -4,7 +4,7 @@
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
 **Estado al 10 de noviembre de 2026:** revisión y estructura del núcleo cognitivo en `D:\Alice Continuum`; R9 sigue pendiente.
-La versión del producto es **0.1.0** y el documento maestro **0.64**.
+La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
@@ -13,6 +13,11 @@ proyecto anterior Alice Cognitive Core.
 Prioridad actual: consolidar autoestudio y Obsidian, separar responsabilidades del
 núcleo y revisar sus contratos con colaboradores antes de retomar R9.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+
+Los lanzadores ahora crean [respaldos integrales](docs/runbooks/07-respaldo-integral.md)
+al iniciar, cada 15 minutos y al cerrar normalmente. Destino actual:
+`D:\Alice Backups\Alice Continuum`; no se usa C:. Se verifica cada copia y se
+restaura en una carpeta nueva. La copia en otra unidad física sigue pendiente.
 
 ## Qué funciona actualmente
 
@@ -102,7 +107,8 @@ se informa. FFmpeg se requiere para convertir la toma local.
 Fish Audio usa `FISH_API_KEY` y `ALICE_FISH_REFERENCE_ID` en el entorno del proceso
 nativo. Las respuestas autorizadas salen al proveedor para obtener su voz; el
 perfil existente conserva `s2.1-pro-free`. Los valores de las credenciales no se
-escriben en archivos del proyecto. Los proveedores alternativos se documentan
+incluyen en Git ni se entregan a React; el respaldo privado conserva las variables
+seleccionadas para recuperación. Los proveedores alternativos se documentan
 en el manual; OpenRouter permanece pausado por decisión del propietario.
 
 [Arranque y recuperación](docs/runbooks/01-arranque-local.md) · [Identidad y compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md)

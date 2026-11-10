@@ -1,5 +1,9 @@
 # Operar, respaldar y restaurar la memoria
 
+Para proteger también conversaciones, recuerdos automáticos, autoestudio,
+Obsidian, recursos y código, usar el [respaldo integral](07-respaldo-integral.md).
+Los botones de exportación/restauración descritos aquí cubren la memoria confirmada.
+
 ## Localizar los datos
 
 Abrir la pestaña Memoria y usar `Abrir carpeta de memoria`. Al arrancar mediante `Iniciar Alice Continuum.cmd`, la ruta activa en Windows es `D:\Alice Continuum\data\memory`.

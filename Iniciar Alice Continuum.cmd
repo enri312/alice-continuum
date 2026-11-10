@@ -11,6 +11,11 @@ if errorlevel 1 (
 )
 set "ALICE_PROJECT_ROOT=%CD%"
 
+if exist "%ALICE_PROJECT_ROOT%\.alice-restore-incomplete" (
+  echo [ALICE] ERROR: esta carpeta contiene una restauracion incompleta. Use otro destino para restaurar.
+  exit /b 1
+)
+
 set "ALICE_CHECK_ONLY="
 if /i "%~1"=="--check" set "ALICE_CHECK_ONLY=1"
 if /i "%~1"=="--check" set "ALICE_NO_PAUSE=1"
@@ -140,7 +145,7 @@ if not defined ALICE_ANY_AI (
 echo [ALICE] Iniciando aplicación de escritorio...
 echo [ALICE] Para detenerla, cierre la ventana de Alice o presione Ctrl+C aquí.
 echo.
-call npm run tauri -- dev
+node scripts\backups\cli.mjs run
 set "ALICE_EXIT_CODE=%ERRORLEVEL%"
 if not "%ALICE_EXIT_CODE%"=="0" (
   echo.

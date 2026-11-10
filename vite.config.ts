@@ -33,7 +33,7 @@ export default defineConfig({
   }],
   worker: { format: "es" },
   test: {
-    exclude: [...configDefaults.exclude, "**/local/**", "**/.cargo-target/**", "scripts/obsidian/**/*.test.mjs"],
+    exclude: [...configDefaults.exclude, "**/local/**", "**/.cargo-target/**", "scripts/obsidian/**/*.test.mjs", "scripts/backups/**/*.test.mjs"],
   },
   server: {
     host: "127.0.0.1",

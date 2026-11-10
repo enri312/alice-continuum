@@ -6,6 +6,10 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+[Respaldos integrales y recuperación](runbooks/07-respaldo-integral.md): versiones
+automáticas desde el lanzador, integridad SHA-256 y restauración en una carpeta
+nueva; datos privados separados de GitHub. Destino actual en D:.
+
 [Memoria guardada en Obsidian](runbooks/05-memoria-obsidian.md): bóveda privada actualizada desde `data/memory/`, con notas manuales separadas.
 
 [Autoestudio al arrancar](runbooks/06-autoestudio-al-arrancar.md): currículo cerrado de las materias autorizadas, con enfoque bíblico católico, ejercicios comprobados y memoria recuperable.

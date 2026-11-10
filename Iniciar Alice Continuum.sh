@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+if [[ -e .alice-restore-incomplete ]]; then
+  echo 'Esta carpeta contiene una restauracion incompleta. Restaura en un destino nuevo.' >&2
+  exit 1
+fi
 if [[ ${1:-} != '' && ${1:-} != '--check' ]]; then
   echo 'Uso: bash "Iniciar Alice Continuum.sh" [--check]' >&2
   exit 2
@@ -45,4 +49,4 @@ command -v flock >/dev/null || { echo 'Falta flock (paquete util-linux).' >&2; e
 mkdir -p -- local
 exec 9>local/alice-launch.lock
 flock -n 9 || { echo 'Alice ya está iniciada desde esta carpeta.' >&2; exit 1; }
-exec npm run tauri dev
+exec node scripts/backups/cli.mjs run

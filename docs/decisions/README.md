@@ -93,3 +93,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-112](ADR-P-112-espera-por-nombre-y-apagado.md) | Espera dirigida a Alice, pausa de conversación y apagado explícito del micrófono |
 
 | [ADR-P-113](ADR-P-113-autoestudio-modular.md) | Autoestudio con contratos, reglas, persistencia y adaptación a Gemma en módulos separados |
+
+| [ADR-P-114](ADR-P-114-respaldo-integral.md) | Copias privadas integrales desde el lanzador, SHA-256 y restauración aislada |

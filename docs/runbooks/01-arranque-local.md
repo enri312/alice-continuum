@@ -37,6 +37,11 @@ El servidor del lanzador mantiene actualizada la bóveda `data/obsidian` con los
 recuerdos y el mapa del almacenamiento de `data/memory/`. Abrir esa carpeta desde Obsidian;
 ver [sincronización y límites](05-memoria-obsidian.md).
 
+Ambos lanzadores hacen un [respaldo integral](07-respaldo-integral.md) al iniciar,
+cada 15 minutos y al cerrar normalmente. El destino de esta instalación es
+`D:\Alice Backups\Alice Continuum`; C: no se usa para estas copias. `--check` no
+crea respaldos. Una carpeta con restauración incompleta se rechaza al arrancar.
+
 Cuando el autoestudio está habilitado, el backend programa una sesión al
 arrancar y puede iniciar Gemma local. Consultar el progreso y la pausa en
 Memoria; ver [materias, funcionamiento y límites](06-autoestudio-al-arrancar.md).

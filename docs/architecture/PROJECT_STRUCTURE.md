@@ -12,6 +12,11 @@ Gemma. Se mantiene una aplicación Tauri parcialmente modularizada, con formatos
 de memoria estables. La revisión del núcleo cognitivo precede a continuar R9.
 [Comprobación y pendientes](../testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
+Protección 2026-11-10 — [ADR-P-114](../decisions/ADR-P-114-respaldo-integral.md):
+`scripts/backups/` separa archivos, permisos, snapshots, supervisión de sesión y
+CLI. Los lanzadores crean versiones privadas completas y permiten restaurarlas
+en otra carpeta. No modifica los contratos ni formatos del núcleo Rust.
+
 Organización 2026-11-04 — [ADR-P-109](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md):
 los recursos privados se agrupan en `local/`; se conservan las carpetas
 convencionales de Tauri, Rust y Vite. `runtime_paths.rs` concentra rutas nativas
@@ -103,6 +108,8 @@ Alice Continuum/
 │   │   ├── shared/                geometría y acabados compartidos; pruebas
 │   │   └── legacy/                escena anterior conservada, no importada
 │   ├── adapters/                  lector documental revisado y sus pruebas
+│   ├── backups/                   copias integrales, verificación y restauración
+│   ├── obsidian/                  proyección privada de memoria hacia la bóveda
 │   └── testing/                   sondas visuales y evaluaciones opcionales
 ├── docs/                          manual, arquitectura, ADR, planes e informes
 ├── local/                         recursos privados y generados

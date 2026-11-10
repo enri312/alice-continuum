@@ -46,11 +46,18 @@ bash 'Iniciar Alice Continuum.sh' --check
 bash 'Iniciar Alice Continuum.sh'
 ```
 
-El repositorio es privado: el clon requiere autenticación propia. El lanzador
+El repositorio figura como público al 10 de noviembre de 2026; los datos y
+recursos privados se recuperan por separado y no se incluyen en el clon. El lanzador
 conserva datos en `data/`, acepta `ALICE_DATA_DIR` absoluta y evita otra instancia
 desde el mismo checkout. `--check` valida herramientas y WebKit; no acredita que
 los modelos o dispositivos estén disponibles. Sin lanzador, Tauri usa su
 directorio de datos de aplicación, salvo que se defina `ALICE_DATA_DIR`.
+
+El lanzador incluye [copias integrales versionadas](07-respaldo-integral.md)
+al inicio, cada 15 minutos y al cierre normal. En Linux se puede elegir una
+carpeta absoluta con `destinations.linux` en `local/backup.json` o
+`ALICE_BACKUP_DIR`. El destino predeterminado es una carpeta junto al proyecto;
+no supone que esté en otro disco. `--check` no escribe respaldos.
 
 Si rustup se instaló después de iniciar la sesión del escritorio, el lanzador
 carga su entorno automáticamente. Linux compila en `.cargo-target/linux/`
