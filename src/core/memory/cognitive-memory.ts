@@ -4,6 +4,7 @@ export type CognitiveMemoryLayer = "episodic" | "semantic" | "procedural" | "pre
 export type CognitiveMemoryStatus = "confirmed" | "conflict" | "archived" | "historical" | "learned";
 
 export type CognitiveMemoryInput = {
+  studyLearning?: boolean;
   automaticLearning?: boolean;
   conversationExchangeId?: string;
   ownerReviewed?: boolean;
@@ -70,6 +71,7 @@ export function resolveCognitiveMemoryLayer(memory: CognitiveMemoryInput): Cogni
 }
 
 export function resolveCognitiveMemoryStatus(memory: CognitiveMemoryInput): CognitiveMemoryStatus {
+  if (memory.studyLearning) return "learned";
   if (memory.automaticLearning) return memory.ownerReviewed ? "confirmed" : "learned";
   return memory.memoryStatus ?? "historical";
 }

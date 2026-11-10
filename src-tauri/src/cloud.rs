@@ -168,7 +168,7 @@ pub(crate) fn cloud_status() -> CloudStatus {
         label: "Gemma local · llama.cpp".into(),
         configured: crate::local_inference::installed(),
         default_model: crate::local_inference::GEMMA_MODEL.into(),
-        protocol: "Local · requiere inicio explícito en Configuración".into(),
+        protocol: "Local · inicio por autoestudio o desde Configuración".into(),
         retention_mode: "Sin nube; historial local solo al enviar y recibir una respuesta".into(),
     });
     if !OPENROUTER_PAUSED {

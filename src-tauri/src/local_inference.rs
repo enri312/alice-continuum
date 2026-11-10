@@ -6,7 +6,7 @@ use std::net::{SocketAddr, TcpStream};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{self, RecvTimeoutError};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock, TryLockError};
 use std::time::{Duration, Instant};
 
 const ADDRESS: &str = "127.0.0.1:18089";
@@ -24,6 +24,7 @@ pub(crate) struct LocalInferenceRuntime {
     permit: Mutex<Option<InferencePermit<'static>>>,
     cancel: AtomicBool,
     generation: AtomicU64,
+    background_epoch: AtomicU64,
     inference: Mutex<()>,
 }
 
@@ -70,6 +71,7 @@ pub(crate) async fn stop_local_runtime() -> Result<RuntimeSnapshot, String> {
 
 pub(crate) async fn gemma_chat(body: serde_json::Value) -> Result<serde_json::Value, String> {
     let r = runtime();
+    r.preempt_background();
     let generation = r.generation.load(Ordering::Acquire);
     tauri::async_runtime::spawn_blocking(move || {
         r.run_chat(generation, move || async move {
@@ -105,6 +107,46 @@ pub(crate) async fn gemma_chat(body: serde_json::Value) -> Result<serde_json::Va
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+/// Study never joins the foreground queue. It yields within the polling interval
+/// when voice starts, a foreground request arrives, or the owner pauses study.
+pub(crate) async fn gemma_background_chat(
+    body: serde_json::Value,
+    generation: u64,
+    should_yield: impl Fn() -> bool + Send + Sync + 'static,
+) -> Result<Option<serde_json::Value>, String> {
+    let r = runtime();
+    tauri::async_runtime::spawn_blocking(move || {
+        r.run_background_chat(generation, &should_yield, move || async move {
+            let http = client()?;
+            check_ollama(&http).await?;
+            let response = http
+                .post("http://127.0.0.1:18089/v1/chat/completions")
+                .timeout(Duration::from_secs(12))
+                .json(&body)
+                .send()
+                .await
+                .map_err(|_| "La comprobacion local de estudio no termino")?;
+            if !response.status().is_success() {
+                return Err("El motor rechazo la comprobacion local de estudio".into());
+            }
+            let value: serde_json::Value = response
+                .json()
+                .await
+                .map_err(|_| "La respuesta de estudio no es JSON valido")?;
+            if value
+                .pointer("/choices/0/finish_reason")
+                .and_then(|v| v.as_str())
+                == Some("length")
+            {
+                return Err("La comprobacion de estudio quedo incompleta".into());
+            }
+            Ok(value)
+        })
+    })
+    .await
+    .map_err(|_| "La tarea local de estudio no termino")?
 }
 
 #[derive(Default)]
@@ -255,6 +297,18 @@ fn stop_owned(child: &mut Option<Child>) -> Result<(), String> {
 }
 
 impl LocalInferenceRuntime {
+    pub(crate) fn current_generation(&self) -> u64 {
+        self.generation.load(Ordering::Acquire)
+    }
+
+    pub(crate) fn generation_is_current(&self, generation: u64) -> bool {
+        self.check_generation(generation).is_ok()
+    }
+
+    pub(crate) fn preempt_background(&self) {
+        self.background_epoch.fetch_add(1, Ordering::AcqRel);
+    }
+
     fn cancel_requests(&self) {
         self.cancel.store(true, Ordering::Release);
         self.generation.fetch_add(1, Ordering::AcqRel);
@@ -280,6 +334,7 @@ impl LocalInferenceRuntime {
     where
         F: Future<Output = Result<serde_json::Value, String>> + Send + 'static,
     {
+        self.preempt_background();
         let _inference = self.inference.lock().map_err(|_| "Inferencia bloqueada")?;
         self.check_generation(generation)?;
         {
@@ -295,6 +350,69 @@ impl LocalInferenceRuntime {
                 return Err("Gemma terminó; reinicialo desde Configuración".into());
             }
         }
+        self.run_pending_request(generation, &|| false, None, request)?
+            .ok_or_else(|| "La solicitud a Gemma fue interrumpida".into())
+    }
+
+    fn run_background_chat<F>(
+        &self,
+        generation: u64,
+        should_yield: &dyn Fn() -> bool,
+        request: impl FnOnce() -> F,
+    ) -> Result<Option<serde_json::Value>, String>
+    where
+        F: Future<Output = Result<serde_json::Value, String>> + Send + 'static,
+    {
+        self.check_generation(generation)?;
+        if should_yield() {
+            return Ok(None);
+        }
+        let _inference = match self.inference.try_lock() {
+            Ok(guard) => guard,
+            Err(TryLockError::WouldBlock) => return Ok(None),
+            Err(TryLockError::Poisoned(_)) => return Err("Inferencia bloqueada".into()),
+        };
+        let epoch = self.background_epoch.load(Ordering::Acquire);
+        {
+            let mut guard = match self.child.try_lock() {
+                Ok(guard) => guard,
+                Err(TryLockError::WouldBlock) => return Ok(None),
+                Err(TryLockError::Poisoned(_)) => return Err("Control del motor bloqueado".into()),
+            };
+            self.check_generation(generation)?;
+            let child = guard.as_mut().ok_or("El motor local esta detenido")?;
+            if child
+                .try_wait()
+                .map_err(|_| "No se pudo comprobar el motor local")?
+                .is_some()
+            {
+                return Err("El motor local termino".into());
+            }
+        }
+        let interrupted =
+            || should_yield() || self.background_epoch.load(Ordering::Acquire) != epoch;
+        self.run_pending_request(
+            generation,
+            &interrupted,
+            Some(Duration::from_secs(12)),
+            request,
+        )
+    }
+
+    fn run_pending_request<F>(
+        &self,
+        generation: u64,
+        should_yield: &dyn Fn() -> bool,
+        timeout: Option<Duration>,
+        request: impl FnOnce() -> F,
+    ) -> Result<Option<serde_json::Value>, String>
+    where
+        F: Future<Output = Result<serde_json::Value, String>> + Send + 'static,
+    {
+        if should_yield() {
+            return Ok(None);
+        }
+        let deadline = timeout.map(|duration| Instant::now() + duration);
         let (sender, receiver) = mpsc::sync_channel(1);
         let future = request();
         let task = tauri::async_runtime::spawn(async move {
@@ -304,8 +422,16 @@ impl LocalInferenceRuntime {
             if let Err(error) = self.check_generation(generation) {
                 break Err(error);
             }
+            if should_yield() {
+                break Ok(None);
+            }
+            if deadline.is_some_and(|deadline| Instant::now() >= deadline) {
+                break Err("La comprobacion local de estudio excedio su plazo".into());
+            }
             match receiver.recv_timeout(Duration::from_millis(25)) {
-                Ok(result) => break self.check_generation(generation).and(result),
+                Ok(result) => {
+                    break self.check_generation(generation).and(result).map(Some);
+                }
                 Err(RecvTimeoutError::Timeout) => continue,
                 Err(RecvTimeoutError::Disconnected) => {
                     break Err("La petición a Gemma terminó sin respuesta".into());
@@ -342,11 +468,38 @@ impl LocalInferenceRuntime {
     /// Call only on a blocking worker. Serialized startup prevents two owned
     /// children; stop and status wait at most the bounded readiness handshake.
     pub(crate) fn start(&self) -> Result<RuntimeSnapshot, String> {
-        let mut guard = self
+        let guard = self
             .child
             .lock()
             .map_err(|_| "Control de motor bloqueado")?;
-        self.cancel.store(false, Ordering::Release);
+        self.start_with_guard(guard, None)
+    }
+
+    /// Background startup cannot revive a generation explicitly stopped by the owner.
+    pub(crate) fn start_for_study(
+        &self,
+        expected_generation: u64,
+    ) -> Result<Option<RuntimeSnapshot>, String> {
+        self.check_generation(expected_generation)?;
+        let guard = match self.child.try_lock() {
+            Ok(guard) => guard,
+            Err(TryLockError::WouldBlock) => return Ok(None),
+            Err(TryLockError::Poisoned(_)) => return Err("Control de motor bloqueado".into()),
+        };
+        self.start_with_guard(guard, Some(expected_generation))
+            .map(Some)
+    }
+
+    fn start_with_guard(
+        &self,
+        mut guard: MutexGuard<'_, Option<Child>>,
+        expected_generation: Option<u64>,
+    ) -> Result<RuntimeSnapshot, String> {
+        if let Some(generation) = expected_generation {
+            self.check_generation(generation)?;
+        } else {
+            self.cancel.store(false, Ordering::Release);
+        }
         if let Some(child) = guard.as_mut() {
             if child.try_wait().map_err(|e| e.to_string())?.is_none() {
                 return Ok(RuntimeSnapshot {
@@ -703,6 +856,178 @@ mod tests {
         );
         runtime.stop().unwrap();
     }
+
+    #[test]
+    fn background_request_does_not_queue_behind_busy_inference_or_startup() {
+        for startup_busy in [false, true] {
+            let runtime = Arc::new(LocalInferenceRuntime::default());
+            let inference_guard = (!startup_busy).then(|| runtime.inference.lock().unwrap());
+            let child_guard = startup_busy.then(|| runtime.child.lock().unwrap());
+            let caller = runtime.clone();
+            let dispatched = Arc::new(AtomicBool::new(false));
+            let flag = dispatched.clone();
+            let (answer_tx, answer_rx) = mpsc::sync_channel(1);
+            let worker = std::thread::spawn(move || {
+                let answer = caller.run_background_chat(0, &|| false, || {
+                    flag.store(true, Ordering::Release);
+                    async { Ok(serde_json::json!({"unexpected": true})) }
+                });
+                answer_tx.send(answer).unwrap();
+            });
+            let answer = answer_rx.recv_timeout(Duration::from_secs(1));
+            // Release before asserting, so a regression cannot strand the worker.
+            drop(inference_guard);
+            drop(child_guard);
+            worker.join().unwrap();
+            assert_eq!(answer.unwrap().unwrap(), None);
+            assert!(!dispatched.load(Ordering::Acquire));
+        }
+    }
+
+    #[test]
+    fn background_voice_or_pause_gate_never_dispatches_a_request() {
+        let runtime = LocalInferenceRuntime::default();
+        let dispatched = AtomicBool::new(false);
+        let result = runtime
+            .run_background_chat(0, &|| true, || {
+                dispatched.store(true, Ordering::Release);
+                async { Ok(serde_json::json!({"unexpected": true})) }
+            })
+            .unwrap();
+        assert_eq!(result, None);
+        assert!(!dispatched.load(Ordering::Acquire));
+    }
+
+    #[test]
+    fn foreground_request_preempts_study_and_drops_its_future_before_reusing_slot() {
+        struct Dropped(Arc<AtomicBool>);
+        impl Drop for Dropped {
+            fn drop(&mut self) {
+                self.0.store(true, Ordering::Release);
+            }
+        }
+        let runtime = fixture_runtime();
+        let generation = runtime.current_generation();
+        let caller = runtime.clone();
+        let dropped = Arc::new(AtomicBool::new(false));
+        let study_drop = dropped.clone();
+        let (entered_tx, entered_rx) = mpsc::sync_channel(1);
+        let (background_tx, background_rx) = mpsc::sync_channel(1);
+        let background = std::thread::spawn(move || {
+            let answer = caller.run_background_chat(generation, &|| false, || async move {
+                let _drop = Dropped(study_drop);
+                entered_tx.send(()).unwrap();
+                std::future::pending::<Result<serde_json::Value, String>>().await
+            });
+            background_tx.send(answer).unwrap();
+        });
+        entered_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        let caller = runtime.clone();
+        let foreground_drop = dropped.clone();
+        let (foreground_tx, foreground_rx) = mpsc::sync_channel(1);
+        let foreground = std::thread::spawn(move || {
+            let answer = caller.run_chat(generation, || async move {
+                assert!(foreground_drop.load(Ordering::Acquire));
+                Ok(serde_json::json!({"foreground": true}))
+            });
+            foreground_tx.send(answer).unwrap();
+        });
+        assert_eq!(
+            foreground_rx
+                .recv_timeout(Duration::from_secs(2))
+                .unwrap()
+                .unwrap(),
+            serde_json::json!({"foreground": true})
+        );
+        assert_eq!(
+            background_rx
+                .recv_timeout(Duration::from_secs(1))
+                .unwrap()
+                .unwrap(),
+            None
+        );
+        foreground.join().unwrap();
+        background.join().unwrap();
+        runtime.stop().unwrap();
+    }
+
+    #[test]
+    fn pausing_an_inflight_background_request_releases_the_slot_without_stopping_model() {
+        let runtime = fixture_runtime();
+        let generation = runtime.current_generation();
+        let paused = Arc::new(AtomicBool::new(false));
+        let should_yield = paused.clone();
+        let caller = runtime.clone();
+        let (entered_tx, entered_rx) = mpsc::sync_channel(1);
+        let (answer_tx, answer_rx) = mpsc::sync_channel(1);
+        let worker = std::thread::spawn(move || {
+            let answer = caller.run_background_chat(
+                generation,
+                &|| should_yield.load(Ordering::Acquire),
+                || async move {
+                    entered_tx.send(()).unwrap();
+                    std::future::pending::<Result<serde_json::Value, String>>().await
+                },
+            );
+            answer_tx.send(answer).unwrap();
+        });
+        entered_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        paused.store(true, Ordering::Release);
+        assert_eq!(
+            answer_rx
+                .recv_timeout(Duration::from_secs(1))
+                .unwrap()
+                .unwrap(),
+            None
+        );
+        worker.join().unwrap();
+        assert!(runtime.inference.try_lock().is_ok());
+        assert!(runtime.snapshot().unwrap().running);
+        assert!(runtime.generation_is_current(generation));
+        runtime.stop().unwrap();
+    }
+
+    #[test]
+    fn stopping_runtime_cancels_study_and_background_cannot_revive_it() {
+        let runtime = fixture_runtime();
+        let generation = runtime.current_generation();
+        let caller = runtime.clone();
+        let (entered_tx, entered_rx) = mpsc::sync_channel(1);
+        let (answer_tx, answer_rx) = mpsc::sync_channel(1);
+        let worker = std::thread::spawn(move || {
+            let answer = caller.run_background_chat(generation, &|| false, || async move {
+                entered_tx.send(()).unwrap();
+                std::future::pending::<Result<serde_json::Value, String>>().await
+            });
+            answer_tx.send(answer).unwrap();
+        });
+        entered_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        runtime.stop().unwrap();
+        let error = answer_rx
+            .recv_timeout(Duration::from_secs(1))
+            .unwrap()
+            .unwrap_err();
+        assert!(error.contains("cancelada"), "{error}");
+        worker.join().unwrap();
+        assert!(runtime.start_for_study(generation).is_err());
+        assert!(runtime
+            .start_for_study(runtime.current_generation())
+            .is_err());
+        assert!(!runtime.snapshot().unwrap().running);
+    }
+
+    #[test]
+    fn background_deadline_aborts_a_pending_request_instead_of_waiting_forever() {
+        let runtime = LocalInferenceRuntime::default();
+        let started = Instant::now();
+        let answer =
+            runtime.run_pending_request(0, &|| false, Some(Duration::from_millis(40)), || {
+                std::future::pending::<Result<serde_json::Value, String>>()
+            });
+        assert!(answer.unwrap_err().contains("plazo"));
+        assert!(started.elapsed() < Duration::from_secs(1));
+    }
+
     #[test]
     fn arbitration_releases_on_drop_and_rejects_overlap() {
         let arbiter = InferenceArbiter::default();

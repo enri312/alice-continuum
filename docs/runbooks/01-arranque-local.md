@@ -33,6 +33,14 @@ puede hacer que el primer arranque tarde más al recompilar las dependencias.
 3. Verificar en Conversación que al menos un proveedor aparezca como `LISTO`.
 4. Verificar en Memoria que el estado indique `ARCHIVO LOCAL`.
 
+El servidor del lanzador mantiene actualizada la bóveda `data/obsidian` con los
+recuerdos y el mapa del almacenamiento de `data/memory/`. Abrir esa carpeta desde Obsidian;
+ver [sincronización y límites](05-memoria-obsidian.md).
+
+Cuando el autoestudio está habilitado, el backend programa una sesión al
+arrancar y puede iniciar Gemma local. Consultar el progreso y la pausa en
+Memoria; ver [materias, funcionamiento y límites](06-autoestudio-al-arrancar.md).
+
 El lanzador detiene el inicio con un mensaje claro si Alice ya está abierta, si el puerto fijo 5173 está ocupado, si faltan dependencias o si las versiones de Node y Cargo no son utilizables. Usa `.cargo-target` como único caché Rust del proyecto y sólo acepta Ollama cuando responde en loopback.
 
 Para comprobar el entorno sin abrir Alice ni iniciar Ollama:

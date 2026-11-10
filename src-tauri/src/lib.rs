@@ -27,6 +27,7 @@ mod procedure_store;
 // cambia de estado al consumir un grant nativo específico y vigente.
 #[allow(dead_code)]
 mod permissions;
+mod self_study;
 mod sensory;
 // R4 conserva borradores locales verificables; ningún comando ejecuta pasos.
 mod automatic_memory;
@@ -163,6 +164,7 @@ pub fn run() {
                 app.handle().clone(),
             );
             spawn_task_engine_thread(task_engine_store.clone(), app.handle().clone());
+            self_study::spawn_self_study(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -170,6 +172,8 @@ pub fn run() {
             conversation_vision::stop_vision_session,
             conversation_vision::preview_vision_desktop,
             automatic_memory::automatic_memory_status,
+            self_study::self_study_status,
+            self_study::set_self_study_enabled,
             automatic_memory::set_automatic_memory_enabled,
             automatic_memory::review_automatic_memory,
             local_inference::local_runtime_status,

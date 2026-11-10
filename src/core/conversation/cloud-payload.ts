@@ -1,5 +1,6 @@
 export type PayloadMessage = { role: "user" | "assistant"; text: string };
 export type PayloadMemory = {
+  studyLearning?: boolean;
   automaticLearning?: boolean;
   ownerReviewed?: boolean;
   kind?: string;
@@ -64,6 +65,9 @@ function memoryEvidenceLabel(memory: PayloadMemory) {
 }
 
 function formatMemory(memory: PayloadMemory) {
+  if (memory.studyLearning) {
+    return `- [AUTOESTUDIO · FUENTE CURADA · COMPRENSIÓN COMPROBADA EN UN EJERCICIO · NO DECLARACIÓN DEL PROPIETARIO] ${memory.intention}: ${memory.summary || "sin resumen"}. Fuente: ${memory.source || "fuente no disponible"}. El ejercicio aprobado no garantiza dominio general ni verifica todos los hechos de la fuente.`;
+  }
   if (memory.automaticLearning) {
     return `- [${memory.ownerReviewed ? "CORRECCIÓN DEL PROPIETARIO" : "DECLARACIÓN DE CARLOS · SELECCIÓN AUTOMÁTICA · SIN REVISIÓN MANUAL"}] Carlos declaró: ${memory.summary || memory.intention}. Fuente: ${memory.source || "conversación local"}`;
   }

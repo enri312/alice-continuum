@@ -1,6 +1,8 @@
 import { ConversationVision, type ConversationVisionHandle } from "./components/conversation/ConversationVision";
 import { listen } from "@tauri-apps/api/event";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
+import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
+import { parseSelfStudySnapshot, selfStudyForConversation, type SelfStudySnapshot } from "./core/memory/self-study";
 import { automaticMemoryForConversation, parseAutomaticMemorySnapshot } from "./core/memory/automatic-memory";
 import type { AutomaticMemorySnapshot, AutomaticMemoryReview, AutomaticLearningPhase } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -133,6 +135,31 @@ export function App() {
   const [automaticMemory, setAutomaticMemory] = useState<AutomaticMemorySnapshot | null>(null);
   const [automaticPhase, setAutomaticPhase] = useState<AutomaticLearningPhase>("idle");
   const [automaticError, setAutomaticError] = useState("");
+  const [selfStudy, setSelfStudy] = useState<SelfStudySnapshot | null>(null);
+  const [selfStudyError, setSelfStudyError] = useState("");
+  useEffect(() => {
+    if (!desktopApp) return;
+    let active = true;
+    let off: (() => void) | undefined;
+    let generation = 0;
+    const refresh = async () => {
+      const current = ++generation;
+      try {
+        const snapshot = parseSelfStudySnapshot(await invoke("self_study_status"));
+        if (active && current === generation) { setSelfStudy(snapshot); setSelfStudyError(""); }
+      } catch (error) { if (active && current === generation) setSelfStudyError(String(error)); }
+    };
+    void listen("self-study-updated", () => { void refresh(); })
+      .then(unlisten => { if (active) { off = unlisten; void refresh(); } else unlisten(); })
+      .catch(error => { if (active) setSelfStudyError(String(error)); });
+    void refresh();
+    return () => { active = false; off?.(); };
+  }, [desktopApp]);
+
+  async function toggleSelfStudy(enabled: boolean) {
+    setSelfStudy(parseSelfStudySnapshot(await invoke("set_self_study_enabled", { input: { enabled } })));
+    setSelfStudyError("");
+  }
   useEffect(() => {
     if (!desktopApp) return;
     let active = true;
@@ -178,7 +205,7 @@ export function App() {
   const [cloudPending, setCloudPending] = useState(false);
   const [memoryRetrieval, setMemoryRetrieval] = useState<{ count: number; top: string; ids: string[] }>({ count: 0, top: "", ids: [] });
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
-    { id: "llamacpp", label: "Gemma local · llama.cpp", configured: false, defaultModel: "gemma-4-E2B-it-Q4_K_M", protocol: "Local · inicio manual", retentionMode: "Sin nube" },
+    { id: "llamacpp", label: "Gemma local · llama.cpp", configured: false, defaultModel: "gemma-4-E2B-it-Q4_K_M", protocol: "Local · inicio por autoestudio o desde Configuración", retentionMode: "Sin nube" },
     { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
     { id: "openai", label: "OpenAI", configured: false, defaultModel: "gpt-5.6-terra", protocol: "Responses API", retentionMode: "store: false" },
     { id: "anthropic", label: "Anthropic", configured: false, defaultModel: "", protocol: "Messages API", retentionMode: "solicitud sin estado local" },
@@ -197,7 +224,7 @@ export function App() {
   const workingMemoryGeneration = useRef(-1);
 
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
-  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory)], [ownerProfile, remembered, automaticMemory]);
+  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForConversation(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
   const ollamaProvider = cloudStatus.providers.find((provider) => provider.id === "ollama");
   const ollamaModel = cloudSelection.provider === "ollama" && cloudSelection.model.trim() ? cloudSelection.model : ollamaProvider?.defaultModel ?? "qwen3.5:4b";
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
@@ -658,7 +685,7 @@ export function App() {
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion visionPanel={<ConversationVision ref={visionRef} desktopApp={desktopApp} provider={cloudSelection.provider} />} automaticLearning={automaticMemory ? {enabled:automaticMemory.enabled, count:automaticMemory.activeCount, phase:automaticPhase, onOpen:() => setScreen("memoria")} : undefined} showFullHistory={showFullHistory} embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession} onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
-    {screen === "memoria" && <Memoria automaticMemoryPanel={<AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} />} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
+    {screen === "memoria" && <Memoria automaticMemoryPanel={<><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

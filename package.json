@@ -7,7 +7,10 @@
     "dev": "vite",
     "icons:generate": "node scripts/icons/generate-icons.mjs",
     "build": "tsc -b && vite build",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:obsidian",
+    "test:obsidian": "node --test scripts/obsidian/sync.test.mjs",
+    "obsidian:sync": "node scripts/obsidian/sync.mjs",
+    "obsidian:watch": "node scripts/obsidian/sync.mjs --watch",
     "test:watch": "vitest",
     "preview": "vite preview",
     "tauri": "tauri"

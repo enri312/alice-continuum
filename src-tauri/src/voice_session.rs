@@ -20,7 +20,6 @@ pub(crate) struct VoiceSessionStarted {
 }
 
 impl VoiceSessionStore {
-    #[cfg(target_os = "linux")]
     pub(crate) fn is_active(&self) -> bool {
         self.0.lock().is_ok_and(|active| {
             active
@@ -30,6 +29,7 @@ impl VoiceSessionStore {
     }
 
     pub(crate) fn begin(&self) -> Result<String, String> {
+        crate::local_inference::runtime().preempt_background();
         let id = Uuid::new_v4().to_string();
         *self.0.lock().map_err(|_| "Sesión de voz bloqueada")? = Some((id.clone(), Instant::now()));
         Ok(id)
@@ -114,11 +114,9 @@ mod tests {
     #[test]
     fn session_is_explicit_revocable_and_replaced_without_revoking_a_new_one() {
         let store = VoiceSessionStore::default();
-        #[cfg(target_os = "linux")]
         assert!(!store.is_active());
         assert!(store.require("arbitrary").is_err());
         let first = store.begin().unwrap();
-        #[cfg(target_os = "linux")]
         assert!(store.is_active());
         assert!(store.require(&first).is_ok());
         let second = store.begin().unwrap();
@@ -126,7 +124,6 @@ mod tests {
         store.stop(&first).unwrap();
         assert!(store.require(&second).is_ok());
         store.stop(&second).unwrap();
-        #[cfg(target_os = "linux")]
         assert!(!store.is_active());
         assert!(store.require(&second).is_err());
     }

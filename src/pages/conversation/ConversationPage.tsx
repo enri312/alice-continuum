@@ -25,7 +25,7 @@ const conversationMemoryTypeLabels: Record<ConversationLearningCandidate["memory
 
 const INITIAL_VISIBLE_MESSAGES = 12;
 
-type MemoryExcerpt = { automaticLearning?: boolean; ownerReviewed?: boolean; id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived"; accessibilityStatus?: "accessible" | "dormant"; suppressionStatus?: "suppressed"; archiveStatus?: "archived"; deletionStatus?: "scheduled" };
+type MemoryExcerpt = { studyLearning?: boolean; automaticLearning?: boolean; ownerReviewed?: boolean; id?: string; kind?: string; intention: string; summary?: string; nextStep?: string; finishedAt?: string; memoryType?: "semantic" | "procedural" | "preference" | "episodic"; source?: string; memoryStatus?: "confirmed" | "conflict" | "archived"; accessibilityStatus?: "accessible" | "dormant"; suppressionStatus?: "suppressed"; archiveStatus?: "archived"; deletionStatus?: "scheduled" };
 
 type ConversacionProps = {
   visionPanel?: ReactNode;

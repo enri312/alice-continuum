@@ -1,0 +1,762 @@
+{
+  "schemaVersion": 1,
+  "biblicalTradition": "catholic",
+  "lessons": [
+    {
+      "id": "arithmetic-1",
+      "track": "arithmetic",
+      "domain": "mathematics",
+      "title": "Orden de operaciones",
+      "content": "Para evaluar una expresión, se resuelven primero los paréntesis y las potencias; después multiplicaciones y divisiones; finalmente sumas y restas. Las operaciones de igual prioridad se realizan de izquierda a derecha. Por ejemplo, 4 + 3 × 2 = 10.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/2-2-evaluate-simplify-and-translate-expressions",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 2.2",
+      "question": "¿Cuánto vale 6 + 4 × 3?",
+      "options": [
+        "18",
+        "30",
+        "24"
+      ],
+      "correctOption": 0,
+      "explanation": "Primero 4 × 3 = 12; después 6 + 12 = 18.",
+      "level": 1
+    },
+    {
+      "id": "arithmetic-2",
+      "track": "arithmetic",
+      "domain": "mathematics",
+      "title": "Sumar fracciones",
+      "content": "Para sumar fracciones con denominadores distintos, se buscan fracciones equivalentes con un denominador común. Solo entonces se suman los numeradores. Por ejemplo, 1/2 + 1/4 equivale a 2/4 + 1/4 = 3/4; los denominadores no se suman.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/4-5-add-and-subtract-fractions-with-different-denominators",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 4.5",
+      "question": "¿Cuánto es 2/3 + 1/6?",
+      "options": [
+        "3/9",
+        "5/6",
+        "1/2"
+      ],
+      "correctOption": 1,
+      "explanation": "2/3 = 4/6; al sumar 1/6 resulta 5/6.",
+      "level": 2
+    },
+    {
+      "id": "arithmetic-3",
+      "track": "arithmetic",
+      "domain": "mathematics",
+      "title": "Porcentajes aplicados",
+      "content": "Un porcentaje expresa una proporción por cada cien. Para obtener un porcentaje de una cantidad, se multiplica la cantidad por esa proporción dividida entre cien. Por ejemplo, el 25 % de 40 es 40 × 25/100 = 10.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/6-1-understand-percent",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 6.1",
+      "question": "¿Cuánto es el 15 % de 80?",
+      "options": [
+        "65",
+        "15",
+        "12"
+      ],
+      "correctOption": 2,
+      "explanation": "80 × 15/100 = 12.",
+      "level": 3
+    },
+    {
+      "id": "algebra-1",
+      "track": "algebra",
+      "domain": "mathematics",
+      "title": "Despejar una incógnita",
+      "content": "Una ecuación conserva sus soluciones cuando se aplica la misma operación válida a ambos miembros. Si una incógnita está multiplicada por un número distinto de cero, dividir ambos miembros por ese número permite despejarla. Así, 3x = 12 implica x = 4.",
+      "sourceUrl": "https://openstax.org/books/elementary-algebra-2e/pages/2-2-solve-equations-using-the-division-and-multiplication-properties-of-equality",
+      "sourceTitle": "OpenStax, Elementary Algebra 2e, 2.2",
+      "question": "Si 5x = 35, ¿cuál es x?",
+      "options": [
+        "7",
+        "30",
+        "175"
+      ],
+      "correctOption": 0,
+      "explanation": "Dividir ambos miembros entre 5 da x = 7.",
+      "level": 1
+    },
+    {
+      "id": "algebra-2",
+      "track": "algebra",
+      "domain": "mathematics",
+      "title": "Extraer factor común",
+      "content": "Factorizar reescribe una suma como un producto. Para extraer un factor común, se divide cada término por ese factor y se coloca el resultado entre paréntesis. Por ejemplo, 3x + 6 = 3(x + 2); distribuir permite comprobarlo.",
+      "sourceUrl": "https://openstax.org/books/elementary-algebra-2e/pages/7-1-greatest-common-factor-and-factor-by-grouping",
+      "sourceTitle": "OpenStax, Elementary Algebra 2e, 7.1",
+      "question": "¿Qué factorización de 4x + 12 es correcta?",
+      "options": [
+        "4(x + 12)",
+        "2(x + 3)",
+        "4(x + 3)"
+      ],
+      "correctOption": 2,
+      "explanation": "Al distribuir, 4(x + 3) = 4x + 12.",
+      "level": 2
+    },
+    {
+      "id": "algebra-3",
+      "track": "algebra",
+      "domain": "mathematics",
+      "title": "Raíces de una cuadrática",
+      "content": "Para ax² + bx + c = 0, con a distinto de cero, la fórmula cuadrática es x = (−b ± √(b² − 4ac))/(2a). El discriminante indica cuántas raíces reales distintas existen: dos si es positivo, una si vale cero.",
+      "sourceUrl": "https://openstax.org/books/elementary-algebra-2e/pages/10-3-solve-quadratic-equations-using-the-quadratic-formula",
+      "sourceTitle": "OpenStax, Elementary Algebra 2e, 10.3",
+      "question": "¿Qué raíces tiene x² − 5x + 6 = 0?",
+      "options": [
+        "1 y 6",
+        "2 y 3",
+        "−2 y −3"
+      ],
+      "correctOption": 1,
+      "explanation": "El discriminante es 1; (5 ± 1)/2 da 2 y 3.",
+      "level": 3
+    },
+    {
+      "id": "geometry-1",
+      "track": "geometry",
+      "domain": "mathematics",
+      "title": "Perímetro de un rectángulo",
+      "content": "El perímetro mide la longitud del contorno de una figura y se expresa en unidades lineales. En un rectángulo hay dos lados de cada longitud, por lo que P = 2(largo + ancho). Con lados 5 y 2, el perímetro es 14.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/9-4-use-properties-of-rectangles-triangles-and-trapezoids",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 9.4",
+      "question": "Un rectángulo de lados 7 cm y 3 cm tiene perímetro:",
+      "options": [
+        "21 cm",
+        "20 cm",
+        "10 cm"
+      ],
+      "correctOption": 1,
+      "explanation": "2(7 + 3) = 20 cm.",
+      "level": 1
+    },
+    {
+      "id": "geometry-2",
+      "track": "geometry",
+      "domain": "mathematics",
+      "title": "Área de un triángulo",
+      "content": "El área de un triángulo es la mitad del producto de una base por su altura perpendicular: A = base × altura / 2. Se expresa en unidades cuadradas. Con base 6 y altura 4, el área es 12.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/9-4-use-properties-of-rectangles-triangles-and-trapezoids",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 9.4",
+      "question": "Con base 8 cm y altura perpendicular 5 cm, el área es:",
+      "options": [
+        "20 cm²",
+        "40 cm²",
+        "13 cm²"
+      ],
+      "correctOption": 0,
+      "explanation": "8 × 5 / 2 = 20 cm².",
+      "level": 2
+    },
+    {
+      "id": "geometry-3",
+      "track": "geometry",
+      "domain": "mathematics",
+      "title": "Teorema de Pitágoras",
+      "content": "En un triángulo rectángulo, los catetos forman el ángulo de 90 grados y la hipotenusa está enfrente. Sus longitudes cumplen a² + b² = c². Con catetos 3 y 4, la hipotenusa mide √25 = 5; la relación exige un ángulo recto.",
+      "sourceUrl": "https://openstax.org/books/prealgebra-2e/pages/9-3-use-properties-of-angles-triangles-and-the-pythagorean-theorem",
+      "sourceTitle": "OpenStax, Prealgebra 2e, 9.3",
+      "question": "Si los catetos miden 5 y 12, ¿cuánto mide la hipotenusa?",
+      "options": [
+        "17",
+        "7",
+        "13"
+      ],
+      "correctOption": 2,
+      "explanation": "√(5² + 12²) = √169 = 13.",
+      "level": 3
+    },
+    {
+      "id": "trigonometry-1",
+      "track": "trigonometry",
+      "domain": "mathematics",
+      "title": "Razón seno",
+      "content": "Para un ángulo agudo de un triángulo rectángulo, el seno es cateto opuesto dividido por hipotenusa. Es una razón sin unidades y depende del ángulo elegido. Si esas longitudes son 4 y 5, el seno vale 4/5 = 0,8.",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/7-2-right-triangle-trigonometry",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 7.2",
+      "question": "Con cateto opuesto 3 e hipotenusa 5, el seno del ángulo es:",
+      "options": [
+        "5/3",
+        "3/4",
+        "3/5"
+      ],
+      "correctOption": 2,
+      "explanation": "Se divide el cateto opuesto por la hipotenusa: 3/5.",
+      "level": 1
+    },
+    {
+      "id": "trigonometry-2",
+      "track": "trigonometry",
+      "domain": "mathematics",
+      "title": "Grados y radianes",
+      "content": "Grados y radianes son unidades distintas para medir ángulos. Una vuelta completa equivale a 360 grados o 2π radianes. Para pasar de grados a radianes se multiplica por π/180; por ejemplo, 90 grados equivalen a π/2 radianes.",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/7-1-angles",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 7.1",
+      "question": "¿A cuántos radianes equivalen 60 grados?",
+      "options": [
+        "π/3",
+        "π/6",
+        "3π"
+      ],
+      "correctOption": 0,
+      "explanation": "60 × π/180 = π/3 radianes.",
+      "level": 2
+    },
+    {
+      "id": "trigonometry-3",
+      "track": "trigonometry",
+      "domain": "mathematics",
+      "title": "Identidad pitagórica",
+      "content": "Para cualquier ángulo θ se cumple sen²(θ) + cos²(θ) = 1. Si θ es agudo, su coseno es positivo. Así, conocido el seno, el coseno se obtiene como √(1 − sen²(θ)); la condición de ángulo agudo fija el signo.",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/9-1-verifying-trigonometric-identities-and-using-trigonometric-identities-to-simplify-trigonometric-expressions",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 9.1",
+      "question": "Si θ es agudo y sen(θ) = 3/5, ¿cuál es cos(θ)?",
+      "options": [
+        "−4/5",
+        "4/5",
+        "2/5"
+      ],
+      "correctOption": 1,
+      "explanation": "cos(θ) = √(1 − 9/25) = 4/5; es positivo por ser agudo.",
+      "level": 3
+    },
+    {
+      "id": "calculus-1",
+      "track": "calculus",
+      "domain": "mathematics",
+      "title": "Límite de un polinomio",
+      "content": "El límite describe el valor al que se aproxima una función cuando su variable se acerca a un punto. Para un polinomio, se puede sustituir directamente ese punto. Por ejemplo, el límite de x² + 2 cuando x tiende a 2 es 6.",
+      "sourceUrl": "https://openstax.org/books/calculus-volume-1/pages/2-3-the-limit-laws",
+      "sourceTitle": "OpenStax, Calculus Volume 1, 2.3",
+      "question": "¿Cuál es el límite de x² + 1 cuando x tiende a 3?",
+      "options": [
+        "10",
+        "7",
+        "9"
+      ],
+      "correctOption": 0,
+      "explanation": "La sustitución directa da 3² + 1 = 10.",
+      "level": 1
+    },
+    {
+      "id": "calculus-2",
+      "track": "calculus",
+      "domain": "mathematics",
+      "title": "Derivada de una potencia",
+      "content": "La derivada expresa una tasa de cambio instantánea. La regla de la potencia establece que la derivada de xⁿ es nxⁿ⁻¹ para exponentes enteros positivos. Por ejemplo, la derivada de x⁴ es 4x³; evaluar después en un punto da su pendiente.",
+      "sourceUrl": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules",
+      "sourceTitle": "OpenStax, Calculus Volume 1, 3.3",
+      "question": "Para f(x) = x³, ¿cuánto vale f′(2)?",
+      "options": [
+        "8",
+        "6",
+        "12"
+      ],
+      "correctOption": 2,
+      "explanation": "f′(x) = 3x²; en x = 2 vale 12.",
+      "level": 2
+    },
+    {
+      "id": "calculus-3",
+      "track": "calculus",
+      "domain": "mathematics",
+      "title": "Integral definida",
+      "content": "El teorema fundamental del cálculo permite evaluar una integral definida mediante una antiderivada F: se calcula F(b) − F(a). Por ejemplo, integrar 2x entre 0 y 2 da 2² − 0² = 4, pues una antiderivada de 2x es x².",
+      "sourceUrl": "https://openstax.org/books/calculus-volume-1/pages/5-3-the-fundamental-theorem-of-calculus",
+      "sourceTitle": "OpenStax, Calculus Volume 1, 5.3",
+      "question": "¿Cuánto vale la integral de 2x entre 0 y 3?",
+      "options": [
+        "6",
+        "9",
+        "3"
+      ],
+      "correctOption": 1,
+      "explanation": "Con F(x) = x², F(3) − F(0) = 9.",
+      "level": 3
+    },
+    {
+      "id": "linear-algebra-1",
+      "track": "linear-algebra",
+      "domain": "mathematics",
+      "title": "Sumar vectores",
+      "content": "Un vector puede representarse mediante componentes que describen desplazamientos. Para sumar dos vectores del mismo espacio, se suman sus componentes correspondientes. Por ejemplo, (1, 2) + (3, 4) = (4, 6); no se mezclan la primera componente y la segunda.",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/10-8-vectors",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 10.8",
+      "question": "¿Cuál es (2, 3) + (4, −1)?",
+      "options": [
+        "(6, 4)",
+        "(6, 2)",
+        "(8, −3)"
+      ],
+      "correctOption": 1,
+      "explanation": "Se suman las coordenadas: 2 + 4 = 6 y 3 − 1 = 2.",
+      "level": 1
+    },
+    {
+      "id": "linear-algebra-2",
+      "track": "linear-algebra",
+      "domain": "mathematics",
+      "title": "Producto de matrices",
+      "content": "Para multiplicar una matriz por otra, las columnas de la primera deben coincidir en número con las filas de la segunda. Cada entrada resulta de sumar productos de una fila por una columna. Por ejemplo, [1, 2] por [3; 4] da [11].",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/11-5-matrices-and-matrix-operations",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 11.5",
+      "question": "¿Qué matriz resulta de [2, 3] por [4; 5]?",
+      "options": [
+        "[23]",
+        "[8, 15]",
+        "[10]"
+      ],
+      "correctOption": 0,
+      "explanation": "El único elemento es 2 × 4 + 3 × 5 = 23.",
+      "level": 2
+    },
+    {
+      "id": "linear-algebra-3",
+      "track": "linear-algebra",
+      "domain": "mathematics",
+      "title": "Eliminar una variable",
+      "content": "La eliminación combina ecuaciones para cancelar una variable conservando las soluciones del sistema. En x + y = 5 y x − y = 1, sumar ambas elimina y: 2x = 6. Sustituir x = 3 en la primera da y = 2.",
+      "sourceUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/11-6-solving-systems-with-gaussian-elimination",
+      "sourceTitle": "OpenStax, Algebra and Trigonometry 2e, 11.6",
+      "question": "Para x + y = 7 y x − y = 1, la solución es:",
+      "options": [
+        "x = 3, y = 4",
+        "x = 7, y = 1",
+        "x = 4, y = 3"
+      ],
+      "correctOption": 2,
+      "explanation": "Sumar da 2x = 8; luego x = 4 e y = 3.",
+      "level": 3
+    },
+    {
+      "id": "probability-1",
+      "track": "probability",
+      "domain": "mathematics",
+      "title": "Resultados equiprobables",
+      "content": "Cuando todos los resultados son igualmente probables, la probabilidad de un evento se obtiene dividiendo sus resultados favorables entre el total. En un dado justo de seis caras, obtener un número par tiene probabilidad 3/6 = 1/2. Es esencial declarar que el dado es justo.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/3-1-terminology",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 3.1",
+      "question": "En un dado justo de seis caras, P(resultado mayor que 4) es:",
+      "options": [
+        "1/2",
+        "2/3",
+        "1/3"
+      ],
+      "correctOption": 2,
+      "explanation": "Solo 5 y 6 cumplen: 2/6 = 1/3.",
+      "level": 1
+    },
+    {
+      "id": "probability-2",
+      "track": "probability",
+      "domain": "mathematics",
+      "title": "Eventos independientes",
+      "content": "Dos eventos son independientes cuando conocer que ocurrió uno no modifica la probabilidad del otro. Su probabilidad conjunta es el producto de sus probabilidades. Por ejemplo, obtener cara en dos lanzamientos independientes de una moneda justa tiene probabilidad 1/2 × 1/2 = 1/4.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/3-2-independent-and-mutually-exclusive-events",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 3.2",
+      "question": "Moneda justa y dado justo independientes: P(cara y un 6) es:",
+      "options": [
+        "1/7",
+        "1/12",
+        "1/3"
+      ],
+      "correctOption": 1,
+      "explanation": "La independencia permite multiplicar: 1/2 × 1/6 = 1/12.",
+      "level": 2
+    },
+    {
+      "id": "probability-3",
+      "track": "probability",
+      "domain": "mathematics",
+      "title": "Probabilidad condicional",
+      "content": "Una probabilidad condicional utiliza solamente los resultados compatibles con la información conocida. Si B tiene probabilidad positiva, P(A dado B) = P(A y B)/P(B). En un dado justo, saber que el resultado es par restringe los resultados posibles a 2, 4 y 6.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/3-1-terminology",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 3.1",
+      "question": "Sabiendo que un dado justo salió par, P(resultado al menos 4) es:",
+      "options": [
+        "2/3",
+        "1/3",
+        "1/2"
+      ],
+      "correctOption": 0,
+      "explanation": "Entre los tres pares posibles, 4 y 6 cumplen la condición.",
+      "level": 3
+    },
+    {
+      "id": "statistics-1",
+      "track": "statistics",
+      "domain": "mathematics",
+      "title": "Media aritmética",
+      "content": "La media aritmética resume un conjunto de datos sumando sus valores y dividiendo entre el número de observaciones. Para 2, 4 y 6, la suma es 12 y la media es 4. Todas las observaciones participan en el cálculo.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/2-5-measures-of-the-center-of-the-data",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 2.5",
+      "question": "¿Cuál es la media de 2, 5 y 8?",
+      "options": [
+        "15",
+        "5",
+        "6"
+      ],
+      "correctOption": 1,
+      "explanation": "(2 + 5 + 8)/3 = 5.",
+      "level": 1
+    },
+    {
+      "id": "statistics-2",
+      "track": "statistics",
+      "domain": "mathematics",
+      "title": "Mediana y orden",
+      "content": "La mediana es el centro de los datos ordenados. Si hay un número par de observaciones, se promedian las dos centrales. Por ejemplo, en 1, 2, 3 y 20, la mediana es 2,5; un valor extremo afecta menos a la mediana que a la media.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/2-5-measures-of-the-center-of-the-data",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 2.5",
+      "question": "¿Cuál es la mediana de 3, 4, 5 y 100?",
+      "options": [
+        "4,5",
+        "28",
+        "5"
+      ],
+      "correctOption": 0,
+      "explanation": "Los valores centrales son 4 y 5; su promedio es 4,5.",
+      "level": 2
+    },
+    {
+      "id": "statistics-3",
+      "track": "statistics",
+      "domain": "mathematics",
+      "title": "Varianza muestral",
+      "content": "La varianza muestral mide dispersión: suma los cuadrados de las diferencias respecto de la media y divide entre n − 1, para n mayor que uno. En la muestra 1, 2 y 3, la media es 2 y la varianza es (1 + 0 + 1)/2 = 1.",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/2-7-measures-of-the-spread-of-the-data",
+      "sourceTitle": "OpenStax, Introductory Statistics 2e, 2.7",
+      "question": "¿Cuál es la varianza muestral de 2, 4 y 6?",
+      "options": [
+        "8",
+        "8/3",
+        "4"
+      ],
+      "correctOption": 2,
+      "explanation": "La media es 4; (4 + 0 + 4)/(3 − 1) = 4.",
+      "level": 3
+    },
+    {
+      "id": "logic-1",
+      "track": "logic",
+      "domain": "mathematics",
+      "title": "Proposición lógica",
+      "content": "Una proposición lógica es una oración declarativa a la que puede atribuirse un valor de verdad: verdadero o falso. Una pregunta o una orden no cumple esa función. Por ejemplo, «cinco es impar» es una proposición; «¿qué hora es?» es una pregunta.",
+      "sourceUrl": "https://openstax.org/books/contemporary-mathematics/pages/2-1-statements-and-quantifiers",
+      "sourceTitle": "OpenStax, Contemporary Mathematics, 2.1",
+      "question": "¿Cuál de estas expresiones es una proposición?",
+      "options": [
+        "2 + 2 = 4",
+        "Cierra la puerta",
+        "¿Cuántos hay?"
+      ],
+      "correctOption": 0,
+      "explanation": "La igualdad es declarativa y tiene un valor de verdad.",
+      "level": 1
+    },
+    {
+      "id": "logic-2",
+      "track": "logic",
+      "domain": "mathematics",
+      "title": "Conjunción y disyunción",
+      "content": "La conjunción p y q solo es verdadera si ambas proposiciones son verdaderas. La disyunción inclusiva p o q es verdadera si al menos una lo es. Si p es verdadera y q falsa, la conjunción es falsa y la disyunción verdadera.",
+      "sourceUrl": "https://openstax.org/books/contemporary-mathematics/pages/2-2-compound-statements",
+      "sourceTitle": "OpenStax, Contemporary Mathematics, 2.2",
+      "question": "Con p verdadera y q falsa, ¿qué expresión es falsa?",
+      "options": [
+        "p o q",
+        "p y q",
+        "no q"
+      ],
+      "correctOption": 1,
+      "explanation": "La conjunción exige dos valores verdaderos; q es falsa.",
+      "level": 2
+    },
+    {
+      "id": "logic-3",
+      "track": "logic",
+      "domain": "mathematics",
+      "title": "Contraposición",
+      "content": "Una implicación «si p, entonces q» es lógicamente equivalente a su contraposición: «si no q, entonces no p». No es equivalente, en general, a invertir p y q. Por ejemplo, de «si es cuadrado, tiene cuatro lados» se obtiene «si no tiene cuatro lados, no es cuadrado».",
+      "sourceUrl": "https://openstax.org/books/contemporary-mathematics/pages/2-5-equivalent-statements",
+      "sourceTitle": "OpenStax, Contemporary Mathematics, 2.5",
+      "question": "Contraposición de «si n es múltiplo de 4, entonces es par»:",
+      "options": [
+        "Si es par, es múltiplo de 4",
+        "Si no es múltiplo de 4, no es par",
+        "Si no es par, no es múltiplo de 4"
+      ],
+      "correctOption": 2,
+      "explanation": "Se niega el consecuente y se concluye la negación del antecedente.",
+      "level": 3
+    },
+    {
+      "id": "biblical-history-1",
+      "track": "biblical-history",
+      "domain": "biblical-history",
+      "title": "Génesis y creación",
+      "content": "En la lectura católica, Génesis presenta a Dios como creador y la creación como buena. Su enseñanza religiosa sobre el origen y el sentido se distingue de una datación científica del universo. El Catecismo sitúa este relato al comienzo de la historia de la salvación.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p1s2c1p4_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 279-289",
+      "question": "¿Qué enseñanza expresa esta lectura católica de Génesis?",
+      "options": [
+        "Dios es creador y su creación es buena",
+        "La Tierra fue datada científicamente en 4004 a. C.",
+        "Cada día narrado establece una fecha geológica"
+      ],
+      "correctOption": 0,
+      "explanation": "La afirmación es teológica; el relato no constituye un calendario científico.",
+      "level": 1
+    },
+    {
+      "id": "biblical-history-2",
+      "track": "biblical-history",
+      "domain": "biblical-history",
+      "title": "Abraham y la promesa",
+      "content": "Después de los relatos de los orígenes, la tradición bíblica presenta la llamada de Abraham y una promesa de bendición para los pueblos. La lectura católica reconoce aquí una etapa de la historia de la salvación. Esta ubicación narrativa no prueba por sí sola fechas arqueológicas.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p1s1c2a1_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 59-64",
+      "question": "¿Quién recibe la llamada y la promesa patriarcal estudiadas?",
+      "options": [
+        "Salomón",
+        "Abraham",
+        "David"
+      ],
+      "correctOption": 1,
+      "explanation": "El Catecismo 59-60 identifica a Abraham como destinatario de esa promesa.",
+      "level": 2
+    },
+    {
+      "id": "biblical-history-3",
+      "track": "biblical-history",
+      "domain": "biblical-history",
+      "title": "Éxodo y alianza del Sinaí",
+      "content": "En el relato del Éxodo, Moisés conduce a Israel desde la esclavitud y media la alianza del Sinaí, vinculada con la Ley. El Catecismo interpreta estos hechos dentro de la historia de la salvación. Identificar el relato y su sentido religioso no demuestra automáticamente una cronología externa.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p1s1c2a1_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 59-64",
+      "question": "¿Qué afirmación mantiene la distinción entre relato y corroboración histórica?",
+      "options": [
+        "Todas las fechas del Éxodo están demostradas por el relato",
+        "Génesis permite calcular científicamente la edad terrestre",
+        "La tradición narra liberación y alianza con Moisés; la datación requiere evidencia adicional"
+      ],
+      "correctOption": 2,
+      "explanation": "La exposición reconoce el contenido de la tradición sin presentar su cronología como verificada.",
+      "level": 3
+    },
+    {
+      "id": "emotional-intelligence-1",
+      "track": "emotional-intelligence",
+      "domain": "emotional-intelligence",
+      "title": "Cuatro ramas de habilidad",
+      "content": "El modelo de Mayer, Caruso y Salovey distingue cuatro áreas: percibir emociones, usarlas para facilitar el pensamiento, comprenderlas y regularlas. Son áreas de razonamiento emocional, no una clasificación diagnóstica. Reconocer una emoción expresada pertenece a percepción; elegir cómo responder requiere regulación.",
+      "sourceUrl": "https://sites.usnh.edu/jdmayer/wp-content/uploads/sites/261/2024/03/rp2016-mayer-caruso-salovey.pdf",
+      "sourceTitle": "Mayer, Caruso y Salovey, 2016, modelo de habilidad",
+      "question": "¿A qué rama pertenece reconocer una emoción expresada?",
+      "options": [
+        "Comprender geometría",
+        "Percibir emociones",
+        "Asignar un diagnóstico"
+      ],
+      "correctOption": 1,
+      "explanation": "Identificar expresiones emocionales corresponde a la rama de percepción.",
+      "level": 1
+    },
+    {
+      "id": "emotional-intelligence-2",
+      "track": "emotional-intelligence",
+      "domain": "emotional-intelligence",
+      "title": "Comprender cambios emocionales",
+      "content": "Comprender emociones incluye reconocer sus causas posibles y cómo pueden cambiar. Por ejemplo, una dificultad puede suscitar frustración y su resolución, alivio. El contexto orienta la interpretación, pero no garantiza conocer el estado de otra persona sin preguntarle.",
+      "sourceUrl": "https://sites.usnh.edu/jdmayer/wp-content/uploads/sites/261/2024/03/rp2016-mayer-caruso-salovey.pdf",
+      "sourceTitle": "Mayer, Caruso y Salovey, 2016, modelo de habilidad",
+      "question": "Si se resuelve una dificultad frustrante, ¿qué transición es compatible con el ejemplo?",
+      "options": [
+        "De frustración a alivio",
+        "De alivio a una certeza diagnóstica",
+        "De frustración a una emoción siempre idéntica"
+      ],
+      "correctOption": 0,
+      "explanation": "La comprensión emocional considera transiciones posibles y dependientes del contexto.",
+      "level": 2
+    },
+    {
+      "id": "emotional-intelligence-3",
+      "track": "emotional-intelligence",
+      "domain": "emotional-intelligence",
+      "title": "Regular una respuesta",
+      "content": "Regular emociones implica modular una respuesta, no negar que existe. Una estrategia consciente consiste en reconsiderar una situación antes de actuar. Ante un mensaje ambiguo, detenerse y pedir aclaración permite responder sin asumir automáticamente una intención hostil. Es un ejemplo educativo, no un tratamiento.",
+      "sourceUrl": "https://dictionary.apa.org/emotion-regulation",
+      "sourceTitle": "APA Dictionary of Psychology: emotion regulation",
+      "question": "Ante un mensaje ambiguo que provoca enfado, ¿qué acción ilustra reevaluación?",
+      "options": [
+        "Dar por probada una intención hostil",
+        "Afirmar que sentir enfado está prohibido",
+        "Considerar otra interpretación y pedir aclaración"
+      ],
+      "correctOption": 2,
+      "explanation": "La reevaluación revisa la interpretación antes de elegir una conducta.",
+      "level": 3
+    },
+    {
+      "id": "empathy-1",
+      "track": "empathy",
+      "domain": "empathy",
+      "title": "Comprender sin adivinar",
+      "content": "La empatía supone intentar comprender la experiencia de otra persona desde su perspectiva. No garantiza conocer sus pensamientos ni obliga a compartir sus opiniones. Por ejemplo, se puede reconocer que una pérdida duele sin afirmar que se sabe exactamente cómo se siente alguien.",
+      "sourceUrl": "https://dictionary.apa.org/empathy",
+      "sourceTitle": "APA Dictionary of Psychology: empathy",
+      "question": "¿Qué afirmación describe mejor la empatía?",
+      "options": [
+        "Conocer con certeza pensamientos ajenos",
+        "Aceptar como verdadera toda opinión ajena",
+        "Intentar comprender la experiencia del otro"
+      ],
+      "correctOption": 2,
+      "explanation": "Comprender una perspectiva no equivale a leer la mente ni a dar siempre la razón.",
+      "level": 1
+    },
+    {
+      "id": "empathy-2",
+      "track": "empathy",
+      "domain": "empathy",
+      "title": "Tomar otra perspectiva",
+      "content": "Tomar perspectiva consiste en considerar una situación desde un punto de vista distinto del propio. Si alguien responde lentamente, su contexto podría incluir tareas o dificultades desconocidas. Preguntar qué ocurre ayuda a contrastar esa posibilidad sin convertirla en una certeza sobre su estado mental.",
+      "sourceUrl": "https://dictionary.apa.org/perspective-taking",
+      "sourceTitle": "APA Dictionary of Psychology: perspective taking",
+      "question": "Ante una respuesta tardía, ¿qué acción aplica toma de perspectiva?",
+      "options": [
+        "Preguntar por el contexto antes de atribuir desinterés",
+        "Concluir que la persona siempre desprecia a otros",
+        "Afirmar que todos responderían al mismo ritmo"
+      ],
+      "correctOption": 0,
+      "explanation": "Se explora otro contexto sin asumir que la interpretación propia es un hecho.",
+      "level": 2
+    },
+    {
+      "id": "empathy-3",
+      "track": "empathy",
+      "domain": "empathy",
+      "title": "Escucha y comprobación",
+      "content": "La escucha activa combina atención, preguntas pertinentes y reformulación para comprobar lo entendido. En una conversación cotidiana puede aplicarse diciendo: «Si entendí bien, te preocupó quedarte sin apoyo; ¿es así?». La confirmación del interlocutor permite corregir la interpretación, sin atribuirle un diagnóstico.",
+      "sourceUrl": "https://dictionary.apa.org/active-listening",
+      "sourceTitle": "APA Dictionary of Psychology: active listening",
+      "question": "¿Qué respuesta comprueba la comprensión mediante escucha activa?",
+      "options": [
+        "Ya sé exactamente lo que piensas",
+        "Si entendí bien, te preocupó eso; ¿es así?",
+        "No hace falta que expliques nada"
+      ],
+      "correctOption": 1,
+      "explanation": "La reformulación acompañada de una pregunta permite confirmar o corregir.",
+      "level": 3
+    },
+    {
+      "id": "solidarity-1",
+      "track": "solidarity",
+      "domain": "solidarity",
+      "title": "Solidaridad e interdependencia",
+      "content": "La enseñanza social católica vincula la solidaridad con la fraternidad y la interdependencia humana. Incluye compartir recursos y favorecer relaciones más justas. Por ejemplo, organizar apoyo estable para quienes enfrentan una necesidad expresa responsabilidad común; no se limita a obtener reconocimiento por una ayuda aislada.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p3s1c2a3_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 1939-1942",
+      "question": "¿Qué acción ejemplifica mejor una responsabilidad solidaria sostenida?",
+      "options": [
+        "Coordinar ayuda regular según necesidades compartidas",
+        "Ayudar solo cuando hay publicidad",
+        "Excluir a quienes no pueden devolver el favor"
+      ],
+      "correctOption": 0,
+      "explanation": "El apoyo estable reconoce necesidades e interdependencia sin exigir devolución.",
+      "level": 1
+    },
+    {
+      "id": "solidarity-2",
+      "track": "solidarity",
+      "domain": "solidarity",
+      "title": "Ayuda concreta y misericordia",
+      "content": "El Catecismo distingue necesidades corporales y espirituales al describir obras de misericordia. Alimentar a quien tiene hambre atiende una necesidad corporal; enseñar o consolar puede atender una espiritual. Son ejemplos de ayuda concreta que debe reconocer la dignidad de quien la recibe.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p3s2c2a7_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 2447",
+      "question": "¿Qué ejemplo atiende directamente una necesidad corporal?",
+      "options": [
+        "Explicar un concepto",
+        "Escuchar una preocupación",
+        "Proporcionar alimento a quien tiene hambre"
+      ],
+      "correctOption": 2,
+      "explanation": "Dar alimento responde a una necesidad corporal; enseñar y consolar pertenecen a otro ámbito.",
+      "level": 2
+    },
+    {
+      "id": "solidarity-3",
+      "track": "solidarity",
+      "domain": "solidarity",
+      "title": "De la ayuda a la cooperación",
+      "content": "Fratelli tutti presenta la solidaridad como algo más amplio que gestos esporádicos: implica pensar y actuar en comunidad ante causas de exclusión. Por ejemplo, además de ayudar puntualmente, un grupo puede colaborar con los afectados para identificar barreras y mejorar el acceso a recursos.",
+      "sourceUrl": "https://www.vatican.va/content/francesco/es/encyclicals/documents/papa-francesco_20201003_enciclica-fratelli-tutti.html",
+      "sourceTitle": "Francisco, Fratelli tutti, 116",
+      "question": "¿Qué decisión aborda una barrera común de manera solidaria?",
+      "options": [
+        "Entregar ayuda una vez y prohibir escuchar después",
+        "Coordinar con los afectados mejoras de acceso sostenidas",
+        "Culpar automáticamente a quienes encuentran obstáculos"
+      ],
+      "correctOption": 1,
+      "explanation": "La cooperación reconoce a los afectados y busca mejorar condiciones compartidas.",
+      "level": 3
+    },
+    {
+      "id": "humility-1",
+      "track": "humility",
+      "domain": "humility",
+      "title": "Reconocer los propios límites",
+      "content": "En la catequesis católica, la humildad se opone a la presunción y reconoce la propia condición limitada. En el estudio, esto puede traducirse en admitir una duda y aceptar ayuda. No requiere negar capacidades reales ni afirmar que una persona carece de dignidad.",
+      "sourceUrl": "https://www.vatican.va/content/francesco/es/audiences/2024/documents/20240522-udienza-generale.html",
+      "sourceTitle": "Francisco, audiencia general, 22 de mayo de 2024",
+      "question": "¿Qué respuesta expresa reconocimiento humilde de un límite?",
+      "options": [
+        "Nunca puedo equivocarme",
+        "No sé todavía; voy a comprobarlo",
+        "No tengo ninguna dignidad"
+      ],
+      "correctOption": 1,
+      "explanation": "Admitir una duda y buscar ayuda reconoce el límite sin despreciarse.",
+      "level": 1
+    },
+    {
+      "id": "humility-2",
+      "track": "humility",
+      "domain": "humility",
+      "title": "Humildad en la oración",
+      "content": "El Catecismo presenta la humildad como fundamento de la oración: la persona reconoce que necesita a Dios y no se coloca como medida absoluta de todo. Esta es una enseñanza de la fe católica. Pedir ayuda con sinceridad ejemplifica esa disposición receptiva.",
+      "sourceUrl": "https://www.vatican.va/archive/catechism_sp/p4s1_sp.html",
+      "sourceTitle": "Catecismo de la Iglesia Católica, 2559",
+      "question": "Según esta enseñanza católica, ¿qué disposición fundamenta la oración?",
+      "options": [
+        "La certeza de no necesitar a nadie",
+        "La superioridad frente a otras personas",
+        "Reconocer la propia necesidad ante Dios"
+      ],
+      "correctOption": 2,
+      "explanation": "El Catecismo 2559 vincula oración y reconocimiento humilde de la necesidad.",
+      "level": 2
+    },
+    {
+      "id": "humility-3",
+      "track": "humility",
+      "domain": "humility",
+      "title": "Servicio sin superioridad",
+      "content": "La catequesis sobre la humildad propone servir sin vanagloria y presenta a María atendiendo a Isabel como ejemplo. Aplicado a un equipo, esto orienta a colaborar, reconocer aportes ajenos y corregir los propios errores sin convertir la ayuda en una afirmación de superioridad.",
+      "sourceUrl": "https://www.vatican.va/content/francesco/es/audiences/2024/documents/20240522-udienza-generale.html",
+      "sourceTitle": "Francisco, audiencia general, 22 de mayo de 2024",
+      "question": "¿Qué conducta de equipo aplica servicio humilde?",
+      "options": [
+        "Corregir el propio error y reconocer la ayuda recibida",
+        "Ocultar errores para conservar una imagen perfecta",
+        "Exigir admiración antes de colaborar"
+      ],
+      "correctOption": 0,
+      "explanation": "Reconocer aportes y corregirse concreta una actitud de servicio sin presunción.",
+      "level": 3
+    }
+  ]
+}

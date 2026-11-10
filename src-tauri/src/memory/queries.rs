@@ -196,7 +196,11 @@ pub(super) fn load_memory_at(path: &Path) -> Result<super::model::MemorySnapshot
 pub(super) fn markdown_note_catalog_at(
     directory: &Path,
 ) -> Result<super::model::MarkdownNoteCatalogSnapshot, String> {
-    let vault = directory.join("notes");
+    // Prefer the project's Obsidian projection without discarding legacy notes.
+    let obsidian = directory.parent().map(|root| root.join("obsidian"));
+    let vault = obsidian
+        .filter(|path| path.is_dir())
+        .unwrap_or_else(|| directory.join("notes"));
     if !vault.is_dir() {
         return Ok(super::model::MarkdownNoteCatalogSnapshot {
             vault_path: vault.display().to_string(),

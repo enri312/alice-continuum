@@ -614,3 +614,13 @@ pub(crate) fn open_memory_directory(app: AppHandle) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests;
+
+// Reuse the verified atomic file primitive without writing to canonical records.
+pub(crate) fn write_study_projection(path: &std::path::Path, content: &str) -> Result<(), String> {
+    storage::atomic_replace_text_file(
+        path,
+        content,
+        &format!("study-{}.tmp", uuid::Uuid::new_v4()),
+        "avance de autoestudio",
+    )
+}

@@ -1,11 +1,26 @@
 import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { normalizePath } from "vite";
+import { normalizePath, type Plugin } from "vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { startObsidianSync } from "./scripts/obsidian/sync.mjs";
+
+function obsidianMemoryVault(): Plugin {
+  let close = async () => {};
+  return {
+    name: "alice-obsidian-memory",
+    apply: (config, environment) => environment.command === "serve" && config.mode !== "test" && !process.env.VITEST,
+    configureServer(server) {
+      const sync = startObsidianSync({ projectRoot: fileURLToPath(new URL(".", import.meta.url)) });
+      close = () => sync.close();
+      server.httpServer?.once("close", () => { void close(); });
+    },
+    async closeBundle() { await close(); },
+  };
+}
 
 export default defineConfig({
-  plugins: [react(), {
+  plugins: [react(), obsidianMemoryVault(), {
     name: "alice-private-development-files",
     config(config) {
       const root = path.resolve(config.root ?? fileURLToPath(new URL(".", import.meta.url)));
@@ -18,7 +33,7 @@ export default defineConfig({
   }],
   worker: { format: "es" },
   test: {
-    exclude: [...configDefaults.exclude, "**/local/**", "**/.cargo-target/**"],
+    exclude: [...configDefaults.exclude, "**/local/**", "**/.cargo-target/**", "scripts/obsidian/**/*.test.mjs"],
   },
   server: {
     host: "127.0.0.1",

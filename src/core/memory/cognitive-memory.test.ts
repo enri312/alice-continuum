@@ -76,4 +76,13 @@ describe("proyección cognitiva de memoria real", () => {
     expect(resolveCognitiveMemoryStatus({ id: "legacy", intention: "Legado" })).toBe("historical");
     expect(resolveCognitiveMemoryLayer({ id: "chat", intention: "Diálogo", kind: "Conversación" })).toBe("episodic");
   });
+
+  it("muestra el autoestudio con su fuente sin atribuir confirmación al propietario", () => {
+    const [node] = buildCognitiveMemoryNodes([{
+      id: "study:arithmetic-01", kind: "Autoestudio", studyLearning: true,
+      intention: "Fracciones equivalentes", summary: "Una fracción mantiene su valor al multiplicar numerador y denominador por el mismo número distinto de cero.",
+      memoryType: "semantic", source: "OpenStax · lección con comprensión comprobada",
+    }]);
+    expect(node).toMatchObject({ layer: "semantic", status: "learned", source: "OpenStax · lección con comprensión comprobada" });
+  });
 });

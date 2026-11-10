@@ -6,6 +6,10 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+[Memoria guardada en Obsidian](runbooks/05-memoria-obsidian.md): bóveda privada actualizada desde `data/memory/`, con notas manuales separadas.
+
+[Autoestudio al arrancar](runbooks/06-autoestudio-al-arrancar.md): currículo cerrado de las materias autorizadas, con enfoque bíblico católico, ejercicios comprobados y memoria recuperable.
+
 Última mejora de fiabilidad: [recuperación de memoria y control de Gemma](testing/RELIABILITY_REPORT_2026-11-05.md), conservando Rust/Tauri y el alcance de conversación R9 sin cuerpo.
 
 Continuación R9: [espera dirigida y apagado del micrófono](testing/VOICE_STANDBY_REPORT_2026-11-06.md) y [contraste del informe de frameworks](research/FRAMEWORKS_REVIEW_2026-11-06.md).

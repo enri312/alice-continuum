@@ -16,6 +16,17 @@ const context = {
 };
 
 describe("buildCloudPayload", () => {
+  it("etiqueta autoestudio antes de memoria automática o semántica y conserva el límite de su comprobación", () => {
+    const payload = buildCloudPayload({ ...context, includeMemory: true, memories: [{
+      studyLearning: true, automaticLearning: true, kind: "Autoestudio", memoryType: "semantic",
+      intention: "Álgebra", summary: "Un ejemplo comprobado", source: "Fuente curada · https://example.org/algebra",
+    }] });
+    expect(payload).toContain("AUTOESTUDIO · FUENTE CURADA · COMPRENSIÓN COMPROBADA EN UN EJERCICIO · NO DECLARACIÓN DEL PROPIETARIO");
+    expect(payload).toContain("no garantiza dominio general");
+    expect(payload).toContain("https://example.org/algebra");
+    expect(payload).not.toContain("Carlos declaró");
+    expect(payload).not.toContain("HECHO ENSEÑADO Y CONFIRMADO");
+  });
   it("conserva ambos lados del diálogo de voz como diálogo y respeta excluir historial", () => {
     const payload = buildCloudPayload({ ...context, includeHistory: true, includeAssistantDialogue: true });
     expect(payload).toContain("LAS RESPUESTAS DE ALICE NO SON EVIDENCIA FACTUAL");

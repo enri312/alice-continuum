@@ -236,6 +236,33 @@ mod tests {
     }
 
     #[test]
+    fn note_catalog_prefers_obsidian_and_preserves_legacy_notes() {
+        let store = fixture();
+        let memory = store.path().parent().unwrap().to_path_buf();
+        let vault = memory.parent().unwrap().join("obsidian");
+        fs::create_dir_all(memory.join("notes")).unwrap();
+        fs::write(memory.join("notes/legacy.md"), "Nota anterior").unwrap();
+        let legacy = super::super::queries::markdown_note_catalog_at(&memory).unwrap();
+        assert_eq!(legacy.note_count, 1);
+        assert_eq!(
+            legacy.vault_path,
+            memory.join("notes").display().to_string()
+        );
+
+        fs::create_dir_all(&vault).unwrap();
+        fs::write(vault.join("Inicio.md"), "Entrada de Obsidian").unwrap();
+        let current = super::super::queries::markdown_note_catalog_at(&memory).unwrap();
+        assert_eq!(current.note_count, 1);
+        assert_eq!(current.vault_path, vault.display().to_string());
+        assert_eq!(current.notes[0].relative_path, "Inicio.md");
+        assert_eq!(
+            fs::read_to_string(memory.join("notes/legacy.md")).unwrap(),
+            "Nota anterior"
+        );
+        assert!(!memory.join("records.json").exists());
+    }
+
+    #[test]
     fn rejected_confirmed_edit_leaves_source_and_backups_untouched() {
         let store = fixture();
         let path = store.path();
