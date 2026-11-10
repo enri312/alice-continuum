@@ -10,6 +10,10 @@ Este índice es la entrada principal para comprender, ejecutar y mantener el pro
 
 [Autoestudio al arrancar](runbooks/06-autoestudio-al-arrancar.md): currículo cerrado de las materias autorizadas, con enfoque bíblico católico, ejercicios comprobados y memoria recuperable.
 
+[Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
+base de autoestudio/Obsidian conservada y primera separación de reglas,
+persistencia y adaptación a Gemma para revisión con colaboradores.
+
 Última mejora de fiabilidad: [recuperación de memoria y control de Gemma](testing/RELIABILITY_REPORT_2026-11-05.md), conservando Rust/Tauri y el alcance de conversación R9 sin cuerpo.
 
 Continuación R9: [espera dirigida y apagado del micrófono](testing/VOICE_STANDBY_REPORT_2026-11-06.md) y [contraste del informe de frameworks](research/FRAMEWORKS_REVIEW_2026-11-06.md).

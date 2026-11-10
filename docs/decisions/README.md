@@ -91,3 +91,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-111](ADR-P-111-persistencia-y-control-del-motor.md) | Recuperación de memoria básica ante errores y detención de Gemma durante HTTP pendiente |
 
 | [ADR-P-112](ADR-P-112-espera-por-nombre-y-apagado.md) | Espera dirigida a Alice, pausa de conversación y apagado explícito del micrófono |
+
+| [ADR-P-113](ADR-P-113-autoestudio-modular.md) | Autoestudio con contratos, reglas, persistencia y adaptación a Gemma en módulos separados |

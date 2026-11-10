@@ -3,12 +3,16 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 9 de noviembre de 2026:** proyecto recuperado en `D:\Alice Continuum`, R9 en progreso.
-La versión del producto es **0.1.0** y el documento maestro **0.63**.
+**Estado al 10 de noviembre de 2026:** revisión y estructura del núcleo cognitivo en `D:\Alice Continuum`; R9 sigue pendiente.
+La versión del producto es **0.1.0** y el documento maestro **0.64**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
+
+Prioridad actual: consolidar autoestudio y Obsidian, separar responsabilidades del
+núcleo y revisar sus contratos con colaboradores antes de retomar R9.
+[Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 ## Qué funciona actualmente
 

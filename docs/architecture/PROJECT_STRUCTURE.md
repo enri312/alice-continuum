@@ -4,6 +4,14 @@
 El inventario registra por separado lectura automática y revisión focal; las
 pruebas aprobadas no equivalen a una auditoría manual completa de cada línea.
 
+Actualización 2026-11-10 — [ADR-P-113](../decisions/ADR-P-113-autoestudio-modular.md):
+el autoestudio conserva `self_study.rs` como fachada Tauri y coordinador del ciclo.
+`self_study/model.rs` contiene los contratos; `domain.rs`, validación y reglas;
+`storage.rs`, persistencia y bloqueo; `prompts.rs`, el adaptador de ejercicios
+Gemma. Se mantiene una aplicación Tauri parcialmente modularizada, con formatos
+de memoria estables. La revisión del núcleo cognitivo precede a continuar R9.
+[Comprobación y pendientes](../testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+
 Organización 2026-11-04 — [ADR-P-109](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md):
 los recursos privados se agrupan en `local/`; se conservan las carpetas
 convencionales de Tauri, Rust y Vite. `runtime_paths.rs` concentra rutas nativas

@@ -17,7 +17,7 @@ currículo y su fuente, no de una explicación generada por Gemma.
 | Comprobación | Resultado |
 |---|---|
 | Frontend Vitest | 627 aprobadas; 2 sondas opcionales omitidas |
-| Sincronización Obsidian, Node | 13 aprobadas |
+| Sincronización Obsidian, Node | 15 aprobadas en la revisión estructural posterior |
 | Backend Rust, biblioteca completa | 352 aprobadas; 30 sondas opcionales omitidas |
 | Compilación frontend | Aprobada; conserva aviso de tamaño de paquetes |
 | Compilación nativa | Aprobada |
@@ -57,6 +57,11 @@ Los archivos modificados cuentan con respaldo privado en
 y Tauri, y una conversación real con voz, no forman parte de esta aceptación
 automatizada. El aprendizaje descrito añade memoria recuperable y práctica;
 no reentrena los pesos ni prueba dominio general de las materias.
+
+La revisión estructural posterior conserva los comportamientos y separa contratos,
+reglas, persistencia y adaptación a Gemma. Volvió a comprobar las suites locales;
+la sonda real descrita arriba corresponde a la implementación anterior y no se
+repitió para esa separación. Ver [informe de estructura](COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 [Procedimiento y controles](../runbooks/06-autoestudio-al-arrancar.md) ·
 [Fuentes](../research/SELF_STUDY_SOURCES_2026-11-10.md).
