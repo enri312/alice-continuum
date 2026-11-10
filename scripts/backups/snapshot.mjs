@@ -27,7 +27,11 @@ const EXCLUSIONS = [
 
 async function git(cwd, args) {
   try {
-    return (await exec('git', ['-C', cwd, ...args], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, windowsHide: true })).stdout;
+    // A shell/hook may export GIT_DIR or GIT_WORK_TREE. In recovery those must
+    // never redirect a command from the new target to the original repository.
+    const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !/^GIT_/i.test(name)));
+    env.GIT_TERMINAL_PROMPT = '0';
+    return (await exec('git', ['-C', cwd, ...args], { env, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, windowsHide: true })).stdout;
   } catch { fail(`Git no pudo completar ${args[0]}; revisa su instalacion y el repositorio.`); }
 }
 
@@ -61,6 +65,10 @@ export async function settings(options = {}) {
 }
 
 async function gitState(root) {
+  const actual = path.resolve((await git(root, ['rev-parse', '--show-toplevel'])).trim());
+  const expected = path.resolve(root);
+  const normalize = value => process.platform === 'win32' ? value.toLowerCase() : value;
+  if (normalize(actual) !== normalize(expected)) fail('La raiz del proyecto debe ser la raiz completa del repositorio Git.');
   const head = (await git(root, ['rev-parse', '--verify', 'HEAD'])).trim();
   const branch = (await git(root, ['rev-parse', '--abbrev-ref', 'HEAD'])).trim();
   const refs = (await git(root, ['for-each-ref', '--format=%(objectname) %(refname)'])).trim().split('\n').filter(Boolean).sort();

@@ -47,10 +47,14 @@ la identidad nueva. Los informes fechados, la decisión ADR-P-042 y el plan de
 migración inicial conservan los nombres históricos que identifican lo probado
 en su momento. No deben confundirse con el nombre vigente.
 
-Se actualiza el mismo repositorio privado de GitHub, conservando el historial;
+Se actualiza el mismo repositorio de GitHub, conservando el historial;
 no se crea un repositorio paralelo ni se fuerza el reemplazo de ramas. Los datos,
 modelos privados, entornos, capturas locales y credenciales quedan fuera de la
 actualización. Retirar capturas del índice actual no borra su historial anterior.
+
+Comprobación del 10 de noviembre de 2026: GitHub informa que el repositorio es
+público. Los respaldos integrales privados se guardan por separado; consultar
+el [procedimiento de recuperación](../runbooks/07-respaldo-integral.md).
 
 Este cambio de identidad no implementa las correcciones de seguridad detectadas
 el 2026-09-14. Esos hallazgos siguen pendientes; el nombre nuevo no certifica que

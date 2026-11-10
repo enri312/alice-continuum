@@ -18,6 +18,11 @@ configuración privada. No se inició la aplicación recuperada ni se aplicaron
 credenciales. El ensayo usó HEAD `4fa6da6` más el árbol de trabajo de este
 incremento; las copias posteriores identifican su HEAD en el manifiesto.
 
+Un segundo ensayo restauró **813 archivos** y el historial del commit publicado
+`746e9ca`, con 706 archivos de código/documentación, 87 de datos, 17 recursos y
+3 de configuración privada. El respaldo ocupó unos 78 MiB. Los 87 archivos
+originales continuaron intactos. Su detalle está en `live-restore-final.json`.
+
 Destinos de esta instalación:
 
 - Copias completas: `D:\Alice Backups\Alice Continuum`.
@@ -45,6 +50,8 @@ Las 20 pruebas de respaldo cubren:
 - Detección de archivos dañados, ausentes o extra, manifiesto alterado y bundle dañado.
 - Creación de una nueva copia cuando la anterior se dañó, conservando la anterior.
 - Rechazo de destinos existentes, rutas fuera del inventario, junctions y enlaces.
+- Rechazo de una subcarpeta como raíz del repositorio y aislamiento frente a
+  variables Git heredadas que podrían redirigir una restauración al original.
 - JSON inválido, escritura durante la copia y espacio insuficiente sin publicar éxito.
 - Bloqueo de escritores concurrentes, recuperación de bloqueo de un proceso muerto
   y rechazo de bloqueos pertenecientes a otro equipo.
@@ -64,9 +71,11 @@ presenta como una nueva prueba de voz de este incremento.
 ## Integración y documentación
 
 `npm test` incluye las pruebas de respaldo, de modo que la CI Ubuntu existente
-las ejecuta junto al resto. La evidencia Linux del nuevo commit se registra
-cuando termina esa ejecución; el escritorio Ubuntu del propietario no se abrió
-durante esta sesión Windows.
+las ejecuta junto al resto. La [ejecución Ubuntu 26.04 de `746e9ca`](https://github.com/enri312/alice-continuum/actions/runs/42856181138)
+aprobó 627 pruebas frontend, 15 de Obsidian, 20 de respaldo, 355 Rust con 32
+omitidas y 19 Python. También pasaron fmt, clippy, compilación, arranque aislado,
+soporte WebM/Opus y captura WebKit simulada. El escritorio Ubuntu del propietario
+no se abrió durante esta sesión Windows.
 
 Se actualizaron README, estructura, índice documental, lanzadores, runbooks y
 documento maestro **0.65**. Los cambios del HTML se colocan en los capítulos e

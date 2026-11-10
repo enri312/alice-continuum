@@ -142,6 +142,7 @@ test('existing restore targets and source-contained destinations are refused wit
   await assert.rejects(restoreSnapshot(snapshot, path.join(config.projectRoot, 'restored')), /fuentes originales/);
   await assert.rejects(createSnapshot({ ...config, destination: path.join(config.projectRoot, 'backups') }), /separado/);
   await assert.rejects(createSnapshot({ ...config, destination: config.temporary }), /separado/);
+  await assert.rejects(createSnapshot({ ...config, projectRoot: path.join(config.projectRoot, 'data') }), /raiz completa/);
   assert.equal(await read(path.join(config.projectRoot, 'source.txt')), 'uncommitted work\n');
 });
 
@@ -333,7 +334,8 @@ test('CLI supervises a synthetic child process and refuses an incomplete restore
   await write(fakeTauri, 'require("node:fs").writeFileSync("data/child.json", JSON.stringify({closed:true}));');
   const cli = fileURLToPath(new URL('./cli.mjs', import.meta.url));
   const args = [cli, 'run', '--project-root', config.projectRoot, '--data-root', path.join(config.projectRoot, 'data'), '--destination', config.destination];
-  const env = { ...process.env, ...config.env };
+  const env = { ...process.env, ...config.env,
+    GIT_DIR: path.join(config.temporary, 'incorrect-git-dir'), GIT_WORK_TREE: config.temporary };
   for (const key of Object.keys(env)) {
     if ((key.endsWith('_API_KEY') || key.startsWith('ALICE_')) && !Object.hasOwn(config.env, key)) delete env[key];
   }
@@ -344,6 +346,9 @@ test('CLI supervises a synthetic child process and refuses an incomplete restore
   assert.equal(versions.length, 2);
   const latest = await verifySnapshot(versions[0]);
   assert.ok(latest.files.some(entry => entry.path === 'data/child.json'));
+  const target = path.join(config.temporary, 'cli-recovery');
+  await exec(process.execPath, [cli, 'restore', '--snapshot', versions[0], '--target', target], { windowsHide: true, env });
+  assert.equal(await git(target, 'rev-parse', 'HEAD'), latest.git.head);
   await fs.unlink(path.join(config.projectRoot, 'data/child.json'));
   await write(path.join(config.projectRoot, '.alice-restore-incomplete'), 'fixture');
   await assert.rejects(exec(process.execPath, args, { windowsHide: true, env }), error => error.stderr.includes('restauracion incompleta'));
