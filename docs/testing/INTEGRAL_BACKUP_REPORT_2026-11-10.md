@@ -71,11 +71,14 @@ presenta como una nueva prueba de voz de este incremento.
 ## Integración y documentación
 
 `npm test` incluye las pruebas de respaldo, de modo que la CI Ubuntu existente
-las ejecuta junto al resto. La [ejecución Ubuntu 26.04 de `746e9ca`](https://github.com/enri312/alice-continuum/actions/runs/42856181138)
+las ejecuta junto al resto. La [ejecución final Ubuntu 26.04 de `3a4f1dd`](https://github.com/enri312/alice-continuum/actions/runs/42857888652)
 aprobó 627 pruebas frontend, 15 de Obsidian, 20 de respaldo, 355 Rust con 32
 omitidas y 19 Python. También pasaron fmt, clippy, compilación, arranque aislado,
 soporte WebM/Opus y captura WebKit simulada. El escritorio Ubuntu del propietario
 no se abrió durante esta sesión Windows.
+Esta ejecución incluye el aislamiento de las variables Git heredadas. La
+[ejecución inicial de `746e9ca`](https://github.com/enri312/alice-continuum/actions/runs/42856181138)
+también aprobó el conjunto completo.
 
 Se actualizaron README, estructura, índice documental, lanzadores, runbooks y
 documento maestro **0.65**. Los cambios del HTML se colocan en los capítulos e
