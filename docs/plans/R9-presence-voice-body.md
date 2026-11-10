@@ -44,6 +44,12 @@ turnos: esa es la siguiente prueba con el propietario.
 
 ## Alcance activo: Alice antes de conectar un cuerpo
 
+Prioridad del propietario, 2026-11-10: revisar primero la estructura del núcleo
+cognitivo y los nuevos cambios de autoestudio/Obsidian con colaboradores. El
+primer incremento separa responsabilidades de autoestudio; los criterios de R9
+de esta sección continúan pendientes para retomarlos después.
+[Estructura y comprobaciones](../testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+
 Incremento 2026-11-06 — [ADR-P-112](../decisions/ADR-P-112-espera-por-nombre-y-apagado.md):
 iniciar la escucha queda en espera de frases dirigidas a Alice. Detener la
 conversación vuelve a espera; apagar el micrófono cierra la sesión. Es un filtro
