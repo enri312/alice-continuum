@@ -1,22 +1,22 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última revisión de identidad: 2026-09-16; planificación funcional revisada el 2026-09-11.  
-Estado: vigente
+Última actualización: **2026-11-11**. Identidad adoptada: 2026-09-16.  
+Producto: **0.1.0** · documento maestro: **0.65**.  
+Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
-**Prioridad funcional del 4 de noviembre de 2026:** conversación oral y acciones
-de PC ya delegadas, tomando Atlas como referencia y excluyendo domótica. Gemma 4
-mantiene el diálogo; Whisper base CPU transcribe el español y Fish da voz. La
-prueba nativa con muestras sintéticas pasó dos respuestas y parada; aceptación
-con Carlos y música real pendiente. Se añaden tiempos visibles, recuperación
-ante fallo de Fish y rechazo de respuestas tardías. R9 continúa en progreso.
+**Prioridad vigente:** consolidar el núcleo cognitivo, el autoestudio limitado a
+las materias autorizadas y su proyección en Obsidian. La primera separación de
+responsabilidades ya está implementada; siguen la revisión de contratos, la
+aceptación del ciclo de aprendizaje en uso personal y los incrementos de estructura
+que esa revisión justifique. Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
-Siguiente orden: aceptar conversación real y continuidad; después evaluar
-activación por nombre, interrupción con control de eco y menor latencia. Nerumi
-queda como referencia posterior para compañía y presencia de escritorio; avatar
-al final. No se anuncian sus funciones como ya disponibles en Alice. Ver
-[ADR-P-106](docs/decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md) y
-[pruebas](docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+Después se retoma la aceptación de conversación, escucha, voz, percepción y
+acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper base
+CPU transcribe español y Fish da voz. Las pruebas sintéticas no cierran la
+aceptación con Carlos y música real. **Domótica queda fuera de este tramo y el
+avatar va al final**. Atlas y Nerumi son referencias, no capacidades incorporadas.
+El [próximo paso autorizado](#próximo-paso-autorizado) fija el orden y sus criterios.
 
 ## Propósito
 
@@ -29,8 +29,8 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 - **Local-first:** memoria, configuración, permisos y auditorías pertenecen a Carlos Nuñez y permanecen en el equipo salvo autorización visible.
 - **Denegación predeterminada:** una capacidad nueva comienza desactivada y sin acceso implícito a archivos, pantalla, red o procesos.
 - **Datos reales:** el tablero muestra estados y eventos comprobables; no inventa actividad para que Alice parezca autónoma.
-- **Previsualización antes de actuar:** toda operación con efecto externo debe explicar qué hará, sobre qué recurso y con qué alcance.
-- **Aprendizaje gobernado:** Alice puede proponer recuerdos o habilidades, pero no declararlos verdaderos ni activarlos por sí sola.
+- **Autorización con alcance visible:** las operaciones con efecto externo usan una previsualización y confirmación o una delegación limitada ya concedida por el propietario. El modelo no amplía recursos, permisos ni duración por su cuenta.
+- **Aprendizaje gobernado:** selección de citas conversacionales, autoestudio con currículo cerrado y propuestas de habilidades tienen políticas distintas. Una salida del modelo no se convierte por sí sola en un hecho confirmado del propietario ni en un permiso de ejecución.
 - **Trazabilidad:** una decisión, recuerdo, asociación o habilidad debe indicar su origen y poder inspeccionarse.
 - **Reversibilidad:** permisos, recuerdos y habilidades pueden corregirse, desactivarse o restaurarse.
 - **Compatibilidad:** las migraciones preservan los datos existentes, crean respaldo y nunca usan los recuerdos personales como datos de prueba.
@@ -43,15 +43,56 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 |---|---|---|
 | Contrato y límites | Completo | Documento maestro, decisiones y diagramas de ingeniería. |
 | Núcleo observable | Base completa | Observatorio con nodos reales, tamaño por importancia, color afectivo confirmado, brillo de actividad y aristas R8 revisadas; flujo, estado, planificador y actividad por pestañas. |
-| Conversación de nube | Funcional | Proveedores intercambiables, previsualización y autorización expresa. |
-| Memoria enseñable v1 | Funcional en evolución | Registros locales, respaldo, exportación, recuperación lexical y edición. |
-| Consolidación v1 | Funcional en evolución | Repaso manual y refuerzo por recuperación autorizada. |
+| Conversación y voz | Implementadas; aceptación cotidiana pendiente | Gemma local, proveedores alternativos, Whisper base CPU, Fish y sesión de escucha con parada. |
+| Memoria y recuperación | Funcionales | Registros confirmados, perfil, selección automática de citas y autoestudio en almacenes separados; recuperación con procedencia y controles propios. |
+| Ciclo y consolidación | Funcionales en sus alcances | Vigencia, accesibilidad, revisión, edición versionada y respaldo. La fusión canónica sigue bloqueada. |
+| Autoestudio al arrancar | Implementado; aceptación personal en curso | 42 lecciones en 14 áreas, ejercicios, avance y repaso; sólo se recuperan lecciones activas con el último ejercicio aprobado. |
+| Obsidian | Proyección implementada | Sincronización Alice → Obsidian de datos guardados; editar notas generadas no enseña contenido a Alice. |
+| Respaldo integral | Implementado | Inicio, cada 15 minutos y cierre normal; copia verificada y restauración en otra carpeta. Copia en otra unidad física pendiente. |
 | Avatar VRM | Visor funcional | Carga privada, DualSense, 12 clips retargeteados, IK y máquina de siete estados; voz, aprendizaje, decisiones corporales y Ragdoll siguen desconectados. |
-| Ejecución de acciones | Bloqueada | El modelo no ejecuta comandos ni modifica Windows. |
+| Acciones de PC delegadas | Alcance cerrado implementado | Spotify, YouTube y apertura de D:/E: según plataforma y delegación vigente; no hay shell libre ni control general del PC. |
+
+## Avances incorporados el 10 y 11 de noviembre de 2026
+
+- **Autoestudio y Obsidian:** currículo local con fuentes, progreso persistido en
+  `data/memory/self-study-v1.json` y proyección de lecciones y ejercicios.
+  [Funcionamiento y límites](docs/runbooks/06-autoestudio-al-arrancar.md).
+- **Estructura del núcleo:** autoestudio separado en contratos, reglas,
+  persistencia, adaptación a Gemma y coordinación nativa. La aplicación sigue
+  siendo un monolito parcialmente modularizado.
+  [ADR-P-113](docs/decisions/ADR-P-113-autoestudio-modular.md).
+- **Memoria:** cuatro accesos —Aprendizaje, Recuerdos, En sesión y Mantenimiento—;
+  autoestudio primero, icono de conocimiento con fuentes conectadas y nombres
+  completos en la barra compacta. Escucha y cierre de eventos autorizados sólo
+  para la ventana local principal.
+  [Uso de Memoria](docs/MANUAL_DE_USO.md#5-memoria-qué-significa-cada-pestaña).
+- **Respaldo y arranque:** copias integrales verificadas; el lanzador Windows
+  coordina las comprobaciones en una sesión PowerShell, evita arranques simultáneos
+  y conserva `--check` sin abrir Alice ni iniciar modelos o respaldos.
+  [Arranque](docs/runbooks/01-arranque-local.md) ·
+  [Respaldo y restauración](docs/runbooks/07-respaldo-integral.md).
+- **Documentación y publicación:** README con tecnologías y versiones verificadas;
+  cambios integrados en la rama principal `master` de
+  [alice-continuum](https://github.com/enri312/alice-continuum).
+
+**Última validación registrada, 11 de noviembre:** 627 pruebas frontend aprobadas
+(2 sondas omitidas), 354 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
+1000 y 420 píxeles en una vista aislada sin backend ni datos personales. Esa
+revisión no acredita por sí sola el diseño en la sesión nativa ni la voz real.
+[Resultados y alcance](README.md#verificación).
+
+El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
+comprobarse de forma conjunta la continuidad tras reinicio, la recuperación con
+fuente y la actualización de Obsidian en su instalación.
 
 ## Secuencia de materialización
 
-Las fases `R1` a `R10` forman el nuevo ciclo de capacidades gobernadas. El prefijo `R` evita confundirlas con las fases históricas 0 a 4 del documento maestro. El resumen de fases futuras del documento maestro deberá sincronizarse con esta secuencia al formalizar el contrato de R1.
+Las fases `R1` a `R10` organizan las capacidades gobernadas. El prefijo `R` evita
+confundirlas con las fases históricas 0 a 4 del documento maestro. Los incrementos
+fechados conservan su evidencia y límites de entonces; el estado y la prioridad
+vigentes son los del inicio de este documento. Cerrar R1 a R8 no declara terminadas
+la aceptación de R9 ni la distribución de R10.
 
 ### Fase R1 — Registro de capacidades
 
@@ -219,13 +260,18 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 
 **Incremento R6.1:** `records.json` continúa como fuente histórica y una proyección separada `layer-index-v2.json` conserva sólo IDs, clasificación, revisiones y SHA-256. La vista previa no escribe; activar exige coincidencia de huella confirmada y releída por Rust; revertir desactiva sin borrar. La clasificación explícita envía conversaciones a episodios, enseñanzas semánticas a hechos enseñados y conserva procedimientos o preferencias como no clasificados. La sonda canónica leyó 10 recuerdos: 9 episodios, 0 hechos enseñados, 1 procedimiento pendiente y 0 memoria de trabajo; los 10 archivos mantuvieron sus SHA-256.
 
-**Incremento R6.2-A:** memoria de trabajo nativa dentro del proceso: tres intercambios reales, seis mensajes, 48.000 caracteres y TTL de 30 minutos. Sólo una respuesta recibida del proveedor entra en RAM; vencer, vaciar o cerrar Alice elimina el contenido sin tocar memoria duradera. R3 recibe digests, no texto. La conversación deja de ser una pantalla duplicada y se integra en `[00] CONVERSATION / PERCEPTION INPUT`; el control visual de vaciado queda para R6.2-B.
+**Incremento R6.2-A (histórico):** introdujo memoria de trabajo nativa dentro del proceso con tres intercambios, seis mensajes, 48.000 caracteres y TTL de 30 minutos. Sólo una respuesta recibida del proveedor entra en RAM; vencer, vaciar o cerrar Alice elimina el contenido sin tocar memoria duradera. R3 recibe digests, no texto. El vaciado visible se incorporó en R6.2-B.
 
-**Incremento R6.2-B:** `Memoria → Trabajo RAM` muestra estado, mensajes, intercambios, caracteres, porcentaje, TTL, generación y procedencia desde el snapshot nativo. No repite texto conversacional. Vaciar exige confirmación visible y la generación exacta; una generación obsoleta se bloquea. El navegador declara `SIN BACKEND` y no simula métricas.
+**Límites vigentes de RAM:** seis intercambios completos, doce mensajes,
+72.000 caracteres y TTL de dos horas, definidos en `src-tauri/src/working_memory.rs`.
+Estos valores sustituyen los del incremento inicial.
+[Contrato actual](docs/architecture/WORKING_MEMORY_R6.md).
+
+**Incremento R6.2-B:** la vista actual `Memoria → En sesión` muestra estado, mensajes, intercambios, caracteres, porcentaje, TTL, generación y procedencia desde el snapshot nativo. No repite texto conversacional. Vaciar exige confirmación visible y la generación exacta; una generación obsoleta se bloquea. El navegador declara `SIN BACKEND` y no simula métricas.
 
 **Incremento R6.2-C:** la previsualización obligatoria calcula caracteres Unicode y bytes UTF-8 exactos para mensaje, historial, recuerdos, ventana y separadores usando la misma cadena saliente. Una fuente opcional no autorizada cuenta cero; no se inventan tokens dependientes del proveedor.
 
-**Incremento R6.3-A:** `consolidation_preview` relee `records.json` sin escribir y produce pares ligados al SHA-256 de la fuente. Sólo llama duplicado exacto a tipo, clase, intención, resumen y próximo paso normalizados iguales; una misma intención con contenido diferente queda como revisión requerida, no contradicción automática. La sonda canónica leyó 10 registros y devolvió cero candidatos con 10 archivos intactos. `Memoria → Consolidar` muestra el resultado nativo; fusión, archivado y resolución continúan bloqueados.
+**Incremento R6.3-A (histórico):** `consolidation_preview` relee `records.json` sin escribir y produce pares ligados al SHA-256 de la fuente. Sólo llama duplicado exacto a tipo, clase, intención, resumen y próximo paso normalizados iguales; una misma intención con contenido diferente queda como revisión requerida, no contradicción automática. La sonda canónica leyó 10 registros y devolvió cero candidatos con 10 archivos intactos. La vista actual `Memoria → Mantenimiento → Consolidación` muestra el resultado nativo. En este incremento inicial, fusión, archivado y resolución permanecían bloqueados; los apartados siguientes describen las autorizaciones añadidas después.
 
 **Incremento R6.3-B:** `resolve_consolidation_candidate` acepta exclusivamente `keepSeparate`. La orden exige confirmación, SHA-256 vigente, ID de candidato y los dos IDs ordenados. Antes de persistir crea un respaldo de `records.json` ligado a su huella; luego registra una decisión lateral, inmutable e idempotente, y auditoría sin texto privado. La interfaz conserva el par visible como resuelto. No reescribe recuerdos ni habilita fusión o archivado. La sonda canónica negativa rechazó un candidato inexistente y preservó los 10 archivos.
 
@@ -282,6 +328,38 @@ R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6
 **Preauditoría R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resolvió la brecha estructural de capa, pero quedaron nueve recuerdos `notAssessed` sin procedencia explícita. Esa evidencia histórica y el bloqueo correcto se conservan en `docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md`.
 
 **Cierre final R6 · 2026-09-01:** después de las decisiones explícitas del propietario y la retirada de registros inconclusos, `records.json` contiene 15 recuerdos reales: 13 vigentes y 2 conflictivos, sin recuerdos no evaluados ni procedencia faltante. La proyección `layer-index-v3.json` activa clasifica 14 episodios y 1 procedimiento `pendingR5`, sin elementos no clasificados. El ciclo `lifecycle-index-v1.json` también está activo sobre el mismo SHA-256 vigente. Las dos sondas canónicas de sólo lectura conservaron exactamente los 35 archivos de `data/` y su digest agregado. Los 2 conflictos permanecen visibles y excluidos de recuperación como conocimiento vigente; no bloquean el cierre porque R6 exige preservarlos, no resolverlos silenciosamente. Evidencia completa en `docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md`.
+
+#### Ampliaciones de memoria autorizadas en noviembre
+
+La selección automática de citas conversacionales del 3 de noviembre conserva
+lo declarado por el propietario, su procedencia y los controles de pausa,
+corrección y retirada. No reescribe los registros confirmados.
+[ADR-P-101](docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+
+El autoestudio incorporado el 10 de noviembre usa **42 lecciones iniciales en
+14 áreas**, con tres niveles por área. Sus únicas materias son:
+
+- Matemáticas: aritmética, álgebra, geometría, trigonometría, cálculo, álgebra
+  lineal, probabilidad, estadística y lógica.
+- Historia bíblica con enfoque católico, diferenciando relato, doctrina y
+  corroboración histórica.
+- Psicología de las emociones e inteligencia emocional.
+- Empatía, solidaridad y humildad, cada una como área propia.
+
+Con autoestudio habilitado, cada arranque nativo programa un ciclo que intenta
+una lección por área; se avanza por las pendientes y se repasan las anteriores.
+El ciclo usa Gemma local, respeta pausa y prioridad
+de conversación/voz, y registra ejercicios aprobados o fallidos. El contenido
+recuperable procede de la lección curada y su fuente; sólo se ofrecen lecciones
+activas cuyo último ejercicio fue aprobado. El currículo inicial no cubre todas
+las materias en profundidad ni modifica los pesos del modelo.
+
+El progreso vive en `data/memory/self-study-v1.json`, separado de recuerdos
+personales y perfil. Obsidian lo proyecta junto con las otras fuentes mediante
+sincronización **Alice → Obsidian**; las notas generadas no amplían el currículo.
+[Fuentes](docs/research/SELF_STUDY_SOURCES_2026-11-10.md) ·
+[Prueba de arranque y límites](docs/testing/SELF_STUDY_STARTUP_REPORT_2026-11-10.md) ·
+[Proyección en Obsidian](docs/runbooks/05-memoria-obsidian.md).
 
 ### Fase R7 — Tareas programadas e intenciones
 
@@ -355,6 +433,11 @@ del sistema en una etapa posterior. Su integración queda fuera del cálculo de
 avance y del cierre de la entrega actual. Los criterios de conversación, escucha,
 percepción y acciones están en el [plan R9](docs/plans/R9-presence-voice-body.md).
 
+**Orden vigente desde el 10 de noviembre:** consolidar primero la estructura del
+núcleo y el ciclo autoestudio/Obsidian. R9 conserva sus componentes y pendientes;
+no vuelve a una fase de diseño inicial ni se considera aceptada por los cambios
+de Memoria o respaldo.
+
 **Estado:** parcial — sesión automática de voz implementada, con estabilización
 del 2026-11-04: detección de pausas, Whisper base CPU para español, diálogo Gemma,
 respuesta Fish y nueva escucha sin confirmación por turno. Dos respuestas y
@@ -370,8 +453,14 @@ continuidad temática; reducir espera de respuesta y síntesis; activación dedi
 por nombre; interrupción hablando con control de eco; aceptación de reproducción
 real de YouTube en Chrome. La cámara y el escritorio por turno ya están conectados,
 pero no equivalen a percepción continua. Avatar y cuerpo quedan pospuestos.
-La instalación Ubuntu 26.04.1 del disco de 2 TB requiere aceptación propia; CI
-comprobó Ubuntu 24.04, sin acreditar hardware o inferencia de la otra instalación.
+La CI utiliza **Ubuntu 26.04** para verificar el requisito WebM/Opus de WebKit y
+GStreamer. La ejecución y captura simuladas siguen separadas de la aceptación del
+hardware del propietario. En su instalación Ubuntu 26.04.1 ya se documentaron
+un turno real de voz y controles nativos de Spotify y de su playlist de YouTube;
+siguen pendientes las órdenes habladas, la escucha con música y la latencia del
+turno completo.
+[Base Ubuntu](docs/runbooks/04-ubuntu.md) ·
+[Resultados de voz y música](docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 Incremento 2026-11-05: preguntas sobre «tu explicación/voz…» en una cita con
 destinatario explícito disponen de una resolución local acotada, con procedencia
@@ -379,15 +468,25 @@ visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
 Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
 la conversación real. [ADR-P-110](docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
 
+Incremento 2026-11-06: espera de frases dirigidas a Alice después de transcribir;
+«Detén la conversación, Alice» vuelve a espera y «Apaga el micrófono, Alice»
+cierra la sesión. Es un filtro por frase, no activación acústica dedicada ni
+interrupción durante la reproducción.
+[ADR-P-112](docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
+
 **Dependencia:** Fases R1 a R3  
 **Objetivo vigente:** lograr conversación, escucha, voz, percepción y acciones
 delegadas fiables. El objetivo corporal original se conserva para una entrega
 posterior, con presentación visual separada de la decisión cognitiva.
 
-Orden previsto: salida de texto, voz autorizada, expresiones del VRM, mirada, animaciones, entrada facial o corporal y finalmente Active Ragdoll. Fish Audio continúa como candidato de voz sujeto a licencia, privacidad, costo y pruebas. Cada adaptador deberá registrarse como una capacidad independiente.
+Texto y salida de voz Fish ya están integrados bajo la autorización vigente;
+su aceptación cotidiana sigue pendiente. La etapa corporal posterior conserva
+el orden expresiones VRM, mirada, animaciones, entrada facial o corporal y
+finalmente Active Ragdoll. Cada adaptador mantiene su alcance independiente y
+debe cumplir sus condiciones de licencia, privacidad y coste.
 
-R9.1 fija antes el contrato de presencia: la transcripción manual local, la futura
-salida TTS, las expresiones VRM y los sensores son puentes unidireccionales
+El contrato inicial R9.1 separó la transcripción manual local, la salida TTS
+entonces planificada, las expresiones VRM y los sensores en puentes unidireccionales
 separados. Ninguno escribe recuerdos, decide por Alice o se activa al iniciar. La
 voz externa recibe una respuesta ya persistida. En la sesión automática, iniciar
 autoriza sus turnos hasta detener, salir o vencer; en modo manual se mantiene la
@@ -419,7 +518,7 @@ Cada sesión tendrá línea base, objetivos observables, inicio y fin explícito
 - [ ] Las diferencias entre sesiones se explican desde cambios versionados.
 - [ ] Ningún aprendizaje de la sala se consolida sin la política vigente de memoria y habilidades.
 
-**Criterios de aceptación:**
+**Criterios de aceptación de la etapa corporal posterior:**
 
 - [ ] Desconectar un puente no detiene conversación ni memoria.
 - [ ] La interfaz diferencia datos reales, ausencia de señal y error.
@@ -450,9 +549,9 @@ Antes de cerrar cualquier fase se debe:
 3. respaldar y verificar cualquier migración con datos sintéticos separados;
 4. ejecutar pruebas unitarias, integración y compilación de Rust y frontend;
 5. comprobar visualmente estados vacío, normal, bloqueado y error;
-6. confirmar que no se modificaron `data/`, el avatar privado ni `E:\Alice`;
+6. comprobar que las pruebas no alteraron los datos canónicos, activos privados ni motores; cualquier migración autorizada debe conservar respaldo e integridad de la fuente;
 7. escribir un informe breve con resultados y limitaciones;
-8. realizar un commit acotado solamente cuando toda la evidencia apruebe.
+8. realizar un commit acotado con la evidencia y sus límites, publicarlo en la rama acordada y comprobar la referencia remota.
 
 Comandos mínimos vigentes:
 
@@ -471,39 +570,71 @@ El 2026-11-03 se implementa la selección y persistencia automática de citas de
 nuevos mensajes Gemma, con pausa, corrección y retirada, RAG activo y proyección
 orgánica del volumen. El almacén automático conserva procedencia y no reescribe
 memoria confirmada. Ver [ADR-P-101](docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
-Las secciones siguientes conservan el alcance histórico; el avatar continúa al final.
+El autoestudio posterior se describe en las ampliaciones de R6. Ambas fuentes
+conservan su política y procedencia; el avatar continúa al final.
 
 ## Próximo paso autorizado
 
-Las **Fases R1 a R8** están completadas en sus alcances documentados. El siguiente
-paso autorizado es definir el primer incremento de **R9 — presencia, voz y cuerpo
-mediante puentes**. R9 debe comenzar por contratos y permisos; cerrar R8 no activa
-micrófono, cámara, TTS, avatar ni acciones externas.
-Los prototipos externos siguen disponibles para evaluación posterior; su presencia
-no significa que sus capacidades estén integradas.
+Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
+implementación parcial. El trabajo inmediato queda ordenado así:
+
+1. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
+   ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
+   pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la
+   bóveda. Comprobar pausa, errores y prioridad de conversación. La sonda aislada
+   de 14 áreas (10 aprobadas y 4 fallidas) no representa avance personal.
+2. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
+   colaboradores lo implementado; separar coordinación de `App.tsx` y
+   responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
+   en incrementos justificados. Evaluar una primitiva de persistencia compartida
+   sin cambiar formatos ni debilitar los controles existentes.
+3. **Aceptar Memoria en la aplicación nativa.** Verificar las cuatro secciones,
+   sus herramientas, avisos de actualización y estados de carga/error en la sesión
+   del propietario. La revisión visual aislada ya aprobada no sustituye esa prueba.
+4. **Retomar la aceptación funcional de R9.** Mantener cinco turnos reales con
+   corrección de referentes; probar escucha sin música, con música de la notebook
+   y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,
+   cámara y escritorio con parada e indicadores coherentes. Después completar y
+   comprobar activación dedicada por nombre e interrupción con control de eco.
+
+**Pendiente transversal de protección:** completar una copia integral verificada
+en otra unidad física. El respaldo actual en `D:\Alice Backups\Alice Continuum`
+comparte disco con el proyecto y no cubre por sí solo la pérdida de ese soporte.
+
+Los prototipos externos, el avatar y la sala de observación conservan su lugar
+posterior. No se amplían las materias del autoestudio ni se activa ninguna
+capacidad por la sola actualización de esta hoja de ruta.
 
 ## Identidad adoptada — Alice Continuum
 
-Carlos Nuñez aprobó **Alice Continuum** como identidad técnica. La marca visible de la asistente continúa siendo **Alice**.
+Carlos Nuñez aprobó **Alice Continuum** como identidad técnica. La marca visible
+de la asistente continúa siendo **Alice**. La adopción del nombre y la recuperación
+del checkout ya se realizaron; no son una migración futura.
 
-La migración del nombre deberá revisar de forma explícita:
+La raíz vigente es **`D:\Alice Continuum`**, con rama principal `master`. El
+lanzador resuelve su propia carpeta, usa `data/` por defecto, respeta
+`ALICE_DATA_DIR` y conserva la identidad persistente de Tauri. Modelos y motores se configuran fuera
+de Git. Las rutas anteriores se conservan únicamente como antecedentes en los
+informes de recuperación.
 
-- carpeta raíz del proyecto;
-- `package.json`, configuración de Tauri e identificador de la aplicación;
-- `Iniciar Alice Continuum.cmd` y la variable `ALICE_DATA_DIR`;
-- rutas del avatar y otros activos privados;
-- enlaces absolutos o ejemplos dentro de la documentación;
-- nombre del ejecutable, ventana, iconos e instalador;
-- estrategia de copia y verificación de `data/` sin borrar la ubicación anterior;
-- repositorio de GitHub `alice-continuum`, que deberá mantenerse **privado**.
+El código y la documentación se publican en
+[enri312/alice-continuum](https://github.com/enri312/alice-continuum). La publicación
+no incluye recuerdos, configuración privada, claves, modelos, capturas ni activos
+privados; las copias Git y los respaldos integrales tienen alcances diferentes.
+[Recuperación y límites](docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md) ·
+[Respaldo integral](docs/runbooks/07-respaldo-integral.md).
 
-La migración fue verificada en `E:\Alice Cognitive Core`: código, historial, memoria y avatar coinciden con el origen. El repositorio `enri312/alice-continuum` está publicado con visibilidad privada y la rama local sigue `origin/master`. `E:\Proyecto P` se conserva temporalmente como respaldo y no se borrará durante esta fase.
 ## Identidad vigente: Alice Continuum
 
 Desde el 2026-09-16 la plataforma se denomina **Alice Continuum**; Alice mantiene
 su nombre como personaje. Esta adopción no modifica el alcance ni el estado de
 las fases. Consulta [ADR-P-095](docs/decisions/ADR-P-095-identidad-alice-continuum.md)
 y la [matriz de compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md).
+
+## Historial de incrementos de voz y acciones
+
+Las notas siguientes corresponden a sus fechas. El estado vigente de R9 y el
+orden de trabajo se encuentran en sus apartados anteriores.
 
 Incremento R9 del 2026-11-03: [música delegada](docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
 con Tus me gusta en Spotify y canciones pedidas en YouTube mediante Chrome.

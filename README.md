@@ -22,6 +22,8 @@ proyecto anterior Alice Cognitive Core.
 Prioridad actual: consolidar autoestudio y Obsidian, separar responsabilidades del
 núcleo y revisar sus contratos con colaboradores antes de retomar R9.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+El [Roadmap actualizado al 11 de noviembre](Roadmap.md#próximo-paso-autorizado)
+ordena la aceptación del aprendizaje, la estructura del núcleo y el regreso a R9.
 
 Los lanzadores ahora crean [respaldos integrales](docs/runbooks/07-respaldo-integral.md)
 al iniciar, cada 15 minutos y al cerrar normalmente. Destino actual:
@@ -244,8 +246,9 @@ ambiguos, activación por nombre e interrupción con control de eco. La memoria 
 es una simulación biológica ni representa conciencia. Los hallazgos de seguridad
 pendientes se conservan en los informes; no se anuncia una distribución endurecida.
 
-La prioridad es conversación y acciones de PC acotadas. **Domótica queda fuera
-de este tramo y el avatar va al final**. El cierre del alcance actual de R9 se
+Después de consolidar el núcleo, autoestudio y Obsidian, R9 vuelve a centrarse en
+conversación y acciones de PC acotadas. **Domótica queda fuera de este tramo y el
+avatar va al final**. El cierre del alcance actual de R9 se
 evalúa por la fiabilidad de la asistente; el cuerpo será una salida posterior
 para expresiones y movimiento y queda fuera de su cálculo de avance. Atlas y Nerumi son referencias para
 ordenar esa evolución, no funciones ya verificadas de Alice.
