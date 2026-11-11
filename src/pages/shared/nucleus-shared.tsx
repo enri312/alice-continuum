@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { BrainSnapshot } from "../../core/cognitive/brain";
-import { applyCoreActivitySnapshot, parseCoreActivitySnapshot } from "../../core/cognitive/core-activity";
+import { applyCoreActivitySnapshot, hasCoreActivitySignal, parseCoreActivitySnapshot } from "../../core/cognitive/core-activity";
 import type { CoreActivitySnapshot } from "../../core/cognitive/core-activity";
+import { startSerializedPolling } from "../../core/shared/polling";
 
 export type NucleusPageProps = { snapshot: BrainSnapshot; desktopApp: boolean };
 
@@ -15,7 +16,7 @@ export function resolveNucleusActivityViewState(
   activityStatus: NucleusActivityStatus,
 ): NucleusActivityViewState {
   if (activityStatus !== "ready") return activityStatus;
-  return (activity?.windowEventCount ?? 0) > 0 ? "ready" : "idle";
+  return hasCoreActivitySignal(activity) ? "ready" : "idle";
 }
 
 export function useNucleusSnapshot({ snapshot, desktopApp }: NucleusPageProps) {
@@ -24,19 +25,15 @@ export function useNucleusSnapshot({ snapshot, desktopApp }: NucleusPageProps) {
   const effectiveSnapshot = useMemo(() => applyCoreActivitySnapshot(snapshot, activity), [activity, snapshot]);
 
   useEffect(() => {
+    setActivity(null);
+    setActivityStatus(desktopApp ? "loading" : "unavailable");
     if (!desktopApp) return;
-    let active = true;
-    const refresh = async () => {
-      try {
-        const parsed = parseCoreActivitySnapshot(await invoke<unknown>("core_activity_snapshot"));
-        if (active) { setActivity(parsed); setActivityStatus("ready"); }
-      } catch {
-        if (active) { setActivity(null); setActivityStatus("unavailable"); }
-      }
-    };
-    void refresh();
-    const timer = window.setInterval(refresh, 5_000);
-    return () => { active = false; window.clearInterval(timer); };
+    return startSerializedPolling({
+      intervalMs: 5_000,
+      read: async () => parseCoreActivitySnapshot(await invoke<unknown>("core_activity_snapshot")),
+      onValue: (parsed) => { setActivity(parsed); setActivityStatus("ready"); },
+      onError: () => { setActivity(null); setActivityStatus("unavailable"); },
+    });
   }, [desktopApp]);
 
   return { activity, activityStatus, effectiveSnapshot };

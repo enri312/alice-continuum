@@ -2,9 +2,14 @@ import { parseMemoryAffects, type MemoryAffect } from "../cognitive/affect";
 import { neuralMemoryPosition } from "../cognitive/neural-geometry";
 export type CognitiveMemoryLayer = "episodic" | "semantic" | "procedural" | "preference" | "self" | "unclassified";
 export type CognitiveMemoryStatus = "confirmed" | "conflict" | "archived" | "historical" | "learned";
+export type CognitiveMemoryOrigin = "study" | "automatic" | "profile" | "record";
+export type CognitiveMemoryRecordedAtKind = "study" | "created" | "session";
+export type CognitiveMemoryStudyState = "available" | "review" | "withdrawn";
 
 export type CognitiveMemoryInput = {
   studyLearning?: boolean;
+  studyState?: CognitiveMemoryStudyState | null;
+  studyPasses?: number;
   automaticLearning?: boolean;
   conversationExchangeId?: string;
   ownerReviewed?: boolean;
@@ -13,6 +18,8 @@ export type CognitiveMemoryInput = {
   kind?: string;
   intention: string;
   summary?: string;
+  startedAt?: string;
+  finishedAt?: string;
   memoryType?: "semantic" | "procedural" | "preference" | "episodic";
   source?: string;
   importance?: number;
@@ -33,6 +40,11 @@ export type CognitiveMemoryNode = {
   id: string;
   label: string;
   content?: string;
+  origin: CognitiveMemoryOrigin;
+  recordedAt: string | null;
+  recordedAtKind: CognitiveMemoryRecordedAtKind | null;
+  studyState: CognitiveMemoryStudyState | null;
+  studyPasses: number | null;
   layer: CognitiveMemoryLayer;
   status: CognitiveMemoryStatus;
   accessibility: "notAssessed" | "accessible" | "dormant";
@@ -63,6 +75,42 @@ function nonNegativeInteger(value: number | undefined) {
   return value;
 }
 
+function isoTimestamp(value: string | undefined): string | null {
+  const candidate = value?.trim();
+  if (!candidate) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.exec(candidate);
+  if (!match || !Number.isFinite(Date.parse(candidate))) return null;
+  const [, y, m, d, hours, minutes, seconds] = match;
+  const year = Number(y), month = Number(m), day = Number(d);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (month < 1 || month > 12 || day < 1 || day > days[month - 1]
+    || Number(hours) > 23 || Number(minutes) > 59 || Number(seconds) > 59) return null;
+  return candidate;
+}
+
+function memoryProvenance(memory: CognitiveMemoryInput): Pick<CognitiveMemoryNode, "origin" | "recordedAt" | "recordedAtKind"> {
+  const origin: CognitiveMemoryOrigin = memory.studyLearning ? "study"
+    : memory.automaticLearning ? "automatic" : memory.kind === "Perfil" ? "profile" : "record";
+  // Study dates describe the latest exercise, not the creation of knowledge.
+  const recordedAt = origin === "study" ? isoTimestamp(memory.finishedAt)
+    : origin === "automatic" ? isoTimestamp(memory.startedAt)
+      : origin === "record" ? isoTimestamp(memory.finishedAt) ?? isoTimestamp(memory.startedAt) : null;
+  return { origin, recordedAt, recordedAtKind: recordedAt === null ? null
+    : origin === "study" ? "study" : origin === "automatic" ? "created" : "session" };
+}
+
+function studyMetadata(memory: CognitiveMemoryInput): Pick<CognitiveMemoryNode, "studyState" | "studyPasses"> {
+  if (!memory.studyLearning) return { studyState: null, studyPasses: null };
+  // The earlier conversational projection only emitted approved, active lessons.
+  // The full visual projection always supplies the explicit new metadata.
+  if (memory.studyState === undefined && memory.studyPasses === undefined) return { studyState: "available", studyPasses: null };
+  const studyPasses = Number.isSafeInteger(memory.studyPasses) && (memory.studyPasses ?? -1) >= 0 ? memory.studyPasses! : null;
+  const studyState = memory.studyState === "withdrawn" ? "withdrawn"
+    : memory.studyState === "available" && (studyPasses ?? 0) > 0 ? "available" : "review";
+  return { studyState, studyPasses };
+}
+
 export function resolveCognitiveMemoryLayer(memory: CognitiveMemoryInput): CognitiveMemoryLayer {
   if (memory.kind === "Perfil") return "self";
   if (memory.memoryType) return memory.memoryType;
@@ -71,7 +119,10 @@ export function resolveCognitiveMemoryLayer(memory: CognitiveMemoryInput): Cogni
 }
 
 export function resolveCognitiveMemoryStatus(memory: CognitiveMemoryInput): CognitiveMemoryStatus {
-  if (memory.studyLearning) return "learned";
+  if (memory.studyLearning) {
+    if (memory.studyPasses === undefined && memory.studyState === undefined) return "learned";
+    return Number.isSafeInteger(memory.studyPasses) && (memory.studyPasses ?? 0) > 0 ? "learned" : "historical";
+  }
   if (memory.automaticLearning) return memory.ownerReviewed ? "confirmed" : "learned";
   return memory.memoryStatus ?? "historical";
 }
@@ -92,6 +143,7 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
     seen.add(id);
     const layer = resolveCognitiveMemoryLayer(memory);
     const status = resolveCognitiveMemoryStatus(memory);
+    const study = studyMetadata(memory);
     const archived = status === "archived" || memory.archiveStatus === "archived";
     const strength = finiteRange(memory.storageStrength, 0, 1);
     const importance = finiteRange(memory.importance, 1, 5);
@@ -101,6 +153,8 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       id,
       label,
       ...(memory.summary ? {content:memory.summary} : {}),
+      ...memoryProvenance(memory),
+      ...study,
       layer,
       status,
       accessibility: memory.accessibilityStatus ?? "notAssessed",
@@ -113,7 +167,8 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       importance,
       successfulRecalls: nonNegativeInteger(memory.successfulRecalls),
       successfulReviews: nonNegativeInteger(memory.successfulReviews),
-      retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && retrieved.has(id),
+      retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed"
+        && (!memory.studyLearning || study.studyState === "available") && retrieved.has(id),
       ...neuralMemoryPosition(id),
     });
   }

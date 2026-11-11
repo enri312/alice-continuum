@@ -2,12 +2,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { BrainSnapshot } from "../../core/cognitive/brain";
 import type { CoreActivitySnapshot } from "../../core/cognitive/core-activity";
-import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius } from "../../core/cognitive/cognitive-volume";
+import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations } from "../../core/cognitive/cognitive-volume";
 import type { CognitiveVolumeNode, ConfirmedMemoryAssociation } from "../../core/cognitive/cognitive-volume";
 import { resolveKnowledgeGraphEvidenceQuote } from "../../core/memory/knowledge-graph-volume";
 import type { KnowledgeGraphVolumeState } from "../../core/memory/knowledge-graph-volume";
 import { affectPalette } from "../../core/cognitive/affect";
 import { cortexPaths, neuralSeed } from "../../core/cognitive/neural-geometry";
+import { buildVolumeSignalSnapshot } from "../../core/cognitive/volume-signals";
+import { illustrativeSignalNodes, illustrativeSignalRoutes } from "../../core/cognitive/volume-signal-demo";
+import { VolumeSignalConsole, type VolumeSignalMode } from "./VolumeSignalConsole";
+import { VolumeLearningSummary, type VolumeLearningChange, type VolumeObservedLearning, type VolumeStudyProgress } from "./VolumeLearningSummary";
+import { createVolumeLearningCheckpoint, diffVolumeLearningCheckpoints, volumeLearningScale } from "../../core/cognitive/volume-learning";
 import { InlineSvgIcon } from "../icons/InlineSvgIcon";
 import rotateIcon from "../../../icons/camera-orbit-control.svg?raw";
 import panIcon from "../../../icons/camera-pan-control.svg?raw";
@@ -22,6 +27,8 @@ type NeuralVolumeProps = {
   associations?: readonly ConfirmedMemoryAssociation[];
   associationStatus?: KnowledgeGraphVolumeState;
   invalidatedAssociationCount?: number;
+  learningReady?: boolean;
+  studyProgress?: VolumeStudyProgress | null;
 };
 type InteractionMode = "rotate" | "pan";
 type Camera = { yaw: number; pitch: number; zoom: number; panX: number; panY: number };
@@ -32,8 +39,11 @@ const clamp = (value: number, minimum: number, maximum: number) => Math.min(maxi
 const layerLabels = { episodic: "episódica", semantic: "semántica", procedural: "procedimental", preference: "preferencias", self: "modelo del propietario", unclassified: "sin clasificar" } as const;
 const statusLabels = { confirmed: "confirmado", learned: "aprendido automáticamente", conflict: "en conflicto", archived: "archivado", historical: "registro histórico" } as const;
 const accessibilityLabels = { notAssessed: "accesibilidad no evaluada", accessible: "recuperable", dormant: "en reposo" } as const;
+const originLabels = { study: "Autoestudio con fuente", automatic: "Aprendizaje al conversar", profile: "Perfil del propietario", record: "Registro de memoria" } as const;
+const dateLabels = { study: "Último estudio", created: "Creación del registro", session: "Fecha de la sesión" } as const;
+const studyStateLabels = { available: "Disponible para conversación", review: "En estudio · requiere ejercicio aprobado", withdrawn: "Retirado del contexto · registro conservado" } as const;
 
-export function NeuralVolume({ snapshot, activity, runtimeActive = false, associations = [], associationStatus = "unavailable", invalidatedAssociationCount = 0 }: NeuralVolumeProps) {
+export function NeuralVolume({ snapshot, activity, runtimeActive = false, associations = [], associationStatus = "unavailable", invalidatedAssociationCount = 0, learningReady = true, studyProgress = null }: NeuralVolumeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<Camera>({ ...initialCamera });
@@ -44,23 +54,48 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
   const hoveredNodeRef = useRef<string | null>(null);
   const automaticYawRef = useRef(.08);
   const orbitRef = useRef(false);
+  const animationClockRef = useRef(0);
+  const learningCheckpointRef = useRef<ReturnType<typeof createVolumeLearningCheckpoint> | null>(null);
+  const learningLabelsRef = useRef(new Map<string, string>());
+  const seenLearningIdsRef = useRef(new Set<string>());
+  const learningArrivalRef = useRef(new Map<string, { at: number; kind: "added" | "changed" }>());
+  const [observedLearning, setObservedLearning] = useState<VolumeObservedLearning>({ baseline: null, added: 0, changed: 0, removed: 0 });
+  const [learningChanges, setLearningChanges] = useState<VolumeLearningChange[]>([]);
   const [orbit, setOrbit] = useState(false);
+  const [signalMode, setSignalMode] = useState<VolumeSignalMode>("recorded");
+  const [motionPaused, setMotionPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const displayNowMs = Math.max(nowMs, Date.now());
+  const latestLearningChange = learningChanges[0];
+  const learningPulseActive = Boolean(latestLearningChange && latestLearningChange.kind !== "removed" && displayNowMs - latestLearningChange.observedAt < 6_000);
+  const signals = buildVolumeSignalSnapshot(activity, runtimeActive, displayNowMs);
+  const routeAnimationKey = signals.routes.filter(route => route.animatable).map(route => route.id).join("|");
+  const animatedRouteIds = useMemo(() => new Set(routeAnimationKey.split("|")), [routeAnimationKey]);
+  const demoActive = signalMode === "demo";
+  const animateSignals = signals.animatable && !demoActive && !motionPaused && !reducedMotion;
   const graph = useMemo(() => buildCognitiveVolumeGraph(snapshot.memoryNodes, activity, associations, runtimeActive), [activity, associations, snapshot.memoryNodes, runtimeActive]);
+  const growthScale = volumeLearningScale(graph.persistentNodeCount);
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("rotate");
   const [zoomPercent, setZoomPercent] = useState(100);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId) ?? null;
-  const selectedAssociations = selectedNode?.memory ? associations.filter((association) => association.evidence.some((item) => item.recordId === selectedNode.memory?.id)) : [];
+  const currentAssociations = useMemo(() => currentVolumeAssociations(snapshot.memoryNodes, associations), [snapshot.memoryNodes, associations]);
+  const locallyInvalidatedAssociations = associations.length - currentAssociations.length;
+  const effectiveAssociationStatus = locallyInvalidatedAssociations > 0 ? "sourceChanged" : associationStatus;
+  const displayedInvalidatedAssociationCount = Math.max(invalidatedAssociationCount, locallyInvalidatedAssociations);
+  const selectedAssociations = selectedNode?.memory ? currentAssociations.filter((association) => association.evidence.some((item) => item.recordId === selectedNode.memory?.id)) : [];
   const hasGraph = graph.nodes.length > 0;
+  const hasVisual = hasGraph || demoActive;
   const activeAffects = snapshot.affectChannels.filter((channel) => channel.availability === "ready" && channel.value > .001);
   const dominantAffect = activeAffects.reduce((dominant, channel) => channel.value > dominant.value ? channel : dominant, activeAffects[0]);
   const hasAffectActivity = Boolean(dominantAffect);
-  const graphStateLabel = associationStatus === "loading" ? "GRAFO · VERIFICANDO FUENTES"
-    : associationStatus === "normal" ? "GRAFO · FUENTES VIGENTES"
-      : associationStatus === "empty" ? "GRAFO · SIN REFERENCIAS PERSISTENTES"
-        : associationStatus === "sourceChanged" ? `GRAFO · FUENTE CAMBIADA · ${invalidatedAssociationCount} RELACIÓN${invalidatedAssociationCount === 1 ? "" : "ES"} REQUIERE${invalidatedAssociationCount === 1 ? "" : "N"} REVISIÓN`
-          : associationStatus === "error" ? "GRAFO · ERROR DE LECTURA · RECUERDOS SIN ALTERAR"
-            : "GRAFO · DISPONIBLE EN LA APLICACIÓN LOCAL";
+  const graphStateLabel = effectiveAssociationStatus === "loading" ? "ASOCIACIONES · VERIFICANDO FUENTES"
+    : effectiveAssociationStatus === "normal" ? "ASOCIACIONES · FUENTES VIGENTES"
+      : effectiveAssociationStatus === "empty" ? "ASOCIACIONES · SIN RELACIONES CONFIRMADAS"
+        : effectiveAssociationStatus === "sourceChanged" ? `ASOCIACIONES · FUENTE CAMBIADA · ${displayedInvalidatedAssociationCount} RELACIÓN${displayedInvalidatedAssociationCount === 1 ? "" : "ES"} REQUIERE${displayedInvalidatedAssociationCount === 1 ? "" : "N"} REVISIÓN`
+          : effectiveAssociationStatus === "error" ? "ASOCIACIONES · ERROR DE LECTURA · RECUERDOS SIN ALTERAR"
+            : "ASOCIACIONES · DISPONIBLES EN LA APLICACIÓN LOCAL";
 
   const updateCamera = () => {
     setZoomPercent(Math.round(cameraRef.current.zoom * 100));
@@ -82,6 +117,47 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
   };
 
   useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1_000);
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(preference.matches);
+    preference.addEventListener("change", updatePreference);
+    return () => { window.clearInterval(timer); preference.removeEventListener("change", updatePreference); };
+  }, []);
+
+  useEffect(() => {
+    if (!learningReady) return;
+    const next = createVolumeLearningCheckpoint(snapshot.memoryNodes);
+    const labels = new Map(snapshot.memoryNodes.map(node => [node.id, node.label]));
+    if (learningCheckpointRef.current === null) {
+      learningCheckpointRef.current = next;
+      learningLabelsRef.current = labels;
+      seenLearningIdsRef.current = new Set(Object.keys(next));
+      setObservedLearning({ baseline: snapshot.memoryNodes.length, added: 0, changed: 0, removed: 0 });
+      return;
+    }
+    const difference = diffVolumeLearningCheckpoints(learningCheckpointRef.current, next);
+    const addedIds = difference.addedIds.filter(id => !seenLearningIdsRef.current.has(id));
+    const returnedIds = difference.addedIds.filter(id => seenLearningIdsRef.current.has(id));
+    const changedIds = [...difference.changedIds, ...returnedIds];
+    const observedAt = Date.now();
+    const additions: VolumeLearningChange[] = [
+      ...addedIds.map(id => ({ id, kind: "added" as const, label: labels.get(id) ?? id, observedAt })),
+      ...changedIds.map(id => ({ id, kind: "changed" as const, label: labels.get(id) ?? id, observedAt })),
+      ...difference.removedIds.map(id => ({ id, kind: "removed" as const, label: learningLabelsRef.current.get(id) ?? id, observedAt })),
+    ];
+    for (const id of addedIds) learningArrivalRef.current.set(id, { at: observedAt, kind: "added" });
+    for (const id of changedIds) learningArrivalRef.current.set(id, { at: observedAt, kind: "changed" });
+    for (const id of difference.addedIds) seenLearningIdsRef.current.add(id);
+    for (const [id, event] of learningArrivalRef.current) if (observedAt - event.at > 10_000) learningArrivalRef.current.delete(id);
+    if (additions.length) {
+      setLearningChanges(current => [...additions, ...current].slice(0, 24));
+      setObservedLearning(current => ({ ...current, added: current.added + addedIds.length, changed: current.changed + changedIds.length, removed: current.removed + difference.removedIds.length }));
+    }
+    learningCheckpointRef.current = next;
+    learningLabelsRef.current = labels;
+  }, [snapshot.memoryNodes, learningReady]);
+
+  useEffect(() => {
     if (selectedNodeId && !graph.nodes.some((node) => node.id === selectedNodeId)) setSelectedNodeId(null);
   }, [graph.nodes, selectedNodeId]);
 
@@ -95,7 +171,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
     if (!canvas) return;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = reducedMotion;
     const drag = { active: false, pointerId: -1, x: 0, y: 0, originX: 0, originY: 0, mode: "rotate" as InteractionMode };
     let width = 1;
     let height = 1;
@@ -124,7 +200,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
     };
 
     const pointerDown = (event: PointerEvent) => {
-      if (!hasGraph || (event.button !== 0 && event.button !== 1)) return;
+      if (!hasVisual || (event.button !== 0 && event.button !== 1)) return;
       drag.active = true;
       drag.pointerId = event.pointerId;
       drag.x = drag.originX = event.clientX;
@@ -158,7 +234,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         camera.panX = clamp(camera.panX + deltaX, -width * .46, width * .46);
         camera.panY = clamp(camera.panY + deltaY, -height * .42, height * .42);
       }
-      if (reduceMotion) redrawRef.current();
+      redrawRef.current();
     };
     const pointerUp = (event: PointerEvent) => {
       if (!drag.active || event.pointerId !== drag.pointerId) return;
@@ -177,13 +253,13 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       redrawRef.current();
     };
     const wheel = (event: WheelEvent) => {
-      if (!hasGraph) return;
+      if (!hasVisual) return;
       cameraRef.current.zoom = clamp(cameraRef.current.zoom * Math.exp(-event.deltaY * .0012), .55, 3.5);
       updateCamera();
       event.preventDefault();
     };
     const keyDown = (event: KeyboardEvent) => {
-      if (!hasGraph) return;
+      if (!hasVisual) return;
       const camera = cameraRef.current;
       const panStep = event.shiftKey ? 24 : 0;
       if (event.key === "+" || event.key === "=") changeZoom(1.15);
@@ -214,9 +290,9 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       const yaw = automaticYaw + camera.yaw;
       const yawCosine = Math.cos(yaw);
       const yawSine = Math.sin(yaw);
-      const x = (node.x - center.x) / extent;
-      const y = (node.y - center.y) / extent;
-      const z = (node.z - center.z) / extent;
+      const x = (node.x - center.x) / extent * growthScale;
+      const y = (node.y - center.y) / extent * growthScale;
+      const z = (node.z - center.z) / extent * growthScale;
       const yawX = x * yawCosine - z * yawSine;
       const yawZ = x * yawSine + z * yawCosine;
       const pitchCosine = Math.cos(camera.pitch);
@@ -240,9 +316,9 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
     }
     let previousTime = 0;
     let lastPaint = -Infinity;
-    const hasSignal = graph.nodes.some(node=>node.signal>0) || graph.edges.some(edge=>edge.signal>0);
+    const hasSignal = animateSignals || ((demoActive || learningPulseActive) && !motionPaused && !reduceMotion);
     let envelopeKey = "";
-    let envelopePaths: {path:Path2D;depth:number}[] = [];
+    let envelopePaths: {path:Path2D;depth:number; points: {x:number;y:number;z:number}[]}[] = [];
 
     const draw = (time: number) => {
       const interval = hasSignal || orbitRef.current || drag.active ? 32 : 250;
@@ -251,11 +327,13 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       }
       lastPaint = time;
       context.clearRect(0, 0, width, height);
-      if (!hasGraph) return;
+      if (!hasVisual) { projectedRef.current = []; return; }
       const elapsed = previousTime ? Math.min(32, time - previousTime) : 0;
       previousTime = time;
+      if (!motionPaused && !reduceMotion) animationClockRef.current += elapsed;
+      const animationTime = animationClockRef.current;
       const focusId = selectedNodeRef.current ?? hoveredNodeRef.current;
-      if (orbitRef.current && !reduceMotion && !focusId && !drag.active) automaticYawRef.current += elapsed * .000007;
+      if (orbitRef.current && !reduceMotion && !motionPaused && !focusId && !drag.active) automaticYawRef.current += elapsed * .000007;
       const projected = new Map(graph.nodes.map((node) => [node.id, project(node, automaticYawRef.current)]));
       const spatial = new Map<string,{id:string;x:number;y:number}[]>();
       for (const [id, point] of projected) {
@@ -281,12 +359,22 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
           const projected = points.map(point => project(point, automaticYawRef.current));
           const path = new Path2D();
           projected.forEach((point, step) => step ? path.lineTo(point.x, point.y) : path.moveTo(point.x, point.y));
-          return {path,depth:projected.reduce((sum,p)=>sum+p.z,0)/projected.length};
+          return {path,depth:projected.reduce((sum,p)=>sum+p.z,0)/projected.length,points:projected};
         });
       }
-      for (const {path,depth} of envelopePaths) {
+      for (const {path,depth,points} of envelopePaths) {
         context.strokeStyle = `rgba(89,156,179,${.085 + (depth + .55) * .085})`;
         context.stroke(path);
+        // A quiet dotted scaffold makes the bilateral volume legible. Its
+        // points are geometry, not extra memories, measured neurons or signals.
+        context.fillStyle = `rgba(121,188,207,${.13 + (depth + .55) * .12})`;
+        context.beginPath();
+        for (let index = 0; index < points.length; index += 4) {
+          const point = points[index];
+          context.moveTo(point.x + .85, point.y);
+          context.arc(point.x, point.y, .85, 0, Math.PI * 2);
+        }
+        context.fill();
       }
       context.restore();
 
@@ -308,12 +396,19 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         context.moveTo(from.x, from.y);
         context.quadraticCurveTo(controlX, controlY, to.x, to.y);
         context.stroke();
-        if (!reduceMotion && edge.kind !== "association" && edge.kind !== "coLearning" && edge.signal > 0 && related) {
-          const phase = (time * (.00016 + edge.signal * .0002) + edge.evidenceCount * .07) % 1;
+        const recordedRouteIsCurrent = edge.kind !== "audit" || animatedRouteIds.has(edge.id.slice("audit:".length));
+        if (animateSignals && recordedRouteIsCurrent && edge.kind !== "association" && edge.kind !== "coLearning" && edge.signal > 0 && related) {
+          const phase = (animationTime * (.0002 + edge.signal * .0002) + edge.evidenceCount * .07) % 1;
           context.fillStyle = edge.kind === "retrieval" ? "rgba(224,242,254,.9)" : "rgba(45,212,191,.82)";
-          context.beginPath();
-          context.arc((1-phase)**2*from.x+2*(1-phase)*phase*controlX+phase**2*to.x, (1-phase)**2*from.y+2*(1-phase)*phase*controlY+phase**2*to.y, 1.6, 0, Math.PI * 2);
-          context.fill();
+          context.shadowColor = context.fillStyle;
+          context.shadowBlur = 14;
+          for (let packet = 0; packet < 2; packet++) {
+            const position = (phase + packet / 2) % 1;
+            context.beginPath();
+            context.arc((1-position)**2*from.x+2*(1-position)*position*controlX+position**2*to.x, (1-position)**2*from.y+2*(1-position)*position*controlY+position**2*to.y, 3, 0, Math.PI * 2);
+            context.fill();
+          }
+          context.shadowBlur = 0;
         }
       }
 
@@ -325,18 +420,23 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       for (const { node, point } of ordered) {
         const [red, green, blue] = cognitiveVolumeNodeColor(node);
         const related = !focusId || node.id === focusId || neighbors.get(focusId)?.has(node.id) === true;
-        const activityPulse = node.signal > 0 && related && !reduceMotion ? .9 + Math.sin(time * .004 + node.x * 5) * .1 : 1;
+        const activityPulse = node.signal > 0 && node.processRegion !== "runtime" && related && animateSignals ? .85 + Math.sin(animationTime * .004 + node.x * 5) * .15 : 1;
         const baseRadius = node.kind === "process" ? 4.6 + node.signal * 3.2 : cognitiveMemoryRadius(node.memory?.importance ?? null);
-        const radius = clamp(baseRadius * point.perspective * Math.sqrt(cameraRef.current.zoom), 2.1, 32);
+        const arrival = node.memory ? learningArrivalRef.current.get(node.memory.id) : undefined;
+        const arrivalAge = arrival ? Date.now() - arrival.at : Infinity;
+        const showArrival = arrivalAge < 6_000 && !reduceMotion && !motionPaused;
+        const growth = arrival?.kind === "added" && showArrival ? .45 + .55 * clamp(arrivalAge / 1_400, 0, 1) : 1;
+        const radius = clamp(baseRadius * point.perspective * Math.sqrt(cameraRef.current.zoom) * growth, 2.1, 32);
         const selected = node.id === selectedNodeRef.current;
         const hovered = node.id === hoveredNodeRef.current;
         const archived = node.memory?.archived === true;
         const dormant = node.memory?.accessibility === "dormant";
         const suppressed = node.memory?.suppressed === true;
-        const stateAlpha = selected || hovered ? 1 : archived ? .3 : suppressed ? .28 : dormant ? .4 : node.kind === "process" || node.memory?.retrieved ? .95 : .72;
+        const studyWithdrawn = node.memory?.studyState === "withdrawn";
+        const stateAlpha = selected || hovered ? 1 : archived || studyWithdrawn ? .3 : suppressed ? .28 : dormant ? .4 : node.kind === "process" || node.memory?.retrieved ? .95 : .72;
         const alpha = stateAlpha * (related ? 1 : .24);
         context.shadowColor = `rgba(${red},${green},${blue},.82)`;
-        context.shadowBlur = selected || hovered ? 18 : node.signal > 0 ? 14 * activityPulse : 4;
+        context.shadowBlur = showArrival ? 24 : selected || hovered ? 18 : node.signal > 0 ? 14 * activityPulse : 4;
         // Dendritic glyphs belong to this record alone. Branch tips stop
         // before the next soma; only graph.edges can connect two memories.
         if (node.memory) {
@@ -454,12 +554,63 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         }
         hits.push({ node, ...point, radius });
       }
+      if (demoActive) {
+        // Explicitly illustrative stations. Never add them to graph.nodes/hits,
+        // memory counters, associations, audit records or retrieval context.
+        context.save();
+        const stations = new Map(illustrativeSignalNodes.map(node => [node.id, { ...node, point: project(node, automaticYawRef.current) }]));
+        illustrativeSignalRoutes.forEach((route, index) => {
+          const from = stations.get(route.from)!.point;
+          const to = stations.get(route.to)!.point;
+          const bendX = (from.x + to.x) / 2;
+          const bendY = (from.y + to.y) / 2 - 24;
+          context.lineWidth = 1.3;
+          context.strokeStyle = "rgba(251,191,36,.65)";
+          context.setLineDash([5, 6]);
+          context.beginPath(); context.moveTo(from.x, from.y);
+          context.quadraticCurveTo(bendX, bendY, to.x, to.y); context.stroke();
+          context.setLineDash([]);
+          const phase = (animationTime * .00024 + index * .17) % 1;
+          const x = (1-phase)**2*from.x + 2*(1-phase)*phase*bendX + phase**2*to.x;
+          const y = (1-phase)**2*from.y + 2*(1-phase)*phase*bendY + phase**2*to.y;
+          context.shadowColor = "#fbbf24"; context.shadowBlur = 18;
+          context.fillStyle = "#fde68a";
+          context.beginPath(); context.arc(x, y, 3.5, 0, Math.PI * 2); context.fill();
+        });
+        context.shadowBlur = 0;
+        for (const station of stations.values()) {
+          const point = station.point;
+          context.fillStyle = "#121b28"; context.strokeStyle = "#fbbf24"; context.lineWidth = 1.4;
+          context.beginPath(); context.arc(point.x, point.y, 10, 0, Math.PI * 2); context.fill(); context.stroke();
+          context.fillStyle = "#fbbf24";
+          context.beginPath(); context.arc(point.x, point.y, 3.5, 0, Math.PI * 2); context.fill();
+          context.font = "600 11px 'Segoe UI', sans-serif";
+          const labelWidth = context.measureText(station.label).width + 14;
+          const labelOffsets = {
+            permission: [-labelWidth - 14, -25], perception: [-labelWidth - 14, 8],
+            memory: [14, -33], language: [-labelWidth / 2, 18],
+            workspace: [14, -7], output: [14, 18],
+          };
+          const [offsetX, offsetY] = labelOffsets[station.id];
+          const labelX = clamp(point.x + offsetX, 4, Math.max(4, width - labelWidth - 4));
+          const labelY = clamp(point.y + offsetY, 18, height - 26);
+          context.strokeStyle = "rgba(251,191,36,.35)"; context.lineWidth = .7;
+          context.beginPath(); context.moveTo(point.x, point.y);
+          context.lineTo(clamp(point.x, labelX, labelX + labelWidth), clamp(point.y, labelY, labelY + 20)); context.stroke();
+          context.fillStyle = "rgba(12,18,29,.96)"; context.fillRect(labelX, labelY, labelWidth, 20);
+          context.fillStyle = "#fde68a"; context.fillText(station.label, labelX + 7, labelY + 14);
+        }
+        context.restore();
+      }
       projectedRef.current = hits;
-      if (!reduceMotion) animationFrame = window.requestAnimationFrame(draw);
+      if (!reduceMotion && (hasSignal || (orbitRef.current && !motionPaused) || drag.active)) animationFrame = window.requestAnimationFrame(draw);
     };
-    redrawRef.current = () => { lastPaint = -Infinity; if (reduceMotion) draw(performance.now()); };
+    redrawRef.current = () => {
+      window.cancelAnimationFrame(animationFrame);
+      lastPaint = -Infinity;
+      draw(performance.now());
+    };
     resize();
-    draw(0);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
@@ -475,24 +626,30 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       canvas.removeEventListener("dblclick", resetCamera);
       canvas.removeEventListener("keydown", keyDown);
     };
-  }, [graph, hasGraph]);
+  }, [graph, growthScale, hasVisual, demoActive, animateSignals, animatedRouteIds, motionPaused, reducedMotion, orbit, learningPulseActive]);
 
   return <div className={`volume-workbench volume-observatory ${selectedNode ? "has-selection" : ""}`}>
-    <header className="observatory-header"><div><span>ALICE / OBSERVATORIO</span><h3>Una memoria que crece contigo</h3><p>{runtimeActive ? "Núcleo activo · " : ""}Aprendizaje local · recuerdos conectados con su origen</p></div><div className="observatory-counts"><span><b>{graph.persistentNodeCount}</b> recuerdos</span><span><b>{graph.processNodeCount}</b> procesos / núcleo</span><span><b>{graph.persistentAssociationCount}</b> asociaciones</span></div></header>
-    <div className={`observatory-graph-state ${associationStatus}`} role="status"><i />{graphStateLabel}</div>
+    <header className="observatory-header"><div><span>ALICE / SU CEREBRO LÓGICO</span><h3>Una memoria que crece al aprender</h3><p>{runtimeActive ? "Núcleo disponible · " : ""}Explora cómo se organiza su conocimiento y qué cambia con cada aprendizaje</p></div><div className="observatory-counts"><span><b>{graph.persistentNodeCount}</b> registros</span><span><b>{graph.processNodeCount}</b> procesos / núcleo</span><span><b>{graph.persistentAssociationCount}</b> asociaciones</span></div></header>
+    <VolumeLearningSummary nodes={snapshot.memoryNodes} observed={observedLearning} changes={learningChanges} ready={learningReady} studyProgress={studyProgress} />
+    <div className={`observatory-graph-state ${effectiveAssociationStatus}`} role="status"><i />{graphStateLabel}</div>
     {hasGraph && <details className="observatory-search"><summary>Buscar un recuerdo o proceso</summary><label className="observatory-select">Explorar un nodo<select value={selectedNodeId ?? ""} onChange={event => setSelectedNodeId(event.target.value || null)}><option value="">Seleccioná en la vista o aquí</option>{graph.nodes.map(node => <option key={node.id} value={node.id}>{node.label}</option>)}</select></label></details>}
-    <div className={`volume-workbench-grid ${hasGraph ? "has-graph" : "is-empty"}`}>
-      <div ref={containerRef} className={`neural-volume traceable-volume mode-${interactionMode} ${hasGraph ? "has-activity" : "is-empty"}`} role="group" aria-label="Volumen cognitivo tridimensional trazable de Alice">
+    <div className={`volume-workbench-grid ${selectedNode ? "has-side-rail" : ""} ${hasVisual ? "has-graph" : "is-empty"}`}>
+      <div ref={containerRef} className={`neural-volume traceable-volume mode-${interactionMode} ${hasVisual ? "has-activity" : "is-empty"}`} data-signal-mode={signalMode} role="group" aria-label="Volumen cognitivo tridimensional trazable de Alice">
         <div className="nucleus-panel-label"><span>3D</span><strong>RED DE RECUERDOS</strong><small>ARRASTRA PARA EXPLORAR</small></div>
-        <canvas ref={canvasRef} tabIndex={hasGraph ? 0 : -1} aria-label="Red 3D inspirada en formas neuronales. Cada cuerpo representa un recuerdo real; el contorno cerebral es ilustrativo." />
-        {hasGraph ? <>
-          <div className="neural-visual-caption">CONTORNO ILUSTRATIVO · NODOS REALES</div>
+        <canvas ref={canvasRef} tabIndex={hasVisual ? 0 : -1} aria-label={demoActive ? "Demostración ilustrativa del flujo entre entrada, memoria, modelo, contexto y salida. No representa actividad cerebral medida." : "Red 3D inspirada en formas neuronales. Los nodos muestran recuerdos y procesos registrados; el contorno cerebral es ilustrativo."} />
+        {demoActive && <div className="volume-demo-badge" role="status">DEMOSTRACIÓN · rutas ilustrativas, sin eventos nuevos</div>}
+        {learningPulseActive && latestLearningChange && <div className="volume-learning-burst" role="status"><strong>{latestLearningChange.kind === "added" ? "Nuevo registro incorporado" : "Registro actualizado"}</strong><span>{latestLearningChange.label}</span></div>}
+        {hasVisual ? <>
+          <div className="neural-visual-caption">{demoActive ? "ESQUEMA FUNCIONAL · CONTADORES REALES CONSERVADOS" : "MALLA ILUSTRATIVA · NODOS DE DATOS REALES"}</div>
           <div className="volume-layer-legend" aria-label="Capas de memoria"><span className="episodic"><i />episódica</span><span className="semantic"><i />semántica</span><span className="procedural"><i />procedimental</span><span className="preference"><i />preferencias</span><span className="self"><i />propietario</span><span className="unclassified"><i />sin clasificar</span></div>
         </> : <div className="volume-empty"><span>000</span><strong>SIN NODOS COGNITIVOS</strong><small>No existen recuerdos persistentes ni procesos R3 recientes. El volumen no genera estructura de relleno.</small></div>}
       </div>
 
+      {selectedNode && <div className="volume-side-rail">
       {selectedNode && <aside className="volume-inspector-rail" aria-label="Inspector del volumen cognitivo">
         <header className="volume-inspector-heading"><span>RECUERDO / PROCESO</span><button type="button" className="observatory-orbit" onClick={() => { setSelectedNodeId(null); canvasRef.current?.focus({ preventScroll: true }); }}>Cerrar ficha</button></header>
+        {selectedNode.memory && <div className="volume-learning-meta"><strong>{originLabels[selectedNode.memory.origin]}</strong><span>{selectedNode.memory.recordedAt && selectedNode.memory.recordedAtKind ? `${dateLabels[selectedNode.memory.recordedAtKind]} · ${new Intl.DateTimeFormat("es-PY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(selectedNode.memory.recordedAt))}` : "Fecha no declarada en la fuente"}</span>{selectedNode.memory.recordedAtKind === "study" && <small>La fecha de repaso no indica cuándo nació este conocimiento.</small>}</div>}
+        {selectedNode.memory?.studyState && <p className="review-note"><strong>{studyStateLabels[selectedNode.memory.studyState]}</strong><br />{selectedNode.memory.studyPasses ?? 0} ejercicios aprobados registrados. Su presencia en el volumen no habilita su uso en conversación.</p>}
         {selectedNode?.memory && <><p className="review-note">Importancia: {selectedNode.memory.importance === null ? "sin evaluar" : `${selectedNode.memory.importance}/5`}. {selectedNode.memory.affects.length ? "Asociación emocional revisada" : "Sin evaluación emocional vigente"}.</p>{selectedNode.memory.affects.map(item => <p className="review-note" key={item.emotion}><strong>{affectPalette.find(c => c.id === item.emotion)?.label} · {Math.round(item.intensity * 100)}%</strong><br />“{item.evidence}”</p>)}</>}
         <div className={`volume-node-inspector ${selectedNode ? "selected" : "idle"}`} aria-live="polite">
           {selectedNode ? selectedNode.memory ? <><span>NODO DE MEMORIA</span><strong>{selectedNode.memory.label}</strong>{selectedNode.memory.content && <p className="neural-memory-content">{selectedNode.memory.content}</p>}<small>{layerLabels[selectedNode.memory.layer]} · {statusLabels[selectedNode.memory.status]} · {accessibilityLabels[selectedNode.memory.accessibility]}{selectedNode.memory.archived ? " · archivado" : ""}{selectedNode.memory.deletionScheduled ? " · eliminación programada" : ""}{selectedNode.memory.suppressed ? " · suprimido" : ""} · v{selectedNode.memory.version}</small><details className="observatory-provenance"><summary>Fuente y detalles técnicos</summary><code>{selectedNode.memory.id}</code><dl><div><dt>Versión</dt><dd>{selectedNode.memory.version}{selectedNode.memory.version > 1 ? " · reconsolidada" : " · original"}</dd></div><div><dt>Retención</dt><dd>{selectedNode.memory.deletionScheduled ? "espera gobernada antes de retiro" : "sin eliminación programada"}</dd></div><div><dt>Recuperación</dt><dd>{selectedNode.memory.archived ? "bloqueada por archivo reversible" : selectedNode.memory.suppressed ? "suprimida por el propietario" : accessibilityLabels[selectedNode.memory.accessibility]}</dd></div><div><dt>Estabilidad</dt><dd>{selectedNode.memory.storageStrength === null ? "sin métrica" : `${Math.round(selectedNode.memory.storageStrength * 100)}%`}</dd></div><div><dt>Recuperaciones</dt><dd>{selectedNode.memory.successfulRecalls}</dd></div><div><dt>Fuente</dt><dd>{selectedNode.memory.source ?? "no declarada"}</dd></div></dl></details></> : <><span>NODO DE PROCESO</span><strong>{selectedNode.label}</strong><small>{selectedNode.detail}</small><code>{selectedNode.id}</code></> : <><span>INSPECTOR TRAZABLE</span><strong>Seleccioná un nodo</strong><small>Un círculo abre un recuerdo real; un rombo explica el latido del núcleo, una señal R3 o la recuperación actual. La selección conserva el contexto y atenúa únicamente los elementos no relacionados.</small></>}
@@ -513,14 +670,16 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`} style={hasAffectActivity ? { "--affect-color": dominantAffect.color } as CSSProperties : undefined}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "10 CANALES · EN ESPERA"}</small></span></div>
         <div className="observatory-emotions"><header><strong>Paleta emocional</strong><span>Referencia · evaluación pendiente</span></header><div>{affectPalette.map(channel => <span key={channel.id}><i style={{ backgroundColor: channel.color }} />{channel.label}</span>)}</div></div>
       </aside>}
+      </div>}
     </div>
 
-    {hasGraph && <>
+    {hasVisual && <>
       <div className="volume-control-dock">
         <div className="volume-camera-controls" aria-label="Controles de cámara del volumen cognitivo"><div className="volume-camera-modes" role="group" aria-label="Modo de arrastre"><button className={interactionMode === "rotate" ? "selected" : ""} type="button" title="Girar al arrastrar" aria-pressed={interactionMode === "rotate"} onClick={() => chooseMode("rotate")}><InlineSvgIcon markup={rotateIcon} className="camera-control-icon" /><span>Girar</span></button><button className={interactionMode === "pan" ? "selected" : ""} type="button" title="Mover al arrastrar" aria-pressed={interactionMode === "pan"} onClick={() => chooseMode("pan")}><InlineSvgIcon markup={panIcon} className="camera-control-icon" /><span>Mover</span></button></div><div className="volume-camera-actions" role="group" aria-label="Zoom y restablecimiento"><button type="button" title="Alejar" aria-label="Alejar volumen" onClick={() => changeZoom(1 / 1.18)}><InlineSvgIcon markup={zoomOutIcon} className="camera-control-icon" /></button><output aria-label={`Zoom ${zoomPercent} por ciento`}>{zoomPercent}%</output><button type="button" title="Acercar" aria-label="Acercar volumen" onClick={() => changeZoom(1.18)}><InlineSvgIcon markup={zoomInIcon} className="camera-control-icon" /></button><button type="button" title="Restablecer vista" aria-label="Restablecer vista" onClick={resetCamera}><InlineSvgIcon markup={resetIcon} className="camera-control-icon" /></button></div></div>
-        <button className="observatory-orbit" type="button" aria-pressed={orbit} onClick={() => { orbitRef.current = !orbit; setOrbit(!orbit); }}>Órbita automática: {orbit ? "activada" : "pausada"}</button>
+        <button className="observatory-orbit" type="button" aria-pressed={orbit} disabled={reducedMotion} onClick={() => { orbitRef.current = !orbit; setOrbit(!orbit); }}>Órbita automática: {reducedMotion ? "movimiento reducido" : orbit ? motionPaused ? "activada · animación pausada" : "activada" : "pausada"}</button>
       </div>
-      <div className="volume-stats-strip"><span className="volume-stats-growth">{graph.persistentNodeCount} RECUERDOS · {snapshot.retrievedMemoryCount} RECUPERADOS · {graph.processNodeCount} PROCESOS · {graph.persistentAssociationCount} ASOCIACIONES CONFIRMADAS</span><div className="volume-stats-routes" aria-label="Evidencia del grafo"><span className="input"><i />R3 <strong>{activity?.windowEventCount ?? 0}</strong></span><span className="memory"><i />NODOS <strong>{graph.persistentNodeCount}</strong></span><span className="output"><i />ARISTAS <strong>{graph.edges.length}</strong></span></div><span className="volume-stats-help">{associationStatus === "loading" ? "LEYENDO RELACIONES LOCALES…" : associationStatus === "error" ? "RELACIONES NO DISPONIBLES · NODOS SIN ALTERAR" : associationStatus === "sourceChanged" ? "RELACIÓN OCULTA HASTA REVISAR SU FUENTE" : associationStatus === "normal" ? "VIOLETA · RELACIÓN CONFIRMADA" : graph.edges.some(edge=>edge.kind === "coLearning") ? "VERDE · ORIGEN COMPARTIDO" : "SIN RELACIONES CARGADAS"}&nbsp;&nbsp; · &nbsp;&nbsp;CLIC · INSPECCIONAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</span></div>
+      <div className="volume-stats-strip"><span className="volume-stats-growth">{graph.persistentNodeCount} REGISTROS · {snapshot.retrievedMemoryCount} RECUPERADOS · {graph.processNodeCount} PROCESOS · {graph.persistentAssociationCount} ASOCIACIONES CONFIRMADAS</span><div className="volume-stats-routes" aria-label="Evidencia del grafo"><span className="input"><i />R3 <strong>{activity?.windowEventCount ?? 0}</strong></span><span className="memory"><i />NODOS <strong>{graph.persistentNodeCount}</strong></span><span className="output"><i />ARISTAS <strong>{graph.edges.length}</strong></span></div><span className="volume-stats-help">{effectiveAssociationStatus === "loading" ? "LEYENDO RELACIONES LOCALES…" : effectiveAssociationStatus === "error" ? "RELACIONES NO DISPONIBLES · NODOS SIN ALTERAR" : effectiveAssociationStatus === "sourceChanged" ? "RELACIÓN OCULTA HASTA REVISAR SU FUENTE" : effectiveAssociationStatus === "normal" ? "VIOLETA · RELACIÓN CONFIRMADA" : graph.edges.some(edge=>edge.kind === "coLearning") ? "VERDE · ORIGEN COMPARTIDO" : "SIN RELACIONES CARGADAS"}&nbsp;&nbsp; · &nbsp;&nbsp;CLIC · INSPECCIONAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</span></div>
     </>}
+    <VolumeSignalConsole signals={signals} mode={signalMode} paused={motionPaused} reducedMotion={reducedMotion} nowMs={displayNowMs} onModeChange={setSignalMode} onPauseChange={() => setMotionPaused(value => !value)} />
   </div>;
 }

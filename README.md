@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 11 de noviembre de 2026:** memoria reorganizada, icono de aprendizaje con fuentes y permisos de eventos corregidos en `D:\Alice Continuum`; R9 sigue pendiente.
+**Estado al 11 de noviembre de 2026:** volumen cognitivo con evolución visible del aprendizaje, memoria reorganizada y permisos de eventos corregidos en `D:\Alice Continuum`; R9 sigue pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -42,7 +42,7 @@ restaura en una carpeta nueva. La copia en otra unidad física sigue pendiente.
 | Autoestudio al arrancar | Currículo cerrado de matemáticas, historia bíblica católica, psicología e inteligencia emocional, empatía, solidaridad y humildad. Gemma estudia y resuelve ejercicios; las lecciones aprobadas se recuperan con su fuente y se muestran en Obsidian. [Funcionamiento y límites](docs/runbooks/06-autoestudio-al-arrancar.md). |
 | Cámara y escritorio | Fuentes seleccionables en Conversación, procesadas por Gemma mientras están activas. Fotogramas efímeros; no identifica personas ni abre archivos cerrados. |
 | Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
-| Núcleo observable | Nodos respaldados por recuerdos reales, procedencia y actividad técnica. Las formas cerebrales son ilustrativas. |
+| Núcleo observable | Volumen bilateral que cambia con los registros de aprendizaje y seguimiento de incorporaciones desde la apertura. El mapa de módulos permanece en Flujo cognitivo. Conserva importancia, asociaciones emocionales revisadas, fuentes, estados y controles. Distingue actividad R3 y demostración, y mantiene visibles estudios pendientes sin habilitarlos para RAG. [Diseño y límites](docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md). |
 | Gobierno y diagnóstico | Registro de capacidades, permisos delimitados, auditoría local, tareas y habilidades separadas del diálogo. No hay control general del PC. |
 
 El ciclo nativo de voz pasó **tres frases españolas, dos respuestas reproducidas y
@@ -179,11 +179,12 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **11 de noviembre de 2026**:
 
-- **627 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **681 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **354 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye la autorización compilada de escucha y cierre de eventos de la ventana principal.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
+- Volumen cognitivo: **17 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución por registros, contenido del inspector, pausa, demostración y estados de señal. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_EVOLUTION_REPORT_2026-11-11.md).
 
 La revisión visual final utiliza una vista de prueba sin backend ni datos personales.
 La comprobación del diseño actualizado en la sesión nativa del propietario queda

@@ -88,6 +88,8 @@ export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): readonly [n
   const memory = node.memory;
   if (!memory) return [100, 116, 139];
   if (memory.archived) return memoryStatusColors.archived!;
+  if (memory.studyState === "withdrawn") return [100, 116, 139];
+  if (memory.studyState === "review") return [251, 191, 36];
   if (memory.suppressed) return [88, 72, 94];
   if (memory.accessibility === "dormant") return [100, 116, 139];
   if (memory.status === "conflict") return memoryStatusColors.conflict!;
@@ -97,6 +99,23 @@ export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): readonly [n
   }
   if (memory.retrieved) return [224, 242, 254];
   return memoryStatusColors[memory.status] ?? memoryLayerColors[memory.layer];
+}
+
+/** Keep graph edges and inspector evidence tied to the currently displayed versions. */
+export function currentVolumeAssociations(
+  memoryNodes: readonly CognitiveMemoryNode[],
+  associations: readonly ConfirmedMemoryAssociation[],
+): ConfirmedMemoryAssociation[] {
+  const versions = new Map(memoryNodes.map(memory => [memory.id, memory.version]));
+  const seen = new Set<string>();
+  return associations.filter(association => {
+    const [first, second] = association.evidence;
+    if (!association.ownerConfirmed || seen.has(association.id) || association.evidence.length !== 2
+      || first.recordId === second.recordId
+      || !association.evidence.every(item => versions.get(item.recordId) === item.recordVersion)) return false;
+    seen.add(association.id);
+    return true;
+  });
 }
 
 export function buildCognitiveVolumeGraph(
@@ -169,7 +188,7 @@ export function buildCognitiveVolumeGraph(
   }
 
   const associationIds = new Set<string>();
-  for (const association of associations) {
+  for (const association of currentVolumeAssociations(memoryNodes, associations)) {
     const recordIds = association.evidence.map((item) => item.recordId);
     if (!association.ownerConfirmed || associationIds.has(association.id) || recordIds.length !== 2 || recordIds[0] === recordIds[1]) continue;
     const from = `memory:${recordIds[0]}`;

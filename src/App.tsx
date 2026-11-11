@@ -2,7 +2,7 @@ import { ConversationVision, type ConversationVisionHandle } from "./components/
 import { listen } from "@tauri-apps/api/event";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
 import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
-import { parseSelfStudySnapshot, selfStudyForConversation, type SelfStudySnapshot } from "./core/memory/self-study";
+import { parseSelfStudySnapshot, selfStudyForConversation, selfStudyForCognitiveVolume, type SelfStudySnapshot } from "./core/memory/self-study";
 import { automaticMemoryForConversation, parseAutomaticMemorySnapshot } from "./core/memory/automatic-memory";
 import type { AutomaticMemorySnapshot, AutomaticMemoryReview, AutomaticLearningPhase } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -225,13 +225,14 @@ export function App() {
 
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
   const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForConversation(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
+  const cognitiveMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForCognitiveVolume(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
   const ollamaProvider = cloudStatus.providers.find((provider) => provider.id === "ollama");
   const ollamaModel = cloudSelection.provider === "ollama" && cloudSelection.model.trim() ? cloudSelection.model : ollamaProvider?.defaultModel ?? "qwen3.5:4b";
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
   const brainSnapshot = useMemo(() => buildBrainSnapshot({
     lastUserMessage,
     conversationCount: messages.length,
-    memories: conversationalMemories,
+    memories: cognitiveMemories,
     retrievedMemoryCount: memoryRetrieval.count,
     retrievedMemoryTop: memoryRetrieval.top,
     retrievedMemoryIds: memoryRetrieval.ids,
@@ -239,7 +240,7 @@ export function App() {
     foregroundContext,
     cloudConfigured: cloudStatus.providers.some((provider) => provider.configured),
     cloudPending,
-  }), [cloudPending, cloudStatus.providers, conversationalMemories, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
+  }), [cloudPending, cloudStatus.providers, cognitiveMemories, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
 
   function recordEvent(module: CognitiveModule, node: string, payload: string, level: CognitiveLevel = "INFO") {
     setCognitiveEvents((current) => [...current.slice(-199), createCognitiveEvent(module, node, payload, level)]);
@@ -680,7 +681,7 @@ export function App() {
     </nav>
 
     <div className="core-system-content">
-    {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} />}
+    {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} learningReady={!desktopApp || (memoryStatus === "native" && ownerProfile !== null && automaticMemory !== null && selfStudy !== null)} selfStudy={selfStudy} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}

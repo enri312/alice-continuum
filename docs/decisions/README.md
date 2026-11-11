@@ -95,3 +95,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-113](ADR-P-113-autoestudio-modular.md) | Autoestudio con contratos, reglas, persistencia y adaptación a Gemma en módulos separados |
 
 | [ADR-P-114](ADR-P-114-respaldo-integral.md) | Copias privadas integrales desde el lanzador, SHA-256 y restauración aislada |
+
+| [ADR-P-115](ADR-P-115-volumen-cognitivo-y-evolucion-visible.md) | Volumen bilateral, evolución observada del aprendizaje y señales reales separadas de la demostración |

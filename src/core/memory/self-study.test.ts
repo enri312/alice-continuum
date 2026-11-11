@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseSelfStudySnapshot, selfStudyForConversation, type SelfStudyRecord, type SelfStudySnapshot } from "./self-study";
+import { parseSelfStudySnapshot, selfStudyForConversation, selfStudyForCognitiveVolume, type SelfStudyRecord, type SelfStudySnapshot } from "./self-study";
 import { retrieveMemories } from "./memory-retrieval";
 import { selectReinforceableMemoryIds } from "./memory-consolidation";
 import { buildCloudPayload } from "../conversation/cloud-payload";
+import { buildCognitiveMemoryNodes } from "./cognitive-memory";
+import { buildCognitiveVolumeGraph } from "../cognitive/cognitive-volume";
 
 const record: SelfStudyRecord = {
   id: "study:arithmetic-fractions", lessonId: "arithmetic-fractions", domain: "mathematics", track: "arithmetic",
@@ -44,6 +46,46 @@ describe("autoestudio separado y recuperable", () => {
 
   it("mantiene disponibles las lecciones aprobadas al pausar futuros ciclos", () => {
     expect(selfStudyForConversation(parseSelfStudySnapshot({ ...snapshot, enabled: false, phase: "disabled" }))).toHaveLength(1);
+  });
+
+  it("proyecta todos los estudios guardados sin convertir los pendientes o retirados en RAG", () => {
+    const records: SelfStudyRecord[] = [
+      record,
+      { ...record, id: "study:pending", lessonId: "pending", passes: 0, lastPassed: false },
+      { ...record, id: "study:review", lessonId: "review", lastPassed: false },
+      { ...record, id: "study:withdrawn", lessonId: "withdrawn", active: false },
+    ];
+    const study = parseSelfStudySnapshot({ ...snapshot, records });
+    const before = structuredClone(study);
+    const projected = selfStudyForCognitiveVolume(study);
+    expect(projected.map(memory => [memory.id, memory.studyState, memory.studyPasses])).toEqual([
+      [record.id, "available", 1], ["study:pending", "review", 0], ["study:review", "review", 1], ["study:withdrawn", "withdrawn", 1],
+    ]);
+    expect(selfStudyForConversation(study).map(memory => memory.id)).toEqual([record.id]);
+    const nodes = buildCognitiveMemoryNodes(projected, records.map(item => item.id));
+    expect(nodes).toHaveLength(4);
+    expect(nodes.filter(node => node.retrieved).map(node => node.id)).toEqual([record.id]);
+    expect(nodes.find(node => node.id === "study:pending")?.status).toBe("historical");
+    expect(nodes.every(node => node.accessibility === "notAssessed" && !node.archived)).toBe(true);
+    expect(study).toEqual(before);
+    expect(selfStudyForCognitiveVolume(null)).toEqual([]);
+  });
+
+  it("mantiene el nodo después de fallar o retirar una lección y bloquea la recuperación tardía", () => {
+    const approved = buildCognitiveMemoryNodes(selfStudyForCognitiveVolume(snapshot));
+    for (const changed of [{ ...record, lastPassed: false }, { ...record, active: false }]) {
+      const changedSnapshot = { ...snapshot, records: [changed] };
+      const nodes = buildCognitiveMemoryNodes(selfStudyForCognitiveVolume(changedSnapshot), [record.id]);
+      expect(buildCognitiveVolumeGraph(nodes, null).persistentNodeCount).toBe(1);
+      expect(nodes[0].id).toBe(approved[0].id);
+      expect(nodes[0].retrieved).toBe(false);
+      expect(selfStudyForConversation(changedSnapshot)).toEqual([]);
+    }
+  });
+
+  it("preserva la compatibilidad de la proyección aprobada anterior sin adivinar un número de aprobaciones", () => {
+    const [node] = buildCognitiveMemoryNodes(selfStudyForConversation(snapshot), [record.id]);
+    expect(node).toMatchObject({ status: "learned", studyState: "available", studyPasses: null, retrieved: true });
   });
 
   it.each([

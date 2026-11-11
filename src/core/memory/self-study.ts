@@ -82,3 +82,20 @@ export function selfStudyForConversation(snapshot: SelfStudySnapshot | null) {
     source: `${record.sourceTitle} · ${record.sourceUrl} · ${record.lessonSha256} · estudiado ${record.studiedAt}`,
   }));
 }
+
+/**
+ * Every persisted study record can be inspected in the cognitive volume.
+ * This projection is separate from conversation retrieval: failed exercises
+ * and withdrawn lessons remain visible without becoming usable RAG knowledge.
+ */
+export function selfStudyForCognitiveVolume(snapshot: SelfStudySnapshot | null) {
+  return (snapshot?.records ?? []).map(record => ({
+    id: record.id, kind: "Autoestudio" as const, studyLearning: true,
+    studyPasses: record.passes,
+    studyState: !record.active ? "withdrawn" as const
+      : record.lastPassed && record.passes > 0 ? "available" as const : "review" as const,
+    intention: `${selfStudyTrackLabels[record.track]} · ${record.title}`, summary: record.content,
+    memoryType: "semantic" as const, finishedAt: record.studiedAt,
+    source: `${record.sourceTitle} · ${record.sourceUrl} · ${record.lessonSha256} · estudiado ${record.studiedAt}`,
+  }));
+}

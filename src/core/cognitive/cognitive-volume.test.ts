@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCognitiveMemoryNodes } from "../memory/cognitive-memory";
-import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius } from "./cognitive-volume";
+import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations } from "./cognitive-volume";
+import type { ConfirmedMemoryAssociation } from "./cognitive-volume";
 import type { CoreActivitySnapshot } from "./core-activity";
 
 const activity: CoreActivitySnapshot = {
@@ -33,6 +34,45 @@ const activity: CoreActivitySnapshot = {
 };
 
 describe("grafo trazable del volumen cognitivo", () => {
+  const association: ConfirmedMemoryAssociation = {
+    id: "relation-one", relation: "relatedExperience", ownerConfirmed: true,
+    evidence: ["one", "two"].map(recordId => ({
+      recordId, recordVersion: 1, recordSha256: `sha256:${"a".repeat(64)}`,
+      field: "intention", startByte: 0, endByte: 3, quoteSha256: `sha256:${"b".repeat(64)}`,
+    })),
+  };
+  const associatedMemories = () => buildCognitiveMemoryNodes([
+    { id: "one", intention: "Uno", memoryVersion: 1 },
+    { id: "two", intention: "Dos", memoryVersion: 1 },
+  ]);
+
+  it("retira arista y evidencia seleccionable al cambiar la versión de cualquiera de sus recuerdos", () => {
+    const memories = associatedMemories();
+    expect(buildCognitiveVolumeGraph(memories, null, [association]).persistentAssociationCount).toBe(1);
+    for (const changedId of ["one", "two"]) {
+      const updated = memories.map(memory => memory.id === changedId ? { ...memory, version: 2 } : memory);
+      expect(currentVolumeAssociations(updated, [association])).toEqual([]);
+      expect(buildCognitiveVolumeGraph(updated, null, [association]).edges).toEqual([]);
+      expect(buildCognitiveVolumeGraph(updated, null, [association]).persistentAssociationCount).toBe(0);
+    }
+  });
+
+  it("permite una relación revalidada contra las versiones actuales sin duplicarla", () => {
+    const memories = associatedMemories().map(memory => ({ ...memory, version: 2 }));
+    const renewed = { ...association, evidence: association.evidence.map(item => ({ ...item, recordVersion: 2 })) };
+    expect(currentVolumeAssociations(memories, [association, renewed, renewed])).toEqual([renewed]);
+    expect(buildCognitiveVolumeGraph(memories, null, [association, renewed, renewed]).persistentAssociationCount).toBe(1);
+  });
+
+  it("oculta relaciones con una fuente ausente sin alterar los nodos restantes", () => {
+    const memories = associatedMemories().slice(0, 1);
+    expect(currentVolumeAssociations(memories, [association])).toEqual([]);
+    const graph = buildCognitiveVolumeGraph(memories, null, [association]);
+    expect(graph.persistentNodeCount).toBe(1);
+    expect(graph.persistentAssociationCount).toBe(0);
+    expect(graph.edges).toEqual([]);
+  });
+
   it("muestra un latido técnico sólo cuando el núcleo nativo respondió y lo mantiene dentro del volumen", () => {
     const idle=buildCognitiveVolumeGraph([], null, [], true);
     expect(idle.nodes.map(n=>n.id)).toEqual(["process:runtime"]);

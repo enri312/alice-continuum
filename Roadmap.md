@@ -42,7 +42,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Bloque | Estado | Evidencia actual |
 |---|---|---|
 | Contrato y límites | Completo | Documento maestro, decisiones y diagramas de ingeniería. |
-| Núcleo observable | Base completa | Observatorio con nodos reales, tamaño por importancia, color afectivo confirmado, brillo de actividad y aristas R8 revisadas; flujo, estado, planificador y actividad por pestañas. |
+| Núcleo observable | Base completa; evolución visual ampliada | Volumen bilateral con registros reales, crecimiento visual acotado e incorporación de aprendizajes. El mapa de módulos permanece en Flujo cognitivo. Importancia, color afectivo confirmado, aristas R8 y controles conservados; señales R3 separadas de la demostración. |
 | Conversación y voz | Implementadas; aceptación cotidiana pendiente | Gemma local, proveedores alternativos, Whisper base CPU, Fish y sesión de escucha con parada. |
 | Memoria y recuperación | Funcionales | Registros confirmados, perfil, selección automática de citas y autoestudio en almacenes separados; recuperación con procedencia y controles propios. |
 | Ciclo y consolidación | Funcionales en sus alcances | Vigencia, accesibilidad, revisión, edición versionada y respaldo. La fusión canónica sigue bloqueada. |
@@ -75,7 +75,14 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   cambios integrados en la rama principal `master` de
   [alice-continuum](https://github.com/enri312/alice-continuum).
 
-**Última validación registrada, 11 de noviembre:** 627 pruebas frontend aprobadas
+- **Volumen y evolución:** representación del cerebro lógico con nodos vinculados
+  a registros y seguimiento de cambios observados al aprender, sin duplicar el
+  mapa de módulos de Flujo cognitivo.
+  Los intentos de estudio permanecen visibles con su estado, separados de RAG;
+  la actividad R3 y el modo Demostración tienen fuentes y significados distintos.
+  [ADR-P-115](docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
+
+**Última validación registrada, 11 de noviembre:** 681 pruebas frontend aprobadas
 (2 sondas omitidas), 354 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. Esa

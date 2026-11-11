@@ -125,11 +125,19 @@ export function parseCoreActivitySnapshot(value: unknown): CoreActivitySnapshot 
     || new Set(links.map((item) => item.id)).size !== linkIds.length
     || regionIds.some((id) => !regions.some((region) => region.id === id))
     || linkIds.some((id) => !links.some((link) => link.id === id))
-    || (value.windowEventCount === 0) !== (value.overallSignal === 0)
-    || (value.windowEventCount === 0) !== (value.latestEventAtMs === null)) {
+    // Procedure governance is audited but deliberately contributes no signal.
+    // A nonempty audit window can therefore contain only zero-signal events.
+    || (value.windowEventCount === 0 && value.overallSignal !== 0)
+    || (value.overallSignal === 0) !== (value.latestEventAtMs === null)
+    || (value.overallSignal === 0 && (regions.some((region) => region.eventCount > 0)
+      || links.some((link) => link.evidenceCount > 0)))) {
     throw new Error("Cobertura de actividad R3 incoherente");
   }
   return { ...value, regions, links } as CoreActivitySnapshot;
+}
+
+export function hasCoreActivitySignal(activity: CoreActivitySnapshot | null): boolean {
+  return Boolean(activity && activity.overallSignal > 0 && activity.latestEventAtMs !== null);
 }
 
 export function applyCoreActivitySnapshot(base: BrainSnapshot, activity: CoreActivitySnapshot | null): BrainSnapshot {
@@ -148,7 +156,7 @@ export function applyCoreActivitySnapshot(base: BrainSnapshot, activity: CoreAct
     "flow-face": null,
     "flow-body": "motor",
   };
-  const hasRecentActivity = Boolean(activity?.windowEventCount);
+  const hasRecentActivity = hasCoreActivitySignal(activity);
   const hasStructure = base.persistentMemoryCount > 0;
   const overallSignal = activity?.overallSignal ?? 0;
   const flowNodes = base.flowNodes.map((node) => {
@@ -177,10 +185,12 @@ export function applyCoreActivitySnapshot(base: BrainSnapshot, activity: CoreAct
     hasActivity: hasStructure || hasRecentActivity,
     neuralDensity: Math.min(0.96, base.persistentNeuralDensity + overallSignal * 0.18),
     currentNeuralActivity: overallSignal,
-    focusStatus: hasRecentActivity ? "actividad R3 reciente" : "sin eventos R3 recientes",
+    focusStatus: hasRecentActivity ? "actividad R3 reciente" : "sin señal R3 reciente",
     focusDetail: hasRecentActivity
       ? `${activity?.windowEventCount} eventos técnicos en ${Math.round((activity?.windowMs ?? 0) / 60_000)} minutos; intensidad heurística ${overallSignal.toFixed(3)}.`
-      : "No existen eventos R3 dentro de la ventana temporal. La estructura persistente, si existe, permanece separada.",
+      : activity?.windowEventCount
+        ? `La ventana contiene ${activity.windowEventCount} evento${activity.windowEventCount === 1 ? "" : "s"} de auditoría sin señal cognitiva. La estructura persistente permanece separada.`
+        : "No existen eventos R3 dentro de la ventana temporal. La estructura persistente, si existe, permanece separada.",
     flowNodes,
     stateMetrics,
     behaviorControls,

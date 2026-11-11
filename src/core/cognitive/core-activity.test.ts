@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildBrainSnapshot } from "./brain";
-import { applyCoreActivitySnapshot, parseCoreActivitySnapshot } from "./core-activity";
+import { applyCoreActivitySnapshot, hasCoreActivitySignal, parseCoreActivitySnapshot } from "./core-activity";
 
 const memories = (count: number) => Array.from({ length: count }, (_, index) => ({ id: `memory-${index}`, intention: `Recuerdo ${index}`, memoryStatus: "confirmed" as const }));
 
@@ -47,6 +47,15 @@ const baseInputs = {
   cloudPending: false,
 };
 
+// Matches the native Procedure-only case: audited work without cognitive signal.
+const procedureOnly = {
+  ...raw,
+  latestEventAtMs: null,
+  overallSignal: 0,
+  regions: regions.map((region) => ({ ...region, eventCount: 0, signal: 0, lastEventAtMs: null })),
+  links: links.map((link) => ({ ...link, evidenceCount: 0, signal: 0 })),
+};
+
 describe("parseCoreActivitySnapshot", () => {
   it("acepta el contrato cerrado y conserva la etiqueta heurística", () => {
     const parsed = parseCoreActivitySnapshot(raw);
@@ -72,6 +81,22 @@ describe("parseCoreActivitySnapshot", () => {
     };
     expect(parseCoreActivitySnapshot(empty).overallSignal).toBe(0);
   });
+
+  it("conserva eventos de gobierno sin convertirlos en señal cognitiva ni error de lectura", () => {
+    const parsed = parseCoreActivitySnapshot(procedureOnly);
+    expect(parsed.windowEventCount).toBe(1);
+    expect(parsed.overallSignal).toBe(0);
+    expect(parsed.latestEventAtMs).toBeNull();
+    expect(hasCoreActivitySignal(parsed)).toBe(false);
+  });
+
+  it("sigue rechazando señal sin ventana o fecha y regiones activas sin señal global", () => {
+    expect(() => parseCoreActivitySnapshot({ ...raw, windowEventCount: 0 })).toThrow();
+    expect(() => parseCoreActivitySnapshot({ ...raw, latestEventAtMs: null })).toThrow();
+    expect(() => parseCoreActivitySnapshot({ ...procedureOnly, latestEventAtMs: raw.generatedAtMs })).toThrow();
+    expect(() => parseCoreActivitySnapshot({ ...procedureOnly, regions })).toThrow();
+    expect(() => parseCoreActivitySnapshot({ ...procedureOnly, links })).toThrow();
+  });
 });
 
 describe("applyCoreActivitySnapshot", () => {
@@ -91,6 +116,21 @@ describe("applyCoreActivitySnapshot", () => {
     expect(merged.hasActivity).toBe(false);
     expect(merged.currentNeuralActivity).toBe(0);
     expect(merged.flowNodes.every((node) => node.activation === 0)).toBe(true);
+  });
+
+  it("mantiene los recuerdos y el conteo de auditoría sin encender procesos por gobernanza", () => {
+    const base = buildBrainSnapshot({ ...baseInputs, memories: memories(2) });
+    const parsed = parseCoreActivitySnapshot(procedureOnly);
+    const merged = applyCoreActivitySnapshot(base, parsed);
+    expect(merged.persistentMemoryCount).toBe(2);
+    expect(merged.neuralDensity).toBe(base.persistentNeuralDensity);
+    expect(merged.currentNeuralActivity).toBe(0);
+    expect(merged.flowNodes.every((node) => node.activation === 0)).toBe(true);
+    expect(merged.focusStatus).toBe("sin señal R3 reciente");
+    expect(merged.focusDetail).toContain("auditoría sin señal cognitiva");
+    expect(applyCoreActivitySnapshot(buildBrainSnapshot(baseInputs), parsed).hasActivity).toBe(false);
+    expect(hasCoreActivitySignal(parseCoreActivitySnapshot(raw))).toBe(true);
+    expect(hasCoreActivitySignal(null)).toBe(false);
   });
 
   it("ilumina sólo el cuerpo manual cuando existe evidencia motora", () => {

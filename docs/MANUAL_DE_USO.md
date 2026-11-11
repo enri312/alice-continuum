@@ -185,15 +185,40 @@ R6 deberá ser explícita y revisable.
 
 ### Volumen cognitivo
 
-Representa en 3D señales y relaciones derivadas de la actividad disponible.
+Representa el cerebro lógico de Alice mediante un volumen bilateral de registros.
+Permite ver qué conserva y cómo cambia al
+incorporar experiencias o enseñanzas.
 
-- Pocos nodos significan que hay poca evidencia o actividad registrada.
-- Más nodos no significa automáticamente más inteligencia.
-- Los colores ayudan a distinguir rutas, memoria y estado afectivo.
-- Girar, mover o acercar la vista sólo modifica la cámara visual; no cambia a Alice.
+- **Evolución del conocimiento** distingue autoestudio, aprendizaje de
+  conversaciones, perfil y otros recuerdos. La lectura inicial forma el punto de
+  partida; las incorporaciones y actualizaciones siguientes se resaltan.
+- **Cambios observados en esta vista** conserva los cambios recientes mientras la
+  pantalla está abierta. No reconstruye un historial anterior ni guarda otro almacén.
+- Cada nodo permite inspeccionar contenido, fuente, origen, estado y fecha
+  disponible. La fecha de último estudio no se presenta como fecha de creación.
+- Las lecciones pendientes o retiradas siguen visibles con su estado. Su presencia
+  no las habilita para responder; RAG mantiene sus filtros de ejercicios aprobados.
+- El tamaño de cada recuerdo representa su importancia registrada. Los colores
+  emocionales usan asociaciones revisadas, no sentimientos atribuidos a Alice.
+  La escala global crece lentamente con los registros; no mide inteligencia.
+- El lienzo ocupa el ancho disponible; al seleccionar un nodo se abre su ficha.
+  El mapa de módulos permanece en **Flujo cognitivo**.
 
-El volumen no es un cerebro biológico ni una prueba de conciencia. Es una
-visualización auditable de datos reales que el sistema conoce.
+Debajo del volumen, **Actividad y conexiones** ofrece dos modos:
+
+- **Actividad registrada:** muestra conteos y rutas derivados de auditoría R3. Una
+  muestra congelada por más de 15 segundos o una auditoría no verificable detienen
+  los pulsos; la velocidad y cantidad de partículas son ilustrativas.
+- **Demostración:** dibuja un recorrido de ejemplo rotulado en ámbar. No ejecuta el
+  modelo ni agrega recuerdos, eventos o asociaciones.
+
+**Pausar animación** detiene el movimiento y permite seguir inspeccionando los
+datos. Se respeta la preferencia de movimiento reducido del equipo. Girar, mover,
+acercar, restablecer y elegir un nodo modifican sólo la vista.
+
+La malla cerebral es ilustrativa. Los registros y señales proceden de fuentes
+inspeccionables; no son una medición biológica ni una prueba de conciencia.
+[Diseño y límites](decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
 
 ### Flujo cognitivo
 
