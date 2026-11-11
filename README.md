@@ -250,4 +250,4 @@ evalúa por la fiabilidad de la asistente; el cuerpo será una salida posterior
 para expresiones y movimiento y queda fuera de su cálculo de avance. Atlas y Nerumi son referencias para
 ordenar esa evolución, no funciones ya verificadas de Alice.
 
-Repositorio privado: [enri312/alice-continuum](https://github.com/enri312/alice-continuum) · Rama: `master`.
+Repositorio: [enri312/alice-continuum](https://github.com/enri312/alice-continuum) · Rama principal: `master`.
