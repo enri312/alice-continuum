@@ -27,7 +27,7 @@ Tauri 2 genera y actualiza automáticamente estos archivos al ejecutar `cargo bu
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
 | 7 | [`src-tauri/gen/schemas/acl-manifests.json`](../../src-tauri/gen/schemas/acl-manifests.json) | **AUTOGENERADO TAURI** | Catálogo JSON de permisos ACL nativos de Tauri 2 para `core:*` y `notification`. |
-| 8 | [`src-tauri/gen/schemas/capabilities.json`](../../src-tauri/gen/schemas/capabilities.json) | **AUTOGENERADO TAURI** | Contiene `{}` (2 bytes) porque Alice gestiona permisos con su propio `PermissionGateway` R2 en Rust en vez de archivos `src-tauri/capabilities/`. |
+| 8 | [`src-tauri/gen/schemas/capabilities.json`](../../src-tauri/gen/schemas/capabilities.json) | **AUTOGENERADO TAURI** | Proyecta la ACL de `src-tauri/capabilities/main-events.json`: permite escuchar y liberar suscripciones de eventos sólo en la ventana local `main`. La ACL nativa complementa el `PermissionGateway` R2 de Alice; ese gateway no sustituye los permisos de los comandos internos de Tauri. |
 | 9 | [`src-tauri/gen/schemas/desktop-schema.json`](../../src-tauri/gen/schemas/desktop-schema.json) | **AUTOGENERADO TAURI** | Esquema JSON Draft-07 de autocompletado IDE para archivos de capacidades de escritorio en Tauri 2. |
 | 10 | [`src-tauri/gen/schemas/windows-schema.json`](../../src-tauri/gen/schemas/windows-schema.json) | **AUTOGENERADO TAURI** | Esquema JSON Draft-07 para capacidades Windows en Tauri 2 (idéntico byte a byte a `desktop-schema.json`; `tauri-build` lo regenera solo). |
 

@@ -44,6 +44,8 @@ mod media_windows;
 mod runtime_paths;
 mod skills;
 mod tasks;
+#[cfg(test)]
+mod tauri_acl_tests;
 mod util;
 mod visual_learning;
 mod voice_input;
