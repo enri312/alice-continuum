@@ -1,9 +1,18 @@
 # Alice Continuum
 
+[![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
+[![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
+[![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
+[![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](src-tauri/Cargo.lock)
+[![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
+[![npm 11.20.0](https://img.shields.io/badge/npm-11.20.0-CB3837?logo=npm&logoColor=white)](package.json)
+[![Vite 8.3.5](https://img.shields.io/badge/Vite-8.3.5-646CFF?logo=vite&logoColor=white)](package-lock.json)
+[![Vitest 4.1.12](https://img.shields.io/badge/Vitest-4.1.12-6E9F18?logo=vitest&logoColor=white)](package-lock.json)
+
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 10 de noviembre de 2026:** revisión y estructura del núcleo cognitivo en `D:\Alice Continuum`; R9 sigue pendiente.
+**Estado al 11 de noviembre de 2026:** memoria reorganizada, icono de aprendizaje con fuentes y permisos de eventos corregidos en `D:\Alice Continuum`; R9 sigue pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -27,6 +36,7 @@ restaura en una carpeta nueva. La copia en otra unidad física sigue pendiente.
 | Voz por turnos | RNNoise reduce ruido, Whisper base CPU transcribe español, Gemma responde y Fish Audio sintetiza. Una acción inicia la sesión; no se confirma cada turno. |
 | Espera y continuidad | Las frases dirigidas a Alice se atienden tras la transcripción local. «Detén la conversación, Alice» vuelve a espera; «Apaga el micrófono, Alice» cierra la sesión. Rechazo de respuestas tardías y recuperación en texto si falla la voz. |
 | Memoria y RAG | Memoria confirmada y selección automática de citas útiles en almacenes separados. Se puede pausar, corregir y retirar del contexto; no se entrenan pesos por conversar. |
+| Navegación de Memoria | Cuatro secciones: Aprendizaje, Recuerdos, En sesión y Mantenimiento. El autoestudio aparece primero; perfil, revisión, capas, consolidación y respaldo conservan sus controles. Los nombres de la barra compacta se muestran completos y Memoria tiene un nuevo icono de conocimiento con fuentes conectadas. |
 | Autoestudio al arrancar | Currículo cerrado de matemáticas, historia bíblica católica, psicología e inteligencia emocional, empatía, solidaridad y humildad. Gemma estudia y resuelve ejercicios; las lecciones aprobadas se recuperan con su fuente y se muestran en Obsidian. [Funcionamiento y límites](docs/runbooks/06-autoestudio-al-arrancar.md). |
 | Cámara y escritorio | Fuentes seleccionables en Conversación, procesadas por Gemma mientras están activas. Fotogramas efímeros; no identifica personas ni abre archivos cerrados. |
 | Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
@@ -60,16 +70,39 @@ la identidad del hablante. El dictado manual con revisión sigue disponible.
 
 [Procedimiento completo de voz y conversación](docs/runbooks/03-conversacion-y-voz.md).
 
+## Consultar el aprendizaje y la memoria
+
+Abrir **Memoria** en la barra del núcleo cognitivo:
+
+| Sección | Contenido |
+|---|---|
+| **Aprendizaje** | Progreso del autoestudio, ejercicios, fuentes y recuerdos seleccionados al conversar. |
+| **Recuerdos** | Registros conservados y perfil confirmado del propietario. |
+| **En sesión** | Contexto temporal de la conversación en RAM. |
+| **Mantenimiento** | Revisión y ciclo, capas, consolidación y respaldo. |
+
+Los paneles reciben los avisos nativos de actualización de memoria y autoestudio.
+La ventana local principal tiene los permisos de escucha y cierre de suscripciones
+de Tauri. Obsidian muestra una proyección de los datos guardados por Alice.
+[Controles de memoria](docs/MANUAL_DE_USO.md#5-memoria-qué-significa-cada-pestaña) ·
+[Autoestudio](docs/runbooks/06-autoestudio-al-arrancar.md) ·
+[Bóveda de Obsidian](docs/runbooks/05-memoria-obsidian.md).
+
 ## Instalar y arrancar
 
 Entorno verificado en Windows con WebView2 y herramientas de compilación para Tauri:
+los badges muestran las versiones comprobadas y fijadas en el proyecto, no la
+última versión disponible de cada tecnología.
 
 | Componente | Versión verificada |
 |---|---|
 | Node.js / npm | 26.13.0 LTS / 11.20.0 |
 | Rust / Cargo | 1.99.1, fijada en `rust-toolchain.toml` |
 | Vite / Vitest | 8.3.5 / 4.1.12 |
-| Interfaz y escritorio | React/React DOM 19.3.1, tipos 19.3.0, TypeScript y Tauri 2 |
+| React / React DOM | 19.3.1; tipos 19.3.0 |
+| TypeScript | 7.0.2 |
+| Tauri | Backend Rust 2.11.5; API JavaScript 2.11.1; CLI 2.11.4 |
+| Three.js | 0.185.1 |
 
 Desde la raíz del proyecto:
 
@@ -142,12 +175,18 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 ## Verificación
 
-Última validación local, **5 de noviembre de 2026**:
+Última validación local, **11 de noviembre de 2026**:
 
-- **563 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
-- **330 pruebas Rust aprobadas**, 28 sondas opcionales omitidas; datos canónicos con huellas conservadas.
-- Compilaciones frontend y nativa, formato y Clippy aprobados.
-- HTML v0.58 revisado, con portada primero y enlaces locales comprobados.
+- **627 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
+- **354 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye la autorización compilada de escucha y cierre de eventos de la ventana principal.
+- Compilación frontend y formato Rust aprobados.
+- Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
+
+La revisión visual final utiliza una vista de prueba sin backend ni datos personales.
+La comprobación del diseño actualizado en la sesión nativa del propietario queda
+pendiente. Las compilaciones nativas y Clippy de la revisión estructural anterior
+se documentan en su [informe](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 ```powershell
 npm test

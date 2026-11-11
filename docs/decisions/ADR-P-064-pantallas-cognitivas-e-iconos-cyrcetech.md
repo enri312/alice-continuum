@@ -82,3 +82,16 @@ El Registro de capacidades corrige su composición lateral: el puerto de entrada
 `precision-finish-v14` aplica un segundo refinado exclusivamente a los trazos desde `2` unidades. Los respaldos y estructuras pesadas se reducen entre 6 % y 14 % después de la pasada anterior, mientras las líneas finas permanecen intactas; el máximo verificable baja de `5.4` a `4.7`. `cognitive-action-planner.svg` deja de repartir su semántica entre módulos rectangulares de igual peso y adopta una cámara hexagonal de arbitraje vacía como foco. A su alrededor permanecen, sin fingir implementación, el ingreso local, el generador sellado con tres ranuras vacías, cuatro evaluaciones sin cálculo, la cuna sin selección, la traza futura y el aislamiento físico de ejecución. También incorpora `owner-temporal-dock`, separado del bus cognitivo y con reloj detenido, vista previa vacía, confirmación cerrada y ledger vacío para representar R7 como decisión explícita del propietario. El contrato prohíbe candidatas activas, selección, medidores calculados, flechas dominantes, engranajes y cualquier enlace eléctrico entre R7 y el árbitro.
 
 `industrial-button-shell-v1` extiende el acabado industrial cyberpunk a los botones reales de la aplicación mediante `interaction-affordance.css`. La solución agrega aleación oscura, bisel especular, índices de esquina, sombra de apoyo y señal neón sin alterar tamaños ni estructuras de las pantallas. Las variables de acento preservan aprobación, advertencia, peligro y dominios especiales; las superficies seleccionadas y presionadas tienen estados físicos distintos, el foco permanece ámbar y `prefers-reduced-motion` elimina transiciones. `timeline-node` se excluye de la carcasa porque representa un dato posicional, no una acción rectangular.
+
+## Memoria y aprendizaje con fuentes (2026-11-11)
+
+Memoria adopta un archivo abierto con páginas metálicas, nodos de procedencia y
+rutas hacia el conocimiento. Conserva componentes separados para recuperación,
+contexto temporal, decisiones del propietario, archivo y respaldo. Los nodos y
+movimientos del icono son ilustrativos; no representan progreso ni actividad real.
+La escena se mantiene en SVG dentro del generador existente y respeta la
+preferencia de movimiento reducido.
+
+La pantalla agrupa sus funciones en Aprendizaje, Recuerdos, En sesión y
+Mantenimiento. La barra compacta de pantallas reserva la altura completa de dos
+líneas de texto y ubica los contadores junto al icono para evitar recortes.

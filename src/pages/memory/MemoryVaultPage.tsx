@@ -14,9 +14,33 @@ import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../../
 import type { OwnerProfileSnapshot } from "../../core/conversation/owner-profile";
 import { isLegacyMemoryDiscardable } from "../../core/memory/memory-discard";
 import { memoryOrigin, memoryOriginLabel, memoryReviewProposal } from "../../core/memory/memory-review-proposals";
+import "../../styles/memory-navigation.css";
 
 type MemoryType = "semantic" | "procedural" | "preference" | "episodic";
-type MemoryView = "records" | "working" | "profile" | "layers" | "review" | "consolidate" | "safety";
+type MemoryView = "learning" | "records" | "working" | "profile" | "layers" | "review" | "consolidate" | "safety";
+type MemorySection = "learning" | "records" | "session" | "maintenance";
+
+const memorySections: { id: MemorySection; title: string; description: string; defaultView: MemoryView }[] = [
+  { id: "learning", title: "Aprendizaje", description: "Autoestudio y aprendizaje de conversaciones.", defaultView: "learning" },
+  { id: "records", title: "Recuerdos", description: "Registros conservados y perfil confirmado.", defaultView: "records" },
+  { id: "session", title: "En sesión", description: "Contexto temporal de la conversación actual.", defaultView: "working" },
+  { id: "maintenance", title: "Mantenimiento", description: "Revisar, organizar y proteger la memoria.", defaultView: "review" },
+];
+
+const memoryViewSections: Record<MemoryView, MemorySection> = {
+  learning: "learning", records: "records", profile: "records", working: "session",
+  review: "maintenance", layers: "maintenance", consolidate: "maintenance", safety: "maintenance",
+};
+
+const memorySubsections: Partial<Record<MemorySection, { view: MemoryView; title: string }[]>> = {
+  records: [{ view: "records", title: "Registros" }, { view: "profile", title: "Perfil" }],
+  maintenance: [
+    { view: "review", title: "Revisión y ciclo" },
+    { view: "layers", title: "Capas" },
+    { view: "consolidate", title: "Consolidación" },
+    { view: "safety", title: "Respaldo" },
+  ],
+};
 
 type MemorySession = {
   id: string;
@@ -132,8 +156,10 @@ const recoveryStepLabels: Record<ConsolidationRecoveryStep, string> = {
 
 export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
-  const initialView: MemoryView = requestedView === "working" || requestedView === "profile" || requestedView === "layers" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "records";
+  const initialView: MemoryView = requestedView === "records" || requestedView === "working" || requestedView === "profile" || requestedView === "layers" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "learning";
   const [view, setView] = useState<MemoryView>(initialView);
+  const section = memoryViewSections[view];
+  const subsections = memorySubsections[section] ?? [];
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editIntention, setEditIntention] = useState("");
@@ -169,6 +195,12 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
   const consultableCount = remembered.length + profileCount;
   const reviewQueue = useMemo(() => buildReviewQueue(remembered.filter((session) => session.kind === "Enseñanza" && session.memoryStatus !== undefined && session.archiveStatus !== "archived")), [remembered]);
   const pendingReviews = reviewQueue.filter((review) => review.due);
+  const navigationCounts: Partial<Record<MemoryView, { count: number; label: string }>> = {
+    records: { count: remembered.length, label: "registros" },
+    ...(ownerProfile ? { profile: { count: profileCount, label: "hechos de perfil" } } : {}),
+    review: { count: pendingReviews.length, label: "revisiones pendientes" },
+    ...(consolidationPreview ? { consolidate: { count: consolidationPreview.pendingCandidateCount, label: "candidatos pendientes" } } : {}),
+  };
   const nextReview = reviewQueue.find((review) => !review.due);
   const filtered = useMemo(() => remembered.filter((session) => {
     const text = `${session.intention} ${session.summary ?? ""} ${session.nextStep ?? ""} ${session.source ?? ""} ${session.memoryType ?? ""}`.toLocaleLowerCase();
@@ -647,9 +679,43 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
   }
 
   return <section className="memory-page" aria-labelledby="memory-title">
-    <div className="memory-heading"><div><p className="eyebrow">ALMACÉN COGNITIVO · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Acá se inspecciona lo que Alice ya conserva: recuerdos, contexto de trabajo, perfil confirmado, capas, vigencia, consolidación y recuperación.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count memory-count-breakdown" aria-label={`${consultableCount} elementos consultables: ${remembered.length} recuerdos y ${profileCount} hechos de perfil`}><strong>{consultableCount}</strong><span>elementos<br />consultables</span><small><b>{remembered.length}</b> recuerdos · <b>{profileCount}</b> perfil</small></div></div></div>
-    {automaticMemoryPanel}
-    <nav className="memory-view-tabs" role="tablist" aria-label="Funciones de memoria"><button type="button" role="tab" aria-selected={view === "records"} className={view === "records" ? "selected" : ""} onClick={() => setView("records")}><span>01</span>RECUERDOS <em>{remembered.length}</em></button><button type="button" role="tab" aria-selected={view === "working"} className={view === "working" ? "selected" : ""} onClick={() => setView("working")}><span>02</span>TRABAJO RAM <em>{workingMemory?.messageCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "profile"} className={view === "profile" ? "selected" : ""} onClick={() => setView("profile")}><span>03</span>PERFIL <em>{ownerProfile?.records.length ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "layers"} className={view === "layers" ? "selected" : ""} onClick={() => setView("layers")}><span>04</span>CAPAS R6</button><button type="button" role="tab" aria-selected={view === "review"} className={view === "review" ? "selected" : ""} onClick={() => setView("review")}><span>05</span>CICLO <em>{pendingReviews.length}</em></button><button type="button" role="tab" aria-selected={view === "consolidate"} className={view === "consolidate" ? "selected" : ""} onClick={() => setView("consolidate")}><span>06</span>CONSOLIDAR <em>{consolidationPreview?.pendingCandidateCount ?? 0}</em></button><button type="button" role="tab" aria-selected={view === "safety"} className={view === "safety" ? "selected" : ""} onClick={() => setView("safety")}><span>07</span>RESPALDO</button></nav>
+    <div className="memory-heading"><div><p className="eyebrow">ALMACÉN COGNITIVO · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Consultá lo que Alice estudia, los recuerdos que conserva y el contexto de esta sesión. Las herramientas de revisión y respaldo están en Mantenimiento.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count memory-count-breakdown" aria-label={`${consultableCount} elementos consultables: ${remembered.length} recuerdos y ${profileCount} hechos de perfil`}><strong>{consultableCount}</strong><span>elementos<br />consultables</span><small><b>{remembered.length}</b> recuerdos · <b>{profileCount}</b> perfil</small></div></div></div>
+    <nav className="memory-section-nav" aria-label="Secciones de memoria">
+      {memorySections.map(item => (
+        <button
+          key={item.id}
+          type="button"
+          aria-current={section === item.id ? "page" : undefined}
+          aria-controls="memory-current-view"
+          onClick={() => setView(item.defaultView)}
+        >
+          <strong>{item.title}</strong>
+          <small>{item.description}</small>
+        </button>
+      ))}
+    </nav>
+    {subsections.length > 0 && (
+      <nav className="memory-subsection-nav" aria-label={section === "records" ? "Opciones de recuerdos" : "Herramientas de mantenimiento"}>
+        {subsections.map(item => {
+          const count = navigationCounts[item.view];
+          return (
+            <button
+              key={item.view}
+              type="button"
+              aria-current={view === item.view ? "page" : undefined}
+              aria-controls="memory-current-view"
+              aria-label={count ? `${item.title}, ${count.count} ${count.label}` : undefined}
+              onClick={() => setView(item.view)}
+            >
+              {item.title}
+              {count && <span className="memory-nav-count" aria-hidden="true">{count.count}</span>}
+            </button>
+          );
+        })}
+      </nav>
+    )}
+    <div id="memory-current-view" className="memory-current-view">
+    {view === "learning" && <section className="memory-learning-view" aria-label="Aprendizaje de Alice">{automaticMemoryPanel ?? <p className="memory-learning-unavailable">El estado del aprendizaje no está disponible en esta vista.</p>}</section>}
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
       {workingMemory ? <>
@@ -779,5 +845,6 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
         <div className="action-row"><button className="secondary" onClick={() => { setEditingId(null); setReconsolidationPreview(null); }}>Cancelar</button>{reconsolidationPreview ? <button className="primary" disabled={operationRunning} onClick={() => void confirmReconsolidation()}>Confirmar nueva versión</button> : <button className="primary" disabled={operationRunning} onClick={() => void saveOrPreview()}>{session.memoryStatus === "confirmed" || session.memoryStatus === "conflict" ? "Preparar versión" : "Guardar cambios"}</button>}</div>
       </div> : <><p>{session.summary || "Sin resumen todavía."}</p><div className="memory-evidence">{session.source && <span>ORIGEN · {session.source}</span>}<span>VIGENCIA · {session.memoryStatus === "confirmed" ? "REGISTRADA" : session.memoryStatus === "conflict" ? "EN CONFLICTO" : session.memoryStatus === "archived" ? "ARCHIVADA" : "NO EVALUADA"}</span><span>IMPORTANCIA · {session.importance ?? 3}/5</span><span>ESTABILIDAD · {Math.round((session.storageStrength ?? .08) * 100)}%</span><span>RECUPERACIONES · {session.successfulRecalls ?? 0}</span><span>REVISIONES · {session.successfulReviews ?? 0}</span><span>VERSIÓN · {session.memoryVersion ?? 1}</span>{session.archiveStatus === "archived" && <span>ARCHIVO · REVERSIBLE</span>}{session.deletionStatus === "scheduled" && <span>ELIMINACIÓN · EN ESPERA HASTA {session.deletionEligibleAt ? formatDate(session.deletionEligibleAt) : "FECHA NO DISPONIBLE"}</span>}</div>{memoryReviewProposal(session) && <div className={`memory-review-proposal state-${memoryReviewProposal(session)!.state}`}><strong>{memoryReviewProposal(session)!.label}</strong><span>{memoryReviewProposal(session)!.reason}</span>{memoryReviewProposal(session)!.state === "review" && <button type="button" onClick={() => setView("review")}>Abrir ciclo de revisión</button>}</div>}{session.nextStep && <p className="next"><strong>Sigue:</strong> {session.nextStep}</p>}<div className="memory-actions"><button disabled={session.archiveStatus === "archived"} title={session.archiveStatus === "archived" ? "Restaurá el recuerdo antes de editarlo" : "Crear una versión sucesora"} onClick={() => edit(session)}>Editar con versión</button><button className="danger" disabled={operationRunning || !isLegacyMemoryDiscardable(session)} title={isLegacyMemoryDiscardable(session) ? "Descartar registro heredado no evaluado" : "Los recuerdos durables se retiran desde Ciclo con archivo, espera y resguardo"} onClick={() => void remove(session)}>Descartar</button></div></>}</div>
     </article>)}</div>}</div>}
+    </div>
   </section>;
 }

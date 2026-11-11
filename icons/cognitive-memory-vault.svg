@@ -13,41 +13,45 @@
   </defs>
   <g data-detail-scale="navigation-readable" data-detail-pass="precision-finish-v15" data-symbol="layered-memory rag lifecycle archive backup" transform="translate(100 100) scale(1.025) translate(-100 -100)"><g class="alive" data-motion="semantic-micro-motion"><g data-detail="micro-surface-finish"><g data-detail="chassis-to-plinth-mounts" data-mounting-system="dual-load-bearing"><path d="M54 139 45 150v10M146 139l9 11v10" fill="none" stroke="#020409" stroke-width="2.21" stroke-linecap="round"/><path d="M54 140 47 151v8M146 140l7 11v8" fill="none" stroke="url(#metal)" stroke-width="1.2" stroke-linecap="round"/><path d="M49 149h10m82 0h10" stroke="#cbd5e1" stroke-width=".38"/><g data-detail="load-bearing-foot" transform="translate(55 0)"><path d="M-6 137h12l4 5v14l-4 5H-6l-4-5v-14Z" fill="#020409" stroke="#334155" stroke-width=".72"/><path d="M-3 138h6l2.8 4v14L3 159h-6l-2.8-3v-14Z" fill="url(#metal)" stroke="#cbd5e1" stroke-width=".52"/><path d="M0 140v16" stroke="#60a5fa" stroke-width=".62" filter="url(#soft-glow)"/><path d="M-4 143h8m-8 10h8" stroke="#0f172a" stroke-width=".44"/><path d="M-8 157h16l5 5H-13Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".52"/><path d="M-5 159h10" stroke="#f8fafc" stroke-width=".3" opacity=".72"/><g transform="translate(0 144)" data-detail="hex-socket-screw"><circle r="2.9699999999999998" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.27" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.67" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0699999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3399999999999999" stroke-dasharray=".8 1.6"/><path d="M0 -1.97v.75M0 1.97v-.75M-1.97 0h.75M1.97 0h-.75"/></g><circle r="0.57" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.48 0.42,-0.24 0.42,0.24 0.00,0.48 -0.42,0.24 -0.42,-0.24" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.9199999999999999 -0.9199999999999999 0 -1.47" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.5184 0.5184A0.72 0.72 0 0 0 0.5184 0.5184" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.36" cy="-0.36" r=".35" fill="#fff" opacity=".6"/></g></g><g data-detail="load-bearing-foot" transform="translate(145 0) scale(-1 1)"><path d="M-6 137h12l4 5v14l-4 5H-6l-4-5v-14Z" fill="#020409" stroke="#334155" stroke-width=".72"/><path d="M-3 138h6l2.8 4v14L3 159h-6l-2.8-3v-14Z" fill="url(#metal)" stroke="#cbd5e1" stroke-width=".52"/><path d="M0 140v16" stroke="#a78bfa" stroke-width=".62" filter="url(#soft-glow)"/><path d="M-4 143h8m-8 10h8" stroke="#0f172a" stroke-width=".44"/><path d="M-8 157h16l5 5H-13Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".52"/><path d="M-5 159h10" stroke="#f8fafc" stroke-width=".3" opacity=".72"/><g transform="translate(0 144)" data-detail="hex-socket-screw"><circle r="2.9699999999999998" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.27" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.67" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0699999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3399999999999999" stroke-dasharray=".8 1.6"/><path d="M0 -1.97v.75M0 1.97v-.75M-1.97 0h.75M1.97 0h-.75"/></g><circle r="0.57" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.48 0.42,-0.24 0.42,0.24 0.00,0.48 -0.42,0.24 -0.42,-0.24" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.9199999999999999 -0.9199999999999999 0 -1.47" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.5184 0.5184A0.72 0.72 0 0 0 0.5184 0.5184" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.36" cy="-0.36" r=".35" fill="#fff" opacity=".6"/></g></g><g data-detail="mounting-load-path-index" stroke="#94a3b8" stroke-width=".3" opacity=".72"><path d="M50 135h10m80 0h10M46 163h18m72 0h18"/></g></g><style>
     [data-icon="memory"] .alive{animation:none}
-    .memory-drawer-reflection{animation:memory-drawer-reflection 3.8s ease-in-out infinite}
-    .memory-query-ring{transform-origin:29px 101px;animation:memory-query-ring 10s linear infinite}
+    .memory-drawer-reflection{animation:memory-drawer-reflection 4s ease-in-out infinite}
+    .memory-query-ring{transform-origin:26px 111px;animation:memory-query-ring 12s linear infinite}
     .memory-base-reflection{animation:memory-base-reflection 4.6s ease-in-out infinite}
-    @keyframes memory-drawer-reflection{0%,100%{transform:translateX(0);opacity:.3}50%{transform:translateX(42px);opacity:1}}
+    .memory-study-path{animation:memory-study-path 6s linear infinite}
+    @keyframes memory-drawer-reflection{0%,100%{transform:translateX(0);opacity:.3}50%{transform:translateX(18px);opacity:1}}
     @keyframes memory-query-ring{to{transform:rotate(360deg)}}
     @keyframes memory-base-reflection{0%,100%{transform:translateX(0);opacity:.3}50%{transform:translateX(84px);opacity:1}}
-    @media(prefers-reduced-motion:reduce){.memory-drawer-reflection,.memory-query-ring,.memory-base-reflection{animation:none}}
+    @keyframes memory-study-path{to{stroke-dashoffset:-24}}
+    @media(prefers-reduced-motion:reduce){.memory-drawer-reflection,.memory-query-ring,.memory-base-reflection{animation:none}.memory-study-path{animation:none}}
   </style>
   <g data-detail="precision-equipment-plinth" data-base="memory-service-chassis">
-    <ellipse cx="100" cy="175" rx="88" ry="6" fill="#000" opacity=".42"/>
-    <path d="M20 158h160l10 8-10 10H20l-10-10Z" fill="url(#dark-metal)" stroke="#94abc2" stroke-width=".9"/>
-    <path d="M24 161h152l6 5-6 7H24l-6-7Z" fill="#071221" stroke="#4f657f" stroke-width=".45"/>
-    <path d="M27 159.5h146M27 174h146" stroke="#c7d7e4" stroke-width=".4"/>
-    <g data-detail="base-service-panels"><g><path d="M40 163h41v9h-41Z" fill="url(#dark-metal)" stroke="#8da5bf" stroke-width=".45"/><path d="M44 165h21v5h-21Z" fill="#040b16" stroke="#627e9a" stroke-width=".3"/><path d="M47 166v3m4-3v3m4-3v3m4-3v3" stroke="#b2c4d6" stroke-width=".35"/><path d="M70 165h6v5h-6Z" fill="#091625" stroke="#60a5fa" stroke-width=".35"/><path d="M72 167.5h2" stroke="#a0b9d0" stroke-width=".4"/></g><g><path d="M119 163h41v9h-41Z" fill="url(#dark-metal)" stroke="#8da5bf" stroke-width=".45"/><path d="M123 165h21v5h-21Z" fill="#040b16" stroke="#627e9a" stroke-width=".3"/><path d="M126 166v3m4-3v3m4-3v3m4-3v3" stroke="#b2c4d6" stroke-width=".35"/><path d="M149 165h6v5h-6Z" fill="#091625" stroke="#a78bfa" stroke-width=".35"/><path d="M151 167.5h2" stroke="#a0b9d0" stroke-width=".4"/></g></g>
-    <g data-detail="base-central-coupler"><path d="m100 162 7 4v5l-7 4-7-4v-5Z" fill="url(#metal)" stroke="#b7cadd" stroke-width=".45"/><path d="M97 165h6v6h-6Z" fill="#081222" stroke="#9bb3c9" stroke-width=".35"/><path d="M98.5 167h3m-3 2h3" stroke="#a78bfa" stroke-width=".35"/></g>
-    <g data-detail="base-load-isolators"><path d="M36 176h18v2H36Zm110 0h18v2h-18Z" fill="#060b12" stroke="#425a73" stroke-width=".3"/></g>
-    <g data-detail="base-bezel-illumination" data-motion-purpose="decorative-only"><path class="memory-base-reflection" d="M43 161h12" stroke="#60a5fa" stroke-width=".75" filter="url(#soft-glow)"/></g>
-    <g transform="translate(27 166)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(173 166)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g>
+    <ellipse cx="100" cy="176" rx="87" ry="5" fill="#000" opacity=".42"/>
+    <path d="M21 160h158l11 8-11 10H21l-11-10Z" fill="url(#dark-metal)" stroke="#97b0c5" stroke-width=".9"/>
+    <path d="M26 163h148l8 5-8 6H26l-8-6Z" fill="#071221" stroke="#526d85" stroke-width=".45"/>
+    <path d="M29 161.5h142M29 176h142" stroke="#c7d7e4" stroke-width=".4"/>
+    <g data-detail="base-service-panels"><g><path d="M41 165h38v7h-38Z" fill="url(#dark-metal)" stroke="#8da5bf" stroke-width=".45"/><path d="M45 167h20v3h-20Z" fill="#040b16" stroke="#627e9a" stroke-width=".3"/><path d="M48 167v3m4-3v3m4-3v3m4-3v3" stroke="#b2c4d6" stroke-width=".35"/><path d="M70 167h5v3h-5Z" fill="#091625" stroke="#60a5fa" stroke-width=".35"/></g><g><path d="M121 165h38v7h-38Z" fill="url(#dark-metal)" stroke="#8da5bf" stroke-width=".45"/><path d="M125 167h20v3h-20Z" fill="#040b16" stroke="#627e9a" stroke-width=".3"/><path d="M128 167v3m4-3v3m4-3v3m4-3v3" stroke="#b2c4d6" stroke-width=".35"/><path d="M150 167h5v3h-5Z" fill="#091625" stroke="#a78bfa" stroke-width=".35"/></g></g>
+    <g data-detail="base-central-coupler"><path d="m100 163 6 4v5l-6 4-6-4v-5Z" fill="url(#metal)" stroke="#b7cadd" stroke-width=".45"/><circle cx="100" cy="169.5" r="2" fill="#081222" stroke="#a78bfa" stroke-width=".5"/></g>
+    <g data-detail="base-bezel-illumination" data-motion-purpose="decorative-only"><path class="memory-base-reflection" d="M43 163h12" stroke="#60a5fa" stroke-width=".75" filter="url(#soft-glow)"/></g>
+    <g transform="translate(27 168)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(173 168)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g>
   </g>
-  <g data-detail="memory-module-support-frame">
-    <path d="M65 40v9m39-9v9" stroke="url(#metal)" stroke-width="1.69"/>
-    <path d="M135 155V55l9-9h22l11 10v91l-8 11h-34Z" fill="url(#dark-metal)" stroke="#64748b" stroke-width=".65"/>
-    <path d="M141 151V58l6-6h16l8 8v84l-6 8Z" fill="#030914" stroke="#334155" stroke-width=".4"/>
-    <path d="M139 158h34m-31-108h19" stroke="#94a3b8" stroke-width=".4"/>
-    <g transform="translate(170 53)" data-detail="hex-socket-screw"><circle r="2.85" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.15" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.5499999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="0.95" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.22" stroke-dasharray=".8 1.6"/><path d="M0 -1.85v.75M0 1.85v-.75M-1.85 0h.75M1.85 0h-.75"/></g><circle r="0.44999999999999996" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.45 0.39,-0.22 0.39,0.22 0.00,0.45 -0.39,0.22 -0.39,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="-0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8 -0.8 0 -1.35" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.432 0.432A0.6 0.6 0 0 0 0.432 0.432" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.3" cy="-0.3" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(172 150)" data-detail="hex-socket-screw"><circle r="2.85" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.15" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.5499999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="0.95" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.22" stroke-dasharray=".8 1.6"/><path d="M0 -1.85v.75M0 1.85v-.75M-1.85 0h.75M1.85 0h-.75"/></g><circle r="0.44999999999999996" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.45 0.39,-0.22 0.39,0.22 0.00,0.45 -0.39,0.22 -0.39,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="-0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8 -0.8 0 -1.35" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.432 0.432A0.6 0.6 0 0 0 0.432 0.432" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.3" cy="-0.3" r=".35" fill="#fff" opacity=".6"/></g>
+  <g data-detail="sourced-study-network" data-representation="illustrative-not-live">
+    <path d="M51 66 69 45 99 40 128 46 148 66M69 45l29 28 30-27M51 66l47 7 50-7M99 40l-1 33v17" fill="none" stroke="#0a1625" stroke-width="1.57" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M51 66 69 45 99 40 128 46 148 66M69 45l29 28 30-27M51 66l47 7 50-7M99 40l-1 33v17" fill="none" stroke="#6a879e" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path class="memory-study-path" d="M51 66 69 45 99 40 128 46 148 66M99 40l-1 33v17" fill="none" stroke="#60a5fa" stroke-width="1.15" stroke-dasharray="4 8" stroke-linecap="round" filter="url(#soft-glow)"/>
+    <g data-detail="sourced-knowledge-node" data-source-slot="0"><circle cx="51" cy="66" r="7.1" fill="url(#metal)" stroke="#c3d5e3" stroke-width=".65"/><circle cx="51" cy="66" r="5.2" fill="#06101d" stroke="#60a5fa" stroke-width=".75"/><path d="M49 64h4v4h-4Z" fill="#60a5fa" stroke="#e8f5ff" stroke-width=".4"/><path d="M46.5 62l1-1m7 1-1-1" stroke="#c2d8e8" stroke-width=".4"/></g><g data-detail="sourced-knowledge-node" data-source-slot="1"><circle cx="69" cy="45" r="7.1" fill="url(#metal)" stroke="#c3d5e3" stroke-width=".65"/><circle cx="69" cy="45" r="5.2" fill="#06101d" stroke="#a78bfa" stroke-width=".75"/><path d="M67 43h4v4h-4Z" fill="#a78bfa" stroke="#e8f5ff" stroke-width=".4"/><path d="M64.5 41l1-1m7 1-1-1" stroke="#c2d8e8" stroke-width=".4"/></g><g data-detail="sourced-knowledge-node" data-source-slot="2"><circle cx="99" cy="40" r="7.1" fill="url(#metal)" stroke="#c3d5e3" stroke-width=".65"/><circle cx="99" cy="40" r="5.2" fill="#06101d" stroke="#60a5fa" stroke-width=".75"/><path d="M97 38h4v4h-4Z" fill="#60a5fa" stroke="#e8f5ff" stroke-width=".4"/><path d="M94.5 36l1-1m7 1-1-1" stroke="#c2d8e8" stroke-width=".4"/></g><g data-detail="sourced-knowledge-node" data-source-slot="3"><circle cx="128" cy="46" r="7.1" fill="url(#metal)" stroke="#c3d5e3" stroke-width=".65"/><circle cx="128" cy="46" r="5.2" fill="#06101d" stroke="#a78bfa" stroke-width=".75"/><path d="M126 44h4v4h-4Z" fill="#a78bfa" stroke="#e8f5ff" stroke-width=".4"/><path d="M123.5 42l1-1m7 1-1-1" stroke="#c2d8e8" stroke-width=".4"/></g><g data-detail="sourced-knowledge-node" data-source-slot="4"><circle cx="148" cy="66" r="7.1" fill="url(#metal)" stroke="#c3d5e3" stroke-width=".65"/><circle cx="148" cy="66" r="5.2" fill="#06101d" stroke="#60a5fa" stroke-width=".75"/><path d="M146 64h4v4h-4Z" fill="#60a5fa" stroke="#e8f5ff" stroke-width=".4"/><path d="M143.5 62l1-1m7 1-1-1" stroke="#c2d8e8" stroke-width=".4"/></g>
+    <g data-detail="source-provenance-hub"><path d="m98 65 7 4v8l-7 4-7-4v-8Z" fill="url(#dark-metal)" stroke="#d3e4ee" stroke-width=".75"/><circle cx="98" cy="73" r="3" fill="#0d2235" stroke="#a78bfa" stroke-width=".8"/><path d="M98 70.5v5m-2.5-2.5h5" stroke="#c8baf4" stroke-width=".45"/></g>
   </g>
-  <g data-detail="layered-memory-vault" filter="url(#shadow)">
-    <path d="M40 145V62l14-17h65l15 17v83" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width="1.05"/>
-    <path d="M48 137V65l10-11h58l10 11v72" fill="#030914" stroke="#475569" stroke-width=".6"/>
-    <path d="M42 70v52m89-52v52M57 49h59M49 140h74" stroke="#94a3b8" stroke-width=".45"/>
-    <g transform="translate(47 58)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(126 58)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(47 139)" data-detail="hex-socket-screw"><circle r="3.1" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.4" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7999999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.2" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.47" stroke-dasharray=".8 1.6"/><path d="M0 -2.1v.75M0 2.1v-.75M-2.1 0h.75M2.1 0h-.75"/></g><circle r="0.7" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.57 0.49,-0.28 0.49,0.28 0.00,0.57 -0.49,0.28 -0.49,-0.28" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.05 -1.05 0 -1.6" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.612 0.612A0.85 0.85 0 0 0 0.612 0.612" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.425" cy="-0.425" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(126 139)" data-detail="hex-socket-screw"><circle r="3.1" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.4" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7999999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.2" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.47" stroke-dasharray=".8 1.6"/><path d="M0 -2.1v.75M0 2.1v-.75M-2.1 0h.75M2.1 0h-.75"/></g><circle r="0.7" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.57 0.49,-0.28 0.49,0.28 0.00,0.57 -0.49,0.28 -0.49,-0.28" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.05 -1.05 0 -1.6" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.612 0.612A0.85 0.85 0 0 0 0.612 0.612" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.425" cy="-0.425" r=".35" fill="#fff" opacity=".6"/></g>
+  <g data-detail="volatile-working-memory" data-storage="ram-only">
+    <g data-detail="ram-package-housing"><path d="M82 19h31l5 4v8H82l-5-4v-4Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".6"/></g>
+    <path d="M85 22h23v6H85Z" fill="#020812" stroke="#64748b" stroke-width=".4"/>
+    <path d="M89 23v4m5-4v4m5-4v4m5-4v4m-19 5h4m3 0h4m3 0h4m3 0h4" stroke="#b0c5d6" stroke-width=".45"/>
+    <circle cx="112" cy="25" r="1.5" fill="#a78bfa"/>
+  </g>
+  <g data-detail="layered-memory-vault" data-form="open-knowledge-repository" filter="url(#shadow)">
+    <path d="M38 85Q64 76 98 91Q130 76 153 85v58Q122 137 98 151Q68 137 38 143Z" fill="url(#dark-metal)" stroke="#b6cbd9" stroke-width="1.35"/>
     <g data-detail="memory-layer" data-purpose="versioned-record-storage">
-    <path d="M54 61h59l10 8v14H54l-9-8v-7Z" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width=".75"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
+    <path d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" fill="url(#metal)" stroke="#bdcddb" stroke-width=".9"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-0" clipPathUnits="userSpaceOnUse"><path d="M54 61h59l10 8v14H54l-9-8v-7Z"/></clipPath>
+        <clipPath id="panel-memory-0" clipPathUnits="userSpaceOnUse"><path d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z"/></clipPath>
         <linearGradient id="panel-memory-0-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -56,17 +60,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-0)" fill="none">
-        <path data-detail="panel-satin-face" d="M54 61h59l10 8v14H54l-9-8v-7Z" fill="url(#panel-memory-0-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M54 61h59l10 8v14H54l-9-8v-7Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M54 61h59l10 8v14H54l-9-8v-7Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M54 61h59l10 8v14H54l-9-8v-7Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M54 61h59l10 8v14H54l-9-8v-7Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M54 61h59l10 8v14H54l-9-8v-7Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 62.8)">
+        <path data-detail="panel-satin-face" d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" fill="url(#panel-memory-0-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M43 89Q67 83 98 97Q123 83 148 89V141Q123 135 98 147Q68 135 43 141Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 90.8)">
   <path d="M0 0h20v2.8H0Z" fill="#030a13" stroke="#819bb2" stroke-width=".35"/>
   <path d="M2 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M6 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M10 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M14 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M18 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/>
   <path d="M1 2.4h18" stroke="#344f68" stroke-width=".3"/>
-</g><g data-detail="captive-panel-latch" transform="translate(120 71)">
+</g><g data-detail="captive-panel-latch" transform="translate(120 99)">
   <path d="M0 0h2.8v9H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
   <path d="M.5 .5h1.8v8H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
   <path d="M1.4 1.5v6" stroke="#091421" stroke-width=".6"/>
@@ -74,18 +78,14 @@
 </g></g>
       </g>
     </g>
-    <path data-detail="layer-machined-cap" d="M54 61h59l10 8H54l-9-8m9 8v14" fill="none" stroke="#64748b" stroke-width=".45"/>
-    <path data-detail="layer-data-window" d="M59 71h49v8H59Z" fill="#020812" stroke="#60a5fa" stroke-width=".5"/>
-    <g data-detail="archive-drawer-latches" fill="none" stroke="#9dacc0" stroke-width=".3"><path d="M55 71v8m57-8v8m-1-6h3m-3 4h3M63 81h37"/></g>
-    <g data-detail="record-provenance-fields"><path d="M63 73h14m-14 3h9m10-3h19m-19 3h14" stroke="#94a3b8" stroke-width=".38"/></g>
-    <g data-detail="layer-address-index"><path d="M61 64h3" stroke="#60a5fa" stroke-width=".4"/><path d="M69 64h3" stroke="#64748b" stroke-width=".4"/><path d="M77 64h3" stroke="#64748b" stroke-width=".4"/><path d="M85 64h3" stroke="#64748b" stroke-width=".4"/><path d="M93 64h3" stroke="#64748b" stroke-width=".4"/><path d="M101 64h3" stroke="#64748b" stroke-width=".4"/><path d="M109 64h3" stroke="#64748b" stroke-width=".4"/></g>
-    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-0s" d="M61 67h7" stroke="#60a5fa" stroke-width=".85" filter="url(#soft-glow)"/></g>
-    <g data-detail="drawer-release-clips" fill="url(#metal)" stroke="#a8bcd0" stroke-width=".3"><path d="M55 73h2v5h-2Zm56 0h2v5h-2Z"/><path d="M63 81h14m11 0h14" stroke="#7e95ae" stroke-width=".35"/></g>
-    <g transform="translate(51 73)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(117 76)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g>
+    <path data-detail="layer-machined-cap" d="M43 89Q67 83 98 97Q123 83 148 89M98 97v50" fill="none" stroke="#dce9f0" stroke-width=".5"/>
+    <path data-detail="layer-data-window" d="M49 95Q73 92 94 102V139Q70 130 49 134Zm53 7Q125 92 142 95V134Q122 130 102 139Z" fill="#071422" stroke="#70879d" stroke-width=".6"/>
+    <g data-detail="layer-address-index" fill="none" stroke="#a5bacb" stroke-width=".4"><path d="M48 140l4-1m2 1 4-1m2 2 4-1m66 1 4 1m2-2 4 1"/></g>
+    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-0s" d="M57 133l7 .4" stroke="#a78bfa" stroke-width=".75" filter="url(#soft-glow)"/></g>
   </g><g data-detail="memory-layer" data-purpose="versioned-record-storage">
-    <path d="M54 86h59l10 8v14H54l-9-8v-7Z" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width=".75"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
+    <path d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" fill="url(#metal)" stroke="#bdcddb" stroke-width=".9"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-1" clipPathUnits="userSpaceOnUse"><path d="M54 86h59l10 8v14H54l-9-8v-7Z"/></clipPath>
+        <clipPath id="panel-memory-1" clipPathUnits="userSpaceOnUse"><path d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z"/></clipPath>
         <linearGradient id="panel-memory-1-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -94,17 +94,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-1)" fill="none">
-        <path data-detail="panel-satin-face" d="M54 86h59l10 8v14H54l-9-8v-7Z" fill="url(#panel-memory-1-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M54 86h59l10 8v14H54l-9-8v-7Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M54 86h59l10 8v14H54l-9-8v-7Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M54 86h59l10 8v14H54l-9-8v-7Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M54 86h59l10 8v14H54l-9-8v-7Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M54 86h59l10 8v14H54l-9-8v-7Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 87.8)">
+        <path data-detail="panel-satin-face" d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" fill="url(#panel-memory-1-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M43 85Q67 79 98 93Q123 79 148 85V137Q123 131 98 143Q68 131 43 137Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 86.8)">
   <path d="M0 0h20v2.8H0Z" fill="#030a13" stroke="#819bb2" stroke-width=".35"/>
   <path d="M2 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M6 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M10 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M14 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M18 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/>
   <path d="M1 2.4h18" stroke="#344f68" stroke-width=".3"/>
-</g><g data-detail="captive-panel-latch" transform="translate(120 96)">
+</g><g data-detail="captive-panel-latch" transform="translate(120 95)">
   <path d="M0 0h2.8v9H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
   <path d="M.5 .5h1.8v8H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
   <path d="M1.4 1.5v6" stroke="#091421" stroke-width=".6"/>
@@ -112,18 +112,14 @@
 </g></g>
       </g>
     </g>
-    <path data-detail="layer-machined-cap" d="M54 86h59l10 8H54l-9-8m9 8v14" fill="none" stroke="#64748b" stroke-width=".45"/>
-    <path data-detail="layer-data-window" d="M59 96h49v8H59Z" fill="#020812" stroke="#a78bfa" stroke-width=".5"/>
-    <g data-detail="archive-drawer-latches" fill="none" stroke="#9dacc0" stroke-width=".3"><path d="M55 96v8m57-8v8m-1-6h3m-3 4h3M63 106h37"/></g>
-    <g data-detail="record-provenance-fields"><path d="M63 98h14m-14 3h9m10-3h19m-19 3h14" stroke="#94a3b8" stroke-width=".38"/></g>
-    <g data-detail="layer-address-index"><path d="M61 89h3" stroke="#64748b" stroke-width=".4"/><path d="M69 89h3" stroke="#60a5fa" stroke-width=".4"/><path d="M77 89h3" stroke="#64748b" stroke-width=".4"/><path d="M85 89h3" stroke="#64748b" stroke-width=".4"/><path d="M93 89h3" stroke="#64748b" stroke-width=".4"/><path d="M101 89h3" stroke="#64748b" stroke-width=".4"/><path d="M109 89h3" stroke="#64748b" stroke-width=".4"/></g>
-    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-1.1s" d="M61 92h7" stroke="#a78bfa" stroke-width=".85" filter="url(#soft-glow)"/></g>
-    <g data-detail="drawer-release-clips" fill="url(#metal)" stroke="#a8bcd0" stroke-width=".3"><path d="M55 98h2v5h-2Zm56 0h2v5h-2Z"/><path d="M63 106h14m11 0h14" stroke="#7e95ae" stroke-width=".35"/></g>
-    <g transform="translate(51 98)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(117 101)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g>
+    <path data-detail="layer-machined-cap" d="M43 85Q67 79 98 93Q123 79 148 85M98 93v50" fill="none" stroke="#dce9f0" stroke-width=".5"/>
+    <path data-detail="layer-data-window" d="M49 91Q73 88 94 98V135Q70 126 49 130Zm53 7Q125 88 142 91V130Q122 126 102 135Z" fill="#071422" stroke="#70879d" stroke-width=".6"/>
+    <g data-detail="layer-address-index" fill="none" stroke="#a5bacb" stroke-width=".4"><path d="M48 136l4-1m2 1 4-1m2 2 4-1m66 1 4 1m2-2 4 1"/></g>
+    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-1.1s" d="M57 129l7 .4" stroke="#a78bfa" stroke-width=".75" filter="url(#soft-glow)"/></g>
   </g><g data-detail="memory-layer" data-purpose="versioned-record-storage">
-    <path d="M54 111h59l10 8v14H54l-9-8v-7Z" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width=".75"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
+    <path d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" fill="url(#metal)" stroke="#bdcddb" stroke-width=".9"/><g data-detail="precision-panel-bevel" data-panel="memory-layer" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-2" clipPathUnits="userSpaceOnUse"><path d="M54 111h59l10 8v14H54l-9-8v-7Z"/></clipPath>
+        <clipPath id="panel-memory-2" clipPathUnits="userSpaceOnUse"><path d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z"/></clipPath>
         <linearGradient id="panel-memory-2-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -132,17 +128,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-2)" fill="none">
-        <path data-detail="panel-satin-face" d="M54 111h59l10 8v14H54l-9-8v-7Z" fill="url(#panel-memory-2-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M54 111h59l10 8v14H54l-9-8v-7Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M54 111h59l10 8v14H54l-9-8v-7Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M54 111h59l10 8v14H54l-9-8v-7Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M54 111h59l10 8v14H54l-9-8v-7Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M54 111h59l10 8v14H54l-9-8v-7Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 112.8)">
+        <path data-detail="panel-satin-face" d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" fill="url(#panel-memory-2-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M43 81Q67 75 98 89Q123 75 148 81V133Q123 127 98 139Q68 127 43 133Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <g data-detail="fitted-component-hardware" data-component="memory-layer" pointer-events="none"><g data-detail="recessed-service-connector" transform="translate(79 82.8)">
   <path d="M0 0h20v2.8H0Z" fill="#030a13" stroke="#819bb2" stroke-width=".35"/>
   <path d="M2 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M6 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M10 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M14 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/><path d="M18 .7v1.4" stroke="#b8c7d2" stroke-width=".55"/>
   <path d="M1 2.4h18" stroke="#344f68" stroke-width=".3"/>
-</g><g data-detail="captive-panel-latch" transform="translate(120 121)">
+</g><g data-detail="captive-panel-latch" transform="translate(120 91)">
   <path d="M0 0h2.8v9H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
   <path d="M.5 .5h1.8v8H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
   <path d="M1.4 1.5v6" stroke="#091421" stroke-width=".6"/>
@@ -150,20 +146,34 @@
 </g></g>
       </g>
     </g>
-    <path data-detail="layer-machined-cap" d="M54 111h59l10 8H54l-9-8m9 8v14" fill="none" stroke="#64748b" stroke-width=".45"/>
-    <path data-detail="layer-data-window" d="M59 121h49v8H59Z" fill="#020812" stroke="#60a5fa" stroke-width=".5"/>
-    <g data-detail="archive-drawer-latches" fill="none" stroke="#9dacc0" stroke-width=".3"><path d="M55 121v8m57-8v8m-1-6h3m-3 4h3M63 131h37"/></g>
-    <g data-detail="record-provenance-fields"><path d="M63 123h14m-14 3h9m10-3h19m-19 3h14" stroke="#94a3b8" stroke-width=".38"/></g>
-    <g data-detail="layer-address-index"><path d="M61 114h3" stroke="#64748b" stroke-width=".4"/><path d="M69 114h3" stroke="#64748b" stroke-width=".4"/><path d="M77 114h3" stroke="#60a5fa" stroke-width=".4"/><path d="M85 114h3" stroke="#64748b" stroke-width=".4"/><path d="M93 114h3" stroke="#64748b" stroke-width=".4"/><path d="M101 114h3" stroke="#64748b" stroke-width=".4"/><path d="M109 114h3" stroke="#64748b" stroke-width=".4"/></g>
-    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-2.2s" d="M61 117h7" stroke="#60a5fa" stroke-width=".85" filter="url(#soft-glow)"/></g>
-    <g data-detail="drawer-release-clips" fill="url(#metal)" stroke="#a8bcd0" stroke-width=".3"><path d="M55 123h2v5h-2Zm56 0h2v5h-2Z"/><path d="M63 131h14m11 0h14" stroke="#7e95ae" stroke-width=".35"/></g>
-    <g transform="translate(51 123)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(117 126)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g>
+    <path data-detail="layer-machined-cap" d="M43 81Q67 75 98 89Q123 75 148 81M98 89v50" fill="none" stroke="#dce9f0" stroke-width=".5"/>
+    <path data-detail="layer-data-window" d="M49 87Q73 84 94 94V131Q70 122 49 126Zm53 7Q125 84 142 87V126Q122 122 102 131Z" fill="#071422" stroke="#60a5fa" stroke-width=".6"/>
+    <g data-detail="layer-address-index" fill="none" stroke="#a5bacb" stroke-width=".4"><path d="M48 132l4-1m2 1 4-1m2 2 4-1m66 1 4 1m2-2 4 1"/></g>
+    <g data-detail="drawer-read-head" data-motion-purpose="decorative-only"><path class="memory-drawer-reflection" style="animation-delay:-2.2s" d="M57 125l7 .4" stroke="#60a5fa" stroke-width=".75" filter="url(#soft-glow)"/></g>
   </g>
+    <path d="M98 89v50" stroke="#a78bfa" stroke-width="1.4"/>
+    <path d="M95 92v43m6-43v43" stroke="#c8dbe8" stroke-width=".35" opacity=".7"/>
+    <g data-detail="record-provenance-fields" fill="none" stroke-linecap="round">
+      <path d="M57 98h10m5 1 12 3m-27 3 26 5m-26 3 19 4m-19 5 23 4" stroke="#a7d3e7" stroke-width="1"/>
+      <path d="M112 103l24-5m-24 12 24-5m-24 12 18-4m-18 13 24-4" stroke="#c4b7ee" stroke-width="1"/>
+      <path d="M58 92l21 4m33 0 23-4" stroke="#60a5fa" stroke-width=".5"/>
+    </g>
+    <g data-detail="governed-record-core"><path d="m98 124 6 3v7l-6 4-6-4v-7Z" fill="#020812" stroke="#a78bfa" stroke-width=".65"/><path d="m95 131 2 2 4-5" fill="none" stroke="#d1e4ec" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g transform="translate(43 88)" data-detail="hex-socket-screw"><circle r="3" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.3" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.1" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.37" stroke-dasharray=".8 1.6"/><path d="M0 -2v.75M0 2v-.75M-2 0h.75M2 0h-.75"/></g><circle r="0.6" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.50 0.44,-0.25 0.44,0.25 0.00,0.50 -0.44,0.25 -0.44,-0.25" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.50" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.44" cy="-0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.44" cy="0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.50" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.44" cy="0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.44" cy="-0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.95 -0.95 0 -1.5" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.54 0.54A0.75 0.75 0 0 0 0.54 0.54" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.375" cy="-0.375" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(148 88)" data-detail="hex-socket-screw"><circle r="3" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.3" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.1" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.37" stroke-dasharray=".8 1.6"/><path d="M0 -2v.75M0 2v-.75M-2 0h.75M2 0h-.75"/></g><circle r="0.6" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.50 0.44,-0.25 0.44,0.25 0.00,0.50 -0.44,0.25 -0.44,-0.25" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.50" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.44" cy="-0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.44" cy="0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.50" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.44" cy="0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.44" cy="-0.25" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.95 -0.95 0 -1.5" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.54 0.54A0.75 0.75 0 0 0 0.54 0.54" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.375" cy="-0.375" r=".35" fill="#fff" opacity=".6"/></g>
   </g>
-  <g data-detail="volatile-working-memory" data-storage="ram-only">
-    <path d="M59 29h53l7 6v8H59l-6-6Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".6"/><g data-detail="precision-panel-bevel" data-panel="volatile-working-memory" pointer-events="none">
+  <g data-detail="rag-index">
+    <path d="M36 100h5m-5 23h5" fill="none" stroke="#94a3b8" stroke-width=".7"/>
+    <g data-detail="retrieval-lens"><circle cx="26" cy="111" r="14" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width=".9"/><circle cx="26" cy="111" r="10.5" fill="url(#glass)" stroke="#60a5fa" stroke-width=".85"/>
+      <g data-detail="retrieval-focus-reticle" fill="none" stroke="#afcddd" stroke-width=".5"><path d="M20 108v-3h3m6 0h3v3m0 6v3h-3m-6 0h-3v-3"/></g>
+      <path d="M23.5 108.5h5v5h-5Z" fill="#092238" stroke="#a78bfa" stroke-width=".7"/><path d="m34 122 9 10" stroke="url(#metal)" stroke-width="1.95" stroke-linecap="round"/>
+      <g class="memory-query-ring" data-detail="retrieval-optic-index" data-motion-purpose="decorative-only" fill="none" stroke-width=".55"><path d="M13.5 111a12.5 12.5 0 0 1 12.5-12.5m12.5 12.5a12.5 12.5 0 0 1-12.5 12.5" stroke="#c3d9e7"/><path d="M26 97v2m14 12h-2m-12 14v-2m-14-12h2" stroke="#a78bfa"/></g>
+    </g>
+  </g>
+  <g data-detail="memory-lifecycle-bus"><path d="M154 91h5v53m0-60h4m-4 52h4" fill="none" stroke="#70879e" stroke-width=".65"/></g>
+  <g data-detail="retention-gates" data-authority="owner-decision">
+    <g data-detail="retention-gate" data-dimension="validity"><path d="M165 74h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-3" clipPathUnits="userSpaceOnUse"><path d="M59 29h53l7 6v8H59l-6-6Z"/></clipPath>
+        <clipPath id="panel-memory-3" clipPathUnits="userSpaceOnUse"><path d="M165 74h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-3-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -172,35 +182,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-3)" fill="none">
-        <path data-detail="panel-satin-face" d="M59 29h53l7 6v8H59l-6-6Z" fill="url(#panel-memory-3-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M59 29h53l7 6v8H59l-6-6Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M59 29h53l7 6v8H59l-6-6Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M59 29h53l7 6v8H59l-6-6Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M59 29h53l7 6v8H59l-6-6Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M59 29h53l7 6v8H59l-6-6Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 74h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-3-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 74h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 74h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 74h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 74h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 74h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g>
-    <path d="M64 33h36v6H64Z" fill="#020812" stroke="#64748b" stroke-width=".4"/>
-    <path d="M68 34v4" stroke="#94a3b8" stroke-width=".45"/><path d="M74 34v4" stroke="#94a3b8" stroke-width=".45"/><path d="M80 34v4" stroke="#94a3b8" stroke-width=".45"/><path d="M86 34v4" stroke="#94a3b8" stroke-width=".45"/><path d="M92 34v4" stroke="#94a3b8" stroke-width=".45"/>
-    <path d="M106 32v7m-2-5h4m-4 3h4" stroke="#a78bfa" stroke-width=".45"/>
-    <g data-detail="ram-edge-contacts" stroke="#879db6" stroke-width=".3"><path d="M64 41h4m3 0h4m3 0h4m3 0h4m3 0h4M61 32v7"/></g>
-  </g>
-  <g data-detail="rag-index"><path d="M36 75h8m-8 0v14m0 25v12h8" fill="none" stroke="#64748b" stroke-width=".55"/>
-    <g data-detail="retrieval-lens"><circle cx="29" cy="101" r="15" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width=".65"/><circle cx="29" cy="101" r="11.7" fill="url(#glass)" stroke="#60a5fa" stroke-width=".55"/>
-      <g data-detail="retrieval-focus-reticle" fill="none" stroke="#94a3b8" stroke-width=".4"><path d="M22 98v-3h4m6 0h4v3m0 6v3h-4m-6 0h-4v-3"/></g>
-      <path d="M26 98h6v6h-6Z" fill="#020812" stroke="#a78bfa" stroke-width=".45"/><path d="m37 113 7 9" stroke="url(#metal)" stroke-width="1.6"/>
-      <path class="pulse" d="M24 110h10" stroke="#60a5fa" stroke-width=".45"/>
-      <g class="memory-query-ring" data-detail="retrieval-optic-index" data-motion-purpose="decorative-only" fill="none" stroke-width=".5"><path d="M16 101a13 13 0 0 1 13-13m13 13a13 13 0 0 1-13 13" stroke="#c3d9e7"/><path d="M29 87v2m14 12h-2m-12 14v-2m-14-12h2" stroke="#a78bfa"/></g>
-      <path d="M28 99h2m-2 2h2m-2 2h2" stroke="#a8bdd2" stroke-width=".3"/>
-    </g>
-  </g>
-  <g data-detail="governed-record-core"><path d="M72 133h28l5 5-5 5H72l-5-5Z" fill="#020812" stroke="#a78bfa" stroke-width=".55"/><path d="M77 135h7v6h-7Zm12 1h9m-9 3h6" fill="none" stroke="#94a3b8" stroke-width=".4"/></g>
-  <g data-detail="memory-lifecycle-bus"><path d="M134 64h4v62" fill="none" stroke="#475569" stroke-width=".6"/></g>
-  <g data-detail="retention-gates" data-authority="owner-decision">
-    <g data-detail="retention-gate" data-dimension="validity"><path d="M144 53h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="M0-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5m0 .5v2l1.5 1" transform="translate(169 77.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="77.5" r="1.25" fill="#020812" stroke="#60a5fa" stroke-width=".5"/></g><g data-detail="retention-gate" data-dimension="accessibility"><path d="M165 82h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-4" clipPathUnits="userSpaceOnUse"><path d="M144 53h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-4" clipPathUnits="userSpaceOnUse"><path d="M165 82h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-4-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -209,17 +201,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-4)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 53h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-4-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 53h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 53h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 53h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 53h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 53h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 82h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-4-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 82h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 82h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 82h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 82h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 82h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g><path data-detail="retention-policy-glyph" d="M0-3a3 3 0 1 0 0 6 3 3 0 1 0 0-6m0 1v2l2 1" transform="translate(149 57.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 56h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="57.5" r="1.8" fill="#020812" stroke="#60a5fa" stroke-width=".4"/><path d="M138 58h4" stroke="#64748b" stroke-width=".35"/></g><g data-detail="retention-gate" data-dimension="accessibility"><path d="M144 63h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="M-2 0h4v3h-4Zm1 0v-2a1 1 0 0 1 2 0v2" transform="translate(169 85.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="85.5" r="1.25" fill="#020812" stroke="#a78bfa" stroke-width=".5"/></g><g data-detail="retention-gate" data-dimension="suppression"><path d="M165 90h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-5" clipPathUnits="userSpaceOnUse"><path d="M144 63h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-5" clipPathUnits="userSpaceOnUse"><path d="M165 90h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-5-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -228,17 +220,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-5)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 63h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-5-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 63h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 63h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 63h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 63h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 63h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 90h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-5-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 90h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 90h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 90h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 90h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 90h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g><path data-detail="retention-policy-glyph" d="M-2 0h4v3h-4Zm1 0v-2a1 1 0 0 1 2 0v2" transform="translate(149 67.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 66h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="67.5" r="1.8" fill="#020812" stroke="#a78bfa" stroke-width=".4"/><path d="M138 68h4" stroke="#64748b" stroke-width=".35"/></g><g data-detail="retention-gate" data-dimension="suppression"><path d="M144 73h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="M-4 0Q0-4 4 0 0 4-4 0Zm1 3 6-6" transform="translate(169 93.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="93.5" r="1.25" fill="#020812" stroke="#60a5fa" stroke-width=".5"/></g><g data-detail="retention-gate" data-dimension="archive"><path d="M165 98h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-6" clipPathUnits="userSpaceOnUse"><path d="M144 73h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-6" clipPathUnits="userSpaceOnUse"><path d="M165 98h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-6-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -247,17 +239,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-6)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 73h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-6-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 73h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 73h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 73h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 73h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 73h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 98h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-6-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 98h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 98h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 98h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 98h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 98h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g><path data-detail="retention-policy-glyph" d="M-4 0Q0-4 4 0 0 4-4 0Zm1 3 6-6" transform="translate(149 77.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 76h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="77.5" r="1.8" fill="#020812" stroke="#60a5fa" stroke-width=".4"/><path d="M138 78h4" stroke="#64748b" stroke-width=".35"/></g><g data-detail="retention-gate" data-dimension="archive"><path d="M144 83h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="M-3-2h6v5h-6Zm-1-1h8v2h-8Zm3 4h2" transform="translate(169 101.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="101.5" r="1.25" fill="#020812" stroke="#a78bfa" stroke-width=".5"/></g><g data-detail="retention-gate" data-dimension="reconsolidation"><path d="M165 106h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-7" clipPathUnits="userSpaceOnUse"><path d="M144 83h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-7" clipPathUnits="userSpaceOnUse"><path d="M165 106h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-7-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -266,17 +258,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-7)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 83h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-7-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 83h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 83h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 83h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 83h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 83h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 106h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-7-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 106h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 106h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 106h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 106h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 106h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g><path data-detail="retention-policy-glyph" d="M-3-2h6v5h-6Zm-1-1h8v2h-8Zm3 4h2" transform="translate(149 87.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 86h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="87.5" r="1.8" fill="#020812" stroke="#a78bfa" stroke-width=".4"/><path d="M138 88h4" stroke="#64748b" stroke-width=".35"/></g><g data-detail="retention-gate" data-dimension="reconsolidation"><path d="M144 93h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="m0-3 4 2-4 2-4-2Zm-4 4 4 2 4-2" transform="translate(169 109.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="109.5" r="1.25" fill="#020812" stroke="#60a5fa" stroke-width=".5"/></g><g data-detail="retention-gate" data-dimension="deletion-delay"><path d="M165 114h14l5 3v4h-19l-3-3Z" fill="url(#dark-metal)" stroke="#8da6bb" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-8" clipPathUnits="userSpaceOnUse"><path d="M144 93h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-8" clipPathUnits="userSpaceOnUse"><path d="M165 114h14l5 3v4h-19l-3-3Z"/></clipPath>
         <linearGradient id="panel-memory-8-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -285,17 +277,20 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-8)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 93h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-8-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 93h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 93h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 93h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 93h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 93h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M165 114h14l5 3v4h-19l-3-3Z" fill="url(#panel-memory-8-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M165 114h14l5 3v4h-19l-3-3Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M165 114h14l5 3v4h-19l-3-3Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M165 114h14l5 3v4h-19l-3-3Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M165 114h14l5 3v4h-19l-3-3Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M165 114h14l5 3v4h-19l-3-3Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
-    </g><path data-detail="retention-policy-glyph" d="m0-3 4 2-4 2-4-2Zm-4 4 4 2 4-2" transform="translate(149 97.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 96h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="97.5" r="1.8" fill="#020812" stroke="#60a5fa" stroke-width=".4"/><path d="M138 98h4" stroke="#64748b" stroke-width=".35"/></g><g data-detail="retention-gate" data-dimension="deletion-delay"><path d="M144 103h24l5 4v5h-29l-5-5Z" fill="url(#dark-metal)" stroke="#829ab4" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="retention-gate" pointer-events="none">
+    </g><path data-detail="retention-policy-glyph" d="M-2-3h4v2L0 0l2 1v2h-4V1l2-1-2-1Z" transform="translate(169 117.5) scale(.63)" fill="none" stroke="#c6dae7" stroke-width=".5"/><circle cx="178" cy="117.5" r="1.25" fill="#020812" stroke="#fbbf24" stroke-width=".5"/></g>
+  </g>
+  <g data-detail="archive-channel"><g data-detail="archive-cartridges" data-policy="reversible-archive">
+    <g data-detail="archive-cartridge"><path d="M164 127h15l5 4-5 5h-15Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".55"/><g data-detail="precision-panel-bevel" data-panel="archive-cartridge" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-9" clipPathUnits="userSpaceOnUse"><path d="M144 103h24l5 4v5h-29l-5-5Z"/></clipPath>
+        <clipPath id="panel-memory-9" clipPathUnits="userSpaceOnUse"><path d="M164 127h15l5 4-5 5h-15Z"/></clipPath>
         <linearGradient id="panel-memory-9-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -304,20 +299,22 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-9)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 103h24l5 4v5h-29l-5-5Z" fill="url(#panel-memory-9-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 103h24l5 4v5h-29l-5-5Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 103h24l5 4v5h-29l-5-5Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 103h24l5 4v5h-29l-5-5Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 103h24l5 4v5h-29l-5-5Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 103h24l5 4v5h-29l-5-5Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        
+        <path data-detail="panel-satin-face" d="M164 127h15l5 4-5 5h-15Z" fill="url(#panel-memory-9-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M164 127h15l5 4-5 5h-15Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M164 127h15l5 4-5 5h-15Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M164 127h15l5 4-5 5h-15Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M164 127h15l5 4-5 5h-15Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M164 127h15l5 4-5 5h-15Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <g data-detail="fitted-component-hardware" data-component="archive-cartridge" pointer-events="none"><g data-detail="captive-panel-latch" transform="translate(164 130)">
+  <path d="M0 0h2.8v6H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
+  <path d="M.5 .5h1.8v5H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
+  <path d="M1.4 1.5v3" stroke="#091421" stroke-width=".6"/>
+  <path d="M.7 2h1.4m-1.4 2h1.4" stroke="#e1eaf0" stroke-width=".3"/>
+</g></g>
       </g>
-    </g><path data-detail="retention-policy-glyph" d="M-2-3h4v2L0 0l2 1v2h-4V1l2-1-2-1Z" transform="translate(149 107.5) scale(.75)" fill="none" stroke="#adc0d3" stroke-width=".4"/><path d="M155 106h5m-5 3h4" stroke="#94a3b8" stroke-width=".35"/><circle cx="165" cy="107.5" r="1.8" fill="#020812" stroke="#fbbf24" stroke-width=".4"/><path d="M138 108h4" stroke="#64748b" stroke-width=".35"/></g>
-  </g>
-  <g data-detail="archive-channel"><g data-detail="archive-cartridges" data-policy="reversible-archive">
-    <g data-detail="archive-cartridge"><path d="M144 118h23l6 5-6 6h-23Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="archive-cartridge" pointer-events="none">
+    </g><path data-detail="archive-media-window" d="M167 129h10v5h-10Z" fill="#020812" stroke="#64748b" stroke-width=".35"/><g data-detail="cartridge-contact-bank"><path d="M169 130v3m3-3v3m3-3v3" stroke="#60a5fa" stroke-width=".5"/></g></g><g data-detail="archive-cartridge"><path d="M164 137h15l5 4-5 5h-15Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".55"/><g data-detail="precision-panel-bevel" data-panel="archive-cartridge" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-10" clipPathUnits="userSpaceOnUse"><path d="M144 118h23l6 5-6 6h-23Z"/></clipPath>
+        <clipPath id="panel-memory-10" clipPathUnits="userSpaceOnUse"><path d="M164 137h15l5 4-5 5h-15Z"/></clipPath>
         <linearGradient id="panel-memory-10-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -326,22 +323,25 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-10)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 118h23l6 5-6 6h-23Z" fill="url(#panel-memory-10-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 118h23l6 5-6 6h-23Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 118h23l6 5-6 6h-23Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 118h23l6 5-6 6h-23Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 118h23l6 5-6 6h-23Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 118h23l6 5-6 6h-23Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="archive-cartridge" pointer-events="none"><g data-detail="captive-panel-latch" transform="translate(164 121)">
+        <path data-detail="panel-satin-face" d="M164 137h15l5 4-5 5h-15Z" fill="url(#panel-memory-10-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M164 137h15l5 4-5 5h-15Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M164 137h15l5 4-5 5h-15Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M164 137h15l5 4-5 5h-15Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M164 137h15l5 4-5 5h-15Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M164 137h15l5 4-5 5h-15Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <g data-detail="fitted-component-hardware" data-component="archive-cartridge" pointer-events="none"><g data-detail="captive-panel-latch" transform="translate(164 140)">
   <path d="M0 0h2.8v6H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
   <path d="M.5 .5h1.8v5H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
   <path d="M1.4 1.5v3" stroke="#091421" stroke-width=".6"/>
   <path d="M.7 2h1.4m-1.4 2h1.4" stroke="#e1eaf0" stroke-width=".3"/>
 </g></g>
       </g>
-    </g><path data-detail="archive-media-window" d="M148 121h13v5h-13Z" fill="#020812" stroke="#64748b" stroke-width=".35"/><g data-detail="cartridge-contact-bank"><path d="M151 122v3m4-3v3m4-3v3" stroke="#60a5fa" stroke-width=".4"/></g></g><g data-detail="archive-cartridge"><path d="M144 130h23l6 5-6 6h-23Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".5"/><g data-detail="precision-panel-bevel" data-panel="archive-cartridge" pointer-events="none">
+    </g><path data-detail="archive-media-window" d="M167 139h10v5h-10Z" fill="#020812" stroke="#64748b" stroke-width=".35"/><g data-detail="cartridge-contact-bank"><path d="M169 140v3m3-3v3m3-3v3" stroke="#a78bfa" stroke-width=".5"/></g></g>
+  </g><path data-detail="archive-egress" d="M159 136h5" stroke="#64748b" stroke-width=".5"/></g>
+  <g data-detail="owner-confirmed-record-association"><path d="M66 146h9v6h-9Zm13 0h9v6h-9Z" fill="#020812" stroke="#9bb6ca" stroke-width=".5"/><path d="M73 149h8" stroke="#a78bfa" stroke-width=".7"/></g>
+  <g data-detail="backup-rail" data-purpose="backup-and-restore"><path d="M47 152h98l7 5-7 6H47l-6-6Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".65"/><g data-detail="precision-panel-bevel" data-panel="backup-rail" pointer-events="none">
       <defs>
-        <clipPath id="panel-memory-11" clipPathUnits="userSpaceOnUse"><path d="M144 130h23l6 5-6 6h-23Z"/></clipPath>
+        <clipPath id="panel-memory-11" clipPathUnits="userSpaceOnUse"><path d="M47 152h98l7 5-7 6H47l-6-6Z"/></clipPath>
         <linearGradient id="panel-memory-11-finish" x1="0" y1="0" x2=".35" y2="1">
           <stop stop-color="#dcebf5" stop-opacity=".16"/>
           <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
@@ -350,44 +350,17 @@
         </linearGradient>
       </defs>
       <g clip-path="url(#panel-memory-11)" fill="none">
-        <path data-detail="panel-satin-face" d="M144 130h23l6 5-6 6h-23Z" fill="url(#panel-memory-11-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M144 130h23l6 5-6 6h-23Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M144 130h23l6 5-6 6h-23Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M144 130h23l6 5-6 6h-23Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M144 130h23l6 5-6 6h-23Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M144 130h23l6 5-6 6h-23Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="archive-cartridge" pointer-events="none"><g data-detail="captive-panel-latch" transform="translate(164 133)">
-  <path d="M0 0h2.8v6H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
-  <path d="M.5 .5h1.8v5H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
-  <path d="M1.4 1.5v3" stroke="#091421" stroke-width=".6"/>
-  <path d="M.7 2h1.4m-1.4 2h1.4" stroke="#e1eaf0" stroke-width=".3"/>
-</g></g>
-      </g>
-    </g><path data-detail="archive-media-window" d="M148 133h13v5h-13Z" fill="#020812" stroke="#64748b" stroke-width=".35"/><g data-detail="cartridge-contact-bank"><path d="M151 134v3m4-3v3m4-3v3" stroke="#a78bfa" stroke-width=".4"/></g></g>
-  </g><path data-detail="archive-egress" d="M136 126h7" stroke="#64748b" stroke-width=".5"/></g>
-  <g data-detail="backup-rail" data-purpose="backup-and-restore"><path d="M51 145h82l6 6-6 6H51l-6-6Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".65"/><g data-detail="precision-panel-bevel" data-panel="backup-rail" pointer-events="none">
-      <defs>
-        <clipPath id="panel-memory-12" clipPathUnits="userSpaceOnUse"><path d="M51 145h82l6 6-6 6H51l-6-6Z"/></clipPath>
-        <linearGradient id="panel-memory-12-finish" x1="0" y1="0" x2=".35" y2="1">
-          <stop stop-color="#dcebf5" stop-opacity=".16"/>
-          <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
-          <stop offset=".6" stop-color="#020610" stop-opacity=".08"/>
-          <stop offset="1" stop-color="#010409" stop-opacity=".28"/>
-        </linearGradient>
-      </defs>
-      <g clip-path="url(#panel-memory-12)" fill="none">
-        <path data-detail="panel-satin-face" d="M51 145h82l6 6-6 6H51l-6-6Z" fill="url(#panel-memory-12-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M51 145h82l6 6-6 6H51l-6-6Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M51 145h82l6 6-6 6H51l-6-6Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M51 145h82l6 6-6 6H51l-6-6Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M51 145h82l6 6-6 6H51l-6-6Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M51 145h82l6 6-6 6H51l-6-6Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
+        <path data-detail="panel-satin-face" d="M47 152h98l7 5-7 6H47l-6-6Z" fill="url(#panel-memory-11-finish)"/>
+        <path data-detail="panel-recess-gasket" d="M47 152h98l7 5-7 6H47l-6-6Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
+        <path data-detail="panel-machined-lip" d="M47 152h98l7 5-7 6H47l-6-6Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
+        <path d="M47 152h98l7 5-7 6H47l-6-6Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
+        <path d="M47 152h98l7 5-7 6H47l-6-6Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
+        <path data-detail="panel-edge-joints" d="M47 152h98l7 5-7 6H47l-6-6Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
         
       </g>
     </g>
-    <g data-detail="backup-mirror-channel"><path d="M61 148h28v6H61Zm37 0h28v6H98Z" fill="#020812" stroke="#92a9c0" stroke-width=".4"/><path d="M65 149.5h5v3h-5Zm38 0h5v3h-5Zm-30 .5h12m-12 2h9m26-2h13m-13 2h9" fill="none" stroke="#a7bdd2" stroke-width=".35"/></g>
-    <g data-detail="backup-module-latches"><path d="M58 148v6m71-6v6M65 146h20m18 0h20M64 156h61" stroke="#859cb6" stroke-width=".3"/></g>
-    <g data-detail="backup-checkpoints"><circle cx="94" cy="151" r="2" fill="#020812" stroke="#60a5fa" stroke-width=".5"/><g transform="translate(53 151)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(132 151)" data-detail="hex-socket-screw"><circle r="2.95" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.25" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.65" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0499999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3199999999999998" stroke-dasharray=".8 1.6"/><path d="M0 -1.95v.75M0 1.95v-.75M-1.95 0h.75M1.95 0h-.75"/></g><circle r="0.5499999999999999" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.47 0.41,-0.23 0.41,0.23 0.00,0.47 -0.41,0.23 -0.41,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.47" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.41" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8999999999999999 -0.8999999999999999 0 -1.45" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.504 0.504A0.7 0.7 0 0 0 0.504 0.504" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.35" cy="-0.35" r=".35" fill="#fff" opacity=".6"/></g></g>
-  </g>
-  <g data-detail="owner-confirmed-record-association"><path d="M146 148h10v7h-10Zm12 0h10v7h-10Z" fill="#020812" stroke="#64748b" stroke-width=".4"/><path d="M153 151.5h9" stroke="#a78bfa" stroke-width=".5"/></g></g></g></g>
+    <g data-detail="backup-mirror-channel"><path d="M56 155h32v5H56Zm49 0h32v5h-32Z" fill="#020812" stroke="#92a9c0" stroke-width=".4"/><path d="M60 156h5v3h-5Zm49 0h5v3h-5Zm-41 .5h16m-16 2h11m40-2h14m-14 2h10" fill="none" stroke="#a7bdd2" stroke-width=".35"/></g>
+    <g data-detail="backup-module-latches"><path d="M53 155v5m88-5v5M59 153h24m27 0h25" stroke="#859cb6" stroke-width=".35"/></g>
+    <g data-detail="backup-checkpoints"><circle cx="97" cy="157.5" r="2" fill="#020812" stroke="#60a5fa" stroke-width=".55"/><g transform="translate(47 157)" data-detail="hex-socket-screw"><circle r="2.9" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.2" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.6" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.27" stroke-dasharray=".8 1.6"/><path d="M0 -1.9v.75M0 1.9v-.75M-1.9 0h.75M1.9 0h-.75"/></g><circle r="0.5" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.45 0.39,-0.22 0.39,0.22 0.00,0.45 -0.39,0.22 -0.39,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="-0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8500000000000001 -0.8500000000000001 0 -1.4" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.46799999999999997 0.46799999999999997A0.65 0.65 0 0 0 0.46799999999999997 0.46799999999999997" fill="none" stroke="#60a5fa" stroke-width=".38" opacity=".62"/><circle cx="0.325" cy="-0.325" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(146 157)" data-detail="hex-socket-screw"><circle r="2.9" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.2" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.6" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.27" stroke-dasharray=".8 1.6"/><path d="M0 -1.9v.75M0 1.9v-.75M-1.9 0h.75M1.9 0h-.75"/></g><circle r="0.5" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.45 0.39,-0.22 0.39,0.22 0.00,0.45 -0.39,0.22 -0.39,-0.23" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="-0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.45" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="0.22" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.39" cy="-0.23" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.8500000000000001 -0.8500000000000001 0 -1.4" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.46799999999999997 0.46799999999999997A0.65 0.65 0 0 0 0.46799999999999997 0.46799999999999997" fill="none" stroke="#a78bfa" stroke-width=".38" opacity=".62"/><circle cx="0.325" cy="-0.325" r=".35" fill="#fff" opacity=".6"/></g></g>
+  </g></g></g></g>
 </svg>

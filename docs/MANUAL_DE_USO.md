@@ -20,7 +20,7 @@ Después de responder, Alice decide si tu mensaje contiene algo útil para conse
 No guarda cada saludo ni necesita que confirmes cada recuerdo. El indicador del
 chat muestra si está evaluando y cuántos recuerdos automáticos conserva.
 
-En **Memoria → Lo que Alice decide conservar** podés leer la cita original,
+En **Memoria → Aprendizaje → Lo que Alice decide conservar** podés leer la cita original,
 corregir el contenido, **Retirar del contexto** o **Volver a usar**. Retirar impide
 su recuperación sin destruirlo. La casilla **Aprendizaje automático** pausa o
 reanuda nuevas selecciones. **Recuerdos activos** en Conversación controla la
@@ -271,6 +271,18 @@ o quieras comprobar qué operación ocurrió realmente.
 La memoria de Alice no es un formulario para llenar datos. Es un sistema de ciclo de
 vida: una experiencia puede permanecer activa, perder accesibilidad, entrar en
 conflicto, corregirse, archivarse o eliminarse bajo control.
+
+La navegación se organiza en cuatro secciones:
+
+| Sección | Qué contiene |
+|---|---|
+| **Aprendizaje** | Progreso del autoestudio con fuentes y recuerdos seleccionados al conversar. Es la sección inicial. |
+| **Recuerdos** | **Registros** de memoria y **Perfil** del propietario. |
+| **En sesión** | Contexto temporal de trabajo en RAM. |
+| **Mantenimiento** | **Revisión y ciclo**, **Capas**, **Consolidación** y **Respaldo**. |
+
+Las herramientas conservan sus controles y confirmaciones. Las secciones siguientes
+explican cada función dentro de esa organización.
 
 ### 5.1 Recuerdos
 

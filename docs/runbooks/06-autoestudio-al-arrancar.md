@@ -43,7 +43,7 @@ problema; no simula aprendizaje con respuestas prefabricadas.
 ## Arranque y controles
 
 1. Iniciar Alice con el lanzador del proyecto.
-2. Entrar en **Memoria** y consultar el panel **Autoestudio**.
+2. Entrar en **Memoria → Aprendizaje** y consultar **Lo que Alice está estudiando**.
 3. Revisar la fase, las lecciones estudiadas y sus fuentes. Usar el control de
    activación para pausar el estudio o volver a habilitarlo.
 4. Abrir la bóveda `data/obsidian`: la carpeta sincronizada incluye el progreso

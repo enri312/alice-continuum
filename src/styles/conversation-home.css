@@ -96,9 +96,11 @@
 .conversation-secondary-panel .perception-vector dd small { font-size:.73rem; line-height:1.5; }
 .shell:is(.is-conversation,.is-volume)::before { margin-bottom:14px; }
 .shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped { gap:6px; margin-bottom:0; padding:6px 9px; }
-.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped button { flex:0 0 88px; width:88px; height:78px; padding:3px 4px 5px; grid-template-rows:48px 20px; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped button { flex:0 0 88px; width:88px; height:auto; min-height:94px; padding:3px 4px 5px; grid-template-rows:54px minmax(28px,auto); }
 .shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-tab-icon { width:58px; height:54px; margin:auto; }
-.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-tab-label { height:20px; font-size:.64rem; line-height:1.15; }
+/* Both lines need their full line height; the compact icons keep their own row. */
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-tab-label { display:flex; align-items:center; justify-content:center; height:auto; min-height:28px; padding-right:0; overflow:visible; font-size:.64rem; line-height:1.25; text-align:center; -webkit-line-clamp:unset; }
+.shell:is(.is-conversation,.is-volume) .core-system-frame>.screen-tabs.grouped .screen-count { top:5px; right:4px; bottom:auto; }
 .shell:is(.is-conversation,.is-volume) .core-system-selector button { min-height:44px; }
 .shell:is(.is-conversation,.is-volume) .core-system-selector button small { display:none; }
 .shell:is(.is-conversation,.is-volume) .core-system-heading { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); padding:0; white-space:nowrap; }
