@@ -35,8 +35,10 @@ describe("Alice Continuum identity", () => {
 
   it("recognizes both executable names for launch and self-observation safety", () => {
     const launcher = read("Iniciar Alice Continuum.cmd");
-    expect(launcher).toContain("'alice-continuum','alice-cognitive-core'");
     expect(launcher).toContain('"%~dp0"');
+    expect(launcher).toContain("scripts\\setup\\launch-windows.ps1");
+    const windowsLauncher = read("scripts/setup/launch-windows.ps1");
+    expect(windowsLauncher).toContain("'alice-continuum','alice-cognitive-core'");
     const observer = read("src-tauri/src/observation.rs");
     expect(observer).toContain('eq_ignore_ascii_case("alice-continuum.exe")');
     expect(observer).toContain('eq_ignore_ascii_case("alice-cognitive-core.exe")');

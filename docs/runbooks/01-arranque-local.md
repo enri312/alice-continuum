@@ -48,6 +48,12 @@ Memoria; ver [materias, funcionamiento y límites](06-autoestudio-al-arrancar.md
 
 El lanzador detiene el inicio con un mensaje claro si Alice ya está abierta, si el puerto fijo 5173 está ocupado, si faltan dependencias o si las versiones de Node y Cargo no son utilizables. Usa `.cargo-target` como único caché Rust del proyecto y sólo acepta Ollama cuando responde en loopback.
 
+En Windows, el `.cmd` delega las comprobaciones en `scripts/setup/launch-windows.ps1`
+dentro de una sola sesión de PowerShell. Un bloqueo por carpeta evita arranques
+simultáneos durante la compilación y se libera al terminar. La espera de Ollama
+tras iniciarlo tiene un límite de 10 segundos. Alice comprueba Gemma local y sus
+demás proveedores al abrirse.
+
 Para comprobar el entorno sin abrir Alice ni iniciar Ollama:
 
 ```powershell
