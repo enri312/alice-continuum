@@ -16,6 +16,9 @@ export type VoiceTurnObservation = {
   totalMs: number | null;
   outcome: "processing" | "completed" | "textOnly" | "error";
 };
+export type VoiceIgnoredTakeObservation =
+  | { reason: "insufficientSpeech" }
+  | { reason: "noSpeech" | "notAddressed"; transcript: string; transcriptionModel: string; captureMs: number | null; transcriptionMs: number };
 export type VoiceLoopPorts = {
   authorize: () => Promise<string>;
   revoke: (id: string) => Promise<void>;
@@ -28,6 +31,7 @@ export type VoiceLoopPorts = {
   acceptTranscript?: (text: string) => boolean;
   now?: () => number;
   onTurnObserved?: (turn: VoiceTurnObservation) => void;
+  onIgnoredTakeObserved?: (take: VoiceIgnoredTakeObservation | null) => void;
   onNotice?: (message: string) => void;
   onState: (state: VoiceLoopState, error?: string) => void;
 };
@@ -38,6 +42,7 @@ export class VoiceLoop {
   private capture: ReturnType<VoiceLoopPorts["capture"]> | null = null;
   private active = false;
   private captureRecoveryUsed = false;
+  private ignoredTake: VoiceIgnoredTakeObservation | null = null;
   private expiry: ReturnType<typeof setTimeout> | null = null;
   constructor(private ports: VoiceLoopPorts) {}
 
@@ -45,6 +50,7 @@ export class VoiceLoop {
     if (this.active) return;
     this.active = true;
     this.captureRecoveryUsed = false;
+    this.observeIgnoredTake(null);
     const generation = ++this.generation;
     this.ports.onState("preparing");
     try {
@@ -61,6 +67,7 @@ export class VoiceLoop {
     if (this.expiry !== null) clearTimeout(this.expiry);
     this.expiry = null;
     this.generation += 1;
+    this.observeIgnoredTake(null);
     this.capture?.cancel();
     this.capture = null;
     this.ports.stopPlayback();
@@ -74,11 +81,24 @@ export class VoiceLoop {
 
   private current(generation: number) { return this.active && generation === this.generation; }
 
+  private observeIgnoredTake(take: VoiceIgnoredTakeObservation | null) {
+    // Keep one ephemeral result. Quiet windows must not hide an ASR result or
+    // repeat the same notice while the person inspects what was transcribed.
+    if (take === null && this.ignoredTake === null) return;
+    if (take?.reason === "insufficientSpeech" && this.ignoredTake !== null) return;
+    this.ignoredTake = take;
+    this.ports.onIgnoredTakeObserved?.(take);
+  }
+
   private async listen(generation: number) {
     if (!this.current(generation)) return;
     const capture = this.ports.capture(
       (take, metadata) => { if (this.current(generation) && this.capture === capture) void this.turn(take, generation, metadata); },
-      () => { if (this.current(generation) && this.capture === capture) void this.listen(generation).catch(error => { if (this.current(generation)) this.fail(error); }); },
+      () => {
+        if (!this.current(generation) || this.capture !== capture) return;
+        this.observeIgnoredTake({ reason: "insufficientSpeech" });
+        void this.listen(generation).catch(error => { if (this.current(generation)) this.fail(error); });
+      },
       (error, reason) => {
         if (!this.current(generation) || this.capture !== capture) return;
         if (!isRecoverableNoiseFailure(reason) || this.captureRecoveryUsed) { this.fail(error); return; }
@@ -87,7 +107,7 @@ export class VoiceLoop {
         this.captureRecoveryUsed = true;
         this.capture = null;
         try { capture.cancel(); } catch (cause) { this.fail(cause); return; }
-        this.ports.onNotice?.("Se descartó la toma por una interrupción del filtro. Preparando de nuevo el micrófono; repite la frase cuando Alice vuelva a estar en espera.");
+        this.ports.onNotice?.("Se descartó la toma por una interrupción del filtro. Preparando de nuevo el micrófono; repite la frase cuando aparezca «Escuchando».");
         void this.listen(generation).catch(cause => { if (this.current(generation)) this.fail(cause); });
       },
     );
@@ -114,23 +134,31 @@ export class VoiceLoop {
       this.ports.onState("transcribing");
       const transcript = await this.ports.transcribe(take, id);
       if (!this.current(generation)) return;
-      if (transcript.noSpeech) { await this.listen(generation); return; }
+      const transcribed = now();
+      const seconds = metadata?.recordedSeconds;
+      const captureMs = typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : null;
+      const ignoredTranscript = { transcript: transcript.text, transcriptionModel: transcript.model, captureMs, transcriptionMs: transcribed - started };
+      if (transcript.noSpeech) {
+        this.observeIgnoredTake({ reason: "noSpeech", ...ignoredTranscript });
+        await this.listen(generation); return;
+      }
       if (isMicrophoneOffCommand(transcript.text)) {
         this.stop("Micrófono apagado por voz. La sesión terminó.");
         return;
       }
       if (isVoiceStopCommand(transcript.text)) {
-        this.ports.onNotice?.("Conversación detenida. Sigo en espera: dirigite a Alice para hablar otra vez. Para cerrar la escucha, decí «Apaga el micrófono, Alice».");
+        this.observeIgnoredTake(null);
+        this.ports.onNotice?.("Conversación detenida. Sigo escuchando: dirigite a Alice para hablar otra vez. Para cerrar la escucha, decí «Apaga el micrófono, Alice».");
         await this.listen(generation);
         return;
       }
       if (!(this.ports.acceptTranscript ?? isAddressedToAlice)(transcript.text)) {
+        this.observeIgnoredTake({ reason: "notAddressed", ...ignoredTranscript });
         await this.listen(generation); return;
       }
-      const transcribed = now();
-      const seconds = metadata?.recordedSeconds;
+      this.observeIgnoredTake(null);
       observation = { transcript: transcript.text, transcriptionModel: transcript.model,
-        captureMs: typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : null,
+        captureMs,
         transcriptionMs: transcribed - started, responseMs: null,
         synthesisMs: null, untilPlaybackMs: null, totalMs: null, outcome: "processing" };
       observed({});

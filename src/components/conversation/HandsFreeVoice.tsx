@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { VoiceCapture, type CaptureEnvironment } from "../../core/voice/voice-capture";
 import { bytesToBase64, type VoiceTurnTranscript } from "../../core/voice/voice-input";
-import { VoiceLoop, type VoiceLoopState, type VoiceTurnObservation } from "../../core/voice/voice-loop";
+import { VoiceLoop, type VoiceIgnoredTakeObservation, type VoiceLoopState, type VoiceTurnObservation } from "../../core/voice/voice-loop";
 import type { VoiceOutputResult } from "../../core/voice/voice-output";
 import type { MicrophoneOptions, NoiseStatus } from "../../core/voice/noise-types";
 
@@ -16,11 +16,12 @@ type Props = {
   onActiveChange: (active: boolean, state: VoiceLoopState) => void;
   microphone?: MicrophoneOptions;
   onProcessed?: (status: NoiseStatus) => void;
+  onIgnoredTakeChange?: (take: VoiceIgnoredTakeObservation | null) => void;
   captureEnvironment?: CaptureEnvironment;
 };
 
 const labels: Record<VoiceLoopState, string> = {
-  idle: "Escucha de Alice", preparing: "Preparando Gemma y la voz…", arming: "Preparando micrófono y filtro…", standby: "En espera · di Alice para hablarme",
+  idle: "Escucha de Alice", preparing: "Preparando Gemma y la voz…", arming: "Preparando micrófono y filtro…", standby: "Escuchando · di Alice y tu frase",
   transcribing: "Entendiendo tu frase…", thinking: "Alice está respondiendo…",
   synthesizing: "Preparando la voz…", speaking: "Alice está hablando", error: "La sesión se detuvo",
 };
@@ -41,6 +42,7 @@ export function HandsFreeVoice(props: Props) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [lastTurn, setLastTurn] = useState<VoiceTurnObservation | null>(null);
+  const [ignoredTake, setIgnoredTake] = useState<VoiceIgnoredTakeObservation | null>(null);
   const loop = useRef<VoiceLoop | null>(null);
   const audio = useRef<AudioBufferSourceNode | null>(null);
   const outputContext = useRef<AudioContext | null>(null);
@@ -62,7 +64,7 @@ export function HandsFreeVoice(props: Props) {
 
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; loop.current?.stop(); stopPlayback(); void outputContext.current?.close(); outputContext.current = null; };
+    return () => { mounted.current = false; loop.current?.stop(); currentProps.current.onIgnoredTakeChange?.(null); stopPlayback(); void outputContext.current?.close(); outputContext.current = null; };
   }, []);
 
   async function start() {
@@ -71,6 +73,8 @@ export function HandsFreeVoice(props: Props) {
     setError("");
     setNotice("");
     setLastTurn(null);
+    setIgnoredTake(null);
+    currentProps.current.onIgnoredTakeChange?.(null);
     let ready: Promise<void>;
     let context: AudioContext;
     try {
@@ -94,6 +98,11 @@ export function HandsFreeVoice(props: Props) {
       respond: (text, id) => currentProps.current.onTurn(text, id),
       synthesize: (turn, id) => currentProps.current.onSpeak(turn.exchangeId, id),
       onTurnObserved: turn => { if (mounted.current) setLastTurn(turn); },
+      onIgnoredTakeObserved: take => {
+        if (!mounted.current) return;
+        setIgnoredTake(take);
+        currentProps.current.onIgnoredTakeChange?.(take);
+      },
       onNotice: message => { if (mounted.current) setNotice(message); },
       play: async (result, onStarted) => {
         const context = outputContext.current;
@@ -134,10 +143,11 @@ export function HandsFreeVoice(props: Props) {
       {state === "standby" && <button type="button" className="secondary" onClick={() => loop.current?.finishTurn()}>Terminé de hablar</button>}
       <strong role="status" aria-live="polite">{labels[state]}</strong>
     </div>
-    {!active && <p>Al iniciar, el micrófono queda en espera. Alice atiende frases dirigidas a ella, como «Alice, abre Spotify» o «¿Me escuchas, Alice?». Las demás frases se descartan después de transcribirlas localmente. Las respuestas atendidas usan Gemma y Fish. La escucha termina al apagar el micrófono, cambiar de pantalla o cumplir dos horas.</p>}
-    {active && <p>{state === "standby" ? "Micrófono activo con reducción de ruido. Incluye «Alice» en cada frase que quieras que atienda. «Detén la conversación, Alice» vuelve a la espera; «Apaga el micrófono, Alice» termina la escucha." : state === "arming" ? "Preparando la entrada y el filtro local antes de escuchar." : "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a la espera. Puedes apagarlo con el botón en cualquier momento."}</p>}
+    {!active && <p>Al iniciar, el micrófono queda escuchando. Di «Alice» y tu frase seguida, como «Alice, abre Spotify» o «¿Me escuchas, Alice?»; no hace falta esperar una respuesta después del nombre. Las demás frases se descartan después de transcribirlas localmente. Las respuestas atendidas usan Gemma y Fish. La escucha termina al apagar el micrófono, cambiar de pantalla o cumplir dos horas.</p>}
+    {active && <p>{state === "standby" ? "Micrófono activo con reducción de ruido. Di «Alice» y tu frase seguida, sin esperar una respuesta después del nombre. «Detén la conversación, Alice» vuelve a la escucha; «Apaga el micrófono, Alice» termina la sesión." : state === "arming" ? "Preparando la entrada y el filtro local antes de escuchar." : "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a escuchar. Puedes apagarlo con el botón en cualquier momento."}</p>}
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">{error}</p>}
+    {active && ignoredTake && <p>Toma no atendida · detalle en Audio de entrada</p>}
     {lastTurn && <VoiceSessionObservation turn={lastTurn} />}
   </section>;
 }

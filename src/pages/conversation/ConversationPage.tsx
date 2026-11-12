@@ -5,7 +5,7 @@ import { FilteredTakePreview, InputSignalMeasurement, LastVoiceTranscript } from
 import type { AudioSignalSnapshot, MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
 import { InputTakePreview } from "../../core/voice/input-take-preview";
 import type { ReactNode } from "react";
-import type { VoiceLoopState } from "../../core/voice/voice-loop";
+import type { VoiceIgnoredTakeObservation, VoiceLoopState } from "../../core/voice/voice-loop";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildRetrievalQuery, retrieveMemories } from "../../core/memory/memory-retrieval";
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../../core/conversation/cloud-payload";
@@ -110,6 +110,7 @@ function messageTime(iso: string) {
 
 export function Conversacion({ visionPanel, automaticLearning, embedded = false, showFullHistory = false, desktopApp, draft, status, provider, model, messages, memories, observationEnabled, foregroundContext, onToggleObservation, onDraftChange, onMemoryRetrieval, onHybridRetrieve, onPreviewConversationLearning, onConfirmConversationLearning, onPreviewVoiceOutput, onConfirmVoiceOutput, onCancelVoiceOutput, onTranscribeVoiceTurn, onPrepareVoiceTurn, onStartVoiceSession, onStopVoiceSession, onSpeakVoiceSession, onOpenSettings, onSend, onRetrievalOutcome }: ConversacionProps) {
   const [handsFreeState, setHandsFreeState] = useState<VoiceLoopState>("idle");
+  const [ignoredVoiceTake, setIgnoredVoiceTake] = useState<VoiceIgnoredTakeObservation | null>(null);
   const voiceHistoryBaseline = useRef(new Set<string>());
   const handsFreeActive = handsFreeState !== "idle" && handsFreeState !== "error";
   const [includeHistory, setIncludeHistory] = useState(false);
@@ -181,7 +182,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const newestExchangeId = messages.at(-1)?.exchangeId;
   const visibleMessages = showFullHistory ? messages : visibleConversationMessages(messages);
   const voiceBusy = ["requesting", "recording", "transcribing"].includes(voiceCaptureState);
-  const handsFreeLabels: Partial<Record<VoiceLoopState, string>> = { preparing: "Preparando la escucha", standby: "En espera · di Alice", transcribing: "Entendiendo tu frase", thinking: "Alice está respondiendo", synthesizing: "Preparando la voz", speaking: "Alice está hablando" };
+  const handsFreeLabels: Partial<Record<VoiceLoopState, string>> = { preparing: "Preparando la escucha", standby: "Escuchando · di Alice y tu frase", transcribing: "Entendiendo tu frase", thinking: "Alice está respondiendo", synthesizing: "Preparando la voz", speaking: "Alice está hablando" };
   const turnStatus = handsFreeActive ? { label: handsFreeLabels[handsFreeState] ?? "Conversación activa", tone: handsFreeState === "standby" ? "recording" : handsFreeState === "speaking" ? "speaking" : "busy" }
     : voiceCaptureState === "recording" ? { label: "Te escucho", tone: "recording" }
     : voiceCaptureState === "transcribing" ? { label: "Transcribiendo tu voz", tone: "busy" }
@@ -645,12 +646,12 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
           {automaticLearning && <div className="conversation-learning-status"><span><i />{automaticLearning.phase === "evaluating" ? "Alice está evaluando qué recordar…" : automaticLearning.phase === "error" ? "No pudo evaluar este turno · revisa Memoria" : automaticLearning.enabled ? provider !== "llamacpp" ? `Aprendizaje preparado · usa Gemma local · ${automaticLearning.count} recuerdos` : `Aprendizaje automático activo · ${automaticLearning.count} recuerdos` : "Aprendizaje automático pausado"}</span><button type="button" onClick={automaticLearning.onOpen}>Ver memoria</button></div>}
           <label htmlFor="alice-message">Tu mensaje</label>
           <div className="voice-turn automatic-voice-entry">
-            <HandsFreeVoice desktopApp={desktopApp} disabled={voiceBusy || sending || Boolean(voicePending)}
+            <HandsFreeVoice desktopApp={desktopApp} disabled={voiceBusy || sending || Boolean(voicePending)} onIgnoredTakeChange={setIgnoredVoiceTake}
               microphone={{ deviceId: microphoneId, sensitivity: microphoneSensitivity }} onProcessed={setNoiseStatus}
               onStart={async () => { closeVoiceMode(); setReviewing(false); voiceHistoryBaseline.current = new Set(messages.map(item => item.id)); return onStartVoiceSession(); }} onStop={onStopVoiceSession}
               onTranscribe={onTranscribeVoiceTurn} onTurn={processSpokenTurn} onSpeak={onSpeakVoiceSession}
               onActiveChange={(_active, state) => setHandsFreeState(state)} />
-            <AudioInputSettings disabled={!desktopApp || handsFreeActive || voiceBusy} deviceId={microphoneId} onDeviceChange={setMicrophoneId} sensitivity={microphoneSensitivity} onSensitivityChange={setMicrophoneSensitivity} status={noiseStatus} />
+            <AudioInputSettings disabled={!desktopApp || handsFreeActive || voiceBusy} deviceId={microphoneId} onDeviceChange={setMicrophoneId} sensitivity={microphoneSensitivity} onSensitivityChange={setMicrophoneSensitivity} status={noiseStatus} ignoredTake={ignoredVoiceTake} />
             <div className="manual-voice-options">
           <div className={`voice-turn ${voiceModeOpen ? "open" : ""}`}>
             <button type="button" className="voice-turn-toggle" aria-expanded={voiceModeOpen} onClick={() => voiceModeOpen ? closeVoiceMode() : setVoiceModeOpen(true)} disabled={!desktopApp || handsFreeActive || sending}>{voiceModeOpen ? "Cerrar dictado" : "Dictar con botón"}<span>{handsFreeActive ? "ESCUCHA AUTOMÁTICA ACTIVA" : voiceCaptureState === "recording" ? `REC ${voiceElapsedSeconds}s` : "MIC APAGADO"}</span></button>

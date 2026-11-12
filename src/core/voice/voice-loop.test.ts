@@ -334,6 +334,158 @@ describe("sesión de voz automática", () => {
     expect(f.ports.onTurnObserved).not.toHaveBeenCalled();
     expect(f.ports.respond).not.toHaveBeenCalled(); f.loop.stop();
   });
+
+  it.each([
+    { text: "", noSpeech: true, reason: "noSpeech" },
+    { text: "Reclosa Spotify", noSpeech: false, reason: "notAddressed" },
+  ] as const)("explica el descarte $reason sin atenderlo ni reemplazar el último mensaje atendido", async ({ text, noSpeech, reason }) => {
+    const f = fixture();
+    f.ports.onTurnObserved = vi.fn();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    let clock = 0;
+    f.ports.now = () => clock;
+    try {
+      await f.loop.start();
+      f.record(); await flush();
+      const lastAttended = vi.mocked(f.ports.onTurnObserved).mock.calls.at(-1)?.[0];
+      const attendedObservations = vi.mocked(f.ports.onTurnObserved).mock.calls.length;
+      f.ports.transcribe = vi.fn(async () => {
+        clock += 450;
+        return { text, noSpeech, model: "Whisper small · local CPU", durationMs: 450, ephemeralAudio: true, sentToConversation: false, persisted: false } as const;
+      });
+      f.record({ recordedSeconds: 3.25 }); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith({
+        reason, transcript: text, transcriptionModel: "Whisper small · local CPU", captureMs: 3250, transcriptionMs: 450,
+      });
+      expect(f.ports.onTurnObserved).toHaveBeenCalledTimes(attendedObservations);
+      expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(lastAttended);
+      expect(f.ports.respond).toHaveBeenCalledOnce();
+      expect(f.ports.synthesize).toHaveBeenCalledOnce();
+      expect(f.ports.play).toHaveBeenCalledOnce();
+      expect(f.ports.capture).toHaveBeenCalledTimes(3);
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      expect(f.ports.revoke).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it("distingue detección insuficiente previa a ASR y no repite el aviso en ventanas quiet consecutivas", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    f.ports.onTurnObserved = vi.fn();
+    try {
+      await f.loop.start();
+      const first = f.captures[0];
+      first.quiet(); await flush();
+      f.quiet(); await flush();
+      first.quiet(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledExactlyOnceWith({ reason: "insufficientSpeech" });
+      expect(f.ports.onTurnObserved).not.toHaveBeenCalled();
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+      expect(f.ports.play).not.toHaveBeenCalled();
+      expect(f.ports.capture).toHaveBeenCalledTimes(3);
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+    } finally { f.loop.stop(); }
+  });
+
+  it("reemplaza el único descarte visible y lo borra cuando una frase nueva es atendida", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    try {
+      await f.loop.start();
+      f.quiet(); await flush();
+      vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "Abre Spotify", noSpeech: false, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+      f.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(expect.objectContaining({ reason: "notAddressed", transcript: "Abre Spotify", captureMs: null }));
+      f.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(null);
+      expect(f.ports.respond).toHaveBeenCalledExactlyOnceWith("Hola, Alice", "session-1");
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledTimes(3);
+    } finally { f.loop.stop(); }
+  });
+
+  it("conserva el descarte transcrito durante quiet posteriores y lo reemplaza sólo con un resultado ASR nuevo", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    try {
+      await f.loop.start();
+      vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "Reclosa Spotify", noSpeech: false, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+      f.record(); await flush();
+      const transcribedDiscard = vi.mocked(f.ports.onIgnoredTakeObserved).mock.calls.at(-1)?.[0];
+      f.quiet(); await flush();
+      f.quiet(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledOnce();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(transcribedDiscard);
+      vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "", noSpeech: true, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+      f.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledTimes(2);
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(expect.objectContaining({ reason: "noSpeech", transcript: "" }));
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it("borra el descarte al apagar y no acepta eventos de la captura anterior al reiniciar", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    try {
+      await f.loop.start();
+      f.quiet(); await flush();
+      const stale = f.captures.at(-1)!;
+      f.loop.stop();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(null);
+      vi.mocked(f.ports.onIgnoredTakeObserved).mockClear();
+      await f.loop.start();
+      stale.quiet(); stale.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).not.toHaveBeenCalled();
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      f.quiet(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledExactlyOnceWith({ reason: "insufficientSpeech" });
+    } finally { f.loop.stop(); }
+  });
+
+  it.each([true, false])("no publica un descarte ASR tardío después de apagar: noSpeech=%s", async noSpeech => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    let complete!: (value: Awaited<ReturnType<VoiceLoopPorts["transcribe"]>>) => void;
+    f.ports.transcribe = vi.fn(() => new Promise<Awaited<ReturnType<VoiceLoopPorts["transcribe"]>>>(resolve => { complete = resolve; }));
+    await f.loop.start(); f.record(); await flush();
+    f.loop.stop();
+    complete({ text: noSpeech ? "" : "Reclosa Spotify", noSpeech, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+    await flush();
+    expect(f.ports.onIgnoredTakeObserved).not.toHaveBeenCalled();
+    expect(f.ports.respond).not.toHaveBeenCalled();
+    expect(f.ports.synthesize).not.toHaveBeenCalled();
+    expect(f.ports.capture).toHaveBeenCalledOnce();
+    expect(f.ports.onState).toHaveBeenLastCalledWith("idle", undefined);
+  });
+
+  it("borra el descarte si una captura posterior falla y termina la sesión", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    await f.loop.start(); f.quiet(); await flush();
+    f.captures.at(-1)!.error("Micrófono desconectado");
+    expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(null);
+    expect(f.ports.onState).toHaveBeenLastCalledWith("error", "Micrófono desconectado");
+    expect(f.ports.respond).not.toHaveBeenCalled();
+    expect(f.ports.synthesize).not.toHaveBeenCalled();
+  });
+
+  it("reemplaza el diagnóstico anterior al reconocer la parada de conversación sin enviarla al chat", async () => {
+    const f = fixture();
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    try {
+      await f.loop.start(); f.quiet(); await flush();
+      vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "Detén la conversación, Alice", noSpeech: false, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+      f.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(null);
+      expect(f.ports.onNotice).toHaveBeenLastCalledWith(expect.stringContaining("Conversación detenida"));
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
   it("completa diez turnos seguidos y detiene el siguiente por voz con una sola autorización", async () => {
     const f = fixture(); let turn = 0;
     f.ports.transcribe = vi.fn(async()=>({text:++turn<=10?`Alice, mensaje ${turn}`:"Apaga el micrófono Alice",noSpeech:false} as never));

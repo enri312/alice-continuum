@@ -121,3 +121,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-126](ADR-P-126-diagnostico-local-de-audio.md) | Medición efímera de señal, escucha local antes de ASR y última transcripción separada |
 
 | [ADR-P-127](ADR-P-127-voz-privada-y-personalidad-alice.md) | Perfil Fish privado con precedencia local y personalidad compartida de Alice para texto, voz y visión |
+
+| [ADR-P-128](ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) | Motivos efímeros de tomas no atendidas y aclaración local de un fragmento musical ambiguo |

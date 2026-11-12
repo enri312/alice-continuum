@@ -68,7 +68,7 @@ autoriza al iniciar.
 2. En Conversación, pulsar **Iniciar escucha de Alice**. El aviso visible
    explica el procesamiento local y las respuestas enviadas a Fish. Si Windows
    solicita permiso de micrófono, concederlo para poder conversar.
-3. Esperar **En espera · di Alice para hablarme**. Incluir «Alice» en cada frase
+3. Esperar **Escuchando · di Alice y tu frase**. Incluir «Alice» en cada frase
    dirigida a ella: «Alice, abre Spotify» o «¿Me escuchas, Alice?». Pronunciar el
    nombre y la petición en una sola frase, sin esperar una respuesta tras el nombre.
    El silencio termina el turno: 2 segundos en Voz baja y pausada, o 1 en Normal. También se puede
@@ -107,7 +107,7 @@ escuchar. No hay reintentos externos automáticos.
 
 Ante una interrupción de planificación del filtro local se descarta la toma
 afectada y se prepara otra captura una sola vez por sesión. El aviso pide repetir
-la frase cuando vuelva **En espera**. No se repite una orden de música ni se
+la frase cuando vuelva **Escuchando**. No se repite una orden de música ni se
 reenvía la toma parcial a Whisper, Gemma o Fish. Un segundo fallo, un formato
 incompatible u otra causa detienen la sesión. Apagar el micrófono cancela también
 ese rearme y el límite de dos horas no se renueva.
@@ -134,6 +134,45 @@ cierre por silencio, así que no equivale a este dictado manual.
 Ver [evaluación de small](../testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
 [la validación y los límites](../testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
+## Tomas no atendidas y peticiones ambiguas
+
+**Escuchando · di Alice y tu frase** indica captura activa lista para recibir
+la frase. Durante transcripción, respuesta y reproducción el micrófono sigue
+apagado; esos estados no son escucha simultánea.
+
+Si no aparece una respuesta, abrir el desplegable existente **Audio de entrada ·
+reducción de ruido local**, cerrado inicialmente, y revisar **Resultado de entrada
+no atendido**. En la escucha sólo aparece el indicador breve **Toma no atendida ·
+detalle en Audio de entrada**; no se abre un panel adicional ni se repite un
+aviso de lectura en vivo. El detalle distingue tres situaciones:
+
+- El detector no reconoció suficiente voz durante la captura; esa toma se
+  descarta antes de llamar al transcriptor.
+- El transcriptor terminó sin devolver palabras.
+- El texto reconocido no se aceptó como una frase dirigida a Alice.
+
+El detalle usa sólo los datos disponibles de esa toma. Un motivo no equivale a
+un diagnóstico del micrófono ni afirma lo que realmente se pronunció. Estas
+tomas no producen mensaje de chat, ejecución o voz Fish. Se conserva un solo
+resultado efímero, que se limpia al apagar, fallar o iniciar la sesión y al
+atender un turno. Un silencio posterior no sustituye el resultado ASR que se
+está inspeccionando; un nuevo ASR puede actualizarlo. **Último mensaje atendido**
+sigue separado y conserva su recorrido anterior.
+
+Para un fragmento musical ambiguo cubierto por la validación local, Alice pide
+aclarar la acción. No cambia una palabra desconocida por «pausa», «reanuda» o
+«reproduce», ni solicita a Gemma que invente una intención. Una pregunta
+informativa, una cita o una mención de otra persona conserva su tratamiento
+conversacional. La regla nueva se limita a un fragmento corto con «Alice», un
+candidato imperativo desconocido y Spotify o YouTube; excluye verbos válidos y
+consultas conocidas. «Alice reproduce Spotify» conserva su ruta normal.
+Repetir la petición completa después de revisar qué texto llegó, sin interpretar
+la aclaración como un recibo de ejecución.
+
+La precisión ASR continúa pendiente. Se mantienen la voz privada, personalidad,
+modelos y filtros. Ver
+[alcance y resultados del incremento](../testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
+
 ## Música y ruido de fondo
 
 **Voz baja y pausada** es el perfil inicial de la página: amplifica localmente
@@ -150,7 +189,7 @@ correcta. Ver [pruebas y límites](../testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-1
 
 1. Abrir **Audio de entrada**, actualizar la lista y elegir el micrófono cercano
    a la boca. No cambiar dispositivos mientras la captura está activa.
-2. Iniciar la escucha y esperar **En espera · di Alice**. El filtro se aplica antes de
+2. Iniciar la escucha y esperar **Escuchando · di Alice y tu frase**. El filtro se aplica antes de
    grabar tanto aquí como en el dictado manual. Su estado confirma la preparación
    de la última toma, sin afirmar que el micrófono siga encendido.
 3. Probar primero sin música; después con Spotify/YouTube en la notebook y luego

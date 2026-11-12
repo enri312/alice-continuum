@@ -5,11 +5,13 @@ Autor y propietario: Carlos Nuñez
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
-**Prioridad vigente:** consolidar el núcleo cognitivo, el autoestudio limitado a
-las materias autorizadas y su proyección en Obsidian. El autoestudio nativo y la
-coordinación de sus fuentes en la interfaz ya están separados; siguen la revisión de contratos, la
-aceptación del ciclo de aprendizaje en uso personal y los incrementos de estructura
-que esa revisión justifique. Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+**Prioridad vigente:** estabilizar captura y transcripción con la voz del
+propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
+Conversación antes de la aceptación de R9. El núcleo cognitivo, el autoestudio
+limitado a las materias autorizadas y su proyección en Obsidian conservan sus
+avances. Siguen pendientes la revisión de contratos, la aceptación personal del
+ciclo de aprendizaje y los incrementos de estructura que esa revisión justifique.
+Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 En paralelo continúa la aceptación de conversación, escucha, voz, percepción y
 acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper local
@@ -115,9 +117,9 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 12 de noviembre:** 808 pruebas frontend aprobadas
-(2 sondas omitidas), 391 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
-compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
+**Última validación registrada, 12 de noviembre:** 824 pruebas frontend aprobadas
+(2 sondas omitidas), 393 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+compilación frontend, formato Rust y Clippy aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
 solo voz ni el ciclo completo de aprendizaje y Obsidian.
@@ -176,6 +178,21 @@ y la aceptación cotidiana del estilo quedan pendientes del propietario; no
 cierran el fallo de reconocimiento ni R9.
 [ADR-P-127](docs/decisions/ADR-P-127-voz-privada-y-personalidad-alice.md) ·
 [Verificación del incremento](docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
+El propietario confirmó que dijo «Alice reproduce Spotify»; el reconocedor
+cambió el verbo y el modelo respondió con una formulación que no correspondía
+a una ejecución real. Se añade un único resultado efímero de entrada no atendida
+dentro del desplegable existente **Audio de entrada**, cerrado inicialmente.
+La escucha sólo muestra un indicador breve; se distingue **Escuchando** de
+transcribir, responder y reproducir. La validación de medios pide aclaración
+para el fragmento ambiguo cubierto sin convertirlo en otra orden.
+No se cambia DSP, modelo ASR, voz privada ni personalidad; la precisión sigue
+pendiente. Pasaron 393 tests Rust y 824 frontend, con 30 y 2 sondas omitidas,
+respectivamente, y la compilación TypeScript/Vite. La variación de assets es
+2.366 bytes (0,031 %), con cinco assets; no mide CPU o arranque nativo.
+Clippy y formato también aprobaron. En Tauri se comprobó la aclaración por
+texto y el detalle de descartes; la aceptación acústica continúa pendiente.
+[ADR-P-128](docs/decisions/ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) ·
+[Resultados y pendientes](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
@@ -679,12 +696,18 @@ conservan su política y procedencia; el avatar continúa al final.
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
-1. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
+1. **Estabilizar captura y transcripción de R9.** Repetir la frase confirmada,
+   contrastar la toma filtrada y el texto del reconocedor y comprobar el motivo
+   visible de los descartes. Mantener el diagnóstico dentro de Audio de entrada,
+   sin sobrecargar Conversación ni añadirle funciones antes de aceptar este
+   recorrido con el propietario. No atribuir precisión ASR a los tests ni
+   optimización de CPU o arranque a una comparación de assets.
+2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
    pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la
    bóveda. Comprobar pausa, errores y prioridad de conversación. La sonda aislada
    de 14 áreas (10 aprobadas y 4 fallidas) no representa avance personal.
-2. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
+3. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
    colaboradores lo implementado; continuar separando coordinación de `App.tsx`
    después de extraer las fuentes de aprendizaje (ADR-P-116), y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
@@ -692,12 +715,12 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    (ADR-P-118). La reanudación rápida ya conserva el reinicio y rechaza resultados
    del ciclo anterior, sin solapar ciclos (ADR-P-119). Evaluar una primitiva de persistencia compartida
    sin cambiar formatos ni debilitar los controles existentes.
-3. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
+4. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
    del propietario. El Volumen ya se revisó en Tauri con fuentes y cambios
    observados; quedan las comprobaciones conjuntas de recuperación y Obsidian
    del primer paso. La revisión visual no sustituye esa aceptación completa.
-4. **Continuar en paralelo la aceptación funcional de R9.** Mantener cinco turnos reales con
+5. **Completar la aceptación funcional de R9.** Mantener cinco turnos reales con
    corrección de referentes; probar escucha sin música, con música de la notebook
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,
    cámara y escritorio con parada e indicadores coherentes. Después completar y

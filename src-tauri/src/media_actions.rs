@@ -361,6 +361,82 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
 
 // A declined direct request must not fall through to a model inventing a receipt.
 // These replies never execute an action or infer authority from previous turns.
+fn ambiguous_addressed_action(text: &str, all: &[Word]) -> bool {
+    // This is a bounded ambiguity check, not a general Spanish verb parser.
+    // Never turn an unrecognised word into a delegated media operation.
+    if text.contains(['¿', '?'])
+        || all.len() != 3
+        || all[0].text != "alice"
+        || !matches!(all[2].text.as_str(), "spotify" | "youtube")
+    {
+        return false;
+    }
+    let candidate = all[1].text.as_str();
+    if !(3..=32).contains(&candidate.len())
+        || !candidate.bytes().all(|byte| byte.is_ascii_alphabetic())
+        || verb_operation(candidate).is_some()
+        || !(candidate.ends_with(['a', 'e']) || candidate.starts_with("re"))
+    {
+        return false;
+    }
+    // Preserve short informational phrases that share that surface form.
+    !matches!(
+        candidate,
+        "nunca"
+            | "aunque"
+            | "quiza"
+            | "ojala"
+            | "que"
+            | "donde"
+            | "porque"
+            | "explica"
+            | "explicame"
+            | "define"
+            | "defineme"
+            | "describe"
+            | "describeme"
+            | "resume"
+            | "resumeme"
+            | "recomienda"
+            | "recomiendas"
+            | "recomiendame"
+            | "recomiendo"
+            | "dime"
+            | "cuenta"
+            | "cuentame"
+            | "habla"
+            | "hablame"
+            | "comenta"
+            | "comentame"
+            | "compara"
+            | "comparame"
+            | "analiza"
+            | "analizame"
+            | "aclara"
+            | "aclarame"
+            | "detalla"
+            | "detallame"
+            | "ensena"
+            | "ensename"
+            | "responde"
+            | "respondeme"
+            | "respondes"
+            | "historia"
+            | "funciona"
+            | "coste"
+            | "tarifa"
+            | "musica"
+            | "artista"
+            | "ayuda"
+            | "alternativa"
+            | "problema"
+            | "reproduccion"
+            | "reproductor"
+            | "recomendacion"
+            | "recuerdo"
+    )
+}
+
 pub(crate) fn clarification(text: &str) -> Option<&'static str> {
     if text.len() > 900 || text.contains(['"', '\'', '«', '»', '“', '”', '`', '\n', '\r']) {
         return None;
@@ -382,8 +458,8 @@ pub(crate) fn clarification(text: &str) -> Option<&'static str> {
         .and_then(|from| all.get(from))
         .and_then(|w| verb_operation(&w.text))
         .is_some();
-    (bare_service || addressed_service || (service && direct)).then_some(
-        "No entendí si quieres pausar, reanudar o reproducir música. No envié ninguna orden al reproductor. Repite la petición completa, incluyendo la acción y el servicio.",
+    (bare_service || addressed_service || ambiguous_addressed_action(text, &all) || (service && direct)).then_some(
+        "No entendí si quieres abrir, pausar, reanudar o reproducir música. No envié ninguna orden al reproductor. Repite la petición completa, incluyendo la acción y el servicio.",
     )
 }
 pub(crate) fn asks_tool_choice(text: &str) -> bool {
@@ -817,7 +893,7 @@ mod tests {
             assert!(parse_request(text).is_none(), "{text}");
             assert_eq!(clarification(text), Some(notice), "{text}");
         }
-        for operation in ["pausar", "reanudar", "reproducir"] {
+        for operation in ["abrir", "pausar", "reanudar", "reproducir"] {
             assert!(
                 notice.contains(operation),
                 "The clarification must include {operation}"
@@ -825,6 +901,80 @@ mod tests {
         }
         assert!(notice.contains("No envié ninguna orden"));
         assert!(notice.contains("Repite la petición completa"));
+    }
+    #[test]
+    fn an_unknown_short_imperative_gets_clarification_without_guessing_an_action() {
+        let notice = clarification("Alice, Spotify.").unwrap();
+        for text in [
+            "Alice. Reclosa Spotify.",
+            "Alice, replosa Spotify.",
+            "ALICE, RECARGA SPOTIFY.",
+            "Alice, reinicia YouTube.",
+        ] {
+            assert!(parse_request(text).is_none(), "{text}");
+            assert!(
+                crate::desktop_actions::direct_target(text).is_none(),
+                "{text}"
+            );
+            assert!(
+                crate::desktop_actions::tool_candidate(text).is_none(),
+                "{text}"
+            );
+            assert_eq!(clarification(text), Some(notice), "{text}");
+        }
+    }
+
+    #[test]
+    fn short_media_ambiguity_does_not_replace_queries_statements_or_quoted_requests() {
+        for text in [
+            "Alice, ¿qué es Spotify?",
+            "Alice, ¿qué reproduces en Spotify?",
+            "Alice, cuál es la historia de Spotify",
+            "Alice, historia Spotify.",
+            "Alice, uso Spotify.",
+            "Alice, funcionamiento Spotify.",
+            "Alice, funciona Spotify.",
+            "Alice, explica Spotify.",
+            "Alice, define Spotify.",
+            "Alice, describe Spotify.",
+            "Alice, resume Spotify.",
+            "Alice, recomienda Spotify.",
+            "Alice, recomiendas Spotify.",
+            "Alice, recomendacion Spotify.",
+            "Alice, privacidad Spotify.",
+            "Alice, musica Spotify.",
+            "Alice, reproduccion Spotify.",
+            "Alice, recuerdo Spotify.",
+            "Alice, conozco Spotify.",
+            "Alice, Spotify no funciona.",
+            "Alice, no reclosa Spotify.",
+            "Alice, nunca Spotify.",
+            "Alice, sin Spotify.",
+            "Alice, si reclosa Spotify.",
+            "Alice, cuando reclosa Spotify.",
+            "Marta, reclosa Spotify.",
+            "Alice, Marta dice Spotify.",
+            "Alice, «reclosa Spotify».",
+            "«Alice, reclosa Spotify.»",
+            "Alice, ¿reclosa Spotify?",
+            "Alice, reclosa Spotify y YouTube.",
+        ] {
+            assert!(parse_request(text).is_none(), "{text}");
+            assert!(clarification(text).is_none(), "{text}");
+        }
+        for text in [
+            "Alice, abre Spotify.",
+            "Alice, reproduce Spotify.",
+            "Alice reproduce Spotify",
+            "Alice, pausa Spotify.",
+            "Alice, reanuda Spotify.",
+        ] {
+            assert!(
+                parse_request(text).is_some()
+                    || crate::desktop_actions::direct_target(text).is_some(),
+                "{text}"
+            );
+        }
     }
     #[test]
     fn informative_third_party_and_quoted_service_mentions_stay_out_of_media_routing() {

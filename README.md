@@ -19,8 +19,9 @@ proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
-Prioridad actual: consolidar autoestudio y Obsidian y continuar el núcleo junto
-con la aceptación de conversación, voz y música de R9.
+Prioridad actual: estabilizar captura y transcripción de R9 con diagnóstico
+compacto, antes de incorporar más funciones a Conversación. El núcleo,
+autoestudio y Obsidian conservan sus avances y pendientes.
 
 **Voz y personalidad:** Alice incorpora un estilo inspirado en Akali: directo,
 seguro e informal, con criterio propio y humor seco ocasional. Conserva empatía,
@@ -54,6 +55,15 @@ localmente antes de **Transcribir localmente**. Los datos del turno muestran
 niveles y cobertura parcial; **Última transcripción** separa el resultado ASR
 del borrador acumulado y de las correcciones escritas.
 [Diagnóstico y límites](docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
+La escucha activa se identifica como **Escuchando · di Alice y tu frase**.
+El detalle **Resultado de entrada no atendido**, dentro del desplegable existente
+**Audio de entrada**, distingue captura sin voz detectada, ASR sin palabras y
+frase no reconocida como dirigida a Alice. Permanece plegado de inicio; la escucha
+sólo añade un indicador breve cuando hay un descarte. Ese detalle es efímero y
+no se envía al chat ni genera acciones o voz Fish. Los fragmentos musicales
+ambiguos cubiertos por la validación local piden aclaración sin adivinar una
+orden. Esto no mejora ni acredita la precisión del reconocedor.
+[Feedback, resultados y pendientes](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -94,8 +104,8 @@ Evidencia: [sesión y cancelación](docs/testing/CONVERSATION_SESSION_REPORT_202
 
 1. Abrir **Iniciar Alice Continuum.cmd** y entrar en **Conversación**.
 2. Elegir el micrófono en **Audio de entrada** y pulsar **Iniciar escucha de Alice**.
-3. Incluir «Alice» en cada frase que se quiera atender y dejar una pausa de un segundo. Alice procesa el turno, responde y vuelve a esperar.
-4. Si entendió algo mal, revisar **Último mensaje atendido**, que muestra el texto y las demoras de cada etapa.
+3. Esperar **Escuchando · di Alice y tu frase**. Incluir «Alice» en cada frase que se quiera atender y dejar la pausa de cierre del perfil: 2 s en Voz baja y pausada o 1 s en Normal. Alice procesa el turno, responde y vuelve a escuchar.
+4. Si entendió algo mal, revisar **Último mensaje atendido**. Si no respondió, abrir **Audio de entrada** y comprobar **Resultado de entrada no atendido**, cuando exista un descarte.
 5. Decir **«Detén la conversación, Alice»** para volver a espera. **«Apaga el micrófono, Alice»** o el botón **Apagar micrófono** cierran la escucha.
 
 El micrófono está apagado durante procesamiento y reproducción. Todavía no hay
@@ -220,10 +230,10 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **12 de noviembre de 2026**:
 
-- **808 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **824 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **391 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, playlist restringida, configuración del reconocedor, selección privada de voz y personalidad compartida.
-- Compilación frontend y formato Rust aprobados.
+- **393 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye configuración de voz y personalidad compartida, más aclaración musical acotada. La selección y ejecución de acciones conserva sus pruebas.
+- Compilación TypeScript/Vite, formato Rust y Clippy con `-D warnings` aprobados. La revisión nativa de este incremento sigue pendiente.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
 - Núcleo: un fallo de consulta no se califica como respuesta incorrecta ni retira una lección aprobada; la conversación reserva prioridad antes de la cola de inferencia. [Cambios y validación](docs/testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md).
