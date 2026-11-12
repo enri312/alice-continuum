@@ -626,8 +626,13 @@ async fn send_cloud_message_inner(
             .await;
             check()?;
             let failed = result.is_err();
-            let text = result
-                .unwrap_or_else(|error| format!("No pude completar la reproducción: {error}"));
+            let text = result.unwrap_or_else(|error| {
+                if clarification.is_some() {
+                    error
+                } else {
+                    format!("No pude completar la reproducción: {error}")
+                }
+            });
             return Ok(CloudResponse {
                 text,
                 provider: "Control multimedia local".into(),

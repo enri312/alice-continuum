@@ -1,7 +1,7 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-11**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-12**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
@@ -111,8 +111,8 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 11 de noviembre:** 724 pruebas frontend aprobadas
-(2 sondas omitidas), 376 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+**Última validación registrada, 12 de noviembre:** 724 pruebas frontend aprobadas
+(2 sondas omitidas), 378 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
@@ -122,6 +122,11 @@ con control de pausa de cabecera, ID de contexto y recibo coincidentes. La orden
 hablada también produjo el recibo y el propietario confirmó música y voz. El
 filtro falló después; se añadió descarte y único rearme de captura por sesión.
 La estabilidad prolongada y los cinco turnos con música siguen pendientes.
+La pérdida de «pausa» también se observó al repetir una orden corta. Whisper
+deja de recibir una lista fija como texto inicial; una mención de servicio sin
+acción pide aclaración antes de Gemma y de cualquier herramienta. La repetición
+acústica con este ajuste permanece pendiente.
+[ADR-P-122](docs/decisions/ADR-P-122-transcripcion-sin-texto-prefijado.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).

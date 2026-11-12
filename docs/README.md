@@ -20,6 +20,9 @@ por nombre y comprobación de contexto en Windows, con configuración fuera de G
 [Prueba de playlist con micrófono](testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md):
 orden real y audio confirmados por el propietario; fallo posterior del filtro y recuperación acotada.
 
+[Revisión del reconocimiento de órdenes cortas](testing/VOICE_ASR_REVIEW_2026-11-12.md):
+transcripción sin texto inicial fijo y aclaración local de una acción ausente.
+
 [Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
 base de autoestudio/Obsidian conservada y primera separación de reglas,
 persistencia y adaptación a Gemma para revisión con colaboradores.

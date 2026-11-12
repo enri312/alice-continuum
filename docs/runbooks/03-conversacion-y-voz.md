@@ -1,6 +1,6 @@
 # Operar y evaluar conversación y voz
 
-Actualizado: 2026-11-11. Espera dirigida con reducción local de ruido; calidad conversacional y
+Actualizado: 2026-11-12. Espera dirigida con reducción local de ruido; calidad conversacional y
 aceptación con la voz del propietario todavía en validación.
 
 ## Preparación
@@ -30,8 +30,9 @@ autoriza al iniciar.
    explica el procesamiento local y las respuestas enviadas a Fish. Si Windows
    solicita permiso de micrófono, concederlo para poder conversar.
 3. Esperar **En espera · di Alice para hablarme**. Incluir «Alice» en cada frase
-   dirigida a ella: «Alice, abre Spotify» o «¿Me escuchas, Alice?». Una pausa de un
-   segundo termina el turno; también se puede
+   dirigida a ella: «Alice, abre Spotify» o «¿Me escuchas, Alice?». Pronunciar el
+   nombre y la petición en una sola frase, sin esperar una respuesta tras el nombre.
+   Una pausa de un segundo termina el turno; también se puede
    pulsar **Terminé de hablar**. El audio se transcribe con Whisper local (Gemma
    como respaldo si no está instalado) y el mensaje se
    procesa sin otras confirmaciones sólo si contiene una llamada directa.

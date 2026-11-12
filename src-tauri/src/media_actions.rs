@@ -375,12 +375,15 @@ pub(crate) fn clarification(text: &str) -> Option<&'static str> {
         .iter()
         .any(|w| matches!(w.text.as_str(), "spotify" | "youtube"));
     let bare_service = all.len() == 1 && service;
+    // ASR may preserve the addressee and service while losing the action.
+    // This bounded mention must ask for clarification, never guess playback.
+    let addressed_service = all.len() == 2 && all[0].text == "alice" && service;
     let direct = request_start(&all)
         .and_then(|from| all.get(from))
         .and_then(|w| verb_operation(&w.text))
         .is_some();
-    (bare_service || (service && direct)).then_some(
-        "No envié ninguna orden al reproductor porque no entendí la acción completa. Puedes decir «abre Spotify y reproduce mi música», «pausa Spotify» o «reproduce [canción] en YouTube».",
+    (bare_service || addressed_service || (service && direct)).then_some(
+        "No entendí si quieres pausar, reanudar o reproducir música. No envié ninguna orden al reproductor. Repite la petición completa, incluyendo la acción y el servicio.",
     )
 }
 pub(crate) fn asks_tool_choice(text: &str) -> bool {
@@ -801,6 +804,46 @@ mod tests {
         assert!(clarification("abre Spotify y elimina archivos").is_some());
         assert!(clarification("abre Spotify").is_none());
         assert!(clarification("Alice, me abres Spotify en mi equipo").is_none());
+    }
+    #[test]
+    fn an_addressed_service_without_an_action_gets_a_balanced_local_clarification() {
+        let notice = clarification("Spotify").unwrap();
+        for text in [
+            "Alice, Spotify.",
+            "Alice Spotify",
+            "ALICE, SPOTIFY.",
+            "Alice, YouTube.",
+        ] {
+            assert!(parse_request(text).is_none(), "{text}");
+            assert_eq!(clarification(text), Some(notice), "{text}");
+        }
+        for operation in ["pausar", "reanudar", "reproducir"] {
+            assert!(
+                notice.contains(operation),
+                "The clarification must include {operation}"
+            );
+        }
+        assert!(notice.contains("No envié ninguna orden"));
+        assert!(notice.contains("Repite la petición completa"));
+    }
+    #[test]
+    fn informative_third_party_and_quoted_service_mentions_stay_out_of_media_routing() {
+        for text in [
+            "Alice, ¿qué es Spotify?",
+            "Alice, ¿Spotify permite listas?",
+            "Alice, dime qué es YouTube",
+            "Marta dice Spotify",
+            "Marta, Spotify.",
+            "Alice, Marta dice Spotify",
+            "Alice, Spotify no funciona",
+            "Alice, no Spotify.",
+            "Alice, «Spotify»",
+            "«Alice, Spotify.»",
+            "Alista, Spotify.",
+        ] {
+            assert!(parse_request(text).is_none(), "{text}");
+            assert!(clarification(text).is_none(), "{text}");
+        }
     }
     #[test]
     fn media_audit_is_narrow_and_generic_context_is_not_invented() {

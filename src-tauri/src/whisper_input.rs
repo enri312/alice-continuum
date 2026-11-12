@@ -18,6 +18,8 @@ pub(crate) fn available() -> bool {
 fn arguments() -> Vec<&'static str> {
     // v1.9.2 treats input '-' as an output prefix too. A non-dash prefix keeps
     // results on stdout. No --output-* format is enabled, so no file is written.
+    // Keep decoding unseeded: a fixed list of app names must not replace a
+    // short spoken action. Real accuracy still needs microphone acceptance.
     vec![
         "-l",
         "es",
@@ -26,8 +28,6 @@ fn arguments() -> Vec<&'static str> {
         "-ng",
         "-nt",
         "-np",
-        "--prompt",
-        "Alice, Spotify, YouTube, Chrome.",
         "-of",
         "alice-memory-only",
         "-f",
@@ -144,6 +144,10 @@ mod tests {
     fn recognition_stays_on_cpu_and_uses_pipes_without_output_files() {
         let args = arguments();
         assert!(args.contains(&"-ng"));
+        assert!(args.windows(2).any(|pair| pair == ["-l", "es"]));
+        // No preset transcript or grammar may complete an unheard action.
+        assert!(!args.contains(&"--prompt"));
+        assert!(!args.contains(&"--grammar"));
         assert_eq!(&args[args.len() - 2..], &["-f", "-"]);
         for forbidden in ["-otxt", "-oj", "-ojf", "-osrt", "-owts", "--output-txt"] {
             assert!(!args.contains(&forbidden));

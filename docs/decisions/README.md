@@ -109,3 +109,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-120](ADR-P-120-playlist-spotify-configurada.md) | Playlist privada configurada y contexto de reproducción comprobado en Windows |
 
 | [ADR-P-121](ADR-P-121-recuperacion-acotada-de-captura.md) | Descarte de la toma y único rearme local ante interrupciones de planificación del filtro |
+
+| [ADR-P-122](ADR-P-122-transcripcion-sin-texto-prefijado.md) | Whisper sin texto inicial fijo y aclaración determinista de una acción ausente |
