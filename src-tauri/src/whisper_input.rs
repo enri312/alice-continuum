@@ -1,18 +1,69 @@
 //! CPU speech recognition with WAV/stdout pipes. No audio or transcript files.
 use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-pub(crate) const MODEL_NAME: &str = "Whisper base · local CPU";
 const MAX_TEXT: usize = 6_000;
 
-pub(crate) fn available() -> bool {
-    [
-        crate::runtime_paths::whisper_bin(),
-        crate::runtime_paths::whisper_model(),
-    ]
-    .iter()
-    .all(|p| p.as_ref().is_ok_and(|p| p.is_file()))
+/// A take keeps the same paths and display label through decode and recognition.
+#[derive(Clone, Debug)]
+pub(crate) struct Configuration {
+    binary: PathBuf,
+    model: PathBuf,
+    label: &'static str,
+}
+impl Configuration {
+    pub(crate) fn label(&self) -> &'static str {
+        self.label
+    }
+}
+
+fn label_for_model(path: &Path) -> &'static str {
+    match path.file_name().and_then(|name| name.to_str()) {
+        Some("ggml-small.bin") => "Whisper small · local CPU",
+        Some("ggml-base.bin") => "Whisper base · local CPU",
+        _ => "Whisper local · modelo configurado",
+    }
+}
+
+fn file_present(path: &Path) -> Result<bool, String> {
+    match std::fs::metadata(path) {
+        Ok(metadata) if metadata.is_file() => Ok(true),
+        Ok(_) => Err("Un recurso de Whisper local no es un archivo válido".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(_) => Err("No se pudo consultar la instalación de Whisper local".into()),
+    }
+}
+
+fn configuration_at(
+    binary: PathBuf,
+    model: PathBuf,
+    required: bool,
+) -> Result<Option<Configuration>, String> {
+    let binary_present = file_present(&binary)?;
+    let model_present = file_present(&model)?;
+    if !binary_present && !model_present && !required {
+        return Ok(None);
+    }
+    if !binary_present || !model_present {
+        return Err("Whisper está configurado o instalado, pero falta su motor o modelo. Revisa su instalación local.".into());
+    }
+    let label = label_for_model(&model);
+    Ok(Some(Configuration {
+        binary,
+        model,
+        label,
+    }))
+}
+
+pub(crate) fn configuration() -> Result<Option<Configuration>, String> {
+    let binary = crate::runtime_paths::whisper_bin()?;
+    let model = crate::runtime_paths::whisper_model()?;
+    let required = ["ALICE_WHISPER_BIN", "ALICE_WHISPER_MODEL"]
+        .iter()
+        .any(|name| std::env::var_os(name).is_some_and(|value| !value.is_empty()));
+    configuration_at(binary, model, required)
 }
 
 fn arguments() -> Vec<&'static str> {
@@ -63,20 +114,11 @@ fn is_silent(wav: &[u8]) -> bool {
     false
 }
 
-pub(crate) fn transcribe(
-    wav: Vec<u8>,
-    cancelled: impl Fn() -> bool,
-) -> Result<(String, bool), String> {
-    if cancelled() {
-        return Err("La sesión de voz terminó antes de transcribir".into());
-    }
-    if is_silent(&wav) {
-        return Ok((String::new(), true));
-    }
-    let mut command = Command::new(crate::runtime_paths::whisper_bin()?);
+fn command_for(configuration: &Configuration) -> Command {
+    let mut command = Command::new(&configuration.binary);
     command
         .arg("-m")
-        .arg(crate::runtime_paths::whisper_model()?)
+        .arg(&configuration.model)
         .args(arguments())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -86,7 +128,21 @@ pub(crate) fn transcribe(
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x0800_0000);
     }
-    let mut child = command
+    command
+}
+
+pub(crate) fn transcribe(
+    configuration: &Configuration,
+    wav: Vec<u8>,
+    cancelled: impl Fn() -> bool,
+) -> Result<(String, bool), String> {
+    if cancelled() {
+        return Err("La sesión de voz terminó antes de transcribir".into());
+    }
+    if is_silent(&wav) {
+        return Ok((String::new(), true));
+    }
+    let mut child = command_for(configuration)
         .spawn()
         .map_err(|_| "No se pudo iniciar Whisper local. Revisa su instalación.")?;
     let mut input = child
@@ -140,6 +196,110 @@ pub(crate) fn transcribe(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct Installation(PathBuf);
+    impl Installation {
+        fn new() -> Self {
+            let root = std::env::temp_dir()
+                .join(format!("alice-whisper-selection-{}", uuid::Uuid::new_v4()));
+            std::fs::create_dir(&root).unwrap();
+            Self(root)
+        }
+        fn binary(&self) -> PathBuf {
+            self.0.join("whisper-cli.test")
+        }
+        fn model(&self, name: &str) -> PathBuf {
+            self.0.join(name)
+        }
+    }
+    impl Drop for Installation {
+        fn drop(&mut self) {
+            for name in [
+                "whisper-cli.test",
+                "ggml-base.bin",
+                "ggml-small.bin",
+                "custom.bin",
+            ] {
+                let _ = std::fs::remove_file(self.0.join(name));
+            }
+            let _ = std::fs::remove_dir(&self.0);
+        }
+    }
+
+    #[test]
+    fn only_a_missing_default_installation_allows_the_other_recognizer() {
+        let fixture = Installation::new();
+        let binary = fixture.binary();
+        let model = fixture.model("ggml-base.bin");
+        assert!(configuration_at(binary.clone(), model.clone(), false)
+            .unwrap()
+            .is_none());
+        assert!(configuration_at(binary.clone(), model.clone(), true).is_err());
+        std::fs::write(&binary, b"fixture-not-executed").unwrap();
+        assert!(configuration_at(binary.clone(), model.clone(), false).is_err());
+        std::fs::write(&model, b"fixture-not-loaded").unwrap();
+        assert!(configuration_at(binary.clone(), model.clone(), false)
+            .unwrap()
+            .is_some());
+        std::fs::remove_file(&binary).unwrap();
+        assert!(configuration_at(binary, model, false).is_err());
+    }
+
+    #[test]
+    fn a_take_keeps_its_paths_and_label_when_small_is_published_after_selection() {
+        let fixture = Installation::new();
+        let binary = fixture.binary();
+        let base = fixture.model("ggml-base.bin");
+        let small = fixture.model("ggml-small.bin");
+        std::fs::write(&binary, b"fixture-not-executed").unwrap();
+        std::fs::write(&base, b"fixture-not-loaded").unwrap();
+        let selected = configuration_at(binary.clone(), base.clone(), false)
+            .unwrap()
+            .unwrap();
+        std::fs::write(&small, b"new-fixture-not-loaded").unwrap();
+        let next = configuration_at(binary.clone(), small.clone(), false)
+            .unwrap()
+            .unwrap();
+        assert_eq!(selected.label(), "Whisper base · local CPU");
+        assert_eq!(next.label(), "Whisper small · local CPU");
+        let command = command_for(&selected);
+        assert_eq!(command.get_program(), binary.as_os_str());
+        let args: Vec<_> = command.get_args().collect();
+        assert_eq!(args[0], "-m");
+        assert_eq!(args[1], base.as_os_str());
+        assert_eq!(
+            command_for(&next).get_args().nth(1),
+            Some(small.as_os_str())
+        );
+    }
+
+    #[test]
+    fn unknown_model_names_get_a_generic_label_without_private_paths() {
+        for (name, expected) in [
+            ("ggml-base.bin", "Whisper base · local CPU"),
+            ("ggml-small.bin", "Whisper small · local CPU"),
+            ("ggml-small.en.bin", "Whisper local · modelo configurado"),
+            ("custom.bin", "Whisper local · modelo configurado"),
+        ] {
+            assert_eq!(label_for_model(&std::env::temp_dir().join(name)), expected);
+        }
+    }
+
+    #[test]
+    fn a_revoked_take_does_not_spawn_and_a_disappeared_binary_returns_an_error() {
+        let fixture = Installation::new();
+        let configuration = Configuration {
+            binary: fixture.binary(),
+            model: fixture.model("ggml-small.bin"),
+            label: "Whisper small · local CPU",
+        };
+        assert!(transcribe(&configuration, b"not-audio".to_vec(), || true)
+            .unwrap_err()
+            .contains("sesión de voz terminó"));
+        assert!(transcribe(&configuration, b"not-audio".to_vec(), || false)
+            .unwrap_err()
+            .contains("No se pudo iniciar Whisper local"));
+    }
     #[test]
     fn recognition_stays_on_cpu_and_uses_pipes_without_output_files() {
         let args = arguments();

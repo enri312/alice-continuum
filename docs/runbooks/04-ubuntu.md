@@ -140,6 +140,10 @@ local/inference/
   models/whisper/ggml-base.bin
 ```
 
+Si `models/whisper/ggml-small.bin` ya está instalado, Alice lo prefiere a base.
+La variable absoluta `ALICE_WHISPER_MODEL` tiene prioridad. Esta selección no
+descarga archivos ni acredita una prueba acústica nueva en Ubuntu.
+
 Utiliza llama.cpp compatible con Gemma 4 y los parámetros del motor evaluado
 (referencia Windows: b10809), y whisper.cpp v1.9.2. Consulta las instrucciones
 Linux de [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md)

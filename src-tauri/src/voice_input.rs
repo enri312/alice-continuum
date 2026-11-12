@@ -185,37 +185,53 @@ pub(crate) async fn transcribe_voice_turn(
         "VOICE_TURN_TRANSCRIPTION_REQUESTED",
     )?;
     let started = Instant::now();
-    let use_whisper = crate::whisper_input::available();
-    let decoded =
-        tauri::async_runtime::spawn_blocking(move || decode_webm_to_wav(input.audio_base64))
+    let configuration = crate::whisper_input::configuration();
+    let model_name = configuration
+        .as_ref()
+        .ok()
+        .and_then(|selected| selected.as_ref())
+        .map_or(crate::local_inference::GEMMA_MODEL, |selected| {
+            selected.label()
+        });
+    let result = match configuration {
+        Err(error) => Err(error),
+        Ok(configuration) => {
+            let decoded = tauri::async_runtime::spawn_blocking(move || {
+                decode_webm_to_wav(input.audio_base64)
+            })
             .await
             .map_err(|_| "Se interrumpió el decodificador local".to_string());
-    let result = match decoded {
-        Ok(Ok(wav)) => {
-            let authorization = input
-                .session_id
-                .as_ref()
-                .map_or(Ok(()), |id| session.require(id));
-            match authorization {
-                Ok(()) if use_whisper => {
-                    let store = session.inner().clone();
-                    let id = input.session_id.clone();
-                    tauri::async_runtime::spawn_blocking(move || {
-                        crate::whisper_input::transcribe(wav, || {
-                            id.as_ref().is_some_and(|id| store.require(id).is_err())
-                        })
-                    })
-                    .await
-                    .map_err(|_| "Se interrumpió el reconocedor local".to_string())?
+            match decoded {
+                Ok(Ok(wav)) => {
+                    let authorization = input
+                        .session_id
+                        .as_ref()
+                        .map_or(Ok(()), |id| session.require(id));
+                    match authorization {
+                        Ok(()) => {
+                            if let Some(configuration) = configuration {
+                                let store = session.inner().clone();
+                                let id = input.session_id.clone();
+                                tauri::async_runtime::spawn_blocking(move || {
+                                    crate::whisper_input::transcribe(&configuration, wav, || {
+                                        id.as_ref().is_some_and(|id| store.require(id).is_err())
+                                    })
+                                })
+                                .await
+                                .map_err(|_| "Se interrumpió el reconocedor local".to_string())?
+                            } else {
+                                crate::local_inference::gemma_chat(transcription_body(&wav))
+                                    .await
+                                    .and_then(|value| parse_transcript(&value))
+                            }
+                        }
+                        Err(error) => Err(error),
+                    }
                 }
-                Ok(()) => crate::local_inference::gemma_chat(transcription_body(&wav))
-                    .await
-                    .and_then(|value| parse_transcript(&value)),
+                Ok(Err(error)) => Err(error),
                 Err(error) => Err(error),
             }
         }
-        Ok(Err(error)) => Err(error),
-        Err(error) => Err(error),
     };
     let duration_ms = u64::try_from(started.elapsed().as_millis())
         .unwrap_or(86_400_000)
@@ -250,11 +266,7 @@ pub(crate) async fn transcribe_voice_turn(
             Ok(VoiceTurnTranscript {
                 text,
                 no_speech,
-                model: if use_whisper {
-                    crate::whisper_input::MODEL_NAME
-                } else {
-                    crate::local_inference::GEMMA_MODEL
-                },
+                model: model_name,
                 duration_ms,
                 ephemeral_audio: true,
                 sent_to_conversation: false,

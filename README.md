@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. Se añadió recuperación acotada de captura y se revisa la pérdida de palabras en órdenes cortas: Whisper sin texto prefijado y aclaración explícita ante una acción ausente. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
+**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. El perfil de voz baja captó una orden corta correcta y otras con palabras sustituidas; se evalúa Whisper small multilingüe conservando base. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -24,7 +24,9 @@ con la aceptación de conversación, voz y música de R9.
 
 **Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
 ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
-volver a Normal. [Cambios y prueba pendiente](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
+volver a Normal. La precisión continúa en evaluación, con
+[small como siguiente prueba](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
+[Perfil y repetición personal](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -39,7 +41,7 @@ restaura en una carpeta nueva. La copia en otra unidad física sigue pendiente.
 | Área | Implementación y evidencia |
 |---|---|
 | Conversación | Gemma 4 E2B local mediante llama.cpp, con diálogo reciente y recuerdos recuperables. Los referentes ambiguos siguen en evaluación. |
-| Voz por turnos | RNNoise reduce ruido, Whisper base CPU transcribe español, Gemma responde y Fish Audio sintetiza. Una acción inicia la sesión; no se confirma cada turno. |
+| Voz por turnos | RNNoise reduce ruido, Whisper local CPU transcribe español, Gemma responde y Fish Audio sintetiza. Small se prefiere si está instalado; base sigue disponible. Una acción inicia la sesión; no se confirma cada turno. |
 | Espera y continuidad | Las frases dirigidas a Alice se atienden tras la transcripción local. «Detén la conversación, Alice» vuelve a espera; «Apaga el micrófono, Alice» cierra la sesión. Rechazo de respuestas tardías y recuperación en texto si falla la voz. |
 | Memoria y RAG | Memoria confirmada y selección automática de citas útiles en almacenes separados. Se puede pausar, corregir y retirar del contexto; no se entrenan pesos por conversar. |
 | Navegación de Memoria | Cuatro secciones: Aprendizaje, Recuerdos, En sesión y Mantenimiento. El autoestudio aparece primero; perfil, revisión, capas, consolidación y respaldo conservan sus controles. Los nombres de la barra compacta se muestran completos y Memoria tiene un nuevo icono de conocimiento con fuentes conectadas. |
@@ -132,16 +134,21 @@ Gemma y su proyector multimodal se instalan fuera de Git. La configuración de
 esta notebook usa llama.cpp y modelos bajo `D:\Alice-model-evaluation`; no se
 incluyen los pesos ni se descargan automáticamente al abrir Alice.
 
-Para reproducir la instalación de Whisper base multilingüe en la ruta prevista:
+Para instalar Whisper small multilingüe en la ruta prevista:
 
 ```powershell
-& '.\scripts\testing\install-whisper-local.ps1'
+& '.\scripts\testing\install-whisper-local.ps1' -Model small
 ```
 
-El instalador fija fuentes oficiales y hashes. Whisper se ejecuta en CPU con
-cuatro hilos y procesa audio por tuberías en RAM. Si falta su instalación,
-permanece la transcripción Gemma anterior; si Whisper instalado falla, el error
-se informa. FFmpeg se requiere para convertir la toma local.
+El instalador usa Node, fija fuentes oficiales y verifica hashes. `-Model base`
+instala la alternativa anterior sin borrar small. Alice prefiere small cuando
+está presente; `ALICE_WHISPER_MODEL` permite elegir una ruta absoluta explícita,
+incluida base. El diagnóstico muestra el modelo seleccionado para cada toma.
+Whisper se ejecuta en CPU con cuatro hilos y procesa audio por tuberías en RAM.
+Si no hay motor ni modelo predeterminados, permanece la transcripción Gemma
+anterior. Una instalación incompleta, una configuración explícita inválida o un
+fallo de Whisper se informan sin reenviar esa toma a Gemma. FFmpeg se requiere
+para convertir la toma local.
 
 Fish Audio usa `FISH_API_KEY` y `ALICE_FISH_REFERENCE_ID` en el entorno del proceso
 nativo. Las respuestas autorizadas salen al proveedor para obtener su voz; el
@@ -181,11 +188,11 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 ## Verificación
 
-Última validación local, **11 de noviembre de 2026**:
+Última validación local, **12 de noviembre de 2026**:
 
 - **738 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **378 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y aclaración de acciones ausentes.
+- **385 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y configuración del reconocedor por toma.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).

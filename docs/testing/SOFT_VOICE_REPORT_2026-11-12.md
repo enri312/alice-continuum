@@ -40,11 +40,24 @@ El archivo de código previo está en `local/backups/voice-soft-20261112/source-
 Los 134 archivos privados conservaron sus huellas durante edición y pruebas,
 antes de reabrir la aplicación. No se cambian permisos ni volumen del sistema.
 
-## Prueba personal pendiente
+## Repetición personal
 
-Confirmar el perfil en Audio de entrada, iniciar escucha y pronunciar en voz
-baja una frase completa al aparecer **En espera**. Comprobar la transcripción,
-el recibo y la salida audible; después comprobar pausas naturales y apagado.
+El propietario informó: «Me oye, pero cambia alguna palabra». En la interfaz
+nativa se confirmó **Voz baja y pausada**, tanto en el selector como en el perfil
+de la última captura. Una toma conservó «Alice Pausa Spotify» y recibió
+**Spotify quedó en pausa**; otras sustituyeron el servicio o el verbo. Esa toma
+correcta demuestra un caso funcional, no una precisión estable. El micrófono se
+apagó antes de continuar el diagnóstico.
+
+La captura se mantiene fija al evaluar un reconocedor más capaz. No se añade
+una corrección aproximada de «Spotify» ni se reconstruyen acciones ausentes.
+Ver [la evaluación de Whisper small](WHISPER_SMALL_REPORT_2026-11-12.md).
+
+## Aceptación pendiente
+
+Repetir en voz baja una frase completa al aparecer **En espera**. Comprobar la
+transcripción, el recibo y la salida audible; después comprobar pausas naturales
+y apagado.
 Separar esta prueba de la posterior con música y de los cinco turnos cotidianos.
 
 La amplificación puede elevar también el ambiente y puede saturar con voz

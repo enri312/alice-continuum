@@ -12,8 +12,8 @@ aceptación del ciclo de aprendizaje en uso personal y los incrementos de estruc
 que esa revisión justifique. Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 En paralelo continúa la aceptación de conversación, escucha, voz, percepción y
-acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper base
-CPU transcribe español y Fish da voz. Las pruebas sintéticas no cierran la
+acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper local
+CPU transcribe español y Fish da voz. Small se evalúa junto a base. Las pruebas sintéticas no cierran la
 aceptación con Carlos y música real. **Domótica queda fuera de este tramo y el
 avatar va al final**. Atlas y Nerumi son referencias, no capacidades incorporadas.
 El [próximo paso autorizado](#próximo-paso-autorizado) fija el orden y sus criterios.
@@ -43,7 +43,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 |---|---|---|
 | Contrato y límites | Completo | Documento maestro, decisiones y diagramas de ingeniería. |
 | Núcleo observable | Base completa; evolución visual ampliada | Volumen bilateral con registros reales, crecimiento visual acotado e incorporación de aprendizajes. El mapa de módulos permanece en Flujo cognitivo. Importancia, color afectivo confirmado, aristas R8 y controles conservados; señales R3 separadas de la demostración. |
-| Conversación y voz | Implementadas; aceptación cotidiana pendiente | Gemma local, proveedores alternativos, Whisper base CPU, Fish y sesión de escucha con parada. |
+| Conversación y voz | Implementadas; aceptación cotidiana pendiente | Gemma local, proveedores alternativos, Whisper CPU con selección small/base, Fish y sesión de escucha con parada. |
 | Memoria y recuperación | Funcionales | Registros confirmados, perfil, selección automática de citas y autoestudio en almacenes separados; recuperación con procedencia y controles propios. |
 | Ciclo y consolidación | Funcionales en sus alcances | Vigencia, accesibilidad, revisión, edición versionada y respaldo. La fusión canónica sigue bloqueada. |
 | Autoestudio al arrancar | Implementado; aceptación personal en curso | 42 lecciones en 14 áreas, ejercicios, avance y repaso; sólo se recuperan lecciones activas con el último ejercicio aprobado. |
@@ -112,7 +112,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
 **Última validación registrada, 12 de noviembre:** 738 pruebas frontend aprobadas
-(2 sondas omitidas), 378 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+(2 sondas omitidas), 385 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
@@ -129,8 +129,15 @@ acústica con este ajuste permanece pendiente.
 [ADR-P-122](docs/decisions/ADR-P-122-transcripcion-sin-texto-prefijado.md).
 Por la petición de mayor sensibilidad para voz baja se añadió un perfil de
 ganancia 4× y pausa de cierre de 2 s, con opción Normal y sin modificar los
-criterios mínimos de voz. La precisión acústica de ese perfil queda pendiente.
+criterios mínimos de voz. En la repetición personal hubo una orden corta de
+pausa correcta y otras con palabras sustituidas; la precisión no es estable.
 [ADR-P-123](docs/decisions/ADR-P-123-voz-baja-y-pausada.md).
+Se evalúa small multilingüe instalado junto a base, sin cambiar la captura.
+La configuración se fija una vez por toma y el resultado identifica ese modelo;
+la selección explícita por entorno conserva prioridad. La aceptación acústica
+y la latencia de small con la voz del propietario siguen pendientes.
+[ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
+[Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).

@@ -113,3 +113,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-122](ADR-P-122-transcripcion-sin-texto-prefijado.md) | Whisper sin texto inicial fijo y aclaración determinista de una acción ausente |
 
 | [ADR-P-123](ADR-P-123-voz-baja-y-pausada.md) | Ganancia local y plazo de silencio para voz baja y habla pausada |
+
+| [ADR-P-124](ADR-P-124-modelo-whisper-small.md) | Small multilingüe instalado junto a base y configuración fiel por toma |

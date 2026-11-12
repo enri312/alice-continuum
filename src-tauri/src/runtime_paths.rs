@@ -65,7 +65,11 @@ pub(crate) fn gemma_projector() -> Result<PathBuf, String> {
 }
 
 pub(crate) fn whisper_bin() -> Result<PathBuf, String> {
-    resource(
+    if let Some(value) = std::env::var_os("ALICE_WHISPER_BIN").filter(|value| !value.is_empty()) {
+        return configured(Some(value), "ALICE_WHISPER_BIN", PathBuf::new());
+    }
+    configured(
+        None,
         "ALICE_WHISPER_BIN",
         inference_home()?.join(if cfg!(windows) {
             "runtimes/whisper-v1.9.2/bin/Release/whisper-cli.exe"
@@ -76,10 +80,28 @@ pub(crate) fn whisper_bin() -> Result<PathBuf, String> {
 }
 
 pub(crate) fn whisper_model() -> Result<PathBuf, String> {
-    resource(
-        "ALICE_WHISPER_MODEL",
-        inference_home()?.join("models/whisper/ggml-base.bin"),
-    )
+    resolve_whisper_model(std::env::var_os("ALICE_WHISPER_MODEL"), inference_home)
+}
+
+fn resolve_whisper_model(
+    value: Option<std::ffi::OsString>,
+    home: impl FnOnce() -> Result<PathBuf, String>,
+) -> Result<PathBuf, String> {
+    if let Some(value) = value.filter(|value| !value.is_empty()) {
+        // An explicit model must not depend on the default installation root.
+        return configured(Some(value), "ALICE_WHISPER_MODEL", PathBuf::new());
+    }
+    let directory = home()?.join("models/whisper");
+    let small = directory.join("ggml-small.bin");
+    let fallback = match std::fs::metadata(&small) {
+        Ok(metadata) if metadata.is_file() => small,
+        Ok(_) => return Err("El modelo Whisper small no es un archivo válido".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            directory.join("ggml-base.bin")
+        }
+        Err(_) => return Err("No se pudo consultar el modelo Whisper small instalado".into()),
+    };
+    configured(None, "ALICE_WHISPER_MODEL", fallback)
 }
 
 pub(crate) fn python() -> Result<PathBuf, String> {
@@ -122,5 +144,64 @@ mod tests {
             configured(None, "TEST_PATH", local_dir()).unwrap(),
             local_dir()
         );
+    }
+
+    #[test]
+    fn whisper_prefers_small_without_removing_the_base_fallback() {
+        let root =
+            std::env::temp_dir().join(format!("alice-whisper-paths-{}", uuid::Uuid::new_v4()));
+        let directory = root.join("models/whisper");
+        std::fs::create_dir_all(&directory).unwrap();
+        let base = directory.join("ggml-base.bin");
+        let small = directory.join("ggml-small.bin");
+        let resolve = || resolve_whisper_model(None, || Ok(root.clone())).unwrap();
+        assert_eq!(resolve(), base);
+        std::fs::write(&base, b"base-fixture").unwrap();
+        assert_eq!(resolve(), base);
+        std::fs::write(&small, b"small-fixture").unwrap();
+        assert_eq!(resolve(), small);
+        assert_eq!(std::fs::read(&base).unwrap(), b"base-fixture");
+        let explicit = resolve_whisper_model(Some(base.clone().into_os_string()), || {
+            panic!("the explicit override must not resolve defaults")
+        })
+        .unwrap();
+        assert_eq!(explicit, base);
+        std::fs::remove_file(small).unwrap();
+        assert_eq!(resolve(), base);
+        std::fs::remove_file(base).unwrap();
+        std::fs::remove_dir(&directory).unwrap();
+        std::fs::remove_dir(root.join("models")).unwrap();
+        std::fs::remove_dir(root).unwrap();
+    }
+
+    #[test]
+    fn an_explicit_whisper_model_is_not_replaced_by_a_default() {
+        let missing = local_dir().join("test-not-installed/explicit-model.bin");
+        assert_eq!(
+            resolve_whisper_model(Some(missing.clone().into_os_string()), || panic!(
+                "explicit override resolves no defaults"
+            ))
+            .unwrap(),
+            missing
+        );
+        assert!(
+            resolve_whisper_model(Some("relative-model.bin".into()), || panic!(
+                "invalid override must not use defaults"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn an_invalid_installed_small_model_does_not_silently_select_base() {
+        let root =
+            std::env::temp_dir().join(format!("alice-whisper-invalid-{}", uuid::Uuid::new_v4()));
+        let small = root.join("models/whisper/ggml-small.bin");
+        std::fs::create_dir_all(&small).unwrap();
+        assert!(resolve_whisper_model(None, || Ok(root.clone())).is_err());
+        std::fs::remove_dir(&small).unwrap();
+        std::fs::remove_dir(root.join("models/whisper")).unwrap();
+        std::fs::remove_dir(root.join("models")).unwrap();
+        std::fs::remove_dir(root).unwrap();
     }
 }

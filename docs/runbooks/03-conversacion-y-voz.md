@@ -79,11 +79,14 @@ y la pausa de cierre. El detalle sólo permanece en esta pantalla; las frases
 ignoradas por no dirigirse a Alice no se muestran ahí. Este filtro opera sobre
 la transcripción; no es un detector acústico dedicado ni verifica quién habla.
 
-Whisper base está instalado en este equipo. Para reproducir la instalación,
-ejecutar `scripts/testing/install-whisper-local.ps1` desde PowerShell. Descarga
+Whisper small se evalúa en este equipo junto a base. Para reproducir la instalación,
+ejecutar `scripts/testing/install-whisper-local.ps1 -Model small` desde PowerShell. Descarga
 únicamente fuentes oficiales y verifica los hashes; no cambia Gemma, Fish, PATH
 ni servicios. Si Whisper instalado falla, revisar el error y volver a iniciar;
-Alice no cambia silenciosamente de reconocedor. Ver
+Alice no cambia silenciosamente de reconocedor. Small instalado tiene prioridad
+por defecto; `ALICE_WHISPER_MODEL` selecciona una ruta absoluta explícita y permite
+volver a base. El detalle del turno muestra el modelo elegido antes de decodificar
+esa toma. Ver [evaluación de small](../testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
 [la validación y los límites](../testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
 ## Música y ruido de fondo

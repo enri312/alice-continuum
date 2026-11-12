@@ -18,9 +18,11 @@ conserva la combinación probada; usar `npm ci` al sincronizar el repositorio.
 La memoria nativa ahora se organiza en `src-tauri/src/memory/`; sus 28 comandos
 mantienen nombres y formatos. Ver [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md).
 
-La transcripción vigente usa **Whisper base CPU** instalado fuera de Git. Para
-reproducirla: `scripts/testing/install-whisper-local.ps1`; descarga oficial con
-hashes fijados y sin modificar PATH ni servicios. No se descarga al abrir Alice.
+La transcripción local prefiere **Whisper small CPU** cuando está instalado;
+conserva base como alternativa. Para instalar small:
+`scripts/testing/install-whisper-local.ps1 -Model small`; descarga oficial con
+Node y hashes fijados, sin modificar PATH ni servicios. `ALICE_WHISPER_MODEL`
+permite elegir explícitamente una ruta absoluta. No se descarga al abrir Alice.
 Gemma 4 sigue como modelo de diálogo y como ASR de respaldo si falta Whisper.
 Ver [sesión oral](../decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md).
 
