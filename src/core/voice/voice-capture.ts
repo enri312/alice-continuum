@@ -1,6 +1,6 @@
 import { SpeechEndpoint } from "./speech-endpoint";
 import { getMicrophone, processMicrophone } from "./noise-pipeline";
-import type { MicrophoneOptions, NoiseFailureReason, NoiseStatus, ProcessedMicrophone } from "./noise-types";
+import type { AudioSignalSnapshot, MicrophoneOptions, NoiseFailureReason, NoiseStatus, ProcessedMicrophone } from "./noise-types";
 const MAX_SECONDS = 60;
 const MAX_BYTES = 8 * 1024 * 1024;
 const MIME_TYPE = "audio/webm;codecs=opus";
@@ -15,7 +15,7 @@ function captureErrorMessage(cause: unknown): string {
 type CaptureEvents = {
   onStarted: () => void;
   onElapsed: (seconds: number) => void;
-  onRecorded: (take: Blob, seconds: number, transcribe: boolean) => void;
+  onRecorded: (take: Blob, seconds: number, transcribe: boolean, signal?: Readonly<AudioSignalSnapshot>) => void;
   onError: (message: string, reason?: NoiseFailureReason) => void;
   onQuiet?: () => void;
   onProcessed?: (status: NoiseStatus) => void;
@@ -54,12 +54,14 @@ export class VoiceCapture {
   private processed: ProcessedMicrophone | null = null;
   private processing: AbortController | null = null;
   private endpoint: SpeechEndpoint | null = null;
+  private signalSnapshot: Readonly<AudioSignalSnapshot> | undefined;
 
   constructor(private events: CaptureEvents, private environment = browserEnvironment, private automaticEndpoint = false, private options: MicrophoneOptions = {}) {}
 
   async start() {
     if (this.pending || this.recorder) return;
     const generation = ++this.generation;
+    this.signalSnapshot = undefined;
     this.pending = true;
     try {
       const stream = await this.environment.getMicrophone(this.options);
@@ -101,9 +103,13 @@ export class VoiceCapture {
         const seconds = Math.max(0.1, Math.min(MAX_SECONDS, (Date.now() - this.startedAt) / 1000));
         const transcribe = this.transcribe;
         const quiet = this.automaticEndpoint && !this.endpoint?.hasSpeech;
+        const signal = this.signalSnapshot ?? this.readSignalSnapshot();
         this.cancel();
         if (quiet) { this.events.onQuiet?.(); return; }
-        if (take.size) this.events.onRecorded(take, seconds, transcribe);
+        if (take.size) {
+          if (signal) this.events.onRecorded(take, seconds, transcribe, signal);
+          else this.events.onRecorded(take, seconds, transcribe);
+        }
         else this.events.onError("No se recibió audio. Comprobá el micrófono y grabá otra toma.");
       };
       this.startedAt = Date.now();
@@ -135,6 +141,7 @@ export class VoiceCapture {
     const recorder = this.recorder;
     if (recorder?.state !== "recording") return;
     this.transcribe = transcribe;
+    this.signalSnapshot = this.readSignalSnapshot();
     try { recorder.stop(); this.releaseMicrophone(); }
     catch (cause) { this.fail(`No se pudo terminar la toma: ${String(cause)}`); }
   }
@@ -142,6 +149,7 @@ export class VoiceCapture {
   cancel() {
     this.generation += 1;
     this.pending = false;
+    this.signalSnapshot = undefined;
     const recorder = this.recorder;
     this.recorder = null;
     if (recorder) {
@@ -159,6 +167,13 @@ export class VoiceCapture {
   }
 
   private onDisconnected = () => this.fail("El micrófono se desconectó. La toma fue descartada; volvé a conectarlo para continuar.");
+
+  private readSignalSnapshot(): Readonly<AudioSignalSnapshot> | undefined {
+    try {
+      const signal = this.processed?.getSignalSnapshot?.();
+      return signal ? Object.freeze({ ...signal }) : undefined;
+    } catch { return undefined; }
+  }
 
   private releaseMicrophone() {
     if (this.timer !== null) clearInterval(this.timer);

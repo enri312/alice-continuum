@@ -24,9 +24,32 @@ export function microphoneProfile(value?: unknown): Readonly<{ sensitivity: Micr
 
 export type MicrophoneOptions = { deviceId?: string; sensitivity?: MicrophoneSensitivity };
 export type NoiseStatus = { microphone: string; systemEcho: boolean; browserNoise: boolean; sensitivity?: MicrophoneSensitivity };
+export type AudioSignalCounters = {
+  inputSamples: number;
+  inputSquareSum: number;
+  inputPeak: number;
+  inputClippedSamples: number;
+  outputSamples: number;
+  outputSquareSum: number;
+  outputPeak: number;
+};
+export type AudioSignalSnapshot = {
+  sampleRate: 48000;
+  inputGain: number;
+  inputSamples: number;
+  inputRms: number;
+  inputPeak: number;
+  inputClippedSamples: number;
+  inputClippedFraction: number;
+  outputSamples: number;
+  outputRms: number;
+  outputPeak: number;
+  coverage: "last_received_batch";
+};
 export type ProcessedMicrophone = {
   stream: MediaStream;
   read: () => SpeechEvidence;
   close: () => void;
   status: NoiseStatus;
+  getSignalSnapshot?: () => Readonly<AudioSignalSnapshot> | undefined;
 };

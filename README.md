@@ -39,6 +39,11 @@ permitiendo también el cierre por silencio; ambos modos tienen comportamientos
 distintos. Los datos del turno identifican modelo y duración de la toma.
 Abrir el panel no enciende el micrófono. Si la escucha automática está activa,
 el acceso manual sigue visible y pide apagarla para evitar dos capturas a la vez.
+Para revisar el sonido, **Parar y revisar audio** deja escuchar la toma filtrada
+localmente antes de **Transcribir localmente**. Los datos del turno muestran
+niveles y cobertura parcial; **Última transcripción** separa el resultado ASR
+del borrador acumulado y de las correcciones escritas.
+[Diagnóstico y límites](docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -202,7 +207,7 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **12 de noviembre de 2026**:
 
-- **765 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **808 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **385 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y configuración del reconocedor por toma.
 - Compilación frontend y formato Rust aprobados.

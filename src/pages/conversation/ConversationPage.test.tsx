@@ -15,6 +15,7 @@ describe("control de contexto de conversación", () => {
     expect(pending).toContain("modelo de transcripción");
     expect(pending).toContain("—");
     expect(pending).not.toContain("Whisper");
+    expect(pending).toContain("Medición de señal: no disponible");
     expect(renderToStaticMarkup(<VoiceTurnMeasurements recordedSeconds={null} transcriptionMs={null} model={null} state="idle" />)).toBe("");
   });
   it("invalida una revisión preparada para otro motor", () => {

@@ -1,7 +1,9 @@
 import type { ConversationMessage, CloudStatus, CloudRequest, CloudResponse, HybridRetrievalCandidate, HybridRetrievalRequest, HybridRetrievalPreview } from "../../core/conversation/conversation-contracts";
 import { HandsFreeVoice } from "../../components/conversation/HandsFreeVoice";
 import { AudioInputSettings } from "../../components/conversation/AudioInputSettings";
-import type { MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
+import { FilteredTakePreview, InputSignalMeasurement, LastVoiceTranscript } from "../../components/conversation/InputTakeDiagnostics";
+import type { AudioSignalSnapshot, MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
+import { InputTakePreview } from "../../core/voice/input-take-preview";
 import type { ReactNode } from "react";
 import type { VoiceLoopState } from "../../core/voice/voice-loop";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -60,8 +62,8 @@ type ConversacionProps = {
   onRetrievalOutcome: (recordId: string, outcome: RetrievalOutcome) => Promise<void>;
 };
 
-export function VoiceTurnMeasurements({ recordedSeconds, transcriptionMs, model, state }: {
-  recordedSeconds: number | null; transcriptionMs: number | null; model: string | null; state: string;
+export function VoiceTurnMeasurements({ recordedSeconds, transcriptionMs, model, state, signal }: {
+  recordedSeconds: number | null; transcriptionMs: number | null; model: string | null; state: string; signal?: Readonly<AudioSignalSnapshot> | null;
 }) {
   if (recordedSeconds === null && transcriptionMs === null) return null;
   return <details className="voice-turn-measurements"><summary>Datos del turno</summary>
@@ -71,6 +73,7 @@ export function VoiceTurnMeasurements({ recordedSeconds, transcriptionMs, model,
       <span><strong>{model ?? "—"}</strong>modelo de transcripción</span>
       <span><strong>{state === "review" ? "REVISAR" : state === "recorded" ? "LISTA" : state === "idle" ? "SIN HABLA" : "EN CURSO"}</strong>resultado</span>
     </div>
+    <InputSignalMeasurement signal={signal} />
   </details>;
 }
 
@@ -138,6 +141,9 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const [voiceRecordedSeconds, setVoiceRecordedSeconds] = useState<number | null>(null);
   const [voiceTranscriptDurationMs, setVoiceTranscriptDurationMs] = useState<number | null>(null);
   const [voiceTranscriptModel, setVoiceTranscriptModel] = useState<string | null>(null);
+  const [voiceLastTranscript, setVoiceLastTranscript] = useState<string | null>(null);
+  const [voiceSignal, setVoiceSignal] = useState<Readonly<AudioSignalSnapshot> | null>(null);
+  const [voiceInputPreviewUrl, setVoiceInputPreviewUrl] = useState<string | null>(null);
   const [voicePlaybackState, setVoicePlaybackState] = useState<"ready" | "playing" | "paused">("ready");
   const [error, setError] = useState("");
   const reviewRef = useRef<HTMLDivElement>(null);
@@ -145,6 +151,8 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const previousMessageCountRef = useRef(messages.length);
   const voiceCaptureRef = useRef<VoiceCapture | null>(null);
   const voiceTakeRef = useRef<Blob | null>(null);
+  const voiceInputPreviewRef = useRef(new InputTakePreview());
+  const voiceInputAudioRef = useRef<HTMLAudioElement>(null);
   const voiceOperationGenerationRef = useRef(0);
   const voiceAudioRef = useRef<HTMLAudioElement>(null);
   const voiceOutputGenerationRef = useRef(0);
@@ -254,6 +262,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     voiceOutputGenerationRef.current += 1;
     voiceCaptureRef.current?.cancel();
     voiceTakeRef.current = null;
+    voiceInputPreviewRef.current.clear(voiceInputAudioRef.current);
   }, []);
 
   const payloadReview = useMemo(() => buildCloudPayloadReview({
@@ -411,9 +420,12 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     voiceOperationGenerationRef.current += 1;
     voiceCaptureRef.current?.cancel();
     voiceTakeRef.current = null;
+    clearInputTakePreview();
     setVoiceRecordedSeconds(null);
     setVoiceTranscriptDurationMs(null);
     setVoiceTranscriptModel(null);
+    setVoiceLastTranscript(null);
+    setVoiceSignal(null);
     setVoiceCaptureState("idle");
     setVoiceInputMessage("Toma descartada. El micrófono está apagado.");
   }
@@ -424,6 +436,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     const generation = ++voiceOperationGenerationRef.current;
     const draftBeforeCapture = draft;
     let recordingStarted = false;
+    clearInputTakePreview();
     discardVoiceAudio();
     setVoicePreview(null);
     setReviewing(false);
@@ -433,6 +446,8 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     setVoiceRecordedSeconds(null);
     setVoiceTranscriptDurationMs(null);
     setVoiceTranscriptModel(null);
+    setVoiceLastTranscript(null);
+    setVoiceSignal(null);
     try {
       await onPrepareVoiceTurn();
       if (generation !== voiceOperationGenerationRef.current) return;
@@ -449,12 +464,21 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
         },
         onElapsed: setVoiceElapsedSeconds,
         onProcessed: setNoiseStatus,
-        onRecorded: (take, seconds, transcribe) => {
+        onRecorded: (take, seconds, transcribe, signal) => {
           if (generation !== voiceOperationGenerationRef.current) return;
           voiceTakeRef.current = take;
           setVoiceRecordedSeconds(seconds);
+          setVoiceSignal(signal ? { ...signal } : null);
           setVoiceCaptureState("recorded");
           setVoiceInputMessage("Micrófono apagado. La toma está lista para transcribir localmente.");
+          if (!transcribe) {
+            try {
+              setVoiceInputPreviewUrl(voiceInputPreviewRef.current.replace(take,
+                () => generation === voiceOperationGenerationRef.current, voiceInputAudioRef.current));
+            } catch {
+              setVoiceInputMessage("No se pudo preparar la reproducción. Puedes transcribir la toma localmente o descartarla.");
+            }
+          }
           if (transcribe) void transcribeVoiceCapture(take, generation, draftBeforeCapture);
         },
         onError: message => {
@@ -476,9 +500,11 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   async function transcribeVoiceCapture(takeOverride?: Blob, generation = voiceOperationGenerationRef.current, draftBeforeCapture = draft) {
     const take = takeOverride ?? voiceTakeRef.current;
     if (!take || (!takeOverride && voiceCaptureState !== "recorded")) return;
+    clearInputTakePreview();
     setVoiceCaptureState("transcribing");
     setVoiceTranscriptDurationMs(null);
     setVoiceTranscriptModel(null);
+    setVoiceLastTranscript(null);
     setVoiceInputMessage("Transcribiendo tu voz localmente. Todavía no se envía nada al chat.");
     setError("");
     try {
@@ -489,6 +515,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
       voiceTakeRef.current = null;
       setVoiceTranscriptDurationMs(result.durationMs);
       setVoiceTranscriptModel(result.model);
+      setVoiceLastTranscript(result.text);
       if (result.noSpeech) {
         setVoiceCaptureState("idle");
         setVoiceInputMessage("No se detectó habla inteligible. Probá otra toma hablando cerca del micrófono.");
@@ -512,6 +539,11 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     discardVoiceAudio();
     setVoiceModeOpen(false);
     setVoiceInputMessage("El micrófono está apagado. Nada se graba ni se envía.");
+  }
+
+  function clearInputTakePreview() {
+    voiceInputPreviewRef.current.clear(voiceInputAudioRef.current);
+    setVoiceInputPreviewUrl(null);
   }
 
   function discardVoiceAudio() {
@@ -623,7 +655,9 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
           <div className={`voice-turn ${voiceModeOpen ? "open" : ""}`}>
             <button type="button" className="voice-turn-toggle" aria-expanded={voiceModeOpen} onClick={() => voiceModeOpen ? closeVoiceMode() : setVoiceModeOpen(true)} disabled={!desktopApp || handsFreeActive || sending}>{voiceModeOpen ? "Cerrar dictado" : "Dictar con botón"}<span>{handsFreeActive ? "ESCUCHA AUTOMÁTICA ACTIVA" : voiceCaptureState === "recording" ? `REC ${voiceElapsedSeconds}s` : "MIC APAGADO"}</span></button>
             <p>{handsFreeActive ? "Apaga el micrófono de la escucha automática para dictar con botón." : "Puedes hacer pausas: este dictado no termina por silencio. El micrófono se abre al pulsar Empezar a grabar; después revisas el texto antes de enviarlo."}</p>
-            {voiceModeOpen && !handsFreeActive && <div className="voice-turn-panel" aria-live="polite"><header><div><strong>CONVERSACIÓN POR VOZ · GEMMA 4</strong><span>{voiceCaptureState === "recording" ? `GRABANDO · ${voiceElapsedSeconds}/60 s` : voiceCaptureState === "transcribing" ? "TRANSCRIPCIÓN LOCAL" : "MICRÓFONO APAGADO"}</span></div><i className={voiceCaptureState === "recording" ? "active" : ""} /></header><p>{voiceInputMessage}</p><VoiceTurnMeasurements recordedSeconds={voiceRecordedSeconds} transcriptionMs={voiceTranscriptDurationMs} model={voiceTranscriptModel} state={voiceCaptureState} /><div className="voice-turn-actions">{voiceCaptureState !== "recording" && <button type="button" className="secondary" onClick={() => void startVoiceCapture()} disabled={voiceBusy || sending || Boolean(voicePending)}>{voiceCaptureState === "requesting" ? "Preparando micrófono…" : voiceCaptureState === "recorded" ? "Grabar otra toma" : "Empezar a grabar"}</button>}{voiceCaptureState === "recording" && <button type="button" className="primary" onClick={() => stopVoiceCapture(false)}>Terminé de hablar y transcribir</button>}{voiceCaptureState === "recorded" && <button type="button" className="primary" onClick={() => void transcribeVoiceCapture()}>Transcribir localmente</button>}{(voiceBusy || voiceCaptureState === "recorded") && <button type="button" className="secondary danger" onClick={() => stopVoiceCapture(true)}>Descartar toma</button>}</div><small>Al iniciar se prepara Gemma y se solicita el micrófono. Al terminar se transcribe localmente; revisás el mensaje antes de enviarlo. Fish recibe sólo la respuesta que autorices escuchar.</small></div>}
+            {voiceModeOpen && !handsFreeActive && <div className="voice-turn-panel" aria-live="polite"><header><div><strong>CONVERSACIÓN POR VOZ · GEMMA 4</strong><span>{voiceCaptureState === "recording" ? `GRABANDO · ${voiceElapsedSeconds}/60 s` : voiceCaptureState === "transcribing" ? "TRANSCRIPCIÓN LOCAL" : "MICRÓFONO APAGADO"}</span></div><i className={voiceCaptureState === "recording" ? "active" : ""} /></header><p>{voiceInputMessage}</p><VoiceTurnMeasurements recordedSeconds={voiceRecordedSeconds} transcriptionMs={voiceTranscriptDurationMs} model={voiceTranscriptModel} state={voiceCaptureState} signal={voiceSignal} />
+              <LastVoiceTranscript text={voiceLastTranscript} />
+              {voiceInputPreviewUrl && voiceCaptureState === "recorded" && <FilteredTakePreview url={voiceInputPreviewUrl} audioRef={audio => { voiceInputAudioRef.current = audio; if (audio) voiceInputPreviewRef.current.bind(audio); }} onError={() => { if (!voiceInputPreviewRef.current.isCurrent(voiceInputPreviewUrl)) return; clearInputTakePreview(); setVoiceInputMessage("No se pudo reproducir la toma filtrada. Puedes transcribirla localmente o descartarla."); }} />}<div className="voice-turn-actions">{voiceCaptureState !== "recording" && <button type="button" className="secondary" onClick={() => void startVoiceCapture()} disabled={voiceBusy || sending || Boolean(voicePending)}>{voiceCaptureState === "requesting" ? "Preparando micrófono…" : voiceCaptureState === "recorded" ? "Grabar otra toma" : "Empezar a grabar"}</button>}{voiceCaptureState === "recording" && <><button type="button" className="primary" onClick={() => stopVoiceCapture(false)}>Terminé de hablar y transcribir</button><button type="button" className="secondary" onClick={() => voiceCaptureRef.current?.finish(false)}>Parar y revisar audio</button></>}{voiceCaptureState === "recorded" && <button type="button" className="primary" onClick={() => void transcribeVoiceCapture()}>Transcribir localmente</button>}{(voiceBusy || voiceCaptureState === "recorded") && <button type="button" className="secondary danger" onClick={() => stopVoiceCapture(true)}>Descartar toma</button>}</div><small>Al iniciar se prepara Gemma y se solicita el micrófono. Al terminar se transcribe localmente; revisás el mensaje antes de enviarlo. Fish recibe sólo la respuesta que autorices escuchar.</small></div>}
           </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VoiceCapture, type CaptureEnvironment } from "./voice-capture";
-import type { MicrophoneOptions } from "./noise-types";
+import type { AudioSignalSnapshot, MicrophoneOptions } from "./noise-types";
 
 function fixture(automatic = false, options: MicrophoneOptions = {}) {
   const track = Object.assign(new EventTarget(), { stop: vi.fn() });
@@ -13,6 +13,7 @@ function fixture(automatic = false, options: MicrophoneOptions = {}) {
   const events = { onStarted: vi.fn(), onElapsed: vi.fn(), onRecorded: vi.fn(), onError: vi.fn(), onQuiet: vi.fn() };
   const filteredStream = { getTracks: () => [] } as unknown as MediaStream;
   const monitor = { read: vi.fn(() => ({ rms: 0, probability: 0, voicedMs: 0 })), close: vi.fn(), stream: filteredStream,
+    getSignalSnapshot: undefined as (() => Readonly<AudioSignalSnapshot> | undefined) | undefined,
     status: { microphone: "Prueba", systemEcho: false, browserNoise: true } };
   const environment: CaptureEnvironment = {
     getMicrophone: vi.fn(async () => stream),
@@ -26,9 +27,133 @@ function fixture(automatic = false, options: MicrophoneOptions = {}) {
   return { capture, events, track, stream, recorder, environment, monitor, emit };
 }
 
+function signalSnapshot(): AudioSignalSnapshot {
+  return { sampleRate: 48000, inputGain: 4, inputSamples: 960, inputRms: 0.03, inputPeak: 0.4,
+    inputClippedSamples: 0, inputClippedFraction: 0, outputSamples: 960, outputRms: 0.025,
+    outputPeak: 0.3, coverage: "last_received_batch" };
+}
+
 describe("captura efímera por turnos", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
+
+  it("copia el diagnóstico antes de detener y cerrar el filtro sin conservar su objeto mutable", async () => {
+    const f = fixture();
+    const signal = signalSnapshot();
+    const expected = { ...signal };
+    const snapshot = vi.fn(() => {
+      expect(f.recorder.stop).not.toHaveBeenCalled();
+      expect(f.monitor.close).not.toHaveBeenCalled();
+      return signal;
+    });
+    f.monitor.getSignalSnapshot = snapshot;
+    f.monitor.close.mockImplementation(() => { signal.outputSamples = 0; });
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["toma filtrada de prueba"]) });
+    f.capture.finish();
+    expect(snapshot).toHaveBeenCalledOnce();
+    expect(f.track.stop).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledWith(expect.any(Blob), expect.any(Number), true, expected);
+    const delivered = f.events.onRecorded.mock.calls[0][3];
+    expect(delivered).not.toBe(signal);
+    expect(Object.isFrozen(delivered)).toBe(true);
+    expect(snapshot).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("recoge el diagnóstico antes de cancelar cuando el grabador se detiene por su cuenta", async () => {
+    const f = fixture();
+    const signal = signalSnapshot();
+    const expected = { ...signal };
+    f.monitor.getSignalSnapshot = vi.fn(() => {
+      expect(f.monitor.close).not.toHaveBeenCalled();
+      return signal;
+    });
+    f.monitor.close.mockImplementation(() => { signal.inputSamples = 0; });
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["toma filtrada de prueba"]) });
+    f.recorder.state = "inactive";
+    f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledWith(expect.any(Blob), expect.any(Number), false, expected);
+    expect(f.monitor.getSignalSnapshot).toHaveBeenCalledOnce();
+    expect(f.monitor.close).toHaveBeenCalledOnce();
+  });
+
+  it.each(["finish", "external_stop"] as const)("conserva la entrega legacy si el getter falla durante %s", async mode => {
+    const f = fixture();
+    f.monitor.getSignalSnapshot = vi.fn(() => { throw Error("diagnóstico no disponible"); });
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["toma filtrada de prueba"]) });
+    if (mode === "finish") f.capture.finish();
+    else f.recorder.state = "inactive";
+    f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded.mock.calls[0]).toHaveLength(3);
+    expect(f.events.onError).not.toHaveBeenCalled();
+    expect(f.track.stop).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("no reutiliza el diagnóstico de una toma anterior ni acepta su callback tardío", async () => {
+    const f = fixture();
+    const snapshot = vi.fn<() => Readonly<AudioSignalSnapshot> | undefined>().mockReturnValueOnce(signalSnapshot()).mockReturnValue(undefined);
+    f.monitor.getSignalSnapshot = snapshot;
+    await f.capture.start();
+    const stale = f.recorder.onstop as unknown as () => void;
+    f.emit("ondataavailable", { data: new Blob(["primera toma"]) });
+    f.capture.finish(); f.emit("onstop");
+    expect(f.events.onRecorded.mock.calls[0]).toHaveLength(4);
+    f.events.onRecorded.mockClear();
+    await f.capture.start();
+    stale();
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    f.emit("ondataavailable", { data: new Blob(["segunda toma"]) });
+    f.capture.finish(); f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledOnce();
+    const recorded = f.events.onRecorded.mock.calls[0];
+    expect(recorded).toHaveLength(3);
+    expect(await recorded[0].text()).toBe("segunda toma");
+    expect(snapshot).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["cancel", "error"] as const)("descarta el diagnóstico pendiente y la entrega tardía al recibir %s", async mode => {
+    const f = fixture();
+    f.monitor.getSignalSnapshot = vi.fn(() => signalSnapshot());
+    await f.capture.start();
+    const stale = f.recorder.onstop as unknown as () => void;
+    f.emit("ondataavailable", { data: new Blob(["toma cancelada"]) });
+    f.capture.finish();
+    if (mode === "cancel") f.capture.cancel(); else f.emit("onerror");
+    stale();
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    f.monitor.getSignalSnapshot = undefined;
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["nueva toma"]) });
+    f.capture.finish(); f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded.mock.calls[0]).toHaveLength(3);
+  });
+
+  it("descarta el diagnóstico del silencio y no lo arrastra a la siguiente frase", async () => {
+    const f = fixture(true);
+    f.monitor.getSignalSnapshot = vi.fn(() => signalSnapshot());
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["silencio"]) });
+    vi.advanceTimersByTime(8000);
+    f.emit("onstop");
+    expect(f.events.onQuiet).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    f.monitor.getSignalSnapshot = undefined;
+    await f.capture.start();
+    f.monitor.read.mockReturnValue({ rms: 0.05, probability: 0.95, voicedMs: 200 });
+    vi.advanceTimersByTime(250);
+    f.emit("ondataavailable", { data: new Blob(["frase posterior"]) });
+    f.capture.finish(); f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded.mock.calls[0]).toHaveLength(3);
+  });
 
   it("lleva el perfil elegido al filtro y conserva una pausa larga antes de terminar la toma", async () => {
     const options: MicrophoneOptions = { deviceId: "microfono-de-prueba", sensitivity: "soft" };

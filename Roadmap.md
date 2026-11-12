@@ -111,7 +111,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 12 de noviembre:** 765 pruebas frontend aprobadas
+**Última validación registrada, 12 de noviembre:** 808 pruebas frontend aprobadas
 (2 sondas omitidas), 385 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
@@ -155,6 +155,13 @@ La prueba de señal controlada no acredita por sí sola que conserve todas las
 palabras del propietario; la repetición acústica sigue pendiente.
 [ADR-P-125](docs/decisions/ADR-P-125-conservar-voz-baja-filtrada.md) ·
 [Pruebas de señal](docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
+La repetición personal siguió cambiando palabras. Se añade diagnóstico local
+de entrada/salida y saturación, junto a escucha de la toma filtrada antes de
+transcribir y un resultado ASR separado del borrador. Se mantiene la cadena
+de audio para medirla antes de decidir otro ajuste. La claridad del sonido y
+la precisión de la frase real siguen pendientes.
+[ADR-P-126](docs/decisions/ADR-P-126-diagnostico-local-de-audio.md) ·
+[Diagnóstico de entrada](docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).

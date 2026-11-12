@@ -20,11 +20,45 @@ function fixture(sensitivity?: unknown) {
     postMessage: (frame: Float32Array) => pending.push(frame) };
   bridge.port.onmessage({ data: { type: "connect", port: worker, sensitivity } });
   const output = new Float32Array(128);
-  const tick = () => bridge.process([[new Float32Array(128).fill(0.1)]], [[output]]);
+  const tick = (sample = 0.1) => bridge.process([[new Float32Array(128).fill(sample)]], [[output]]);
   return { bridge, worker, pending, output, tick };
 }
 
 describe("enlace de audio bajo variaciones de planificación", () => {
+  it("mide antes del clamp y sobre la salida real sin cambiar PCM ni contar tramas pendientes como reproducidas", () => {
+    const f = fixture("soft");
+    for (let i = 0; i < 19; i++) expect(f.tick(2)).toBe(true);
+    expect(f.pending).toHaveLength(5);
+    expect(f.pending.every(frame => frame.every(value => value === 32768))).toBe(true);
+    expect(f.output.every(value => value === 0)).toBe(true);
+    const processed = new Float32Array(480).fill(0.03);
+    for (const _frame of f.pending.slice(0, 5)) f.worker.onmessage({ data: { frame: processed, probability: 0.1, rms: 0.03 } });
+    const first = f.bridge.port.postMessage.mock.calls.find(([message]) => message.type === "metrics")![0].signal;
+    expect(first.inputSamples).toBe(19 * 128);
+    expect(first.inputSquareSum).toBe(19 * 128 * 4);
+    expect(first.inputPeak).toBe(2);
+    expect(first.inputClippedSamples).toBe(19 * 128);
+    expect(first.outputSamples).toBe(19 * 128);
+    expect(first.outputSquareSum).toBe(0);
+    expect(first.outputPeak).toBe(0);
+    let outputEnergy = 0;
+    for (let i = 0; i < 19; i++) {
+      expect(f.tick(2)).toBe(true);
+      for (const sample of f.output) outputEnergy += sample * sample;
+    }
+    for (const _frame of f.pending.slice(5, 10)) f.worker.onmessage({ data: { frame: processed, probability: 0.1, rms: 0.03 } });
+    const packets = f.bridge.port.postMessage.mock.calls.filter(([message]) => message.type === "metrics");
+    const second = packets[1][0].signal;
+    expect(second.inputSamples).toBe(38 * 128);
+    expect(second.inputSquareSum).toBe(38 * 128 * 4);
+    expect(second.inputClippedSamples).toBe(38 * 128);
+    expect(second.outputSamples).toBe(38 * 128);
+    expect(second.outputSquareSum).toBeCloseTo(outputEnergy, 12);
+    expect(second.outputPeak).toBe(processed[0]);
+    expect(first.outputSquareSum).toBe(0); // earlier packets own a scalar copy
+    expect(first.inputSamples).toBe(19 * 128);
+    expect(f.bridge.port.postMessage).not.toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
+  });
   it.each([undefined, "soft"])("tolera 320 ms de demora del worker y vuelve a entregar la voz procesada (%s)", sensitivity => {
     const f = fixture(sensitivity);
     for (let i = 0; i < 120; i++) expect(f.tick()).toBe(true);

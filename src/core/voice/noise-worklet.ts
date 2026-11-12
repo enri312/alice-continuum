@@ -1,5 +1,5 @@
 // This worklet contains only buffering and metering; WASM runs in noise-worker.
-import type { NoiseFailureReason } from "./noise-types";
+import type { AudioSignalCounters, NoiseFailureReason } from "./noise-types";
 declare const sampleRate: number;
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 declare class AudioWorkletProcessor {
@@ -27,6 +27,10 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
   private energy = 0;
   private probability = 0;
   private voicedMs = 0;
+  private signal: AudioSignalCounters = {
+    inputSamples: 0, inputSquareSum: 0, inputPeak: 0, inputClippedSamples: 0,
+    outputSamples: 0, outputSquareSum: 0, outputPeak: 0,
+  };
   constructor() {
     super();
     this.port.onmessage = (event: MessageEvent<{ type: string; port?: MessagePort; sensitivity?: unknown }>) => {
@@ -53,7 +57,7 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
         this.probability = Math.max(this.probability, probability);
         if (probability >= 0.65) this.voicedMs += 10;
         if (++this.frames === 5) {
-          this.port.postMessage({ type: "metrics", rms: Math.sqrt(this.energy / this.frames), probability: this.probability, voicedMs: this.voicedMs, frames: this.frames });
+          this.port.postMessage({ type: "metrics", rms: Math.sqrt(this.energy / this.frames), probability: this.probability, voicedMs: this.voicedMs, frames: this.frames, signal: { ...this.signal } });
           this.frames = this.energy = this.probability = this.voicedMs = 0;
         }
       };
@@ -80,7 +84,12 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
     if (sampleRate !== 48000) { this.fail("unsupported_rate"); return false; }
     const input = inputs[0]?.[0];
     for (let i = 0; i < output.length; i++) {
-      this.input[this.inputAt++] = Math.max(-1, Math.min(1, input?.[i] ?? 0)) * 32768;
+      const sample = input?.[i] ?? 0;
+      this.signal.inputSamples++;
+      this.signal.inputSquareSum += sample * sample;
+      this.signal.inputPeak = Math.max(this.signal.inputPeak, Math.abs(sample));
+      if (Math.abs(sample) > 1) this.signal.inputClippedSamples++;
+      this.input[this.inputAt++] = Math.max(-1, Math.min(1, sample)) * 32768;
       if (this.inputAt === 480) {
         if (++this.pending > 50) { this.fail("input_backlog"); return false; }
         this.worker.postMessage(this.input, [this.input.buffer]);
@@ -93,6 +102,11 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
         this.readAt = (this.readAt + 1) % this.ring.length;
         this.available--;
       }
+      // Count the samples actually delivered, including priming/underrun zeros;
+      // a worker response is not yet proof that its whole frame was recorded.
+      this.signal.outputSamples++;
+      this.signal.outputSquareSum += output[i] * output[i];
+      this.signal.outputPeak = Math.max(this.signal.outputPeak, Math.abs(output[i]));
     }
     return this.alive;
   }

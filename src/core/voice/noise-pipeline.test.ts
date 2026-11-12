@@ -66,6 +66,53 @@ describe("pipeline local de ruido y causas de descarte", () => {
   beforeEach(() => { harness.autoReady = true; harness.workers.length = 0; });
   afterEach(() => vi.unstubAllGlobals());
 
+  it("mantiene una copia cumulativa sin doble conteo ni reinicio al leer VAD y congela al cerrar", async () => {
+    const f = fixture();
+    const processed = await processMicrophone(f.raw, vi.fn(), undefined, { sensitivity: "soft" });
+    expect(processed.getSignalSnapshot?.()).toBeUndefined();
+    const signal = { inputSamples: 4, inputSquareSum: 8.25, inputPeak: 2, inputClippedSamples: 2, outputSamples: 2, outputSquareSum: 0.05, outputPeak: 0.2 };
+    const metrics = (value: unknown) => f.port.onmessage!({ data: { type: "metrics", rms: 0.05, probability: 0.5, voicedMs: 0, frames: 5, signal: value } });
+    metrics(signal);
+    const first = processed.getSignalSnapshot!()!;
+    expect(first.inputGain).toBe(4);
+    expect(first.inputRms).toBeCloseTo(Math.sqrt(8.25 / 4));
+    expect(first.outputRms).toBeCloseTo(Math.sqrt(0.05 / 2));
+    expect(first.inputClippedFraction).toBe(0.5);
+    processed.read(); processed.read();
+    expect(processed.getSignalSnapshot!()).toEqual(first);
+    expect(processed.getSignalSnapshot!()).not.toBe(first);
+    expect(Object.isFrozen(first)).toBe(true);
+    metrics(signal); // cumulative packet duplicated, not another 4 input samples
+    expect(processed.getSignalSnapshot!()).toEqual(first);
+    const latest = { ...signal, inputSamples: 8, inputSquareSum: 16.5, inputClippedSamples: 4, outputSamples: 4, outputSquareSum: 0.1 };
+    metrics(latest);
+    const second = processed.getSignalSnapshot!()!;
+    expect(second.inputSamples).toBe(8);
+    expect(second.outputSamples).toBe(4);
+    metrics(signal); // delayed old batch cannot regress the displayed measure
+    expect(processed.getSignalSnapshot!()).toEqual(second);
+    expect(first.inputSamples).toBe(4);
+    metrics({ ...latest, inputPeak: NaN });
+    expect(processed.getSignalSnapshot!()).toBeUndefined();
+    metrics(signal); // invalid data must not reset the monotonic watermark
+    expect(processed.getSignalSnapshot!()).toBeUndefined();
+    metrics(latest);
+    expect(processed.getSignalSnapshot!()).toEqual(second);
+    processed.close();
+    metrics({ ...latest, inputSamples: 12, inputSquareSum: 24.75, inputClippedSamples: 6 });
+    expect(processed.getSignalSnapshot!()).toEqual(second);
+    f.assertDisposed();
+  });
+
+  it("deja el diagnóstico ausente ante lotes sin medición sin inventar niveles de silencio", async () => {
+    const f = fixture();
+    const processed = await processMicrophone(f.raw, vi.fn());
+    f.port.onmessage!({ data: { type: "metrics", rms: 0.05, probability: 1, voicedMs: 50, frames: 5 } });
+    expect(processed.getSignalSnapshot!()).toBeUndefined();
+    expect(processed.read()).toEqual({ rms: 0.05, probability: 1, voicedMs: 50 });
+    processed.close();
+  });
+
   it.each([
     { requested: undefined, applied: "normal", gain: 1 },
     { requested: "normal", applied: "normal", gain: 1 },

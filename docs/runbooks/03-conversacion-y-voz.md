@@ -151,6 +151,17 @@ Terminar la toma para transcribir, corregir el borrador y revisar el mensaje.
 Las revisiones por envío y la confirmación del texto Fish se mantienen en este
 modo. Su límite de captura sigue siendo 60 segundos/8 MiB.
 
+Para diagnosticar una transcripción incorrecta, pulsar **Parar y revisar audio**
+al terminar de hablar. Esto deja la toma lista sin transcribir. Escuchar la
+toma filtrada con el reproductor local y consultar los niveles de entrada,
+salida y muestras recortadas. La medición sólo cubre el último lote recibido;
+ausencia de medición no equivale a silencio ni a un micrófono correcto.
+Después, **Transcribir localmente** permite comparar esa misma toma con la
+frase pronunciada. **Última transcripción** muestra el texto del reconocedor;
+el borrador también puede contener tomas previas y correcciones escritas.
+La reproducción se detiene y su URL local se libera al transcribir, iniciar
+otra toma, descartar o cerrar el dictado. El sonido no se guarda como archivo.
+
 ## Evaluación y reporte
 
 Antes de cambiar instrucciones, inspeccionar `src-tauri/src/cloud.rs` (prompt y

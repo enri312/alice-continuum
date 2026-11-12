@@ -1,6 +1,7 @@
 import NoiseWorker from "./noise-worker?worker";
 import workletUrl from "./noise-worklet?worker&url";
-import { microphoneProfile, noiseFailureReason, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
+import { microphoneProfile, noiseFailureReason, type AudioSignalCounters, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
+import { readAudioSignalCounters, signalCountersAdvance, snapshotAudioSignal } from "./noise-signal";
 
 export async function getMicrophone(options: MicrophoneOptions = {}) {
   if (!navigator.mediaDevices?.getUserMedia) throw Error("El micrófono no está disponible en este entorno.");
@@ -55,6 +56,8 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     worker = new NoiseWorker();
     const bridge = new MessageChannel();
     let energy = 0, frames = 0, probability = 0, voicedMs = 0, lastMetric = Date.now();
+    let signalCounters: Readonly<AudioSignalCounters> | undefined;
+    let signalHighWater: Readonly<AudioSignalCounters> | undefined;
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => reject(Error("El filtro de ruido no pudo iniciarse a tiempo.")), 10000);
       const fail = (message: string) => { clearTimeout(timer); reject(Error(message)); };
@@ -81,9 +84,15 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     worker.onerror = () => failed("El filtro local dejó de funcionar. La toma se descartó.");
     node.onprocessorerror = () => failed("El procesador de audio se detuvo. La toma se descartó.");
     node.port.onmessage = event => {
+      if (closed) return;
       if (event.data.type === "error") { failed(event.data.message, noiseFailureReason(event.data.reason)); return; }
       if (event.data.type !== "metrics") return;
       const metric = event.data;
+      const measured = readAudioSignalCounters(metric.signal);
+      if (!measured) signalCounters = undefined;
+      else if (!signalHighWater || signalCountersAdvance(signalHighWater, measured)) {
+        signalCounters = signalHighWater = measured;
+      }
       energy += metric.rms * metric.rms * metric.frames;
       frames += metric.frames; probability = Math.max(probability, metric.probability); voicedMs += metric.voicedMs;
       lastMetric = Date.now();
@@ -100,6 +109,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     return {
       stream: destination.stream,
       status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true, sensitivity: profile.sensitivity },
+      getSignalSnapshot: () => signalCounters ? snapshotAudioSignal(signalCounters, profile.gain) : undefined,
       read: () => {
         if (Date.now() - lastMetric > 1500) throw Error("No llega señal del filtro local. La toma se descartó.");
         const evidence = { rms: frames ? Math.sqrt(energy / frames) : 0, probability, voicedMs };

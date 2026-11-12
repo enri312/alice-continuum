@@ -71,6 +71,15 @@
 .conversation-home .voice-turn-measurements { padding:0 12px 8px; color:#91acbd; font-size:.78rem; }
 .conversation-home .voice-turn-measurements>summary { cursor:pointer; padding:5px 0; }
 .conversation-home .voice-turn-observation { margin:8px 0; }
+.conversation-home .voice-input-transcript,.conversation-home .voice-input-preview { padding:10px 12px; border-top:1px solid #164e63; color:#b9cfdc; font:400 .82rem/1.5 "Segoe UI",sans-serif; }
+.conversation-home .voice-input-transcript p { margin:7px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.conversation-home .voice-input-transcript small { color:#91acbd; }
+.conversation-home .voice-input-preview audio { display:block; width:100%; margin:8px 0; }
+.conversation-home .voice-input-preview p,.conversation-home .voice-input-signal p { margin:7px 0; }
+.conversation-home .voice-input-signal { font:400 .78rem/1.5 "Segoe UI",sans-serif; }
+.conversation-home .voice-input-signal dl { display:grid; gap:7px; margin:8px 0; }
+.conversation-home .voice-input-signal dt { color:#91acbd; }
+.conversation-home .voice-input-signal dd { margin:0; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
 .conversation-home .voice-turn-observation span { font-size:.66rem; }
 .conversation-home .voice-turn-observation strong { font-size:.8rem; }
 .conversation-home .conversation-context-drawer { margin:0 24px 18px; border-radius:8px; }
