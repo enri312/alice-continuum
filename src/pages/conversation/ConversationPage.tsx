@@ -1,7 +1,7 @@
 import type { ConversationMessage, CloudStatus, CloudRequest, CloudResponse, HybridRetrievalCandidate, HybridRetrievalRequest, HybridRetrievalPreview } from "../../core/conversation/conversation-contracts";
 import { HandsFreeVoice } from "../../components/conversation/HandsFreeVoice";
 import { AudioInputSettings } from "../../components/conversation/AudioInputSettings";
-import type { NoiseStatus } from "../../core/voice/noise-types";
+import type { MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
 import type { ReactNode } from "react";
 import type { VoiceLoopState } from "../../core/voice/voice-loop";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -117,6 +117,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const [voiceModeOpen, setVoiceModeOpen] = useState(false);
   const [voiceCaptureState, setVoiceCaptureState] = useState<"idle" | "requesting" | "recording" | "recorded" | "transcribing" | "review">("idle");
   const [microphoneId, setMicrophoneId] = useState("");
+  const [microphoneSensitivity, setMicrophoneSensitivity] = useState<MicrophoneSensitivity>("soft");
   const [noiseStatus, setNoiseStatus] = useState<NoiseStatus | null>(null);
   const [voiceInputMessage, setVoiceInputMessage] = useState("El micrófono está apagado. Nada se graba ni se envía.");
   const [voiceElapsedSeconds, setVoiceElapsedSeconds] = useState(0);
@@ -444,7 +445,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
           setVoiceCaptureState(voiceTakeRef.current ? "recorded" : "idle");
           setVoiceInputMessage(message);
         },
-      }, undefined, false, { deviceId: microphoneId });
+      }, undefined, false, { deviceId: microphoneId, sensitivity: microphoneSensitivity });
       voiceCaptureRef.current = capture;
       await capture.start();
     } catch (cause) {
@@ -592,11 +593,11 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
           <label htmlFor="alice-message">Tu mensaje</label>
           <div className="voice-turn automatic-voice-entry">
             <HandsFreeVoice desktopApp={desktopApp} disabled={voiceBusy || sending || Boolean(voicePending)}
-              microphone={{ deviceId: microphoneId }} onProcessed={setNoiseStatus}
+              microphone={{ deviceId: microphoneId, sensitivity: microphoneSensitivity }} onProcessed={setNoiseStatus}
               onStart={async () => { closeVoiceMode(); setReviewing(false); voiceHistoryBaseline.current = new Set(messages.map(item => item.id)); return onStartVoiceSession(); }} onStop={onStopVoiceSession}
               onTranscribe={onTranscribeVoiceTurn} onTurn={processSpokenTurn} onSpeak={onSpeakVoiceSession}
               onActiveChange={(_active, state) => setHandsFreeState(state)} />
-            <AudioInputSettings disabled={!desktopApp || handsFreeActive || voiceBusy} deviceId={microphoneId} onDeviceChange={setMicrophoneId} status={noiseStatus} />
+            <AudioInputSettings disabled={!desktopApp || handsFreeActive || voiceBusy} deviceId={microphoneId} onDeviceChange={setMicrophoneId} sensitivity={microphoneSensitivity} onSensitivityChange={setMicrophoneSensitivity} status={noiseStatus} />
             {!handsFreeActive && <details className="manual-voice-options"><summary>Dictado con revisión manual</summary>
           <div className={`voice-turn ${voiceModeOpen ? "open" : ""}`}>
             <button type="button" className="voice-turn-toggle" aria-expanded={voiceModeOpen} onClick={() => voiceModeOpen ? closeVoiceMode() : setVoiceModeOpen(true)} disabled={!desktopApp || sending}>{voiceModeOpen ? "Cerrar conversación por voz" : "Hablar con Alice"}<span>{voiceCaptureState === "recording" ? `REC ${voiceElapsedSeconds}s` : "MIC APAGADO"}</span></button>

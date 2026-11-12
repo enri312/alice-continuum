@@ -26,13 +26,15 @@ import { processMicrophone } from "./noise-pipeline";
 function fixture() {
   const source = { connect: vi.fn(), disconnect: vi.fn() };
   const filter = { connect: vi.fn(), disconnect: vi.fn(), frequency: { value: 0 }, Q: { value: 0 }, type: "" };
+  const gain = { connect: vi.fn(), disconnect: vi.fn(), gain: { value: 1 } };
   const filteredTrack = { stop: vi.fn() };
   const filteredStream = { getTracks: () => [filteredTrack] };
+  const destination = { stream: filteredStream };
   const context = {
     sampleRate: 48000, resume: vi.fn(async () => undefined), close: vi.fn(async () => undefined),
     audioWorklet: { addModule: vi.fn(async () => undefined) },
-    createMediaStreamSource: vi.fn(() => source), createBiquadFilter: vi.fn(() => filter),
-    createMediaStreamDestination: vi.fn(() => ({ stream: filteredStream })),
+    createMediaStreamSource: vi.fn(() => source), createBiquadFilter: vi.fn(() => filter), createGain: vi.fn(() => gain),
+    createMediaStreamDestination: vi.fn(() => destination),
   };
   const port = {
     onmessage: null as ((event: Incoming) => void) | null, close: vi.fn(),
@@ -49,19 +51,44 @@ function fixture() {
   const assertDisposed = () => {
     expect(source.disconnect).toHaveBeenCalledOnce();
     expect(filter.disconnect).toHaveBeenCalledOnce();
+    expect(gain.disconnect).toHaveBeenCalledOnce();
     expect(node.disconnect).toHaveBeenCalledOnce();
     expect(port.close).toHaveBeenCalledOnce();
     expect(harness.workers[0].terminate).toHaveBeenCalledOnce();
     expect(filteredTrack.stop).toHaveBeenCalledOnce();
     expect(context.close).toHaveBeenCalledOnce();
   };
-  return { raw, rawTrack, filteredStream, source, filter, port, node, context, assertDisposed };
+  return { raw, rawTrack, filteredStream, destination, source, filter, gain, port, node, context, assertDisposed };
 }
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve(); }
 
 describe("pipeline local de ruido y causas de descarte", () => {
   beforeEach(() => { harness.autoReady = true; harness.workers.length = 0; });
   afterEach(() => vi.unstubAllGlobals());
+
+  it.each([
+    { requested: undefined, applied: "normal", gain: 1 },
+    { requested: "normal", applied: "normal", gain: 1 },
+    { requested: "soft", applied: "soft", gain: 4 },
+    { requested: "unsupported", applied: "normal", gain: 1 },
+  ])("aplica la sensibilidad $applied con ganancia local $gain sin saltarse el filtro", async ({ requested, applied, gain }) => {
+    const f = fixture();
+    const processed = await processMicrophone(f.raw, vi.fn(), undefined, { sensitivity: requested as never });
+    expect(f.gain.gain.value).toBe(gain);
+    expect(f.context.createGain).toHaveBeenCalledOnce();
+    expect(f.source.connect).toHaveBeenCalledExactlyOnceWith(f.filter);
+    expect(f.filter.type).toBe("highpass");
+    expect(f.filter.frequency.value).toBe(80);
+    expect(f.filter.connect).toHaveBeenCalledExactlyOnceWith(f.gain);
+    expect(f.gain.connect).toHaveBeenCalledExactlyOnceWith(f.node);
+    expect(f.node.connect).toHaveBeenCalledExactlyOnceWith(f.destination);
+    expect(processed.status.sensitivity).toBe(applied);
+    expect(processed.stream).toBe(f.filteredStream);
+    expect(processed.stream).not.toBe(f.raw);
+    processed.close();
+    processed.close();
+    f.assertDisposed();
+  });
 
   it.each(["input_backlog", "output_overflow", "unsupported_rate"])("cierra el filtro antes de comunicar %s y nunca devuelve el stream crudo", async reason => {
     const f = fixture();
@@ -107,6 +134,8 @@ describe("pipeline local de ruido y causas de descarte", () => {
     expect(f.port.close).toHaveBeenCalledOnce();
     expect(f.context.close).toHaveBeenCalledOnce();
     expect(f.context.createMediaStreamSource).not.toHaveBeenCalled();
+    expect(f.context.createGain).not.toHaveBeenCalled();
+    expect(f.gain.disconnect).not.toHaveBeenCalled();
     expect(f.node.disconnect).toHaveBeenCalledOnce();
   });
 });

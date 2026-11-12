@@ -111,7 +111,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 12 de noviembre:** 724 pruebas frontend aprobadas
+**Última validación registrada, 12 de noviembre:** 738 pruebas frontend aprobadas
 (2 sondas omitidas), 378 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
@@ -127,6 +127,10 @@ deja de recibir una lista fija como texto inicial; una mención de servicio sin
 acción pide aclaración antes de Gemma y de cualquier herramienta. La repetición
 acústica con este ajuste permanece pendiente.
 [ADR-P-122](docs/decisions/ADR-P-122-transcripcion-sin-texto-prefijado.md).
+Por la petición de mayor sensibilidad para voz baja se añadió un perfil de
+ganancia 4× y pausa de cierre de 2 s, con opción Normal y sin modificar los
+criterios mínimos de voz. La precisión acústica de ese perfil queda pendiente.
+[ADR-P-123](docs/decisions/ADR-P-123-voz-baja-y-pausada.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).

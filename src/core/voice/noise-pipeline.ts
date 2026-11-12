@@ -1,6 +1,6 @@
 import NoiseWorker from "./noise-worker?worker";
 import workletUrl from "./noise-worklet?worker&url";
-import { noiseFailureReason, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
+import { microphoneProfile, noiseFailureReason, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
 
 export async function getMicrophone(options: MicrophoneOptions = {}) {
   if (!navigator.mediaDevices?.getUserMedia) throw Error("El micrófono no está disponible en este entorno.");
@@ -20,11 +20,13 @@ export async function getMicrophone(options: MicrophoneOptions = {}) {
   } catch (error) { stream.getTracks().forEach(track => track.stop()); throw error; }
 }
 
-export async function processMicrophone(raw: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal): Promise<ProcessedMicrophone> {
+export async function processMicrophone(raw: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal, options: MicrophoneOptions = {}): Promise<ProcessedMicrophone> {
+  const profile = microphoneProfile(options.sensitivity);
   const context = new AudioContext({ sampleRate: 48000, latencyHint: "interactive" });
   let worker: Worker | undefined;
   let source: MediaStreamAudioSourceNode | undefined;
   let filter: BiquadFilterNode | undefined;
+  let gain: GainNode | undefined;
   let node: AudioWorkletNode | undefined;
   let destination: MediaStreamAudioDestinationNode | undefined;
   let closed = false;
@@ -34,7 +36,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     closed = true;
     signal?.removeEventListener("abort", close);
     rejectInitialization?.();
-    source?.disconnect(); filter?.disconnect(); node?.disconnect();
+    source?.disconnect(); filter?.disconnect(); gain?.disconnect(); node?.disconnect();
     node?.port.postMessage({ type: "close" });
     worker?.terminate();
     destination?.stream.getTracks().forEach(track => track.stop());
@@ -88,15 +90,16 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     };
     source = context.createMediaStreamSource(raw);
     filter = context.createBiquadFilter(); filter.type = "highpass"; filter.frequency.value = 80; filter.Q.value = 0.707;
+    gain = context.createGain(); gain.gain.value = profile.gain;
     destination = context.createMediaStreamDestination();
-    source.connect(filter); filter.connect(node); node.connect(destination);
+    source.connect(filter); filter.connect(gain); gain.connect(node); node.connect(destination);
     const track = raw.getAudioTracks()[0];
     if (track?.readyState === "ended") throw Error("La captura se canceló mientras se preparaba el filtro.");
     const settings = track?.getSettings();
     const echoMode: unknown = settings?.echoCancellation;
     return {
       stream: destination.stream,
-      status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true },
+      status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true, sensitivity: profile.sensitivity },
       read: () => {
         if (Date.now() - lastMetric > 1500) throw Error("No llega señal del filtro local. La toma se descartó.");
         const evidence = { rms: frames ? Math.sqrt(energy / frames) : 0, probability, voicedMs };

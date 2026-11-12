@@ -24,7 +24,7 @@ type CaptureEvents = {
 export type CaptureEnvironment = {
   getMicrophone: (options?: MicrophoneOptions) => Promise<MediaStream>;
   createRecorder: (stream: MediaStream) => MediaRecorder;
-  processMicrophone: (stream: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal) => Promise<ProcessedMicrophone>;
+  processMicrophone: (stream: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal, options?: MicrophoneOptions) => Promise<ProcessedMicrophone>;
 };
 
 const browserEnvironment: CaptureEnvironment = {
@@ -72,11 +72,11 @@ export class VoiceCapture {
       this.processing = new AbortController();
       const processed = await this.environment.processMicrophone(stream, (message, reason) => {
         if (generation === this.generation) this.fail(message, reason);
-      }, this.processing.signal);
+      }, this.processing.signal, this.options);
       if (generation !== this.generation) { processed.close(); return; }
       this.processed = processed;
       if (this.automaticEndpoint) {
-        this.endpoint = new SpeechEndpoint(Date.now());
+        this.endpoint = new SpeechEndpoint(Date.now(), this.options.sensitivity);
       }
       const recorder = this.environment.createRecorder(processed.stream);
       this.recorder = recorder;

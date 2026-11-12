@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VoiceCapture, type CaptureEnvironment } from "./voice-capture";
+import type { MicrophoneOptions } from "./noise-types";
 
-function fixture(automatic = false) {
+function fixture(automatic = false, options: MicrophoneOptions = {}) {
   const track = Object.assign(new EventTarget(), { stop: vi.fn() });
   const stream = { getTracks: () => [track] } as unknown as MediaStream;
   const recorder = {
@@ -18,7 +19,7 @@ function fixture(automatic = false) {
     createRecorder: vi.fn(() => recorder as unknown as MediaRecorder),
     processMicrophone: vi.fn(async () => monitor),
   };
-  const capture = new VoiceCapture(events, environment, automatic);
+  const capture = new VoiceCapture(events, environment, automatic, options);
   const emit = (name: "ondataavailable" | "onstop" | "onerror", payload: unknown = {}) => {
     (recorder[name] as ((event: unknown) => void) | null)?.(payload);
   };
@@ -28,6 +29,26 @@ function fixture(automatic = false) {
 describe("captura efímera por turnos", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
+
+  it("lleva el perfil elegido al filtro y conserva una pausa larga antes de terminar la toma", async () => {
+    const options: MicrophoneOptions = { deviceId: "microfono-de-prueba", sensitivity: "soft" };
+    const f = fixture(true, options);
+    await f.capture.start();
+    expect(f.environment.getMicrophone).toHaveBeenCalledWith(options);
+    expect(vi.mocked(f.environment.processMicrophone).mock.calls[0][3]).toEqual(options);
+    f.monitor.read.mockReturnValue({ rms: 0.05, probability: 0.95, voicedMs: 200 });
+    vi.advanceTimersByTime(250);
+    f.emit("ondataavailable", { data: new Blob(["audio filtrado de prueba"]) });
+    f.monitor.read.mockReturnValue({ rms: 0, probability: 0, voicedMs: 0 });
+    vi.advanceTimersByTime(1750);
+    expect(f.recorder.stop).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(250);
+    expect(f.recorder.stop).toHaveBeenCalledOnce();
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    f.emit("onstop");
+    expect(f.events.onRecorded).toHaveBeenCalledWith(expect.any(Blob), expect.any(Number), true);
+    expect(f.events.onQuiet).not.toHaveBeenCalled();
+  });
 
   it("descarta la toma y libera el filtro antes de notificar una interrupción recuperable", async () => {
     const f = fixture(true);

@@ -21,6 +21,10 @@ proyecto anterior Alice Cognitive Core.
 
 Prioridad actual: consolidar autoestudio y Obsidian y continuar el núcleo junto
 con la aceptación de conversación, voz y música de R9.
+
+**Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
+ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
+volver a Normal. [Cambios y prueba pendiente](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -179,7 +183,7 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **11 de noviembre de 2026**:
 
-- **724 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **738 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **378 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y aclaración de acciones ausentes.
 - Compilación frontend y formato Rust aprobados.

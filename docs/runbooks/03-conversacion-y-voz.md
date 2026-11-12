@@ -32,7 +32,7 @@ autoriza al iniciar.
 3. Esperar **En espera · di Alice para hablarme**. Incluir «Alice» en cada frase
    dirigida a ella: «Alice, abre Spotify» o «¿Me escuchas, Alice?». Pronunciar el
    nombre y la petición en una sola frase, sin esperar una respuesta tras el nombre.
-   Una pausa de un segundo termina el turno; también se puede
+   El silencio termina el turno: 2 segundos en Voz baja y pausada, o 1 en Normal. También se puede
    pulsar **Terminé de hablar**. El audio se transcribe con Whisper local (Gemma
    como respaldo si no está instalado) y el mensaje se
    procesa sin otras confirmaciones sólo si contiene una llamada directa.
@@ -87,6 +87,13 @@ Alice no cambia silenciosamente de reconocedor. Ver
 [la validación y los límites](../testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
 ## Música y ruido de fondo
+
+**Voz baja y pausada** es el perfil inicial de la página: amplifica localmente
+la entrada y da 2 s de silencio antes de cerrar un turno automático. **Normal**
+conserva el nivel anterior y 1 s. Elegir el perfil en Audio de entrada con el
+micrófono apagado. La selección vale para la página actual; el estado de la
+última toma indica qué perfil se preparó. Si el ambiente activa tomas o la voz
+satura, volver a Normal. El dictado manual conserva su finalización por botón.
 
 1. Abrir **Audio de entrada**, actualizar la lista y elegir el micrófono cercano
    a la boca. No cambiar dispositivos mientras la captura está activa.

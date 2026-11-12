@@ -1,4 +1,4 @@
-import type { SpeechEvidence } from "./noise-types";
+import { microphoneProfile, type MicrophoneSensitivity, type SpeechEvidence } from "./noise-types";
 
 // RNNoise measures speech likelihood, not the identity of the speaker.
 export class SpeechEndpoint {
@@ -6,7 +6,12 @@ export class SpeechEndpoint {
   private lastVoice: number;
   private voicedMs = 0;
   private noiseFloor = 0.002;
-  constructor(now: number) { this.startedAt = now; this.lastVoice = now; }
+  private readonly silenceMs: number;
+  constructor(now: number, sensitivity?: MicrophoneSensitivity) {
+    this.startedAt = now;
+    this.lastVoice = now;
+    this.silenceMs = microphoneProfile(sensitivity).silenceMs;
+  }
   get hasSpeech() { return this.voicedMs >= 120; }
   update(evidence: SpeechEvidence, now: number): "listening" | "end" | "quiet" {
     const { rms, probability, voicedMs } = evidence;
@@ -19,7 +24,7 @@ export class SpeechEndpoint {
         this.lastVoice = now;
       }
     }
-    if (this.hasSpeech && now - this.lastVoice >= 1000) return "end";
+    if (this.hasSpeech && now - this.lastVoice >= this.silenceMs) return "end";
     if (!this.hasSpeech && now - this.startedAt >= 8000) return "quiet";
     return "listening";
   }

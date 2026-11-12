@@ -15,8 +15,15 @@ export function isRecoverableNoiseFailure(value: unknown): boolean {
   return value === "input_backlog" || value === "output_overflow";
 }
 
-export type MicrophoneOptions = { deviceId?: string };
-export type NoiseStatus = { microphone: string; systemEcho: boolean; browserNoise: boolean };
+export type MicrophoneSensitivity = "normal" | "soft";
+export function microphoneProfile(value?: unknown): Readonly<{ sensitivity: MicrophoneSensitivity; gain: number; silenceMs: number }> {
+  return value === "soft"
+    ? { sensitivity: "soft", gain: 4, silenceMs: 2000 }
+    : { sensitivity: "normal", gain: 1, silenceMs: 1000 };
+}
+
+export type MicrophoneOptions = { deviceId?: string; sensitivity?: MicrophoneSensitivity };
+export type NoiseStatus = { microphone: string; systemEcho: boolean; browserNoise: boolean; sensitivity?: MicrophoneSensitivity };
 export type ProcessedMicrophone = {
   stream: MediaStream;
   read: () => SpeechEvidence;

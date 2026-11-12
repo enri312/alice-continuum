@@ -23,6 +23,9 @@ orden real y audio confirmados por el propietario; fallo posterior del filtro y 
 [Revisión del reconocimiento de órdenes cortas](testing/VOICE_ASR_REVIEW_2026-11-12.md):
 transcripción sin texto inicial fijo y aclaración local de una acción ausente.
 
+[Perfil de voz baja y pausada](testing/SOFT_VOICE_REPORT_2026-11-12.md):
+ganancia local de entrada y mayor tiempo entre palabras, con Normal disponible.
+
 [Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
 base de autoestudio/Obsidian conservada y primera separación de reglas,
 persistencia y adaptación a Gemma para revisión con colaboradores.

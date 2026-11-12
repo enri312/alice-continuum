@@ -1,14 +1,16 @@
 import { useState } from "react";
-import type { NoiseStatus } from "../../core/voice/noise-types";
+import type { MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
 
 type Props = {
   disabled: boolean;
   deviceId: string;
   onDeviceChange: (id: string) => void;
+  sensitivity: MicrophoneSensitivity;
+  onSensitivityChange: (sensitivity: MicrophoneSensitivity) => void;
   status: NoiseStatus | null;
 };
 
-export function AudioInputSettings({ disabled, deviceId, onDeviceChange, status }: Props) {
+export function AudioInputSettings({ disabled, deviceId, onDeviceChange, sensitivity, onSensitivityChange, status }: Props) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [message, setMessage] = useState("");
   async function refresh() {
@@ -26,10 +28,15 @@ export function AudioInputSettings({ disabled, deviceId, onDeviceChange, status 
         <option value="">Predeterminado del sistema</option>
         {devices.map((device, index) => <option key={device.deviceId} value={device.deviceId}>{device.label || `Micrófono ${index + 1}`}</option>)}
       </select></label>
+      <label>Sensibilidad<select disabled={disabled} value={sensitivity} onChange={event => onSensitivityChange(event.target.value === "soft" ? "soft" : "normal")}>
+        <option value="normal">Normal</option>
+        <option value="soft">Voz baja y pausada</option>
+      </select></label>
       <button type="button" className="secondary" disabled={disabled} onClick={() => void refresh()}>Actualizar micrófonos</button>
     </div>
+    <p>Voz baja y pausada aumenta la ganancia local. En la escucha automática espera 2 segundos de silencio para cerrar el turno; Normal espera 1 segundo. Cambia el perfil con el micrófono apagado. Si el ruido abre tomas o la voz satura, usa Normal.</p>
     {message && <p role="status">{message}</p>}
-    {status && <p>Última toma preparada con filtro: {status.microphone}. {status.systemEcho ? "El equipo confirmó cancelación del sonido del sistema." : "El equipo no confirmó cancelación de toda la música del sistema."}</p>}
+    {status && <p>Última toma preparada con filtro: {status.microphone}. {status.sensitivity && <>Sensibilidad: {status.sensitivity === "soft" ? "Voz baja y pausada" : "Normal"}. </>}{status.systemEcho ? "El equipo confirmó cancelación del sonido del sistema." : "El equipo no confirmó cancelación de toda la música del sistema."}</p>}
     <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende sólo frases dirigidas a Alice; las demás se descartan tras la transcripción local.</p>
   </details>;
 }
