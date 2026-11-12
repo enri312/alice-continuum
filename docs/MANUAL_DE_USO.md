@@ -207,6 +207,15 @@ incorporar experiencias o enseñanzas.
 **Colores de los recuerdos** despliega la referencia de tipos de memoria cuando
 la necesitas. Está plegada por defecto y no ocupa el lienzo cerebral.
 
+El **relleno** conserva el color del tipo, salvo que haya una asociación emocional
+confirmada y vigente. En ese caso usa su color o una mezcla ponderada de las
+intensidades registradas. La ficha incluye una muestra del tono y explica su
+procedencia. **Los estados usan contornos y trazos**, conservando ese relleno:
+rojo para conflicto, ámbar discontinuo para ejercicio pendiente y marcas propias
+para archivo, supresión, retirada, reposo, registro histórico o eliminación
+programada. La ficha muestra los estados que coexisten. **El anillo blanco**
+indica recuperación actual, selección o puntero, sin blanquear el recuerdo.
+
 El estado de aprendizaje muestra la fase registrada del autoestudio, la última
 señal recibida al conversar y la hora de la última lectura correcta. Una fase
 guardada no demuestra que Gemma esté ejecutando una inferencia en ese instante.
@@ -601,8 +610,9 @@ En el volumen, el tamaño de cada recuerdo depende de su importancia registrada
 (1–5). Un recuerdo sin evaluación permanece pequeño. Recuperarlo modifica el
 brillo, sin aumentar su tamaño duradero. La perspectiva y el zoom también afectan
 el tamaño aparente. Esta importancia todavía no es una evaluación de impacto
-emocional: los colores actuales corresponden a categorías de memoria hasta que
-se conecte el sistema afectivo. El tamaño no modifica conservación ni eliminación.
+emocional: el relleno usa el tipo o la evaluación emocional confirmada y vigente;
+los estados tienen contornos independientes. El tamaño no modifica conservación
+ni eliminación.
 
 El observatorio centra la red al abrir. **Buscar un recuerdo o proceso** despliega
 el selector **Explorar un nodo**, para seleccionarlo también con teclado. La ficha

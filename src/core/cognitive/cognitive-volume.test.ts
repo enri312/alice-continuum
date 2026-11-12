@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCognitiveMemoryNodes } from "../memory/cognitive-memory";
-import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations } from "./cognitive-volume";
+import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations, resolveCognitiveMemoryAppearance } from "./cognitive-volume";
 import type { ConfirmedMemoryAssociation } from "./cognitive-volume";
 import type { CoreActivitySnapshot } from "./core-activity";
 
@@ -120,12 +120,15 @@ describe("grafo trazable del volumen cognitivo", () => {
     expect(graph.edges.some((edge) => edge.id === "retrieval:idle")).toBe(false);
   });
 
-  it("diferencia estado y capa mediante reglas explícitas", () => {
+  it("mantiene el tipo de memoria como relleno y el conflicto como marca independiente", () => {
     const [conflict, episodic] = buildCognitiveMemoryNodes([
       { id: "conflict", intention: "Conflicto", memoryType: "semantic", memoryStatus: "conflict" },
       { id: "episode", intention: "Episodio", memoryType: "episodic", memoryStatus: "confirmed" },
     ]).map((memory) => buildCognitiveVolumeGraph([memory], null).nodes[0]);
-    expect(cognitiveVolumeNodeColor(conflict)).toEqual([248, 113, 113]);
+    expect(cognitiveVolumeNodeColor(conflict)).toEqual([167, 139, 250]);
+    expect(resolveCognitiveMemoryAppearance(conflict.memory!)).toMatchObject({
+      fillMode: "layer", states: [{ id: "conflict", color: [248, 113, 113] }],
+    });
     expect(cognitiveVolumeNodeColor(episodic)).toEqual([34, 211, 238]);
   });
 
@@ -135,23 +138,105 @@ describe("grafo trazable del volumen cognitivo", () => {
       { emotion: "nostalgia", intensity: .25, evidence: "y con nostalgia" },
     ] }]);
     expect(cognitiveVolumeNodeColor(buildCognitiveVolumeGraph([memory], null).nodes[0])).toEqual([238, 202, 100]);
+    const appearance = resolveCognitiveMemoryAppearance(memory);
+    expect(appearance.fillMode).toBe("affect");
+    expect(appearance.fillLabel).toContain("Mezcla emocional revisada");
+    expect(appearance.fillLabel).toContain("Alegría (75%)");
+    expect(appearance.fillLabel).toContain("Nostalgia (25%)");
   });
 
   it("mantiene visible un recuerdo en reposo sin ruta de recuperación", () => {
-    const [memory] = buildCognitiveMemoryNodes([{ id: "dormant", intention: "En reposo", memoryStatus: "confirmed", accessibilityStatus: "dormant" }], ["dormant"]);
+    const [memory] = buildCognitiveMemoryNodes([{ id: "dormant", intention: "En reposo", memoryType: "episodic", memoryStatus: "confirmed", accessibilityStatus: "dormant" }], ["dormant"]);
     const graph = buildCognitiveVolumeGraph([memory], null);
     expect(graph.persistentNodeCount).toBe(1);
     expect(graph.nodes[0].detail).toContain("dormant");
-    expect(cognitiveVolumeNodeColor(graph.nodes[0])).toEqual([100, 116, 139]);
+    expect(cognitiveVolumeNodeColor(graph.nodes[0])).toEqual([34, 211, 238]);
+    expect(resolveCognitiveMemoryAppearance(memory)).toMatchObject({ states: [{ id: "dormant" }], opacity: .4 });
     expect(graph.edges).toEqual([]);
   });
 
   it("atenúa un recuerdo suprimido y conserva su identidad sin ruta activa", () => {
-    const [memory] = buildCognitiveMemoryNodes([{ id: "suppressed", intention: "Suprimido", memoryStatus: "confirmed", suppressionStatus: "suppressed" }], ["suppressed"]);
+    const [memory] = buildCognitiveMemoryNodes([{ id: "suppressed", intention: "Suprimido", memoryType: "episodic", memoryStatus: "confirmed", suppressionStatus: "suppressed" }], ["suppressed"]);
     const graph = buildCognitiveVolumeGraph([memory], null);
     expect(graph.persistentNodeCount).toBe(1);
     expect(graph.nodes[0].detail).toContain("suppressed");
-    expect(cognitiveVolumeNodeColor(graph.nodes[0])).toEqual([88, 72, 94]);
+    expect(cognitiveVolumeNodeColor(graph.nodes[0])).toEqual([34, 211, 238]);
+    expect(resolveCognitiveMemoryAppearance(memory)).toMatchObject({ states: [{ id: "suppressed" }], opacity: .28 });
     expect(graph.edges).toEqual([]);
+  });
+
+  it("recupera un recuerdo sin convertir el relleno de su capa en blanco", () => {
+    const input = [{ id: "semantic", intention: "Una enseñanza", memoryType: "semantic" as const, memoryStatus: "confirmed" as const }];
+    const [idle] = buildCognitiveMemoryNodes(input);
+    const [retrieved] = buildCognitiveMemoryNodes(input, ["semantic"]);
+    expect(retrieved.retrieved).toBe(true);
+    expect(resolveCognitiveMemoryAppearance(retrieved)).toMatchObject({
+      color: [167, 139, 250], fillMode: "layer", fillLabel: "Tipo de memoria: Semántica", opacity: .95,
+    });
+    expect(resolveCognitiveMemoryAppearance(retrieved).color).toEqual(resolveCognitiveMemoryAppearance(idle).color);
+    expect(cognitiveVolumeNodeColor(buildCognitiveVolumeGraph([retrieved], null).nodes[0])).toEqual([167, 139, 250]);
+  });
+
+  it("mantiene semántica una lección pendiente y diferencia su revisión del relleno procedimental", () => {
+    const [pending, available, procedure] = buildCognitiveMemoryNodes([
+      { id: "pending", intention: "Álgebra", memoryType: "semantic", studyLearning: true, studyState: "review", studyPasses: 0 },
+      { id: "available", intention: "Aritmética", memoryType: "semantic", studyLearning: true, studyState: "available", studyPasses: 1 },
+      { id: "procedure", intention: "Pasos de cálculo", memoryType: "procedural", memoryStatus: "confirmed" },
+    ]);
+    const appearance = resolveCognitiveMemoryAppearance(pending);
+    expect(appearance.color).toEqual([167, 139, 250]);
+    expect(appearance.color).toEqual(resolveCognitiveMemoryAppearance(available).color);
+    expect(appearance.states.map(state => state.id)).toEqual(["review", "historical"]);
+    expect(appearance.states[0]).toMatchObject({ color: [251, 191, 36], dash: [4, 3] });
+    expect(appearance.color).not.toEqual(resolveCognitiveMemoryAppearance(procedure).color);
+    expect(pending.retrieved).toBe(false);
+  });
+
+  it("distingue la ira revisada del anillo de conflicto y conserva su intensidad registrada", () => {
+    const [anger] = buildCognitiveMemoryNodes([
+      { id: "anger", intention: "Un enojo", memoryStatus: "confirmed", affects: [{ emotion: "anger", intensity: .6, evidence: "Estoy enojado" }] },
+    ]);
+    expect(resolveCognitiveMemoryAppearance(anger)).toMatchObject({
+      color: [240, 68, 68], fillMode: "affect", fillLabel: "Emoción revisada: Ira (60%)", states: [],
+    });
+    const conflict = resolveCognitiveMemoryAppearance({ ...anger, status: "conflict" });
+    expect(conflict.fillMode).toBe("layer");
+    expect(conflict.states[0]).toMatchObject({ id: "conflict", color: [248, 113, 113] });
+  });
+
+  it("atenúa el archivo sin sustituir la asociación de alegría ya revisada", () => {
+    const [memory] = buildCognitiveMemoryNodes([
+      { id: "joy", intention: "Alegría guardada", memoryStatus: "confirmed", archiveStatus: "archived", affects: [{ emotion: "joy", intensity: .5, evidence: "Estoy feliz" }] },
+    ]);
+    expect(resolveCognitiveMemoryAppearance(memory)).toMatchObject({
+      color: [255, 216, 77], fillMode: "affect", fillLabel: "Emoción revisada: Alegría (50%)", opacity: .3,
+      states: [{ id: "archived" }],
+    });
+    expect(buildCognitiveVolumeGraph([memory], null).edges).toEqual([]);
+  });
+
+  it("prioriza las marcas de gobierno sin ocultar los estados coexistentes ni cambiar el relleno", () => {
+    const [memory] = buildCognitiveMemoryNodes([
+      { id: "governed", intention: "Recuerdo en revisión", memoryType: "preference", memoryStatus: "conflict",
+        deletionStatus: "scheduled", archiveStatus: "archived", suppressionStatus: "suppressed", accessibilityStatus: "dormant" },
+    ]);
+    const appearance = resolveCognitiveMemoryAppearance({ ...memory, studyState: "withdrawn" });
+    expect(appearance.states.map(state => state.id)).toEqual(["conflict", "scheduled", "archived", "suppressed", "withdrawn", "dormant"]);
+    expect(appearance.color).toEqual([244, 114, 182]);
+    expect(appearance.opacity).toBe(.3);
+    expect(appearance.fillMode).toBe("layer");
+  });
+
+  it("retira el color afectivo de una evaluación anterior al reconsolidar una versión nueva", () => {
+    const input = { id: "versioned", intention: "Una enseñanza revisada", memoryType: "semantic" as const, memoryStatus: "confirmed" as const,
+      affects: [{ emotion: "joy" as const, intensity: .8, evidence: "Estoy feliz" }] };
+    const [original] = buildCognitiveMemoryNodes([input]);
+    const [updated] = buildCognitiveMemoryNodes([{ ...input, memoryVersion: 2 }]);
+    expect(resolveCognitiveMemoryAppearance(original).fillMode).toBe("affect");
+    expect(updated.affects).toEqual([]);
+    expect(resolveCognitiveMemoryAppearance(updated)).toMatchObject({
+      color: [167, 139, 250], fillMode: "layer", fillLabel: "Tipo de memoria: Semántica",
+    });
+    expect(resolveCognitiveMemoryAppearance({ ...original, version: 2 }).fillMode).toBe("layer");
   });
 });

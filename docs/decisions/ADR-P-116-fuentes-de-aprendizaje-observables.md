@@ -1,6 +1,7 @@
 # ADR-P-116 — Fuentes de aprendizaje observables y recuperables
 
-Fecha: 2026-11-11. Estado: implementado; aceptación nativa pendiente.
+Fecha: 2026-11-11. Estado: implementado; revisión del Volumen en Tauri completada.
+La aceptación personal completa del aprendizaje conserva sus pendientes.
 
 ## Problema
 

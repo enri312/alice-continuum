@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { BrainSnapshot } from "../../core/cognitive/brain";
 import type { CoreActivitySnapshot } from "../../core/cognitive/core-activity";
-import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations } from "../../core/cognitive/cognitive-volume";
+import { buildCognitiveVolumeGraph, cognitiveVolumeNodeColor, cognitiveMemoryRadius, currentVolumeAssociations, resolveCognitiveMemoryAppearance } from "../../core/cognitive/cognitive-volume";
 import type { CognitiveVolumeNode, ConfirmedMemoryAssociation } from "../../core/cognitive/cognitive-volume";
 import { resolveKnowledgeGraphEvidenceQuote } from "../../core/memory/knowledge-graph-volume";
 import type { KnowledgeGraphVolumeState } from "../../core/memory/knowledge-graph-volume";
@@ -11,6 +11,7 @@ import { cortexPaths, neuralSeed } from "../../core/cognitive/neural-geometry";
 import { buildVolumeSignalSnapshot } from "../../core/cognitive/volume-signals";
 import { illustrativeSignalNodes, illustrativeSignalRoutes } from "../../core/cognitive/volume-signal-demo";
 import { VolumeSignalConsole, type VolumeSignalMode } from "./VolumeSignalConsole";
+import { VolumeColourGuide } from "./VolumeColourGuide";
 import { VolumeLearningActivity, type VolumeLearningActivityState } from "./VolumeLearningActivity";
 import { VolumeLearningSummary, type VolumeLearningChange, type VolumeObservedLearning, type VolumeStudyProgress } from "./VolumeLearningSummary";
 import { createVolumeLearningCheckpoint, diffVolumeLearningCheckpoints, volumeLearningScale } from "../../core/cognitive/volume-learning";
@@ -83,6 +84,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
   const [zoomPercent, setZoomPercent] = useState(100);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId) ?? null;
+  const selectedAppearance = selectedNode?.memory ? resolveCognitiveMemoryAppearance(selectedNode.memory) : null;
   const currentAssociations = useMemo(() => currentVolumeAssociations(snapshot.memoryNodes, associations), [snapshot.memoryNodes, associations]);
   const locallyInvalidatedAssociations = associations.length - currentAssociations.length;
   const effectiveAssociationStatus = locallyInvalidatedAssociations > 0 ? "sourceChanged" : associationStatus;
@@ -421,7 +423,8 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         .sort((left, right) => left.point.z - right.point.z);
       const hits: ProjectedNode[] = [];
       for (const { node, point } of ordered) {
-        const [red, green, blue] = cognitiveVolumeNodeColor(node);
+        const appearance = node.memory ? resolveCognitiveMemoryAppearance(node.memory) : null;
+        const [red, green, blue] = appearance?.color ?? cognitiveVolumeNodeColor(node);
         const related = !focusId || node.id === focusId || neighbors.get(focusId)?.has(node.id) === true;
         const activityPulse = node.signal > 0 && node.processRegion !== "runtime" && related && animateSignals ? .85 + Math.sin(animationTime * .004 + node.x * 5) * .15 : 1;
         const baseRadius = node.kind === "process" ? 4.6 + node.signal * 3.2 : cognitiveMemoryRadius(node.memory?.importance ?? null);
@@ -432,11 +435,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         const radius = clamp(baseRadius * point.perspective * Math.sqrt(cameraRef.current.zoom) * growth, 2.1, 32);
         const selected = node.id === selectedNodeRef.current;
         const hovered = node.id === hoveredNodeRef.current;
-        const archived = node.memory?.archived === true;
-        const dormant = node.memory?.accessibility === "dormant";
-        const suppressed = node.memory?.suppressed === true;
-        const studyWithdrawn = node.memory?.studyState === "withdrawn";
-        const stateAlpha = selected || hovered ? 1 : archived || studyWithdrawn ? .3 : suppressed ? .28 : dormant ? .4 : node.kind === "process" || node.memory?.retrieved ? .95 : .72;
+        const stateAlpha = selected || hovered ? 1 : appearance?.opacity ?? .95;
         const alpha = stateAlpha * (related ? 1 : .24);
         context.shadowColor = `rgba(${red},${green},${blue},.82)`;
         context.shadowBlur = showArrival ? 24 : selected || hovered ? 18 : node.signal > 0 ? 14 * activityPulse : 4;
@@ -522,11 +521,22 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         }
         context.stroke();
 
-        if (node.memory?.retrieved || selected || hovered || node.memory?.status === "conflict") {
-          context.strokeStyle = node.memory?.status === "conflict" ? "rgba(254,202,202,.9)" : "rgba(224,242,254,.88)";
+        const stateMarker = appearance?.states[0];
+        if (stateMarker) {
+          context.save();
+          context.strokeStyle = `rgba(${stateMarker.color.join(",")},${related ? .88 : .24})`;
+          context.lineWidth = 1.2;
+          context.setLineDash([...stateMarker.dash]);
+          context.beginPath();
+          context.arc(point.x, point.y, radius + 3.5, 0, Math.PI * 2);
+          context.stroke();
+          context.restore();
+        }
+        if (node.memory?.retrieved || selected || hovered) {
+          context.strokeStyle = "rgba(224,242,254,.88)";
           context.lineWidth = selected ? 1.4 : hovered ? 1.1 : .8;
           context.beginPath();
-          context.arc(point.x, point.y, radius + (selected ? 5 : 3.5), 0, Math.PI * 2);
+          context.arc(point.x, point.y, radius + (selected ? 7.5 : 6), 0, Math.PI * 2);
           context.stroke();
         }
 
@@ -652,8 +662,12 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       {selectedNode && <aside className="volume-inspector-rail" aria-label="Inspector del volumen cognitivo">
         <header className="volume-inspector-heading"><span>RECUERDO / PROCESO</span><button type="button" className="observatory-orbit" onClick={() => { setSelectedNodeId(null); canvasRef.current?.focus({ preventScroll: true }); }}>Cerrar ficha</button></header>
         {selectedNode.memory && <div className="volume-learning-meta"><strong>{originLabels[selectedNode.memory.origin]}</strong><span>{selectedNode.memory.recordedAt && selectedNode.memory.recordedAtKind ? `${dateLabels[selectedNode.memory.recordedAtKind]} · ${new Intl.DateTimeFormat("es-PY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(selectedNode.memory.recordedAt))}` : "Fecha no declarada en la fuente"}</span>{selectedNode.memory.recordedAtKind === "study" && <small>La fecha de repaso no indica cuándo nació este conocimiento.</small>}</div>}
+        {selectedAppearance && <div className="volume-memory-appearance" aria-label="Color y marcas del recuerdo" data-fill-mode={selectedAppearance.fillMode} data-fill-color={selectedAppearance.color.join(",")} data-state={selectedAppearance.states[0]?.id ?? "normal"} data-retrieved={selectedNode.memory?.retrieved ?? false}>
+          <i className="volume-memory-fill-swatch" style={{ backgroundColor: `rgb(${selectedAppearance.color.join(",")})` }} aria-hidden="true" />
+          <div><strong>{selectedAppearance.fillLabel}</strong><small>{selectedAppearance.states.length ? `Marcas de estado: ${selectedAppearance.states.map(state => state.label).join(" · ")}` : "Sin marcas adicionales de estado"}</small><small>{selectedNode.memory?.retrieved ? "Recuperado en la consulta actual · anillo blanco" : "Seleccionado · sin recuperación en la consulta actual"}</small></div>
+        </div>}
         {selectedNode.memory?.studyState && <p className="review-note"><strong>{studyStateLabels[selectedNode.memory.studyState]}</strong><br />{selectedNode.memory.studyPasses ?? 0} ejercicios aprobados registrados. Su presencia en el volumen no habilita su uso en conversación.</p>}
-        {selectedNode?.memory && <><p className="review-note">Importancia: {selectedNode.memory.importance === null ? "sin evaluar" : `${selectedNode.memory.importance}/5`}. {selectedNode.memory.affects.length ? "Asociación emocional revisada" : "Sin evaluación emocional vigente"}.</p>{selectedNode.memory.affects.map(item => <p className="review-note" key={item.emotion}><strong>{affectPalette.find(c => c.id === item.emotion)?.label} · {Math.round(item.intensity * 100)}%</strong><br />“{item.evidence}”</p>)}</>}
+        {selectedNode?.memory && <><p className="review-note">Importancia: {selectedNode.memory.importance === null ? "sin evaluar" : `${selectedNode.memory.importance}/5`}. {selectedAppearance?.fillMode === "affect" ? "Asociación emocional revisada vigente" : selectedNode.memory.affects.length ? "Evaluación emocional conservada, sin aplicar al color en este estado" : "Sin evaluación emocional vigente"}.</p>{selectedNode.memory.affects.map(item => <p className="review-note" key={item.emotion}><strong>{affectPalette.find(c => c.id === item.emotion)?.label} · {Math.round(item.intensity * 100)}%{selectedAppearance?.fillMode !== "affect" ? " · registro conservado, sin aplicar al color" : ""}</strong><br />“{item.evidence}”</p>)}</>}
         <div className={`volume-node-inspector ${selectedNode ? "selected" : "idle"}`} aria-live="polite">
           {selectedNode ? selectedNode.memory ? <><span>NODO DE MEMORIA</span><strong>{selectedNode.memory.label}</strong>{selectedNode.memory.content && <p className="neural-memory-content">{selectedNode.memory.content}</p>}<small>{layerLabels[selectedNode.memory.layer]} · {statusLabels[selectedNode.memory.status]} · {accessibilityLabels[selectedNode.memory.accessibility]}{selectedNode.memory.archived ? " · archivado" : ""}{selectedNode.memory.deletionScheduled ? " · eliminación programada" : ""}{selectedNode.memory.suppressed ? " · suprimido" : ""} · v{selectedNode.memory.version}</small><details className="observatory-provenance"><summary>Fuente y detalles técnicos</summary><code>{selectedNode.memory.id}</code><dl><div><dt>Versión</dt><dd>{selectedNode.memory.version}{selectedNode.memory.version > 1 ? " · reconsolidada" : " · original"}</dd></div><div><dt>Retención</dt><dd>{selectedNode.memory.deletionScheduled ? "espera gobernada antes de retiro" : "sin eliminación programada"}</dd></div><div><dt>Recuperación</dt><dd>{selectedNode.memory.archived ? "bloqueada por archivo reversible" : selectedNode.memory.suppressed ? "suprimida por el propietario" : accessibilityLabels[selectedNode.memory.accessibility]}</dd></div><div><dt>Estabilidad</dt><dd>{selectedNode.memory.storageStrength === null ? "sin métrica" : `${Math.round(selectedNode.memory.storageStrength * 100)}%`}</dd></div><div><dt>Recuperaciones</dt><dd>{selectedNode.memory.successfulRecalls}</dd></div><div><dt>Fuente</dt><dd>{selectedNode.memory.source ?? "no declarada"}</dd></div></dl></details></> : <><span>NODO DE PROCESO</span><strong>{selectedNode.label}</strong><small>{selectedNode.detail}</small><code>{selectedNode.id}</code></> : <><span>INSPECTOR TRAZABLE</span><strong>Seleccioná un nodo</strong><small>Un círculo abre un recuerdo real; un rombo explica el latido del núcleo, una señal R3 o la recuperación actual. La selección conserva el contexto y atenúa únicamente los elementos no relacionados.</small></>}
         </div>
@@ -671,7 +685,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
           </details>)}
         </section>}
         <div className={`volume-affect-status ${hasAffectActivity ? "active" : "standby"}`} style={hasAffectActivity ? { "--affect-color": dominantAffect.color } as CSSProperties : undefined}><i /><span><strong>CAPA AFECTIVA</strong><small>{hasAffectActivity ? `${dominantAffect.label.toUpperCase()} · ${(dominantAffect.value * 100).toFixed(0)}%` : "10 CANALES · EN ESPERA"}</small></span></div>
-        <div className="observatory-emotions"><header><strong>Paleta emocional</strong><span>Referencia · evaluación pendiente</span></header><div>{affectPalette.map(channel => <span key={channel.id}><i style={{ backgroundColor: channel.color }} />{channel.label}</span>)}</div></div>
+        <div className="observatory-emotions"><header><strong>Paleta de asociaciones emocionales</strong><span>Referencia · la evidencia figura en la ficha</span></header><div>{affectPalette.map(channel => <span key={channel.id}><i style={{ backgroundColor: channel.color }} />{channel.label}</span>)}</div></div>
       </aside>}
       </div>}
     </div>
@@ -683,10 +697,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       </div>
       <div className="volume-stats-strip"><span className="volume-stats-growth">{graph.persistentNodeCount} REGISTROS · {snapshot.retrievedMemoryCount} RECUPERADOS · {graph.processNodeCount} PROCESOS · {graph.persistentAssociationCount} ASOCIACIONES CONFIRMADAS</span><div className="volume-stats-routes" aria-label="Evidencia del grafo"><span className="input"><i />R3 <strong>{activity?.windowEventCount ?? 0}</strong></span><span className="memory"><i />NODOS <strong>{graph.persistentNodeCount}</strong></span><span className="output"><i />ARISTAS <strong>{graph.edges.length}</strong></span></div><span className="volume-stats-help">{effectiveAssociationStatus === "loading" ? "LEYENDO RELACIONES LOCALES…" : effectiveAssociationStatus === "error" ? "RELACIONES NO DISPONIBLES · NODOS SIN ALTERAR" : effectiveAssociationStatus === "sourceChanged" ? "RELACIÓN OCULTA HASTA REVISAR SU FUENTE" : effectiveAssociationStatus === "normal" ? "VIOLETA · RELACIÓN CONFIRMADA" : graph.edges.some(edge=>edge.kind === "coLearning") ? "VERDE · ORIGEN COMPARTIDO" : "SIN RELACIONES CARGADAS"}&nbsp;&nbsp; · &nbsp;&nbsp;CLIC · INSPECCIONAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</span></div>
     </>}
-    {hasVisual && <details className="volume-color-guide"><summary>Colores de los recuerdos</summary>
-<div className="volume-layer-legend" aria-label="Capas de memoria"><span className="episodic"><i />episódica</span><span className="semantic"><i />semántica</span><span className="procedural"><i />procedimental</span><span className="preference"><i />preferencias</span><span className="self"><i />propietario</span><span className="unclassified"><i />sin clasificar</span></div>
-      <p>Los colores distinguen tipos de memoria. Un recuerdo con una asociación emocional revisada puede usar ese color; al seleccionarlo puedes consultar su evidencia.</p>
-    </details>}
+    {hasVisual && <VolumeColourGuide />}
     <VolumeSignalConsole signals={signals} mode={signalMode} paused={motionPaused} reducedMotion={reducedMotion} nowMs={displayNowMs} onModeChange={setSignalMode} onPauseChange={() => setMotionPaused(value => !value)} />
   </div>;
 }

@@ -78,5 +78,11 @@ Falta aceptar en la ventana nativa una incorporación real, su continuidad tras
 reinicio, recuperación con fuente y proyección en Obsidian. Tampoco se repitieron
 Rust ni aceptación de voz, porque este incremento no cambia esos componentes.
 
+**Revisión posterior del 11 de noviembre:** la conexión compatible permitió
+inspeccionar el Volumen en Tauri, comprobar sus fuentes y actualizar la lectura.
+El bloqueo de acceso a la ventana y esa revisión visual quedan resueltos.
+Persisten las comprobaciones personales de recuperación, continuidad y Obsidian.
+Ver [resultado posterior](COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
+
 [Decisión](../decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md) ·
 [Guía](../MANUAL_DE_USO.md#volumen-cognitivo).

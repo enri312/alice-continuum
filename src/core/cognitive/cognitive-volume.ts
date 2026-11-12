@@ -57,7 +57,9 @@ const processPositions: Record<CoreActivityRegionId, readonly [number, number, n
   motor: [0.56, -0.2, -0.08],
 };
 
-export const memoryLayerColors: Record<CognitiveMemoryLayer, readonly [number, number, number]> = {
+export type RGB = readonly [number, number, number];
+
+export const memoryLayerColors: Record<CognitiveMemoryLayer, RGB> = {
   episodic: [34, 211, 238],
   semantic: [167, 139, 250],
   procedural: [251, 191, 36],
@@ -66,11 +68,69 @@ export const memoryLayerColors: Record<CognitiveMemoryLayer, readonly [number, n
   unclassified: [100, 116, 139],
 };
 
-export const memoryStatusColors: Partial<Record<CognitiveMemoryStatus, readonly [number, number, number]>> = {
+export const memoryLayerLegend: readonly { id: CognitiveMemoryLayer; label: string; color: RGB }[] = [
+  { id: "episodic", label: "Episódica", color: memoryLayerColors.episodic },
+  { id: "semantic", label: "Semántica", color: memoryLayerColors.semantic },
+  { id: "procedural", label: "Procedimental", color: memoryLayerColors.procedural },
+  { id: "preference", label: "Preferencias", color: memoryLayerColors.preference },
+  { id: "self", label: "Perfil del propietario", color: memoryLayerColors.self },
+  { id: "unclassified", label: "Sin clasificar", color: memoryLayerColors.unclassified },
+];
+
+export const memoryStatusColors: Partial<Record<CognitiveMemoryStatus, RGB>> = {
   conflict: [248, 113, 113],
   archived: [71, 85, 105],
   historical: [125, 145, 166],
 };
+
+// These markers describe record state, independently of the fill's meaning.
+// Order defines which marker the canvas draws when multiple states coexist.
+export const memoryVisualStates = [
+  { id: "conflict", label: "En conflicto", color: memoryStatusColors.conflict!, dash: [] },
+  { id: "scheduled", label: "Eliminación programada", color: [251, 146, 60], dash: [7, 3] },
+  { id: "archived", label: "Archivado", color: memoryStatusColors.archived!, dash: [2, 4] },
+  { id: "suppressed", label: "Suprimido", color: [88, 72, 94], dash: [1, 3] },
+  { id: "withdrawn", label: "Retirado del contexto", color: [100, 116, 139], dash: [6, 4] },
+  { id: "review", label: "Requiere ejercicio aprobado", color: [251, 191, 36], dash: [4, 3] },
+  { id: "dormant", label: "En reposo", color: [100, 116, 139], dash: [1, 5] },
+  { id: "historical", label: "Registro histórico", color: memoryStatusColors.historical!, dash: [2, 2] },
+] as const satisfies readonly { id: string; label: string; color: RGB; dash: readonly number[] }[];
+
+export type MemoryVisualState = typeof memoryVisualStates[number];
+export type CognitiveMemoryAppearance = {
+  color: RGB;
+  fillMode: "layer" | "affect";
+  fillLabel: string;
+  states: readonly MemoryVisualState[];
+  opacity: number;
+};
+
+/** Fill represents reviewed affect or memory type; state never replaces it. */
+export function resolveCognitiveMemoryAppearance(memory: CognitiveMemoryNode): CognitiveMemoryAppearance {
+  const stateFlags: Record<MemoryVisualState["id"], boolean> = {
+    conflict: memory.status === "conflict",
+    scheduled: memory.deletionScheduled,
+    archived: memory.archived,
+    suppressed: memory.suppressed,
+    withdrawn: memory.studyState === "withdrawn",
+    review: memory.studyState === "review",
+    dormant: memory.accessibility === "dormant",
+    historical: memory.status === "historical",
+  };
+  const states = memoryVisualStates.filter(state => stateFlags[state.id]);
+  const opacity = memory.archived || memory.studyState === "withdrawn" ? .3
+    : memory.suppressed ? .28 : memory.accessibility === "dormant" ? .4 : memory.retrieved ? .95 : .72;
+  const layer = memoryLayerLegend.find(definition => definition.id === memory.layer)!;
+  if (memory.status !== "confirmed" || memory.version !== 1 || !memory.affects.length) {
+    return { color: layer.color, fillMode: "layer", fillLabel: `Tipo de memoria: ${layer.label}`, states, opacity };
+  }
+  const total = memory.affects.reduce((sum, item) => sum + item.intensity, 0);
+  const color = [0, 1, 2].map(index => Math.round(memory.affects.reduce((sum, item) =>
+    sum + affectPalette.find(definition => definition.id === item.emotion)!.rgb[index] * item.intensity, 0) / total)) as [number, number, number];
+  const emotions = memory.affects.map(item => `${affectPalette.find(definition => definition.id === item.emotion)!.label} (${Math.round(item.intensity * 100)}%)`).join(" · ");
+  const fillLabel = `${memory.affects.length > 1 ? "Mezcla emocional revisada" : "Emoción revisada"}: ${emotions}`;
+  return { color, fillMode: "affect", fillLabel, states, opacity };
+}
 
 // Importancia registrada (1–5), independiente de recuperación y estabilidad.
 // Ausencia de evaluación conserva un tamaño pequeño, sin inventar impacto.
@@ -79,7 +139,7 @@ export function cognitiveMemoryRadius(importance: number | null): number {
   return 5 + (Math.min(5, Math.max(1, importance)) - 1) * 2;
 }
 
-export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): readonly [number, number, number] {
+export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): RGB {
   if (node.kind === "process") {
     if (node.processRegion === "output" || node.processRegion === "motor") return [251, 191, 36];
     if (node.processRegion === "memory" || node.processRegion === "workspace" || node.processRegion === "retrieval") return [56, 189, 248];
@@ -87,18 +147,7 @@ export function cognitiveVolumeNodeColor(node: CognitiveVolumeNode): readonly [n
   }
   const memory = node.memory;
   if (!memory) return [100, 116, 139];
-  if (memory.archived) return memoryStatusColors.archived!;
-  if (memory.studyState === "withdrawn") return [100, 116, 139];
-  if (memory.studyState === "review") return [251, 191, 36];
-  if (memory.suppressed) return [88, 72, 94];
-  if (memory.accessibility === "dormant") return [100, 116, 139];
-  if (memory.status === "conflict") return memoryStatusColors.conflict!;
-  if (memory.affects.length && memory.status === "confirmed") {
-    const total = memory.affects.reduce((sum, item) => sum + item.intensity, 0);
-    return [0, 1, 2].map(index => Math.round(memory.affects.reduce((sum, item) => sum + affectPalette.find(c => c.id === item.emotion)!.rgb[index] * item.intensity, 0) / total)) as [number, number, number];
-  }
-  if (memory.retrieved) return [224, 242, 254];
-  return memoryStatusColors[memory.status] ?? memoryLayerColors[memory.layer];
+  return resolveCognitiveMemoryAppearance(memory).color;
 }
 
 /** Keep graph edges and inspector evidence tied to the currently displayed versions. */

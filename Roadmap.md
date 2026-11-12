@@ -88,11 +88,19 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   última lectura y errores, con reintento de consulta; la leyenda queda plegada
   fuera del lienzo. [ADR-P-116](docs/decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md).
 
-**Última validación registrada, 11 de noviembre:** 694 pruebas frontend aprobadas
+- **Colores y revisión nativa del Volumen:** relleno por tipo o asociación
+  emocional revisada; estados en contornos y recuperación en anillo blanco,
+  con guía y ficha derivadas de las mismas definiciones. Se revisaron la página,
+  sus fuentes y la actualización de lecturas en Tauri. El fallo del canal anterior
+  de automatización se resolvió usando la conexión compatible.
+  [ADR-P-117](docs/decisions/ADR-P-117-colores-y-marcas-del-volumen.md).
+
+**Última validación registrada, 11 de noviembre:** 700 pruebas frontend aprobadas
 (2 sondas omitidas), 354 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
-1000 y 420 píxeles en una vista aislada sin backend ni datos personales. Esa
-revisión no acredita por sí sola el diseño en la sesión nativa ni la voz real.
+1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
+también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita la voz
+real ni el ciclo completo de aprendizaje y Obsidian.
 [Resultados y alcance](README.md#verificación).
 
 El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
@@ -602,10 +610,11 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. Evaluar una primitiva de persistencia compartida
    sin cambiar formatos ni debilitar los controles existentes.
-3. **Aceptar Memoria y Volumen en la aplicación nativa.** Verificar las cuatro secciones,
+3. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
-   del propietario, así como una incorporación real visible en el Volumen.
-   La revisión visual aislada ya aprobada no sustituye esa prueba.
+   del propietario. El Volumen ya se revisó en Tauri con fuentes y cambios
+   observados; quedan las comprobaciones conjuntas de recuperación y Obsidian
+   del primer paso. La revisión visual no sustituye esa aceptación completa.
 4. **Retomar la aceptación funcional de R9.** Mantener cinco turnos reales con
    corrección de referentes; probar escucha sin música, con música de la notebook
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,

@@ -99,3 +99,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-115](ADR-P-115-volumen-cognitivo-y-evolucion-visible.md) | Volumen bilateral, evolución observada del aprendizaje y señales reales separadas de la demostración |
 
 | [ADR-P-116](ADR-P-116-fuentes-de-aprendizaje-observables.md) | Fuentes de aprendizaje recuperables, coordinación separada de App y estado visible en el Volumen |
+
+| [ADR-P-117](ADR-P-117-colores-y-marcas-del-volumen.md) | Relleno por tipo o afecto revisado, estados en contornos y revisión del Volumen en Tauri |
