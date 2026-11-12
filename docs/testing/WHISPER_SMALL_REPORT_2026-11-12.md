@@ -131,6 +131,8 @@ escrito que había dicho «Alice pausa Spotify»; el texto no conservó esa fras
 Por tanto, la aceptación manual también falla. El cierre automático por
 silencio no es una explicación suficiente de ese resultado; falta evaluar la
 señal y el filtrado antes de atribuir la causa al micrófono o a Whisper.
+La continuación sobre la atenuación adicional del perfil pausado se documenta
+en [preservación de señal](SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
 
 La escucha automática mantiene su cierre tras 2 s sin evidencia válida de
 voz en el perfil pausado. Su botón **Terminé de hablar** sólo puede adelantar

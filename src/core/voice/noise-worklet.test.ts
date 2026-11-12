@@ -13,20 +13,20 @@ beforeAll(async () => {
 });
 afterAll(() => vi.unstubAllGlobals());
 
-function fixture() {
+function fixture(sensitivity?: unknown) {
   const bridge = new Processor();
   const pending: Float32Array[] = [];
   const worker = { onmessage: (_event: unknown) => undefined, start: vi.fn(), close: vi.fn(),
     postMessage: (frame: Float32Array) => pending.push(frame) };
-  bridge.port.onmessage({ data: { type: "connect", port: worker } });
+  bridge.port.onmessage({ data: { type: "connect", port: worker, sensitivity } });
   const output = new Float32Array(128);
   const tick = () => bridge.process([[new Float32Array(128).fill(0.1)]], [[output]]);
   return { bridge, worker, pending, output, tick };
 }
 
 describe("enlace de audio bajo variaciones de planificación", () => {
-  it("tolera 320 ms de demora del worker y vuelve a entregar la voz procesada", () => {
-    const f = fixture();
+  it.each([undefined, "soft"])("tolera 320 ms de demora del worker y vuelve a entregar la voz procesada (%s)", sensitivity => {
+    const f = fixture(sensitivity);
     for (let i = 0; i < 120; i++) expect(f.tick()).toBe(true);
     expect(f.pending.length).toBe(32);
     expect(f.output.every(value => value === 0)).toBe(true);
@@ -35,8 +35,8 @@ describe("enlace de audio bajo variaciones de planificación", () => {
     expect(f.output.some(value => value > 0)).toBe(true);
     expect(f.bridge.port.postMessage).not.toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
   });
-  it("detiene la captura ante un worker que no responde, sin dejar crecer la cola", () => {
-    const f = fixture();
+  it.each([undefined, "soft"])("detiene la captura ante un worker que no responde, sin dejar crecer la cola (%s)", sensitivity => {
+    const f = fixture(sensitivity);
     let alive = true;
     for (let i = 0; i < 200 && alive; i++) alive = f.tick();
     expect(alive).toBe(false);
@@ -50,8 +50,8 @@ describe("enlace de audio bajo variaciones de planificación", () => {
     expect(f.output.every(value => value === 0)).toBe(true);
     expect(f.bridge.port.postMessage).not.toHaveBeenCalled();
   });
-  it("rechaza una entrega que supera la capacidad de salida sin ampliar el búfer", () => {
-    const f = fixture();
+  it.each([undefined, "soft"])("rechaza una entrega que supera la capacidad de salida sin ampliar el búfer (%s)", sensitivity => {
+    const f = fixture(sensitivity);
     while (f.pending.length < 50) expect(f.tick()).toBe(true);
     const response = { frame: new Float32Array(480).fill(0.05), probability: 1, rms: 0.05 };
     for (let i = 0; i < f.pending.length; i++) f.worker.onmessage({ data: response });
@@ -69,10 +69,10 @@ describe("enlace de audio bajo variaciones de planificación", () => {
     expect(f.output.every(value => value === 0)).toBe(true);
     expect(f.bridge.port.postMessage).not.toHaveBeenCalled();
   });
-  it("rechaza una frecuencia incompatible antes de enviar tramas al worker", () => {
+  it.each([undefined, "soft"])("rechaza una frecuencia incompatible antes de enviar tramas al worker (%s)", sensitivity => {
     vi.stubGlobal("sampleRate", 44100);
     try {
-      const f = fixture();
+      const f = fixture(sensitivity);
       expect(f.tick()).toBe(false);
       expect(f.pending).toHaveLength(0);
       expect(f.output.every(value => value === 0)).toBe(true);
@@ -80,8 +80,8 @@ describe("enlace de audio bajo variaciones de planificación", () => {
       expect(f.worker.close).toHaveBeenCalledOnce();
     } finally { vi.stubGlobal("sampleRate", 48000); }
   });
-  it("ignora respuestas y reconexiones tardías después de cerrar la captura", () => {
-    const f = fixture();
+  it.each([undefined, "soft"])("ignora respuestas y reconexiones tardías después de cerrar la captura (%s)", sensitivity => {
+    const f = fixture(sensitivity);
     for (let i = 0; i < 4; i++) expect(f.tick()).toBe(true);
     const frames = f.pending.length;
     f.bridge.port.postMessage.mockClear();
@@ -94,5 +94,46 @@ describe("enlace de audio bajo variaciones de planificación", () => {
     expect(f.worker.start).toHaveBeenCalledOnce();
     expect(f.worker.close).toHaveBeenCalledOnce();
     expect(f.bridge.port.postMessage).not.toHaveBeenCalled();
+  });
+
+  it.each([0.1, 0.4])("conserva la amplitud ya procesada por RNNoise en soft con probabilidad %s", probability => {
+    const f = fixture("soft");
+    for (let i = 0; i < 8; i++) {
+      expect(f.tick()).toBe(true);
+      expect(f.output.every(value => value === 0)).toBe(true);
+    }
+    expect(f.pending).toHaveLength(2);
+    const processed = new Float32Array(480).fill(0.03);
+    for (const _frame of f.pending) f.worker.onmessage({ data: { frame: processed, probability, rms: 0.03 } });
+    expect(f.tick()).toBe(true);
+    expect(f.output.every(value => value === processed[0])).toBe(true);
+    // The raw fixture input is 0.1: this is filtered worker output, not bypass.
+    expect(f.output[0]).not.toBeCloseTo(0.1);
+  });
+
+  it.each([undefined, "normal", "unknown"])("conserva el gate normal para una trama de probabilidad baja (%s)", sensitivity => {
+    const f = fixture(sensitivity);
+    for (let i = 0; i < 8; i++) expect(f.tick()).toBe(true);
+    for (const _frame of f.pending) f.worker.onmessage({ data: { frame: new Float32Array(480).fill(0.03), probability: 0.1, rms: 0.03 } });
+    expect(f.tick()).toBe(true);
+    expect(f.output[0]).toBeCloseTo(0.03 * 0.08, 7);
+    expect(f.output[127]).toBeCloseTo(0.03 * 0.08, 7);
+  });
+
+  it.each([
+    { initial: "soft", replacement: "normal", expected: 0.03 },
+    { initial: "normal", replacement: "soft", expected: 0.03 * 0.08 },
+  ])("ignora una reconexión que intenta cambiar el perfil $initial a $replacement", ({ initial, replacement, expected }) => {
+    const f = fixture(initial);
+    const anotherWorker = { start: vi.fn(), close: vi.fn(), postMessage: vi.fn(), onmessage: vi.fn() };
+    f.bridge.port.onmessage({ data: { type: "connect", port: anotherWorker, sensitivity: replacement } });
+    for (let i = 0; i < 8; i++) expect(f.tick()).toBe(true);
+    expect(f.pending).toHaveLength(2);
+    expect(anotherWorker.start).not.toHaveBeenCalled();
+    expect(anotherWorker.postMessage).not.toHaveBeenCalled();
+    expect(f.worker.start).toHaveBeenCalledOnce();
+    for (const _frame of f.pending) f.worker.onmessage({ data: { frame: new Float32Array(480).fill(0.03), probability: 0.1, rms: 0.03 } });
+    expect(f.tick()).toBe(true);
+    expect(f.output[0]).toBeCloseTo(expected, 7);
   });
 });

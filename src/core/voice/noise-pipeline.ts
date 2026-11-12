@@ -61,7 +61,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
       rejectInitialization = () => fail("La preparación del filtro se canceló.");
       worker!.onerror = () => fail("Falló el procesador local de ruido.");
       worker!.onmessage = event => {
-        if (event.data.type === "ready") node!.port.postMessage({ type: "connect", port: bridge.port2 }, [bridge.port2]);
+        if (event.data.type === "ready") node!.port.postMessage({ type: "connect", port: bridge.port2, sensitivity: profile.sensitivity }, [bridge.port2]);
         else if (event.data.type === "error") fail(event.data.message);
       };
       node!.port.onmessage = event => {

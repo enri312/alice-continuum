@@ -24,8 +24,11 @@ con la aceptación de conversación, voz y música de R9.
 
 **Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
 ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
-volver a Normal. La precisión continúa en evaluación:
+volver a Normal. Este perfil conserva la salida de RNNoise sin la atenuación
+adicional por probabilidad de voz; Normal mantiene su filtrado anterior.
+La precisión continúa en evaluación:
 [resultado de small y diagnóstico pendiente](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
+[Preservación de la señal de voz baja](docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
 [Perfil y repetición personal](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
 
 Para aislar el cierre de una frase muy pausada, usar el acceso visible
@@ -199,7 +202,7 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **12 de noviembre de 2026**:
 
-- **753 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **765 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **385 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y configuración del reconocedor por toma.
 - Compilación frontend y formato Rust aprobados.

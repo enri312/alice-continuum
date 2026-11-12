@@ -34,7 +34,7 @@ export function AudioInputSettings({ disabled, deviceId, onDeviceChange, sensiti
       </select></label>
       <button type="button" className="secondary" disabled={disabled} onClick={() => void refresh()}>Actualizar micrófonos</button>
     </div>
-    <p>Voz baja y pausada aumenta la ganancia local. En la escucha automática espera 2 segundos de silencio para cerrar el turno; Normal espera 1 segundo. Cambia el perfil con el micrófono apagado. Si el ruido abre tomas o la voz satura, usa Normal.</p>
+    <p>Voz baja y pausada aumenta la ganancia local y conserva la salida del filtro sin una segunda atenuación. En la escucha automática espera 2 segundos de silencio para cerrar el turno; Normal espera 1 segundo y mantiene la atenuación adicional. Cambia el perfil con el micrófono apagado. Si el ruido abre tomas o la voz satura, usa Normal.</p>
     {message && <p role="status">{message}</p>}
     {status && <p>Última toma preparada con filtro: {status.microphone}. {status.sensitivity && <>Sensibilidad: {status.sensitivity === "soft" ? "Voz baja y pausada" : "Normal"}. </>}{status.systemEcho ? "El equipo confirmó cancelación del sonido del sistema." : "El equipo no confirmó cancelación de toda la música del sistema."}</p>}
     <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende sólo frases dirigidas a Alice; las demás se descartan tras la transcripción local.</p>

@@ -83,6 +83,7 @@ describe("pipeline local de ruido y causas de descarte", () => {
     expect(f.gain.connect).toHaveBeenCalledExactlyOnceWith(f.node);
     expect(f.node.connect).toHaveBeenCalledExactlyOnceWith(f.destination);
     expect(processed.status.sensitivity).toBe(applied);
+    expect(f.port.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: "connect", sensitivity: applied }), expect.any(Array));
     expect(processed.stream).toBe(f.filteredStream);
     expect(processed.stream).not.toBe(f.raw);
     processed.close();

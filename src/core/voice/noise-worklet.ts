@@ -22,23 +22,27 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
   private alive = true;
   private primed = false;
   private gain = 0.08;
+  private preserveSoftSpeech = false;
   private frames = 0;
   private energy = 0;
   private probability = 0;
   private voicedMs = 0;
   constructor() {
     super();
-    this.port.onmessage = (event: MessageEvent<{ type: string; port?: MessagePort }>) => {
+    this.port.onmessage = (event: MessageEvent<{ type: string; port?: MessagePort; sensitivity?: unknown }>) => {
       if (event.data.type === "close") { this.alive = false; this.worker?.close(); return; }
-      if (!this.alive || event.data.type !== "connect" || !event.data.port) return;
+      if (!this.alive || this.worker || event.data.type !== "connect" || !event.data.port) return;
+      this.preserveSoftSpeech = event.data.sensitivity === "soft";
+      this.gain = this.preserveSoftSpeech ? 1 : 0.08;
       this.worker = event.data.port;
       this.worker.onmessage = (message: MessageEvent<{ frame: Float32Array; probability: number; rms: number }>) => {
         if (!this.alive) return;
         const { frame, probability, rms } = message.data;
         this.pending--;
         if (this.available + frame.length > this.ring.length) { this.fail("output_overflow"); return; }
-        // Soft gating attenuates residual non-speech without chopping word starts.
-        const target = probability < 0.2 ? 0.08 : probability >= 0.6 ? 1 : 0.4;
+        // RNNoise already processed these samples. Quiet speech must not receive
+        // a second probability-based attenuation in the owner's soft profile.
+        const target = this.preserveSoftSpeech ? 1 : probability < 0.2 ? 0.08 : probability >= 0.6 ? 1 : 0.4;
         for (let i = 0; i < frame.length; i++) {
           this.gain += (target - this.gain) * 0.004;
           this.ring[this.writeAt] = frame[i] * this.gain;

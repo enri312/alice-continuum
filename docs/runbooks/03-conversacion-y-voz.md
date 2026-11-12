@@ -104,6 +104,11 @@ micrófono apagado. La selección vale para la página actual; el estado de la
 última toma indica qué perfil se preparó. Si el ambiente activa tomas o la voz
 satura, volver a Normal. El dictado manual conserva su finalización por botón.
 
+Voz baja conserva la salida de RNNoise sin una segunda atenuación según la
+probabilidad de voz. Normal mantiene esa atenuación adicional. El ajuste puede
+dejar pasar más ruido residual y no garantiza por sí solo una transcripción
+correcta. Ver [pruebas y límites](../testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
+
 1. Abrir **Audio de entrada**, actualizar la lista y elegir el micrófono cercano
    a la boca. No cambiar dispositivos mientras la captura está activa.
 2. Iniciar la escucha y esperar **En espera · di Alice**. El filtro se aplica antes de

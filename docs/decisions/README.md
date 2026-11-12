@@ -115,3 +115,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-123](ADR-P-123-voz-baja-y-pausada.md) | Ganancia local y plazo de silencio para voz baja y habla pausada |
 
 | [ADR-P-124](ADR-P-124-modelo-whisper-small.md) | Small multilingüe instalado junto a base y configuración fiel por toma |
+
+| [ADR-P-125](ADR-P-125-conservar-voz-baja-filtrada.md) | Conservación de salida RNNoise sin atenuación adicional en voz baja |
