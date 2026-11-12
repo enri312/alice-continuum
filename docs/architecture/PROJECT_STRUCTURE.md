@@ -4,6 +4,12 @@
 El inventario registra por separado lectura automática y revisión focal; las
 pruebas aprobadas no equivalen a una auditoría manual completa de cada línea.
 
+Actualización 2026-11-11 — [ADR-P-118](../decisions/ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md):
+`local_inference/priority.rs` separa las intenciones de primer plano y la cesión
+del estudio del control de procesos y el transporte. `self_study.rs` sólo
+persiste una calificación después de validar la respuesta; los fallos técnicos
+guardan estado de error y preservan las lecciones. No cambian contratos ni datos.
+
 Actualización 2026-11-11 — [ADR-P-116](../decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md):
 `src/hooks/useLearningSources.ts` adapta los estados y eventos de aprendizaje.
 El controlador puro `src/core/memory/learning-source.ts` serializa lecturas,

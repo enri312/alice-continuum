@@ -95,8 +95,15 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   de automatización se resolvió usando la conexión compatible.
   [ADR-P-117](docs/decisions/ADR-P-117-colores-y-marcas-del-volumen.md).
 
-**Última validación registrada, 11 de noviembre:** 700 pruebas frontend aprobadas
-(2 sondas omitidas), 354 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+- **Fiabilidad del aprendizaje y prioridad:** una respuesta no evaluable conserva
+  el conocimiento anterior y termina el ciclo con un aviso, sin calificaciones
+  ficticias. El motor reserva la prioridad de conversación antes de la cola y
+  vuelve a comprobar la cesión al recibir una respuesta. La prioridad vive en
+  un módulo privado separado del transporte y del proceso.
+  [ADR-P-118](docs/decisions/ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md).
+
+**Última validación registrada, 11 de noviembre:** 702 pruebas frontend aprobadas
+(2 sondas omitidas), 367 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita la voz
@@ -608,7 +615,10 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    colaboradores lo implementado; continuar separando coordinación de `App.tsx`
    después de extraer las fuentes de aprendizaje (ADR-P-116), y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
-   en incrementos justificados. Evaluar una primitiva de persistencia compartida
+   en incrementos justificados. La prioridad de solicitudes ya se separó
+   (ADR-P-118). Revisar a continuación la reanudación rápida del autoestudio
+   mientras termina el ciclo anterior, evitando perder solicitudes o mostrar
+   una fase inexacta. Evaluar una primitiva de persistencia compartida
    sin cambiar formatos ni debilitar los controles existentes.
 3. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión

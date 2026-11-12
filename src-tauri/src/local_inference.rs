@@ -1,5 +1,8 @@
 //! Native lifecycle and shared arbitration for chat, vision and learning.
 //! Explicit runtime controls and shared text, vision and ephemeral voice transport.
+mod priority;
+
+use priority::{ForegroundIntent, RequestPriority};
 use serde::Serialize;
 use std::future::Future;
 use std::net::{SocketAddr, TcpStream};
@@ -24,7 +27,7 @@ pub(crate) struct LocalInferenceRuntime {
     permit: Mutex<Option<InferencePermit<'static>>>,
     cancel: AtomicBool,
     generation: AtomicU64,
-    background_epoch: AtomicU64,
+    priority: RequestPriority,
     inference: Mutex<()>,
 }
 
@@ -71,10 +74,10 @@ pub(crate) async fn stop_local_runtime() -> Result<RuntimeSnapshot, String> {
 
 pub(crate) async fn gemma_chat(body: serde_json::Value) -> Result<serde_json::Value, String> {
     let r = runtime();
-    r.preempt_background();
+    let foreground = r.priority.reserve_foreground();
     let generation = r.generation.load(Ordering::Acquire);
     tauri::async_runtime::spawn_blocking(move || {
-        r.run_chat(generation, move || async move {
+        r.run_chat(generation, foreground, move || async move {
             let http = client()?;
             check_ollama(&http).await?;
             let response = http
@@ -306,7 +309,7 @@ impl LocalInferenceRuntime {
     }
 
     pub(crate) fn preempt_background(&self) {
-        self.background_epoch.fetch_add(1, Ordering::AcqRel);
+        self.priority.preempt_background();
     }
 
     fn cancel_requests(&self) {
@@ -329,12 +332,12 @@ impl LocalInferenceRuntime {
     fn run_chat<F>(
         &self,
         generation: u64,
+        _foreground: ForegroundIntent,
         request: impl FnOnce() -> F,
     ) -> Result<serde_json::Value, String>
     where
         F: Future<Output = Result<serde_json::Value, String>> + Send + 'static,
     {
-        self.preempt_background();
         let _inference = self.inference.lock().map_err(|_| "Inferencia bloqueada")?;
         self.check_generation(generation)?;
         {
@@ -364,7 +367,7 @@ impl LocalInferenceRuntime {
         F: Future<Output = Result<serde_json::Value, String>> + Send + 'static,
     {
         self.check_generation(generation)?;
-        if should_yield() {
+        if should_yield() || self.priority.foreground_pending() {
             return Ok(None);
         }
         let _inference = match self.inference.try_lock() {
@@ -372,7 +375,10 @@ impl LocalInferenceRuntime {
             Err(TryLockError::WouldBlock) => return Ok(None),
             Err(TryLockError::Poisoned(_)) => return Err("Inferencia bloqueada".into()),
         };
-        let epoch = self.background_epoch.load(Ordering::Acquire);
+        let epoch = self.priority.background_epoch();
+        if self.priority.should_yield(epoch) {
+            return Ok(None);
+        }
         {
             let mut guard = match self.child.try_lock() {
                 Ok(guard) => guard,
@@ -389,8 +395,7 @@ impl LocalInferenceRuntime {
                 return Err("El motor local termino".into());
             }
         }
-        let interrupted =
-            || should_yield() || self.background_epoch.load(Ordering::Acquire) != epoch;
+        let interrupted = || should_yield() || self.priority.should_yield(epoch);
         self.run_pending_request(
             generation,
             &interrupted,
@@ -430,7 +435,7 @@ impl LocalInferenceRuntime {
             }
             match receiver.recv_timeout(Duration::from_millis(25)) {
                 Ok(result) => {
-                    break self.check_generation(generation).and(result).map(Some);
+                    break self.accept_response(generation, should_yield, result);
                 }
                 Err(RecvTimeoutError::Timeout) => continue,
                 Err(RecvTimeoutError::Disconnected) => {
@@ -443,6 +448,21 @@ impl LocalInferenceRuntime {
         task.abort();
         let _ = tauri::async_runtime::block_on(task);
         result
+    }
+
+    fn accept_response(
+        &self,
+        generation: u64,
+        should_yield: &dyn Fn() -> bool,
+        result: Result<serde_json::Value, String>,
+    ) -> Result<Option<serde_json::Value>, String> {
+        // A pause or foreground request may arrive while recv_timeout waits.
+        // A ready reply is not permission to bypass the current authority.
+        self.check_generation(generation)?;
+        if should_yield() {
+            return Ok(None);
+        }
+        result.map(Some)
     }
 
     pub(crate) fn snapshot(&self) -> Result<RuntimeSnapshot, String> {
@@ -481,6 +501,9 @@ impl LocalInferenceRuntime {
         expected_generation: u64,
     ) -> Result<Option<RuntimeSnapshot>, String> {
         self.check_generation(expected_generation)?;
+        if self.priority.foreground_pending() {
+            return Ok(None);
+        }
         let guard = match self.child.try_lock() {
             Ok(guard) => guard,
             Err(TryLockError::WouldBlock) => return Ok(None),
@@ -783,9 +806,10 @@ mod tests {
         let runtime = fixture_runtime();
         let generation = runtime.generation.load(Ordering::Acquire);
         let request_runtime = runtime.clone();
+        let foreground = runtime.priority.reserve_foreground();
         let (answer_tx, answer_rx) = mpsc::sync_channel(1);
         let request = std::thread::spawn(move || {
-            let answer = request_runtime.run_chat(generation, || async move {
+            let answer = request_runtime.run_chat(generation, foreground, || async move {
                 client()?
                     .get(endpoint)
                     .send()
@@ -833,8 +857,9 @@ mod tests {
         let caller = runtime.clone();
         let executed = Arc::new(AtomicBool::new(false));
         let flag = executed.clone();
+        let foreground = runtime.priority.reserve_foreground();
         let queued = std::thread::spawn(move || {
-            caller.run_chat(generation, || {
+            caller.run_chat(generation, foreground, || {
                 flag.store(true, Ordering::Release);
                 async { Ok(serde_json::json!({})) }
             })
@@ -843,14 +868,17 @@ mod tests {
         install_fixture_child(&runtime);
         drop(occupied);
         assert!(queued.join().unwrap().unwrap_err().contains("cancelada"));
+        assert!(!runtime.priority.foreground_pending());
         assert!(!executed.load(Ordering::Acquire));
         assert!(runtime.snapshot().unwrap().running);
         // The new generation can still serve a request after the stale one is rejected.
         assert_eq!(
             runtime
-                .run_chat(runtime.generation.load(Ordering::Acquire), || async {
-                    Ok(serde_json::json!({"ok":true}))
-                })
+                .run_chat(
+                    runtime.generation.load(Ordering::Acquire),
+                    runtime.priority.reserve_foreground(),
+                    || async { Ok(serde_json::json!({"ok":true})) },
+                )
                 .unwrap(),
             serde_json::json!({"ok":true})
         );
@@ -924,9 +952,10 @@ mod tests {
         entered_rx.recv_timeout(Duration::from_secs(2)).unwrap();
         let caller = runtime.clone();
         let foreground_drop = dropped.clone();
+        let foreground_intent = runtime.priority.reserve_foreground();
         let (foreground_tx, foreground_rx) = mpsc::sync_channel(1);
         let foreground = std::thread::spawn(move || {
-            let answer = caller.run_chat(generation, || async move {
+            let answer = caller.run_chat(generation, foreground_intent, || async move {
                 assert!(foreground_drop.load(Ordering::Acquire));
                 Ok(serde_json::json!({"foreground": true}))
             });
@@ -1026,6 +1055,89 @@ mod tests {
             });
         assert!(answer.unwrap_err().contains("plazo"));
         assert!(started.elapsed() < Duration::from_secs(1));
+    }
+
+    #[test]
+    fn foreground_reservation_prevents_study_from_jumping_ahead_of_queued_worker() {
+        let runtime = fixture_runtime();
+        let generation = runtime.current_generation();
+        // Reserve exactly as gemma_chat does, before scheduling its worker. The
+        // inference mutex is free and the background would capture the new epoch.
+        let foreground = runtime.priority.reserve_foreground();
+        let dispatched = AtomicBool::new(false);
+        assert_eq!(
+            runtime
+                .run_background_chat(generation, &|| false, || {
+                    dispatched.store(true, Ordering::Release);
+                    async { Ok(serde_json::json!({"unexpected":true})) }
+                })
+                .unwrap(),
+            None
+        );
+        assert!(!dispatched.load(Ordering::Acquire));
+        assert_eq!(runtime.start_for_study(generation).unwrap(), None);
+
+        let answer = runtime.run_chat(generation, foreground, || async {
+            Err("fixture foreground failure".to_string())
+        });
+        assert!(answer.unwrap_err().contains("fixture foreground failure"));
+        assert!(!runtime.priority.foreground_pending());
+        assert_eq!(
+            runtime
+                .run_background_chat(generation, &|| false, || async {
+                    Ok(serde_json::json!({"study":true}))
+                })
+                .unwrap(),
+            Some(serde_json::json!({"study":true}))
+        );
+        runtime.stop().unwrap();
+    }
+
+    #[test]
+    fn ready_response_rechecks_the_yield_gate_and_generation_before_acceptance() {
+        let runtime = LocalInferenceRuntime::default();
+        let revoked = AtomicBool::new(false);
+        let ready = Ok(serde_json::json!({"answer":"A"}));
+        // Model the authority change after a reply became ready, independently
+        // of OS scheduling or the receiver's polling interval.
+        revoked.store(true, Ordering::Release);
+        assert_eq!(
+            runtime
+                .accept_response(0, &|| revoked.load(Ordering::Acquire), ready)
+                .unwrap(),
+            None
+        );
+        revoked.store(false, Ordering::Release);
+        assert_eq!(
+            runtime
+                .accept_response(0, &|| false, Ok(serde_json::json!({"answer":"B"})))
+                .unwrap(),
+            Some(serde_json::json!({"answer":"B"}))
+        );
+        runtime.cancel_requests();
+        assert!(runtime
+            .accept_response(0, &|| true, Ok(serde_json::json!({"answer":"C"})))
+            .unwrap_err()
+            .contains("cancelada"));
+    }
+
+    #[test]
+    fn completed_request_cannot_publish_after_its_yield_gate_is_revoked() {
+        let runtime = LocalInferenceRuntime::default();
+        let revoked = Arc::new(AtomicBool::new(false));
+        let response_gate = revoked.clone();
+        let answer = runtime
+            .run_pending_request(
+                0,
+                &|| revoked.load(Ordering::Acquire),
+                None,
+                || async move {
+                    response_gate.store(true, Ordering::Release);
+                    Ok(serde_json::json!({"discarded":true}))
+                },
+            )
+            .unwrap();
+        assert_eq!(answer, None);
     }
 
     #[test]

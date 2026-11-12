@@ -31,6 +31,14 @@ correcta, activa el contenido de esa lección para recuperación en conversació
 si falla, conserva el intento para volver a estudiarlo. Una respuesta correcta
 comprueba ese ejercicio, no demuestra dominio general de la materia.
 
+Una respuesta válida equivocada es distinta de un fallo técnico. Si el motor no
+responde, excede el plazo o entrega una respuesta que no cumple el contrato, ese
+ejercicio no se califica. Se conservan los registros y contadores anteriores,
+incluida la disponibilidad de una lección previamente aprobada. El ciclo termina
+en `error` con un aviso; no se marca completo ni se añaden intentos ficticios.
+Los resultados válidos guardados antes del fallo se conservan para el próximo
+ciclo. El cambio no corrige automáticamente resultados históricos.
+
 El conocimiento conservado procede del texto curado y su fuente, no de una
 explicación inventada por el modelo. Las respuestas de Alice no se convierten en
 fuentes de nuevas lecciones. El estudio añade memoria recuperable; no entrena
@@ -54,6 +62,11 @@ Tiene prioridad inferior a la conversación y se difiere durante una sesión de
 voz o cuando la inferencia está ocupada. El tiempo de reintento es limitado;
 si no consigue un turno de estudio, informa un aplazamiento. Detener el motor
 impide que la misma sesión de estudio lo reinicie por su cuenta.
+
+Una conversación reserva su prioridad antes de entrar al worker: el estudio no
+puede tomar otro turno mientras esa solicitud espera. Pausa, voz y preempción se
+comprueban también al recibir la respuesta; una respuesta desplazada no se
+convierte en una calificación de la lección.
 
 La programación ocurre en el arranque nativo. Recargar la interfaz no constituye
 otro arranque del backend. Abrir únicamente Vite en el navegador permite ver la

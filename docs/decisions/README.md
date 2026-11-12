@@ -101,3 +101,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-116](ADR-P-116-fuentes-de-aprendizaje-observables.md) | Fuentes de aprendizaje recuperables, coordinación separada de App y estado visible en el Volumen |
 
 | [ADR-P-117](ADR-P-117-colores-y-marcas-del-volumen.md) | Relleno por tipo o afecto revisado, estados en contornos y revisión del Volumen en Tauri |
+
+| [ADR-P-118](ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md) | Fallos técnicos sin calificación falsa y prioridad de conversación reservada antes de entrar al worker |

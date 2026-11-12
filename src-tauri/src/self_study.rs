@@ -39,6 +39,57 @@ fn finish_at(
         }
     })
 }
+
+enum AttemptOutcome {
+    Evaluated { state: StudySnapshot, passed: bool },
+    TechnicalFailure { state: StudySnapshot },
+    Cancelled,
+}
+
+/// Only a complete, validated answer can change the result of a lesson.
+/// Technical failures preserve prior knowledge instead of grading it as wrong.
+fn persist_checked_attempt_at(
+    root: &Path,
+    lesson: &model::Lesson,
+    offset: usize,
+    response: Result<serde_json::Value, ()>,
+    now: &str,
+    may_save: impl Fn() -> bool,
+) -> Result<AttemptOutcome, String> {
+    if !may_save() {
+        return Ok(AttemptOutcome::Cancelled);
+    }
+    let assessment = match response {
+        Ok(value) => checked_answer(&value, lesson, offset).map_err(|_| {
+            "La respuesta del ejercicio no pudo evaluarse; se conservó el resultado anterior sin calificar el ejercicio"
+        }),
+        Err(()) => Err(
+            "No se pudo completar la consulta de estudio al motor local; se conservó el resultado anterior sin calificar el ejercicio",
+        ),
+    };
+    let _lock = WRITE_LOCK
+        .lock()
+        .map_err(|_| "El avance de estudio esta ocupado")?;
+    let mut state = read_at(root)?;
+    // Owner controls are checked again under the same lock used for persistence.
+    if !state.enabled || !may_save() {
+        return Ok(AttemptOutcome::Cancelled);
+    }
+    match assessment {
+        Ok(passed) => {
+            apply_answer(&mut state, lesson, passed, now)?;
+            write_at(root, &state)?;
+            Ok(AttemptOutcome::Evaluated { state, passed })
+        }
+        Err(message) => {
+            state.phase = "error".into();
+            state.last_error = Some(message.into());
+            write_at(root, &state)?;
+            Ok(AttemptOutcome::TechnicalFailure { state })
+        }
+    }
+}
+
 async fn run_cycle_at(
     root: &Path,
     voice: crate::voice_session::VoiceSessionStore,
@@ -127,44 +178,32 @@ async fn run_cycle_at(
             )
             .await
             {
-                Ok(Some(value)) => break Some(value),
+                Ok(Some(value)) => break Ok(value),
                 Ok(None) => yield_turn().await,
                 Err(_) if !runtime.generation_is_current(generation) => {
                     let state = finish_at(root, "deferred", None, false)?;
                     emit(&state);
                     return Ok(state);
                 }
-                Err(_) => break None,
+                Err(_) => break Err(()),
             }
         };
-        let passed = response
-            .as_ref()
-            .and_then(|response| checked_answer(response, lesson, offset).ok())
-            .unwrap_or(false);
-        // Recheck owner controls after I/O and again under the persistence lock.
+        // Recheck owner controls after I/O and again inside the persistence step.
         if !runtime.generation_is_current(generation) {
             break;
         }
         let now = crate::capabilities::current_utc_timestamp()?;
-        let saved = {
-            let _lock = WRITE_LOCK
-                .lock()
-                .map_err(|_| "El avance de estudio esta ocupado")?;
-            let mut state = read_at(root)?;
-            if state.enabled
-                && ENABLED.load(Ordering::Acquire)
-                && runtime.generation_is_current(generation)
-            {
-                apply_answer(&mut state, lesson, passed, &now)?;
-                write_at(root, &state)?;
-                Some(state)
-            } else {
-                None
-            }
-        };
-        let Some(state) = saved else {
-            break;
-        };
+        let (state, passed) =
+            match persist_checked_attempt_at(root, lesson, offset, response, &now, || {
+                ENABLED.load(Ordering::Acquire) && runtime.generation_is_current(generation)
+            })? {
+                AttemptOutcome::Evaluated { state, passed } => (state, passed),
+                AttemptOutcome::TechnicalFailure { state } => {
+                    emit(&state);
+                    return Ok(state);
+                }
+                AttemptOutcome::Cancelled => break,
+            };
         attempted_count += 1;
         if passed {
             passed_count += 1;

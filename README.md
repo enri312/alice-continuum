@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 11 de noviembre de 2026:** volumen cognitivo revisado en Tauri, colores y marcas coherentes, fuentes de aprendizaje recuperables y coordinación separada de App en `D:\Alice Continuum`; R9 sigue pendiente.
+**Estado al 11 de noviembre de 2026:** núcleo con evaluación de aprendizaje protegida frente a fallos técnicos y prioridad de conversación reforzada; Volumen revisado en Tauri en `D:\Alice Continuum`; R9 sigue pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -179,12 +179,14 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **11 de noviembre de 2026**:
 
-- **700 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **702 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **354 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye la autorización compilada de escucha y cierre de eventos de la ventana principal.
+- **367 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, interrupción y conservación de lecciones ante errores técnicos.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
+- Núcleo: un fallo de consulta no se califica como respuesta incorrecta ni retira una lección aprobada; la conversación reserva prioridad antes de la cola de inferencia. [Cambios y validación](docs/testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md).
+- Motor local: una sonda real de arranque, respuesta, exclusividad y cierre aprobada sin escribir recuerdos personales. Alice se reabrió con el backend compilado y el estado de autoestudio disponible en Tauri.
 
 El Volumen actualizado también se revisó en la aplicación Tauri real: guía,
 fuentes, cambios observados y actualización de lectura. El acceso mediante la

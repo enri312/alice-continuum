@@ -26,6 +26,187 @@ fn reply(lesson: &Lesson, choice: usize) -> serde_json::Value {
     serde_json::json!({"choices":[{"message":{"content":serde_json::json!({"lessonId":lesson.id,"choice":choice}).to_string()}}]})
 }
 
+fn approved_study_store() -> (Store, Lesson, StudySnapshot) {
+    let store = Store::new();
+    let lesson = curriculum().unwrap().remove(0);
+    let mut state = StudySnapshot {
+        phase: "studying".into(),
+        last_completed_at: Some("2026-11-10T11:00:00Z".into()),
+        ..StudySnapshot::default()
+    };
+    apply_answer(&mut state, &lesson, true, "2026-11-10T12:00:00Z").unwrap();
+    write_at(&store.0, &state).unwrap();
+    (store, lesson, state)
+}
+
+#[test]
+fn a_technical_failure_preserves_previously_approved_knowledge() {
+    let (store, lesson, before) = approved_study_store();
+    let records_before = serde_json::to_vec(&before.records).unwrap();
+    let outcome = persist_checked_attempt_at(
+        &store.0,
+        &lesson,
+        0,
+        Err(()),
+        "2026-11-11T12:00:00Z",
+        || true,
+    )
+    .unwrap();
+    let AttemptOutcome::TechnicalFailure { state } = outcome else {
+        panic!("A transport failure must not be graded as an answer");
+    };
+    assert_eq!(state.phase, "error");
+    assert!(state.last_error.as_deref().unwrap().contains("motor local"));
+    assert_eq!(state.last_completed_at, before.last_completed_at);
+    let saved = read_at(&store.0).unwrap();
+    assert_eq!(serde_json::to_vec(&saved.records).unwrap(), records_before);
+    assert!(saved.records[0].active && saved.records[0].last_passed);
+    assert_eq!(saved.records[0].passes, 1);
+    assert_eq!(saved.records[0].attempts, 1);
+}
+
+#[test]
+fn unevaluable_responses_preserve_results_and_do_not_copy_model_output_into_errors() {
+    let responses = [
+        serde_json::json!({"choices":[{"message":{"content":"raw-output-that-must-not-enter-error"}}]}),
+        serde_json::json!({"choices":[{"message":{"content":"{\"lessonId\":\"other\",\"choice\":0}"}}]}),
+        serde_json::json!({"choices":[]}),
+    ];
+    for response in responses {
+        let (store, lesson, before) = approved_study_store();
+        let records_before = serde_json::to_vec(&before.records).unwrap();
+        let outcome = persist_checked_attempt_at(
+            &store.0,
+            &lesson,
+            0,
+            Ok(response),
+            "2026-11-11T12:00:00Z",
+            || true,
+        )
+        .unwrap();
+        let AttemptOutcome::TechnicalFailure { state } = outcome else {
+            panic!("An invalid response is not a failed exercise");
+        };
+        assert_eq!(state.phase, "error");
+        let error = state.last_error.as_deref().unwrap();
+        assert!(error.contains("no pudo evaluarse"));
+        assert!(!error.contains("raw-output") && !error.contains("lessonId"));
+        assert_eq!(state.last_completed_at, before.last_completed_at);
+        assert_eq!(
+            serde_json::to_vec(&read_at(&store.0).unwrap().records).unwrap(),
+            records_before
+        );
+    }
+}
+
+#[test]
+fn a_new_lesson_is_not_recorded_without_an_evaluable_answer() {
+    for response in [Err(()), Ok(serde_json::json!({"choices": []}))] {
+        let store = Store::new();
+        let lesson = curriculum().unwrap().remove(0);
+        let outcome = persist_checked_attempt_at(
+            &store.0,
+            &lesson,
+            0,
+            response,
+            "2026-11-11T12:00:00Z",
+            || true,
+        )
+        .unwrap();
+        assert!(matches!(outcome, AttemptOutcome::TechnicalFailure { .. }));
+        let state = read_at(&store.0).unwrap();
+        assert_eq!(state.phase, "error");
+        assert!(state.records.is_empty());
+        assert!(state.last_completed_at.is_none());
+    }
+}
+
+#[test]
+fn a_valid_wrong_answer_still_records_a_failed_exercise() {
+    let (store, lesson, before) = approved_study_store();
+    let outcome = persist_checked_attempt_at(
+        &store.0,
+        &lesson,
+        0,
+        Ok(reply(&lesson, (lesson.correct_option + 1) % 3)),
+        "2026-11-11T12:00:00Z",
+        || true,
+    )
+    .unwrap();
+    assert!(matches!(
+        outcome,
+        AttemptOutcome::Evaluated { passed: false, .. }
+    ));
+    let saved = read_at(&store.0).unwrap();
+    assert_eq!(saved.records[0].attempts, 2);
+    assert_eq!(saved.records[0].passes, 1);
+    assert!(!saved.records[0].last_passed && !saved.records[0].active);
+    assert_eq!(saved.records[0].studied_at, "2026-11-11T12:00:00Z");
+    assert_eq!(saved.last_completed_at, before.last_completed_at);
+}
+
+#[test]
+fn a_valid_correct_answer_still_records_an_approved_exercise() {
+    let (store, lesson, before) = approved_study_store();
+    let outcome = persist_checked_attempt_at(
+        &store.0,
+        &lesson,
+        0,
+        Ok(reply(&lesson, lesson.correct_option)),
+        "2026-11-11T12:00:00Z",
+        || true,
+    )
+    .unwrap();
+    assert!(matches!(
+        outcome,
+        AttemptOutcome::Evaluated { passed: true, .. }
+    ));
+    let saved = read_at(&store.0).unwrap();
+    assert_eq!(saved.records[0].attempts, 2);
+    assert_eq!(saved.records[0].passes, 2);
+    assert!(saved.records[0].last_passed && saved.records[0].active);
+    assert_eq!(saved.phase, "studying");
+    assert_eq!(saved.last_completed_at, before.last_completed_at);
+}
+
+#[test]
+fn pause_and_cancel_guards_prevent_answer_or_error_publication() {
+    let (store, lesson, _) = approved_study_store();
+    let file = store.0.join("memory").join(FILE);
+    let before = fs::read(&file).unwrap();
+    let calls = std::sync::atomic::AtomicUsize::new(0);
+    let outcome = persist_checked_attempt_at(
+        &store.0,
+        &lesson,
+        0,
+        Err(()),
+        "2026-11-11T12:00:00Z",
+        || calls.fetch_add(1, Ordering::AcqRel) == 0,
+    )
+    .unwrap();
+    assert!(matches!(outcome, AttemptOutcome::Cancelled));
+    assert_eq!(calls.load(Ordering::Acquire), 2);
+    assert_eq!(fs::read(&file).unwrap(), before);
+
+    update_at(&store.0, |state| {
+        state.enabled = false;
+        state.phase = "disabled".into();
+    })
+    .unwrap();
+    let paused = fs::read(&file).unwrap();
+    let outcome = persist_checked_attempt_at(
+        &store.0,
+        &lesson,
+        0,
+        Ok(reply(&lesson, lesson.correct_option)),
+        "2026-11-11T12:00:00Z",
+        || true,
+    )
+    .unwrap();
+    assert!(matches!(outcome, AttemptOutcome::Cancelled));
+    assert_eq!(fs::read(&file).unwrap(), paused);
+}
+
 #[test]
 fn curriculum_covers_only_authorized_tracks_and_all_three_levels() {
     let lessons = curriculum().unwrap();

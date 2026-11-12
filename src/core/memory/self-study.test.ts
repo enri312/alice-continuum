@@ -5,6 +5,7 @@ import { selectReinforceableMemoryIds } from "./memory-consolidation";
 import { buildCloudPayload } from "../conversation/cloud-payload";
 import { buildCognitiveMemoryNodes } from "./cognitive-memory";
 import { buildCognitiveVolumeGraph } from "../cognitive/cognitive-volume";
+import { createVolumeLearningCheckpoint, diffVolumeLearningCheckpoints } from "../cognitive/volume-learning";
 
 const record: SelfStudyRecord = {
   id: "study:arithmetic-fractions", lessonId: "arithmetic-fractions", domain: "mathematics", track: "arithmetic",
@@ -18,6 +19,17 @@ const snapshot: SelfStudySnapshot = {
 };
 
 describe("autoestudio separado y recuperable", () => {
+  it.each(["error", "deferred"] as const)("conserva el conocimiento aprobado sin inventar cambios cuando el ciclo queda en %s", (phase) => {
+    const interrupted = parseSelfStudySnapshot({ ...snapshot, phase, lastError: "No se pudo evaluar el ejercicio; se conserva el conocimiento anterior." });
+    const available = selfStudyForConversation(interrupted);
+    expect(retrieveMemories("fracciones equivalentes", available, 3).map(match => match.memory.id)).toEqual([record.id]);
+    expect(interrupted.records[0]).toEqual(record);
+    const before = buildCognitiveMemoryNodes(selfStudyForCognitiveVolume(snapshot));
+    const after = buildCognitiveMemoryNodes(selfStudyForCognitiveVolume(interrupted));
+    expect(after[0]).toMatchObject({ id: record.id, studyState: "available", studyPasses: 1 });
+    expect(diffVolumeLearningCheckpoints(createVolumeLearningCheckpoint(before), createVolumeLearningCheckpoint(after))).toEqual({ addedIds: [], changedIds: [], removedIds: [] });
+  });
+
   it("recupera una lección con fuente sin atribuirla al propietario ni reforzar registros canónicos", () => {
     const memories = selfStudyForConversation(parseSelfStudySnapshot(snapshot));
     const selected = retrieveMemories("Explícame las fracciones equivalentes", memories, 3).map(match => match.memory);
