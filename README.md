@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 11 de noviembre de 2026:** núcleo con reanudación de autoestudio sin ciclos superpuestos, icono del Volumen actualizado y reproducción de la playlist privada configurada de Spotify en Windows. R9 conserva sus pendientes de voz y aceptación cotidiana.
+**Estado al 11 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles; recuperación acotada de captura añadida tras detectar un fallo del filtro. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -23,7 +23,7 @@ Prioridad actual: consolidar autoestudio y Obsidian y continuar el núcleo junto
 con la aceptación de conversación, voz y música de R9.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 11 de noviembre](Roadmap.md#próximo-paso-autorizado)
-ordena la aceptación del aprendizaje, la estructura del núcleo y el regreso a R9.
+ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
 
 Los lanzadores ahora crean [respaldos integrales](docs/runbooks/07-respaldo-integral.md)
 al iniciar, cada 15 minutos y al cerrar normalmente. Destino actual:
@@ -179,14 +179,15 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **11 de noviembre de 2026**:
 
-- **702 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **724 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **376 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados y selección restringida de playlist.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
 - Núcleo: un fallo de consulta no se califica como respuesta incorrecta ni retira una lección aprobada; la conversación reserva prioridad antes de la cola de inferencia. [Cambios y validación](docs/testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md).
-- Continuación del núcleo y R9: reanudación rápida protegida, icono bilateral actualizado y orden escrita de reproducir la playlist configurada comprobada desde Alice hasta Spotify real, con ID de contexto coincidente y recibo local. [Alcance de la prueba](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md). La orden hablada y la escucha con música siguen pendientes.
+- Continuación del núcleo y R9: reanudación rápida protegida, icono bilateral actualizado y orden escrita de reproducir la playlist configurada comprobada desde Alice hasta Spotify real, con ID de contexto coincidente y recibo local. [Alcance de la prueba](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
+- Orden hablada: el propietario confirmó música y voz de Alice; el detalle mostró 26,2 s hasta iniciar la voz. Un fallo posterior del filtro motivó recuperación de captura limitada a una vez por sesión. La estabilidad prolongada sigue pendiente. [Evidencia y límites](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 - Motor local: una sonda real de arranque, respuesta, exclusividad y cierre aprobada sin escribir recuerdos personales. Alice se reabrió con el backend compilado y el estado de autoestudio disponible en Tauri.
 
 El Volumen actualizado también se revisó en la aplicación Tauri real: guía,

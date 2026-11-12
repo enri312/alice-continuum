@@ -1,4 +1,5 @@
 // This worklet contains only buffering and metering; WASM runs in noise-worker.
+import type { NoiseFailureReason } from "./noise-types";
 declare const sampleRate: number;
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 declare class AudioWorkletProcessor {
@@ -29,13 +30,13 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
     super();
     this.port.onmessage = (event: MessageEvent<{ type: string; port?: MessagePort }>) => {
       if (event.data.type === "close") { this.alive = false; this.worker?.close(); return; }
-      if (event.data.type !== "connect" || !event.data.port) return;
+      if (!this.alive || event.data.type !== "connect" || !event.data.port) return;
       this.worker = event.data.port;
       this.worker.onmessage = (message: MessageEvent<{ frame: Float32Array; probability: number; rms: number }>) => {
+        if (!this.alive) return;
         const { frame, probability, rms } = message.data;
         this.pending--;
-        if (!this.alive) return;
-        if (this.available + frame.length > this.ring.length) { this.fail(); return; }
+        if (this.available + frame.length > this.ring.length) { this.fail("output_overflow"); return; }
         // Soft gating attenuates residual non-speech without chopping word starts.
         const target = probability < 0.2 ? 0.08 : probability >= 0.6 ? 1 : 0.4;
         for (let i = 0; i < frame.length; i++) {
@@ -56,17 +57,28 @@ class AliceNoiseBridge extends AudioWorkletProcessor {
       this.port.postMessage({ type: "ready" });
     };
   }
-  private fail() { this.alive = false; this.port.postMessage({ type: "error", message: "El filtro de audio no pudo mantener el ritmo de captura." }); }
+  private fail(reason: NoiseFailureReason) {
+    if (!this.alive) return;
+    this.alive = false;
+    this.worker?.close();
+    const message = reason === "input_backlog"
+      ? "El procesador de ruido no respondió a tiempo. La toma se descartó."
+      : reason === "output_overflow"
+        ? "La salida del filtro de audio se acumuló demasiado. La toma se descartó."
+        : "El filtro de audio requiere una captura a 48 kHz. La toma se descartó.";
+    this.port.postMessage({ type: "error", reason, message });
+  }
   process(inputs: Float32Array[][], outputs: Float32Array[][]) {
     const output = outputs[0]?.[0];
     if (!output) return this.alive;
     output.fill(0);
     if (!this.alive || !this.worker) return this.alive;
+    if (sampleRate !== 48000) { this.fail("unsupported_rate"); return false; }
     const input = inputs[0]?.[0];
     for (let i = 0; i < output.length; i++) {
       this.input[this.inputAt++] = Math.max(-1, Math.min(1, input?.[i] ?? 0)) * 32768;
       if (this.inputAt === 480) {
-        if (++this.pending > 50 || sampleRate !== 48000) { this.fail(); return false; }
+        if (++this.pending > 50) { this.fail("input_backlog"); return false; }
         this.worker.postMessage(this.input, [this.input.buffer]);
         this.input = new Float32Array(480);
         this.inputAt = 0;

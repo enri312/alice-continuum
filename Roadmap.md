@@ -111,15 +111,18 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 11 de noviembre:** 702 pruebas frontend aprobadas
+**Última validación registrada, 11 de noviembre:** 724 pruebas frontend aprobadas
 (2 sondas omitidas), 376 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
-también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita la voz
-real ni el ciclo completo de aprendizaje y Obsidian.
+también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
+solo voz ni el ciclo completo de aprendizaje y Obsidian.
 La playlist privada de Spotify se comprobó mediante una orden escrita en Alice,
 con control de pausa de cabecera, ID de contexto y recibo coincidentes. La orden
-hablada y la escucha con música conservan su aceptación pendiente.
+hablada también produjo el recibo y el propietario confirmó música y voz. El
+filtro falló después; se añadió descarte y único rearme de captura por sesión.
+La estabilidad prolongada y los cinco turnos con música siguen pendientes.
+[Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).
 

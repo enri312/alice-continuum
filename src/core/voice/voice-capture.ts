@@ -1,6 +1,6 @@
 import { SpeechEndpoint } from "./speech-endpoint";
 import { getMicrophone, processMicrophone } from "./noise-pipeline";
-import type { MicrophoneOptions, NoiseStatus, ProcessedMicrophone } from "./noise-types";
+import type { MicrophoneOptions, NoiseFailureReason, NoiseStatus, ProcessedMicrophone } from "./noise-types";
 const MAX_SECONDS = 60;
 const MAX_BYTES = 8 * 1024 * 1024;
 const MIME_TYPE = "audio/webm;codecs=opus";
@@ -16,7 +16,7 @@ type CaptureEvents = {
   onStarted: () => void;
   onElapsed: (seconds: number) => void;
   onRecorded: (take: Blob, seconds: number, transcribe: boolean) => void;
-  onError: (message: string) => void;
+  onError: (message: string, reason?: NoiseFailureReason) => void;
   onQuiet?: () => void;
   onProcessed?: (status: NoiseStatus) => void;
 };
@@ -24,7 +24,7 @@ type CaptureEvents = {
 export type CaptureEnvironment = {
   getMicrophone: (options?: MicrophoneOptions) => Promise<MediaStream>;
   createRecorder: (stream: MediaStream) => MediaRecorder;
-  processMicrophone: (stream: MediaStream, onError: (message: string) => void, signal?: AbortSignal) => Promise<ProcessedMicrophone>;
+  processMicrophone: (stream: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal) => Promise<ProcessedMicrophone>;
 };
 
 const browserEnvironment: CaptureEnvironment = {
@@ -70,8 +70,8 @@ export class VoiceCapture {
       this.stream = stream;
       for (const track of stream.getTracks()) track.addEventListener("ended", this.onDisconnected);
       this.processing = new AbortController();
-      const processed = await this.environment.processMicrophone(stream, message => {
-        if (generation === this.generation) this.fail(message);
+      const processed = await this.environment.processMicrophone(stream, (message, reason) => {
+        if (generation === this.generation) this.fail(message, reason);
       }, this.processing.signal);
       if (generation !== this.generation) { processed.close(); return; }
       this.processed = processed;
@@ -174,8 +174,8 @@ export class VoiceCapture {
     this.stream = null;
   }
 
-  private fail(message: string) {
+  private fail(message: string, reason?: NoiseFailureReason) {
     this.cancel();
-    this.events.onError(message);
+    if (reason) this.events.onError(message, reason); else this.events.onError(message);
   }
 }

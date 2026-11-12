@@ -2,26 +2,192 @@ import { describe, expect, it, vi } from "vitest";
 import { VoiceLoop, type VoiceLoopPorts } from "./voice-loop";
 
 function fixture() {
-  const captures: { quiet: () => void; error: (message: string) => void }[] = [];
+  const captures: {
+    quiet: () => void;
+    error: Parameters<VoiceLoopPorts["capture"]>[2];
+    record: () => void;
+    control: ReturnType<VoiceLoopPorts["capture"]>;
+  }[] = [];
   let recorded!: (take: Blob) => void;
   let quiet!: () => void;
   const ports: VoiceLoopPorts = {
     authorize: vi.fn(async () => "session-1"), revoke: vi.fn(async () => undefined),
     capture: vi.fn((onRecorded, onQuiet, onError) => {
       recorded = onRecorded; quiet = onQuiet;
-      captures.push({ quiet: onQuiet, error: onError });
-      return { start: vi.fn(async () => undefined), cancel: vi.fn(), finish: vi.fn() };
+      const control = { start: vi.fn(async () => undefined), cancel: vi.fn(), finish: vi.fn() };
+      captures.push({ quiet: onQuiet, error: onError, record: () => onRecorded(new Blob(["fixture"])), control });
+      return control;
     }),
     transcribe: vi.fn(async () => ({ text: "Hola, Alice", noSpeech: false, model: "Gemma", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false } as const)),
     respond: vi.fn(async () => ({ exchangeId: "exchange-1" })),
     synthesize: vi.fn(async () => ({ requestId: "tts", mimeType: "audio/mpeg", audioBase64: "AAAA", characterCount: 4, durationMs: 20, ephemeral: true } as const)),
-    play: vi.fn(async (_audio, onStarted) => { onStarted?.(); }), stopPlayback: vi.fn(), onState: vi.fn(),
+    play: vi.fn(async (_audio, onStarted) => { onStarted?.(); }), stopPlayback: vi.fn(), onState: vi.fn(), onNotice: vi.fn(),
   };
   return { loop: new VoiceLoop(ports), ports, captures, record: () => recorded(new Blob(["fixture"])), quiet: () => quiet() };
 }
 async function flush() { for (let i = 0; i < 16; i++) await Promise.resolve(); }
 
 describe("sesión de voz automática", () => {
+  it.each(["input_backlog", "output_overflow"] as const)("descarta la toma y prepara un único filtro nuevo ante %s", async reason => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      f.captures[0].error("El filtro de audio no pudo mantener el ritmo de captura.", reason);
+      await flush();
+      expect(f.captures[0].control.cancel).toHaveBeenCalledOnce();
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+      expect(f.ports.authorize).toHaveBeenCalledOnce();
+      expect(f.ports.revoke).not.toHaveBeenCalled();
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+      expect(f.ports.play).not.toHaveBeenCalled();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      expect(vi.mocked(f.ports.onNotice!).mock.calls.at(-1)?.[0]).toMatch(/descart/i);
+    } finally { f.loop.stop(); }
+  });
+
+  it("revoca la sesión si la nueva captura vuelve a fallar al planificar", async () => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      f.captures[0].error("primera sobrecarga", "input_backlog");
+      await flush();
+      f.captures[1].error("segunda sobrecarga", "output_overflow");
+      await flush();
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+      expect(f.captures[1].control.cancel).toHaveBeenCalledOnce();
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "segunda sobrecarga");
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it.each([undefined, "unsupported_rate"] as const)("detiene sin reintento los fallos sin clasificación recuperable: %s", async reason => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      f.captures[0].error("fallo no recuperable", reason);
+      await flush();
+      expect(f.ports.capture).toHaveBeenCalledOnce();
+      expect(f.captures[0].control.cancel).toHaveBeenCalledOnce();
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "fallo no recuperable");
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it("ignora mensajes, silencios y errores tardíos del filtro sustituido", async () => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      const stale = f.captures[0];
+      stale.error("sobrecarga", "input_backlog");
+      await flush();
+      stale.record(); stale.quiet(); stale.error("error tardío", "output_overflow"); stale.error("otro error tardío");
+      await flush();
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+      expect(f.ports.revoke).not.toHaveBeenCalled();
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      f.captures[1].error("segundo fallo vigente", "input_backlog");
+      await flush();
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+    } finally { f.loop.stop(); }
+  });
+
+  it("cancelar durante la recuperación impide escucha y mensajes tardíos", async () => {
+    const f = fixture();
+    let ready!: () => void;
+    const recovery = { start: vi.fn(() => new Promise<void>(resolve => { ready = resolve; })), cancel: vi.fn(), finish: vi.fn() };
+    try {
+      await f.loop.start();
+      vi.mocked(f.ports.capture).mockImplementationOnce((onRecorded, onQuiet, onError) => {
+        f.captures.push({ quiet: onQuiet, error: onError, record: () => onRecorded(new Blob(["late"])), control: recovery });
+        return recovery;
+      });
+      f.captures[0].error("sobrecarga", "output_overflow");
+      await flush();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("arming");
+      f.loop.stop();
+      expect(recovery.cancel).toHaveBeenCalledOnce();
+      ready();
+      f.captures[1].record(); f.captures[1].quiet(); f.captures[1].error("fallo después de detener", "input_backlog");
+      await flush();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("idle", undefined);
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.synthesize).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it("silencios y un turno completado no renuevan el presupuesto de recuperación", async () => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      f.captures[0].error("sobrecarga", "input_backlog");
+      await flush();
+      f.quiet(); await flush();
+      f.quiet(); await flush();
+      f.record(); await flush();
+      expect(f.ports.respond).toHaveBeenCalledOnce();
+      expect(f.ports.synthesize).toHaveBeenCalledOnce();
+      const beforeError = f.captures.length;
+      f.captures.at(-1)!.error("sobrecarga tras silencio y turno", "output_overflow");
+      await flush();
+      expect(f.captures).toHaveLength(beforeError);
+      expect(f.ports.authorize).toHaveBeenCalledOnce();
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "sobrecarga tras silencio y turno");
+      expect(f.ports.respond).toHaveBeenCalledOnce();
+      expect(f.ports.synthesize).toHaveBeenCalledOnce();
+    } finally { f.loop.stop(); }
+  });
+
+  it("una nueva autorización explícita dispone de su propia recuperación", async () => {
+    const f = fixture();
+    try {
+      await f.loop.start();
+      f.captures[0].error("sobrecarga de la primera sesión", "input_backlog");
+      await flush();
+      f.loop.stop();
+      await f.loop.start();
+      f.captures[2].error("sobrecarga de la segunda sesión", "output_overflow");
+      await flush();
+      expect(f.ports.authorize).toHaveBeenCalledTimes(2);
+      expect(f.ports.capture).toHaveBeenCalledTimes(4);
+      expect(f.ports.revoke).toHaveBeenCalledOnce();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      expect(f.ports.transcribe).not.toHaveBeenCalled();
+    } finally { f.loop.stop(); }
+  });
+
+  it("recuperar el filtro no extiende las dos horas de la sesión autorizada", async () => {
+    vi.useFakeTimers();
+    const f = fixture();
+    try {
+      await f.loop.start();
+      await vi.advanceTimersByTimeAsync(119 * 60 * 1000);
+      f.captures[0].error("sobrecarga al final de la sesión", "input_backlog");
+      await flush();
+      expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
+      expect(f.ports.authorize).toHaveBeenCalledOnce();
+      expect(f.ports.revoke).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(60 * 1000);
+      expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("idle", undefined);
+      expect(f.ports.capture).toHaveBeenCalledTimes(2);
+    } finally { f.loop.stop(); vi.useRealTimers(); }
+  });
+
   it("autoriza una vez, completa el turno y vuelve a escuchar sin otra confirmación", async () => {
     const f = fixture(); await f.loop.start(); f.record(); await flush();
     expect(f.ports.authorize).toHaveBeenCalledTimes(1);

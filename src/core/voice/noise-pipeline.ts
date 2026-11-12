@@ -1,6 +1,6 @@
 import NoiseWorker from "./noise-worker?worker";
 import workletUrl from "./noise-worklet?worker&url";
-import type { MicrophoneOptions, ProcessedMicrophone } from "./noise-types";
+import { noiseFailureReason, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
 
 export async function getMicrophone(options: MicrophoneOptions = {}) {
   if (!navigator.mediaDevices?.getUserMedia) throw Error("El micrófono no está disponible en este entorno.");
@@ -20,7 +20,7 @@ export async function getMicrophone(options: MicrophoneOptions = {}) {
   } catch (error) { stream.getTracks().forEach(track => track.stop()); throw error; }
 }
 
-export async function processMicrophone(raw: MediaStream, onError: (message: string) => void, signal?: AbortSignal): Promise<ProcessedMicrophone> {
+export async function processMicrophone(raw: MediaStream, onError: (message: string, reason?: NoiseFailureReason) => void, signal?: AbortSignal): Promise<ProcessedMicrophone> {
   const context = new AudioContext({ sampleRate: 48000, latencyHint: "interactive" });
   let worker: Worker | undefined;
   let source: MediaStreamAudioSourceNode | undefined;
@@ -68,12 +68,18 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
       };
       worker!.postMessage({ type: "initialize", port: bridge.port1 }, [bridge.port1]);
     });
-    const failed = (message: string) => { if (!closed) { onError(message); close(); } };
+    const failed = (message: string, reason?: NoiseFailureReason) => {
+      if (!closed) {
+        // Dispose this filter before notifying its owner, which may rearm capture.
+        close();
+        if (reason) onError(message, reason); else onError(message);
+      }
+    };
     worker.onmessage = event => { if (event.data.type === "error") failed(event.data.message); };
     worker.onerror = () => failed("El filtro local dejó de funcionar. La toma se descartó.");
     node.onprocessorerror = () => failed("El procesador de audio se detuvo. La toma se descartó.");
     node.port.onmessage = event => {
-      if (event.data.type === "error") { failed(event.data.message); return; }
+      if (event.data.type === "error") { failed(event.data.message, noiseFailureReason(event.data.reason)); return; }
       if (event.data.type !== "metrics") return;
       const metric = event.data;
       energy += metric.rms * metric.rms * metric.frames;

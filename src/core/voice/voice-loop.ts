@@ -1,6 +1,7 @@
 import type { VoiceTurnTranscript } from "./voice-input";
 import type { VoiceOutputResult } from "./voice-output";
 import { isAddressedToAlice, isMicrophoneOffCommand, isVoiceStopCommand } from "./voice-commands";
+import { isRecoverableNoiseFailure, type NoiseFailureReason } from "./noise-types";
 
 export type VoiceLoopState = "idle" | "preparing" | "arming" | "standby" | "transcribing" | "thinking" | "synthesizing" | "speaking" | "error";
 type Turn = { exchangeId: string };
@@ -16,7 +17,7 @@ export type VoiceTurnObservation = {
 export type VoiceLoopPorts = {
   authorize: () => Promise<string>;
   revoke: (id: string) => Promise<void>;
-  capture: (onRecorded: (take: Blob) => void, onQuiet: () => void, onError: (error: string) => void) => { start: () => Promise<void>; cancel: () => void; finish: () => void };
+  capture: (onRecorded: (take: Blob) => void, onQuiet: () => void, onError: (error: string, reason?: NoiseFailureReason) => void) => { start: () => Promise<void>; cancel: () => void; finish: () => void };
   transcribe: (take: Blob, id: string) => Promise<VoiceTurnTranscript>;
   respond: (text: string, id: string) => Promise<Turn>;
   synthesize: (turn: Turn, id: string) => Promise<VoiceOutputResult>;
@@ -34,12 +35,14 @@ export class VoiceLoop {
   private session: string | null = null;
   private capture: ReturnType<VoiceLoopPorts["capture"]> | null = null;
   private active = false;
+  private captureRecoveryUsed = false;
   private expiry: ReturnType<typeof setTimeout> | null = null;
   constructor(private ports: VoiceLoopPorts) {}
 
   async start() {
     if (this.active) return;
     this.active = true;
+    this.captureRecoveryUsed = false;
     const generation = ++this.generation;
     this.ports.onState("preparing");
     try {
@@ -74,7 +77,17 @@ export class VoiceLoop {
     const capture = this.ports.capture(
       take => { if (this.current(generation) && this.capture === capture) void this.turn(take, generation); },
       () => { if (this.current(generation) && this.capture === capture) void this.listen(generation).catch(error => { if (this.current(generation)) this.fail(error); }); },
-      error => { if (this.current(generation) && this.capture === capture) this.fail(error); },
+      (error, reason) => {
+        if (!this.current(generation) || this.capture !== capture) return;
+        if (!isRecoverableNoiseFailure(reason) || this.captureRecoveryUsed) { this.fail(error); return; }
+        // The failed take must never reach ASR or execute a partial command.
+        // Budget belongs to this session, not to each take or completed turn.
+        this.captureRecoveryUsed = true;
+        this.capture = null;
+        try { capture.cancel(); } catch (cause) { this.fail(cause); return; }
+        this.ports.onNotice?.("Se descartó la toma por una interrupción del filtro. Preparando de nuevo el micrófono; repite la frase cuando Alice vuelva a estar en espera.");
+        void this.listen(generation).catch(cause => { if (this.current(generation)) this.fail(cause); });
+      },
     );
     this.capture = capture;
     this.ports.onState("arming");

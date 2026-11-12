@@ -29,6 +29,25 @@ describe("captura efímera por turnos", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
+  it("descarta la toma y libera el filtro antes de notificar una interrupción recuperable", async () => {
+    const f = fixture(true);
+    await f.capture.start();
+    f.emit("ondataavailable", { data: new Blob(["toma incompleta de prueba"]) });
+    f.events.onError.mockImplementation(() => {
+      expect(f.track.stop).toHaveBeenCalledOnce();
+      expect(f.monitor.close).toHaveBeenCalledOnce();
+      expect(f.recorder.stop).toHaveBeenCalledOnce();
+    });
+    const failed = vi.mocked(f.environment.processMicrophone).mock.calls[0][1];
+    failed("Filtro interrumpido", "input_backlog");
+    f.emit("onstop");
+    failed("Error tardío", "output_overflow");
+    expect(f.events.onError).toHaveBeenCalledExactlyOnceWith("Filtro interrumpido", "input_backlog");
+    expect(f.events.onRecorded).not.toHaveBeenCalled();
+    expect(f.events.onQuiet).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it("no abre el micrófono al construir y libera la captura antes de transcribir", async () => {
     const f = fixture();
     expect(f.environment.getMicrophone).not.toHaveBeenCalled();

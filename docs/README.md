@@ -17,6 +17,9 @@ nueva; datos privados separados de GitHub. Destino actual en D:.
 [Playlist privada de Spotify](runbooks/08-spotify-playlist-privada.md): selección
 por nombre y comprobación de contexto en Windows, con configuración fuera de Git.
 
+[Prueba de playlist con micrófono](testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md):
+orden real y audio confirmados por el propietario; fallo posterior del filtro y recuperación acotada.
+
 [Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
 base de autoestudio/Obsidian conservada y primera separación de reglas,
 persistencia y adaptación a Gemma para revisión con colaboradores.

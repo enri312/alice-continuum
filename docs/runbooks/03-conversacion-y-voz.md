@@ -1,6 +1,6 @@
 # Operar y evaluar conversación y voz
 
-Actualizado: 2026-11-06. Espera dirigida con reducción local de ruido; calidad conversacional y
+Actualizado: 2026-11-11. Espera dirigida con reducción local de ruido; calidad conversacional y
 aceptación con la voz del propietario todavía en validación.
 
 ## Preparación
@@ -64,6 +64,13 @@ implementa streaming de voz ni interrupción hablando mientras Alice reproduce.
 Si falla la transcripción o la respuesta, la sesión se detiene. Si falla Fish o
 la reproducción, aparece un aviso, se conserva la respuesta en texto y vuelve a
 escuchar. No hay reintentos externos automáticos.
+
+Ante una interrupción de planificación del filtro local se descarta la toma
+afectada y se prepara otra captura una sola vez por sesión. El aviso pide repetir
+la frase cuando vuelva **En espera**. No se repite una orden de música ni se
+reenvía la toma parcial a Whisper, Gemma o Fish. Un segundo fallo, un formato
+incompatible u otra causa detienen la sesión. Apagar el micrófono cancela también
+ese rearme y el límite de dos horas no se renueva.
 
 Abrir **Último mensaje atendido** para comprobar lo que Alice entendió y cuánto
 tardó cada etapa. Los tiempos empiezan al terminar la grabación: excluyen tu voz

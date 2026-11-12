@@ -103,3 +103,9 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-117](ADR-P-117-colores-y-marcas-del-volumen.md) | Relleno por tipo o afecto revisado, estados en contornos y revisión del Volumen en Tauri |
 
 | [ADR-P-118](ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md) | Fallos técnicos sin calificación falsa y prioridad de conversación reservada antes de entrar al worker |
+
+| [ADR-P-119](ADR-P-119-reanudacion-del-autoestudio.md) | Reanudación de estudio sin ciclos superpuestos ni resultados cancelados |
+
+| [ADR-P-120](ADR-P-120-playlist-spotify-configurada.md) | Playlist privada configurada y contexto de reproducción comprobado en Windows |
+
+| [ADR-P-121](ADR-P-121-recuperacion-acotada-de-captura.md) | Descarte de la toma y único rearme local ante interrupciones de planificación del filtro |

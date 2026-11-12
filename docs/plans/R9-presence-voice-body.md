@@ -44,10 +44,11 @@ turnos: esa es la siguiente prueba con el propietario.
 
 ## Alcance activo: Alice antes de conectar un cuerpo
 
-Prioridad del propietario, 2026-11-10: revisar primero la estructura del núcleo
-cognitivo y los nuevos cambios de autoestudio/Obsidian con colaboradores. El
-primer incremento separa responsabilidades de autoestudio; los criterios de R9
-de esta sección continúan pendientes para retomarlos después.
+Prioridad vigente al 11 de noviembre de 2026: consolidar el núcleo cognitivo y
+el ciclo autoestudio/Obsidian en paralelo con la aceptación de conversación,
+escucha y acciones delegadas de R9. Una orden de Spotify ya se comprobó con la
+voz del propietario y salida audible; los criterios de sesión prolongada
+continúan pendientes. [Prueba y límites](../testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Estructura y comprobaciones](../testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 Incremento 2026-11-06 — [ADR-P-112](../decisions/ADR-P-112-espera-por-nombre-y-apagado.md):
