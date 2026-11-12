@@ -106,6 +106,32 @@ Si retiene la frase completa, se investigará el cierre automático; si mantiene
 las sustituciones, se continuará con nivel/filtro/reconocimiento. Una sola
 toma no demuestra precisión estable ni una causa definitiva.
 
+El propietario informó después que no veía esa opción. No se considera hecha
+la prueba manual por ese aviso. Se encontró un acceso detrás de dos controles
+y oculto durante la escucha automática. Se reemplaza por **Dictar con botón**,
+visible desde el arranque, que sólo abre el panel. **Empezar a grabar** conserva
+el inicio explícito de la toma. Durante la escucha automática, el acceso manual
+permanece visible y bloqueado con una explicación; el controlador también
+rechaza iniciar dictado en ese estado.
+
+Para ese ajuste se cerró Alice y se verificó el respaldo privado
+`D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T18-33-32-220Z-947bf83b-6def-4f6a-959b-e18c3f840f50`.
+El código anterior está en `local/backups/voice-manual-entry-20261112/source-before.zip`.
+No se cambian filtros, modelo, umbrales de voz ni plazo de cierre.
+Las **10 pruebas existentes de la pantalla** y la compilación TypeScript/Vite
+pasaron para ese ajuste. La suite global anterior conserva 753 pruebas frontend
+aprobadas y 2 sondas omitidas; no se vuelve a presentar como aceptación de voz.
+Durante las comprobaciones hubo una nueva apertura desde el lanzador del
+escritorio y se observaron cambios normales en autoestudio, auditoría y Obsidian;
+no se afirma inmutabilidad de los datos con Alice en ejecución.
+
+En Tauri se confirmó el acceso visible y se observó una toma manual que terminó
+en revisión con borrador, sin enviarlo al chat. El propietario confirmó por
+escrito que había dicho «Alice pausa Spotify»; el texto no conservó esa frase.
+Por tanto, la aceptación manual también falla. El cierre automático por
+silencio no es una explicación suficiente de ese resultado; falta evaluar la
+señal y el filtrado antes de atribuir la causa al micrófono o a Whisper.
+
 La escucha automática mantiene su cierre tras 2 s sin evidencia válida de
 voz en el perfil pausado. Su botón **Terminé de hablar** sólo puede adelantar
 el cierre, mientras el dictado manual espera el botón o su límite de 60 s.

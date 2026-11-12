@@ -158,7 +158,10 @@ describe("control de contexto de conversación", () => {
 
     expect(markup).toContain("Proponer recuerdo de este intercambio");
     expect(markup).toContain("Escuchar con la voz de Alice");
-    expect(markup).toContain("Hablar con Alice");
+    expect(markup).toContain("Dictar con botón");
+    expect(markup).not.toContain('<details class="manual-voice-options">');
+    expect(markup).toContain("este dictado no termina por silencio");
+    expect(markup).toContain("El micrófono se abre al pulsar Empezar a grabar");
     expect(markup).toContain("MIC APAGADO");
     expect(markup).toContain("sólo analiza tu mensaje");
     expect(onPreviewConversationLearning).not.toHaveBeenCalled();

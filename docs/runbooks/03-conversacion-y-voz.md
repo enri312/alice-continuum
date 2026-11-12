@@ -87,8 +87,8 @@ Alice no cambia silenciosamente de reconocedor. Small instalado tiene prioridad
 por defecto; `ALICE_WHISPER_MODEL` selecciona una ruta absoluta explícita y permite
 volver a base. El detalle del turno muestra el modelo elegido antes de decodificar
 esa toma y la duración de la grabación. Si el habla muy pausada se interpreta
-de forma incompleta, usar **Dictado con revisión manual → Hablar con Alice →
-Empezar a hablar** y pulsar **Terminé de hablar y transcribir** al terminar.
+de forma incompleta, usar **Dictar con botón → Empezar a grabar** y pulsar
+**Terminé de hablar y transcribir** al terminar.
 Ese modo no cierra por silencio y deja el borrador para revisar; no enviarlo
 al chat durante el diagnóstico. El botón de la sesión automática conserva el
 cierre por silencio, así que no equivale a este dictado manual.
@@ -138,7 +138,10 @@ respondido permanece separado. No se procesa el historial anterior en masa.
 
 ## Dictado con revisión manual
 
-Abrir **Dictado con revisión manual → Hablar con Alice → Empezar a hablar**.
+Pulsar **Dictar con botón**, visible en Conversación desde el inicio. Abrir el
+panel mantiene el micrófono apagado; **Empezar a grabar** inicia la toma. Si la
+escucha automática está activa, el acceso sigue visible pero deshabilitado,
+con la indicación de apagarla antes de dictar.
 Terminar la toma para transcribir, corregir el borrador y revisar el mensaje.
 Las revisiones por envío y la confirmación del texto Fish se mantienen en este
 modo. Su límite de captura sigue siendo 60 segundos/8 MiB.

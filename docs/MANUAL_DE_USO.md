@@ -130,7 +130,10 @@ apagar el micrófono. También reconoce la grafía «Detend» observada en la pr
 Durante procesamiento o reproducción, usá el botón: todavía no hay interrupción
 por voz. Pausar la conversación no renueva el límite de dos horas.
 
-Para revisar y corregir antes de enviar, abrí **Dictado con revisión manual**.
+Para revisar y corregir antes de enviar, pulsa **Dictar con botón**. El acceso
+está visible en Conversación. Después pulsa **Empezar a grabar** y termina con
+**Terminé de hablar y transcribir**; abrir el panel no enciende el micrófono.
+Si está activa la escucha automática, apágala antes de iniciar el dictado.
 Ver [el runbook de voz](runbooks/03-conversacion-y-voz.md).
 
 **Audio de entrada · reducción de ruido local** permite elegir el micrófono.

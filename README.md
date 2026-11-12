@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. La sustitución de palabras al hablar bajo y despacio persiste con Whisper small; la precisión no se considera aceptada. Se prepara una prueba de dictado con cierre por botón para distinguir cierre prematuro de errores del reconocimiento. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
+**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. La sustitución de palabras al hablar bajo y despacio persiste también con dictado de cierre por botón; la precisión no se considera aceptada. El acceso «Dictar con botón» queda visible y continúa la revisión de entrada de audio y reconocimiento. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -28,12 +28,14 @@ volver a Normal. La precisión continúa en evaluación:
 [resultado de small y diagnóstico pendiente](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Perfil y repetición personal](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
 
-Para aislar el cierre de una frase muy pausada, usar **Dictado con revisión
-manual → Hablar con Alice → Empezar a hablar** y terminar con **Terminé de
+Para aislar el cierre de una frase muy pausada, usar el acceso visible
+**Dictar con botón → Empezar a grabar** y terminar con **Terminé de
 hablar y transcribir**. Ese modo conserva pausas y deja el texto en revisión
 antes de enviarlo. El botón «Terminé de hablar» de la sesión automática sigue
 permitiendo también el cierre por silencio; ambos modos tienen comportamientos
 distintos. Los datos del turno identifican modelo y duración de la toma.
+Abrir el panel no enciende el micrófono. Si la escucha automática está activa,
+el acceso manual sigue visible y pide apagarla para evitar dos capturas a la vez.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

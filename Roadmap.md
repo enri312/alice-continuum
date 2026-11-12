@@ -141,6 +141,13 @@ terminó mientras aún hablaba. El siguiente diagnóstico usa dictado manual con
 cierre por botón y texto en revisión; no ejecuta la transcripción dudosa.
 El detalle incorpora modelo ASR y duración de la toma, antes descartados por
 la interfaz. Se mantienen los filtros para aislar el problema.
+El acceso detrás de dos controles se sustituye por **Dictar con botón**,
+visible desde el inicio. Abrirlo no activa el micrófono y la escucha automática
+bloquea la captura manual con una indicación visible. Tras ese cambio se observó
+una toma manual terminada en revisión; el propietario confirmó que dijo
+«Alice pausa Spotify» y la transcripción volvió a sustituir palabras. La revisión
+continúa sobre la entrada de audio y el reconocimiento; el cierre automático
+por silencio no explica por sí solo esta toma manual.
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
