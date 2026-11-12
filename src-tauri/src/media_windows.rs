@@ -4,6 +4,8 @@
 use crate::media_actions::{youtube_watch_url, YoutubeVideo};
 #[cfg(not(target_os = "linux"))]
 use crate::media_actions::{CancellationCheck, MediaOperation};
+#[cfg(not(target_os = "linux"))]
+use crate::spotify_playlists::SpotifyTarget;
 #[cfg(windows)]
 use std::{
     path::PathBuf,
@@ -248,18 +250,6 @@ mod platform {
             }
         }
     }
-    fn likes_title(name: &str) -> bool {
-        let name = name.to_lowercase();
-        [
-            "tus me gusta",
-            "canciones que te gustan",
-            "canciones que me gustan",
-            "liked songs",
-            "temas que te gustan",
-        ]
-        .iter()
-        .any(|t| name.contains(t))
-    }
     fn play_name(name: &str) -> bool {
         let name = name.to_lowercase();
         name == "play"
@@ -274,14 +264,20 @@ mod platform {
     fn spotify_scope(
         ui: &IUIAutomation,
         root: &IUIAutomationElement,
+        target: &SpotifyTarget,
     ) -> Option<IUIAutomationElement> {
         unsafe {
             if let Ok(condition) = property(ui, UIA_AriaRolePropertyId, VARIANT::from("main")) {
                 if let Ok(main) = root.FindFirst(TreeScope_Descendants, &condition) {
-                    if likes_title(&name(&main))
-                        || elements(ui, &main, UIA_TextControlTypeId)
+                    if elements(ui, &main, UIA_TextControlTypeId)
+                        .iter()
+                        .any(|e| target.title_matches(&name(e)))
+                        || elements(ui, &main, UIA_ButtonControlTypeId)
                             .iter()
-                            .any(|e| likes_title(&name(e)))
+                            .any(|e| {
+                                target.header_control(&name(e), true)
+                                    || target.header_control(&name(e), false)
+                            })
                     {
                         return Some(main);
                     }
@@ -291,12 +287,42 @@ mod platform {
                 .into_iter()
                 .find(|document| {
                     let location = value(document);
-                    location.starts_with("https://xpui.app.spotify.com/")
-                        && location.contains("/collection/tracks")
+                    target.context_matches(&location)
                 })
         }
     }
-    fn spotify_collection(check: &CancellationCheck) -> Result<String, String> {
+    fn spotify_context(
+        ui: &IUIAutomation,
+        root: &IUIAutomationElement,
+        target: &SpotifyTarget,
+    ) -> bool {
+        // Library and page links are not evidence of the current playback source.
+        let Ok(condition) = property(ui, UIA_AriaRolePropertyId, VARIANT::from("complementary"))
+        else {
+            return false;
+        };
+        let Ok(panels) = (unsafe { root.FindAll(TreeScope_Descendants, &condition) }) else {
+            return false;
+        };
+        for index in 0..unsafe { panels.Length() }.unwrap_or(0).min(20) {
+            let Ok(panel) = (unsafe { panels.GetElement(index) }) else {
+                continue;
+            };
+            let title = name(&panel).to_lowercase();
+            if (title.contains("estás escuchando") || title.contains("now playing"))
+                && elements(ui, &panel, UIA_HyperlinkControlTypeId)
+                    .iter()
+                    .any(|link| target.context_matches(&value(link)))
+            {
+                return true;
+            }
+        }
+        false
+    }
+    fn spotify_collection(
+        target: &SpotifyTarget,
+        check: &CancellationCheck,
+    ) -> Result<String, String> {
         check()?;
         // A cold start may run Spotify's own updater before exposing controls.
         // An already open player still has the shorter normal response budget.
@@ -306,22 +332,24 @@ mod platform {
             18
         };
         // Windows resolves the installed Spotify application; no free-form URI is accepted.
+        let uri: Vec<u16> = target.uri().encode_utf16().chain(Some(0)).collect();
         let result = unsafe {
             ShellExecuteW(
                 None,
                 w!("open"),
-                w!("spotify:collection:tracks"),
+                PCWSTR(uri.as_ptr()),
                 PCWSTR::null(),
                 PCWSTR::null(),
                 SW_SHOWNORMAL,
             )
         };
         if result.0 as isize <= 32 {
-            return Err("Windows no pudo abrir Tus me gusta en Spotify".into());
+            return Err("Windows no pudo abrir la colección solicitada en Spotify".into());
         }
         let ui = automation()?;
         let deadline = Instant::now() + Duration::from_secs(startup_budget);
         let mut invoked = false;
+        let mut opened_context = false;
         while Instant::now() < deadline {
             check()?;
             for hwnd in app_windows("spotify.exe") {
@@ -329,22 +357,41 @@ mod platform {
                 let Ok(root) = (unsafe { ui.ElementFromHandle(hwnd) }) else {
                     continue;
                 };
-                let Some(main) = spotify_scope(&ui, &root) else {
+                let Some(main) = spotify_scope(&ui, &root, target) else {
                     continue;
                 };
                 let buttons = elements(&ui, &main, UIA_ButtonControlTypeId);
-                if buttons.iter().any(|b| pause_name(&name(b))) {
-                    return Ok("Spotify está reproduciendo Tus me gusta.".into());
+                if buttons
+                    .iter()
+                    .any(|b| target.header_control(&name(b), true))
+                {
+                    if matches!(target, SpotifyTarget::LikedSongs)
+                        || spotify_context(&ui, &root, target)
+                    {
+                        check()?;
+                        return Ok(format!("Spotify está reproduciendo {}.", target.label()));
+                    }
+                    if !opened_context {
+                        if let Some(button) = elements(&ui, &root, UIA_ButtonControlTypeId)
+                            .iter()
+                            .find(|button| {
+                                matches!(
+                                    name(button).to_lowercase().as_str(),
+                                    "vista estás escuchando" | "now playing view"
+                                )
+                            })
+                        {
+                            check()?;
+                            invoke(button)?;
+                            opened_context = true;
+                        }
+                    }
+                    continue;
                 }
                 if !invoked {
                     let button = buttons
                         .iter()
-                        .find(|b| play_name(&name(b)) && likes_title(&name(b)))
-                        .or_else(|| {
-                            buttons.iter().find(|b| {
-                                matches!(name(b).to_lowercase().as_str(), "play" | "reproducir")
-                            })
-                        });
+                        .find(|b| target.header_control(&name(b), false));
                     if let Some(button) = button {
                         check()?;
                         invoke(button)?;
@@ -354,7 +401,7 @@ mod platform {
             }
             std::thread::sleep(Duration::from_millis(250));
         }
-        Err("Envié la solicitud para abrir Tus me gusta, pero Spotify no confirmó la reproducción. Puede seguir iniciándose o actualizándose; comprueba también tu sesión y que la colección tenga canciones.".into())
+        Err("Abrí la colección solicitada, pero no pude confirmar su reproducción y su contexto. Revisa la sesión, las canciones y la vista Estás escuchando de Spotify.".into())
     }
     fn spotify_windows_transport(pause: bool, check: &CancellationCheck) -> Result<String, String> {
         let manager = Sessions::RequestAsync()
@@ -483,11 +530,12 @@ mod platform {
     }
     pub(crate) fn spotify(
         operation: MediaOperation,
+        target: SpotifyTarget,
         check: CancellationCheck,
     ) -> Result<String, String> {
         let _apartment = Apartment::enter()?;
         match operation {
-            MediaOperation::Play => spotify_collection(&check),
+            MediaOperation::Play => spotify_collection(&target, &check),
             MediaOperation::Pause => spotify_transport(true, &check),
             MediaOperation::Resume => spotify_transport(false, &check),
             MediaOperation::Open => Err("Para abrir Spotify usa «abre Spotify».".into()),
@@ -642,7 +690,11 @@ mod platform {
 #[cfg(windows)]
 pub(crate) use platform::{spotify, youtube};
 #[cfg(not(any(windows, target_os = "linux")))]
-pub(crate) fn spotify(_: MediaOperation, _: CancellationCheck) -> Result<String, String> {
+pub(crate) fn spotify(
+    _: MediaOperation,
+    _: SpotifyTarget,
+    _: CancellationCheck,
+) -> Result<String, String> {
     Err("La reproducción local requiere Windows".into())
 }
 #[cfg(not(any(windows, target_os = "linux")))]
@@ -662,9 +714,13 @@ mod tests {
     #[cfg(windows)]
     fn revoked_sessions_do_not_open_or_control_apps() {
         let check: CancellationCheck = std::sync::Arc::new(|| Err("Sesión revocada".into()));
-        assert!(spotify(MediaOperation::Play, check.clone())
-            .unwrap_err()
-            .contains("revocada"));
+        assert!(spotify(
+            MediaOperation::Play,
+            SpotifyTarget::LikedSongs,
+            check.clone()
+        )
+        .unwrap_err()
+        .contains("revocada"));
         assert!(youtube(MediaOperation::Open, None, None, check)
             .unwrap_err()
             .contains("revocada"));

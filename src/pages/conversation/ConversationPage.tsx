@@ -576,7 +576,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     </div>
 
     {visionPanel}
-    {desktopApp && provider === "llamacpp" && <p className="conversation-delegated-actions">Acciones autorizadas: Spotify · Tus me gusta · YouTube en Chrome · discos D: y E:. Pide «abre Spotify y reproduce mi música», «pausa Spotify» o «reproduce [canción] en YouTube».</p>}
+    {desktopApp && provider === "llamacpp" && <p className="conversation-delegated-actions">Acciones autorizadas: Spotify · Tus me gusta · playlist configurada en Windows · YouTube en Chrome · discos D: y E: en Windows. Pide «abre Spotify y reproduce la playlist [nombre]», «pausa Spotify» o «reproduce [canción] en YouTube».</p>}
     <div className="conversation-layout conversation-layout-focused">
       <div className="chat-column">
         <div className={`message-stream ${messages.length ? "has-messages" : "is-empty"}`} aria-live="polite" ref={messageStreamRef}>

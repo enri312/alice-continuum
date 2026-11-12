@@ -2,6 +2,7 @@ use super::domain::{lesson_digest, validate_state};
 use super::model::Lesson;
 use super::storage::FILE;
 use super::*;
+use std::sync::atomic::Ordering;
 use std::{collections::HashSet, fs, path::PathBuf};
 
 struct Store(PathBuf);
@@ -375,6 +376,7 @@ fn a_disabled_startup_does_not_start_the_model_or_advance_any_lesson() {
         &store.0,
         crate::voice_session::VoiceSessionStore::default(),
         |_| {},
+        COORDINATOR.ticket(),
     ))
     .unwrap();
     assert!(!result.enabled);
@@ -383,6 +385,87 @@ fn a_disabled_startup_does_not_start_the_model_or_advance_any_lesson() {
     assert_eq!(
         crate::local_inference::runtime().current_generation(),
         before
+    );
+}
+
+#[test]
+fn redundant_enable_keeps_the_active_phase_and_does_not_queue_another_cycle() {
+    let store = Store::new();
+    let coordinator = Coordinator::new();
+    write_at(
+        &store.0,
+        &StudySnapshot {
+            phase: "studying".into(),
+            ..StudySnapshot::default()
+        },
+    )
+    .unwrap();
+    coordinator
+        .schedule
+        .lock()
+        .unwrap()
+        .request(coordinator.ticket(), false);
+    let before = fs::read(store.0.join("memory").join(FILE)).unwrap();
+    let (state, launch) = set_enabled_at(&store.0, true, &coordinator).unwrap();
+    assert_eq!(state.phase, "studying");
+    assert_eq!(launch, None);
+    assert_eq!(fs::read(store.0.join("memory").join(FILE)).unwrap(), before);
+    assert_eq!(
+        coordinator
+            .schedule
+            .lock()
+            .unwrap()
+            .finish(coordinator.ticket(), true),
+        None
+    );
+}
+
+#[test]
+fn disabled_startup_has_no_worker_and_enabling_claims_exactly_one() {
+    let store = Store::new();
+    let coordinator = Coordinator::new();
+    write_at(
+        &store.0,
+        &StudySnapshot {
+            enabled: false,
+            phase: "disabled".into(),
+            ..StudySnapshot::default()
+        },
+    )
+    .unwrap();
+    let before = fs::read(store.0.join("memory").join(FILE)).unwrap();
+    assert_eq!(claim_startup_at(&store.0, &coordinator).unwrap(), None);
+    assert_eq!(fs::read(store.0.join("memory").join(FILE)).unwrap(), before);
+    let (_, launch) = set_enabled_at(&store.0, true, &coordinator).unwrap();
+    assert_eq!(launch, Some(coordinator.ticket()));
+    assert_eq!(claim_startup_at(&store.0, &coordinator).unwrap(), None);
+}
+
+#[test]
+fn paused_then_resumed_cycle_cannot_commit_an_old_answer_or_phase() {
+    let store = Store::new();
+    let coordinator = Coordinator::new();
+    let old = coordinator.ticket();
+    coordinator.schedule.lock().unwrap().request(old, false);
+    set_enabled_at(&store.0, false, &coordinator).unwrap();
+    let (_, launch) = set_enabled_at(&store.0, true, &coordinator).unwrap();
+    assert_eq!(launch, None);
+    let before = fs::read(store.0.join("memory").join(FILE)).unwrap();
+    let lesson = &curriculum().unwrap()[0];
+    let outcome =
+        persist_checked_attempt_at(&store.0, lesson, 0, Err(()), "2026-11-11T12:00:00Z", || {
+            coordinator.current(old)
+        })
+        .unwrap();
+    assert!(matches!(outcome, AttemptOutcome::Cancelled));
+    update_current_at(&store.0, old, &coordinator, |state| {
+        state.phase = "error".into()
+    })
+    .unwrap();
+    assert_eq!(fs::read(store.0.join("memory").join(FILE)).unwrap(), before);
+    assert_eq!(
+        coordinator.schedule.lock().unwrap().finish(old, true),
+        Some(coordinator.ticket())
     );
 }
 
@@ -400,6 +483,7 @@ fn live_self_study_checks_all_tracks_with_real_gemma() {
         &store.0,
         crate::voice_session::VoiceSessionStore::default(),
         |_| {},
+        COORDINATOR.ticket(),
     ));
     let stopped = runtime.stop();
     let state = result.unwrap();

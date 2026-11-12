@@ -11,7 +11,7 @@ coordinación de sus fuentes en la interfaz ya están separados; siguen la revis
 aceptación del ciclo de aprendizaje en uso personal y los incrementos de estructura
 que esa revisión justifique. Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
-Después se retoma la aceptación de conversación, escucha, voz, percepción y
+En paralelo continúa la aceptación de conversación, escucha, voz, percepción y
 acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper base
 CPU transcribe español y Fish da voz. Las pruebas sintéticas no cierran la
 aceptación con Carlos y música real. **Domótica queda fuera de este tramo y el
@@ -102,12 +102,25 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   un módulo privado separado del transporte y del proceso.
   [ADR-P-118](docs/decisions/ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md).
 
+- **Reanudación del estudio y continuación R9:** pausa invalida el ciclo anterior;
+  reanudar mientras termina conserva una única solicitud y la libera al cerrar
+  el worker. Activar de nuevo un estudio activo conserva su fase. El icono del
+  Volumen incorpora crecimiento observado y contornos de estado; Spotify en
+  Windows admite la playlist privada configurada, comprobando su identificador
+  en el contexto de reproducción.
+  [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
+  [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
+
 **Última validación registrada, 11 de noviembre:** 702 pruebas frontend aprobadas
-(2 sondas omitidas), 367 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+(2 sondas omitidas), 376 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita la voz
 real ni el ciclo completo de aprendizaje y Obsidian.
+La playlist privada de Spotify se comprobó mediante una orden escrita en Alice,
+con control de pausa de cabecera, ID de contexto y recibo coincidentes. La orden
+hablada y la escucha con música conservan su aceptación pendiente.
+[Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).
 
 El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
@@ -461,8 +474,9 @@ del sistema en una etapa posterior. Su integración queda fuera del cálculo de
 avance y del cierre de la entrega actual. Los criterios de conversación, escucha,
 percepción y acciones están en el [plan R9](docs/plans/R9-presence-voice-body.md).
 
-**Orden vigente desde el 10 de noviembre:** consolidar primero la estructura del
-núcleo y el ciclo autoestudio/Obsidian. R9 conserva sus componentes y pendientes;
+**Orden vigente al 11 de noviembre:** consolidar la estructura del núcleo y el
+ciclo autoestudio/Obsidian junto con las acciones musicales y la aceptación de
+conversación de R9. R9 conserva sus componentes y pendientes;
 no vuelve a una fase de diseño inicial ni se considera aceptada por los cambios
 de Memoria o respaldo.
 
@@ -616,16 +630,15 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    después de extraer las fuentes de aprendizaje (ADR-P-116), y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. La prioridad de solicitudes ya se separó
-   (ADR-P-118). Revisar a continuación la reanudación rápida del autoestudio
-   mientras termina el ciclo anterior, evitando perder solicitudes o mostrar
-   una fase inexacta. Evaluar una primitiva de persistencia compartida
+   (ADR-P-118). La reanudación rápida ya conserva el reinicio y rechaza resultados
+   del ciclo anterior, sin solapar ciclos (ADR-P-119). Evaluar una primitiva de persistencia compartida
    sin cambiar formatos ni debilitar los controles existentes.
 3. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
    del propietario. El Volumen ya se revisó en Tauri con fuentes y cambios
    observados; quedan las comprobaciones conjuntas de recuperación y Obsidian
    del primer paso. La revisión visual no sustituye esa aceptación completa.
-4. **Retomar la aceptación funcional de R9.** Mantener cinco turnos reales con
+4. **Continuar en paralelo la aceptación funcional de R9.** Mantener cinco turnos reales con
    corrección de referentes; probar escucha sin música, con música de la notebook
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,
    cámara y escritorio con parada e indicadores coherentes. Después completar y

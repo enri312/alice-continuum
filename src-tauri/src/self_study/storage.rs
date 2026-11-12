@@ -36,6 +36,7 @@ pub(super) fn write_at(root: &Path, state: &StudySnapshot) -> Result<(), String>
         .map_err(|_| "No se pudo preparar el avance de estudio")?;
     crate::memory::write_study_projection(&folder.join(FILE), &content)
 }
+#[cfg(test)]
 pub(super) fn update_at(
     root: &Path,
     update: impl FnOnce(&mut StudySnapshot),

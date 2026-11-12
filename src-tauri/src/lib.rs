@@ -43,6 +43,7 @@ mod media_linux;
 mod media_windows;
 mod runtime_paths;
 mod skills;
+mod spotify_playlists;
 mod tasks;
 #[cfg(test)]
 mod tauri_acl_tests;

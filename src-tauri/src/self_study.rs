@@ -1,20 +1,39 @@
 //! Startup study orchestration and Tauri commands for a closed, sourced curriculum.
+mod coordinator;
 mod domain;
 mod model;
 mod prompts;
 mod storage;
 
+use coordinator::Coordinator;
 use domain::{apply_answer, curriculum, plan, TRACKS};
 pub(crate) use model::{SetStudyEnabled, StudySnapshot};
 use prompts::{checked_answer, quiz_body};
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-use storage::{read_at, update_at, write_at, WRITE_LOCK};
+#[cfg(test)]
+use storage::update_at;
+use storage::{read_at, write_at, WRITE_LOCK};
 use tauri::{AppHandle, Emitter, Manager};
 
-static RUNNING: AtomicBool = AtomicBool::new(false);
-static ENABLED: AtomicBool = AtomicBool::new(true);
+static COORDINATOR: Coordinator = Coordinator::new();
+
+fn update_current_at(
+    root: &Path,
+    ticket: u64,
+    coordinator: &Coordinator,
+    update: impl FnOnce(&mut StudySnapshot),
+) -> Result<StudySnapshot, String> {
+    let _lock = WRITE_LOCK
+        .lock()
+        .map_err(|_| "El avance de estudio esta ocupado")?;
+    let mut state = read_at(root)?;
+    if coordinator.current(ticket) {
+        update(&mut state);
+        write_at(root, &state)?;
+    }
+    Ok(state)
+}
 
 async fn yield_turn() {
     let _ = tauri::async_runtime::spawn_blocking(|| std::thread::sleep(Duration::from_millis(500)))
@@ -25,9 +44,10 @@ fn finish_at(
     phase: &str,
     error: Option<&str>,
     completed: bool,
+    ticket: u64,
 ) -> Result<StudySnapshot, String> {
     let now = crate::capabilities::current_utc_timestamp()?;
-    update_at(root, |state| {
+    update_current_at(root, ticket, &COORDINATOR, |state| {
         state.phase = if state.enabled {
             phase.into()
         } else {
@@ -94,11 +114,11 @@ async fn run_cycle_at(
     root: &Path,
     voice: crate::voice_session::VoiceSessionStore,
     emit: impl Fn(&StudySnapshot),
+    ticket: u64,
 ) -> Result<StudySnapshot, String> {
     let lessons = curriculum()?;
     let now = crate::capabilities::current_utc_timestamp()?;
-    let state = update_at(root, |state| {
-        ENABLED.store(state.enabled, Ordering::Release);
+    let state = update_current_at(root, ticket, &COORDINATOR, |state| {
         state.phase = if state.enabled {
             "studying".into()
         } else {
@@ -110,7 +130,7 @@ async fn run_cycle_at(
         state.last_error = None;
     })?;
     emit(&state);
-    if !state.enabled {
+    if !state.enabled || !COORDINATOR.current(ticket) {
         return Ok(state);
     }
     let selected = plan(&lessons, &state);
@@ -118,8 +138,8 @@ async fn run_cycle_at(
     let startup_generation = runtime.current_generation();
     let deadline = Instant::now() + Duration::from_secs(300);
     let generation = loop {
-        if !ENABLED.load(Ordering::Acquire) || !runtime.generation_is_current(startup_generation) {
-            let state = finish_at(root, "deferred", None, false)?;
+        if !COORDINATOR.current(ticket) || !runtime.generation_is_current(startup_generation) {
+            let state = finish_at(root, "deferred", None, false, ticket)?;
             emit(&state);
             return Ok(state);
         }
@@ -129,6 +149,7 @@ async fn run_cycle_at(
                 "deferred",
                 Some("No hubo un turno libre para iniciar el estudio"),
                 false,
+                ticket,
             )?;
             emit(&state);
             return Ok(state);
@@ -139,6 +160,9 @@ async fn run_cycle_at(
         }
         let caller = runtime.clone();
         let started = tauri::async_runtime::spawn_blocking(move || {
+            if !COORDINATOR.current(ticket) {
+                return Ok(None);
+            }
             caller.start_for_study(startup_generation)
         })
         .await
@@ -147,7 +171,7 @@ async fn run_cycle_at(
             Ok(Some(_)) => break runtime.current_generation(),
             Ok(None) => yield_turn().await,
             Err(_) => {
-                let state = finish_at(root, "error", Some("No se pudo iniciar Gemma local para estudiar; revisa su instalacion y el estado del motor"), false)?;
+                let state = finish_at(root, "error", Some("No se pudo iniciar Gemma local para estudiar; revisa su instalacion y el estado del motor"), false, ticket)?;
                 emit(&state);
                 return Ok(state);
             }
@@ -159,10 +183,10 @@ async fn run_cycle_at(
         let offset = usize::from(uuid::Uuid::new_v4().as_bytes()[0]) % 3;
         let response = loop {
             if Instant::now() >= deadline
-                || !ENABLED.load(Ordering::Acquire)
+                || !COORDINATOR.current(ticket)
                 || !runtime.generation_is_current(generation)
             {
-                let state = finish_at(root, "deferred", None, false)?;
+                let state = finish_at(root, "deferred", None, false, ticket)?;
                 emit(&state);
                 return Ok(state);
             }
@@ -174,14 +198,14 @@ async fn run_cycle_at(
             match crate::local_inference::gemma_background_chat(
                 quiz_body(lesson, offset),
                 generation,
-                move || !ENABLED.load(Ordering::Acquire) || current_voice.is_active(),
+                move || !COORDINATOR.current(ticket) || current_voice.is_active(),
             )
             .await
             {
                 Ok(Some(value)) => break Ok(value),
                 Ok(None) => yield_turn().await,
                 Err(_) if !runtime.generation_is_current(generation) => {
-                    let state = finish_at(root, "deferred", None, false)?;
+                    let state = finish_at(root, "deferred", None, false, ticket)?;
                     emit(&state);
                     return Ok(state);
                 }
@@ -195,7 +219,7 @@ async fn run_cycle_at(
         let now = crate::capabilities::current_utc_timestamp()?;
         let (state, passed) =
             match persist_checked_attempt_at(root, lesson, offset, response, &now, || {
-                ENABLED.load(Ordering::Acquire) && runtime.generation_is_current(generation)
+                COORDINATOR.current(ticket) && runtime.generation_is_current(generation)
             })? {
                 AttemptOutcome::Evaluated { state, passed } => (state, passed),
                 AttemptOutcome::TechnicalFailure { state } => {
@@ -211,7 +235,7 @@ async fn run_cycle_at(
         emit(&state);
     }
     let complete = attempted_count == TRACKS.len()
-        && ENABLED.load(Ordering::Acquire)
+        && COORDINATOR.current(ticket)
         && runtime.generation_is_current(generation);
     let phase = if !complete {
         "deferred"
@@ -220,7 +244,7 @@ async fn run_cycle_at(
     } else {
         "partial"
     };
-    let state = finish_at(root, phase, None, complete)?;
+    let state = finish_at(root, phase, None, complete, ticket)?;
     emit(&state);
     Ok(state)
 }
@@ -235,40 +259,88 @@ pub(crate) fn set_self_study_enabled(
     input: SetStudyEnabled,
 ) -> Result<StudySnapshot, String> {
     let root = crate::util::alice_data_root_path(&app)?;
-    let state = update_at(&root, |state| {
-        state.enabled = input.enabled;
-        state.phase = if input.enabled {
-            "idle".into()
-        } else {
-            "disabled".into()
-        };
-        state.last_error = None;
-    })?;
-    ENABLED.store(input.enabled, Ordering::Release);
+    let (state, launch) = set_enabled_at(&root, input.enabled, &COORDINATOR)?;
     if !input.enabled {
         crate::local_inference::runtime().preempt_background();
     }
     let _ = app.emit("self-study-updated", &state);
-    if input.enabled {
-        spawn_self_study(app);
+    if let Some(ticket) = launch {
+        launch_worker(app, ticket);
     }
     Ok(state)
 }
-pub(crate) fn spawn_self_study(app: AppHandle) {
-    if RUNNING
-        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-        .is_err()
-    {
-        return;
+fn set_enabled_at(
+    root: &Path,
+    enabled: bool,
+    coordinator: &Coordinator,
+) -> Result<(StudySnapshot, Option<u64>), String> {
+    let mut schedule = coordinator
+        .schedule
+        .lock()
+        .map_err(|_| "El coordinador de estudio esta ocupado")?;
+    let _lock = WRITE_LOCK
+        .lock()
+        .map_err(|_| "El avance de estudio esta ocupado")?;
+    let mut state = read_at(root)?;
+    if state.enabled == enabled {
+        return Ok((state, None));
     }
-    struct RunningGuard;
+    state.enabled = enabled;
+    state.phase = if enabled { "idle" } else { "disabled" }.into();
+    state.last_error = None;
+    write_at(root, &state)?;
+    coordinator.control(enabled);
+    let launch = if enabled {
+        schedule.request(coordinator.ticket(), true)
+    } else {
+        schedule.cancel();
+        None
+    };
+    Ok((state, launch))
+}
+pub(crate) fn spawn_self_study(app: AppHandle) {
+    let launch = crate::util::alice_data_root_path(&app)
+        .ok()
+        .and_then(|root| claim_startup_at(&root, &COORDINATOR).ok().flatten());
+    if let Some(ticket) = launch {
+        launch_worker(app, ticket);
+    }
+}
+fn claim_startup_at(root: &Path, coordinator: &Coordinator) -> Result<Option<u64>, String> {
+    let mut schedule = coordinator
+        .schedule
+        .lock()
+        .map_err(|_| "El coordinador de estudio esta ocupado")?;
+    let _lock = WRITE_LOCK
+        .lock()
+        .map_err(|_| "El avance de estudio esta ocupado")?;
+    if !read_at(root)?.enabled {
+        coordinator.control(false);
+        schedule.cancel();
+        return Ok(None);
+    }
+    Ok(schedule.request(coordinator.ticket(), false))
+}
+fn launch_worker(app: AppHandle, ticket: u64) {
+    struct RunningGuard {
+        app: AppHandle,
+        ticket: u64,
+    }
     impl Drop for RunningGuard {
         fn drop(&mut self) {
-            RUNNING.store(false, Ordering::Release);
+            let launch = COORDINATOR.schedule.lock().ok().and_then(|mut schedule| {
+                schedule.finish(self.ticket, COORDINATOR.current(COORDINATOR.ticket()))
+            });
+            if let Some(ticket) = launch {
+                launch_worker(self.app.clone(), ticket);
+            }
         }
     }
     tauri::async_runtime::spawn(async move {
-        let _guard = RunningGuard;
+        let _guard = RunningGuard {
+            app: app.clone(),
+            ticket,
+        };
         let root = match crate::util::alice_data_root_path(&app) {
             Ok(root) => root,
             Err(_) => return,
@@ -277,13 +349,18 @@ pub(crate) fn spawn_self_study(app: AppHandle) {
             .state::<crate::voice_session::VoiceSessionStore>()
             .inner()
             .clone();
-        if run_cycle_at(&root, voice, |state| {
-            let _ = app.emit("self-study-updated", state);
-        })
+        if run_cycle_at(
+            &root,
+            voice,
+            |state| {
+                let _ = app.emit("self-study-updated", state);
+            },
+            ticket,
+        )
         .await
         .is_err()
         {
-            if let Ok(state) = finish_at(&root, "error", Some("El avance o el curriculo no pudo verificarse; se conservaron los datos existentes"), false) {
+            if let Ok(state) = finish_at(&root, "error", Some("El avance o el curriculo no pudo verificarse; se conservaron los datos existentes"), false, ticket) {
                 let _ = app.emit("self-study-updated", &state);
             }
         }

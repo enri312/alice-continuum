@@ -14,6 +14,9 @@ nueva; datos privados separados de GitHub. Destino actual en D:.
 
 [Autoestudio al arrancar](runbooks/06-autoestudio-al-arrancar.md): currículo cerrado de las materias autorizadas, con enfoque bíblico católico, ejercicios comprobados y memoria recuperable.
 
+[Playlist privada de Spotify](runbooks/08-spotify-playlist-privada.md): selección
+por nombre y comprobación de contexto en Windows, con configuración fuera de Git.
+
 [Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
 base de autoestudio/Obsidian conservada y primera separación de reglas,
 persistencia y adaptación a Gemma para revisión con colaboradores.

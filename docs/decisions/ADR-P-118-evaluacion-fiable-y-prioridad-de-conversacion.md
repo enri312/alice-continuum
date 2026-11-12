@@ -45,5 +45,8 @@ motor; no entrena pesos ni añade materias. Queda pendiente revisar la reanudaci
 rápida del autoestudio mientras el ciclo anterior aún termina, para que una
 solicitud nueva no se pierda ni muestre una fase inexacta.
 
+Continuación: ese caso se resuelve en
+[ADR-P-119](ADR-P-119-reanudacion-del-autoestudio.md), conservando esta política de evaluación.
+
 [Validación y límites](../testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md) ·
 [Autoestudio](../runbooks/06-autoestudio-al-arrancar.md).

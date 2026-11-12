@@ -12,15 +12,15 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 11 de noviembre de 2026:** núcleo con evaluación de aprendizaje protegida frente a fallos técnicos y prioridad de conversación reforzada; Volumen revisado en Tauri en `D:\Alice Continuum`; R9 sigue pendiente.
+**Estado al 11 de noviembre de 2026:** núcleo con reanudación de autoestudio sin ciclos superpuestos, icono del Volumen actualizado y reproducción de la playlist privada configurada de Spotify en Windows. R9 conserva sus pendientes de voz y aceptación cotidiana.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
-Prioridad actual: consolidar autoestudio y Obsidian, separar responsabilidades del
-núcleo y revisar sus contratos con colaboradores antes de retomar R9.
+Prioridad actual: consolidar autoestudio y Obsidian y continuar el núcleo junto
+con la aceptación de conversación, voz y música de R9.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 11 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el regreso a R9.
@@ -41,7 +41,7 @@ restaura en una carpeta nueva. La copia en otra unidad física sigue pendiente.
 | Navegación de Memoria | Cuatro secciones: Aprendizaje, Recuerdos, En sesión y Mantenimiento. El autoestudio aparece primero; perfil, revisión, capas, consolidación y respaldo conservan sus controles. Los nombres de la barra compacta se muestran completos y Memoria tiene un nuevo icono de conocimiento con fuentes conectadas. |
 | Autoestudio al arrancar | Currículo cerrado de matemáticas, historia bíblica católica, psicología e inteligencia emocional, empatía, solidaridad y humildad. Gemma estudia y resuelve ejercicios; las lecciones aprobadas se recuperan con su fuente y se muestran en Obsidian. [Funcionamiento y límites](docs/runbooks/06-autoestudio-al-arrancar.md). |
 | Cámara y escritorio | Fuentes seleccionables en Conversación, procesadas por Gemma mientras están activas. Fotogramas efímeros; no identifica personas ni abre archivos cerrados. |
-| Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
+| Spotify y PC | Abrir Spotify, reproducir Tus me gusta, pausar y continuar en Windows y Ubuntu. Windows admite además la playlist configurada por nombre, con comprobación de su contexto. [Configuración privada](docs/runbooks/08-spotify-playlist-privada.md). D:/E: sólo Windows. YouTube en Ubuntu queda limitado a la playlist del propietario con regreso del último al primer video comprobado en su lista privada. |
 | Núcleo observable | Volumen bilateral que cambia con los registros de aprendizaje y seguimiento de incorporaciones desde la apertura. El mapa de módulos permanece en Flujo cognitivo. Conserva importancia, asociaciones emocionales revisadas, fuentes, estados y controles. Distingue actividad R3 y demostración, y mantiene visibles estudios pendientes sin habilitarlos para RAG. [Diseño y límites](docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md). |
 | Gobierno y diagnóstico | Registro de capacidades, permisos delimitados, auditoría local, tareas y habilidades separadas del diálogo. No hay control general del PC. |
 
@@ -181,11 +181,12 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 - **702 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **367 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, interrupción y conservación de lecciones ante errores técnicos.
+- **376 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados y selección restringida de playlist.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
 - Núcleo: un fallo de consulta no se califica como respuesta incorrecta ni retira una lección aprobada; la conversación reserva prioridad antes de la cola de inferencia. [Cambios y validación](docs/testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md).
+- Continuación del núcleo y R9: reanudación rápida protegida, icono bilateral actualizado y orden escrita de reproducir la playlist configurada comprobada desde Alice hasta Spotify real, con ID de contexto coincidente y recibo local. [Alcance de la prueba](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md). La orden hablada y la escucha con música siguen pendientes.
 - Motor local: una sonda real de arranque, respuesta, exclusividad y cierre aprobada sin escribir recuerdos personales. Alice se reabrió con el backend compilado y el estado de autoestudio disponible en Tauri.
 
 El Volumen actualizado también se revisó en la aplicación Tauri real: guía,

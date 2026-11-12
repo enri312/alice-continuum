@@ -68,6 +68,12 @@ puede tomar otro turno mientras esa solicitud espera. Pausa, voz y preempción s
 comprueban también al recibir la respuesta; una respuesta desplazada no se
 convierte en una calificación de la lección.
 
+Si pausas y reanudas mientras termina una consulta anterior, se conserva un
+único reinicio pendiente. La respuesta anterior queda invalidada aunque el
+estudio ya esté habilitado de nuevo; tampoco puede sobrescribir la fase nueva.
+Volver a activar un estudio que sigue activo no inicia otro ciclo ni lo muestra
+como inactivo. Una nueva pausa cancela también el reinicio pendiente.
+
 La programación ocurre en el arranque nativo. Recargar la interfaz no constituye
 otro arranque del backend. Abrir únicamente Vite en el navegador permite ver la
 interfaz y sincronizar notas, pero no ejecuta el motor nativo de estudio.

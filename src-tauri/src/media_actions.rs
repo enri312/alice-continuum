@@ -262,7 +262,12 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
     let mut explicit_song = false;
     let mut explicit_playlist = false;
     if from < end
-        && matches!(all[from].text.as_str(), "la" | "el")
+        && (matches!(all[from].text.as_str(), "la" | "el")
+            || (all[from].text == "mi"
+                && all
+                    .get(from + 1)
+                    .is_some_and(|word| word.text == "playlist")
+                && from + 2 < end))
         && all
             .get(from + 1)
             .is_some_and(|w| w.text == "cancion" || w.text == "playlist")
@@ -308,7 +313,11 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
             q
         }
     });
-    if service.is_none() && query.as_deref().is_some_and(|q| likes(&folded(q))) {
+    if service.is_none()
+        && query
+            .as_deref()
+            .is_some_and(|q| likes(&folded(q)) || crate::spotify_playlists::refers_to_favorites(q))
+    {
         service = Some(MediaService::Spotify);
     }
     if service.is_none() && query.is_some() && !explicit_song && operation == MediaOperation::Play {
@@ -574,30 +583,53 @@ pub(crate) async fn execute(
         "OWNER_MEDIA_REQUEST",
     )?;
 
+    let spotify_target =
+        if service == MediaService::Spotify && request.operation == MediaOperation::Play {
+            Some(crate::spotify_playlists::resolve_at(
+                &crate::util::alice_data_root_path(app)?,
+                request.query.as_deref(),
+            ))
+        } else {
+            None
+        };
     let previous_video = state.0.lock().ok().and_then(|c| c.youtube_id.clone());
     let query = request.query.clone();
     let operation_kind = request.operation;
     let check = check.clone();
-    let execution=tauri::async_runtime::spawn_blocking(move||{
+    let execution = tauri::async_runtime::spawn_blocking(move || {
         check()?;
         match service {
-            MediaService::Spotify=>{
+            MediaService::Spotify => {
                 #[cfg(target_os = "linux")]
-                { crate::media_linux::spotify(operation_kind,query,check).map(|text|(text,None)) }
+                {
+                    if matches!(spotify_target.transpose()?, Some(crate::spotify_playlists::SpotifyTarget::Playlist { .. })) {
+                        return Err("La playlist de Spotify con nombre está preparada para Windows. En Ubuntu sigue disponible Tus me gusta, pausa y reanudación.".into());
+                    }
+                    crate::media_linux::spotify(operation_kind, None, check).map(|text| (text, None))
+                }
                 #[cfg(not(target_os = "linux"))]
                 {
-                if operation_kind==MediaOperation::Play && query.as_ref().is_some_and(|q|!likes(&folded(q))){return Err("En Spotify tengo preparada la colección Tus me gusta. Pide esa colección o reanudar la reproducción actual.".into());}
-                crate::media_windows::spotify(operation_kind,check).map(|text|(text,None))
+                    let target = spotify_target
+                        .transpose()?
+                        .unwrap_or(crate::spotify_playlists::SpotifyTarget::LikedSongs);
+                    crate::media_windows::spotify(operation_kind, target, check)
+                        .map(|text| (text, None))
                 }
             }
-            MediaService::Youtube=>{
+            MediaService::Youtube => {
                 #[cfg(target_os = "linux")]
-                { crate::media_linux::youtube(operation_kind,query,previous_video,check) }
+                {
+                    crate::media_linux::youtube(operation_kind, query, previous_video, check)
+                }
                 #[cfg(not(target_os = "linux"))]
-                { crate::media_windows::youtube(operation_kind,query,previous_video,check) }
-            },
+                {
+                    crate::media_windows::youtube(operation_kind, query, previous_video, check)
+                }
+            }
         }
-    }).await.map_err(|e|e.to_string())?;
+    })
+    .await
+    .map_err(|e| e.to_string())?;
     if let Ok((_, video_id)) = &execution {
         state.remember(service, video_id.clone());
         if service == MediaService::Youtube && operation_kind == MediaOperation::Open {
@@ -631,6 +663,40 @@ pub(crate) async fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn favorites_playlist_is_not_normalized_to_liked_songs() {
+        for (text, expected) in [
+            (
+                "Alice, abre Spotify y reproduce mi playlist Mis favoritos",
+                "playlist Mis favoritos",
+            ),
+            (
+                "abre Spotify y reproduce la playlist Mis favoritos",
+                "playlist Mis favoritos",
+            ),
+            ("reproduce Mis favoritos", "Mis favoritos"),
+            ("reproduce Mis favoritos.", "Mis favoritos."),
+            (
+                "abre Spotify y reproduce la playlist «Mis favoritos».",
+                "playlist «Mis favoritos».",
+            ),
+        ] {
+            let parsed = parse_request(text).unwrap();
+            assert_eq!(parsed.service, Some(MediaService::Spotify));
+            assert_eq!(parsed.operation, MediaOperation::Play);
+            assert_eq!(parsed.query.as_deref(), Some(expected));
+        }
+        assert_eq!(
+            parse_request("reproduce Tus me gusta en Spotify")
+                .unwrap()
+                .query,
+            None
+        );
+        let generic = parse_request("reproduce mi playlist").unwrap();
+        assert_eq!(generic.service, Some(MediaService::Spotify));
+        assert_eq!(generic.query, None);
+        assert!(parse_request("El video dice reproduce Mis favoritos").is_none());
+    }
     #[test]
     fn named_playlists_and_browser_open_requests_keep_their_scope() {
         let playlist =

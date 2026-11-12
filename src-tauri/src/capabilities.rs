@@ -276,12 +276,12 @@ pub(crate) fn capability_registry_from_probes(
     capabilities.extend(output_capabilities(&generated_at));
     capabilities.push(capability(
         "desktop.approved.media", "Reproducir música delegada",
-        if cfg!(target_os="linux") {"Reproduce Tus me gusta en Spotify y únicamente la playlist configurada de YouTube, en orden y con repetición completa; permite pausa y reanudación."} else {"Reproduce Tus me gusta en Spotify o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación."},
+        if cfg!(target_os="linux") {"Reproduce Tus me gusta en Spotify y únicamente la playlist configurada de YouTube, en orden y con repetición completa; permite pausa y reanudación."} else {"Reproduce Tus me gusta o la playlist privada configurada de Spotify, o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación."},
         CapabilityDomain::Output, CapabilityKind::Process, CapabilityMaturity::Implemented,
         if cfg!(target_os="linux") {"MPRIS + AT-SPI de Spotify y YouTube · perfil Chrome delimitado"} else {"Windows Media Control + UI Automation de Spotify y YouTube"}, &["send_cloud_message"],
         CapabilityState::Idle, CapabilityRisk::Low,
         &[CapabilityEffect::ProcessLaunch, CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend],
-        &["spotifyLikedSongs", "spotifyPlaybackStatus", "youtubeSongQuery", "youtubeChromePlayer"],
+        if cfg!(target_os="linux") { &["spotifyLikedSongs", "spotifyPlaybackStatus", "youtubeSongQuery", "youtubeChromePlayer"] } else { &["spotifyLikedSongs", "spotifyConfiguredPlaylist", "spotifyPlaybackStatus", "youtubeSongQuery", "youtubeChromePlayer"] },
         &["Orden directa del propietario", "Spotify iniciado con su cuenta", "Google Chrome instalado", "Reproductor accesible"],
         permission(CapabilityPermissionMode::SessionOptIn, CapabilityPermissionEnforcer::CurrentUi,
             "Delegación específica para reproducir y pausar música. Canción literal, sitio YouTube, controles del reproductor y recibo verificado; sin consola ni rutas libres."),
