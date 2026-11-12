@@ -86,7 +86,13 @@ ni servicios. Si Whisper instalado falla, revisar el error y volver a iniciar;
 Alice no cambia silenciosamente de reconocedor. Small instalado tiene prioridad
 por defecto; `ALICE_WHISPER_MODEL` selecciona una ruta absoluta explícita y permite
 volver a base. El detalle del turno muestra el modelo elegido antes de decodificar
-esa toma. Ver [evaluación de small](../testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
+esa toma y la duración de la grabación. Si el habla muy pausada se interpreta
+de forma incompleta, usar **Dictado con revisión manual → Hablar con Alice →
+Empezar a hablar** y pulsar **Terminé de hablar y transcribir** al terminar.
+Ese modo no cierra por silencio y deja el borrador para revisar; no enviarlo
+al chat durante el diagnóstico. El botón de la sesión automática conserva el
+cierre por silencio, así que no equivale a este dictado manual.
+Ver [evaluación de small](../testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
 [la validación y los límites](../testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
 ## Música y ruido de fondo

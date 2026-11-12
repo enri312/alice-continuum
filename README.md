@@ -12,7 +12,7 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. El perfil de voz baja captó una orden corta correcta y otras con palabras sustituidas; se evalúa Whisper small multilingüe conservando base. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
+**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. La sustitución de palabras al hablar bajo y despacio persiste con Whisper small; la precisión no se considera aceptada. Se prepara una prueba de dictado con cierre por botón para distinguir cierre prematuro de errores del reconocimiento. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
@@ -24,9 +24,16 @@ con la aceptación de conversación, voz y música de R9.
 
 **Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
 ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
-volver a Normal. La precisión continúa en evaluación, con
-[small como siguiente prueba](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
+volver a Normal. La precisión continúa en evaluación:
+[resultado de small y diagnóstico pendiente](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Perfil y repetición personal](docs/testing/SOFT_VOICE_REPORT_2026-11-12.md).
+
+Para aislar el cierre de una frase muy pausada, usar **Dictado con revisión
+manual → Hablar con Alice → Empezar a hablar** y terminar con **Terminé de
+hablar y transcribir**. Ese modo conserva pausas y deja el texto en revisión
+antes de enviarlo. El botón «Terminé de hablar» de la sesión automática sigue
+permitiendo también el cierre por silencio; ambos modos tienen comportamientos
+distintos. Los datos del turno identifican modelo y duración de la toma.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -190,7 +197,7 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 Última validación local, **12 de noviembre de 2026**:
 
-- **738 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
+- **753 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
 - **385 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y configuración del reconocedor por toma.
 - Compilación frontend y formato Rust aprobados.

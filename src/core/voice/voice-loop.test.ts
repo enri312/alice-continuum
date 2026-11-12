@@ -5,17 +5,17 @@ function fixture() {
   const captures: {
     quiet: () => void;
     error: Parameters<VoiceLoopPorts["capture"]>[2];
-    record: () => void;
+    record: (metadata?: { recordedSeconds?: number }) => void;
     control: ReturnType<VoiceLoopPorts["capture"]>;
   }[] = [];
-  let recorded!: (take: Blob) => void;
+  let recorded!: Parameters<VoiceLoopPorts["capture"]>[0];
   let quiet!: () => void;
   const ports: VoiceLoopPorts = {
     authorize: vi.fn(async () => "session-1"), revoke: vi.fn(async () => undefined),
     capture: vi.fn((onRecorded, onQuiet, onError) => {
       recorded = onRecorded; quiet = onQuiet;
       const control = { start: vi.fn(async () => undefined), cancel: vi.fn(), finish: vi.fn() };
-      captures.push({ quiet: onQuiet, error: onError, record: () => onRecorded(new Blob(["fixture"])), control });
+      captures.push({ quiet: onQuiet, error: onError, record: metadata => onRecorded(new Blob(["fixture"]), metadata), control });
       return control;
     }),
     transcribe: vi.fn(async () => ({ text: "Hola, Alice", noSpeech: false, model: "Gemma", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false } as const)),
@@ -23,7 +23,7 @@ function fixture() {
     synthesize: vi.fn(async () => ({ requestId: "tts", mimeType: "audio/mpeg", audioBase64: "AAAA", characterCount: 4, durationMs: 20, ephemeral: true } as const)),
     play: vi.fn(async (_audio, onStarted) => { onStarted?.(); }), stopPlayback: vi.fn(), onState: vi.fn(), onNotice: vi.fn(),
   };
-  return { loop: new VoiceLoop(ports), ports, captures, record: () => recorded(new Blob(["fixture"])), quiet: () => quiet() };
+  return { loop: new VoiceLoop(ports), ports, captures, record: (metadata?: { recordedSeconds?: number }) => recorded(new Blob(["fixture"]), metadata), quiet: () => quiet() };
 }
 async function flush() { for (let i = 0; i < 16; i++) await Promise.resolve(); }
 
@@ -296,9 +296,37 @@ describe("sesión de voz automática", () => {
     f.ports.synthesize = async (...args) => { const value = await synthesize(...args); clock = 1400; return value; };
     f.ports.play = async (_audio, onStarted) => { clock = 1500; onStarted?.(); clock = 3000; };
     await f.loop.start(); f.record(); await flush();
-    expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith({ transcript:"Hola, Alice", transcriptionMs:250, responseMs:750,
+    expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith({ transcript:"Hola, Alice", transcriptionModel:"Gemma", captureMs:null, transcriptionMs:250, responseMs:750,
       synthesisMs:400, untilPlaybackMs:1500, totalMs:3000, outcome:"completed" });
     f.loop.stop();
+  });
+  it("conserva el modelo ASR devuelto y los segundos reales de la captura sin sumarlos al procesamiento", async () => {
+    const f = fixture();
+    f.ports.onTurnObserved = vi.fn();
+    f.ports.transcribe = vi.fn(async () => ({ text: "Alice, hola", noSpeech: false, model: "Whisper small · local CPU" } as never));
+    f.ports.now = () => 100;
+    await f.loop.start(); f.record({ recordedSeconds: 4.375 }); await flush();
+    expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(expect.objectContaining({
+      transcriptionModel: "Whisper small · local CPU", captureMs: 4375, transcriptionMs: 0, untilPlaybackMs: 0,
+    }));
+    f.loop.stop();
+  });
+  it.each([undefined, {}, { recordedSeconds: NaN }, { recordedSeconds: Infinity }, { recordedSeconds: -1 }])("no inventa duración de captura si falta o es inválida: %j", async metadata => {
+    const f = fixture(); f.ports.onTurnObserved = vi.fn();
+    await f.loop.start(); f.record(metadata); await flush();
+    expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(expect.objectContaining({ captureMs: null }));
+    f.loop.stop();
+  });
+  it("no mezcla metadatos del turno anterior ni publica los de una captura revocada", async () => {
+    const f = fixture(); f.ports.onTurnObserved = vi.fn();
+    await f.loop.start(); f.record({ recordedSeconds: 2 }); await flush();
+    f.ports.transcribe = vi.fn(async () => ({ text: "Hola, Alice", noSpeech: false, model: "Whisper base · local CPU" } as never));
+    f.record(); await flush();
+    expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(expect.objectContaining({ captureMs: null, transcriptionModel: "Whisper base · local CPU" }));
+    const stale = f.captures.at(-1)!;
+    f.loop.stop(); vi.mocked(f.ports.onTurnObserved).mockClear();
+    stale.record({ recordedSeconds: 9 }); await flush();
+    expect(f.ports.onTurnObserved).not.toHaveBeenCalled();
   });
   it("no publica transcripciones ignoradas en la observación ni en el chat", async () => {
     const f = fixture(); f.ports.acceptTranscript = () => false; f.ports.onTurnObserved = vi.fn();

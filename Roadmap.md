@@ -111,7 +111,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 12 de noviembre:** 738 pruebas frontend aprobadas
+**Última validación registrada, 12 de noviembre:** 753 pruebas frontend aprobadas
 (2 sondas omitidas), 385 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
@@ -132,10 +132,15 @@ ganancia 4× y pausa de cierre de 2 s, con opción Normal y sin modificar los
 criterios mínimos de voz. En la repetición personal hubo una orden corta de
 pausa correcta y otras con palabras sustituidas; la precisión no es estable.
 [ADR-P-123](docs/decisions/ADR-P-123-voz-baja-y-pausada.md).
-Se evalúa small multilingüe instalado junto a base, sin cambiar la captura.
+Se instaló small multilingüe junto a base, sin cambiar la captura.
 La configuración se fija una vez por toma y el resultado identifica ese modelo;
 la selección explícita por entorno conserva prioridad. La aceptación acústica
-y la latencia de small con la voz del propietario siguen pendientes.
+y la precisión de small con la voz del propietario no están aceptadas: la
+prueba posterior volvió a sustituir palabras. No se pudo observar si la toma
+terminó mientras aún hablaba. El siguiente diagnóstico usa dictado manual con
+cierre por botón y texto en revisión; no ejecuta la transcripción dudosa.
+El detalle incorpora modelo ASR y duración de la toma, antes descartados por
+la interfaz. Se mantienen los filtros para aislar el problema.
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).

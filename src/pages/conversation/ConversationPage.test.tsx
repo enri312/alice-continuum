@@ -1,8 +1,22 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { buildHybridRetrievalCandidates, Conversacion, reviewUsesCurrentRoute, visibleConversationMessages } from "./ConversationPage";
+import { buildHybridRetrievalCandidates, Conversacion, reviewUsesCurrentRoute, visibleConversationMessages, VoiceTurnMeasurements } from "./ConversationPage";
 
 describe("control de contexto de conversación", () => {
+  it.each(["Whisper small · local CPU", "Whisper base · local CPU", "Whisper local · modelo configurado"])("muestra el modelo ASR real de la toma manual: %s", model => {
+    const markup = renderToStaticMarkup(<VoiceTurnMeasurements recordedSeconds={6.25} transcriptionMs={3500} model={model} state="review" />);
+    expect(markup).toContain(model);
+    expect(markup).toContain("6.3 s");
+    expect(markup).toContain("3.5 s");
+    expect(markup).toContain("REVISAR");
+  });
+  it("no atribuye un modelo antes del ASR ni conserva el detalle al limpiar la toma", () => {
+    const pending = renderToStaticMarkup(<VoiceTurnMeasurements recordedSeconds={4} transcriptionMs={null} model={null} state="recorded" />);
+    expect(pending).toContain("modelo de transcripción");
+    expect(pending).toContain("—");
+    expect(pending).not.toContain("Whisper");
+    expect(renderToStaticMarkup(<VoiceTurnMeasurements recordedSeconds={null} transcriptionMs={null} model={null} state="idle" />)).toBe("");
+  });
   it("invalida una revisión preparada para otro motor", () => {
     expect(reviewUsesCurrentRoute({ provider: "ollama", model: "qwen3.5:4b" }, "llamacpp", "gemma-4-E2B-it-Q4_K_M")).toBe(false);
     expect(reviewUsesCurrentRoute({ provider: "llamacpp", model: "gemma-4-E2B-it-Q4_K_M" }, "llamacpp", "gemma-4-E2B-it-Q4_K_M")).toBe(true);

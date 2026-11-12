@@ -25,6 +25,15 @@ const labels: Record<VoiceLoopState, string> = {
   synthesizing: "Preparando la voz…", speaking: "Alice está hablando", error: "La sesión se detuvo",
 };
 
+export function VoiceSessionObservation({ turn }: { turn: VoiceTurnObservation }) {
+  return <details className="voice-session-observation"><summary>Último mensaje atendido · {turn.outcome === "textOnly" ? "respuesta en texto" : turn.outcome === "error" ? "interrumpido" : turn.untilPlaybackMs === null ? "en proceso" : `${(turn.untilPlaybackMs / 1000).toFixed(1)} s hasta iniciar la voz`}</summary>
+    <p><strong>Alice entendió:</strong> {turn.transcript}</p>
+    <p><strong>Modelo de transcripción:</strong> {turn.transcriptionModel ?? "—"}</p>
+    <dl>{([["Toma de audio",turn.captureMs],["Transcripción",turn.transcriptionMs],["Respuesta",turn.responseMs],["Preparación de voz",turn.synthesisMs]] as const).map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value === null ? "—" : `${(value/1000).toFixed(1)} s`}</dd></div>)}</dl>
+    <p>Los tiempos de procesamiento se miden desde que termina la grabación. La toma de audio se muestra por separado e incluye la pausa de cierre. Este detalle se conserva sólo en esta pantalla.</p>
+  </details>;
+}
+
 export function HandsFreeVoice(props: Props) {
   const currentProps = useRef(props);
   currentProps.current = props;
@@ -79,7 +88,7 @@ export function HandsFreeVoice(props: Props) {
       capture: (onRecorded, onQuiet, onError) => new VoiceCapture({
         onStarted: () => undefined, onElapsed: () => undefined,
         onProcessed: status => currentProps.current.onProcessed?.(status),
-        onRecorded: take => onRecorded(take), onQuiet, onError,
+        onRecorded: (take, seconds) => onRecorded(take, { recordedSeconds: seconds }), onQuiet, onError,
       }, currentProps.current.captureEnvironment, true, currentProps.current.microphone),
       transcribe: async (take, id) => currentProps.current.onTranscribe(bytesToBase64(new Uint8Array(await take.arrayBuffer())), take.type, id),
       respond: (text, id) => currentProps.current.onTurn(text, id),
@@ -129,10 +138,6 @@ export function HandsFreeVoice(props: Props) {
     {active && <p>{state === "standby" ? "Micrófono activo con reducción de ruido. Incluye «Alice» en cada frase que quieras que atienda. «Detén la conversación, Alice» vuelve a la espera; «Apaga el micrófono, Alice» termina la escucha." : state === "arming" ? "Preparando la entrada y el filtro local antes de escuchar." : "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a la espera. Puedes apagarlo con el botón en cualquier momento."}</p>}
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">{error}</p>}
-    {lastTurn && <details className="voice-session-observation"><summary>Último mensaje atendido · {lastTurn.outcome === "textOnly" ? "respuesta en texto" : lastTurn.outcome === "error" ? "interrumpido" : lastTurn.untilPlaybackMs === null ? "en proceso" : `${(lastTurn.untilPlaybackMs / 1000).toFixed(1)} s hasta iniciar la voz`}</summary>
-      <p><strong>Alice entendió:</strong> {lastTurn.transcript}</p>
-      <dl>{([["Transcripción",lastTurn.transcriptionMs],["Respuesta",lastTurn.responseMs],["Preparación de voz",lastTurn.synthesisMs]] as const).map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value === null ? "—" : `${(value/1000).toFixed(1)} s`}</dd></div>)}</dl>
-      <p>Medido desde que termina la grabación. La pausa de cierre y la duración de lo que dices quedan fuera. Este detalle se conserva sólo en esta pantalla.</p>
-    </details>}
+    {lastTurn && <VoiceSessionObservation turn={lastTurn} />}
   </section>;
 }

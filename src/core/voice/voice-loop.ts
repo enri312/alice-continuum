@@ -7,6 +7,8 @@ export type VoiceLoopState = "idle" | "preparing" | "arming" | "standby" | "tran
 type Turn = { exchangeId: string };
 export type VoiceTurnObservation = {
   transcript: string;
+  transcriptionModel: string;
+  captureMs: number | null;
   transcriptionMs: number;
   responseMs: number | null;
   synthesisMs: number | null;
@@ -17,7 +19,7 @@ export type VoiceTurnObservation = {
 export type VoiceLoopPorts = {
   authorize: () => Promise<string>;
   revoke: (id: string) => Promise<void>;
-  capture: (onRecorded: (take: Blob) => void, onQuiet: () => void, onError: (error: string, reason?: NoiseFailureReason) => void) => { start: () => Promise<void>; cancel: () => void; finish: () => void };
+  capture: (onRecorded: (take: Blob, metadata?: { recordedSeconds?: number }) => void, onQuiet: () => void, onError: (error: string, reason?: NoiseFailureReason) => void) => { start: () => Promise<void>; cancel: () => void; finish: () => void };
   transcribe: (take: Blob, id: string) => Promise<VoiceTurnTranscript>;
   respond: (text: string, id: string) => Promise<Turn>;
   synthesize: (turn: Turn, id: string) => Promise<VoiceOutputResult>;
@@ -75,7 +77,7 @@ export class VoiceLoop {
   private async listen(generation: number) {
     if (!this.current(generation)) return;
     const capture = this.ports.capture(
-      take => { if (this.current(generation) && this.capture === capture) void this.turn(take, generation); },
+      (take, metadata) => { if (this.current(generation) && this.capture === capture) void this.turn(take, generation, metadata); },
       () => { if (this.current(generation) && this.capture === capture) void this.listen(generation).catch(error => { if (this.current(generation)) this.fail(error); }); },
       (error, reason) => {
         if (!this.current(generation) || this.capture !== capture) return;
@@ -95,7 +97,7 @@ export class VoiceLoop {
     if (this.current(generation) && this.capture === capture) this.ports.onState("standby");
   }
 
-  private async turn(take: Blob, generation: number) {
+  private async turn(take: Blob, generation: number, metadata?: { recordedSeconds?: number }) {
     const id = this.session;
     if (!id || !this.current(generation)) return;
     this.capture = null;
@@ -126,7 +128,10 @@ export class VoiceLoop {
         await this.listen(generation); return;
       }
       const transcribed = now();
-      observation = { transcript: transcript.text, transcriptionMs: transcribed - started, responseMs: null,
+      const seconds = metadata?.recordedSeconds;
+      observation = { transcript: transcript.text, transcriptionModel: transcript.model,
+        captureMs: typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : null,
+        transcriptionMs: transcribed - started, responseMs: null,
         synthesisMs: null, untilPlaybackMs: null, totalMs: null, outcome: "processing" };
       observed({});
       this.ports.onState("thinking");
