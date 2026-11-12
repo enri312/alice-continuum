@@ -85,7 +85,7 @@ pub(crate) fn start_voice_session(
     app: AppHandle,
     state: State<'_, VoiceSessionStore>,
 ) -> Result<VoiceSessionStarted, String> {
-    if !crate::voice_output::voice_is_configured() {
+    if !crate::voice_output::voice_is_configured(&app) {
         return Err(
             "Configura la clave y la voz de Fish antes de iniciar la conversación por voz.".into(),
         );

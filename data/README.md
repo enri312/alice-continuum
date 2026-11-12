@@ -5,6 +5,8 @@ El iniciador configura `ALICE_DATA_DIR` con esta carpeta. Alice crea aquí:
 - `memory/`: recuerdos, respaldos, exportaciones, adjuntos e índices.
 - `conversation/`: historial local durable de diálogos, separado de los recuerdos.
 - `cloud/`: auditoría técnica de llamadas a proveedores, sin claves.
+- `voice-profile.json`: selección privada de la voz Fish; esquema 1, separada
+  de las credenciales y de los recuerdos.
 
 El avance del autoestudio de arranque se conserva en
 `memory/self-study-v1.json`, separado de las memorias personales. Su currículo
@@ -12,6 +14,27 @@ está limitado a matemáticas, historia bíblica católica, psicología e inteli
 emocional, empatía, solidaridad y humildad. Las lecciones aprobadas pueden
 recuperarse al conversar y se proyectan en la bóveda. Ver
 [Autoestudio al arrancar](../docs/runbooks/06-autoestudio-al-arrancar.md).
+
+## Perfil privado de voz
+
+`voice-profile.json` se lee desde la raíz efectiva de `ALICE_DATA_DIR`.
+Ejemplo ficticio de su formato:
+
+```json
+{
+  "schemaVersion": 1,
+  "referenceId": "voz_de_ejemplo_2026"
+}
+```
+
+Este archivo válido tiene prioridad sobre `ALICE_FISH_REFERENCE_ID`; esa
+variable sólo se usa cuando no existe el archivo. Un perfil presente inválido
+produce un error, sin cambiar silenciosamente a la voz del entorno.
+La clave `FISH_API_KEY` sigue en el entorno del proceso y no se guarda aquí.
+El contenido del perfil es privado, queda fuera de Git y forma parte del
+respaldo de datos. El identificador de ejemplo no selecciona la voz del
+propietario. Procedimiento y personalidad:
+[Conversación y voz](../docs/runbooks/03-conversacion-y-voz.md#voz-privada-y-personalidad).
 
 ## Cerebro de Alice en Obsidian
 

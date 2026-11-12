@@ -51,6 +51,7 @@ mod util;
 mod visual_learning;
 mod voice_input;
 mod voice_output;
+mod voice_profile;
 mod voice_session;
 mod whisper_input;
 mod working_memory;

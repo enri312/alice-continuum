@@ -16,6 +16,10 @@ acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper loc
 CPU transcribe español y Fish da voz. Small se evalúa junto a base. Las pruebas sintéticas no cierran la
 aceptación con Carlos y música real. **Domótica queda fuera de este tramo y el
 avatar va al final**. Atlas y Nerumi son referencias, no capacidades incorporadas.
+La actualización de voz y personalidad mantiene a Alice con un estilo inspirado
+en Akali: directo, seguro, informal y con humor seco ocasional, conservando
+empatía, humildad, veracidad y autorización. Su aceptación queda separada del
+reconocimiento por micrófono, que sigue sin resolverse.
 El [próximo paso autorizado](#próximo-paso-autorizado) fija el orden y sus criterios.
 
 ## Propósito
@@ -112,7 +116,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
 **Última validación registrada, 12 de noviembre:** 808 pruebas frontend aprobadas
-(2 sondas omitidas), 385 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
+(2 sondas omitidas), 391 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
@@ -162,6 +166,16 @@ de audio para medirla antes de decidir otro ajuste. La claridad del sonido y
 la precisión de la frase real siguen pendientes.
 [ADR-P-126](docs/decisions/ADR-P-126-diagnostico-local-de-audio.md) ·
 [Diagnóstico de entrada](docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
+Por prioridad del propietario, se incorpora una personalidad compartida para
+texto, voz y visión y una selección de voz Fish privada en
+`data/voice-profile.json`. El perfil local prevalece; la variable heredada sólo
+se consulta si no existe ese archivo. No se cambia el modelo TTS
+`s2.1-pro-free`, el reconocedor ni la cadena de captura. La nueva voz tuvo
+síntesis exitosa de una frase revisada en Tauri. La valoración audible
+y la aceptación cotidiana del estilo quedan pendientes del propietario; no
+cierran el fallo de reconocimiento ni R9.
+[ADR-P-127](docs/decisions/ADR-P-127-voz-privada-y-personalidad-alice.md) ·
+[Verificación del incremento](docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
@@ -688,6 +702,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,
    cámara y escritorio con parada e indicadores coherentes. Después completar y
    comprobar activación dedicada por nombre e interrupción con control de eco.
+   Valorar la nueva voz Fish y el estilo de Alice en texto, voz y visión,
+   conservando empatía, humildad y procedencia. Retomar el diagnóstico de entrada
+   con la misma toma filtrada; una preferencia de voz no acredita precisión ASR.
 
 **Pendiente transversal de protección:** completar una copia integral verificada
 en otra unidad física. El respaldo actual en `D:\Alice Backups\Alice Continuum`

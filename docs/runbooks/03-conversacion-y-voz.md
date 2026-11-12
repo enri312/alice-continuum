@@ -11,8 +11,47 @@ aceptación con la voz del propietario todavía en validación.
    explícitamente si corresponde; no iniciar otro modelo conversacional a la vez.
 3. Si un puerto pertenece a otro proceso, identificarlo antes de actuar. No matar
    procesos ajenos ni adoptar sesiones por coincidencia de puerto.
-4. Para Fish se requieren `FISH_API_KEY` y `ALICE_FISH_REFERENCE_ID` en el entorno
-   del proceso nativo. No copiar valores a documentación, capturas, pruebas o Git.
+4. Para Fish se requiere `FISH_API_KEY` en el entorno del proceso nativo y un
+   perfil privado de voz; ver la configuración siguiente. No copiar valores
+   reales a documentación, capturas, pruebas o Git.
+
+## Voz privada y personalidad
+
+La voz se selecciona en `voice-profile.json`, dentro de la carpeta efectiva de
+`ALICE_DATA_DIR`; en la instalación principal es `data/voice-profile.json`.
+Ejemplo ficticio, que debe sustituirse localmente por una voz de Fish disponible:
+
+```json
+{
+  "schemaVersion": 1,
+  "referenceId": "voz_de_ejemplo_2026"
+}
+```
+
+El archivo local válido tiene prioridad sobre `ALICE_FISH_REFERENCE_ID`.
+La variable de entorno sólo se utiliza si el archivo no existe. Si está presente
+pero es inválido, ilegible o usa otro esquema, se informa el error y no se elige
+otra voz silenciosamente. El JSON admite sólo esos dos campos; el identificador
+debe tener entre 8 y 128 caracteres ASCII alfanuméricos, guion o guion bajo.
+El perfil queda fuera de Git y se incluye al respaldar los datos privados.
+`FISH_API_KEY` permanece en el entorno, nunca en este JSON ni en Memoria.
+La síntesis mantiene el modelo `s2.1-pro-free`.
+
+Alice conserva su nombre y su contexto real. El estilo inspirado en Akali es
+seguro, directo, informal y resolutivo, con criterio propio y humor seco
+ocasional. Mantiene empatía, solidaridad y humildad; reconoce límites y corrige
+errores sin rodeos. Ante angustia acompaña sin presionar para actuar ni burlarse
+de las emociones. El bloque compartido está en
+`src-tauri/src/prompts/personality.txt`, aplicado a conversación escrita,
+hablada y visión. El saludo es breve y no exige una pregunta final.
+La dirección contextual TTS es `[confident, conversational]`; las opciones
+explícitas de entrega conservan sus alternativas.
+
+El estilo no amplía permisos, no convierte una respuesta en recibo de ejecución
+ni elimina la procedencia visible. Cambiar la voz no entrena al reconocedor y
+no acredita una mejora del micrófono. La nueva escucha y el estilo cotidiano
+requieren valoración del propietario; ver
+[reporte del incremento](../testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
 
 ## Vista del historial
 

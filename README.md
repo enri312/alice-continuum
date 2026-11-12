@@ -22,6 +22,16 @@ proyecto anterior Alice Cognitive Core.
 Prioridad actual: consolidar autoestudio y Obsidian y continuar el núcleo junto
 con la aceptación de conversación, voz y música de R9.
 
+**Voz y personalidad:** Alice incorpora un estilo inspirado en Akali: directo,
+seguro e informal, con criterio propio y humor seco ocasional. Conserva empatía,
+humildad, veracidad y los controles de autorización. Texto, voz y visión comparten
+el mismo bloque de personalidad. La voz Fish se selecciona mediante un perfil
+privado y mantiene `s2.1-pro-free`. La síntesis de una frase de prueba funcionó
+en Tauri; la valoración audible del propietario sigue pendiente. Este cambio
+no corrige la transcripción.
+[Configuración y alcance](docs/runbooks/03-conversacion-y-voz.md#voz-privada-y-personalidad) ·
+[Resultados y pendientes](docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
+
 **Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
 ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
 volver a Normal. Este perfil conserva la salida de RNNoise sin la atenuación
@@ -167,11 +177,14 @@ anterior. Una instalación incompleta, una configuración explícita inválida o
 fallo de Whisper se informan sin reenviar esa toma a Gemma. FFmpeg se requiere
 para convertir la toma local.
 
-Fish Audio usa `FISH_API_KEY` y `ALICE_FISH_REFERENCE_ID` en el entorno del proceso
-nativo. Las respuestas autorizadas salen al proveedor para obtener su voz; el
-perfil existente conserva `s2.1-pro-free`. Los valores de las credenciales no se
-incluyen en Git ni se entregan a React; el respaldo privado conserva las variables
-seleccionadas para recuperación. Los proveedores alternativos se documentan
+Fish Audio usa `FISH_API_KEY` en el entorno del proceso nativo y el perfil privado
+`data/voice-profile.json` (esquema 1). El archivo válido prevalece sobre
+`ALICE_FISH_REFERENCE_ID`; el entorno sólo selecciona voz cuando falta ese archivo.
+Las respuestas autorizadas salen al proveedor para obtener su voz; se conserva
+`s2.1-pro-free`. Las claves y el identificador real no se incluyen en Git ni se
+entregan a React; el respaldo privado conserva la configuración para recuperación.
+Ver [formato y prioridad](docs/runbooks/03-conversacion-y-voz.md#voz-privada-y-personalidad).
+Los proveedores alternativos se documentan
 en el manual; OpenRouter permanece pausado por decisión del propietario.
 
 [Arranque y recuperación](docs/runbooks/01-arranque-local.md) · [Identidad y compatibilidad](docs/architecture/CONTINUUM_IDENTITY.md)
@@ -209,7 +222,7 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 - **808 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **385 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, selección restringida de playlist y configuración del reconocedor por toma.
+- **391 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye prioridad de conversación, reanudación sin ciclos superpuestos, descarte de resultados cancelados, playlist restringida, configuración del reconocedor, selección privada de voz y personalidad compartida.
 - Compilación frontend y formato Rust aprobados.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).

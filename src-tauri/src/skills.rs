@@ -1321,6 +1321,7 @@ mod tests {
             &CapabilityProbeSnapshot {
                 gemma_installed: false,
                 document_available: false,
+                voice_configured: false,
                 cloud: CloudCapabilityProbe {
                     provider_count: 6,
                     configured_provider_count: 0,

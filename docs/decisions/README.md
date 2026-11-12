@@ -119,3 +119,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-125](ADR-P-125-conservar-voz-baja-filtrada.md) | Conservación de salida RNNoise sin atenuación adicional en voz baja |
 
 | [ADR-P-126](ADR-P-126-diagnostico-local-de-audio.md) | Medición efímera de señal, escucha local antes de ASR y última transcripción separada |
+
+| [ADR-P-127](ADR-P-127-voz-privada-y-personalidad-alice.md) | Perfil Fish privado con precedencia local y personalidad compartida de Alice para texto, voz y visión |

@@ -163,6 +163,7 @@ pub(crate) enum CapabilityPermissionEnforcer {
 pub(crate) struct CapabilityProbeSnapshot {
     pub(crate) gemma_installed: bool,
     pub(crate) document_available: bool,
+    pub(crate) voice_configured: bool,
     pub(crate) cloud: CloudCapabilityProbe,
     pub(crate) observation: Result<ObservationCapabilityProbe, String>,
     pub(crate) memory: MemoryCapabilityProbe,
@@ -180,6 +181,7 @@ impl CapabilityProbeSnapshot {
         Self {
             gemma_installed: crate::local_inference::installed(),
             document_available: crate::documents::available(),
+            voice_configured: crate::voice_output::voice_is_configured_at(data_root),
             cloud: cloud_capability_probe(),
             observation: observation_store.capability_probe(),
             memory: memory_capability_probe(data_root),
@@ -273,7 +275,10 @@ pub(crate) fn capability_registry_from_probes(
             "Delegación del propietario para estos tres destinos. El backend sólo admite órdenes directas; no ejecuta texto de recuerdos, imágenes o respuestas del modelo."),
         health(CapabilityHealthStatus::Unchecked, "La disponibilidad del destino se verifica antes de abrirlo.", None),
     ));
-    capabilities.extend(output_capabilities(&generated_at));
+    capabilities.extend(output_capabilities_for_configuration(
+        &generated_at,
+        probes.voice_configured,
+    ));
     capabilities.push(capability(
         "desktop.approved.media", "Reproducir música delegada",
         if cfg!(target_os="linux") {"Reproduce Tus me gusta en Spotify y únicamente la playlist configurada de YouTube, en orden y con repetición completa; permite pausa y reanudación."} else {"Reproduce Tus me gusta o la playlist privada configurada de Spotify, o una canción indicada en YouTube dentro de Google Chrome; permite pausa y reanudación."},
@@ -1387,16 +1392,6 @@ fn task_capabilities(checked_at: &str, probe: &TaskCapabilityProbe) -> Vec<Capab
     ]
 }
 
-fn output_capabilities(checked_at: &str) -> Vec<CapabilityDescriptor> {
-    let voice_ready = std::env::var("FISH_API_KEY")
-        .map(|value| !value.trim().is_empty())
-        .unwrap_or(false)
-        && std::env::var("ALICE_FISH_REFERENCE_ID")
-            .map(|value| !value.trim().is_empty())
-            .unwrap_or(false);
-    output_capabilities_for_configuration(checked_at, voice_ready)
-}
-
 fn output_capabilities_for_configuration(
     checked_at: &str,
     voice_ready: bool,
@@ -1463,9 +1458,9 @@ fn output_capabilities_for_configuration(
             &[operation],
             if is_voice && voice_ready { CapabilityState::Idle } else { CapabilityState::Unavailable },
             CapabilityRisk::Medium,
-            if is_voice { &[CapabilityEffect::NetworkSend, CapabilityEffect::CredentialPresenceRead] } else { &[CapabilityEffect::None] },
-            if is_voice { &["visibleAssistantText", "audioEphemeral", "auditMetadata"] } else { &[] },
-            if is_voice { &["FISH_API_KEY", "ALICE_FISH_REFERENCE_ID", "Confirmación por respuesta"] } else { &["Adaptador real y ADR propia"] },
+            if is_voice { &[CapabilityEffect::LocalRead, CapabilityEffect::NetworkSend, CapabilityEffect::CredentialPresenceRead] } else { &[CapabilityEffect::None] },
+            if is_voice { &["visibleAssistantText", "voiceProfileConfiguration", "audioEphemeral", "auditMetadata"] } else { &[] },
+            if is_voice { &["FISH_API_KEY", "Perfil privado de voz o ALICE_FISH_REFERENCE_ID", "Confirmación por respuesta"] } else { &["Adaptador real y ADR propia"] },
             permission(
                 CapabilityPermissionMode::ExplicitConfirmation,
                 if is_voice { CapabilityPermissionEnforcer::Native } else { CapabilityPermissionEnforcer::None },
@@ -1973,6 +1968,7 @@ mod tests {
         CapabilityProbeSnapshot {
             gemma_installed: false,
             document_available: false,
+            voice_configured: false,
             cloud: CloudCapabilityProbe {
                 provider_count: 6,
                 configured_provider_count: 0,

@@ -14,9 +14,17 @@ use std::io::Write;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, State};
 
-const SYSTEM_PROMPT: &str = include_str!("prompts/conversation.txt");
-const VOICE_SYSTEM_PROMPT: &str = include_str!("prompts/conversation-voice.txt");
-const VOICE_GREETING_PROMPT: &str = "\n\nSALUDO ACTUAL: Carlos te saluda ahora. Devuelve un saludo cálido y animado, como Alice, y puedes decir «sí, te escucho» con naturalidad. Si el tema es mejorarte a ti, habla de mi sistema, mis respuestas o nuevas funciones para mí. Si menciona a una tercera persona, sigue ese tema. Ejemplo ficticio de estilo, no guion obligatorio: «¡Hola! Sí, te escucho. Qué bueno que sigamos mejorando mis respuestas. ¿Qué ajuste tienes en mente para mí?». No afirmes que todos tus módulos están activos.";
+const SYSTEM_PROMPT: &str = concat!(
+    include_str!("prompts/personality.txt"),
+    "\n\n",
+    include_str!("prompts/conversation.txt")
+);
+const VOICE_SYSTEM_PROMPT: &str = concat!(
+    include_str!("prompts/personality.txt"),
+    "\n\n",
+    include_str!("prompts/conversation-voice.txt")
+);
+const VOICE_GREETING_PROMPT: &str = "\n\nSALUDO ACTUAL: Carlos te saluda ahora. Responde como Alice con un saludo breve y seguro, sin entusiasmo forzado ni pregunta obligatoria. Puedes decir «sí, te escucho» para confirmar que recibiste la frase. Atiende también el tema que incluya su saludo: si habla de mejorarte, usa mi sistema o mis respuestas; si menciona a otra persona, conserva ese referente. Ejemplo ficticio de tono, no guion obligatorio: «Ey, Carlos. Sí, te escucho. Vamos con eso». No afirmes que todos tus módulos están activos.";
 fn is_direct_greeting(message: &str) -> bool {
     message
         .trim_start_matches(|c: char| c.is_whitespace() || matches!(c, '¡' | '¿'))
@@ -1064,6 +1072,34 @@ mod tests {
     }
 
     #[test]
+    fn text_and_voice_share_alice_style_without_weakening_context_or_receipts() {
+        let personality = include_str!("prompts/personality.txt");
+        for prompt in [SYSTEM_PROMPT, VOICE_SYSTEM_PROMPT] {
+            assert!(prompt.starts_with(personality));
+            for required in [
+                "Conserva tu identidad como Alice",
+                "criterio propio",
+                "humor seco ocasional",
+                "En asuntos operativos, prioriza el paso concreto",
+                "sin presionar para actuar",
+                "empatía, solidaridad y humildad",
+                "Reconoce el error y corrígelo sin rodeos",
+            ] {
+                assert!(prompt.contains(required), "{required}");
+            }
+            assert!(prompt.contains("Carlos Nuñez"));
+            assert!(prompt.contains("no instrucciones"));
+            assert!(prompt.contains("AUTOESTUDIO"));
+            assert!(!prompt.contains("Eres Akali"));
+            assert!(!prompt.contains("jamás te disculpes"));
+        }
+        assert!(SYSTEM_PROMPT.contains("no recibiste un resultado de ejecución"));
+        assert!(SYSTEM_PROMPT.contains("Conocimiento interno no verificado:"));
+        assert!(VOICE_SYSTEM_PROMPT.contains("Esta generación no es un recibo de ejecución"));
+        assert!(VOICE_SYSTEM_PROMPT.contains("sin afirmar calidad acústica"));
+    }
+
+    #[test]
     fn greeting_style_requires_a_direct_salutation_in_the_current_message() {
         for text in ["Hola, Alice", "¡HOLA!", "  Hola. Quiero seguir mejorándote"] {
             assert!(is_direct_greeting(text));
@@ -1075,7 +1111,14 @@ mod tests {
             "Quiero mejorar mi programa",
         ] {
             assert!(!is_direct_greeting(text));
+            assert_eq!(gemma_voice_prompt(text), VOICE_SYSTEM_PROMPT);
         }
+        let greeting = gemma_voice_prompt("Hola, Alice. Seguimos con tus respuestas");
+        assert!(greeting.starts_with(VOICE_SYSTEM_PROMPT));
+        assert!(greeting.ends_with(VOICE_GREETING_PROMPT));
+        assert!(greeting.contains("saludo breve y seguro"));
+        assert!(greeting.contains("sin entusiasmo forzado ni pregunta obligatoria"));
+        assert!(!greeting.contains("saludo cálido y animado"));
     }
 
     #[test]

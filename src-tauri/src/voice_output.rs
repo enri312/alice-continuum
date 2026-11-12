@@ -6,6 +6,7 @@ use crate::util::{alice_data_root_path, encode_hex_lower};
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, State};
@@ -67,7 +68,7 @@ fn directed_speech(text: &str, delivery: VoiceDelivery) -> String {
     }
     let cue = match delivery {
         VoiceDelivery::Original => return spoken,
-        VoiceDelivery::Contextual => "[warm, conversational]",
+        VoiceDelivery::Contextual => "[confident, conversational]",
         VoiceDelivery::Warm => "[warm, conversational]",
         VoiceDelivery::Calm => "[calm, gentle]",
         VoiceDelivery::Cheerful => "[gently cheerful]",
@@ -122,32 +123,34 @@ pub(crate) struct VoiceCancellationResult {
     cancelled: bool,
 }
 
-pub(crate) fn voice_is_configured() -> bool {
-    matches!(voice_configuration(), VoiceConfiguration::Ready)
+pub(crate) fn voice_is_configured(app: &AppHandle) -> bool {
+    alice_data_root_path(app)
+        .ok()
+        .is_some_and(|root| voice_is_configured_at(&root))
 }
 
-fn voice_configuration() -> VoiceConfiguration {
-    if std::env::var("FISH_API_KEY")
-        .map(|value| value.trim().is_empty())
-        .unwrap_or(true)
-    {
+pub(crate) fn voice_is_configured_at(root: &Path) -> bool {
+    matches!(voice_configuration(root), VoiceConfiguration::Ready)
+}
+
+fn voice_configuration(root: &Path) -> VoiceConfiguration {
+    let key_present = std::env::var("FISH_API_KEY").is_ok_and(|value| !value.trim().is_empty());
+    let inherited_reference = std::env::var("ALICE_FISH_REFERENCE_ID").ok();
+    voice_configuration_at(root, key_present, inherited_reference.as_deref())
+}
+
+fn voice_configuration_at(
+    root: &Path,
+    key_present: bool,
+    inherited_reference: Option<&str>,
+) -> VoiceConfiguration {
+    if !key_present {
         return VoiceConfiguration::MissingApiKey;
     }
-    if std::env::var("ALICE_FISH_REFERENCE_ID")
-        .ok()
-        .filter(|value| valid_voice_profile(value.trim()))
-        .is_none()
-    {
+    if crate::voice_profile::resolve_at(root, inherited_reference).is_err() {
         return VoiceConfiguration::MissingVoiceProfile;
     }
     VoiceConfiguration::Ready
-}
-
-fn valid_voice_profile(value: &str) -> bool {
-    (8..=128).contains(&value.len())
-        && value
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')
 }
 
 fn text_digest(text: &str) -> String {
@@ -246,7 +249,7 @@ pub(crate) fn preview_voice_output(
     }
     let request_id = Uuid::new_v4().to_string();
     let digest = text_digest(&text);
-    let configuration = voice_configuration();
+    let configuration = voice_configuration(&data_root);
     let can_confirm = matches!(configuration, VoiceConfiguration::Ready);
     let operation_id = new_operation_id();
     record_voice_audit(
@@ -368,19 +371,16 @@ pub(crate) async fn confirm_voice_output(
     if !input.confirmed {
         return Err("La síntesis de voz requiere una confirmación explícita".into());
     }
-    if !matches!(voice_configuration(), VoiceConfiguration::Ready) {
-        return Err(
-            "Fish Audio no está configurado en este proceso; revisá la clave y la voz local".into(),
-        );
-    }
-    let request = take_pending(&state, &input.request_id)?;
+    let data_root = alice_data_root_path(&app)
+        .map_err(|_| "No se pudo localizar la carpeta de datos para el perfil privado de voz")?;
     let api_key = std::env::var("FISH_API_KEY")
-        .map_err(|_| "No se encontró la clave de Fish Audio en este proceso".to_string())?;
-    let reference_id = std::env::var("ALICE_FISH_REFERENCE_ID")
-        .map_err(|_| "No se encontró una voz de Fish Audio configurada localmente".to_string())?;
-    if !valid_voice_profile(reference_id.trim()) {
-        return Err("La voz configurada localmente no tiene un formato aceptado".into());
-    }
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .ok_or("No se encontró la clave de Fish Audio en este proceso")?;
+    let inherited_reference = std::env::var("ALICE_FISH_REFERENCE_ID").ok();
+    let reference_id =
+        crate::voice_profile::resolve_at(&data_root, inherited_reference.as_deref())?;
+    let request = take_pending(&state, &input.request_id)?;
     let operation_id = new_operation_id();
     record_voice_audit(
         &app,
@@ -548,6 +548,52 @@ pub(crate) async fn confirm_voice_output(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::voice_profile::valid_reference_id as valid_voice_profile;
+
+    #[test]
+    fn local_voice_profile_readiness_matches_the_reference_resolution_policy() {
+        let root = std::env::temp_dir().join(format!("alice-voice-ready-test-{}", Uuid::new_v4()));
+        std::fs::create_dir(&root).unwrap();
+        assert!(matches!(
+            voice_configuration_at(&root, false, Some("inherited_fixture_voice")),
+            VoiceConfiguration::MissingApiKey
+        ));
+        assert!(matches!(
+            voice_configuration_at(&root, true, None),
+            VoiceConfiguration::MissingVoiceProfile
+        ));
+        assert!(matches!(
+            voice_configuration_at(&root, true, Some("inherited_fixture_voice")),
+            VoiceConfiguration::Ready
+        ));
+        let path = root.join("voice-profile.json");
+        std::fs::write(
+            &path,
+            br#"{"schemaVersion":1,"referenceId":"local_fixture_voice"}"#,
+        )
+        .unwrap();
+        assert!(matches!(
+            voice_configuration_at(&root, true, None),
+            VoiceConfiguration::Ready
+        ));
+        std::fs::write(
+            &path,
+            br#"{"schemaVersion":1,"referenceId":"invalid fixture/voice"}"#,
+        )
+        .unwrap();
+        let configuration = voice_configuration_at(&root, true, Some("inherited_fixture_voice"));
+        assert!(matches!(
+            configuration,
+            VoiceConfiguration::MissingVoiceProfile
+        ));
+        assert_eq!(
+            serde_json::to_value(configuration).unwrap(),
+            serde_json::json!("missingVoiceProfile")
+        );
+        assert!(crate::voice_profile::resolve_at(&root, Some("inherited_fixture_voice")).is_err());
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_dir(root).unwrap();
+    }
 
     #[test]
     fn delivery_is_bounded_and_part_of_the_reviewed_text() {
@@ -576,7 +622,7 @@ mod tests {
         assert!(matches!(default_input.delivery, VoiceDelivery::Contextual));
         let contextual = directed_speech("Vamos paso a paso.", default_input.delivery);
         assert!(contextual.ends_with(" Vamos paso a paso."));
-        assert!(contextual.starts_with("[warm, conversational]"));
+        assert!(contextual.starts_with("[confident, conversational]"));
         assert_ne!(text_digest(&contextual), text_digest("Vamos paso a paso."));
         assert!(directed_speech(
             "Conocimiento interno no verificado:",
