@@ -6,8 +6,8 @@ Producto: **0.1.0** · documento maestro: **0.65**.
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
 **Prioridad vigente:** consolidar el núcleo cognitivo, el autoestudio limitado a
-las materias autorizadas y su proyección en Obsidian. La primera separación de
-responsabilidades ya está implementada; siguen la revisión de contratos, la
+las materias autorizadas y su proyección en Obsidian. El autoestudio nativo y la
+coordinación de sus fuentes en la interfaz ya están separados; siguen la revisión de contratos, la
 aceptación del ciclo de aprendizaje en uso personal y los incrementos de estructura
 que esa revisión justifique. Ver [estructura y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
@@ -82,7 +82,13 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   la actividad R3 y el modo Demostración tienen fuentes y significados distintos.
   [ADR-P-115](docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
 
-**Última validación registrada, 11 de noviembre:** 681 pruebas frontend aprobadas
+- **Fuentes de aprendizaje y núcleo:** lecturas serializadas y recuperables,
+  eventos con respaldo periódico, mutaciones protegidas frente a respuestas
+  antiguas y coordinación extraída de `App.tsx`. El Volumen muestra fase registrada,
+  última lectura y errores, con reintento de consulta; la leyenda queda plegada
+  fuera del lienzo. [ADR-P-116](docs/decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md).
+
+**Última validación registrada, 11 de noviembre:** 694 pruebas frontend aprobadas
 (2 sondas omitidas), 354 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend y formato Rust aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. Esa
@@ -591,13 +597,15 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    bóveda. Comprobar pausa, errores y prioridad de conversación. La sonda aislada
    de 14 áreas (10 aprobadas y 4 fallidas) no representa avance personal.
 2. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
-   colaboradores lo implementado; separar coordinación de `App.tsx` y
+   colaboradores lo implementado; continuar separando coordinación de `App.tsx`
+   después de extraer las fuentes de aprendizaje (ADR-P-116), y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. Evaluar una primitiva de persistencia compartida
    sin cambiar formatos ni debilitar los controles existentes.
-3. **Aceptar Memoria en la aplicación nativa.** Verificar las cuatro secciones,
+3. **Aceptar Memoria y Volumen en la aplicación nativa.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
-   del propietario. La revisión visual aislada ya aprobada no sustituye esa prueba.
+   del propietario, así como una incorporación real visible en el Volumen.
+   La revisión visual aislada ya aprobada no sustituye esa prueba.
 4. **Retomar la aceptación funcional de R9.** Mantener cinco turnos reales con
    corrección de referentes; probar escucha sin música, con música de la notebook
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,

@@ -97,3 +97,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-114](ADR-P-114-respaldo-integral.md) | Copias privadas integrales desde el lanzador, SHA-256 y restauración aislada |
 
 | [ADR-P-115](ADR-P-115-volumen-cognitivo-y-evolucion-visible.md) | Volumen bilateral, evolución observada del aprendizaje y señales reales separadas de la demostración |
+
+| [ADR-P-116](ADR-P-116-fuentes-de-aprendizaje-observables.md) | Fuentes de aprendizaje recuperables, coordinación separada de App y estado visible en el Volumen |

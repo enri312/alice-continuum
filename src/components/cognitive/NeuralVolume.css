@@ -1003,3 +1003,56 @@
     scroll-behavior: auto;
   }
 }
+
+/* Keep the colour reference available without covering the cognitive canvas. */
+.volume-workbench.volume-observatory .volume-color-guide {
+  margin: 0 24px 18px;
+  color: #a5bdcd;
+  font-size: .74rem;
+}
+.volume-color-guide > summary { width: fit-content; cursor: pointer; padding: 7px 0; }
+.volume-color-guide > summary:focus-visible { outline: 2px solid #67e8d4; outline-offset: 4px; }
+.volume-workbench.volume-observatory .volume-color-guide .volume-layer-legend {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 8px 0;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: auto;
+  backdrop-filter: none;
+}
+.volume-color-guide > p { max-width: 80ch; margin: 4px 0; line-height: 1.6; }
+.volume-learning-activity {
+  padding: 15px 24px;
+  border-bottom: 1px solid var(--volume-line);
+  background: #0b1926;
+  color: #acc3d2;
+}
+.volume-learning-source-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 24px; }
+.volume-learning-source-states > div { display: grid; align-content: start; gap: 5px; min-width: 0; }
+.volume-learning-source-states strong { color: #d1e8ee; font-size: .75rem; }
+.volume-learning-source-states span { color: #8be2ce; font-size: .75rem; line-height: 1.5; }
+.volume-learning-source-states small { color: #8fa7b9; font-size: .66rem; line-height: 1.5; overflow-wrap: anywhere; }
+.volume-learning-source-states [data-state="error"] span { color: #f9c684; }
+.volume-learning-source-states [data-state="loading"] span { color: #9db8cf; }
+.volume-learning-source-states details { font-size: .7rem; line-height: 1.5; overflow-wrap: anywhere; }
+.volume-learning-source-states details summary { cursor: pointer; color: #f9c684; }
+.volume-learning-source-states details p { margin: 7px 0; }
+.volume-learning-refresh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; margin-top: 13px; }
+.volume-learning-refresh > span { color: #8fa7b9; font-size: .68rem; line-height: 1.5; }
+.volume-learning-refresh button { padding: 7px 12px; border: 1px solid #37677b; border-radius: 5px; background: #10293a; color: #c5eef0; font-size: .71rem; cursor: pointer; }
+.volume-learning-refresh button:hover { background: #183b4c; }
+.volume-learning-refresh button:focus-visible { outline: 2px solid #67e8d4; outline-offset: 3px; }
+.volume-learning-cycle-error { margin: 12px 0 0; color: #f9c684; font-size: .73rem; line-height: 1.5; overflow-wrap: anywhere; }
+.volume-learning-offline { margin: 0; padding: 12px 24px; border-bottom: 1px solid var(--volume-line); color: #8fa7b9; font-size: .73rem; }
+@media (max-width: 700px) {
+  .volume-learning-activity, .volume-learning-offline { padding: 13px 16px; }
+  .volume-learning-source-states { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .volume-workbench.volume-observatory .volume-color-guide { margin: 0 16px 16px; }
+  .volume-learning-refresh button { flex: 1 1 auto; }
+}

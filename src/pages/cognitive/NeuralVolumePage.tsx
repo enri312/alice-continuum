@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import type { VolumeLearningActivityState } from "../../components/cognitive/VolumeLearningActivity";
 import { NeuralVolume } from "../../components/cognitive/NeuralVolume";
 import { parseKnowledgeGraphVolumeProjection } from "../../core/memory/knowledge-graph-volume";
 import type { KnowledgeGraphVolumeState } from "../../core/memory/knowledge-graph-volume";
@@ -7,7 +8,7 @@ import type { ConfirmedMemoryAssociation } from "../../core/cognitive/cognitive-
 import type { SelfStudySnapshot } from "../../core/memory/self-study";
 import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../shared/nucleus-shared";
 
-type VolumePageProps = NucleusPageProps & { learningReady?: boolean; selfStudy?: SelfStudySnapshot | null };
+type VolumePageProps = NucleusPageProps & { learningReady?: boolean; selfStudy?: SelfStudySnapshot | null; learningActivity?: VolumeLearningActivityState; onRefreshLearning?: () => void };
 
 export function Volumen(props: VolumePageProps) {
   const { activity, activityStatus, effectiveSnapshot } = useNucleusSnapshot(props);
@@ -36,6 +37,6 @@ export function Volumen(props: VolumePageProps) {
     return () => { active = false; };
   }, [props.desktopApp, associationSourceKey]);
   return <NucleusFrame code="[01]" title="Volumen cognitivo" description="Explora los recuerdos de Alice, la evidencia de actividad y el recorrido visual de las señales." activity={activity} activityStatus={activityStatus} footnote="Los nodos permiten inspeccionar recuerdos y procesos registrados. Verde: origen compartido; violeta: asociación confirmada; ámbar: demostración explícita. El contorno cerebral es ilustrativo y no mide neuronas, emociones ni conciencia.">
-    <div className="nucleus-page-stage volume-page-stage"><NeuralVolume runtimeActive={activityStatus === "ready"} snapshot={effectiveSnapshot} activity={activity} associations={associations} associationStatus={associationStatus} invalidatedAssociationCount={invalidatedAssociationCount} learningReady={props.learningReady} studyProgress={studyProgress} /></div>
+    <div className="nucleus-page-stage volume-page-stage"><NeuralVolume runtimeActive={activityStatus === "ready"} snapshot={effectiveSnapshot} activity={activity} associations={associations} associationStatus={associationStatus} invalidatedAssociationCount={invalidatedAssociationCount} learningReady={props.learningReady} studyProgress={studyProgress} learningActivity={props.learningActivity} onRefreshLearning={props.onRefreshLearning} /></div>
   </NucleusFrame>;
 }

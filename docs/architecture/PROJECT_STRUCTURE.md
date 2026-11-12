@@ -4,6 +4,12 @@
 El inventario registra por separado lectura automática y revisión focal; las
 pruebas aprobadas no equivalen a una auditoría manual completa de cada línea.
 
+Actualización 2026-11-11 — [ADR-P-116](../decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md):
+`src/hooks/useLearningSources.ts` adapta los estados y eventos de aprendizaje.
+El controlador puro `src/core/memory/learning-source.ts` serializa lecturas,
+ordena mutaciones e invalida respuestas desplazadas. `App.tsx` conserva la
+composición y los filtros de conversación; las vistas reciben estados y acciones.
+
 Actualización 2026-11-10 — [ADR-P-113](../decisions/ADR-P-113-autoestudio-modular.md):
 el autoestudio conserva `self_study.rs` como fachada Tauri y coordinador del ciclo.
 `self_study/model.rs` contiene los contratos; `domain.rs`, validación y reglas;
@@ -73,6 +79,7 @@ Alice Continuum/
 ├── src/
 │   ├── App.tsx                    composición y navegación de la aplicación
 │   ├── main.tsx                   punto de entrada de React
+│   ├── hooks/                     coordinación React de fuentes nativas
 │   ├── pages/                     pantallas, agrupadas por responsabilidad
 │   │   ├── cognitive/
 │   │   ├── conversation/

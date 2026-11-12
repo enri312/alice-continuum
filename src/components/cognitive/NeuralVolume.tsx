@@ -11,6 +11,7 @@ import { cortexPaths, neuralSeed } from "../../core/cognitive/neural-geometry";
 import { buildVolumeSignalSnapshot } from "../../core/cognitive/volume-signals";
 import { illustrativeSignalNodes, illustrativeSignalRoutes } from "../../core/cognitive/volume-signal-demo";
 import { VolumeSignalConsole, type VolumeSignalMode } from "./VolumeSignalConsole";
+import { VolumeLearningActivity, type VolumeLearningActivityState } from "./VolumeLearningActivity";
 import { VolumeLearningSummary, type VolumeLearningChange, type VolumeObservedLearning, type VolumeStudyProgress } from "./VolumeLearningSummary";
 import { createVolumeLearningCheckpoint, diffVolumeLearningCheckpoints, volumeLearningScale } from "../../core/cognitive/volume-learning";
 import { InlineSvgIcon } from "../icons/InlineSvgIcon";
@@ -29,6 +30,8 @@ type NeuralVolumeProps = {
   invalidatedAssociationCount?: number;
   learningReady?: boolean;
   studyProgress?: VolumeStudyProgress | null;
+  learningActivity?: VolumeLearningActivityState;
+  onRefreshLearning?: () => void;
 };
 type InteractionMode = "rotate" | "pan";
 type Camera = { yaw: number; pitch: number; zoom: number; panX: number; panY: number };
@@ -43,7 +46,7 @@ const originLabels = { study: "Autoestudio con fuente", automatic: "Aprendizaje 
 const dateLabels = { study: "Último estudio", created: "Creación del registro", session: "Fecha de la sesión" } as const;
 const studyStateLabels = { available: "Disponible para conversación", review: "En estudio · requiere ejercicio aprobado", withdrawn: "Retirado del contexto · registro conservado" } as const;
 
-export function NeuralVolume({ snapshot, activity, runtimeActive = false, associations = [], associationStatus = "unavailable", invalidatedAssociationCount = 0, learningReady = true, studyProgress = null }: NeuralVolumeProps) {
+export function NeuralVolume({ snapshot, activity, runtimeActive = false, associations = [], associationStatus = "unavailable", invalidatedAssociationCount = 0, learningReady = true, studyProgress = null, learningActivity, onRefreshLearning }: NeuralVolumeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef<Camera>({ ...initialCamera });
@@ -631,6 +634,7 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
   return <div className={`volume-workbench volume-observatory ${selectedNode ? "has-selection" : ""}`}>
     <header className="observatory-header"><div><span>ALICE / SU CEREBRO LÓGICO</span><h3>Una memoria que crece al aprender</h3><p>{runtimeActive ? "Núcleo disponible · " : ""}Explora cómo se organiza su conocimiento y qué cambia con cada aprendizaje</p></div><div className="observatory-counts"><span><b>{graph.persistentNodeCount}</b> registros</span><span><b>{graph.processNodeCount}</b> procesos / núcleo</span><span><b>{graph.persistentAssociationCount}</b> asociaciones</span></div></header>
     <VolumeLearningSummary nodes={snapshot.memoryNodes} observed={observedLearning} changes={learningChanges} ready={learningReady} studyProgress={studyProgress} />
+    {learningActivity && <VolumeLearningActivity state={learningActivity} onRefresh={onRefreshLearning} />}
     <div className={`observatory-graph-state ${effectiveAssociationStatus}`} role="status"><i />{graphStateLabel}</div>
     {hasGraph && <details className="observatory-search"><summary>Buscar un recuerdo o proceso</summary><label className="observatory-select">Explorar un nodo<select value={selectedNodeId ?? ""} onChange={event => setSelectedNodeId(event.target.value || null)}><option value="">Seleccioná en la vista o aquí</option>{graph.nodes.map(node => <option key={node.id} value={node.id}>{node.label}</option>)}</select></label></details>}
     <div className={`volume-workbench-grid ${selectedNode ? "has-side-rail" : ""} ${hasVisual ? "has-graph" : "is-empty"}`}>
@@ -641,7 +645,6 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
         {learningPulseActive && latestLearningChange && <div className="volume-learning-burst" role="status"><strong>{latestLearningChange.kind === "added" ? "Nuevo registro incorporado" : "Registro actualizado"}</strong><span>{latestLearningChange.label}</span></div>}
         {hasVisual ? <>
           <div className="neural-visual-caption">{demoActive ? "ESQUEMA FUNCIONAL · CONTADORES REALES CONSERVADOS" : "MALLA ILUSTRATIVA · NODOS DE DATOS REALES"}</div>
-          <div className="volume-layer-legend" aria-label="Capas de memoria"><span className="episodic"><i />episódica</span><span className="semantic"><i />semántica</span><span className="procedural"><i />procedimental</span><span className="preference"><i />preferencias</span><span className="self"><i />propietario</span><span className="unclassified"><i />sin clasificar</span></div>
         </> : <div className="volume-empty"><span>000</span><strong>SIN NODOS COGNITIVOS</strong><small>No existen recuerdos persistentes ni procesos R3 recientes. El volumen no genera estructura de relleno.</small></div>}
       </div>
 
@@ -680,6 +683,10 @@ export function NeuralVolume({ snapshot, activity, runtimeActive = false, associ
       </div>
       <div className="volume-stats-strip"><span className="volume-stats-growth">{graph.persistentNodeCount} REGISTROS · {snapshot.retrievedMemoryCount} RECUPERADOS · {graph.processNodeCount} PROCESOS · {graph.persistentAssociationCount} ASOCIACIONES CONFIRMADAS</span><div className="volume-stats-routes" aria-label="Evidencia del grafo"><span className="input"><i />R3 <strong>{activity?.windowEventCount ?? 0}</strong></span><span className="memory"><i />NODOS <strong>{graph.persistentNodeCount}</strong></span><span className="output"><i />ARISTAS <strong>{graph.edges.length}</strong></span></div><span className="volume-stats-help">{effectiveAssociationStatus === "loading" ? "LEYENDO RELACIONES LOCALES…" : effectiveAssociationStatus === "error" ? "RELACIONES NO DISPONIBLES · NODOS SIN ALTERAR" : effectiveAssociationStatus === "sourceChanged" ? "RELACIÓN OCULTA HASTA REVISAR SU FUENTE" : effectiveAssociationStatus === "normal" ? "VIOLETA · RELACIÓN CONFIRMADA" : graph.edges.some(edge=>edge.kind === "coLearning") ? "VERDE · ORIGEN COMPARTIDO" : "SIN RELACIONES CARGADAS"}&nbsp;&nbsp; · &nbsp;&nbsp;CLIC · INSPECCIONAR&nbsp;&nbsp; RUEDA · ZOOM&nbsp;&nbsp; ARRASTRAR · {interactionMode === "rotate" ? "GIRAR" : "MOVER"}&nbsp;&nbsp; DOBLE CLIC · RESTABLECER</span></div>
     </>}
+    {hasVisual && <details className="volume-color-guide"><summary>Colores de los recuerdos</summary>
+<div className="volume-layer-legend" aria-label="Capas de memoria"><span className="episodic"><i />episódica</span><span className="semantic"><i />semántica</span><span className="procedural"><i />procedimental</span><span className="preference"><i />preferencias</span><span className="self"><i />propietario</span><span className="unclassified"><i />sin clasificar</span></div>
+      <p>Los colores distinguen tipos de memoria. Un recuerdo con una asociación emocional revisada puede usar ese color; al seleccionarlo puedes consultar su evidencia.</p>
+    </details>}
     <VolumeSignalConsole signals={signals} mode={signalMode} paused={motionPaused} reducedMotion={reducedMotion} nowMs={displayNowMs} onModeChange={setSignalMode} onPauseChange={() => setMotionPaused(value => !value)} />
   </div>;
 }

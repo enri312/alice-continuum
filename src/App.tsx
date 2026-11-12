@@ -2,9 +2,10 @@ import { ConversationVision, type ConversationVisionHandle } from "./components/
 import { listen } from "@tauri-apps/api/event";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
 import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
-import { parseSelfStudySnapshot, selfStudyForConversation, selfStudyForCognitiveVolume, type SelfStudySnapshot } from "./core/memory/self-study";
-import { automaticMemoryForConversation, parseAutomaticMemorySnapshot } from "./core/memory/automatic-memory";
-import type { AutomaticMemorySnapshot, AutomaticMemoryReview, AutomaticLearningPhase } from "./core/memory/automatic-memory";
+import { selfStudyForConversation, selfStudyForCognitiveVolume } from "./core/memory/self-study";
+import { automaticMemoryForConversation } from "./core/memory/automatic-memory";
+import { useLearningSources } from "./hooks/useLearningSources";
+import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./pages/conversation/ConversationPage";
@@ -132,62 +133,16 @@ export function App() {
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
-  const [automaticMemory, setAutomaticMemory] = useState<AutomaticMemorySnapshot | null>(null);
-  const [automaticPhase, setAutomaticPhase] = useState<AutomaticLearningPhase>("idle");
-  const [automaticError, setAutomaticError] = useState("");
-  const [selfStudy, setSelfStudy] = useState<SelfStudySnapshot | null>(null);
-  const [selfStudyError, setSelfStudyError] = useState("");
-  useEffect(() => {
-    if (!desktopApp) return;
-    let active = true;
-    let off: (() => void) | undefined;
-    let generation = 0;
-    const refresh = async () => {
-      const current = ++generation;
-      try {
-        const snapshot = parseSelfStudySnapshot(await invoke("self_study_status"));
-        if (active && current === generation) { setSelfStudy(snapshot); setSelfStudyError(""); }
-      } catch (error) { if (active && current === generation) setSelfStudyError(String(error)); }
-    };
-    void listen("self-study-updated", () => { void refresh(); })
-      .then(unlisten => { if (active) { off = unlisten; void refresh(); } else unlisten(); })
-      .catch(error => { if (active) setSelfStudyError(String(error)); });
-    void refresh();
-    return () => { active = false; off?.(); };
-  }, [desktopApp]);
+  const {
+    automaticMemory, automaticPhase, automaticError, automaticSource,
+    selfStudy, selfStudyError, selfStudySource,
+    toggleSelfStudy, toggleAutomaticMemory, refreshLearningSources,
+    reviewAutomaticMemory: reviewLearningMemory,
+  } = useLearningSources(desktopApp);
 
-  async function toggleSelfStudy(enabled: boolean) {
-    setSelfStudy(parseSelfStudySnapshot(await invoke("set_self_study_enabled", { input: { enabled } })));
-    setSelfStudyError("");
-  }
-  useEffect(() => {
-    if (!desktopApp) return;
-    let active = true;
-    let off: (() => void) | undefined;
-    const refresh = async () => {
-      try {
-        const snapshot = parseAutomaticMemorySnapshot(await invoke("automatic_memory_status"));
-        if (active) setAutomaticMemory(snapshot);
-      } catch (error) { if (active) setAutomaticError(String(error)); }
-    };
-    void refresh();
-    void listen<{phase: AutomaticLearningPhase; error?: string | null}>("automatic-memory-updated", event => {
-      if (!active) return;
-      setAutomaticPhase(event.payload.phase);
-      setAutomaticError(event.payload.error ?? "");
-      if (event.payload.phase !== "evaluating") void refresh();
-    }).then(unlisten => { if (active) off = unlisten; else unlisten(); }).catch(error => { if (active) setAutomaticError(String(error)); });
-    return () => { active = false; off?.(); };
-  }, [desktopApp]);
-
-  async function toggleAutomaticMemory(enabled: boolean) {
-    setAutomaticMemory(parseAutomaticMemorySnapshot(await invoke("set_automatic_memory_enabled", {input:{enabled}})));
-    setAutomaticError("");
-    setAutomaticPhase("idle");
-  }
   async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
-    setAutomaticMemory(parseAutomaticMemorySnapshot(await invoke("review_automatic_memory", {input})));
-    setMemoryRetrieval({count:0,top:"",ids:[]});
+    await reviewLearningMemory(input);
+    setMemoryRetrieval({ count: 0, top: "", ids: [] });
   }
 
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -218,6 +173,8 @@ export function App() {
   const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
   const [memoryPath, setMemoryPath] = useState("");
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
+  const [ownerProfileError, setOwnerProfileError] = useState("");
+  const [ownerProfileReloadKey, setOwnerProfileReloadKey] = useState(0);
   const memoryLoadStarted = useRef(false);
   const sessionsRef = useRef(sessions);
   const memorySaveQueue = useRef<Promise<void>>(Promise.resolve());
@@ -277,12 +234,20 @@ export function App() {
 
   useEffect(() => {
     if (!desktopApp) return;
+    let active = true;
     invoke<unknown>("owner_profile_status").then((raw) => {
+      if (!active) return;
       const snapshot = parseOwnerProfileSnapshot(raw);
       setOwnerProfile(snapshot);
+      setOwnerProfileError("");
       if (snapshot.state === "available") recordEvent("MEMORY", "OWNER_PROFILE_LOAD", `${snapshot.records.length} recuerdos de perfil confirmados · ${snapshot.sourceFiles.length} fuentes con SHA-256`);
-    }).catch((error) => recordEvent("SECURITY", "OWNER_PROFILE_LOAD_ERROR", String(error), "WARN"));
-  }, [desktopApp]);
+    }).catch((error) => {
+      if (!active) return;
+      setOwnerProfileError(String(error));
+      recordEvent("SECURITY", "OWNER_PROFILE_LOAD_ERROR", String(error), "WARN");
+    });
+    return () => { active = false; };
+  }, [desktopApp, ownerProfileReloadKey]);
 
   useEffect(() => {
     if (!desktopApp) return;
@@ -615,6 +580,15 @@ export function App() {
     return snapshot.sessions.length;
   }
 
+  function refreshVolumeLearning() {
+    refreshLearningSources();
+    if (!ownerProfile || ownerProfileError) setOwnerProfileReloadKey(value => value + 1);
+    if (memoryStatus === "error") void reloadMemoryFromDisk().catch(error => {
+      setMemoryStatus("error");
+      recordEvent("MEMORY", "MEMORY_RELOAD_ERROR", String(error), "WARN");
+    });
+  }
+
   async function openMemoryDirectory() {
     if (!desktopApp) throw new Error("La carpeta privada está disponible en la aplicación de escritorio.");
     const path = await invoke<string>("open_memory_directory");
@@ -681,7 +655,12 @@ export function App() {
     </nav>
 
     <div className="core-system-content">
-    {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} learningReady={!desktopApp || (memoryStatus === "native" && ownerProfile !== null && automaticMemory !== null && selfStudy !== null)} selfStudy={selfStudy} />}
+    {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} learningReady={!desktopApp || (memoryStatus === "native" && ownerProfile !== null && automaticMemory !== null && selfStudy !== null)} selfStudy={selfStudy} learningActivity={{
+      native: desktopApp, selfStudyPhase: selfStudy?.phase ?? null, selfStudyLastError: selfStudy?.lastError ?? null,
+      automaticPhase, automaticEnabled: automaticMemory?.enabled ?? null, selfStudySource, automaticSource,
+      recordsStatus: memoryStatus === "error" || ownerProfileError ? "error" : memoryStatus === "native" && ownerProfile !== null ? "ready" : "loading",
+      recordsError: ownerProfileError || (memoryStatus === "error" ? "No se pudieron leer los recuerdos guardados. Puedes reintentar la lectura." : ""),
+    }} onRefreshLearning={refreshVolumeLearning} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}

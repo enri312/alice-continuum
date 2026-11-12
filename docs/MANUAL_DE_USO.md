@@ -204,6 +204,17 @@ incorporar experiencias o enseñanzas.
 - El lienzo ocupa el ancho disponible; al seleccionar un nodo se abre su ficha.
   El mapa de módulos permanece en **Flujo cognitivo**.
 
+**Colores de los recuerdos** despliega la referencia de tipos de memoria cuando
+la necesitas. Está plegada por defecto y no ocupa el lienzo cerebral.
+
+El estado de aprendizaje muestra la fase registrada del autoestudio, la última
+señal recibida al conversar y la hora de la última lectura correcta. Una fase
+guardada no demuestra que Gemma esté ejecutando una inferencia en ese instante.
+Si falla una fuente, conserva su última muestra e informa del problema. Las
+consultas de aprendizaje se reintentan cada cinco segundos aunque falten eventos.
+**Actualizar lectura** consulta estados y permite reintentar lecturas iniciales
+fallidas; no reinicia el autoestudio ni genera recuerdos de prueba.
+
 Debajo del volumen, **Actividad y conexiones** ofrece dos modos:
 
 - **Actividad registrada:** muestra conteos y rutas derivados de auditoría R3. Una
