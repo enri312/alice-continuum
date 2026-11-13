@@ -143,8 +143,8 @@ export function HandsFreeVoice(props: Props) {
       {state === "standby" && <button type="button" className="secondary" onClick={() => loop.current?.finishTurn()}>Terminé de hablar</button>}
       <strong role="status" aria-live="polite">{labels[state]}</strong>
     </div>
-    {!active && <p>Al iniciar, el micrófono queda escuchando. Di «Alice» y tu frase seguida, como «Alice, abre Spotify» o «¿Me escuchas, Alice?»; no hace falta esperar una respuesta después del nombre. Las demás frases se descartan después de transcribirlas localmente. Las respuestas atendidas usan Gemma y Fish. La escucha termina al apagar el micrófono, cambiar de pantalla o cumplir dos horas.</p>}
-    {active && <p>{state === "standby" ? "Micrófono activo con reducción de ruido. Di «Alice» y tu frase seguida, sin esperar una respuesta después del nombre. «Detén la conversación, Alice» vuelve a la escucha; «Apaga el micrófono, Alice» termina la sesión." : state === "arming" ? "Preparando la entrada y el filtro local antes de escuchar." : "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a escuchar. Puedes apagarlo con el botón en cualquier momento."}</p>}
+    {!active && <p>La transcripción y las respuestas de Gemma se procesan localmente. El texto de respuesta se envía al servicio externo Fish Audio para generar la voz. Di «Alice» y tu frase seguida. La escucha termina al pulsar Apagar micrófono, salir de esta pantalla o cumplir 2 horas.</p>}
+    {active && <p>{state === "standby" ? "Micrófono activo. Di «Alice» y tu frase seguida; puedes apagarlo con el botón." : state === "arming" ? "Preparando la entrada y el filtro local antes de escuchar." : "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a escuchar. Puedes apagarlo con el botón en cualquier momento."}</p>}
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">{error}</p>}
     {active && ignoredTake && <p>Toma no atendida · detalle en Audio de entrada</p>}

@@ -26,7 +26,9 @@ describe("diagnóstico efímero de escucha automática", () => {
   it("explica decir el nombre y la frase seguida al preparar una escucha nueva", () => {
     const markup = renderToStaticMarkup(<HandsFreeVoice desktopApp disabled={false} onStart={async () => "session"} onStop={async () => undefined} onTranscribe={async () => { throw Error("unused"); }} onTurn={async () => { throw Error("unused"); }} onSpeak={async () => { throw Error("unused"); }} onActiveChange={() => undefined} />);
     expect(markup).toContain("Di «Alice» y tu frase seguida");
-    expect(markup).toContain("no hace falta esperar una respuesta después del nombre");
+    expect(markup).toContain("La transcripción y las respuestas de Gemma se procesan localmente");
+    expect(markup).toContain("El texto de respuesta se envía al servicio externo Fish Audio");
+    expect(markup).toContain("pulsar Apagar micrófono, salir de esta pantalla o cumplir 2 horas");
     expect(markup).not.toContain("Resultado de entrada no atendido");
   });
 });

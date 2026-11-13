@@ -7,7 +7,9 @@ Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 f
 
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
-Conversación antes de la aceptación de R9. El núcleo cognitivo, el autoestudio
+Conversación durante la aceptación de R9. El propietario confirmó un acierto
+puntual; siguen cinco turnos reales breves antes de ampliar esa pantalla.
+Después se retoma la comprobación del núcleo ya implementado: el autoestudio
 limitado a las materias autorizadas y su proyección en Obsidian conservan sus
 avances. Siguen pendientes la revisión de contratos, la aceptación personal del
 ciclo de aprendizaje y los incrementos de estructura que esa revisión justifique.
@@ -704,12 +706,15 @@ conservan su política y procedencia; el avatar continúa al final.
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
-1. **Estabilizar captura y transcripción de R9.** Repetir la frase confirmada,
-   contrastar la toma filtrada y el texto del reconocedor y comprobar el motivo
-   visible de los descartes. Mantener el diagnóstico dentro de Audio de entrada,
-   sin sobrecargar Conversación ni añadirle funciones antes de aceptar este
-   recorrido con el propietario. No atribuir precisión ASR a los tests ni
-   optimización de CPU o arranque a una comparación de assets.
+1. **Comprobar cinco turnos reales breves de R9.** Reproducir Spotify, pausar,
+   reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
+   y el servicio reconocidos, el resultado real, una respuesta pertinente en el
+   turno libre y el cierre de escucha al final. El acierto comunicado por el
+   propietario no acepta por sí solo estos cinco turnos ni toda R9. Mantener
+   sólo lo indispensable en Conversación, con el diagnóstico plegado y los
+   ejemplos en Contexto y permisos. Si falla un turno, contrastar la toma y el
+   ASR mediante los controles existentes, sin añadir funciones. No dar por
+   comprobada una causa relacionada con el ritmo de habla.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
    pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la

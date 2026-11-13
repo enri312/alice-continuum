@@ -154,6 +154,56 @@ respaldo verificado. Se conservaron el archivo de código de HEAD y el respaldo
 de arranque de las 22:03. El segundo intento estable se creó y verificó
 correctamente antes de la aclaración final del texto de interfaz.
 
+## Confirmación puntual y simplificación visual posterior
+
+El propietario comunicó «Ahora sí entendió». Se registra como confirmación de
+un acierto puntual; no demuestra estabilidad entre turnos ni cierra R9. Su
+apreciación sobre el ritmo de habla no es una comparación controlada y no se
+establece la causa del resultado.
+
+Para mantener Conversación con sólo lo indispensable, se acorta la explicación
+de reposo, se muestra la ayuda manual sólo al abrir el dictado y se llevan los
+ejemplos de acciones al apartado existente Contexto y permisos. Se conservan la
+explicación de transcripción local/Gemma y envío de texto de respuesta a Fish,
+los controles para detener y los límites de duración. El diagnóstico sigue
+plegado en Audio de entrada. No se añade una función, hook, proceso o cambio
+de audio en esta limpieza visual.
+
+La edición parte de un respaldo integral completo y verificado, con el código
+anterior preservado. Sus resultados de comprobación quedan separados del
+acierto comunicado y de los tests del ajuste de ganancia anterior:
+
+| Comprobación de la limpieza visual | Estado |
+|---|---|
+| Tests aplicables y compilación | Aprobado: 20 pruebas existentes específicas; suite Vitest completa con 824 aprobadas y 2 sondas opcionales omitidas; `npm run build` completado. |
+| Revisión nativa de texto y controles | Comprobada en Tauri: ejemplos accesibles dentro de Contexto y permisos, ayuda manual visible al abrir el dictado, y ambos apartados plegados al terminar. Borrador conservado y micrófono apagado. |
+
+El build conserva cinco assets: 7.691.035 bytes antes y 7.690.837 después,
+una reducción de 198 bytes. Es una comparación de tamaño, no una medición
+de CPU, memoria o arranque. No hay dependencias ni temporizadores nuevos.
+
+### Próxima comprobación con el propietario
+
+Realizar cinco turnos breves, sin incorporar funciones nuevas a Conversación:
+
+| Turno | Criterio observable | Resultado |
+|---|---|---|
+| Reproducir Spotify | ASR conserva acción y servicio; el resultado real y el recibo coinciden. | Pendiente |
+| Pausar Spotify | ASR conserva la pausa; el reproductor queda pausado. | Pendiente |
+| Reanudar Spotify | ASR conserva la reanudación; vuelve la reproducción esperada. | Pendiente |
+| Turno libre dirigido a Alice | Respuesta pertinente, sin ejecutar una acción que no se pidió. | Pendiente |
+| Apagar el micrófono | La sesión termina y no admite respuestas o eventos tardíos. | Pendiente |
+
+Durante los cuatro primeros turnos, comprobar que Alice vuelve a escuchar
+después de procesar y reproducir su respuesta. Si falla alguno, usar la toma
+filtrada, el ASR y el diagnóstico existentes para describir ese fallo; no
+corregir el texto para contarlo como un acierto del reconocedor.
+
+Después de esa comprobación, retomar el trabajo ya autorizado del núcleo:
+continuidad del autoestudio, recuperación de una lección aprobada con su fuente
+y actualización de Obsidian. No se amplían las materias autorizadas. El avatar
+permanece al final y las aceptaciones prolongadas de R9 conservan sus pendientes.
+
 No se incluyen conversaciones personales, grabaciones, claves ni el
 identificador real de la voz en este reporte. Se verificó el respaldo de cierre
 anterior al incremento. Antes de reabrir Alice, los 136 archivos de datos

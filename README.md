@@ -12,16 +12,17 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 12 de noviembre de 2026:** playlist de Spotify comprobada por micrófono con música y respuesta de Alice audibles. La sustitución de palabras al hablar bajo y despacio persiste también con dictado de cierre por botón; la precisión no se considera aceptada. El acceso «Dictar con botón» queda visible y continúa la revisión de entrada de audio y reconocimiento. Núcleo con reanudación de estudio protegida e icono del Volumen renovado. R9 conserva su aceptación prolongada pendiente.
+**Estado al 12 de noviembre de 2026:** tras los errores de transcripción, el propietario confirmó un acierto puntual: «Ahora sí entendió». Falta comprobar continuidad con varios turnos reales; R9 sigue abierta. Conversación se mantiene centrada en los controles indispensables y el diagnóstico plegado. Núcleo con reanudación de estudio protegida e icono del Volumen renovado.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
-Prioridad actual: estabilizar captura y transcripción de R9 con diagnóstico
-compacto, antes de incorporar más funciones a Conversación. El núcleo,
-autoestudio y Obsidian conservan sus avances y pendientes.
+Próximo paso: cinco turnos reales breves —reproducir, pausar, reanudar, conversar
+y apagar el micrófono—, comprobando lo entendido y el resultado. Después,
+retomar el núcleo ya implementado: autoestudio limitado y proyección en Obsidian.
+No se añaden funciones a Conversación durante esta aceptación.
 
 **Voz y personalidad:** Alice incorpora un estilo inspirado en Akali: directo,
 seguro e informal, con criterio propio y humor seco ocasional. Conserva empatía,
@@ -39,7 +40,9 @@ volver a Normal. Este perfil conserva la salida de RNNoise sin la atenuación
 adicional por probabilidad de voz; Normal mantiene su filtrado anterior.
 La ganancia se redujo desde 4× tras observar muestras recortadas en una toma
 manual. Eso no demuestra que el recorte explique por sí solo el error ASR;
-las pruebas y compilación del ajuste pasaron; su aceptación acústica sigue pendiente.
+las pruebas y compilación del ajuste pasaron. El acierto comunicado después es
+puntual: no demuestra que el ritmo de habla o la ganancia expliquen la causa,
+ni sustituye la aceptación de varios turnos.
 La precisión continúa en evaluación:
 [resultado de small y diagnóstico pendiente](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Preservación de la señal de voz baja](docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).

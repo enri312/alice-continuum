@@ -58,6 +58,6 @@ export function AudioInputSettings({ disabled, deviceId, onDeviceChange, sensiti
     {message && <p role="status">{message}</p>}
     {status && <p>Última toma preparada con filtro: {status.microphone}. {status.sensitivity && <>Sensibilidad: {status.sensitivity === "soft" ? "Voz baja y pausada" : "Normal"}. </>}{status.systemEcho ? "El equipo confirmó cancelación del sonido del sistema." : "El equipo no confirmó cancelación de toda la música del sistema."}</p>}
     {ignoredTake && <VoiceIgnoredTakeFeedback take={ignoredTake} />}
-    <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende sólo frases dirigidas a Alice; las demás se descartan tras la transcripción local.</p>
+    <p>El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende sólo frases dirigidas a Alice; las demás se descartan tras la transcripción local. «Detén la conversación, Alice» vuelve a la escucha; «Apaga el micrófono, Alice» termina la sesión.</p>
   </details>;
 }
