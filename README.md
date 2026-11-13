@@ -84,6 +84,10 @@ y la sesión automática admite un único rearme compartido con los fallos de
 cola ya existentes; un segundo fallo detiene la sesión. No se envía audio
 parcial al ASR ni se cambia a audio crudo.
 [Watchdog: resultados y límites](docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
+La [revisión de herramientas y persistencia](docs/research/HERRAMIENTAS_Y_PERSISTENCIA_REVIEW_2026-11-13.md)
+prioriza comparar ASR con mediciones equivalentes. Evalúa faster-whisper,
+activación acústica y Open Interpreter, y señala incompatibilidades del SQL
+propuesto; no activa herramientas o una migración.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

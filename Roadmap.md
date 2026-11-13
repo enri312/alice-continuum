@@ -775,6 +775,11 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    aunque tardó; el último turno auditado concentra más tiempo en ASR.
    Comparar alternativas sólo con mediciones equivalentes y conservar el motor
    operativo hasta decidir. El proceso Whisper conserva sus pruebas.
+   La [revisión de herramientas](docs/research/HERRAMIENTAS_Y_PERSISTENCIA_REVIEW_2026-11-13.md)
+   propone un piloto ASR aislado, con carga e inferencia separadas; no promete
+   velocidad por cambiar de librería o aumentar el modelo. Open Interpreter
+   queda como candidato de desarrollo/habilidad. Las propuestas de wake word,
+   embeddings y SQLite requieren sus propias pruebas y contratos; no están activadas.
    Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el
