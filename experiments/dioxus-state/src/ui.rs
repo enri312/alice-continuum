@@ -13,6 +13,7 @@ pub fn app() -> Element {
         None => "No disponible",
     };
     let memory_activity = snapshot.item("state-memory").value;
+    let memory_kind = snapshot.memory_kind.unwrap_or("SIN TIPO");
     let memory_caption = if snapshot.retrieved > 0 {
         format!("{} coincidencias locales · sintéticas", snapshot.retrieved)
     } else if memory_activity > 0.0 {
@@ -66,14 +67,15 @@ pub fn app() -> Element {
                         }
                         section { class: "panel memory-panel", "aria-labelledby": "retrieved-title",
                             div { class: "panel-heading", h2 { id: "retrieved-title", "Memoria recuperada" } span { "{memory_caption}" } }
-                            button { r#type: "button", class: if selected() == "state-memory" { "retrieved-card selected" } else { "retrieved-card" }, "aria-pressed": selected() == "state-memory", "aria-controls": "inspector", onclick: move |_| { let mut selected = selected; selected.set("state-memory"); }, "aria-label": format!("Memoria recuperada: {}. Actividad: {:.3}. Abrir en el inspector.", snapshot.memory_top, memory_activity),
-                                div { span { class: "eyebrow", if snapshot.retrieved > 0 { "TIPO NO EXPUESTO" } else { "SIN TIPO" } } strong { "{snapshot.memory_top}" } }
+                            button { r#type: "button", class: if selected() == "state-memory" { "retrieved-card selected" } else { "retrieved-card" }, "aria-pressed": selected() == "state-memory", "aria-controls": "inspector", onclick: move |_| { let mut selected = selected; selected.set("state-memory"); }, "aria-label": format!("Memoria recuperada, {}: {}. Actividad: {:.3}. Abrir en el inspector.", memory_kind, snapshot.memory_top, memory_activity),
+                                span { class: "retrieved-kind", "{memory_kind}" }
+                                strong { class: "retrieved-summary", "{snapshot.memory_top}" }
                                 span { class: "memory-value", "{memory_activity:.3}" }
                             }
                         }
                         section { class: "panel", "aria-labelledby": "behavior-title",
                             div { class: "panel-heading", h2 { id: "behavior-title", "Controles de comportamiento" } span { "BLOQUEADOS HASTA SU IMPLEMENTACIÓN" } }
-                            p { class: "section-note", "Selecciona un control para consultar su descripción. Los valores son informativos y no son editables." }
+                            p { class: "section-note", "Deslizadores bloqueados · selecciona el nombre para consultar su descripción. Los valores son informativos." }
                             div { class: "control-grid",
                                 for item in snapshot.controls.iter().copied() {
                                     ItemCard { key: "{item.id}", item, selected, control: true }
@@ -117,6 +119,22 @@ fn ItemCard(item: Item, mut selected: Signal<&'static str>, control: bool) -> El
         item.status(),
         if item.locked { "Bloqueado." } else { "" }
     );
+    if control {
+        return rsx! {
+            div { class: if is_selected { "item-card control-card selected" } else { "item-card control-card" }, "data-item-id": item.id,
+                button { r#type: "button", class: "control-inspect", "aria-label": label, "aria-pressed": is_selected, "aria-controls": "inspector", onclick: move |_| selected.set(item.id),
+                    strong { class: "control-name", "{item.label}" }
+                    span { class: "control-value", "aria-hidden": "true", "{value}" }
+                    span { class: "item-bottom", span { class: if item.implemented { "chip implemented" } else { "chip planned" }, "{item.status()}" } span { class: "chip locked", "BLOQUEADO" } }
+                }
+                input { r#type: "range", class: "control-slider", min: "0", max: "1", step: "0.01", value: item.value.to_string(), disabled: true,
+                    "aria-label": format!("{}: {:.2}. Deslizador bloqueado, sólo lectura.", item.label, item.value),
+                    "aria-valuetext": format!("{:.2} · Bloqueado", item.value),
+                    title: "Sólo lectura: este deslizador no modifica el comportamiento de Alice."
+                }
+            }
+        };
+    }
     rsx! {
         button { r#type: "button", class: if is_selected { "item-card selected" } else { "item-card" }, "data-item-id": item.id, "aria-label": label, "aria-pressed": is_selected, "aria-controls": "inspector", onclick: move |_| selected.set(item.id),
             div { class: "item-top", strong { "{item.label}" } span { class: "item-value", "aria-hidden": "true", "{value}" } }

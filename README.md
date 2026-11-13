@@ -100,6 +100,10 @@ En tres frases sintéticas, las medianas por proceso fueron 6,177 s con el CLI y
 5,404 s con faster-whisper; ambos perdieron la orden de pausa. Se mantiene el
 motor actual. Dioxus compiló a WASM, pasó ocho pruebas propias y permitió revisar
 estados, inspector y teclado; su aceptación visual completa sigue pendiente.
+El ajuste del piloto presenta los controles de comportamiento como deslizadores
+bloqueados y una fila de memoria `EPISODIC` de ejemplo, sin activar capacidades
+ni registrar recuerdos reales. Compilación WASM, cuatro pruebas de modelo y
+revisión de escritorio aprobadas; la integración nativa sigue pendiente.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

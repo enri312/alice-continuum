@@ -10,6 +10,18 @@ valores son fixtures sintéticos, identificados como demostración. Los escenari
 incluyen actividad, vacío, carga, lectura no disponible y auditoría degradada.
 Seleccionar un control sólo cambia el inspector: no hay controles editables.
 
+Los controles de comportamiento se presentan como deslizadores nativos
+(`input type="range"`) deshabilitados, con pista y tirador visibles. Un botón
+separado permite seleccionar cada control en el inspector; el deslizador no está
+anidado dentro del botón. Las señales internas conservan sus barras indicadoras.
+
+La memoria recuperada del escenario con actividad muestra la categoría
+`EPISODIC` y el texto de ejemplo **«USER: TEST de Personalidad Múltiple y Libre
+Albedrío → Alice»**. Es un fixture sintético del laboratorio: no es un recuerdo
+personal, no escribe en la memoria de Alice ni acredita libre albedrío o controles
+de personalidad implementados. Los escenarios sin recuperación mantienen su
+estado vacío.
+
 ## Compilar
 
 Requisitos: toolchain Rust con `wasm32-unknown-unknown` y wasm-bindgen CLI
@@ -53,12 +65,17 @@ normal; no hay configuración que revertir en Alice.
 
 - Cambiar los cinco escenarios y seleccionar señales, memoria y controles.
 - Comprobar etiqueta de demostración, valores, inspector, bloqueo y procedencia.
+- Comprobar los ocho deslizadores deshabilitados y que los botones del inspector
+  sigan siendo accesibles por teclado; arrastrar la pista no cambia los valores.
+- Revisar categoría, texto completo y valor de la fila `EPISODIC`, incluido el
+  salto de línea a anchos estrechos y el estado sin recuperación.
 - Usar Tab/Enter/Espacio y foco visible, y revisar anchos de 1440, 1000 y 420 px.
 - En carga/error no mostrar actividad o auditoría saludable inventadas.
 - Las pruebas de modelo son nativas y no leen archivos privados. Deben ejecutarse
   con CARGO_HOME, TEMP, TMP y `--target-dir` aislados, igual que la compilación.
 
-Comprobaciones realizadas en esta implementación: compilación release WASM y
+Comprobaciones del piloto inicial, anteriores al ajuste de deslizadores y memoria:
+compilación release WASM y
 empaquetado con wasm-bindgen aprobados; cuatro pruebas de fixtures Rust y cuatro
 del servidor Python aprobadas. La revisión visual se registra por separado.
 Se comprobó el arranque, los cinco escenarios, el inspector y Tab/Enter en
@@ -66,6 +83,11 @@ Chrome. El CSS del piloto recupera la paleta, los paneles angulares y las filas
 compactas de Alice después de revisar la primera presentación. La vista estrecha
 de 420 × 800 se observó parcialmente; faltan la aceptación visual completa y la
 comparación con React a los demás anchos.
+El ajuste de deslizadores y fila `EPISODIC` compiló a WASM y pasó de nuevo las
+cuatro pruebas de modelo. En Chrome se observaron ocho sliders deshabilitados,
+la categoría/texto completo de memoria y la selección de Inhibición en el
+inspector; arrastrar su tirador no cambió el valor 0,620. Esta revisión es de
+escritorio: no sustituye la comprobación completa a otros anchos o dentro de Tauri.
 [Evidencia y límites](../../docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
 El crate público `dioxus` se fija a 0.7.0; Cargo.lock resuelve sus componentes
 internos compatibles en 0.7.10. El crate y CLI wasm-bindgen son ambos 0.2.105.

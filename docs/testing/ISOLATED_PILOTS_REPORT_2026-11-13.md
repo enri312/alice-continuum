@@ -63,6 +63,40 @@ La revisión por código confirma el contrato; el build no demuestra una mejora
 de rendimiento. Integración Tauri, adaptador de lectura real, paridad de datos y
 medición comparable de recursos siguen fuera de este incremento.
 
+### Ajuste de deslizadores y memoria de ejemplo
+
+El propietario confirmó que `experiments/` es el laboratorio previo a una posible
+incorporación al principal. Dentro del piloto Dioxus se ajusta la presentación de
+los ocho controles de comportamiento a deslizadores nativos con pista y tirador,
+manteniendo `disabled` y sus valores informativos. Un botón separado conserva la
+selección del inspector; no se anidan controles interactivos dentro de botones.
+Las barras de señales internas siguen siendo indicadores.
+
+La fila de memoria recuperada usa la categoría **EPISODIC** y el texto solicitado
+**«USER: TEST de Personalidad Múltiple y Libre Albedrío → Alice»** como fixture
+identificado como sintético. Los escenarios sin recuperación mantienen el estado
+vacío. No se genera un recuerdo real ni se implementa libre albedrío o control de
+personalidad. La memoria canónica y la aplicación principal quedan fuera del cambio.
+
+**Validación del ajuste:** compilación release WASM y empaquetado aprobados,
+salida 0 (14,83 s iniciales; 1,18 s en el build final tras ajustar accesibilidad).
+Las cuatro pruebas de modelo existentes pasaron nuevamente. No se repitieron
+las pruebas del servidor, cuyo código no cambió. Logs privados:
+`local/experiments/dioxus-state/slider-build-20261113.log` y
+`slider-model-tests-20261113.log`.
+
+En Chrome se observaron las ocho pistas/tiradores; accesibilidad los expone como
+sliders deshabilitados con nombre y valor. La fila anuncia `EPISODIC`, texto
+completo y actividad 0,460. Seleccionar el nombre de Inhibición abrió el inspector
+con 0,620; arrastrar el tirador no modificó ese valor. La vista quedó abierta en
+una ventana de revisión separada. La revisión actual es de escritorio; no se
+afirma nueva aceptación completa a otros anchos o dentro de Tauri.
+
+La revisión por código corrigió la cascada de columnas a 481–1120 px y la fila
+de etiquetas en móvil; la etiqueta accesible de memoria incluye su categoría.
+Los 364 archivos protegidos de producción siguen idénticos al baseline. Las
+ocho pruebas y observaciones del apartado anterior conservan su alcance histórico.
+
 ## ASR: método
 
 [`experiments/asr-comparison/`](../../experiments/asr-comparison/README.md)

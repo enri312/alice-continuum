@@ -37,6 +37,10 @@ reversión; un build o una muestra sintética no bastan. La propuesta
 «Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada para una
 revisión profunda del proyecto. No se autoriza una migración de memoria en este tramo.
 [Resultados de los pilotos y pendientes](docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
+El ajuste visual de Dioxus queda dentro de `experiments/`: deslizadores bloqueados
+para comportamiento y fila `EPISODIC` sintética. Compilación, cuatro pruebas de
+modelo, inspector y presentación de escritorio comprobados; quedan la revisión
+completa a otros anchos y la validación nativa antes de considerar su adopción.
 
 ## Propósito
 

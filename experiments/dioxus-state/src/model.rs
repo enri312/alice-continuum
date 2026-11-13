@@ -82,6 +82,7 @@ pub struct Fixture {
     pub controls: Vec<Item>,
     pub records: usize,
     pub retrieved: usize,
+    pub memory_kind: Option<&'static str>,
     pub memory_top: &'static str,
     pub events: usize,
     pub overall_signal: f64,
@@ -160,7 +161,8 @@ pub fn fixture(scenario: Scenario) -> Fixture {
         ],
         records: if scenario == Scenario::Idle { 0 } else { 12 },
         retrieved: if active { 2 } else { 0 },
-        memory_top: if active { "Lección sintética: fracciones" } else { "NINGUNA MEMORIA RECUPERADA PARA UNA RESPUESTA" },
+        memory_kind: if active { Some("EPISODIC") } else { None },
+        memory_top: if active { "USER: TEST de Personalidad Múltiple y Libre Albedrío → Alice" } else { "NINGUNA MEMORIA RECUPERADA PARA UNA RESPUESTA" },
         events: if active { 7 } else { 0 },
         overall_signal: if active { 0.730 } else { 0.0 },
         audit_healthy: match scenario {
