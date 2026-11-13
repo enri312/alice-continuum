@@ -30,6 +30,14 @@ empatía, humildad, veracidad y autorización. Su aceptación queda separada del
 reconocimiento por micrófono, que sigue sin resolverse.
 El [próximo paso autorizado](#próximo-paso-autorizado) fija el orden y sus criterios.
 
+**Condición para los pilotos:** ASR de R9 y Dioxus se prueban en
+[`experiments/`](experiments/README.md), separados de la aplicación. Sólo se
+considerará su incorporación tras validar funcionamiento, contenido, límites y
+reversión; un build o una muestra sintética no bastan. La propuesta
+«Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada para una
+revisión profunda del proyecto. No se autoriza una migración de memoria en este tramo.
+[Resultados de los pilotos y pendientes](docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
+
 ## Propósito
 
 Esta hoja de ruta ordena la evolución de Alice desde el prototipo actual hacia una asistente personal con memoria, habilidades y capacidades locales gobernadas. Cada fase debe terminar con evidencia verificable antes de comenzar la siguiente.
@@ -776,13 +784,16 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    Comparar alternativas sólo con mediciones equivalentes y conservar el motor
    operativo hasta decidir. El proceso Whisper conserva sus pruebas.
    La [revisión de herramientas](docs/research/HERRAMIENTAS_Y_PERSISTENCIA_REVIEW_2026-11-13.md)
-   propone un piloto ASR aislado, con carga e inferencia separadas; no promete
+   delimita el piloto ASR aislado, con carga e inferencia separadas; no promete
    velocidad por cambiar de librería o aumentar el modelo. Open Interpreter
    queda como candidato de desarrollo/habilidad. Las propuestas de wake word,
    embeddings y SQLite requieren sus propias pruebas y contratos; no están activadas.
-   Como evaluación de interfaz separada, se propone Dioxus-Web para la presentación
-   de **Estado y controles**, primero con fixtures y comparación de contenido e
-   interacción. No sustituye pantallas ni añade trabajo al arranque actual.
+   La persistencia y los grafos de R6/R8 se revisarán posteriormente a fondo.
+   Como evaluación de interfaz separada, el piloto Dioxus-Web reproduce
+   **Estado y controles** con fixtures, inspector y estados de lectura.
+   Sus [instrucciones](experiments/dioxus-state/README.md) permiten abrirlo aparte.
+   No sustituye pantallas ni añade trabajo al arranque actual; la adopción queda
+   condicionada a la validación y aceptación posterior.
    Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el
@@ -803,8 +814,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. La prioridad de solicitudes ya se separó
    (ADR-P-118). La reanudación rápida ya conserva el reinicio y rechaza resultados
-   del ciclo anterior, sin solapar ciclos (ADR-P-119). Evaluar una primitiva de persistencia compartida
-   sin cambiar formatos ni debilitar los controles existentes.
+   del ciclo anterior, sin solapar ciclos (ADR-P-119). La posible primitiva de
+   persistencia compartida y las propuestas de almacenamiento/grafos quedan para
+   la revisión profunda posterior, sin cambiar ahora formatos ni controles.
 4. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
    del propietario. El Volumen ya se revisó en Tauri con fuentes y cambios

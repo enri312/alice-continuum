@@ -6,6 +6,10 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+[Pilotos aislados de ASR y Dioxus](testing/ISOLATED_PILOTS_REPORT_2026-11-13.md):
+pruebas separadas del runtime y criterios de adopción. La persistencia y los
+grafos R6/R8 quedan aplazados para una revisión profunda posterior.
+
 [Respaldos integrales y recuperación](runbooks/07-respaldo-integral.md): versiones
 automáticas desde el lanzador, integridad SHA-256 y restauración en una carpeta
 nueva; datos privados separados de GitHub. Destino actual en D:.

@@ -1,0 +1,7 @@
+# Isolated CPU pilot; install only into local/experiments/asr-comparison/venv.
+faster-whisper==1.2.1
+ctranslate2==4.9.0
+av==18.0.0
+onnxruntime==1.32.0
+tokenizers==0.23.3
+numpy==2.5.4

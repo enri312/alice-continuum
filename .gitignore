@@ -43,3 +43,9 @@ __pycache__/
 !/local/assets/Animations/README.md
 !/local/assets/Models/
 !/local/assets/Models/README.md
+
+# Pilotos independientes: sólo fuentes y manifiestos, nunca salidas o entornos.
+/experiments/**/target/
+/experiments/**/dist/
+/experiments/**/.venv/
+/experiments/**/.cache/

@@ -88,8 +88,18 @@ La [revisión de herramientas y persistencia](docs/research/HERRAMIENTAS_Y_PERSI
 prioriza comparar ASR con mediciones equivalentes. Evalúa faster-whisper,
 activación acústica y Open Interpreter, y señala incompatibilidades del SQL
 propuesto; no activa herramientas o una migración.
-También delimita un piloto Dioxus-Web de **Estado y controles**, con datos
-sintéticos y ejecución separada; es una propuesta sin cambios en la aplicación.
+Los [pilotos aislados](experiments/README.md) comparan ASR y reproducen **Estado y
+controles** con Dioxus-Web y datos sintéticos. Sus herramientas, dependencias y
+salidas permanecen fuera del arranque y del código operativo de Alice.
+**Sólo se considerará incorporarlos después de validar su funcionamiento**:
+las pruebas sintéticas no cierran la aceptación de R9 ni la integración nativa.
+La sección «Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada
+hasta revisar el proyecto y sus contratos en profundidad; no se migra la memoria.
+[Resultados y límites de los pilotos](docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
+En tres frases sintéticas, las medianas por proceso fueron 6,177 s con el CLI y
+5,404 s con faster-whisper; ambos perdieron la orden de pausa. Se mantiene el
+motor actual. Dioxus compiló a WASM, pasó ocho pruebas propias y permitió revisar
+estados, inspector y teclado; su aceptación visual completa sigue pendiente.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

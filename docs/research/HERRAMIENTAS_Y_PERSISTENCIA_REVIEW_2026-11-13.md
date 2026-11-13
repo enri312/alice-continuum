@@ -137,8 +137,17 @@ no entrena una wake word y no afirma resuelta la aceptación prolongada de R9.
 
 ## Pilotos factibles y alcance propuesto para Dioxus
 
-Esta ampliación responde qué probar primero y qué parte de la interfaz evaluar.
-Es una propuesta; no instala dependencias, sustituye pantallas ni cambia el arranque.
+Esta ampliación delimita qué probar primero y qué parte de la interfaz evaluar.
+Los [pilotos separados](../../experiments/README.md) implementan la comparación
+ASR y la vista Dioxus con sus propias dependencias; no sustituyen pantallas ni
+cambian el arranque de Alice. Su incorporación al principal exige validación y
+aceptación posterior.
+[Evidencia y límites de la implementación](../testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
+
+Por indicación del propietario, **«Persistencia y Grafos: Evolución futura de
+R6 y R8» queda aplazada** hasta revisar en profundidad el proyecto, sus contratos
+y los problemas del esquema señalados arriba. Esta evaluación no autoriza una
+migración de datos, índice vectorial ni nueva base de memoria.
 
 | Candidato | Factibilidad del piloto | Cómo decidir |
 |---|---|---|
