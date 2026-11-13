@@ -34,9 +34,12 @@ no corrige la transcripción.
 [Resultados y pendientes](docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
 
 **Voz baja:** Conversación inicia con el perfil **Voz baja y pausada**, con
-ganancia local 4× y cierre tras 2 s de silencio. **Audio de entrada** permite
+ganancia local 2× y cierre tras 2 s de silencio. **Audio de entrada** permite
 volver a Normal. Este perfil conserva la salida de RNNoise sin la atenuación
 adicional por probabilidad de voz; Normal mantiene su filtrado anterior.
+La ganancia se redujo desde 4× tras observar muestras recortadas en una toma
+manual. Eso no demuestra que el recorte explique por sí solo el error ASR;
+las pruebas y compilación del ajuste pasaron; su aceptación acústica sigue pendiente.
 La precisión continúa en evaluación:
 [resultado de small y diagnóstico pendiente](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Preservación de la señal de voz baja](docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
@@ -229,6 +232,11 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 ## Verificación
 
 Última validación local, **12 de noviembre de 2026**:
+
+Las 824 pruebas frontend y la compilación se repitieron tras bajar la ganancia
+a 2×. Las comprobaciones de Rust, Obsidian y respaldo corresponden al incremento
+de feedback anterior. La aceptación acústica permanece
+[pendiente](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
 
 - **824 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.

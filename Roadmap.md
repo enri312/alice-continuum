@@ -193,6 +193,14 @@ Clippy y formato también aprobaron. En Tauri se comprobó la aclaración por
 texto y el detalle de descartes; la aceptación acústica continúa pendiente.
 [ADR-P-128](docs/decisions/ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) ·
 [Resultados y pendientes](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
+Una toma manual posterior mostró recorte de entrada con ganancia 4×. Se reduce
+únicamente la ganancia de **Voz baja y pausada** a **2×**, conservando Normal,
+filtros, VAD, cierre de 2 s, dispositivo y modelos. No se añaden controles,
+dependencias, procesos o timers. Pasaron 824 pruebas frontend y la compilación;
+la repetición acústica queda pendiente. La frase de esa toma fue «parar y revisar audio»:
+el propietario había pronunciado la etiqueta del botón. Se aclara que debe pulsarlo con el ratón. El dato
+de recorte no demuestra la causa única de una transcripción incorrecta.
+Los incrementos anteriores conservan sus valores históricos de 4×.
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).

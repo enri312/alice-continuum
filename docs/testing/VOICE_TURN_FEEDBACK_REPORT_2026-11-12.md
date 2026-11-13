@@ -45,7 +45,9 @@ descarte de la aplicación; no diagnostica por sí solo el origen acústico.
 
 La selección privada de voz y la personalidad del
 [incremento anterior](ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md) siguen
-vigentes. No se cambian cadena de audio, ganancia, silencios ni modelos.
+vigentes. El incremento inicial de feedback no cambia cadena de audio,
+ganancia, silencios ni modelos; la modificación posterior de ganancia queda
+separada en su subsección.
 
 ## Resultados del incremento
 
@@ -96,6 +98,61 @@ La precisión ASR, continuidad de varios turnos y aceptación cotidiana de R9
 siguen abiertas. Este cambio no se presenta como una corrección del micrófono.
 La prioridad es estabilizar captura y transcripción sin añadir más funciones
 a Conversación antes de la aceptación de R9.
+
+## Ajuste posterior: ganancia de voz baja 4 a 2
+
+### Caso manual medido
+
+La toma manual posterior mostró 6,1 s de captura y 5,4 s de transcripción
+mediante Whisper small. Con el perfil de ganancia 4×, el diagnóstico visible
+registró:
+
+| Indicador | Valor observado |
+|---|---|
+| Entrada: RMS | 0,10959 |
+| Entrada: pico antes de recorte | 1,71576 |
+| Muestras de entrada recortadas | 334 de 288.000; 0,12 % redondeado |
+| Salida filtrada: RMS | 0,08753 |
+| Salida filtrada: pico | 1,07430 |
+| Cobertura de entrada medida | 288.000 muestras a 48 kHz: 6,000 s |
+
+La cobertura es parcial y llega hasta el último lote recibido; no acredita
+los 6,1 s completos del WebM. La revisión del flujo no detectó arrastre entre
+tomas. Esto no identifica todavía la causa de las palabras incorrectas.
+El propietario aclaró que en esta prueba dijo «parar y revisar audio»: había
+pronunciado la etiqueta del botón de la interfaz. La indicación se aclara para
+que haga clic en ese botón. La claridad acústica de la toma aún no se ha
+confirmado; no se presenta como otra captura de «Alice reproduce Spotify».
+
+### Cambio acotado y comprobación pendiente
+
+Se reduce sólo la constante de ganancia de **Voz baja y pausada de 4× a 2×**.
+Se conservan Normal, filtros, RNNoise, VAD, cierre automático de 2 s,
+dispositivo, Whisper small y selección de modelos. No se añaden controles,
+dependencias, procesos o timers.
+
+Hay evidencia de recorte de entrada, pero no de que sea la causa única del
+error ASR. El pico de salida es una medición, no una evaluación de
+inteligibilidad. La reducción busca probar menos amplificación sin introducir
+otro cambio simultáneo; no se anuncia una mejora reconocida ni una corrección
+del micrófono.
+
+Los resultados del incremento de feedback que figuran arriba son anteriores a
+esta modificación y no cierran sus comprobaciones:
+
+| Comprobación del ajuste de ganancia | Estado | Resultado por completar |
+|---|---|---|
+| Pruebas del perfil y regresión aplicable | Aprobado | 66 pruebas específicas y suite Vitest completa: 824 aprobadas, 2 sondas opcionales omitidas. No se repitieron Rust ni respaldos sintéticos porque esas rutas no cambian. |
+| Compilación | Aprobado | `npm run build` pasó. Cinco assets, 7.691.008 bytes antes y 7.691.035 después; la aclaración del texto añade 27 bytes. La reducción de ganancia por sí sola no cambió el tamaño. Permanece el aviso de chunks grandes. |
+| Revisión nativa | Parcial | Se preservó el borrador visible tras la actualización; micrófono apagado. La siguiente toma debe confirmar ganancia 2× mediante sus mediciones. |
+| Repetición acústica con frase exacta | Pendiente | La frase anterior era la etiqueta del botón. Hace falta escuchar una misma toma antes de transcribirla y contrastar señal y ASR. |
+| Nuevo respaldo integral estable | Aprobado | Se repitió con las fuentes congeladas y el CLI confirmó creación y verificación. |
+
+El primer intento manual de copia de este ajuste se rechazó porque las fuentes
+cambiaron durante la copia («copia no coincide»); no se presenta como un
+respaldo verificado. Se conservaron el archivo de código de HEAD y el respaldo
+de arranque de las 22:03. El segundo intento estable se creó y verificó
+correctamente antes de la aclaración final del texto de interfaz.
 
 No se incluyen conversaciones personales, grabaciones, claves ni el
 identificador real de la voz en este reporte. Se verificó el respaldo de cierre

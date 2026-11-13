@@ -18,7 +18,7 @@ export function isRecoverableNoiseFailure(value: unknown): boolean {
 export type MicrophoneSensitivity = "normal" | "soft";
 export function microphoneProfile(value?: unknown): Readonly<{ sensitivity: MicrophoneSensitivity; gain: number; silenceMs: number }> {
   return value === "soft"
-    ? { sensitivity: "soft", gain: 4, silenceMs: 2000 }
+    ? { sensitivity: "soft", gain: 2, silenceMs: 2000 }
     : { sensitivity: "normal", gain: 1, silenceMs: 1000 };
 }
 

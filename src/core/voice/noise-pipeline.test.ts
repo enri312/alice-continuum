@@ -74,7 +74,7 @@ describe("pipeline local de ruido y causas de descarte", () => {
     const metrics = (value: unknown) => f.port.onmessage!({ data: { type: "metrics", rms: 0.05, probability: 0.5, voicedMs: 0, frames: 5, signal: value } });
     metrics(signal);
     const first = processed.getSignalSnapshot!()!;
-    expect(first.inputGain).toBe(4);
+    expect(first.inputGain).toBe(2);
     expect(first.inputRms).toBeCloseTo(Math.sqrt(8.25 / 4));
     expect(first.outputRms).toBeCloseTo(Math.sqrt(0.05 / 2));
     expect(first.inputClippedFraction).toBe(0.5);
@@ -116,7 +116,7 @@ describe("pipeline local de ruido y causas de descarte", () => {
   it.each([
     { requested: undefined, applied: "normal", gain: 1 },
     { requested: "normal", applied: "normal", gain: 1 },
-    { requested: "soft", applied: "soft", gain: 4 },
+    { requested: "soft", applied: "soft", gain: 2 },
     { requested: "unsupported", applied: "normal", gain: 1 },
   ])("aplica la sensibilidad $applied con ganancia local $gain sin saltarse el filtro", async ({ requested, applied, gain }) => {
     const f = fixture();

@@ -51,8 +51,9 @@ nombrar un servicio.
 
 ## Límites
 
-No se cambia DSP, ganancia, endpoint, modelo ASR, voz Fish, personalidad ni
-permisos. El feedback explica una decisión del programa; no demuestra que el
+El incremento inicial de feedback no cambia DSP, ganancia, endpoint, modelo
+ASR, voz Fish, personalidad ni permisos; el ajuste posterior de ganancia se
+describe en el anexo. El feedback explica una decisión del programa; no demuestra que el
 propietario haya callado o que Whisper haya reconocido bien. La aclaración
 tampoco acredita una mejora acústica ni detección general de toda frase
 ambigua. La aceptación cotidiana de R9 sigue abierta.
@@ -60,9 +61,30 @@ La prioridad inmediata es estabilizar captura y transcripción y conservar este
 diagnóstico compacto, sin incorporar más funciones a Conversación antes de su
 aceptación.
 
-La compilación conserva cinco assets: 7.688.642 bytes antes y 7.690.996 después,
-una diferencia de 2.354 bytes, aproximadamente 0,031 %. Esa comparación mide
+La compilación del incremento de feedback conserva cinco assets: 7.688.642 bytes antes y 7.691.008 después,
+una diferencia de 2.366 bytes, aproximadamente 0,031 %. Esa comparación mide
 tamaño estático; no sustituye una medición de CPU, memoria o arranque nativo.
+
+## Anexo — reducción posterior de ganancia de voz baja
+
+Una toma manual posterior de 6,1 s, transcrita por Whisper small en 5,4 s,
+mostró con ganancia 4× un pico de entrada de 1,71576 y 334 muestras recortadas
+de 288.000 medidas (0,12 % redondeado). El pico de salida fue 1,07430.
+La medición parcial cubrió 6,000 s; no equivale al archivo completo.
+
+Se reduce sólo la ganancia del perfil Voz baja y pausada de 4× a 2×.
+Normal, RNNoise, filtros anteriores, VAD, silencio de 2 s, dispositivo y
+modelos se conservan. No se añaden controles, procesos, timers o dependencias.
+Las referencias a 4× de los incrementos anteriores conservan su valor histórico.
+
+El recorte observado justifica probar menos amplificación, pero no demuestra
+la causa única del reconocimiento impreciso ni la claridad del audio.
+El propietario confirmó que había dicho «parar y revisar audio», la etiqueta
+del botón que debía pulsar con el ratón. Se aclara esa instrucción sin añadir
+controles. No se equipara esta toma a «Alice reproduce Spotify» del caso anterior.
+Pasaron 824 pruebas frontend y la compilación; la repetición acústica queda
+pendiente. La aclaración de texto añade 27 bytes al build posterior, conservando
+cinco assets.
 
 [Procedimiento](../runbooks/03-conversacion-y-voz.md#tomas-no-atendidas-y-peticiones-ambiguas) ·
 [Resultados y pendientes](../testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).

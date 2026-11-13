@@ -176,11 +176,18 @@ modelos y filtros. Ver
 ## Música y ruido de fondo
 
 **Voz baja y pausada** es el perfil inicial de la página: amplifica localmente
-la entrada y da 2 s de silencio antes de cerrar un turno automático. **Normal**
+la entrada **2×** y da 2 s de silencio antes de cerrar un turno automático. **Normal**
 conserva el nivel anterior y 1 s. Elegir el perfil en Audio de entrada con el
 micrófono apagado. La selección vale para la página actual; el estado de la
 última toma indica qué perfil se preparó. Si el ambiente activa tomas o la voz
 satura, volver a Normal. El dictado manual conserva su finalización por botón.
+
+La ganancia bajó de 4× a 2× después de una toma manual con muestras de entrada
+recortadas. Se mantienen los demás filtros, criterios VAD, dispositivo y
+modelos; no se amplía la interfaz. Es un ajuste acotado para reducir la
+amplificación: no acredita mejor reconocimiento ni demuestra que el recorte
+fuera la única causa. Ver
+[caso medido y comprobación pendiente](../testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
 
 Voz baja conserva la salida de RNNoise sin una segunda atenuación según la
 probabilidad de voz. Normal mantiene esa atenuación adicional. El ajuste puede

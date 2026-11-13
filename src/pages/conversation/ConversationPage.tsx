@@ -461,7 +461,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
           setVoiceRecordedSeconds(null);
           setVoiceElapsedSeconds(0);
           setVoiceCaptureState("recording");
-          setVoiceInputMessage("Te escucho. Puedes hacer pausas: esta toma no termina por silencio. Al terminar, pulsa Terminé de hablar y transcribir. Máximo: 60 segundos.");
+          setVoiceInputMessage("Grabando. Al terminar, haz clic en «Parar y revisar audio» para escuchar la toma o en «Terminé de hablar y transcribir» para obtener el texto. Máximo: 60 segundos.");
         },
         onElapsed: setVoiceElapsedSeconds,
         onProcessed: setNoiseStatus,
