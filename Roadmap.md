@@ -1,14 +1,16 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-12**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-13**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
 Conversación durante la aceptación de R9. El propietario confirmó un acierto
-puntual; siguen cinco turnos reales breves antes de ampliar esa pantalla.
+puntual, pero hubo nuevos fallos del proceso Whisper. Su manejo y diagnóstico
+ya pasaron pruebas y apertura nativa; falta la repetición acústica y los cinco
+turnos reales breves. La causa original permanece desconocida.
 Después se retoma la comprobación del núcleo ya implementado: el autoestudio
 limitado a las materias autorizadas y su proyección en Obsidian conservan sus
 avances. Siguen pendientes la revisión de contratos, la aceptación personal del
@@ -119,12 +121,21 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Coordinación](docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
   [Spotify](docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
-**Última validación registrada, 12 de noviembre:** 824 pruebas frontend aprobadas
+**Validación conservada del 12 de noviembre:** 824 pruebas frontend aprobadas
 (2 sondas omitidas), 393 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
 compilación frontend, formato Rust y Clippy aprobados. La navegación se comprobó a 1440,
 1000 y 420 píxeles en una vista aislada sin backend ni datos personales. El Volumen
 también se inspeccionó en Tauri con sus fuentes nativas; esto no acredita por sí
 solo voz ni el ciclo completo de aprendizaje y Obsidian.
+
+**Validación del backend, 13 de noviembre:** 408 pruebas Rust aprobadas y 32
+sondas omitidas por defecto; dos del runtime instalado se seleccionaron y
+aprobaron aparte, y quedan 30 opcionales sin ejecutar. Cargo check, formato,
+Clippy de todos los targets con `-D warnings` y compilación nativa aprobaron.
+La aplicación actualizada abrió normalmente, con micrófono apagado y lectura
+de Conversación, Volumen, Memoria y Gobierno. Frontend, Obsidian y respaldo
+conservan los resultados del día 12 y no se repitieron. No hubo error forzado
+en la UI ni una nueva prueba de voz real.
 La playlist privada de Spotify se comprobó mediante una orden escrita en Alice,
 con control de pausa de cabecera, ID de contexto y recibo coincidentes. La orden
 hablada también produjo el recibo y el propietario confirmó música y voz. El
@@ -203,11 +214,35 @@ la repetición acústica queda pendiente. La frase de esa toma fue «parar y rev
 el propietario había pronunciado la etiqueta del botón. Se aclara que debe pulsarlo con el ratón. El dato
 de recorte no demuestra la causa única de una transcripción incorrecta.
 Los incrementos anteriores conservan sus valores históricos de 4×.
+
 [ADR-P-124](docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
 [Evaluación](docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
 [Prueba con micrófono y recuperación](docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
 [Continuación del núcleo y R9](docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
 [Resultados y alcance](README.md#verificación).
+
+### Incremento del 13 de noviembre: fallos del proceso Whisper
+
+Se separa la gestión del child en `whisper_input/process.rs`, con fallos
+tipados, stdout/stderr acotados en RAM y drenaje hasta EOF. Un error fatal
+detectado en stderr es un fallo aunque el proceso termine con código cero;
+no se convierte en una toma sin palabras. Cancelación, límite de 90 s y fallos
+de preparación conservan cierre, espera y unión de los hilos del CLI directo;
+no se administran descendientes arbitrarios. El PCM silencioso puede terminar
+como noSpeech sin lanzar el CLI; un error técnico no se trata como silencio.
+La auditoría R3 recibe sólo una clase fija y, cuando existe, un código de salida
+hexadecimal normalizado con sufijo `_EXIT_{8HEX}`, con longitud acotada;
+`FailureKind` y `WhisperFailure` no exponen stderr, rutas ni texto ASR.
+
+No se modifica interfaz, DSP, ganancia 2×, dispositivo o modelos, ni se añade
+fallback o reintento ciego. Las dos pruebas seleccionadas del CLI instalado
+aprobaron en 5,13 s en total y la positiva sintética con Alice/Gemma activos
+en 8,01 s. Son comprobaciones de proceso, no aceptación acústica, que sigue
+pendiente. La opinión solicitada sobre el diseño no añade
+un proyecto de rediseño ni cambia la prioridad de estabilizar R9.
+[ADR-P-129](docs/decisions/ADR-P-129-fallos-del-proceso-whisper.md) ·
+[Resultados y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
+
 
 El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
 comprobarse de forma conjunta la continuidad tras reinicio, la recuperación con
@@ -706,7 +741,10 @@ conservan su política y procedencia; el avatar continúa al final.
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
-1. **Comprobar cinco turnos reales breves de R9.** Reproducir Spotify, pausar,
+1. **Repetir con voz real y comprobar cinco turnos breves de R9.**
+   El manejo de errores de preparación, proceso y decodificación, su diagnóstico
+   seguro y la detención pasaron las pruebas del backend; falta comprobar la
+   captura real. Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el
    turno libre y el cierre de escucha al final. El acierto comunicado por el

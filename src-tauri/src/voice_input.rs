@@ -193,6 +193,7 @@ pub(crate) async fn transcribe_voice_turn(
         .map_or(crate::local_inference::GEMMA_MODEL, |selected| {
             selected.label()
         });
+    let mut whisper_failure_reason = None;
     let result = match configuration {
         Err(error) => Err(error),
         Ok(configuration) => {
@@ -212,13 +213,22 @@ pub(crate) async fn transcribe_voice_turn(
                             if let Some(configuration) = configuration {
                                 let store = session.inner().clone();
                                 let id = input.session_id.clone();
-                                tauri::async_runtime::spawn_blocking(move || {
+                                match tauri::async_runtime::spawn_blocking(move || {
                                     crate::whisper_input::transcribe(&configuration, wav, || {
                                         id.as_ref().is_some_and(|id| store.require(id).is_err())
                                     })
                                 })
                                 .await
-                                .map_err(|_| "Se interrumpió el reconocedor local".to_string())?
+                                {
+                                    Ok(Ok(transcript)) => Ok(transcript),
+                                    Ok(Err(failure)) => {
+                                        whisper_failure_reason = Some(failure.audit_reason());
+                                        Err(failure.public_message())
+                                    }
+                                    Err(_) => {
+                                        Err("Se interrumpió el reconocedor local".to_string())
+                                    }
+                                }
                             } else {
                                 crate::local_inference::gemma_chat(transcription_body(&wav))
                                     .await
@@ -284,7 +294,9 @@ pub(crate) async fn transcribe_voice_turn(
                 AuditOutcome::Error,
                 Some(duration_ms),
                 None,
-                "VOICE_TURN_TRANSCRIPTION_FAILED",
+                whisper_failure_reason
+                    .as_deref()
+                    .unwrap_or("VOICE_TURN_TRANSCRIPTION_FAILED"),
             );
             Err(error)
         }

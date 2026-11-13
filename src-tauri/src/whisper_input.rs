@@ -1,8 +1,11 @@
 //! CPU speech recognition with WAV/stdout pipes. No audio or transcript files.
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+mod process;
+use process::FailureKind;
+pub(crate) use process::WhisperFailure;
 
 const MAX_TEXT: usize = 6_000;
 
@@ -86,11 +89,12 @@ fn arguments() -> Vec<&'static str> {
     ]
 }
 
-fn parse_text(bytes: Vec<u8>) -> Result<(String, bool), String> {
-    let text = String::from_utf8(bytes).map_err(|_| "Whisper devolvió texto inválido")?;
+fn parse_text(bytes: Vec<u8>) -> Result<(String, bool), WhisperFailure> {
+    let text =
+        String::from_utf8(bytes).map_err(|_| WhisperFailure::new(FailureKind::InvalidText))?;
     let text = text.trim().trim_start_matches('\u{feff}').trim();
     if text.chars().count() > MAX_TEXT {
-        return Err("La transcripción superó el límite y fue descartada".into());
+        return Err(WhisperFailure::new(FailureKind::OutputLimit));
     }
     let quiet = text.is_empty() || matches!(text, "[BLANK_AUDIO]" | "[Silencio]" | "(silencio)");
     Ok((if quiet { String::new() } else { text.into() }, quiet))
@@ -122,7 +126,7 @@ fn command_for(configuration: &Configuration) -> Command {
         .args(arguments())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null());
+        .stderr(Stdio::piped());
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -135,61 +139,19 @@ pub(crate) fn transcribe(
     configuration: &Configuration,
     wav: Vec<u8>,
     cancelled: impl Fn() -> bool,
-) -> Result<(String, bool), String> {
+) -> Result<(String, bool), WhisperFailure> {
     if cancelled() {
-        return Err("La sesión de voz terminó antes de transcribir".into());
+        return Err(WhisperFailure::new(FailureKind::Cancelled));
     }
     if is_silent(&wav) {
         return Ok((String::new(), true));
     }
-    let mut child = command_for(configuration)
-        .spawn()
-        .map_err(|_| "No se pudo iniciar Whisper local. Revisa su instalación.")?;
-    let mut input = child
-        .stdin
-        .take()
-        .ok_or("Whisper no abrió su canal de entrada")?;
-    let mut output = child
-        .stdout
-        .take()
-        .ok_or("Whisper no abrió su canal de salida")?;
-    let writer = std::thread::spawn(move || input.write_all(&wav));
-    let reader = std::thread::spawn(move || {
-        let mut bytes = Vec::new();
-        output.read_to_end(&mut bytes).map(|_| bytes)
-    });
-    let started = Instant::now();
-    let status = loop {
-        if cancelled() {
-            break Err("La sesión de voz terminó durante la transcripción".to_string());
-        }
-        if started.elapsed() > Duration::from_secs(90) {
-            break Err("Whisper local tardó demasiado. La toma se descartó.".to_string());
-        }
-        match child.try_wait() {
-            Ok(Some(status)) => break Ok(status),
-            Ok(None) => std::thread::sleep(Duration::from_millis(20)),
-            Err(_) => break Err("No se pudo comprobar el reconocedor local".to_string()),
-        }
-    };
-    if status.is_err() {
-        let _ = child.kill();
-        let _ = child.wait();
-    }
-    let written = writer.join();
-    let bytes = reader.join();
-    if !status?.success() {
-        return Err("Whisper no pudo transcribir esta toma".into());
-    }
-    written
-        .map_err(|_| "Se interrumpió la entrada de audio")?
-        .map_err(|_| "Whisper no recibió la toma completa")?;
-    let bytes = bytes
-        .map_err(|_| "Se interrumpió la salida de texto")?
-        .map_err(|_| "Whisper no entregó la transcripción")?;
-    if cancelled() {
-        return Err("La sesión de voz terminó antes de recibir la transcripción".into());
-    }
+    let bytes = process::run(
+        command_for(configuration),
+        wav,
+        cancelled,
+        Duration::from_secs(90),
+    )?;
     parse_text(bytes)
 }
 
@@ -295,9 +257,11 @@ mod tests {
         };
         assert!(transcribe(&configuration, b"not-audio".to_vec(), || true)
             .unwrap_err()
+            .public_message()
             .contains("sesión de voz terminó"));
         assert!(transcribe(&configuration, b"not-audio".to_vec(), || false)
             .unwrap_err()
+            .public_message()
             .contains("No se pudo iniciar Whisper local"));
     }
     #[test]
@@ -334,5 +298,60 @@ mod tests {
         assert!(is_silent(&wav));
         wav[20..22].copy_from_slice(&40i16.to_le_bytes());
         assert!(!is_silent(&wav));
+    }
+
+    fn synthetic_wav() -> Vec<u8> {
+        let samples = 16_000u32;
+        let size = samples * 2;
+        let mut wav = b"RIFF".to_vec();
+        wav.extend((36 + size).to_le_bytes());
+        wav.extend(b"WAVEfmt ");
+        wav.extend(16u32.to_le_bytes());
+        wav.extend(1u16.to_le_bytes());
+        wav.extend(1u16.to_le_bytes());
+        wav.extend(16_000u32.to_le_bytes());
+        wav.extend(32_000u32.to_le_bytes());
+        wav.extend(2u16.to_le_bytes());
+        wav.extend(16u16.to_le_bytes());
+        wav.extend(b"data");
+        wav.extend(size.to_le_bytes());
+        for index in 0..samples {
+            let angle = f64::from(index) * std::f64::consts::TAU * 440.0 / 16_000.0;
+            wav.extend(((angle.sin() * 320.0) as i16).to_le_bytes());
+        }
+        wav
+    }
+
+    #[test]
+    #[ignore = "requiere Whisper instalado; sólo tono sintético en RAM, sin audio personal ni archivos de audio"]
+    fn installed_cli_accepts_a_synthetic_take_through_the_bounded_runner() {
+        let selected = configuration()
+            .expect("configuración local")
+            .expect("Whisper instalado");
+        transcribe(&selected, synthetic_wav(), || false)
+            .expect("sonda de proceso, no precisión ASR");
+    }
+
+    #[test]
+    #[ignore = "requiere CLI instalado; modelo inválido temporal aislado, nunca modifica los pesos reales"]
+    fn installed_cli_model_failure_has_a_sanitized_reason_and_exit_code() {
+        let installed = configuration()
+            .expect("configuración local")
+            .expect("Whisper instalado");
+        let fixture = Installation::new();
+        let model = fixture.model("ggml-small.bin");
+        std::fs::write(&model, b"invalid-test-model").unwrap();
+        let selected = Configuration { model, ..installed };
+        let error = transcribe(&selected, synthetic_wav(), || false).unwrap_err();
+        assert_eq!(
+            error.audit_reason(),
+            "VOICE_WHISPER_MODEL_INIT_FAILED_EXIT_00000003"
+        );
+        assert!(error
+            .public_message()
+            .contains("no pudo preparar el modelo local"));
+        assert!(!error
+            .public_message()
+            .contains(&fixture.0.to_string_lossy().to_string()));
     }
 }

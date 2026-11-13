@@ -123,3 +123,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-127](ADR-P-127-voz-privada-y-personalidad-alice.md) | Perfil Fish privado con precedencia local y personalidad compartida de Alice para texto, voz y visión |
 
 | [ADR-P-128](ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) | Motivos efímeros de tomas no atendidas y aclaración local de un fragmento musical ambiguo |
+
+| [ADR-P-129](ADR-P-129-fallos-del-proceso-whisper.md) | Fallos tipados del proceso Whisper, salidas acotadas con drenaje completo y diagnóstico R3 sin salida técnica privada |

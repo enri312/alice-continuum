@@ -12,15 +12,16 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 12 de noviembre de 2026:** tras los errores de transcripción, el propietario confirmó un acierto puntual: «Ahora sí entendió». Falta comprobar continuidad con varios turnos reales; R9 sigue abierta. Conversación se mantiene centrada en los controles indispensables y el diagnóstico plegado. Núcleo con reanudación de estudio protegida e icono del Volumen renovado.
+**Estado al 13 de noviembre de 2026:** el propietario confirmó un acierto puntual, pero aparecieron nuevos fallos de Whisper cuya causa original sigue sin confirmarse. El manejo del proceso y su diagnóstico seguro pasaron pruebas, compilación y apertura nativa; falta repetir con voz real. R9 sigue abierta; Conversación conserva sólo los controles indispensables y el diagnóstico plegado. Núcleo con reanudación de estudio protegida e icono del Volumen renovado.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
-Próximo paso: cinco turnos reales breves —reproducir, pausar, reanudar, conversar
-y apagar el micrófono—, comprobando lo entendido y el resultado. Después,
+Próximo paso: repetir con micrófono tras comprobar el manejo de fallos de Whisper
+y después cinco turnos reales breves —reproducir, pausar, reanudar, conversar y apagar el micrófono—,
+comprobando lo entendido y el resultado. Después,
 retomar el núcleo ya implementado: autoestudio limitado y proyección en Obsidian.
 No se añaden funciones a Conversación durante esta aceptación.
 
@@ -70,8 +71,14 @@ no se envía al chat ni genera acciones o voz Fish. Los fragmentos musicales
 ambiguos cubiertos por la validación local piden aclaración sin adivinar una
 orden. Esto no mejora ni acredita la precisión del reconocedor.
 [Feedback, resultados y pendientes](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
+Los fallos de preparación, decodificación o ejecución de Whisper se distinguen
+de una toma sin palabras. El proceso mantiene salidas técnicas acotadas en RAM,
+sin publicar stderr o rutas en la auditoría; los mensajes usan el aviso de error
+existente. No se cambia el modelo, la captura o la ganancia, ni se añade un
+reintento o fallback ante un fallo del reconocedor instalado.
+[Proceso Whisper: resultados y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
-El [Roadmap actualizado al 12 de noviembre](Roadmap.md#próximo-paso-autorizado)
+El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
 
 Los lanzadores ahora crean [respaldos integrales](docs/runbooks/07-respaldo-integral.md)
@@ -234,17 +241,25 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 ## Verificación
 
-Última validación local, **12 de noviembre de 2026**:
+**Backend, 13 de noviembre de 2026:**
 
-Las 824 pruebas frontend y la compilación se repitieron tras bajar la ganancia
-a 2×. Las comprobaciones de Rust, Obsidian y respaldo corresponden al incremento
-de feedback anterior. La aceptación acústica permanece
+- **408 pruebas Rust aprobadas**, 32 sondas omitidas por defecto. Dos sondas del CLI instalado se seleccionaron y aprobaron aparte; quedan 30 opcionales sin ejecutar.
+- Pruebas CLI positiva sintética y negativa con modelo inválido: **5,13 s en total**. Positiva con Alice/Gemma activos: **8,01 s**; no prueban voz real.
+- Cargo check, formato, Clippy para todos los targets con `-D warnings` y compilación nativa aprobados.
+- Apertura normal de Alice actualizada y revisión de lectura de Conversación, Volumen, Memoria y Gobierno. Micrófono apagado; sin provocar el aviso de error ni realizar una nueva prueba acústica.
+
+[Reporte completo y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
+
+**Resultados conservados del 12 de noviembre, sin repetir el día 13:**
+
+Las 824 pruebas frontend y la compilación TypeScript/Vite se repitieron tras
+bajar la ganancia a 2×. Obsidian y respaldo conservan la ejecución de ese día.
+La aceptación acústica permanece
 [pendiente](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
 
 - **824 pruebas frontend aprobadas**, 2 sondas opcionales omitidas.
 - **15 pruebas de sincronización de Obsidian** y **20 de respaldo y restauración** aprobadas con datos aislados.
-- **393 pruebas Rust aprobadas**, 30 sondas opcionales omitidas; incluye configuración de voz y personalidad compartida, más aclaración musical acotada. La selección y ejecución de acciones conserva sus pruebas.
-- Compilación TypeScript/Vite, formato Rust y Clippy con `-D warnings` aprobados. La revisión nativa de este incremento sigue pendiente.
+- Compilación TypeScript/Vite aprobada en ese alcance anterior.
 - Navegación de Memoria, sus cuatro herramientas de mantenimiento y ocho enlaces directos comprobados en una vista aislada a **1440, 1000 y 420 píxeles**; sin desbordes horizontales ni recorte de los nombres compactos.
 - Volumen cognitivo: **26 comprobaciones de interfaz aislada** aprobadas en esos tres anchos, incluida evolución, inspector, pausa, demostración, errores de lectura, guía y colores/contornos del canvas. Las fuentes se recuperan mediante consultas periódicas; la fase registrada queda visible. [Resultados y límites](docs/testing/COGNITIVE_VOLUME_COLOURS_REPORT_2026-11-11.md).
 - Núcleo: un fallo de consulta no se califica como respuesta incorrecta ni retira una lección aprobada; la conversación reserva prioridad antes de la cola de inferencia. [Cambios y validación](docs/testing/COGNITIVE_CORE_RELIABILITY_REPORT_2026-11-11.md).
