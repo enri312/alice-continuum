@@ -7,10 +7,12 @@ Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 f
 
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
-Conversación durante la aceptación de R9. El propietario confirmó un acierto
-puntual, pero hubo nuevos fallos del proceso Whisper. Su manejo y diagnóstico
-ya pasaron pruebas y apertura nativa; falta la repetición acústica y los cinco
-turnos reales breves. La causa original permanece desconocida.
+Conversación durante la aceptación de R9. Whisper conserva el manejo de proceso
+validado en `1120ddc`. Un fallo posterior del filtro local detuvo la captura antes
+de alcanzar ASR. El watchdog pasó pruebas, compilación y una sonda sintética;
+el propietario confirmó después una respuesta por voz, con demora. La prioridad inmediata es revisar latencia y cinco turnos breves. Se identificó un defecto de inicio
+del reloj en el código, sin demostrar la causa única del episodio real ni
+un problema físico del micrófono.
 Después se retoma la comprobación del núcleo ya implementado: el autoestudio
 limitado a las materias autorizadas y su proyección en Obsidian conservan sus
 avances. Siguen pendientes la revisión de contratos, la aceptación personal del
@@ -242,6 +244,32 @@ pendiente. La opinión solicitada sobre el diseño no añade
 un proyecto de rediseño ni cambia la prioridad de estabilizar R9.
 [ADR-P-129](docs/decisions/ADR-P-129-fallos-del-proceso-whisper.md) ·
 [Resultados y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
+
+### Incremento del 13 de noviembre: watchdog del filtro local
+
+El plazo de ausencia de métricas se iniciaba antes de preparar WASM y conectar
+el grafo; esa preparación podía consumir su umbral antes de la primera lectura.
+Se usa `performance.now()` desde el grafo conectado y se renueva al recibir
+métricas, incluido silencio válido. El umbral permanece en 1500 ms.
+
+`NoiseSignalTimeout` cierra los nodos procesados; VoiceCapture conserva el
+motivo `metrics_timeout` y libera la captura original. VoiceLoop permite el
+mismo único rearme por sesión que comparten `input_backlog` y `output_overflow`.
+La toma parcial se descarta antes de ASR; un segundo fallo es fatal y apagar
+invalida los callbacks pendientes. No hay audio crudo, controles, modelos o
+servicios nuevos. Aprobaron 840 pruebas frontend (2 omitidas), incluidas 19 del
+pipeline y 80 de captura/bucle, y TypeScript/Vite con el aviso habitual de chunks.
+La sonda Chrome con Worker/WASM/Worklet y MediaRecorder reales aprobó con
+silencio generado y preparación demorada, sin micrófono, altavoces, ASR o
+archivos de audio. El primer criterio de cadencia del arnés se corrigió y su
+resultado queda documentado. La ventana Alice se revisó con micrófono inactivo
+y sin el aviso anterior. Después, el propietario confirmó que recibió respuesta,
+con demora. El último turno R3 registró 6998 ms de transcripción, 1721 ms de
+respuesta y 2361 ms de síntesis; no incluye captura, pausa de cierre o reproducción.
+La causa física anterior y la aceptación prolongada siguen pendientes;
+Whisper, Obsidian y respaldo conservan sus validaciones anteriores sin repetirse.
+[ADR-P-130](docs/decisions/ADR-P-130-watchdog-del-filtro-local.md) ·
+[Resultados y límites](docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
 
 
 El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
@@ -741,10 +769,13 @@ conservan su política y procedencia; el avatar continúa al final.
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
-1. **Repetir con voz real y comprobar cinco turnos breves de R9.**
-   El manejo de errores de preparación, proceso y decodificación, su diagnóstico
-   seguro y la detención pasaron las pruebas del backend; falta comprobar la
-   captura real. Después, reproducir Spotify, pausar,
+1. **Revisar latencia y comprobar cinco turnos breves de R9.**
+   Inicio, vencimiento y rearme compartido del watchdog pasaron las pruebas
+   controladas. El propietario confirmó una respuesta en la nueva prueba real,
+   aunque tardó; el último turno auditado concentra más tiempo en ASR.
+   Comparar alternativas sólo con mediciones equivalentes y conservar el motor
+   operativo hasta decidir. El proceso Whisper conserva sus pruebas.
+   Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el
    turno libre y el cierre de escucha al final. El acierto comunicado por el

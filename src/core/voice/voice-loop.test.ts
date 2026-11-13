@@ -28,13 +28,14 @@ function fixture() {
 async function flush() { for (let i = 0; i < 16; i++) await Promise.resolve(); }
 
 describe("sesión de voz automática", () => {
-  it.each(["input_backlog", "output_overflow"] as const)("descarta la toma y prepara un único filtro nuevo ante %s", async reason => {
+  it.each(["input_backlog", "output_overflow", "metrics_timeout"] as const)("descarta la toma y prepara un único filtro nuevo ante %s", async reason => {
     const f = fixture();
     try {
       await f.loop.start();
       f.captures[0].error("El filtro de audio no pudo mantener el ritmo de captura.", reason);
       await flush();
       expect(f.captures[0].control.cancel).toHaveBeenCalledOnce();
+      expect(vi.mocked(f.captures[0].control.cancel).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(f.captures[1].control.start).mock.invocationCallOrder[0]);
       expect(f.ports.capture).toHaveBeenCalledTimes(2);
       expect(f.ports.authorize).toHaveBeenCalledOnce();
       expect(f.ports.revoke).not.toHaveBeenCalled();
@@ -47,21 +48,27 @@ describe("sesión de voz automática", () => {
     } finally { f.loop.stop(); }
   });
 
-  it("revoca la sesión si la nueva captura vuelve a fallar al planificar", async () => {
+  it.each([
+    ["input_backlog", "output_overflow"],
+    ["metrics_timeout", "metrics_timeout"],
+    ["metrics_timeout", "input_backlog"],
+    ["input_backlog", "metrics_timeout"],
+  ] as const)("revoca la sesión al consumir la recuperación compartida: %s → %s", async (first, second) => {
     const f = fixture();
     try {
       await f.loop.start();
-      f.captures[0].error("primera sobrecarga", "input_backlog");
+      f.captures[0].error("primera interrupción", first);
       await flush();
-      f.captures[1].error("segunda sobrecarga", "output_overflow");
+      f.captures[1].error("segunda interrupción", second);
       await flush();
       expect(f.ports.capture).toHaveBeenCalledTimes(2);
       expect(f.captures[1].control.cancel).toHaveBeenCalledOnce();
       expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
-      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "segunda sobrecarga");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "segunda interrupción");
       expect(f.ports.transcribe).not.toHaveBeenCalled();
       expect(f.ports.respond).not.toHaveBeenCalled();
       expect(f.ports.synthesize).not.toHaveBeenCalled();
+      expect(f.ports.play).not.toHaveBeenCalled();
     } finally { f.loop.stop(); }
   });
 
@@ -87,7 +94,7 @@ describe("sesión de voz automática", () => {
       const stale = f.captures[0];
       stale.error("sobrecarga", "input_backlog");
       await flush();
-      stale.record(); stale.quiet(); stale.error("error tardío", "output_overflow"); stale.error("otro error tardío");
+      stale.record(); stale.quiet(); stale.error("error tardío", "output_overflow"); stale.error("timeout tardío", "metrics_timeout"); stale.error("otro error tardío");
       await flush();
       expect(f.ports.capture).toHaveBeenCalledTimes(2);
       expect(f.ports.revoke).not.toHaveBeenCalled();
@@ -102,7 +109,7 @@ describe("sesión de voz automática", () => {
     } finally { f.loop.stop(); }
   });
 
-  it("cancelar durante la recuperación impide escucha y mensajes tardíos", async () => {
+  it.each(["output_overflow", "metrics_timeout"] as const)("cancelar durante la recuperación por %s impide escucha y mensajes tardíos", async reason => {
     const f = fixture();
     let ready!: () => void;
     const recovery = { start: vi.fn(() => new Promise<void>(resolve => { ready = resolve; })), cancel: vi.fn(), finish: vi.fn() };
@@ -112,7 +119,7 @@ describe("sesión de voz automática", () => {
         f.captures.push({ quiet: onQuiet, error: onError, record: () => onRecorded(new Blob(["late"])), control: recovery });
         return recovery;
       });
-      f.captures[0].error("sobrecarga", "output_overflow");
+      f.captures[0].error("interrupción", reason);
       await flush();
       expect(f.ports.onState).toHaveBeenLastCalledWith("arming");
       f.loop.stop();
@@ -129,11 +136,16 @@ describe("sesión de voz automática", () => {
     } finally { f.loop.stop(); }
   });
 
-  it("silencios y un turno completado no renuevan el presupuesto de recuperación", async () => {
+  it.each([
+    ["input_backlog", "output_overflow"],
+    ["metrics_timeout", "metrics_timeout"],
+    ["metrics_timeout", "input_backlog"],
+    ["input_backlog", "metrics_timeout"],
+  ] as const)("silencios y un turno no renuevan el presupuesto compartido: %s → %s", async (first, second) => {
     const f = fixture();
     try {
       await f.loop.start();
-      f.captures[0].error("sobrecarga", "input_backlog");
+      f.captures[0].error("interrupción", first);
       await flush();
       f.quiet(); await flush();
       f.quiet(); await flush();
@@ -141,26 +153,29 @@ describe("sesión de voz automática", () => {
       expect(f.ports.respond).toHaveBeenCalledOnce();
       expect(f.ports.synthesize).toHaveBeenCalledOnce();
       const beforeError = f.captures.length;
-      f.captures.at(-1)!.error("sobrecarga tras silencio y turno", "output_overflow");
+      f.captures.at(-1)!.error("interrupción tras silencio y turno", second);
       await flush();
       expect(f.captures).toHaveLength(beforeError);
       expect(f.ports.authorize).toHaveBeenCalledOnce();
       expect(f.ports.revoke).toHaveBeenCalledExactlyOnceWith("session-1");
-      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "sobrecarga tras silencio y turno");
+      expect(f.ports.onState).toHaveBeenLastCalledWith("error", "interrupción tras silencio y turno");
       expect(f.ports.respond).toHaveBeenCalledOnce();
       expect(f.ports.synthesize).toHaveBeenCalledOnce();
     } finally { f.loop.stop(); }
   });
 
-  it("una nueva autorización explícita dispone de su propia recuperación", async () => {
+  it.each([
+    ["input_backlog", "output_overflow"],
+    ["metrics_timeout", "metrics_timeout"],
+  ] as const)("una nueva autorización renueva la recuperación entre %s y %s", async (first, second) => {
     const f = fixture();
     try {
       await f.loop.start();
-      f.captures[0].error("sobrecarga de la primera sesión", "input_backlog");
+      f.captures[0].error("interrupción de la primera sesión", first);
       await flush();
       f.loop.stop();
       await f.loop.start();
-      f.captures[2].error("sobrecarga de la segunda sesión", "output_overflow");
+      f.captures[2].error("interrupción de la segunda sesión", second);
       await flush();
       expect(f.ports.authorize).toHaveBeenCalledTimes(2);
       expect(f.ports.capture).toHaveBeenCalledTimes(4);
@@ -170,13 +185,13 @@ describe("sesión de voz automática", () => {
     } finally { f.loop.stop(); }
   });
 
-  it("recuperar el filtro no extiende las dos horas de la sesión autorizada", async () => {
+  it.each(["input_backlog", "metrics_timeout"] as const)("recuperar el filtro por %s no extiende las dos horas autorizadas", async reason => {
     vi.useFakeTimers();
     const f = fixture();
     try {
       await f.loop.start();
       await vi.advanceTimersByTimeAsync(119 * 60 * 1000);
-      f.captures[0].error("sobrecarga al final de la sesión", "input_backlog");
+      f.captures[0].error("interrupción al final de la sesión", reason);
       await flush();
       expect(f.ports.onState).toHaveBeenLastCalledWith("standby");
       expect(f.ports.authorize).toHaveBeenCalledOnce();

@@ -4,15 +4,22 @@ export type SpeechEvidence = {
   voicedMs: number;
 };
 
-export type NoiseFailureReason = "input_backlog" | "output_overflow" | "unsupported_rate";
+export type NoiseFailureReason = "input_backlog" | "output_overflow" | "unsupported_rate" | "metrics_timeout";
+
+// A read failure carries its cause without treating arbitrary error text as a
+// request to restart capture. The owner still discards the whole failed take.
+export class NoiseSignalTimeout extends Error {
+  readonly reason = "metrics_timeout";
+  constructor() { super("No llega señal del filtro local. La toma se descartó."); }
+}
 
 // Messages from the filter may request capture recovery only for known causes.
 export function noiseFailureReason(value: unknown): NoiseFailureReason | undefined {
-  return value === "input_backlog" || value === "output_overflow" || value === "unsupported_rate" ? value : undefined;
+  return value === "input_backlog" || value === "output_overflow" || value === "unsupported_rate" || value === "metrics_timeout" ? value : undefined;
 }
 
 export function isRecoverableNoiseFailure(value: unknown): boolean {
-  return value === "input_backlog" || value === "output_overflow";
+  return value === "input_backlog" || value === "output_overflow" || value === "metrics_timeout";
 }
 
 export type MicrophoneSensitivity = "normal" | "soft";

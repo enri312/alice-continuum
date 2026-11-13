@@ -12,15 +12,15 @@
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
-**Estado al 13 de noviembre de 2026:** el propietario confirmó un acierto puntual, pero aparecieron nuevos fallos de Whisper cuya causa original sigue sin confirmarse. El manejo del proceso y su diagnóstico seguro pasaron pruebas, compilación y apertura nativa; falta repetir con voz real. R9 sigue abierta; Conversación conserva sólo los controles indispensables y el diagnóstico plegado. Núcleo con reanudación de estudio protegida e icono del Volumen renovado.
+**Estado al 13 de noviembre de 2026:** el propietario confirmó que Alice respondió en la nueva prueba de voz, aunque tardó. El watchdog del filtro pasó 840 pruebas frontend, compilación y una sonda sintética con el pipeline real. El último turno auditado dedicó aproximadamente 7,0 s a transcribir, 1,7 s a responder y 2,4 s a preparar la voz; sigue la revisión de latencia y de cinco turnos cotidianos. La causa física del episodio anterior permanece sin confirmar. R9 sigue abierta, con los controles indispensables y el diagnóstico plegado.
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
-Próximo paso: repetir con micrófono tras comprobar el manejo de fallos de Whisper
-y después cinco turnos reales breves —reproducir, pausar, reanudar, conversar y apagar el micrófono—,
+Próximo paso: evaluar la latencia por etapas y comprobar
+cinco turnos reales breves —reproducir, pausar, reanudar, conversar y apagar el micrófono—,
 comprobando lo entendido y el resultado. Después,
 retomar el núcleo ya implementado: autoestudio limitado y proyección en Obsidian.
 No se añaden funciones a Conversación durante esta aceptación.
@@ -77,6 +77,13 @@ sin publicar stderr o rutas en la auditoría; los mensajes usan el aviso de erro
 existente. No se cambia el modelo, la captura o la ganancia, ni se añade un
 reintento o fallback ante un fallo del reconocedor instalado.
 [Proceso Whisper: resultados y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
+El watchdog del filtro cuenta desde que se conecta el grafo de audio, con
+`performance.now()` y el mismo umbral de 1500 ms. Las métricas válidas de
+silencio también renuevan ese plazo. Si dejan de llegar, se descarta la toma
+y la sesión automática admite un único rearme compartido con los fallos de
+cola ya existentes; un segundo fallo detiene la sesión. No se envía audio
+parcial al ASR ni se cambia a audio crudo.
+[Watchdog: resultados y límites](docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.
@@ -241,7 +248,16 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 ## Verificación
 
-**Backend, 13 de noviembre de 2026:**
+**Watchdog frontend, 13 de noviembre de 2026:**
+
+- **840 pruebas aprobadas**, 2 omitidas; 76 archivos aprobados y 2 omitidos. Las 19 del pipeline y 80 de captura/bucle están incluidas.
+- Compilación TypeScript/Vite aprobada, con el aviso habitual de chunks mayores de 500 kB; no se atribuye una mejora de rendimiento.
+- Sonda real de Chrome con silencio sintético, Worker/WASM/Worklet y MediaRecorder: preparación retrasada y métricas iniciales retenidas, sin fallo del filtro. No usó micrófono, altavoces, ASR ni archivos de audio.
+- Ventana Alice actualizada revisada con micrófono inactivo. Después, el propietario confirmó una respuesta por voz con demora; el último turno R3 completó transcripción, respuesta y síntesis. Un acierto no acepta una sesión prolongada.
+
+[Reporte, primer sondeo y límites](docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
+
+**Backend, validación anterior del 13 de noviembre, sin repetir para el watchdog:**
 
 - **408 pruebas Rust aprobadas**, 32 sondas omitidas por defecto. Dos sondas del CLI instalado se seleccionaron y aprobaron aparte; quedan 30 opcionales sin ejecutar.
 - Pruebas CLI positiva sintética y negativa con modelo inválido: **5,13 s en total**. Positiva con Alice/Gemma activos: **8,01 s**; no prueban voz real.
@@ -250,10 +266,11 @@ Las capturas nativas de escritorio y las unidades D:/E: siguen siendo de Windows
 
 [Reporte completo y límites](docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
 
-**Resultados conservados del 12 de noviembre, sin repetir el día 13:**
+**Resultados conservados del 12 de noviembre:**
 
-Las 824 pruebas frontend y la compilación TypeScript/Vite se repitieron tras
-bajar la ganancia a 2×. Obsidian y respaldo conservan la ejecución de ese día.
+Las 824 pruebas frontend y la compilación TypeScript/Vite de ese día siguieron
+al cambio de ganancia a 2×; la nueva ejecución frontend de 840 figura arriba.
+Obsidian y respaldo conservan la ejecución del día 12, sin repetir para el watchdog.
 La aceptación acústica permanece
 [pendiente](docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
 

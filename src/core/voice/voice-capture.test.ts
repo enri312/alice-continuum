@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VoiceCapture, type CaptureEnvironment } from "./voice-capture";
-import type { AudioSignalSnapshot, MicrophoneOptions } from "./noise-types";
+import { NoiseSignalTimeout, type AudioSignalSnapshot, type MicrophoneOptions } from "./noise-types";
 
 function fixture(automatic = false, options: MicrophoneOptions = {}) {
   const track = Object.assign(new EventTarget(), { stop: vi.fn() });
@@ -328,13 +328,36 @@ describe("captura efímera por turnos", () => {
     expect(f.environment.createRecorder).not.toHaveBeenCalled();
   });
 
-  it("descarta una toma si el filtro deja de entregar audio, sin recurrir al micrófono crudo", async () => {
-    const f = fixture(); await f.capture.start();
+  it.each([
+    { failure: new NoiseSignalTimeout(), reason: "metrics_timeout" },
+    { failure: Error("No llega señal del filtro local. La toma se descartó."), reason: undefined },
+  ] as const)("descarta audio parcial y comunica sólo la clasificación acreditada: $reason", async ({ failure, reason }) => {
+    const f = fixture(true); await f.capture.start();
+    const staleData = f.recorder.ondataavailable as unknown as (event: { data: Blob }) => void;
+    const staleStop = f.recorder.onstop as unknown as () => void;
+    const staleError = f.recorder.onerror as unknown as () => void;
+    const staleFilterError = vi.mocked(f.environment.processMicrophone).mock.calls[0][1];
     f.emit("ondataavailable", { data: new Blob(["toma parcial"]) });
-    f.monitor.read.mockImplementation(() => { throw Error("Procesador detenido"); });
+    f.monitor.read.mockImplementation(() => { throw failure; });
+    f.events.onError.mockImplementation(() => {
+      expect(f.monitor.close).toHaveBeenCalledOnce();
+      expect(f.track.stop).toHaveBeenCalledOnce();
+      expect(f.recorder.stop).toHaveBeenCalledOnce();
+      expect(f.recorder.ondataavailable).toBeNull();
+      expect(f.recorder.onstop).toBeNull();
+      expect(f.recorder.onerror).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+    });
     vi.advanceTimersByTime(250);
-    expect(f.events.onError).toHaveBeenCalledWith(expect.stringContaining("Procesador detenido"));
+    if (reason) expect(f.events.onError).toHaveBeenCalledExactlyOnceWith(String(failure), reason);
+    else expect(f.events.onError).toHaveBeenCalledExactlyOnceWith(String(failure));
+    staleData({ data: new Blob(["entrega tardía"]) });
+    staleStop(); staleError(); staleFilterError("Error tardío", "input_backlog");
+    f.track.dispatchEvent(new Event("ended"));
+    vi.advanceTimersByTime(1000);
+    expect(f.events.onError).toHaveBeenCalledOnce();
     expect(f.events.onRecorded).not.toHaveBeenCalled();
+    expect(f.events.onQuiet).not.toHaveBeenCalled();
     expect(f.monitor.close).toHaveBeenCalledOnce();
     expect(f.track.stop).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(0);

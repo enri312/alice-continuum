@@ -1,6 +1,6 @@
 import NoiseWorker from "./noise-worker?worker";
 import workletUrl from "./noise-worklet?worker&url";
-import { microphoneProfile, noiseFailureReason, type AudioSignalCounters, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
+import { microphoneProfile, noiseFailureReason, NoiseSignalTimeout, type AudioSignalCounters, type MicrophoneOptions, type NoiseFailureReason, type ProcessedMicrophone } from "./noise-types";
 import { readAudioSignalCounters, signalCountersAdvance, snapshotAudioSignal } from "./noise-signal";
 
 export async function getMicrophone(options: MicrophoneOptions = {}) {
@@ -55,7 +55,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     node = new AudioWorkletNode(context, "alice-noise-bridge", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1 });
     worker = new NoiseWorker();
     const bridge = new MessageChannel();
-    let energy = 0, frames = 0, probability = 0, voicedMs = 0, lastMetric = Date.now();
+    let energy = 0, frames = 0, probability = 0, voicedMs = 0, lastMetric = 0;
     let signalCounters: Readonly<AudioSignalCounters> | undefined;
     let signalHighWater: Readonly<AudioSignalCounters> | undefined;
     await new Promise<void>((resolve, reject) => {
@@ -95,13 +95,16 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
       }
       energy += metric.rms * metric.rms * metric.frames;
       frames += metric.frames; probability = Math.max(probability, metric.probability); voicedMs += metric.voicedMs;
-      lastMetric = Date.now();
+      lastMetric = performance.now();
     };
     source = context.createMediaStreamSource(raw);
     filter = context.createBiquadFilter(); filter.type = "highpass"; filter.frequency.value = 80; filter.Q.value = 0.707;
     gain = context.createGain(); gain.gain.value = profile.gain;
     destination = context.createMediaStreamDestination();
     source.connect(filter); filter.connect(gain); gain.connect(node); node.connect(destination);
+    // WASM/worklet preparation can take longer than the signal deadline. Only
+    // start that deadline when this graph can actually deliver audio metrics.
+    lastMetric = performance.now();
     const track = raw.getAudioTracks()[0];
     if (track?.readyState === "ended") throw Error("La captura se canceló mientras se preparaba el filtro.");
     const settings = track?.getSettings();
@@ -111,7 +114,10 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
       status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true, sensitivity: profile.sensitivity },
       getSignalSnapshot: () => signalCounters ? snapshotAudioSignal(signalCounters, profile.gain) : undefined,
       read: () => {
-        if (Date.now() - lastMetric > 1500) throw Error("No llega señal del filtro local. La toma se descartó.");
+        if (performance.now() - lastMetric > 1500) {
+          close();
+          throw new NoiseSignalTimeout();
+        }
         const evidence = { rms: frames ? Math.sqrt(energy / frames) : 0, probability, voicedMs };
         energy = frames = probability = voicedMs = 0;
         return evidence;

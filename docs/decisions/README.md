@@ -125,3 +125,5 @@ Las decisiones resumidas también aparecen en el documento maestro. Los archivos
 | [ADR-P-128](ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) | Motivos efímeros de tomas no atendidas y aclaración local de un fragmento musical ambiguo |
 
 | [ADR-P-129](ADR-P-129-fallos-del-proceso-whisper.md) | Fallos tipados del proceso Whisper, salidas acotadas con drenaje completo y diagnóstico R3 sin salida técnica privada |
+
+| [ADR-P-130](ADR-P-130-watchdog-del-filtro-local.md) | Reloj del filtro desde el grafo conectado, timeout tipado y rearme único compartido de captura |

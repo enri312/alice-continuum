@@ -1,5 +1,6 @@
 import { SpeechEndpoint } from "./speech-endpoint";
 import { getMicrophone, processMicrophone } from "./noise-pipeline";
+import { NoiseSignalTimeout } from "./noise-types";
 import type { AudioSignalSnapshot, MicrophoneOptions, NoiseFailureReason, NoiseStatus, ProcessedMicrophone } from "./noise-types";
 const MAX_SECONDS = 60;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -119,7 +120,7 @@ export class VoiceCapture {
         this.events.onElapsed(seconds);
         let evidence;
         try { evidence = this.processed!.read(); }
-        catch (cause) { this.fail(String(cause)); return; }
+        catch (cause) { this.fail(String(cause), cause instanceof NoiseSignalTimeout ? cause.reason : undefined); return; }
         if (this.endpoint) {
           const endpoint = this.endpoint.update(evidence, Date.now());
           if (endpoint !== "listening") { this.finish(endpoint === "end"); return; }

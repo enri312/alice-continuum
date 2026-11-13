@@ -22,6 +22,7 @@ vi.mock("./noise-worker?worker", () => ({ default: class {
 vi.mock("./noise-worklet?worker&url", () => ({ default: "filtered-worklet.js" }));
 
 import { processMicrophone } from "./noise-pipeline";
+import { NoiseSignalTimeout } from "./noise-types";
 
 function fixture() {
   const source = { connect: vi.fn(), disconnect: vi.fn() };
@@ -62,9 +63,164 @@ function fixture() {
 }
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve(); }
 
+async function pendingInitialization(f: ReturnType<typeof fixture>, failed: Parameters<typeof processMicrophone>[1]) {
+  harness.autoReady = false;
+  const aborted = new AbortController();
+  const pending = processMicrophone(f.raw, failed, aborted.signal);
+  await flush();
+  return {
+    connect: () => {
+      expect(harness.workers).toHaveLength(1);
+      harness.workers[0].onmessage?.({ data: { type: "ready" } });
+      return pending;
+    },
+    close: async () => {
+      aborted.abort();
+      const processed = await pending.catch(() => undefined);
+      processed?.close();
+    },
+  };
+}
+
 describe("pipeline local de ruido y causas de descarte", () => {
   beforeEach(() => { harness.autoReady = true; harness.workers.length = 0; });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+  it("empieza a vigilar tras conectar el audio aunque WASM tarde cuatro segundos", async () => {
+    let monotonic = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => monotonic);
+    vi.spyOn(Date, "now").mockImplementation(() => 1_800_000_000_000 + monotonic);
+    const f = fixture();
+    const failed = vi.fn();
+    const pending = await pendingInitialization(f, failed);
+    try {
+      expect(f.source.connect).not.toHaveBeenCalled();
+      monotonic = 4000;
+      const processed = await pending.connect();
+      expect(f.source.connect).toHaveBeenCalledExactlyOnceWith(f.filter);
+      expect(f.node.connect).toHaveBeenCalledExactlyOnceWith(f.destination);
+      monotonic = 4250;
+      expect(processed.read()).toEqual({ rms: 0, probability: 0, voicedMs: 0 });
+      expect(failed).not.toHaveBeenCalled();
+      expect(f.context.close).not.toHaveBeenCalled();
+    } finally {
+      await pending.close();
+      vi.restoreAllMocks();
+    }
+    f.assertDisposed();
+  });
+
+  it("descarta con NoiseSignalTimeout sólo después de 1500 ms desde la conexión", async () => {
+    let monotonic = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => monotonic);
+    vi.spyOn(Date, "now").mockImplementation(() => 1_800_000_000_000 + monotonic);
+    const f = fixture();
+    const failed = vi.fn();
+    const pending = await pendingInitialization(f, failed);
+    try {
+      monotonic = 4000;
+      const processed = await pending.connect();
+      monotonic = 5500;
+      expect(processed.read()).toEqual({ rms: 0, probability: 0, voicedMs: 0 });
+      monotonic = 5501;
+      let failure: unknown;
+      try { processed.read(); } catch (error) { failure = error; }
+      expect(failure).toBeInstanceOf(NoiseSignalTimeout);
+      expect(failure).toMatchObject({ reason: "metrics_timeout", message: "No llega señal del filtro local. La toma se descartó." });
+      // The owner propagates this thrown failure; the pipeline must not also
+      // invoke its callback and create a duplicate error or restart.
+      expect(failed).not.toHaveBeenCalled();
+      f.assertDisposed();
+      expect(f.rawTrack.stop).not.toHaveBeenCalled();
+    } finally {
+      await pending.close();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("renueva la vigilancia con métricas de silencio sin inventar evidencia de voz", async () => {
+    let monotonic = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => monotonic);
+    vi.spyOn(Date, "now").mockImplementation(() => 1_800_000_000_000 + monotonic);
+    const f = fixture();
+    const failed = vi.fn();
+    const pending = await pendingInitialization(f, failed);
+    try {
+      const processed = await pending.connect();
+      const silence = { data: { type: "metrics", rms: 0, probability: 0, voicedMs: 0, frames: 5 } };
+      monotonic = 1000;
+      f.port.onmessage!(silence);
+      monotonic = 2400;
+      expect(processed.read()).toEqual({ rms: 0, probability: 0, voicedMs: 0 });
+      f.port.onmessage!(silence);
+      monotonic = 3800;
+      expect(processed.read()).toEqual({ rms: 0, probability: 0, voicedMs: 0 });
+      expect(f.context.close).not.toHaveBeenCalled();
+      // Reads do not renew the heartbeat: only the last metrics at 2400 ms do.
+      monotonic = 3901;
+      expect(() => processed.read()).toThrow(NoiseSignalTimeout);
+      expect(failed).not.toHaveBeenCalled();
+      f.assertDisposed();
+    } finally {
+      await pending.close();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("ignora saltos hacia delante y atrás del reloj civil al vigilar la señal", async () => {
+    let monotonic = 1000;
+    let civil = 1_800_000_000_000;
+    vi.spyOn(performance, "now").mockImplementation(() => monotonic);
+    vi.spyOn(Date, "now").mockImplementation(() => civil);
+    const f = fixture();
+    const failed = vi.fn();
+    const pending = await pendingInitialization(f, failed);
+    try {
+      const processed = await pending.connect();
+      civil += 86_400_000;
+      monotonic = 1250;
+      expect(processed.read()).toEqual({ rms: 0, probability: 0, voicedMs: 0 });
+      expect(f.context.close).not.toHaveBeenCalled();
+      civil -= 172_800_000;
+      monotonic = 2501;
+      expect(() => processed.read()).toThrow(NoiseSignalTimeout);
+      expect(failed).not.toHaveBeenCalled();
+      f.assertDisposed();
+    } finally {
+      await pending.close();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("cierra una sola vez tras timeout e ignora métricas y fallos tardíos", async () => {
+    let monotonic = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => monotonic);
+    const f = fixture();
+    const failed = vi.fn();
+    const pending = await pendingInitialization(f, failed);
+    try {
+      const processed = await pending.connect();
+      const notify = f.port.onmessage!;
+      const workerError = harness.workers[0].onerror!;
+      const processorError = f.node.onprocessorerror!;
+      monotonic = 2600;
+      expect(() => processed.read()).toThrow(NoiseSignalTimeout);
+      processed.close();
+      processed.close();
+      notify({ data: { type: "metrics", rms: 1, probability: 1, voicedMs: 50, frames: 5 } });
+      notify({ data: { type: "error", message: "Fallo tardío", reason: "input_backlog" } });
+      workerError();
+      processorError();
+      expect(failed).not.toHaveBeenCalled();
+      expect(processed.getSignalSnapshot?.()).toBeUndefined();
+      f.assertDisposed();
+      expect(f.rawTrack.stop).not.toHaveBeenCalled();
+    } finally {
+      await pending.close();
+      vi.restoreAllMocks();
+    }
+    f.assertDisposed();
+  });
 
   it("mantiene una copia cumulativa sin doble conteo ni reinicio al leer VAD y congela al cerrar", async () => {
     const f = fixture();
