@@ -134,3 +134,64 @@ documentación distingue aislamiento de ejecución y política de aprobaciones.
 
 La revisión es documental y de contratos; no ejecuta un benchmark faster-whisper,
 no entrena una wake word y no afirma resuelta la aceptación prolongada de R9.
+
+## Pilotos factibles y alcance propuesto para Dioxus
+
+Esta ampliación responde qué probar primero y qué parte de la interfaz evaluar.
+Es una propuesta; no instala dependencias, sustituye pantallas ni cambia el arranque.
+
+| Candidato | Factibilidad del piloto | Cómo decidir |
+|---|---|---|
+| faster-whisper | Alta para una comparación aislada: small multilingüe, INT8 CPU, cuatro hilos y configuración de decodificación equivalente. | Comparar tiempo de carga/inferencia, memoria y errores de las mismas tomas. Mantener el motor operativo hasta tener resultados. |
+| Embeddings e índice secundario | Factible como segundo piloto sobre un corpus sintético o copia aislada. | Medir recuperación y exclusiones sin convertir el índice en fuente canónica. |
+| openWakeWord | Condicionada al modelo y pronunciación de «Alice». | Evaluar falsos positivos/negativos y preservación del comienzo de la orden. |
+| spaCy | Factible técnicamente, de prioridad baja para el problema actual. | Exigir una mejora en interpretación de texto; no usarlo para completar verbos ausentes. |
+| pywinauto / Open Interpreter | Factibles en tareas de prueba delimitadas y separadas de la conversación. | Comprobar alcance, resultado y detención de cada tarea antes de diseñar un adaptador R4. |
+| SQLite / sqlite-vec | Factibles como laboratorio de almacenamiento con datos sintéticos; el esquema recibido necesita correcciones. | Demostrar paridad, filtros, reversión y necesidad medida antes de migrar datos. |
+
+### Primera pantalla: Estado y controles
+
+La candidata más acotada es la presentación de
+[StateControlsPage](../../src/pages/cognitive/StateControlsPage.tsx) y
+[InternalState](../../src/components/cognitive/InternalState.tsx). Hoy reciben
+un snapshot y permiten seleccionar un indicador para el inspector. Los controles
+de comportamiento son informativos; seleccionarlos no ejecuta cambios.
+
+La prueba debe conservar señales internas, memoria recuperada, controles,
+etiquetas de implementación/bloqueo, valores, inspector y procedencia. Los
+estados de carga, ausencia de actividad y error deben seguir diferenciados;
+no deben presentarse datos sintéticos como actividad real de Alice.
+
+Conversación, Memoria y Volumen no son las primeras candidatas: combinan captura,
+transacciones o visualización canvas con más dependencias. Flujo incorpora
+asociaciones editables; Capacidades incluye permisos y adaptadores de dispositivos.
+Actividad mezcla vistas cognitivas con auditoría y diagnóstico. Esto aumenta el
+alcance frente a una primera vista de indicadores.
+
+### Arquitectura y comparación propuestas
+
+1. Crear un proyecto Dioxus-Web separado, por ejemplo en
+   `experiments/dioxus-state/`, con manifiesto, dependencias y salida propios.
+   Usar fixtures sintéticos e identificarlos como demostración. No añadirlo al
+   lanzador, build o navegación predeterminados de Alice.
+2. Reproducir el contenido y la selección del inspector. Reutilizar estilos e
+   iconos existentes y comparar ambas vistas con los mismos datos a varios anchos,
+   incluido teclado, estados y legibilidad. Medir carga, respuesta y memoria;
+   migrar a Rust no demuestra por sí solo una mejora de rendimiento o diseño.
+3. Si el piloto resulta útil, evaluar Dioxus-Web dentro del contenedor Tauri
+   existente, con un adaptador de sólo lectura y las mismas restricciones. La
+   [lectura actual](../../src/pages/shared/nucleus-shared.tsx) usa
+   `core_activity_snapshot` cada cinco segundos; conservar un solo responsable
+   del polling y no duplicar solicitudes entre interfaces.
+
+Dioxus-Web ejecuta la interfaz como WebAssembly en el WebView. La documentación
+describe su uso con Tauri; esto permite estudiar el frontend conservando el
+backend Rust, los comandos y el gobierno actuales. Dioxus Desktop tiene un modelo
+de ejecución distinto y no es un reemplazo directo de un componente React.
+[Dioxus-Web](https://dioxuslabs.com/learn/0.7/guides/platforms/web/) ·
+[Dioxus con Tauri](https://dioxuslabs.com/learn/0.7/essentials/ui/escape/#using-dioxus-in-tauri) ·
+[Modelo de escritorio](https://dioxuslabs.com/learn/0.7/guides/platforms/desktop/).
+
+El piloto se descarta cerrando su vista y manteniendo la interfaz React operativa.
+Una adopción posterior requerirá equivalencia de contenido/acciones y validación
+nativa. La comparación ASR y la prueba de interfaz son experimentos independientes.

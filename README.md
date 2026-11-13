@@ -88,6 +88,8 @@ La [revisión de herramientas y persistencia](docs/research/HERRAMIENTAS_Y_PERSI
 prioriza comparar ASR con mediciones equivalentes. Evalúa faster-whisper,
 activación acústica y Open Interpreter, y señala incompatibilidades del SQL
 propuesto; no activa herramientas o una migración.
+También delimita un piloto Dioxus-Web de **Estado y controles**, con datos
+sintéticos y ejecución separada; es una propuesta sin cambios en la aplicación.
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

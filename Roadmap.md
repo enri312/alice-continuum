@@ -780,6 +780,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    velocidad por cambiar de librería o aumentar el modelo. Open Interpreter
    queda como candidato de desarrollo/habilidad. Las propuestas de wake word,
    embeddings y SQLite requieren sus propias pruebas y contratos; no están activadas.
+   Como evaluación de interfaz separada, se propone Dioxus-Web para la presentación
+   de **Estado y controles**, primero con fixtures y comparación de contenido e
+   interacción. No sustituye pantallas ni añade trabajo al arranque actual.
    Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el
