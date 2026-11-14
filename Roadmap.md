@@ -90,7 +90,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 | Conversación y voz | Implementadas; aceptación cotidiana pendiente | Gemma local, proveedores alternativos, Whisper CPU con selección small/base, Fish y sesión de escucha con parada. |
 | Memoria y recuperación | Funcionales | Registros confirmados, perfil, selección automática de citas y autoestudio en almacenes separados; recuperación con procedencia y controles propios. |
 | Ciclo y consolidación | Funcionales en sus alcances | Vigencia, accesibilidad, revisión, edición versionada y respaldo. La fusión canónica sigue bloqueada. |
-| Autoestudio al arrancar | Implementado; aceptación personal en curso | 42 lecciones en 14 áreas, ejercicios, avance y repaso; sólo se recuperan lecciones activas con el último ejercicio aprobado. |
+| Autoestudio al arrancar | Implementado; aceptación personal en curso | 48 lecciones en 16 áreas, ejercicios, avance y repaso; sólo se recuperan lecciones activas con el último ejercicio aprobado. |
 | Obsidian | Proyección implementada | Sincronización Alice → Obsidian de datos guardados; editar notas generadas no enseña contenido a Alice. |
 | Respaldo integral | Implementado | Inicio, cada 15 minutos y cierre normal; copia verificada y restauración en otra carpeta. Copia en otra unidad física pendiente. |
 | Avatar VRM | Visor funcional | Carga privada, DualSense, 12 clips retargeteados, IK y máquina de siete estados; voz, aprendizaje, decisiones corporales y Ragdoll siguen desconectados. |
@@ -558,8 +558,8 @@ lo declarado por el propietario, su procedencia y los controles de pausa,
 corrección y retirada. No reescribe los registros confirmados.
 [ADR-P-101](docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 
-El autoestudio incorporado el 10 de noviembre usa **42 lecciones iniciales en
-14 áreas**, con tres niveles por área. Sus únicas materias son:
+El autoestudio incorporado el 10 de noviembre comenzó con 42 lecciones. Ahora
+usa **48 lecciones en 16 áreas**, con tres niveles por área. Sus materias son:
 
 - Matemáticas: aritmética, álgebra, geometría, trigonometría, cálculo, álgebra
   lineal, probabilidad, estadística y lógica.
@@ -567,6 +567,7 @@ El autoestudio incorporado el 10 de noviembre usa **42 lecciones iniciales en
   corroboración histórica.
 - Psicología de las emociones e inteligencia emocional.
 - Empatía, solidaridad y humildad, cada una como área propia.
+- Pensamiento crítico y ética.
 
 Con autoestudio habilitado, cada arranque nativo programa un ciclo que intenta
 una lección por área; se avanza por las pendientes y se repasan las anteriores.
@@ -801,8 +802,12 @@ conservan su política y procedencia; el avatar continúa al final.
 El tramo activo se limita a **Estado y controles**: comprobar esta primera página
 Dioxus, conservar diseño y funciones, actualizar su icono y cerrar sus pendientes.
 Las otras páginas, R9 y los cambios de persistencia no se amplían en este tramo.
-Tras cerrar la vista y el icono, el siguiente incremento acordado será trasladar
-la lógica propia de Estado y controles a Rust antes de avanzar a otra página.
+Estado y controles calcula en Rust su selección, inspector, presentación de
+memoria y validación de controles. La integración conserva en React un espejo de
+selección para el respaldo y los ajustes compartidos con Conversación. Está pendiente
+revisar la nueva lógica en Tauri antes de aceptar la página como completamente migrada.
+Pensamiento crítico y ética se incorporan al autoestudio con tres lecciones y
+ejercicios por materia; las 42 lecciones anteriores se conservan sin cambios.
 La agenda siguiente se conserva para retomarla después.
 
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene

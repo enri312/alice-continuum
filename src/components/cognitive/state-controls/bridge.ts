@@ -1,19 +1,14 @@
 import type { BrainSnapshot } from "../../../core/cognitive/brain";
 import { behaviorKeyForControl } from "../../../core/conversation/behavior-settings";
-import { describeRetrieval } from "../RetrievedMemory";
 
 export function buildStateControlsPayload(snapshot: BrainSnapshot, selectedId: string, editable: boolean) {
-  const selected = snapshot.stateMetrics.find(item => item.id === selectedId)
-    ?? snapshot.behaviorControls.find(item => item.id === selectedId)
-    ?? snapshot.stateMetrics[0];
   return {
     hasActivity: snapshot.hasActivity,
     localRecords: (snapshot.nodes.find(node => node.id === "memory")?.value ?? "0 recuerdos").toUpperCase(),
     selectedId,
     metrics: snapshot.stateMetrics,
     controls: snapshot.behaviorControls.map(control => ({ ...control, locked: control.locked || !editable })),
-    retrieval: { ...describeRetrieval(snapshot.retrievedMemory), count: snapshot.retrievedMemory.count },
-    inspector: { label: selected.label, value: selected.value.toFixed(3), detail: selected.detail },
+    retrieval: snapshot.retrievedMemory,
   };
 }
 

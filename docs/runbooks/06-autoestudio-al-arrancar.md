@@ -12,10 +12,17 @@ de historia bíblica es **católico**, según la elección del propietario.
   corroboración histórica.
 - Psicología de las emociones e inteligencia emocional.
 - Empatía, solidaridad y humildad, cada una como área propia.
+- Pensamiento crítico y ética, con fuentes y ejercicios propios.
 
-El currículo inicial contiene 42 lecciones: tres niveles por cada una de las
-14 áreas. Cada sesión intenta estudiar una lección de cada área. Avanza por las
+Para las nuevas áreas se usan capítulos de OpenStax sobre [evaluación de
+fuentes](https://openstax.org/books/introduction-philosophy/pages/2-4-gathering-information-evaluating-sources-and-understanding-evidence)
+y [teorías éticas](https://openstax.org/books/introduction-philosophy/pages/9-1-requirements-of-a-normative-moral-theory).
+
+El currículo contiene 48 lecciones: tres niveles por cada una de las
+16 áreas. Cada sesión intenta estudiar una lección de cada área. Avanza por las
 que todavía no superó y, cuando termina una secuencia, repasa las anteriores.
+Las áreas sin intentos se priorizan para que las nuevas materias tengan una
+oportunidad de estudio aunque un ciclo alcance su límite de tiempo.
 Este currículo inicial no equivale a cubrir todas las ramas de las matemáticas.
 
 Las fuentes y sus criterios están en

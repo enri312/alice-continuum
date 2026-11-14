@@ -15,6 +15,9 @@ export function Estado(props: StateControlsProps) {
   const { activity, activityStatus, effectiveSnapshot } = useNucleusSnapshot(props);
   const snapshot = props.behavior ? applyConversationBehavior(effectiveSnapshot, props.behavior.settings, props.behavior.supported, props.behavior.busy) : effectiveSnapshot;
   const [selectedId, setSelectedId] = useState("state-curiosity");
+  const selected = snapshot.stateMetrics.find(item => item.id === selectedId)
+    ?? snapshot.behaviorControls.find(item => item.id === selectedId)
+    ?? snapshot.stateMetrics[0];
   const payload = buildStateControlsPayload(snapshot, selectedId, Boolean(props.behavior?.supported && !props.behavior.busy));
   const changeControl = (id: string, value: number) => {
     const key = behaviorKeyForControl(id);
@@ -29,7 +32,7 @@ export function Estado(props: StateControlsProps) {
     <aside className="neuro-inspector">
       <p className="eyebrow">INSPECTOR</p>
       {selectedId === "retrieved-memory" ? <RetrievedMemoryInspector retrieval={snapshot.retrievedMemory} /> : <>
-        <h3>{payload.inspector.label}</h3><span className="inspector-value">{payload.inspector.value}</span><p>{payload.inspector.detail}</p>
+        <h3>{selected.label}</h3><span className="inspector-value">{selected.value.toFixed(3)}</span><p>{selected.detail}</p>
         <small>Creatividad y estilo empático se aplican a la conversación local. Los controles bloqueados conservan sus límites.</small>
       </>}
     </aside>

@@ -1,6 +1,6 @@
-export const selfStudyTracks = ["arithmetic", "algebra", "geometry", "trigonometry", "calculus", "linear-algebra", "probability", "statistics", "logic", "biblical-history", "emotional-intelligence", "empathy", "solidarity", "humility"] as const;
+export const selfStudyTracks = ["arithmetic", "algebra", "geometry", "trigonometry", "calculus", "linear-algebra", "probability", "statistics", "logic", "biblical-history", "emotional-intelligence", "empathy", "solidarity", "humility", "critical-thinking", "ethics"] as const;
 export type SelfStudyTrack = typeof selfStudyTracks[number];
-export type SelfStudyDomain = "mathematics" | "biblical-history" | "emotional-intelligence" | "empathy" | "solidarity" | "humility";
+export type SelfStudyDomain = "mathematics" | "biblical-history" | "emotional-intelligence" | "empathy" | "solidarity" | "humility" | "critical-thinking" | "ethics";
 export type SelfStudyPhase = "idle" | "studying" | "completed" | "partial" | "deferred" | "error" | "disabled";
 export type SelfStudyRecord = {
   id: string;
@@ -32,7 +32,7 @@ export type SelfStudySnapshot = {
 export const selfStudyTrackLabels: Record<SelfStudyTrack, string> = {
   arithmetic: "Aritmética", algebra: "Álgebra", geometry: "Geometría", trigonometry: "Trigonometría",
   calculus: "Cálculo", "linear-algebra": "Álgebra lineal", probability: "Probabilidad", statistics: "Estadística", logic: "Lógica",
-  "biblical-history": "Historia bíblica católica", "emotional-intelligence": "Psicología e inteligencia emocional", empathy: "Empatía", solidarity: "Solidaridad", humility: "Humildad",
+  "biblical-history": "Historia bíblica católica", "emotional-intelligence": "Psicología e inteligencia emocional", empathy: "Empatía", solidarity: "Solidaridad", humility: "Humildad", "critical-thinking": "Pensamiento crítico", ethics: "Ética",
 };
 
 const recordKeys = ["id", "lessonId", "track", "domain", "title", "content", "sourceUrl", "sourceTitle", "lessonSha256", "studiedAt", "attempts", "passes", "lastPassed", "active"];
@@ -54,7 +54,7 @@ export function parseSelfStudySnapshot(value: unknown): SelfStudySnapshot {
   if (!object(value) || !exactKeys(value, snapshotKeys) || value.schemaVersion !== 1 || typeof value.enabled !== "boolean"
     || value.biblicalTradition !== "catholic" || !phases.includes(value.phase as SelfStudyPhase)
     || ![value.lastStartedAt, value.lastCompletedAt].every(date => date === null || validDate(date))
-    || !(value.lastError === null || validText(value.lastError, 2000)) || !Array.isArray(value.records) || value.records.length > 42) {
+    || !(value.lastError === null || validText(value.lastError, 2000)) || !Array.isArray(value.records) || value.records.length > 48) {
     throw Error("El autoestudio no tiene un formato válido.");
   }
   const ids = new Set<string>();

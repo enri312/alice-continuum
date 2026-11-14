@@ -3,7 +3,7 @@ use super::model::{Curriculum, Lesson, StudyRecord, StudySnapshot};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 
-pub(super) const TRACKS: [&str; 14] = [
+pub(super) const TRACKS: [&str; 16] = [
     "arithmetic",
     "algebra",
     "geometry",
@@ -18,6 +18,8 @@ pub(super) const TRACKS: [&str; 14] = [
     "empathy",
     "solidarity",
     "humility",
+    "critical-thinking",
+    "ethics",
 ];
 
 pub(super) fn lesson_digest(lesson: &Lesson) -> Result<String, String> {
@@ -33,7 +35,7 @@ pub(super) fn curriculum() -> Result<Vec<Lesson>, String> {
             .map_err(|_| "El curriculo de autoestudio no es valido")?;
     if document.schema_version != 1
         || document.biblical_tradition != "catholic"
-        || document.lessons.len() != 42
+        || document.lessons.len() != TRACKS.len() * 3
     {
         return Err("El curriculo no coincide con el alcance autorizado".into());
     }
@@ -92,7 +94,7 @@ pub(super) fn curriculum() -> Result<Vec<Lesson>, String> {
 pub(super) fn validate_state(state: &StudySnapshot, lessons: &[Lesson]) -> Result<(), String> {
     if state.schema_version != 1
         || state.biblical_tradition != "catholic"
-        || state.records.len() > 42
+        || state.records.len() > TRACKS.len() * 3
         || ![
             "idle",
             "studying",
@@ -138,7 +140,7 @@ pub(super) fn validate_state(state: &StudySnapshot, lessons: &[Lesson]) -> Resul
 }
 
 pub(super) fn plan(lessons: &[Lesson], state: &StudySnapshot) -> Vec<Lesson> {
-    TRACKS
+    let mut selected: Vec<Lesson> = TRACKS
         .iter()
         .filter_map(|track| {
             let mut candidates: Vec<_> = lessons
@@ -158,7 +160,16 @@ pub(super) fn plan(lessons: &[Lesson], state: &StudySnapshot) -> Vec<Lesson> {
             });
             candidates.first().map(|lesson| (*lesson).clone())
         })
-        .collect()
+        .collect();
+    // A time-limited startup cycle must not permanently starve new subjects.
+    // The stable sort preserves the curriculum order within each group.
+    selected.sort_by_key(|lesson| {
+        state
+            .records
+            .iter()
+            .any(|record| record.track == lesson.track)
+    });
+    selected
 }
 pub(super) fn apply_answer(
     state: &mut StudySnapshot,

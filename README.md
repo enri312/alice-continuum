@@ -11,6 +11,8 @@
 [![Vitest 4.1.12](https://img.shields.io/badge/Vitest-4.1.12-6E9F18?logo=vitest&logoColor=white)](package-lock.json)
 
 **Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
+El currículo de autoestudio incluye pensamiento crítico y ética, además de las
+materias anteriores, con fuentes y ejercicios.
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
 
 **Estado al 13 de noviembre de 2026:** el propietario confirmó que Alice respondió en la nueva prueba de voz, aunque tardó. El watchdog del filtro pasó 840 pruebas frontend, compilación y una sonda sintética con el pipeline real. El último turno auditado dedicó aproximadamente 7,0 s a transcribir, 1,7 s a responder y 2,4 s a preparar la voz; sigue la revisión de latencia y de cinco turnos cotidianos. La causa física del episodio anterior permanece sin confirmar. R9 sigue abierta, con los controles indispensables y el diagnóstico plegado.
@@ -125,8 +127,9 @@ La vista Dioxus carga su WASM al abrir esta página, valida cada acción contra 
 estado actual y conserva un panel React de respaldo ante fallo. Pasaron 863 pruebas
 frontend, 15 de Obsidian, 20 de respaldos, dos del contrato Rust y Clippy para WASM.
 El icono representa dos ajustes de sesión, seis controles bloqueados y memoria recuperada.
-El siguiente incremento acordado trasladará la lógica propia de esta página a
-Rust; la navegación y los servicios compartidos se migrarán por separado.
+La lógica de selección, inspector, presentación de memoria y validación de
+controles se ejecuta en Rust. El adaptador React refleja la selección para la
+vista de respaldo y mantiene los ajustes compartidos con Conversación.
 [Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)

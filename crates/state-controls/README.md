@@ -6,8 +6,8 @@ No accede a Tauri, archivos, credenciales, red, modelos ni memoria persistente.
 Recibe el snapshot autorizado del contenedor y emite acciones de selección o
 cambio de un control. El contenedor valida cada acción contra el estado actual.
 
-- `src/ui.rs`: paneles, métricas, deslizadores, recuerdo e inspector.
-- `src/model.rs`: contrato de datos cerrado y validación de valores.
+- `src/ui.rs`: paneles, selección local, métricas, deslizadores, recuerdo e inspector.
+- `src/model.rs`: contrato cerrado, presentación del recuerdo y validación de controles.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
 - `src/components/cognitive/state-controls/` en la raíz: adaptador React,
   ciclo de vida y validación de acciones.

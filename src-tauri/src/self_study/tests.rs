@@ -211,7 +211,7 @@ fn pause_and_cancel_guards_prevent_answer_or_error_publication() {
 #[test]
 fn curriculum_covers_only_authorized_tracks_and_all_three_levels() {
     let lessons = curriculum().unwrap();
-    assert_eq!(lessons.len(), 42);
+    assert_eq!(lessons.len(), TRACKS.len() * 3);
     for track in TRACKS {
         assert_eq!(
             lessons
@@ -238,14 +238,14 @@ fn each_cycle_visits_every_track_then_advances_and_reviews_without_duplicates() 
     let mut state = StudySnapshot::default();
     for level in 1..=3 {
         let selected = plan(&lessons, &state);
-        assert_eq!(selected.len(), 14);
+        assert_eq!(selected.len(), TRACKS.len());
         assert_eq!(
             selected
                 .iter()
                 .map(|lesson| lesson.track.clone())
                 .collect::<HashSet<_>>()
                 .len(),
-            14
+            TRACKS.len()
         );
         assert!(selected.iter().all(|lesson| lesson.level == level));
         for lesson in selected {
@@ -258,7 +258,7 @@ fn each_cycle_visits_every_track_then_advances_and_reviews_without_duplicates() 
             .unwrap();
         }
     }
-    assert_eq!(state.records.len(), 42);
+    assert_eq!(state.records.len(), TRACKS.len() * 3);
     let review = plan(&lessons, &state);
     assert!(review.iter().all(|lesson| lesson.level == 1));
     let lesson = &review[0];
@@ -273,6 +273,24 @@ fn each_cycle_visits_every_track_then_advances_and_reviews_without_duplicates() 
     assert_eq!(record.attempts, 2);
     assert_eq!(plan(&lessons, &state)[0].id, lesson.id);
     validate_state(&state, &lessons).unwrap();
+}
+
+#[test]
+fn new_subjects_are_prioritized_when_existing_curriculum_is_already_studied() {
+    let lessons = curriculum().unwrap();
+    let mut state = StudySnapshot::default();
+    for lesson in lessons
+        .iter()
+        .filter(|lesson| lesson.track != "critical-thinking" && lesson.track != "ethics")
+    {
+        apply_answer(&mut state, lesson, true, "2026-11-14T12:00:00Z").unwrap();
+    }
+    assert_eq!(state.records.len(), 42);
+    validate_state(&state, &lessons).unwrap();
+    let selected = plan(&lessons, &state);
+    assert_eq!(selected[0].track, "critical-thinking");
+    assert_eq!(selected[1].track, "ethics");
+    assert_eq!(selected.len(), TRACKS.len());
 }
 
 #[test]
@@ -490,7 +508,7 @@ fn live_self_study_checks_all_tracks_with_real_gemma() {
     stopped.unwrap();
     assert_eq!(
         state.records.len(),
-        14,
+        TRACKS.len(),
         "Every mandatory track must be attempted"
     );
     assert_eq!(
@@ -500,7 +518,7 @@ fn live_self_study_checks_all_tracks_with_real_gemma() {
             .map(|record| &record.track)
             .collect::<HashSet<_>>()
             .len(),
-        14
+        TRACKS.len()
     );
     let passed = state
         .records
@@ -511,7 +529,11 @@ fn live_self_study_checks_all_tracks_with_real_gemma() {
         passed > 0,
         "A source projection alone must not count as real model learning"
     );
-    assert_eq!(read_at(&store.0).unwrap().records.len(), 14);
+    assert_eq!(read_at(&store.0).unwrap().records.len(), TRACKS.len());
     assert!(!store.0.join("memory/records.json").exists());
-    println!("SELF_STUDY_LIVE attempted=14 passed={passed} tracks=14 canonicalWrites=false");
+    println!(
+        "SELF_STUDY_LIVE attempted={} passed={passed} tracks={} canonicalWrites=false",
+        TRACKS.len(),
+        TRACKS.len()
+    );
 }

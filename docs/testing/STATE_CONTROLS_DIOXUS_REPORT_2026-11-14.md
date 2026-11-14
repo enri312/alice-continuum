@@ -5,6 +5,17 @@ funciones, diseño e icono; experimentos de AI Studio tratados como material a p
 
 ## Integración
 
+### Avance posterior: lógica propia en Rust
+
+La selección activa, la resolución del inspector, la presentación del recuerdo
+y la validación de los dos controles se calculan ahora en Rust. El adaptador
+React refleja la selección para el respaldo, prepara los ajustes compartidos con
+Conversación y valida de nuevo las acciones que cruzan la frontera de WASM. Las
+pruebas cubren controles bloqueados, valores inválidos, puntuación real y contexto
+limitado. La navegación y los servicios comunes siguen en el contenedor React.
+Este avance necesita una nueva revisión visual y funcional en Tauri antes de dar
+la migración completa de la página por aceptada.
+
 `crates/state-controls/src/ui.rs` renderiza el panel y el inspector con Dioxus
 0.7.0 / dioxus-web 0.7.10. Se conservan las clases del CSS existente, el rótulo
 técnico, «Modelo interno», las ocho señales, la fila compacta de memoria y los
@@ -85,8 +96,9 @@ vacío, sin enviarlo al modelo, encender el micrófono ni guardar un recuerdo de
 Esta revisión no repite la aceptación acústica de R9, no certifica un nuevo turno
 de generación ni valida todas las ventanas y resoluciones. Las otras páginas y
 la persistencia/grafos de R6/R8 siguen fuera de este incremento.
-El siguiente incremento acordado moverá la lógica propia de esta página a Rust;
-este cierre corresponde a su vista, puentes funcionales, icono y exclusiones de Git.
+El incremento posterior trasladó a Rust la selección, el inspector, la presentación
+de recuerdos y la validación de controles. La comprobación visual y funcional en
+Tauri sigue pendiente; el puente de estado compartido permanece en React.
 
 ## Git y recuperación
 

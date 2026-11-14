@@ -92,10 +92,12 @@ test('projects separately sourced self-study, failed exercises and curriculum pr
   const f = await fixture(t);
   const learned = study();
   const failed = { ...study('arithmetic-ratios'), content: 'FAILED_STUDY_MARKER', attempts: 2, lastPassed: false, active: false };
-  await json(path.join(f.memoryRoot, 'self-study-v1.json'), studyDocument([learned, failed]));
+  const critical = { ...study('critical-thinking-1'), track: 'critical-thinking', domain: 'critical-thinking' };
+  const ethics = { ...study('ethics-1'), track: 'ethics', domain: 'ethics' };
+  await json(path.join(f.memoryRoot, 'self-study-v1.json'), studyDocument([learned, failed, critical, ethics]));
   const before = await snapshot(f.memoryRoot);
   const result = await syncObsidianVault(f);
-  assert.equal(result.studyCount, 2);
+  assert.equal(result.studyCount, 4);
   const exported = await notes(f.managed);
   const learnedNote = containing(exported, 'STUDY_SYNTHETIC_MARKER')[0];
   assert.ok(learnedNote[0].includes(`${path.sep}Autoestudio${path.sep}`));
@@ -108,6 +110,8 @@ test('projects separately sourced self-study, failed exercises and curriculum pr
   const progress = [...exported].find(([file]) => file.endsWith(`${path.sep}Progreso del curriculo.md`))[1];
   assert.match(progress, /Tradicion biblica: catolica/);
   assert.match(progress, /\| Aritmética \| 2 \| 1 \| 3 \| 2 \|/);
+  assert.match(progress, /\| Pensamiento crítico \| 1 \| 1 \| 1 \| 1 \|/);
+  assert.match(progress, /\| Ética \| 1 \| 1 \| 1 \| 1 \|/);
   assert.deepEqual(await snapshot(f.memoryRoot), before);
 });
 

@@ -30,6 +30,7 @@ fn status(availability: &Availability) -> (&'static str, &'static str) {
 
 pub fn page(props: PageProps) -> Element {
     let mut payload = use_signal(|| props.initial.clone());
+    let mut selected_id = use_signal(|| props.initial.selected_id.clone());
     let rx = props.rx.clone();
     use_future(move || {
         let receiver = rx.borrow_mut().take();
@@ -46,8 +47,11 @@ pub fn page(props: PageProps) -> Element {
         let _ = on_ready.call0(&JsValue::NULL);
     });
     let snap = payload.read();
-    let recall = &snap.retrieval;
-    let memory_selected = snap.selected_id == "retrieved-memory";
+    let recall = snap.retrieval.display();
+    let selection = selected_id.read().clone();
+    let (inspector_label, inspector_value, inspector_detail) = snap.inspector_for(&selection);
+    let inspector_value = format!("{inspector_value:.3}");
+    let memory_selected = selection == "retrieved-memory";
     let memory_callback = props.on_action.clone();
     let retrieval_aria = format!(
         "Memoria recuperada, {}: {}. {}. {}: {}. Abrir detalles en el inspector.",
@@ -74,14 +78,14 @@ pub fn page(props: PageProps) -> Element {
                             for metric in &snap.metrics {
                                 {
                                     let (availability, label) = status(&metric.availability);
-                                    let selected = if snap.selected_id == metric.id { "selected" } else { "" };
+                                    let selected = if selection == metric.id { "selected" } else { "" };
                                     let ready = if metric.availability == Availability::Ready { "ready" } else { "planned" };
                                     let classes = format!("metric-row state-selection-target state-kind-metric state-availability-{ready} {ready} {selected}");
                                     let id = metric.id.clone(); let callback = props.on_action.clone();
                                     let value = format!("{:.3}", metric.value);
                                     let aria = format!("{}: {}. Estado: {}. Abrir en el inspector.", metric.label, value, label.to_lowercase());
                                     rsx! { button { key: "{metric.id}", r#type: "button", class: classes, "aria-pressed": !selected.is_empty(), "aria-label": aria,
-                                        onclick: move |_| emit(&callback, serde_json::json!({"type":"select","id":id})),
+                                        onclick: move |_| { selected_id.set(id.clone()); emit(&callback, serde_json::json!({"type":"select","id":id})); },
                                         span { class: "metric-label state-item-label", span { class: "state-item-name", "{metric.label}" } i { class: "state-status-chip state-status-{availability}", "{label}" } }
                                         span { class: "metric-track state-value-track", "aria-hidden": "true", i { style: "width: {metric.value * 100.0}%" } }
                                         strong { class: "state-value-output", "aria-hidden": "true", "{value}" }
@@ -94,7 +98,7 @@ pub fn page(props: PageProps) -> Element {
                         div { class: "state-section-title", span { role: "heading", "aria-level": "3", "MEMORIA RECUPERADA" } }
                         button { r#type: "button", class: if memory_selected { "retrieved-row state-selection-target state-kind-retrieval selected" } else { "retrieved-row state-selection-target state-kind-retrieval" },
                             "aria-pressed": memory_selected, "aria-label": retrieval_aria,
-                            onclick: move |_| emit(&memory_callback, serde_json::json!({"type":"select","id":"retrieved-memory"})),
+                            onclick: move |_| { selected_id.set("retrieved-memory".into()); emit(&memory_callback, serde_json::json!({"type":"select","id":"retrieved-memory"})); },
                             span { "{recall.type_label}" } strong { "{recall.text}" } em { title: "{recall.score_label}", "{recall.score}" }
                         }
                     }
@@ -107,7 +111,7 @@ pub fn page(props: PageProps) -> Element {
                             for control in &snap.controls {
                                 {
                                     let (availability, label) = status(&control.availability);
-                                    let selected = if snap.selected_id == control.id { "selected" } else { "" };
+                                    let selected = if selection == control.id { "selected" } else { "" };
                                     let ready = if control.availability == Availability::Ready { "ready" } else { "planned" };
                                     let lock = if control.locked { "locked" } else { "available" };
                                     let lock_label = if control.locked { " Bloqueado." } else { " Ajuste de esta sesión." };
@@ -118,7 +122,7 @@ pub fn page(props: PageProps) -> Element {
                                     let inspect_cb = props.on_action.clone(); let focus_cb = props.on_action.clone(); let input_cb = props.on_action.clone();
                                     rsx! { div { key: "{control.id}", class: classes,
                                         button { r#type: "button", class: "state-control-inspect", "aria-pressed": !selected.is_empty(), "aria-label": aria,
-                                            onclick: move |_| emit(&inspect_cb, serde_json::json!({"type":"select","id":inspect_id})),
+                                            onclick: move |_| { selected_id.set(inspect_id.clone()); emit(&inspect_cb, serde_json::json!({"type":"select","id":inspect_id})); },
                                             span { class: "state-item-name", "{control.label}" }
                                             span { class: "state-status-list",
                                                 i { class: "state-status-chip state-status-{availability}", "{label}" }
@@ -127,8 +131,8 @@ pub fn page(props: PageProps) -> Element {
                                         }
                                         input { r#type: "range", class: "state-behavior-range", min: "0", max: "1", step: "0.01", value: "{value}", disabled: control.locked,
                                             "aria-label": "{control.label}.{lock_label}", "aria-valuetext": "{value}",
-                                            onfocus: move |_| emit(&focus_cb, serde_json::json!({"type":"select","id":focus_id})),
-                                            oninput: move |event| { if let Ok(value) = event.value().parse::<f64>() { if value.is_finite() && (0.0..=1.0).contains(&value) { emit(&input_cb, serde_json::json!({"type":"changeBehavior","id":input_id,"value":value})); } } },
+                                            onfocus: move |_| { selected_id.set(focus_id.clone()); emit(&focus_cb, serde_json::json!({"type":"select","id":focus_id})); },
+                                            oninput: move |event| { if let Ok(value) = event.value().parse::<f64>() { if payload.read().can_change(&input_id, value) { emit(&input_cb, serde_json::json!({"type":"changeBehavior","id":input_id,"value":value})); } } },
                                         }
                                         strong { class: "state-value-output", "aria-hidden": "true", "{value}" }
                                     } }
@@ -149,7 +153,7 @@ pub fn page(props: PageProps) -> Element {
                         if let Some(source) = &recall.source { small { "Fuente: {source}." } }
                     }
                 } else {
-                    h3 { "{snap.inspector.label}" } span { class: "inspector-value", "{snap.inspector.value}" } p { "{snap.inspector.detail}" }
+                    h3 { "{inspector_label}" } span { class: "inspector-value", "{inspector_value}" } p { "{inspector_detail}" }
                     small { "Creatividad y estilo empático se aplican a la conversación local. Los controles bloqueados conservan sus límites." }
                 }
             }

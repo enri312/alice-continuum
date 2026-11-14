@@ -11,8 +11,8 @@ const MANIFEST = ".alice-obsidian-manifest.json";
 const SOURCE_LIMIT = 8 * 1024 * 1024;
 const NOTE_LIMIT = 512 * 1024;
 const SOURCE_LABELS = ["recuerdos confirmados", "recuerdos automaticos", "perfil"];
-const STUDY_TRACKS = ["arithmetic", "algebra", "geometry", "trigonometry", "calculus", "linear-algebra", "probability", "statistics", "logic", "biblical-history", "emotional-intelligence", "empathy", "solidarity", "humility"];
-const STUDY_LABELS = { arithmetic: "Aritmética", algebra: "Álgebra", geometry: "Geometría", trigonometry: "Trigonometría", calculus: "Cálculo", "linear-algebra": "Álgebra lineal", probability: "Probabilidad", statistics: "Estadística", logic: "Lógica", "biblical-history": "Historia bíblica católica", "emotional-intelligence": "Psicología e inteligencia emocional", empathy: "Empatía", solidarity: "Solidaridad", humility: "Humildad" };
+const STUDY_TRACKS = ["arithmetic", "algebra", "geometry", "trigonometry", "calculus", "linear-algebra", "probability", "statistics", "logic", "biblical-history", "emotional-intelligence", "empathy", "solidarity", "humility", "critical-thinking", "ethics"];
+const STUDY_LABELS = { arithmetic: "Aritmética", algebra: "Álgebra", geometry: "Geometría", trigonometry: "Trigonometría", calculus: "Cálculo", "linear-algebra": "Álgebra lineal", probability: "Probabilidad", statistics: "Estadística", logic: "Lógica", "biblical-history": "Historia bíblica católica", "emotional-intelligence": "Psicología e inteligencia emocional", empathy: "Empatía", solidarity: "Solidaridad", humility: "Humildad", "critical-thinking": "Pensamiento crítico", ethics: "Ética" };
 const STUDY_PHASES = { idle: "Preparado para estudiar", studying: "Estudiando", completed: "Ciclo aprobado", partial: "Ciclo con ejercicios para repasar", deferred: "Estudio aplazado", error: "Requiere revisar el motor o los datos", disabled: "Pausado" };
 const inFlight = new Map();
 class SyncError extends Error {}
@@ -137,7 +137,7 @@ function validateStudy(value) {
     || !["idle", "studying", "completed", "partial", "deferred", "error", "disabled"].includes(value.phase)
     || ![value.lastStartedAt, value.lastCompletedAt].every(item => item === null || date(item))
     || !(value.lastError === null || bounded(value.lastError, 2000))) fail("Documento de autoestudio no valido.");
-  const list = records(value.records, 42, "autoestudio", ["lessonId", "track", "domain", "title", "content", "sourceUrl", "sourceTitle", "lessonSha256", "studiedAt"]);
+  const list = records(value.records, 48, "autoestudio", ["lessonId", "track", "domain", "title", "content", "sourceUrl", "sourceTitle", "lessonSha256", "studiedAt"]);
   for (const record of list) {
     if (!exactKeys(record, recordKeys) || !/^[a-z0-9-]{1,96}$/.test(record.lessonId) || record.id !== `study:${record.lessonId}`
       || !STUDY_TRACKS.includes(record.track) || record.domain !== (STUDY_TRACKS.indexOf(record.track) < 9 ? "mathematics" : record.track)

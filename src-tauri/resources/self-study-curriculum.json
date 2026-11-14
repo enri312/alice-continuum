@@ -757,6 +757,114 @@
       "correctOption": 0,
       "explanation": "Reconocer aportes y corregirse concreta una actitud de servicio sin presunción.",
       "level": 3
+    },
+    {
+      "id": "critical-thinking-1",
+      "track": "critical-thinking",
+      "domain": "critical-thinking",
+      "title": "Afirmaciones y evidencia",
+      "content": "El pensamiento crítico distingue una afirmación de las razones y pruebas que la respaldan. Una fuente confiable aporta evidencia pertinente que puede examinarse.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/2-4-gathering-information-evaluating-sources-and-understanding-evidence",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué ayuda a evaluar una afirmación?",
+      "options": [
+        "Revisar la evidencia y su fuente",
+        "Aceptar la primera opinión",
+        "Ignorar la evidencia"
+      ],
+      "correctOption": 0,
+      "explanation": "Examinar las pruebas y su procedencia permite valorar la afirmación.",
+      "level": 1
+    },
+    {
+      "id": "critical-thinking-2",
+      "track": "critical-thinking",
+      "domain": "critical-thinking",
+      "title": "Premisas y conclusión",
+      "content": "Un argumento presenta razones o premisas para apoyar una conclusión. Evaluarlo implica identificar ambas y examinar si las razones respaldan lo que se concluye.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/5-3-arguments",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué función cumplen las premisas?",
+      "options": [
+        "Son siempre la conclusión",
+        "Proporcionan razones para una conclusión",
+        "Sustituyen toda evidencia"
+      ],
+      "correctOption": 1,
+      "explanation": "Las premisas ofrecen razones que deben evaluarse en relación con la conclusión.",
+      "level": 2
+    },
+    {
+      "id": "critical-thinking-3",
+      "track": "critical-thinking",
+      "domain": "critical-thinking",
+      "title": "Contrastar alternativas",
+      "content": "Ante una explicación conviene considerar alternativas y buscar evidencia que podría contradecirla. Una conclusión provisional puede cambiar si aparecen mejores datos.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/5-1-philosophical-methods-for-discovering-truth",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué hacer ante evidencia nueva que contradice una idea?",
+      "options": [
+        "Ocultarla",
+        "Revisar la explicación y comparar alternativas",
+        "Repetir la conclusión sin revisarla"
+      ],
+      "correctOption": 1,
+      "explanation": "Considerar evidencia contraria y alternativas permite corregir una conclusión.",
+      "level": 3
+    },
+    {
+      "id": "ethics-1",
+      "track": "ethics",
+      "domain": "ethics",
+      "title": "Qué estudia la ética",
+      "content": "La ética estudia la moralidad y cómo justificar decisiones sobre lo que debemos hacer. La ética normativa examina principios y criterios para orientar la conducta.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/9-1-requirements-of-a-normative-moral-theory",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué estudia la ética normativa?",
+      "options": [
+        "Criterios para orientar la conducta",
+        "Sólo operaciones aritméticas",
+        "Únicamente datos históricos"
+      ],
+      "correctOption": 0,
+      "explanation": "La ética normativa examina principios para orientar y evaluar acciones.",
+      "level": 1
+    },
+    {
+      "id": "ethics-2",
+      "track": "ethics",
+      "domain": "ethics",
+      "title": "Consecuencias y deberes",
+      "content": "Las teorías consecuencialistas evalúan acciones considerando sus resultados; las deontológicas destacan deberes y reglas. Son enfoques diferentes que pueden llevar a deliberaciones distintas.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/9-1-requirements-of-a-normative-moral-theory",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué destaca un enfoque deontológico?",
+      "options": [
+        "Sólo la popularidad",
+        "Deberes y reglas",
+        "Únicamente el resultado económico"
+      ],
+      "correctOption": 1,
+      "explanation": "La deontología considera deberes y reglas al evaluar acciones.",
+      "level": 2
+    },
+    {
+      "id": "ethics-3",
+      "track": "ethics",
+      "domain": "ethics",
+      "title": "Carácter y virtudes",
+      "content": "La ética de la virtud presta atención al carácter y a las disposiciones que una persona cultiva. Al deliberar puede preguntarse qué hábitos reflejan honestidad, justicia o responsabilidad.",
+      "sourceUrl": "https://openstax.org/books/introduction-philosophy/pages/9-4-virtue-ethics",
+      "sourceTitle": "OpenStax, Introduction to Philosophy",
+      "question": "¿Qué pone en primer plano la ética de la virtud?",
+      "options": [
+        "El carácter y las disposiciones",
+        "Sólo la velocidad de una decisión",
+        "La ausencia de razones"
+      ],
+      "correctOption": 0,
+      "explanation": "Este enfoque relaciona la conducta con el carácter y las virtudes.",
+      "level": 3
     }
   ]
 }

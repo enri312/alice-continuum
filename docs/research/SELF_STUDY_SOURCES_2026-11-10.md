@@ -2,8 +2,13 @@
 
 Consulta y contraste de fuentes: **10 de noviembre de 2026**.
 
-El currículo de `src-tauri/resources/self-study-curriculum.json` contiene 42
-lecciones breves: tres niveles por cada una de las 14 áreas solicitadas.
+El currículo inicial contenía 42 lecciones en 14 áreas. El 14 de noviembre se
+añadieron pensamiento crítico y ética: ahora hay 48 lecciones en 16 áreas.
+Las nuevas lecciones utilizan [OpenStax, evaluación de fuentes](https://openstax.org/books/introduction-philosophy/pages/2-4-gathering-information-evaluating-sources-and-understanding-evidence),
+[argumentos](https://openstax.org/books/introduction-philosophy/pages/5-3-arguments),
+[métodos filosóficos](https://openstax.org/books/introduction-philosophy/pages/5-1-philosophical-methods-for-discovering-truth),
+[teorías éticas](https://openstax.org/books/introduction-philosophy/pages/9-1-requirements-of-a-normative-moral-theory)
+y [ética de la virtud](https://openstax.org/books/introduction-philosophy/pages/9-4-virtue-ethics).
 Los textos, ejemplos, preguntas y opciones son paráfrasis y ejercicios propios;
 las URLs conservan la procedencia. El estudio usa este material local y no
 requiere consultar Internet en cada arranque.

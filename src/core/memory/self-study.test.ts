@@ -19,6 +19,12 @@ const snapshot: SelfStudySnapshot = {
 };
 
 describe("autoestudio separado y recuperable", () => {
+  it.each(["critical-thinking", "ethics"] as const)("acepta %s y conserva los registros anteriores", track => {
+    const lesson = { ...record, id: `study:${track}-1`, lessonId: `${track}-1`, domain: track, track };
+    const parsed = parseSelfStudySnapshot({ ...snapshot, records: [record, lesson] });
+    expect(parsed.records).toEqual([record, lesson]);
+    expect(selfStudyForConversation(parsed)).toHaveLength(2);
+  });
   it.each(["error", "deferred"] as const)("conserva el conocimiento aprobado sin inventar cambios cuando el ciclo queda en %s", (phase) => {
     const interrupted = parseSelfStudySnapshot({ ...snapshot, phase, lastError: "No se pudo evaluar el ejercicio; se conserva el conocimiento anterior." });
     const available = selfStudyForConversation(interrupted);

@@ -12,15 +12,15 @@ describe("contrato de Estado y controles Dioxus", () => {
     const value = payload();
     expect(value.controls.filter(control => !control.locked).map(control => control.id)).toEqual(["control-creativity", "control-empathy"]);
     expect(value.controls.find(control => control.id === "control-creativity")?.value).toBe(0);
-    expect(value.retrieval).toMatchObject({ type: "—", score: "—", count: 0 });
-    expect(value.inspector.label).toBe("Actividad de memoria");
+    expect(value.retrieval).toMatchObject({ top: null, count: 0 });
+    expect(value.selectedId).toBe("state-memory");
     expect(JSON.stringify(value)).not.toContain("TEST DE PERSONALIDAD");
   });
   it("mantiene la recuperación semántica real y su puntuación sin normalizar", () => {
     const memory = { id: "lesson", intention: "Fracciones equivalentes", memoryType: "semantic" as const, source: "Fuente revisada" };
     const observation = completeMemoryRetrieval(beginMemoryRetrieval(prepareMemoryRetrieval([{ memory, score: 8.75 }], "lexical")), "response:1", "full");
     const value = buildStateControlsPayload(buildBrainSnapshot({ ...inputs, memories: [memory], memoryRetrievalObservation: observation }), "retrieved-memory", false);
-    expect(value.retrieval).toMatchObject({ type: "SEMÁNTICA", text: memory.intention, score: "8.750", source: memory.source, status: "CONTEXTO PROPORCIONADO" });
+    expect(value.retrieval).toMatchObject({ phase: "responded", contextMode: "full", top: { typeLabel: "SEMÁNTICA", text: memory.intention, score: 8.75, source: memory.source } });
   });
   it("autoriza sólo acciones conocidas y controles disponibles en el estado más reciente", () => {
     const event = JSON.stringify({ type: "changeBehavior", id: "control-creativity", value: 0.73 });
