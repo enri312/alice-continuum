@@ -41,7 +41,7 @@ git clone https://github.com/enri312/alice-continuum.git
 cd alice-continuum
 npm ci
 python3 -m venv --copies local/venv-linux
-local/venv-linux/bin/python -m pip install -r scripts/adapters/requirements.txt
+local/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
 bash 'Iniciar Alice Continuum.sh' --check
 bash 'Iniciar Alice Continuum.sh'
 ```

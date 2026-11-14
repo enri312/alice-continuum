@@ -9,15 +9,15 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 
 ---
 
-## 1. `scripts/adapters/` (`5` archivos)
+## 1. `Backend/adapters/` (`5` archivos)
 
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
-| 1 | [`scripts/adapters/document_reader.py`](../../scripts/adapters/document_reader.py) | **ACTIVO (PRODUCCIÓN + CI)** | Adaptador Python de solo lectura para extraer y fragmentar texto de `.pdf` (mediante `PyMuPDF`), `.txt` y `.md` con límites estrictos (16 MiB, 1.000 páginas, rechazo de PDFs cifrados y hash `sha256`). `src-tauri/src/documents.rs` lo incrusta con `include_str!` y lo ejecuta usando `local/venv` en el comando `preview_document`. |
-| 2 | [`scripts/adapters/requirements.txt`](../../scripts/adapters/requirements.txt) | **ACTIVO (SETUP + CI)** | Fija `PyMuPDF==1.26.4` para construir el entorno virtual `local/venv` en Windows y en `.github/workflows/ubuntu.yml`. |
-| 3 | [`scripts/adapters/test_document_reader.py`](../../scripts/adapters/test_document_reader.py) | **ACTIVO (CI)** | Suite `unittest` en Python (5 pruebas) ejecutada en GitHub Actions para validar extracción PDF, *chunking* con solapamiento, límites de tamaño/páginas y rechazo de UTF-8 inválido. |
-| 4 | [`scripts/adapters/README.md`](../../scripts/adapters/README.md) | **ACTIVO (DOC)** | Documenta los límites de seguridad, instalación de `local/venv` y pruebas de `document_reader.py`. |
-| 5 | [`scripts/adapters/probe_document_ui.cjs`](../../scripts/adapters/probe_document_ui.cjs) | **SONDA PUNTUAL (CON RESIDUO)** | Sonda manual CommonJS vía Playwright CDP (`127.0.0.1:9222`) para probar en WebView2 la vista previa documental sin alterar `data/`. *Residuo:* ejecuta `fs.mkdirSync('artifacts', ...)` en la raíz del proyecto aunque guarda la captura en `local/artifacts/`. |
+| 1 | [`Backend/adapters/document_reader.py`](../../Backend/adapters/document_reader.py) | **ACTIVO (PRODUCCIÓN + CI)** | Adaptador Python de solo lectura para extraer y fragmentar texto de `.pdf` (mediante `PyMuPDF`), `.txt` y `.md` con límites estrictos (16 MiB, 1.000 páginas, rechazo de PDFs cifrados y hash `sha256`). `Backend/src-tauri/src/documents.rs` lo incrusta con `include_str!` y lo ejecuta usando `local/venv` en el comando `preview_document`. |
+| 2 | [`Backend/adapters/requirements.txt`](../../Backend/adapters/requirements.txt) | **ACTIVO (SETUP + CI)** | Fija `PyMuPDF==1.26.4` para construir el entorno virtual `local/venv` en Windows y en `.github/workflows/ubuntu.yml`. |
+| 3 | [`Backend/adapters/test_document_reader.py`](../../Backend/adapters/test_document_reader.py) | **ACTIVO (CI)** | Suite `unittest` en Python (5 pruebas) ejecutada en GitHub Actions para validar extracción PDF, *chunking* con solapamiento, límites de tamaño/páginas y rechazo de UTF-8 inválido. |
+| 4 | [`Backend/adapters/README.md`](../../Backend/adapters/README.md) | **ACTIVO (DOC)** | Documenta los límites de seguridad, instalación de `local/venv` y pruebas de `document_reader.py`. |
+| 5 | [`Backend/adapters/probe_document_ui.cjs`](../../Backend/adapters/probe_document_ui.cjs) | **SONDA PUNTUAL** | Sonda manual vía Playwright CDP para una instancia aislada. Crea y guarda sus capturas en `local/artifacts/`, sin crear una carpeta suelta en la raíz. |
 
 ---
 
@@ -28,7 +28,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
 | 6 | [`scripts/icons/generate-icons.mjs`](../../scripts/icons/generate-icons.mjs) | **ACTIVO (CON ~280 LÍNEAS MUERTAS)** | Script de `npm run icons:generate`: genera los 21 iconos SVG funcionales (`200x200`) en `icons/` y preserva `icons/app-alice.svg`. *Deuda interna:* entre las líneas 132 y 420 conserva 16 escenas inline antiguas y helpers obsoletos que son sobrescritos inmediatamente en las líneas 422–437 por las escenas modulares de `./scenes/*.mjs`. |
-| 7 | [`scripts/icons/legacy/activity-timeline-scene.mjs`](../../scripts/icons/legacy/activity-timeline-scene.mjs) | **BASURA / LEGACY SIN USO** | Escena antigua de línea de tiempo de actividad reemplazada por `scenes/cognitive-activity-timeline.mjs`. Ningún archivo del proyecto la importa ni la prueba. |
+| 7 | `scripts/icons/legacy/activity-timeline-scene.mjs` | **RETIRADO** | Escena antigua sin importadores; guardada en la copia local de recuperación y en el historial Git. |
 
 ### 2.2 `scripts/icons/scenes/` (`16` archivos)
 
@@ -71,7 +71,7 @@ Cada archivo exporta la función constructora SVG de uno de los 16 iconos princi
 
 | # | Archivo | Estado | Qué hace y advertencias de limpieza |
 |---:|---|---|---|
-| 29 | [`scripts/testing/compare-local-models.mjs`](../../scripts/testing/compare-local-models.mjs) | **BASURA / ROTO** | Comparaba modelos Ollama (`qwen3.5:4b`, `granite4.1:3b`, `gemma4:e2b`). **Está roto**: busca por regex `const SYSTEM_PROMPT: &str = "..."` en `cloud.rs` (que ahora usa `include_str!`), lanzando `TypeError`. Además crea una carpeta `artifacts/` vacía en la raíz. |
+| 29 | `scripts/testing/compare-local-models.mjs` | **RETIRADO** | Comparador antiguo incompatible con el formato actual del prompt y sin referencias operativas; copia local de recuperación e historial Git. |
 | 30 | [`scripts/testing/conversation-reference-eval.mjs`](../../scripts/testing/conversation-reference-eval.mjs) | **EVALUADOR MANUAL (RUTA FIJA)** | Script citado en `docs/runbooks/03-conversacion-y-voz.md` para evaluar resolución de pronombres/referencias en Gemma. Funciona, pero si no recibe `--runtime-pid` tiene hardcodeado `D:/Alice-model-evaluation/...`. |
 | 31 | [`scripts/testing/create-audio-fixture.ps1`](../../scripts/testing/create-audio-fixture.ps1) | **ONE-OFF HISTÓRICO** | Genera un WAV en inglés (`speech.wav`) con la voz Windows `'Microsoft Zira Desktop'` para pruebas antiguas de audio en Gemma. Falla si Windows no tiene instalada esa voz en inglés. |
 | 32 | [`scripts/testing/create-session-fixtures.mjs`](../../scripts/testing/create-session-fixtures.mjs) | **SOPORTE QA MANUAL** | Genera 3 archivos WAV sintéticos en español (`fixture-0..2.wav`) usando Fish Audio + `ffmpeg` en `local/artifacts/conversation-session-2026-11-04/` para alimentar el piloto de sesión de voz. |

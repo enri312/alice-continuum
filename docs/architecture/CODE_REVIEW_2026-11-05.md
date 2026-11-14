@@ -79,13 +79,13 @@ reproducción sobre la base original; no describen el comportamiento corregido.
 
 ### P1 — Una operación básica puede devolver error después de cambiar la memoria
 
-En [records.rs](../../src-tauri/src/memory/records.rs#L33), el guardado copia el
+En [records.rs](../../Backend/src-tauri/src/memory/records.rs#L33), el guardado copia el
 temporal sobre `records.json` y luego escribe la auditoría interna. La
-[restauración](../../src-tauri/src/memory/records.rs#L119) también modifica la
+[restauración](../../Backend/src-tauri/src/memory/records.rs#L119) también modifica la
 fuente antes de auditar. Si falla esa auditoría, ambas funciones devuelven `Err`
 y conservan el contenido nuevo en la fuente. Las fachadas
-[save_memory](../../src-tauri/src/memory.rs#L543) y
-[restore_memory_backup](../../src-tauri/src/memory.rs#L577) propagan el error.
+[save_memory](../../Backend/src-tauri/src/memory.rs#L543) y
+[restore_memory_backup](../../Backend/src-tauri/src/memory.rs#L577) propagan el error.
 
 **Reproducción:** crear una tienda ficticia válida y sustituir el archivo
 `memory/audit/memory-events.jsonl` por un directorio. La inicialización de la
@@ -109,9 +109,9 @@ transaccional, no una consecuencia de haber elegido Rust.
 
 ### P2 — Detener o consultar Gemma puede esperar una inferencia en curso
 
-[gemma_chat](../../src-tauri/src/local_inference.rs#L67) conserva el bloqueo de
+[gemma_chat](../../Backend/src-tauri/src/local_inference.rs#L67) conserva el bloqueo de
 `child` durante el envío HTTP y la lectura de respuesta, con un timeout de
-180 segundos. [stop](../../src-tauri/src/local_inference.rs#L380) y `snapshot`
+180 segundos. [stop](../../Backend/src-tauri/src/local_inference.rs#L380) y `snapshot`
 necesitan ese mismo bloqueo. La señal `cancel` se usa durante el arranque, pero
 no aborta esa petición HTTP.
 

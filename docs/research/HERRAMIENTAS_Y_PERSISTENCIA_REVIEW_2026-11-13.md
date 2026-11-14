@@ -80,17 +80,17 @@ de usar ese DDL o esas consultas:
 1. `importance` admite 0–100, mientras Alice valida 1–5. El DDL excluye el estado
    legado `memory_status='archived'`. `memory_version DEFAULT 1` tampoco refleja
    el contrato: una versión explícita empieza en 2 y exige metadatos coherentes
-   de reconsolidación. Véanse [modelo](../../src-tauri/src/memory/model.rs) y
-   [validación](../../src-tauri/src/memory/validation.rs).
+   de reconsolidación. Véanse [modelo](../../Backend/src-tauri/src/memory/model.rs) y
+   [validación](../../Backend/src-tauri/src/memory/validation.rs).
 2. La consulta híbrida no conserva las exclusiones de conflicto, archivo y
    eliminación programada. Exigir accesibilidad explícita también pierde
    registros heredados válidos. Indexar indiscriminadamente `summary` de
    conversaciones reutilizaría respuestas anteriores como evidencia. El
    [RAG actual](../../src/core/memory/memory-retrieval.ts) distingue esos campos;
-   [Gemma reranquea](../../src-tauri/src/hybrid_retrieval.rs), sin verificar verdad.
+   [Gemma reranquea](../../Backend/src-tauri/src/hybrid_retrieval.rs), sin verificar verdad.
 3. El CTE del grafo admite revisiones históricas no retiradas aunque exista una
    retirada posterior, y no liga ambas evidencias a la misma revisión ni valida
-   su vigencia/hash. El [grafo actual](../../src-tauri/src/knowledge_graph/associations.rs)
+   su vigencia/hash. El [grafo actual](../../Backend/src-tauri/src/knowledge_graph/associations.rs)
    selecciona la última revisión y valida las fuentes antes de admitir aristas.
 4. FTS5 declara `record_id` como columna de contenido externo, pero la tabla
    fuente declara `id`. Una reproducción sintética en SQLite `:memory:` produjo

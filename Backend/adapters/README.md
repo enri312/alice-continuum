@@ -21,9 +21,9 @@ del navegador. Ver [instalación y órdenes de voz](../../docs/runbooks/04-ubunt
 
 ```powershell
 python -m venv local/venv
-.\local/venv\Scripts\python.exe -m pip install -r scripts/adapters/requirements.txt
-.\local/venv\Scripts\python.exe -B scripts/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
-.\local/venv\Scripts\python.exe -B -m unittest discover -s scripts/adapters -p 'test_*.py' -v
+.\local/venv\Scripts\python.exe -m pip install -r Backend/adapters/requirements.txt
+.\local/venv\Scripts\python.exe -B Backend/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
+.\local/venv\Scripts\python.exe -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
 ```
 
 `--root` define la carpeta autorizada; `--file` selecciona el documento. La salida

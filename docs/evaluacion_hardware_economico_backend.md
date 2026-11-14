@@ -2,7 +2,7 @@
 
 Fecha del análisis: 2026-11-06 · Rama `master`  
 Documento relacionado: [`evaluacion_frameworks_ia_asistente.md`](evaluacion_frameworks_ia_asistente.md)  
-Fuentes inspeccionadas: [`src-tauri/src/local_inference.rs`](../src-tauri/src/local_inference.rs), [`src-tauri/src/runtime_paths.rs`](../src-tauri/src/runtime_paths.rs), [`package.json`](../package.json) y [`docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md`](research/LOCAL_MODEL_INVENTORY_2026-08-20.md).
+Fuentes inspeccionadas: [`src-tauri/src/local_inference.rs`](../Backend/src-tauri/src/local_inference.rs), [`src-tauri/src/runtime_paths.rs`](../Backend/src-tauri/src/runtime_paths.rs), [`package.json`](../package.json) y [`docs/research/LOCAL_MODEL_INVENTORY_2026-08-20.md`](research/LOCAL_MODEL_INVENTORY_2026-08-20.md).
 
 ---
 
@@ -28,11 +28,11 @@ En una PC sin GPU dedicada (o cuando una GPU de 2 GB desborda capas hacia la mem
 
 Aunque Rust + Tauri es la base ideal, cerca del 90 % del consumo proviene de cómo se invocan los motores de IA (`llama.cpp`, `whisper.cpp` y renderizado 3D). En la implementación actual existen **cuatro parámetros fijos** que chocarían en una GTX 1050 o en un equipo sin GPU:
 
-1. **`ALICE_GPU_LAYERS = "24"` predeterminado en Windows** ([`runtime_paths.rs`](../src-tauri/src/runtime_paths.rs)):
+1. **`ALICE_GPU_LAYERS = "24"` predeterminado en Windows** ([`runtime_paths.rs`](../Backend/src-tauri/src/runtime_paths.rs)):
    - En una PC sin GPU dedicada o con una GTX 1050 de 2 GB VRAM, solicitar 24 capas en GPU más un contexto de `4096` provocará un fallo por falta de memoria (*Out of Memory*) al iniciar.
-2. **`--mmproj-offload` siempre activo** ([`local_inference.rs`](../src-tauri/src/local_inference.rs)):
+2. **`--mmproj-offload` siempre activo** ([`local_inference.rs`](../Backend/src-tauri/src/local_inference.rs)):
    - Cargar permanentemente el proyector multimodal `mmproj-F16.gguf` en VRAM reserva cientos de megabytes incluso cuando el usuario solo conversa por texto o voz sin cámara. Además, la arquitectura Pascal (GTX 1050) no acelera `FP16` como una serie RTX.
-3. **`-t 8` (8 hilos fijos de CPU)** ([`local_inference.rs`](../src-tauri/src/local_inference.rs)):
+3. **`-t 8` (8 hilos fijos de CPU)** ([`local_inference.rs`](../Backend/src-tauri/src/local_inference.rs)):
    - Muchos procesadores económicos tienen 4 núcleos físicos (por ejemplo, Intel Core i3 / i5 antiguos o Ryzen 3). Forzar 8 hilos introduce contención por *HyperThreading* y reduce los tokens por segundo en `llama.cpp`. Conviene detectar y usar el número real de **núcleos físicos**.
 4. **Dependencia de compilación CUDA vs. Vulkan:**
    - Un binario `llama-server` compilado exclusivamente para CUDA no iniciará en equipos con gráficos integrados Intel UHD / Iris Xe o AMD Radeon.

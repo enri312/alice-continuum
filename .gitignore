@@ -6,10 +6,10 @@ dist/
 .env.*
 *.key
 *.pem
-src-tauri/target/
+Backend/src-tauri/target/
 .cargo-target/
 # Generated on Linux; equivalent to the existing desktop schema.
-/src-tauri/gen/schemas/linux-schema.json
+/Backend/src-tauri/gen/schemas/linux-schema.json
 /data/*
 !/data/README.md
 !/data/obsidian/

@@ -37,7 +37,7 @@ async function main() {
     await card.locator('summary').first().click();
     assert((await card.locator('pre').first().innerText()).includes('Alice'));
     await card.scrollIntoViewIfNeeded();
-    fs.mkdirSync('artifacts', { recursive: true });
+    fs.mkdirSync('local/artifacts', { recursive: true });
     await card.screenshot({ path: 'local/artifacts/document-preview-native.png' });
     await page.getByRole('button', { name: 'Descartar vista previa', exact: true }).click();
     assert.equal(await card.locator('details').count(), 0);

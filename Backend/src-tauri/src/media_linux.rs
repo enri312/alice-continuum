@@ -35,7 +35,7 @@ fn execute(
         .args([
             "-I",
             "-c",
-            include_str!("../../scripts/adapters/linux_media_bridge.py"),
+            include_str!("../../adapters/linux_media_bridge.py"),
         ])
         .env_remove("FISH_API_KEY")
         .env_remove("ALICE_FISH_REFERENCE_ID")

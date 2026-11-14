@@ -5,7 +5,8 @@ use std::path::{Path, PathBuf};
 pub(crate) fn local_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("src-tauri has a project parent")
+        .and_then(Path::parent)
+        .expect("src-tauri has a project root")
         .join("local")
 }
 
@@ -127,6 +128,17 @@ pub(crate) fn gpu_layers() -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn local_resources_resolve_to_the_project_root_after_backend_move() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        assert_eq!(local_dir(), root.join("local"));
+        assert!(root.join("package.json").is_file());
+        assert!(root.join("Backend/adapters/document_reader.py").is_file());
+    }
     #[test]
     fn rejects_relative_configuration_without_mutating_global_environment() {
         assert!(configured(Some("../private".into()), "TEST_PATH", local_dir()).is_err());

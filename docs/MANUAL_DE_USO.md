@@ -603,7 +603,7 @@ a Alice y no adjunta el documento al chat. Su finalidad actual es comprobar la
 extracción y procedencia antes de integrar conocimiento. Sólo se registra la huella
 del archivo y el resultado en auditoría, no su texto ni su nombre.
 
-Si falta el entorno documental, seguí la [preparación del lector](../scripts/adapters/README.md).
+Si falta el entorno documental, seguí la [preparación del lector](../Backend/adapters/README.md).
 No hace falta cambiar el Python principal. Después de actualizar el backend,
 cerrá y volvé a iniciar Alice para cargar los nuevos comandos.
 

@@ -12,7 +12,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
 | 1 | [`.gitattributes`](../../.gitattributes) | **Activo** | Normaliza saltos de línea en Git: fuerza `LF` en código, configuración y documentos (`.rs`, `.ts`, `.tsx`, `.md`, `.json`, `.toml`, `.sh`, `.py`, etc.), fuerza `CRLF` en `*.cmd` para `cmd.exe` en Windows y declara binarios los iconos rasterizados (`.png`, `.ico`, `.icns`). |
-| 2 | [`.gitignore`](../../.gitignore) | **Activo (con reglas heredadas)** | Excluye `node_modules/`, `dist/`, `.env*`, claves privadas, cachés de Rust (`src-tauri/target/`, `.cargo-target/`), datos personales (`data/*` salvo `data/README.md`), recursos locales (`local/*` salvo READMEs) y `/scripts/testing/.fixtures/`. *Nota:* conserva reglas de carpetas antiguas ya migradas (`/.openchamber/`, `/scratch/`, `/artifacts/`, `Assets/`, `/adapters/`, `/.venv-adapters/`). |
+| 2 | [`.gitignore`](../../.gitignore) | **Activo (con reglas heredadas)** | Excluye `node_modules/`, `dist/`, `.env*`, claves privadas, cachés de Rust (`Backend/src-tauri/target/`, `.cargo-target/`), datos personales (`data/*` salvo `data/README.md`), recursos locales (`local/*` salvo READMEs) y `/scripts/testing/.fixtures/`. *Nota:* conserva reglas de carpetas antiguas ya migradas (`/.openchamber/`, `/scratch/`, `/artifacts/`, `Assets/`, `/adapters/`, `/.venv-adapters/`). |
 | 3 | [`.node-version`](../../.node-version) | **Activo** | Fija la versión exacta de Node.js en `26.13.0` (rama 26 LTS). Lo consumen automáticamente GitHub Actions (`ubuntu.yml`) y los lanzadores Windows/Linux. |
 | 4 | [`index.html`](../../index.html) | **Activo** | Documento HTML raíz de Vite/Tauri (`lang="es"`, título `Alice Continuum`). Enlaza `/favicon.svg`, define `<div id="root"></div>` y carga `/src/main.tsx`. |
 | 5 | [`Iniciar Alice Continuum.cmd`](../../Iniciar%20Alice%20Continuum.cmd) | **Activo (acoplado a ruta local)** | Lanzador oficial en Windows (con modo `--check` en seco). Define `ALICE_DATA_DIR` (`data/`) y `CARGO_TARGET_DIR` (`.cargo-target/`), valida versiones de `node`, `npm`, `cargo`, `vite` y `tauri`, evita instancias duplicadas, verifica el puerto `5173`, comprueba/inicia opcionalmente Ollama e inicia `npm run tauri -- dev`. *Nota:* contiene `if exist "E:\Ollama\models"` acoplado al disco `E:` del equipo actual. |
@@ -33,7 +33,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
-| 16 | [`.cargo/config.toml`](../../.cargo/config.toml) | **Activo** | Fija `target-dir = ".cargo-target"` cuando `cargo` se ejecuta desde la raíz del proyecto. Se complementa intencionalmente con `src-tauri/.cargo/config.toml` (`../.cargo-target`) para compartir una única caché de compilación Rust y no duplicar gigabytes en `src-tauri/target/`. |
+| 16 | [`.cargo/config.toml`](../../.cargo/config.toml) | **Activo** | Fija `target-dir = ".cargo-target"` cuando `cargo` se ejecuta desde la raíz del proyecto. Se complementa intencionalmente con `Backend/src-tauri/.cargo/config.toml` (`../../.cargo-target`) para compartir una única caché de compilación Rust y no duplicar gigabytes en `Backend/src-tauri/target/`. |
 | 17 | [`.github/workflows/ubuntu.yml`](../../.github/workflows/ubuntu.yml) | **Activo** | Pipeline de integración continua en GitHub Actions (`ubuntu-24.04`): instala WebKitGTK 4.1, FFmpeg, GStreamer y `xvfb`, prepara `local/venv` con `PyMuPDF`, corre `unittest`, `npm ci`, `npm test`, `npm run build`, `cargo fmt`, `cargo test`, `cargo clippy`, `cargo build`, `./Iniciar Alice Continuum.sh --check` y el smoke headless `ubuntu-startup-smoke.py`. |
 
 ---
@@ -60,7 +60,7 @@ Catálogo vectorial SVG del sistema visual de Alice. Los 21 iconos de `200x200` 
 
 | # | Archivo | Estado | Qué hace y dónde se usa |
 |---:|---|---|---|
-| 25 | [`icons/app-alice.svg`](../../icons/app-alice.svg) | **Activo (fuente maestra, no en UI React)** | Emblema maestro estático `512x512` de marca. No se pinta dentro del DOM React, sino que actúa como fuente maestra para generar los iconos nativos de ventana/ejecutable (`src-tauri/icons/`) y es auditado en `icon-system.test.ts` y `project-identity.test.mjs`. |
+| 25 | [`icons/app-alice.svg`](../../icons/app-alice.svg) | **Activo (fuente maestra, no en UI React)** | Emblema maestro estático `512x512` de marca. No se pinta dentro del DOM React, sino que actúa como fuente maestra para generar los iconos nativos de ventana/ejecutable (`Backend/src-tauri/icons/`) y es auditado en `icon-system.test.ts` y `project-identity.test.mjs`. |
 | 26 | [`icons/camera-orbit-control.svg`](../../icons/camera-orbit-control.svg) | **Activo** | Icono del botón de rotación orbital 3D en `NeuralVolume.tsx`. |
 | 27 | [`icons/camera-pan-control.svg`](../../icons/camera-pan-control.svg) | **Activo** | Icono del botón de paneo planar de cámara en `NeuralVolume.tsx`. |
 | 28 | [`icons/camera-reset-control.svg`](../../icons/camera-reset-control.svg) | **Activo** | Icono del botón para restablecer el encuadre 3D en `NeuralVolume.tsx`. |

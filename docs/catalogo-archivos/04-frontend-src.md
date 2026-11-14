@@ -8,7 +8,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 > **Atención de limpieza en `src/`:** Se trazó el grafo completo de alcanzabilidad desde `index.html` → `src/main.tsx` → `src/App.tsx` (incluyendo `React.lazy`, workers `?worker` / `?worker&url`, CSS y Vitest). De los 178 archivos:
 > - **108** están **ACTIVOS** en la aplicación en tiempo de ejecución/compilación.
 > - **63** son suites **ACTIVO (TEST)** ejecutadas por Vitest (`3` de ellas prueban módulos ya retirados de la UI).
-> - **3** componentes son **HUÉRFANOS / CÓDIGO MUERTO** (`NucleusViewIcon.tsx`, `MemoryCandidatePanel.tsx`, `SensoryLearningPanel.tsx`).
+> - La revisión histórica señaló tres componentes huérfanos. `NucleusViewIcon.tsx` se retiró en la reorganización de noviembre; los otros dos requieren revisión adicional.
 > - **1** componente está **TRANSITIVAMENTE SIN USO EN UI** (`BridgeViewIcon.tsx`, dentro de una rama `{!fixedView && ...}` inalcanzable desde `App.tsx`).
 > - **3** módulos de `src/core/` quedaron **SOLO USADOS EN TESTS** (`neural-volume-visual.ts`, `teaching-templates.ts` y `learning-candidates.ts`).
 
@@ -68,14 +68,14 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 | 19 | [`src/components/governance/PermissionGatewayPanel.tsx`](../../src/components/governance/PermissionGatewayPanel.tsx) | **ACTIVO** | Interfaz del Gateway de Permisos R2 (`permission_gateway_status`) para preparar solicitudes sobre `context.foreground.control`, revisarlas en `<dialog>` modal, aprobar concesiones `oneShot` o `session`, ejecutarlas con recibo auditado y revocarlas. |
 | 20 | [`src/components/governance/TaskRegistryPanel.tsx`](../../src/components/governance/TaskRegistryPanel.tsx) | **ACTIVO** | Panel del sistema temporal R7 en `ActionPlannerPage` para previsualizar y confirmar con SHA-256 el alta/pausa/reanudación/cancelación de recordatorios locales, chequeos R7.5, reloj interno R7.3-A en RAM y reservas idempotentes R7.3-B. |
 
-### 2.6 `src/components/icons/` (`4` archivos)
+### 2.6 `src/components/icons/` (3 archivos actuales)
 
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
 | 21 | [`src/components/icons/BridgeViewIcon.tsx`](../../src/components/icons/BridgeViewIcon.tsx) | **TRANSITIVAMENTE SIN USO EN UI** | Selector de iconos SVG (`overview`, `face`, `body`) importado únicamente por `CapabilityRegistryPage.tsx` dentro de `{!fixedView && ...}`. Jamás se ejecuta porque `App.tsx` siempre pasa un `fixedView` explícito. |
 | 22 | [`src/components/icons/InlineSvgIcon.tsx`](../../src/components/icons/InlineSvgIcon.tsx) | **ACTIVO** | Componente base sin estado que envuelve cadenas SVG crudas (`?raw`) del sistema de iconos dentro de un `<span aria-hidden="true">` para la navegación superior y controles de cámara 3D. |
 | 23 | [`src/components/icons/NavigationIcon.tsx`](../../src/components/icons/NavigationIcon.tsx) | **ACTIVO** | Catálogo que asocia los 15 identificadores de pestañas principales con sus respectivos activos SVG en `icons/navigation/` para la barra superior de `App.tsx`. |
-| 24 | [`src/components/icons/NucleusViewIcon.tsx`](../../src/components/icons/NucleusViewIcon.tsx) | **HUÉRFANO / CÓDIGO MUERTO** | Antiguo selector de iconos (`volume`, `flow`, `state`, `planner`) de las subpestañas del viejo panel unificado del Núcleo. **0 importadores** en todo el proyecto. |
+| 24 | `src/components/icons/NucleusViewIcon.tsx` | **RETIRADO** | Selector anterior sin importadores; copia local de recuperación y contenido en el historial Git. |
 
 ### 2.7 `src/components/memory/` (`5` archivos)
 

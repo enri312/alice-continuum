@@ -32,8 +32,8 @@ jobs:
       - name: Entorno documental
         run: |
           python3 -m venv local/venv-linux
-          local/venv-linux/bin/python -m pip install -r scripts/adapters/requirements.txt
-          local/venv-linux/bin/python -B -m unittest discover -s scripts/adapters -p 'test_*.py' -v
+          local/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
+          local/venv-linux/bin/python -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
       - name: Interfaz
         run: |
           npm ci
@@ -43,15 +43,15 @@ jobs:
         run: |
           cargo fmt --manifest-path crates/state-controls/Cargo.toml -- --check
           cargo test --locked --manifest-path crates/state-controls/Cargo.toml
-          cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
-          cargo test --locked --manifest-path src-tauri/Cargo.toml
-          cargo test --locked --manifest-path src-tauri/Cargo.toml documents::tests::live_document_manual_with_real_runtime -- --ignored --exact
-          cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-          cargo build --locked --manifest-path src-tauri/Cargo.toml --features tauri/custom-protocol
+          cargo fmt --manifest-path Backend/src-tauri/Cargo.toml -- --check
+          cargo test --locked --manifest-path Backend/src-tauri/Cargo.toml
+          cargo test --locked --manifest-path Backend/src-tauri/Cargo.toml documents::tests::live_document_manual_with_real_runtime -- --ignored --exact
+          cargo clippy --locked --manifest-path Backend/src-tauri/Cargo.toml --all-targets -- -D warnings
+          cargo build --locked --manifest-path Backend/src-tauri/Cargo.toml --features tauri/custom-protocol
       - name: Lanzador y arranque aislado
         run: |
           bash -n 'Iniciar Alice Continuum.sh'
           bash 'Iniciar Alice Continuum.sh' --check
           dbus-run-session -- xvfb-run -a python3 scripts/testing/ubuntu-startup-smoke.py
           dbus-run-session -- xvfb-run -a /usr/bin/python3 scripts/testing/ubuntu-webkit-r9-smoke.py
-          dbus-run-session -- xvfb-run -a cargo test --locked --manifest-path src-tauri/Cargo.toml linux_media::tests::live_webkit_mock_capture_and_denial -- --ignored --exact --nocapture
+          dbus-run-session -- xvfb-run -a cargo test --locked --manifest-path Backend/src-tauri/Cargo.toml linux_media::tests::live_webkit_mock_capture_and_denial -- --ignored --exact --nocapture

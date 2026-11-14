@@ -11,7 +11,7 @@ applications = data / "applications"
 icons = data / "icons/hicolor/256x256/apps"
 applications.mkdir(parents=True, exist_ok=True)
 icons.mkdir(parents=True, exist_ok=True)
-shutil.copyfile(root / "src-tauri/icons/128x128@2x.png", icons / (app_id + ".png"))
+shutil.copyfile(root / "Backend/src-tauri/icons/128x128@2x.png", icons / (app_id + ".png"))
 
 
 def quoted(value):

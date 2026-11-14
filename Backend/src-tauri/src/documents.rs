@@ -13,7 +13,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use tauri::AppHandle;
 
-const SCRIPT: &str = include_str!("../../scripts/adapters/document_reader.py");
+const SCRIPT: &str = include_str!("../../adapters/document_reader.py");
 const MAX_BYTES: usize = 16 * 1024 * 1024;
 static READER: Mutex<()> = Mutex::new(());
 
@@ -173,9 +173,10 @@ mod tests {
     #[ignore = "Uses installed local document runtime and actual project manual"]
     fn live_document_manual_with_real_runtime() {
         let root = std::env::temp_dir().join(format!("alice-document-{}", uuid::Uuid::new_v4()));
-        let bytes =
-            std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/MANUAL_DE_USO.md"))
-                .unwrap();
+        let bytes = std::fs::read(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/MANUAL_DE_USO.md"),
+        )
+        .unwrap();
         let result = preview_at(&root, &python_path().unwrap(), bytes, "md", true).unwrap();
         assert_eq!(result["memoryWritten"], false);
         assert!(!result["chunks"].as_array().unwrap().is_empty());

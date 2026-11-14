@@ -15,7 +15,7 @@ El filtro y sus avisos de licencia se incluyen con Alice; no necesitan un CDN.
 
 React y React DOM se actualizaron a **19.3.1**, con tipos **19.3.0**. El lockfile
 conserva la combinación probada; usar `npm ci` al sincronizar el repositorio.
-La memoria nativa ahora se organiza en `src-tauri/src/memory/`; sus 28 comandos
+La memoria nativa ahora se organiza en `Backend/src-tauri/src/memory/`; sus 28 comandos
 mantienen nombres y formatos. Ver [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md).
 
 La transcripción local prefiere **Whisper small CPU** cuando está instalado;

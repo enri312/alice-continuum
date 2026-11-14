@@ -36,8 +36,8 @@ configurables. Las API Win32 se compilan sólo en Windows.
 [Compatibilidad Ubuntu](../runbooks/04-ubuntu.md).
 
 Incremento 2026-11-04 — [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md):
-`src-tauri/src/memory.rs` conserva 28 comandos y la auditoría como fachada de 611
-líneas en ese incremento. `src-tauri/src/memory/` separa modelo, validación, consultas, registros,
+`Backend/src-tauri/src/memory.rs` conserva 28 comandos y la auditoría como fachada de 611
+líneas en ese incremento. `Backend/src-tauri/src/memory/` separa modelo, validación, consultas, registros,
 primitivas de archivos, rutas, capas, ciclo de vida, evaluación, retención,
 reconsolidación, consolidación, aprendizaje y pruebas. Los casos básicos reciben
 rutas; las consultas no inicializan almacenes. Se mantienen firmas y formatos.
@@ -60,19 +60,19 @@ al abrirlo. Se conserva la ruta `identificacion`. El icono actual se genera desd
 
 La sesión automática de voz se presenta en
 `src/components/conversation/HandsFreeVoice.tsx`. La captura, el detector de pausa
-y el ciclo viven en `src/core/voice/`; `src-tauri/src/voice_session.rs` mantiene la
+y el ciclo viven en `src/core/voice/`; `Backend/src-tauri/src/voice_session.rs` mantiene la
 sesión nativa revocable. `.node-version` y `package.json` fijan la rama Node 26
 LTS. Ver [ADR-P-099](../decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
 
 Las instrucciones conversacionales legibles viven en
-`src-tauri/src/prompts/conversation.txt`, incluidas en el binario mediante
+`Backend/src-tauri/src/prompts/conversation.txt`, incluidas en el binario mediante
 `include_str!`. `src/core/voice/voice-commands.ts` reconoce la orden directa de
 parada antes de inferencia conversacional. `rust-toolchain.toml` fija Rust 1.99.1.
 
 Reorganización: 2026-09-14. Identidad actualizada: 2026-09-16. Esta guía describe la reorganización de archivos, no un
 cambio de funcionalidades ni de contratos de Alice.
 
-La memoria automática vive en `src-tauri/src/automatic_memory.rs` y su proyección
+La memoria automática vive en `Backend/src-tauri/src/automatic_memory.rs` y su proyección
 se valida en `src/core/memory/automatic-memory.ts`. `AutomaticMemoryPanel.tsx`
 ofrece pausa, corrección y retirada. `src/core/cognitive/neural-geometry.ts`
 define la forma ilustrativa y `NeuralVolume.tsx` dibuja los registros reales.
@@ -111,7 +111,9 @@ Alice Continuum/
 │   │   └── voice/                 entrada/salida, sesión y filtro RNNoise local
 │   ├── styles/                    estilos globales y de áreas funcionales
 │   └── types/                     declaraciones de recursos SVG
-├── src-tauri/                     backend Rust y configuración de Tauri
+├── Backend/
+│   ├── src-tauri/                 backend Rust y configuración de Tauri
+│   └── adapters/                  lectores y puente de medios en Python
 ├── icons/                         catálogo SVG consumido por la interfaz
 ├── public/                        recursos públicos de Vite
 ├── scripts/
@@ -180,8 +182,8 @@ CSS y los formatos de almacenamiento; no hay una migración de datos.
   permanecen junto a él.
 - Los archivos de `scripts/icons/scenes/` coinciden con el nombre del SVG que
   representan. Los controles de cámara siguen definidos por el generador.
-- `scripts/icons/legacy/activity-timeline-scene.mjs` es una versión anterior que
-  no usaba el generador. Se conserva como referencia, sin conectarla al catálogo.
+- La escena antigua de actividad sin importadores se retiró del código activo;
+  permanece en el historial Git y en la copia local de recuperación.
 - Los nombres y contenido de `icons/*.svg` se mantienen, incluido `app-alice.svg`.
 
 ## Revisión de la raíz: rutas que deben permanecer estables
@@ -194,10 +196,10 @@ CSS y los formatos de almacenamiento; no hay una migración de datos.
 | `package.json`, `package-lock.json` | Manifiesto y bloqueo de dependencias; no se actualizaron versiones. |
 | `index.html`, `vite.config.ts`, `tsconfig*.json` | Puntos de descubrimiento del frontend y sus herramientas. |
 | `rust-toolchain.toml`, `.cargo/` | Selección de Rust y destino compartido de compilación. |
-| `src-tauri/` | Backend y estructura convencional de Tauri. |
+| `Backend/src-tauri/` | Backend y estructura convencional de Tauri. |
 | `local/assets/` | Activos privados; rutas configurables y alcance Tauri limitado a archivos conocidos. |
 | `data/` | Datos privados; el lanzador y el backend dependen de esta ruta configurable. |
-| `local/reference-adapters/`, `local/venv/` | Cuarentena local y entorno Python; no equivalen a `scripts/adapters/`. |
+| `local/reference-adapters/`, `local/venv/` | Cuarentena local y entorno Python; no equivalen a `Backend/adapters/`. |
 | `local/artifacts/`, `local/drafts/` | Evidencia local y trabajo privado, excluidos de Git. |
 | `node_modules/`, `dist/`, `.cargo-target/` | Dependencias o resultados regenerables, excluidos de Git. |
 
@@ -256,16 +258,16 @@ Persiste el aviso previo de Vite sobre paquetes JavaScript superiores a 500 kB.
 No se cambió la estrategia de carga en esta reorganización. Las sondas vivas de
 modelos, voz, cámara o proveedores externos no se ejecutaron.
 
-Visión conversacional (ADR-P-102): `src-tauri/src/conversation_vision.rs` mantiene
+Visión conversacional (ADR-P-102): `Backend/src-tauri/src/conversation_vision.rs` mantiene
 la sesión efímera, valida cámaras y captura escritorio con GDI; `cloud.rs` construye
 la petición multimodal local. `src/core/conversation/vision-session.ts` controla
 cámara y cancelaciones; `ConversationVision.tsx` expone controles y selector.
 
-Aperturas delegadas: `src-tauri/src/desktop_actions.rs` contiene intención actual,
+Aperturas delegadas: `Backend/src-tauri/src/desktop_actions.rs` contiene intención actual,
 esquema de función, validación de llamadas y ejecutor de destinos cerrados.
 `cloud.rs` conecta acciones, conversación y voz. R1 y R3 registran la capacidad.
 
-Música delegada (ADR-P-104): `src-tauri/src/media_actions.rs` valida la orden y
+Música delegada (ADR-P-104): `Backend/src-tauri/src/media_actions.rs` valida la orden y
 la función Gemma; `media_windows.rs` controla Tus me gusta mediante UI Automation,
 pausa/reanuda Spotify con transporte multimedia de Windows y busca/reproduce
 YouTube en Chrome mediante sus controles accesibles. No se usan scripts de shell.

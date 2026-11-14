@@ -1,4 +1,4 @@
 [build]
 # Mantiene los artefactos temporales fuera de src-tauri y evita reutilizar
 # la caché que Windows bloqueó durante la primera compilación.
-target-dir = "../.cargo-target"
+target-dir = "../../.cargo-target"

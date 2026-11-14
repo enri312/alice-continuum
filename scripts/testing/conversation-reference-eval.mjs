@@ -70,8 +70,8 @@ if (process.argv.includes('--holdout')) {
 }
 const beforeIndex = process.argv.indexOf('--before');
 const variants = beforeIndex >= 0
-  ? [['before', promptFrom(path.resolve(process.argv[beforeIndex + 1]))], ['after', promptFrom(path.join(root, 'src-tauri/src/cloud.rs'))]]
-  : [['after', promptFrom(path.join(root, 'src-tauri/src/cloud.rs'))]];
+  ? [['before', promptFrom(path.resolve(process.argv[beforeIndex + 1]))], ['after', promptFrom(path.join(root, 'Backend/src-tauri/src/cloud.rs'))]]
+  : [['after', promptFrom(path.join(root, 'Backend/src-tauri/src/cloud.rs'))]];
 // Candidate prompts can be measured before changing the application's defaults.
 const temperature = Number(option('--temperature') ?? '0.2');
 if (!Number.isFinite(temperature) || temperature < 0 || temperature > 2) throw Error('Temperatura inválida.');

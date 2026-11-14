@@ -1,24 +1,36 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
 describe("Alice Continuum identity", () => {
+  it("mantiene backend y adaptadores juntos y conserva la ruta del frontend de Tauri", () => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    const native = path.join(root, "Backend", "src-tauri");
+    const config = JSON.parse(read("Backend/src-tauri/tauri.conf.json"));
+    expect(path.resolve(native, config.build.frontendDist)).toBe(path.join(root, "dist"));
+    expect(existsSync(path.join(root, "Backend/adapters/document_reader.py"))).toBe(true);
+    expect(existsSync(path.join(root, "Backend/adapters/linux_media_bridge.py"))).toBe(true);
+    expect(existsSync(path.join(root, "src-tauri"))).toBe(false);
+    expect(existsSync(path.join(root, "scripts/adapters"))).toBe(false);
+  });
   it("aligns npm, Rust and desktop product names", () => {
     expect(JSON.parse(read("package.json")).name).toBe("alice-continuum");
     const lock = JSON.parse(read("package-lock.json"));
     expect(lock.name).toBe("alice-continuum");
     expect(lock.packages[""].name).toBe("alice-continuum");
-    expect(read("src-tauri/Cargo.toml")).toContain('name = "alice-continuum"');
-    expect(read("src-tauri/Cargo.toml")).toContain('name = "alice_continuum_lib"');
-    expect(read("src-tauri/src/main.rs")).toContain("alice_continuum_lib::run()");
-    const config = JSON.parse(read("src-tauri/tauri.conf.json"));
+    expect(read("Backend/src-tauri/Cargo.toml")).toContain('name = "alice-continuum"');
+    expect(read("Backend/src-tauri/Cargo.toml")).toContain('name = "alice_continuum_lib"');
+    expect(read("Backend/src-tauri/src/main.rs")).toContain("alice_continuum_lib::run()");
+    const config = JSON.parse(read("Backend/src-tauri/tauri.conf.json"));
     expect(config.productName).toBe("Alice Continuum");
     expect(config.app.windows[0].title).toContain("Alice Continuum");
   });
 
   it("preserves persistent identity and storage keys during the rebrand", () => {
-    expect(JSON.parse(read("src-tauri/tauri.conf.json")).identifier).toBe("com.carlosnunez.alicecognitivecore");
+    expect(JSON.parse(read("Backend/src-tauri/tauri.conf.json")).identifier).toBe("com.carlosnunez.alicecognitivecore");
     const app = read("src/App.tsx");
     expect(app).toContain('const storageKey = "alice-cognitive-core-sessions-v1"');
     expect(app).toContain('const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1"');
@@ -39,7 +51,7 @@ describe("Alice Continuum identity", () => {
     expect(launcher).toContain("scripts\\setup\\launch-windows.ps1");
     const windowsLauncher = read("scripts/setup/launch-windows.ps1");
     expect(windowsLauncher).toContain("'alice-continuum','alice-cognitive-core'");
-    const observer = read("src-tauri/src/observation.rs");
+    const observer = read("Backend/src-tauri/src/observation.rs");
     expect(observer).toContain('eq_ignore_ascii_case("alice-continuum.exe")');
     expect(observer).toContain('eq_ignore_ascii_case("alice-cognitive-core.exe")');
   });

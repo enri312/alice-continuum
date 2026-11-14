@@ -3,7 +3,7 @@
 Estado: auditoría estática completada · 2026-09-04
 
 Actualización: comenzó el rescate del lector documental en
-[`scripts/adapters/`](../../scripts/adapters/README.md), integrado como vista previa
+[`Backend/adapters/`](../../Backend/adapters/README.md), integrado como vista previa
 local en Identificación, con capacidad R1 y auditoría R3. MD tiene prueba con el
 manual real; PDF tiene prueba con motor real y documento controlado. Los originales
 siguen intactos; sólo esta versión revisada se conectó al runtime.

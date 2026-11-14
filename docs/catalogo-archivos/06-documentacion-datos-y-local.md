@@ -107,7 +107,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 - `ADR-P-035-ensenanza-guiada-inicial.md`: Plantillas iniciales de enseñanza guiada sin sembrar recuerdos falsos.
 - `ADR-P-036-emblema-estatico-de-alice.md`: Emblema HUD inicial para favicon e icono `.ico`.
 - `ADR-P-037-iconos-de-actividad-y-nucleo.md`: Primer rediseño de iconos SVG para Actividad y Núcleo.
-- `ADR-P-038-backend-rust-modular.md`: Primera separación modular de `src-tauri/src/lib.rs`.
+- `ADR-P-038-backend-rust-modular.md`: Primera separación modular de `Backend/src-tauri/src/lib.rs`.
 - `ADR-P-039-documento-maestro-formal.md`: Estructura formal del documento maestro `especificacion_alice_continuum.html`.
 - `ADR-P-040-diagramas-svg-autonomos.md`: Incorporación de los 6 diagramas SVG autónomos en `docs/assets/diagrams/`.
 - `ADR-P-041-registro-de-capacidades.md`: Creación del Registro declarativo de Capacidades R1.
@@ -177,7 +177,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 - `ADR-P-105-supresion-local-ruido-vite.md`: Supresión de ruido local con RNNoise WASM y actualización a Vite 8.3.5.
 - `ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md`: Incorporación de Whisper CPU local para español y exclusión de domótica.
 - `ADR-P-107-contratos-conversacion-y-sondeos.md`: Extracción de contratos TS de conversación y sondeos serializados sin solapamiento.
-- `ADR-P-108-memoria-modular-react-19-3.md`: División modular de `memory.rs` en `src-tauri/src/memory/` y actualización a React 19.3.1.
+- `ADR-P-108-memoria-modular-react-19-3.md`: División modular de `memory.rs` en `Backend/src-tauri/src/memory/` y actualización a React 19.3.1.
 - `ADR-P-109-organizacion-local-y-ubuntu.md`: Agrupación de recursos privados en `local/` y soporte base para Ubuntu.
 - `ADR-P-110-referencias-explicitas-en-citas.md`: Resolución local determinista de posesivos en citas con destinatario explícito.
 - `ADR-P-111-persistencia-y-control-del-motor.md`: Rollback transaccional en memoria básica y cancelación inmediata de peticiones HTTP a Gemma.

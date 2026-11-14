@@ -44,7 +44,7 @@ function snapshot(dir) {
 const before = snapshot(data);
 const records = JSON.parse(fs.readFileSync(path.join(data, 'memory/records.json'), 'utf8'));
 const eligible = records.filter(r => r.memoryStatus === 'confirmed' && !r.deletionStatus && !r.archiveStatus && !r.suppressionStatus && r.accessibilityStatus !== 'dormant');
-const rust = fs.readFileSync(path.join(root, 'src-tauri/src/cloud.rs'), 'utf8');
+const rust = fs.readFileSync(path.join(root, 'Backend/src-tauri/src/cloud.rs'), 'utf8');
 const system = JSON.parse(rust.match(/const SYSTEM_PROMPT: &str = ("[^\n]+");/)[1]);
 const ollama = await fetch('http://127.0.0.1:11434/api/ps', { signal: AbortSignal.timeout(5000), redirect: 'error' }).then(r => r.json());
 if (ollama.models.length) throw new Error('Ollama model active: aborting one-model pilot');

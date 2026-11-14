@@ -15,7 +15,7 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 |---|---:|---:|---|
 | Basura directa en el repo (carpeta vacía, iconos móviles/macOS, escena legacy, docs viejos de agosto) | **49 elementos** | **~2,25 MB** | **Nulo** (Nivel 1) |
 | Artefactos viejos descartables en `local/artifacts/` y `local/drafts/` *(respetando `.wav` de tests)* | **~900+ archivos** | **~118 MB** | **Nulo** si se conservan 2 rutas `.wav` (Nivel 1.B) |
-| Código huérfano / desconectado de la UI (`src/` + `src-tauri/`) | **7 archivos TS/TSX (+ 3 tests) + 3 módulos Rust** | Código fuente | **Bajo**, requiere borrar en bloque coordinado (Nivel 2) |
+| Código huérfano / desconectado de la UI (`src/` + `Backend/src-tauri/`) | **7 archivos TS/TSX (+ 3 tests) + 3 módulos Rust** | Código fuente | **Bajo**, requiere borrar en bloque coordinado (Nivel 2) |
 | Scripts de prueba rotos, superados o atados a rutas personales (`C:/Users/enri3/...`) | **11 scripts** | **~120 KB** | **Medio**, reparar o retirar (Nivel 4) |
 | Caché de compilación Rust (`.cargo-target/`) y bundle web (`dist/`) | **6.976 archivos** | **~9,36 GB** | **Regenerable** (`cargo clean` / `npm run build`) (Nivel 5) |
 
@@ -27,12 +27,12 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 
 | Ruta | Qué es y por qué sobra | Acción segura |
 |---|---|---|
-| `src-tauri/examples/` | Carpeta **totalmente vacía**, sin seguimiento en Git ni entradas `[[example]]` en `Cargo.toml`. | Borrar carpeta vacía. |
-| `src-tauri/icons/android/` (`17` archivos) | Iconos adaptativos Android generados por defecto por `tauri icon`. Alice solo soporta Windows y Ubuntu. | Borrar carpeta completa. |
-| `src-tauri/icons/ios/` (`18` archivos) | Iconos iOS/App Store generados por plantilla por `tauri icon`. Sin uso alguno. | Borrar carpeta completa. |
-| `src-tauri/icons/icon.icns` (**793 KB**) | Contenedor de icono exclusivo de macOS. Nota: si se borra, quitar también `"icons/icon.icns"` del arreglo `bundle.icon` en [`src-tauri/tauri.conf.json`](../../src-tauri/tauri.conf.json). | Borrar + quitar línea en `tauri.conf.json`. |
-| `src-tauri/icons/64x64.png`, `Square*Logo.png` (`9`) y `StoreLogo.png` (`11` archivos) | PNGs generados por plantilla para Microsoft Store (Appx/MSIX); ninguno está referenciado en `tauri.conf.json` ni en Rust (`lib.rs` usa `icon.png` y Windows usa `icon.ico`). | Borrar si no empaquetarás MSIX para Microsoft Store. |
-| [`scripts/icons/legacy/activity-timeline-scene.mjs`](../../scripts/icons/legacy/activity-timeline-scene.mjs) | Escena SVG antigua reemplazada por `scripts/icons/scenes/cognitive-activity-timeline.mjs`. **0 importadores** en todo el proyecto. | Borrar archivo y carpeta `scripts/icons/legacy/`. |
+| `Backend/src-tauri/examples/` | Carpeta **totalmente vacía**, sin seguimiento en Git ni entradas `[[example]]` en `Cargo.toml`. | Borrar carpeta vacía. |
+| `Backend/src-tauri/icons/android/` (`17` archivos) | Iconos adaptativos Android generados por defecto por `tauri icon`. Alice solo soporta Windows y Ubuntu. | Borrar carpeta completa. |
+| `Backend/src-tauri/icons/ios/` (`18` archivos) | Iconos iOS/App Store generados por plantilla por `tauri icon`. Sin uso alguno. | Borrar carpeta completa. |
+| `Backend/src-tauri/icons/icon.icns` (**793 KB**) | Contenedor de icono exclusivo de macOS. Nota: si se borra, quitar también `"icons/icon.icns"` del arreglo `bundle.icon` en [`Backend/src-tauri/tauri.conf.json`](../../Backend/src-tauri/tauri.conf.json). | Borrar + quitar línea en `tauri.conf.json`. |
+| `Backend/src-tauri/icons/64x64.png`, `Square*Logo.png` (`9`) y `StoreLogo.png` (`11` archivos) | PNGs generados por plantilla para Microsoft Store (Appx/MSIX); ninguno está referenciado en `tauri.conf.json` ni en Rust (`lib.rs` usa `icon.png` y Windows usa `icon.ico`). | Borrar si no empaquetarás MSIX para Microsoft Store. |
+| `scripts/icons/legacy/activity-timeline-scene.mjs` | Escena antigua reemplazada y sin importadores. | Retirada; copia local e historial Git. |
 | [`docs/Analisis_Estado_Proyecto_2026-08-19.docx`](../Analisis_Estado_Proyecto_2026-08-19.docx) (**1,22 MB**) | Documento Word binario de agosto de 2026 con capturas viejas de la etapa *Alice Cognitive Core* (hasta R5). Superado por `especificacion_alice_continuum.html`. | Borrar o mover fuera del repositorio. |
 | [`docs/analysis_results.md`](../analysis_results.md) | Volcado genérico de IA del 18 de agosto de 2026 (46 ADRs) que además pisó un archivo previo del 10 de agosto. Engañoso y obsoleto. | Borrar. |
 
@@ -51,7 +51,7 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 
 ---
 
-## Nivel 2 · Código huérfano desconectado de la aplicación activa (`src/` y `src-tauri/`)
+## Nivel 2 · Código huérfano desconectado de la aplicación activa (`src/` y `Backend/src-tauri/`)
 
 Cuando Alice migró su aprendizaje conversacional y su visión desde **Ollama/Qwen** hacia **Gemma 4 E2B local (`llama-server`)**, varios paneles antiguos dejaron de renderizarse en `App.tsx`, dejando una cadena huérfana tanto en React/TypeScript como en Rust:
 
@@ -59,7 +59,7 @@ Cuando Alice migró su aprendizaje conversacional y su visión desde **Ollama/Qw
 
 | Archivo | Estado exacto | Explicación |
 |---|---|---|
-| [`src/components/icons/NucleusViewIcon.tsx`](../../src/components/icons/NucleusViewIcon.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Era el icono de subpestañas del viejo panel unificado del Núcleo; hoy las 4 vistas usan `NavigationIcon.tsx`. |
+| `src/components/icons/NucleusViewIcon.tsx` | **RETIRADO** | Sin importadores; copia local de recuperación y contenido en el historial Git. |
 | [`src/components/memory/MemoryCandidatePanel.tsx`](../../src/components/memory/MemoryCandidatePanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel R6.4-C de candidatos vía Ollama; reemplazado por `AutomaticMemoryPanel.tsx` y propuestas por turno en `ConversationPage.tsx`. |
 | [`src/components/memory/SensoryLearningPanel.tsx`](../../src/components/memory/SensoryLearningPanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel de concesiones de cámara/micrófono de 60 s y análisis de pantalla cada 5 min vía Ollama; reemplazado por `ConversationVision.tsx`. |
 | [`src/components/icons/BridgeViewIcon.tsx`](../../src/components/icons/BridgeViewIcon.tsx) | **MUERTO EN RUNTIME** | Solo se importa en `CapabilityRegistryPage.tsx` dentro de `{!fixedView && ...}`, pero `App.tsx` (líneas 667–669) **siempre** pasa `fixedView` definido (`"overview"`, `"face"` o `"body"`). |
@@ -67,16 +67,16 @@ Cuando Alice migró su aprendizaje conversacional y su visión desde **Ollama/Qw
 | [`src/core/conversation/teaching-templates.ts`](../../src/core/conversation/teaching-templates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST** | Plantillas del formulario retirado *"Enseñarle a Alice"*. Ningún componente las importa. |
 | [`src/core/memory/learning-candidates.ts`](../../src/core/memory/learning-candidates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST + HUÉRFANO** | En código de app solo lo importaba el huérfano `MemoryCandidatePanel.tsx`. |
 
-### 2.2 Módulos y comandos Tauri en Rust desconectados de la UI activa (`src-tauri/src/`)
+### 2.2 Módulos y comandos Tauri en Rust desconectados de la UI activa (`Backend/src-tauri/src/`)
 
-> Nota: todos siguen registrados en `tauri::generate_handler![]` dentro de [`src-tauri/src/lib.rs`](../../src-tauri/src/lib.rs) y tienen tests unitarios en `cargo test`, por lo que **si algún día decides retirarlos debes quitar a la vez el módulo, su registro en `lib.rs` y sus referencias en `capabilities.rs` / `diagnostics.rs`**.
+> Nota: todos siguen registrados en `tauri::generate_handler![]` dentro de [`Backend/src-tauri/src/lib.rs`](../../Backend/src-tauri/src/lib.rs) y tienen tests unitarios en `cargo test`, por lo que **si algún día decides retirarlos debes quitar a la vez el módulo, su registro en `lib.rs` y sus referencias en `capabilities.rs` / `diagnostics.rs`**.
 
 | Módulo / Comando Rust | Quién lo invoca hoy en `src/` | Situación real |
 |---|---|---|
-| Comando `markdown_note_catalog` ([`memory.rs`](../../src-tauri/src/memory.rs) → [`memory/queries.rs`](../../src-tauri/src/memory/queries.rs)) | **Nadie (`0` invocaciones en todo `src/`)** | Comando Tauri completamente huérfano en el frontend. |
-| [`src-tauri/src/learning_candidates.rs`](../../src-tauri/src/learning_candidates.rs) (`preview_learning_candidates`, `confirm_learning_candidate`) + `append_confirmed_learning` en [`memory/learning.rs`](../../src-tauri/src/memory/learning.rs) | Solo el componente huérfano `MemoryCandidatePanel.tsx` | Flujo heredado R6.4-C basado en Ollama (`127.0.0.1:11434`), desplazado en la app viva por `conversation_learning.rs` (Gemma). |
-| [`src-tauri/src/visual_learning.rs`](../../src-tauri/src/visual_learning.rs) (`analyze_screen_frame`) | Solo el componente huérfano `SensoryLearningPanel.tsx` | Analizador de pantalla heredado vía Ollama multimodal, desplazado por `conversation_vision.rs` (`preview_vision_desktop` + Gemma). |
-| [`src-tauri/src/sensory.rs`](../../src-tauri/src/sensory.rs) (`sensor_lease_status`) + `execute_sensor_lease_grant` y `stop_sensor_lease` en [`permissions.rs`](../../src-tauri/src/permissions.rs) | Solo el componente huérfano `SensoryLearningPanel.tsx` *(más helpers sin uso en `src/core/governance/permissions.ts`)* | Circuito antiguo de *leases* sensoriales de 60 s con FFmpeg/Python. Además, `sensory.rs` tiene hardcodeados los dispositivos del portátil del autor (`"ACER HD User Facing"`, `"Varios micrófonos (Realtek(R) Audio)"`). |
+| Comando `markdown_note_catalog` ([`memory.rs`](../../Backend/src-tauri/src/memory.rs) → [`memory/queries.rs`](../../Backend/src-tauri/src/memory/queries.rs)) | **Nadie (`0` invocaciones en todo `src/`)** | Comando Tauri completamente huérfano en el frontend. |
+| [`Backend/src-tauri/src/learning_candidates.rs`](../../Backend/src-tauri/src/learning_candidates.rs) (`preview_learning_candidates`, `confirm_learning_candidate`) + `append_confirmed_learning` en [`memory/learning.rs`](../../Backend/src-tauri/src/memory/learning.rs) | Solo el componente huérfano `MemoryCandidatePanel.tsx` | Flujo heredado R6.4-C basado en Ollama (`127.0.0.1:11434`), desplazado en la app viva por `conversation_learning.rs` (Gemma). |
+| [`Backend/src-tauri/src/visual_learning.rs`](../../Backend/src-tauri/src/visual_learning.rs) (`analyze_screen_frame`) | Solo el componente huérfano `SensoryLearningPanel.tsx` | Analizador de pantalla heredado vía Ollama multimodal, desplazado por `conversation_vision.rs` (`preview_vision_desktop` + Gemma). |
+| [`Backend/src-tauri/src/sensory.rs`](../../Backend/src-tauri/src/sensory.rs) (`sensor_lease_status`) + `execute_sensor_lease_grant` y `stop_sensor_lease` en [`permissions.rs`](../../Backend/src-tauri/src/permissions.rs) | Solo el componente huérfano `SensoryLearningPanel.tsx` *(más helpers sin uso en `src/core/governance/permissions.ts`)* | Circuito antiguo de *leases* sensoriales de 60 s con FFmpeg/Python. Además, `sensory.rs` tiene hardcodeados los dispositivos del portátil del autor (`"ACER HD User Facing"`, `"Varios micrófonos (Realtek(R) Audio)"`). |
 
 ---
 
@@ -100,28 +100,28 @@ Estos archivos **sí son esenciales y no deben borrarse**, pero contienen bloque
 ## Nivel 4 · Scripts rotos, prototipos superados y rutas personales acopladas
 
 ### 4.1 Scripts rotos hoy mismo (`TypeError` al arrancar)
-- [`scripts/testing/compare-local-models.mjs`](../../scripts/testing/compare-local-models.mjs)
+- `scripts/testing/compare-local-models.mjs` se retiró del código activo y se conservó en el archivo local de recuperación.
 - [`scripts/testing/llama-memory-pilot.mjs`](../../scripts/testing/llama-memory-pilot.mjs)
-  - **Por qué fallan:** ambos ejecutan una expresión regular buscando `const SYSTEM_PROMPT: &str = "..."` dentro de `src-tauri/src/cloud.rs`, pero `cloud.rs` ahora carga el prompt con `include_str!("prompts/conversation.txt")`. Resultado: `match(...)` devuelve `null` y el script explota con `TypeError` al iniciar.
-  - **Efecto colateral:** `compare-local-models.mjs` y [`scripts/adapters/probe_document_ui.cjs`](../../scripts/adapters/probe_document_ui.cjs) ejecutan `fs.mkdirSync("artifacts", ...)` creando una carpeta basura `artifacts/` en la raíz del proyecto.
+  - **Por qué fallan:** ambos ejecutan una expresión regular buscando `const SYSTEM_PROMPT: &str = "..."` dentro de `Backend/src-tauri/src/cloud.rs`, pero `cloud.rs` ahora carga el prompt con `include_str!("prompts/conversation.txt")`. Resultado: `match(...)` devuelve `null` y el script explota con `TypeError` al iniciar.
+  - **Efecto colateral histórico:** ambos creaban una carpeta `artifacts/` en la raíz; la sonda documental ahora usa `local/artifacts/`.
 
 ### 4.2 Prototipos de evaluación ya reemplazados
-- [`scripts/testing/voice-turn-pilot.mjs`](../../scripts/testing/voice-turn-pilot.mjs) + [`scripts/testing/voice-turn-pilot/client.js`](../../scripts/testing/voice-turn-pilot/client.js) + [`scripts/testing/voice-turn-pilot/index.html`](../../scripts/testing/voice-turn-pilot/index.html): primer piloto de voz de un solo turno manual, superado primero por `conversation-session-pilot` y luego integrado de forma nativa en `src/core/voice/` y `src-tauri/src/voice_input.rs`.
-- [`scripts/testing/start-llama-evaluation.ps1`](../../scripts/testing/start-llama-evaluation.ps1): lanzador manual previo a [`local_inference.rs`](../../src-tauri/src/local_inference.rs), con rutas atadas a `D:\Alice-model-evaluation\...`.
+- [`scripts/testing/voice-turn-pilot.mjs`](../../scripts/testing/voice-turn-pilot.mjs) + [`scripts/testing/voice-turn-pilot/client.js`](../../scripts/testing/voice-turn-pilot/client.js) + [`scripts/testing/voice-turn-pilot/index.html`](../../scripts/testing/voice-turn-pilot/index.html): primer piloto de voz de un solo turno manual, superado primero por `conversation-session-pilot` y luego integrado de forma nativa en `src/core/voice/` y `Backend/src-tauri/src/voice_input.rs`.
+- [`scripts/testing/start-llama-evaluation.ps1`](../../scripts/testing/start-llama-evaluation.ps1): lanzador manual previo a [`local_inference.rs`](../../Backend/src-tauri/src/local_inference.rs), con rutas atadas a `D:\Alice-model-evaluation\...`.
 
 ### 4.3 Rutas personales hardcodeadas a la máquina actual
 - **Caché personal de Playwright en Codex (`C:/Users/enri3/.cache/codex-runtimes/.../node_modules/playwright`):** presente en [`gemma-evaluation.mjs`](../../scripts/testing/gemma-evaluation.mjs), [`settings-runtime-visual.cjs`](../../scripts/testing/settings-runtime-visual.cjs), [`voice-turn-pilot-smoke.mjs`](../../scripts/testing/voice-turn-pilot-smoke.mjs) y [`volume-observatory.cjs`](../../scripts/testing/volume-observatory.cjs). Fallan en cualquier otro PC si no se define `PLAYWRIGHT_MODULE_PATH`.
 - **Disco `D:\Alice-model-evaluation\...`:** usado como ruta por defecto en varios pilotos de `scripts/testing/` (mientras que `runtime_paths.rs` ya unificó el runtime real bajo `local/runtimes/` y `local/models/` o variables `ALICE_*`).
 - **Disco `E:\Ollama\models`:** comprobado directamente en [`Iniciar Alice Continuum.cmd`](../../Iniciar%20Alice%20Continuum.cmd).
-- **`"python"` global en vez de `runtime_paths::python()`:** tanto [`src-tauri/src/face_readiness.rs`](../../src-tauri/src/face_readiness.rs) como [`src-tauri/src/sensory.rs`](../../src-tauri/src/sensory.rs) invocan `"python"` del `PATH` global en vez del intérprete aislado de `local/venv` que sí usa `documents.rs`.
+- **`"python"` global en vez de `runtime_paths::python()`:** tanto [`Backend/src-tauri/src/face_readiness.rs`](../../Backend/src-tauri/src/face_readiness.rs) como [`Backend/src-tauri/src/sensory.rs`](../../Backend/src-tauri/src/sensory.rs) invocan `"python"` del `PATH` global en vez del intérprete aislado de `local/venv` que sí usa `documents.rs`.
 
 ---
 
 ## Nivel 5 · Cachés regenerables y archivos delicados que NO debes borrar a ciegas
 
 1. **`.cargo-target/` (`9.352,21 MB` / `~9,35 GB`, 6.963 archivos):**
-   - No es código fuente sino la caché de compilación de Rust compartida por `.cargo/config.toml` y `src-tauri/.cargo/config.toml`.
-   - Si necesitas recuperar ~9 GB de disco de golpe, puedes ejecutar `cargo clean --manifest-path src-tauri/Cargo.toml`; se regenerará limpia la próxima vez que compiles (tardando unos minutos en recompilar crates).
+   - No es código fuente sino la caché de compilación de Rust compartida por `.cargo/config.toml` y `Backend/src-tauri/.cargo/config.toml`.
+   - Si necesitas recuperar ~9 GB de disco de golpe, puedes ejecutar `cargo clean --manifest-path Backend/src-tauri/Cargo.toml`; se regenerará limpia la próxima vez que compiles (tardando unos minutos en recompilar crates).
 2. **`dist/` (`7,29 MB`, 13 archivos) y `node_modules/` (`158,78 MB`, 4.117 archivos):**
    - Salida del frontend compilado (`npm run build`) y dependencias npm (`npm ci`). Regenerables en cualquier momento.
 3. **`local/reference-adapters/` (`12` scripts Python en cuarentena):**

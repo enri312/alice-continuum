@@ -1,4 +1,4 @@
 [build]
 # Los comandos ejecutados desde la raíz comparten el mismo destino que Tauri
-# y src-tauri/.cargo/config.toml. Evita regenerar src-tauri/target.
+# y Backend/src-tauri/.cargo/config.toml. Evita regenerar el target del backend.
 target-dir = ".cargo-target"

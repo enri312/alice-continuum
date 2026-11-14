@@ -4,7 +4,7 @@
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
 [![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
 [![Dioxus 0.7.0](https://img.shields.io/badge/Dioxus-0.7.0-25A7D7?logo=rust&logoColor=white)](crates/state-controls/Cargo.toml)
-[![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](src-tauri/Cargo.lock)
+[![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](Backend/src-tauri/Cargo.lock)
 [![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
 [![npm 11.20.0](https://img.shields.io/badge/npm-11.20.0-CB3837?logo=npm&logoColor=white)](package.json)
 [![Vite 8.3.5](https://img.shields.io/badge/Vite-8.3.5-646CFF?logo=vite&logoColor=white)](package-lock.json)
@@ -278,7 +278,7 @@ representa comprensión general ni una modificación de Gemma.
 ## Ubuntu y recursos locales
 
 Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
-`drafts`, `artifacts` y `venv`. `src`, `src-tauri`, `.cargo`, `.git`,
+`drafts`, `artifacts` y `venv`. `src`, `Backend/src-tauri`, `.cargo`, `.git`,
 `node_modules` y `dist` conservan los nombres esperados por sus herramientas.
 La memoria sigue en `data/`; los motores actuales permanecen en D:.
 
@@ -347,10 +347,10 @@ se documentan en su [informe](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10
 ```powershell
 npm test
 npm run build
-cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
-cargo test --manifest-path src-tauri/Cargo.toml --lib
-cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-cargo build --manifest-path src-tauri/Cargo.toml
+cargo fmt --manifest-path Backend/src-tauri/Cargo.toml -- --check
+cargo test --manifest-path Backend/src-tauri/Cargo.toml --lib
+cargo clippy --manifest-path Backend/src-tauri/Cargo.toml --all-targets -- -D warnings
+cargo build --manifest-path Backend/src-tauri/Cargo.toml
 ```
 
 El workflow [Ubuntu](.github/workflows/ubuntu.yml) verifica además Linux con
@@ -368,14 +368,15 @@ Clean Architecture o Vertical Slice. [Decisión y verificación](docs/decisions/
 
 El backend de memoria conserva una fachada breve y 28 comandos estables;
 sus contratos, validaciones, consultas, persistencia, casos de uso y pruebas
-viven en `src-tauri/src/memory/`. El almacenamiento básico se prueba por rutas,
+viven en `Backend/src-tauri/src/memory/`. El almacenamiento básico se prueba por rutas,
 conservando respaldos, auditoría y formatos. [Modularización y React 19.3.1](docs/decisions/ADR-P-108-memoria-modular-react-19-3.md).
 
 ```text
 src/pages/             pantallas de conversación, memoria, núcleo y gobierno
 src/components/        componentes, controles de voz y visualizaciones
 src/core/              contratos, recuperación y procesamiento de audio
-src-tauri/src/         memoria, modelos, permisos y adaptadores nativos
+Backend/src-tauri/     aplicación nativa Rust/Tauri, memoria y permisos
+Backend/adapters/      adaptadores Python nativos y sus pruebas
 local/                 activos privados, entorno Python, borradores y evidencias
 data/                  conversación, memoria y auditorías privadas
 .cargo-target/         caché Rust compartido (no se publica)
@@ -386,6 +387,9 @@ docs/                  manual, arquitectura, decisiones e informes
 ```
 
 [Mapa de módulos](docs/architecture/PROJECT_STRUCTURE.md) · [Decisiones ADR](docs/decisions/README.md) · [Contexto recuperado](docs/CONTEXTO_RECUPERADO_2026-11-03.md)
+
+La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
+explica qué se movió, qué iconos se usan y qué herramientas aún requieren revisión.
 
 ## Datos, límites y próximos pasos
 

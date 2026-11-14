@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# Portable ASR used by src-tauri/src/whisper_input.rs. No PATH, service or GPU changes.
+# Portable ASR used by Backend/src-tauri/src/whisper_input.rs. No PATH, service or GPU changes.
 # Downloads occur only when this script is run explicitly, never at app startup.
 $inferenceRoot = if ($env:ALICE_INFERENCE_HOME) { $env:ALICE_INFERENCE_HOME } else { 'D:\Alice-model-evaluation' }
 if (-not [IO.Path]::IsPathRooted($inferenceRoot)) { throw 'ALICE_INFERENCE_HOME debe contener una ruta absoluta.' }

@@ -27,7 +27,7 @@ Este currículo inicial no equivale a cubrir todas las ramas de las matemáticas
 
 Las fuentes y sus criterios están en
 [Fuentes del autoestudio](../research/SELF_STUDY_SOURCES_2026-11-10.md). El contenido
-editable por desarrollo está en `src-tauri/resources/self-study-curriculum.json`.
+editable por desarrollo está en `Backend/src-tauri/resources/self-study-curriculum.json`.
 Cambiar el currículo requiere revisar sus preguntas y recompilar el backend.
 
 ## Qué significa aprender aquí

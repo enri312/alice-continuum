@@ -42,7 +42,7 @@ seguro, directo, informal y resolutivo, con criterio propio y humor seco
 ocasional. Mantiene empatía, solidaridad y humildad; reconoce límites y corrige
 errores sin rodeos. Ante angustia acompaña sin presionar para actuar ni burlarse
 de las emociones. El bloque compartido está en
-`src-tauri/src/prompts/personality.txt`, aplicado a conversación escrita,
+`Backend/src-tauri/src/prompts/personality.txt`, aplicado a conversación escrita,
 hablada y visión. El saludo es breve y no exige una pregunta final.
 La dirección contextual TTS es `[confident, conversational]`; las opciones
 explícitas de entrega conservan sus alternativas.
@@ -249,7 +249,7 @@ otra toma, descartar o cerrar el dictado. El sonido no se guarda como archivo.
 
 ## Evaluación y reporte
 
-Antes de cambiar instrucciones, inspeccionar `src-tauri/src/cloud.rs` (prompt y
+Antes de cambiar instrucciones, inspeccionar `Backend/src-tauri/src/cloud.rs` (prompt y
 muestreo) y `src/core/conversation/cloud-payload.ts` (fuentes y orden). No asumir
 que el historial visible equivale al contexto recibido: el modo manual excluye las respuestas anteriores de Alice; el automático las
 conserva como diálogo no factual autorizado por la sesión. No reconstruir un envío histórico como si
@@ -328,8 +328,8 @@ Desde la raíz del proyecto:
 ```powershell
 npx vitest run src/pages/conversation/ConversationPage.test.tsx src/pages/governance/SystemSettingsPage.test.tsx src/core/voice/voice-output.test.ts
 npx tsc -b
-cargo test --manifest-path src-tauri/Cargo.toml --lib conversational_style --quiet
-cargo test --manifest-path src-tauri/Cargo.toml --lib voice_output --quiet
+cargo test --manifest-path Backend/src-tauri/Cargo.toml --lib conversational_style --quiet
+cargo test --manifest-path Backend/src-tauri/Cargo.toml --lib voice_output --quiet
 git diff --check
 ```
 

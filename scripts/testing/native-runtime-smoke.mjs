@@ -14,7 +14,7 @@ function snapshot(dir) {
 }
 const before = snapshot(path.join(root, 'data'));
 const cargo = spawn('cargo', ['test', '--lib', 'local_inference::tests::live_owned_start_inference_stop', '--', '--ignored', '--exact', '--nocapture'],
-  { cwd: path.join(root, 'src-tauri'), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  { cwd: path.join(root, 'Backend/src-tauri'), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
 let output = '';
 cargo.stdout.on('data', c => { output += c; process.stdout.write(c); });
 cargo.stderr.on('data', c => { output += c; process.stderr.write(c); });

@@ -485,7 +485,7 @@ La consolidación detectará duplicados, contradicciones, datos posiblemente obs
 **Incremento R6.2-A (histórico):** introdujo memoria de trabajo nativa dentro del proceso con tres intercambios, seis mensajes, 48.000 caracteres y TTL de 30 minutos. Sólo una respuesta recibida del proveedor entra en RAM; vencer, vaciar o cerrar Alice elimina el contenido sin tocar memoria duradera. R3 recibe digests, no texto. El vaciado visible se incorporó en R6.2-B.
 
 **Límites vigentes de RAM:** seis intercambios completos, doce mensajes,
-72.000 caracteres y TTL de dos horas, definidos en `src-tauri/src/working_memory.rs`.
+72.000 caracteres y TTL de dos horas, definidos en `Backend/src-tauri/src/working_memory.rs`.
 Estos valores sustituyen los del incremento inicial.
 [Contrato actual](docs/architecture/WORKING_MEMORY_R6.md).
 
@@ -780,10 +780,10 @@ Antes de cerrar cualquier fase se debe:
 Comandos mínimos vigentes:
 
 ```powershell
-cargo fmt --manifest-path src-tauri\Cargo.toml -- --check
-cargo test --manifest-path src-tauri\Cargo.toml
-cargo clippy --manifest-path src-tauri\Cargo.toml -- -D warnings
-cargo build --manifest-path src-tauri\Cargo.toml
+cargo fmt --manifest-path Backend/src-tauri\Cargo.toml -- --check
+cargo test --manifest-path Backend/src-tauri\Cargo.toml
+cargo clippy --manifest-path Backend/src-tauri\Cargo.toml -- -D warnings
+cargo build --manifest-path Backend/src-tauri\Cargo.toml
 npm test
 npm run build
 ```
@@ -798,6 +798,11 @@ El autoestudio posterior se describe en las ampliaciones de R6. Ambas fuentes
 conservan su política y procedencia; el avatar continúa al final.
 
 ## Próximo paso autorizado
+
+Organización del proyecto (14 de noviembre): el backend nativo y sus adaptadores
+están en `Backend/`. La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
+registra las rutas actualizadas, las comprobaciones y los candidatos de limpieza
+que requieren revisión individual antes de retirarlos.
 
 El tramo activo se limita a **Estado y controles**: comprobar esta primera página
 Dioxus, conservar diseño y funciones, actualizar su icono y cerrar sus pendientes.
