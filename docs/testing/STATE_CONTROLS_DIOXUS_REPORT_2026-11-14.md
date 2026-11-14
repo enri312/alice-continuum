@@ -13,8 +13,8 @@ React refleja la selección para el respaldo, prepara los ajustes compartidos co
 Conversación y valida de nuevo las acciones que cruzan la frontera de WASM. Las
 pruebas cubren controles bloqueados, valores inválidos, puntuación real y contexto
 limitado. La navegación y los servicios comunes siguen en el contenedor React.
-Este avance necesita una nueva revisión visual y funcional en Tauri antes de dar
-la migración completa de la página por aceptada.
+La revisión posterior en Tauri se realizó con un directorio de datos aislado, sin
+la memoria personal ni generación de respuestas; no sustituye esa aceptación real.
 
 `crates/state-controls/src/ui.rs` renderiza el panel y el inspector con Dioxus
 0.7.0 / dioxus-web 0.7.10. Se conservan las clases del CSS existente, el rótulo
@@ -23,11 +23,11 @@ ocho deslizadores. No se copió la exportación completa, su configuración de r
 sus otras páginas ni sus módulos nativos. El backend de Tauri, la conversación,
 la voz y los almacenes mantienen sus contratos.
 
-`StateControlsPage.tsx` permanece como adaptador: recibe el snapshot actual,
-lee la actividad con el sondeo ya existente y conecta acciones con el estado de
-sesión. No es un requisito permanente de Dioxus; existe porque la aplicación
-contenedora y esos servicios siguen en React. El renderer Rust recibe datos y
-emite acciones; no invoca Tauri ni accede a red, archivos, claves o modelos.
+`StateControlsPage.tsx` se retiró. `StateControlsHost.tsx` es el puente de la
+aplicación React: recibe el snapshot, usa el sondeo existente y conecta acciones
+con el estado de sesión. El marco R3 y la preparación de controles se trasladaron
+al renderer Rust, que recibe datos y emite acciones; no invoca Tauri ni accede a
+red, archivos, claves o modelos. La vista React permanece sólo como recuperación.
 
 El módulo se importa y su WASM se inicializa al abrir la página. No añade un
 sondeo nuevo ni carga WASM en Conversación. Su instancia se desmonta al navegar.
@@ -96,9 +96,22 @@ vacío, sin enviarlo al modelo, encender el micrófono ni guardar un recuerdo de
 Esta revisión no repite la aceptación acústica de R9, no certifica un nuevo turno
 de generación ni valida todas las ventanas y resoluciones. Las otras páginas y
 la persistencia/grafos de R6/R8 siguen fuera de este incremento.
-El incremento posterior trasladó a Rust la selección, el inspector, la presentación
-de recuerdos y la validación de controles. La comprobación visual y funcional en
-Tauri sigue pendiente; el puente de estado compartido permanece en React.
+El incremento posterior trasladó a Rust la selección, el inspector, el marco R3,
+la presentación de recuerdos y la preparación y validación de controles. Una
+prueba en Chrome con datos sintéticos verificó ambos ajustes por teclado y su
+bloqueo durante un envío simulado; el diseño integrado y la selección de memoria
+se revisaron también en el navegador sin backend. En una instancia Tauri con un
+directorio vacío y autoestudio desactivado se revisaron el marco R3, el inspector,
+ambos deslizadores por teclado y la conservación de sus valores al navegar.
+La primera carga de esa prueba mostró un error 504 por dependencias optimizadas
+obsoletas; al reiniciar el servidor de prueba y recargar, la ventana funcionó.
+Estas pruebas no usaron el modelo ni los datos reales del usuario. El puente
+compartido permanece en React.
+
+La revisión automatizada posterior aprobó 866 pruebas frontend (2 omitidas), 15 de
+Obsidian, 20 de respaldo, 2 de privacidad, 6 pruebas del contrato Rust y la
+compilación de producción. Se excluyeron de Vitest los archivos `*.node.test.ts`,
+que se ejecutan por separado con el ejecutor de Node.
 
 ## Git y recuperación
 

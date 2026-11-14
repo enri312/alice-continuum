@@ -265,7 +265,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 | 153 | [`src/pages/cognitive/InputIdentificationPage.tsx`](../../src/pages/cognitive/InputIdentificationPage.tsx) | **ACTIVO** | Pantalla inicial predeterminada (`Identificación`): aloja el canal principal `ConversationPage` y mantiene cerrados al pie los `<details>` secundarios de `InputDiagnostics` y `DocumentPreview`. |
 | 154 | [`src/pages/cognitive/InputIdentificationPage.test.tsx`](../../src/pages/cognitive/InputIdentificationPage.test.tsx) | **ACTIVO (TEST)** | Verifica que la pantalla inicial priorice la conversación y mantenga colapsadas las herramientas secundarias por defecto. |
 | 155 | [`src/pages/cognitive/NeuralVolumePage.tsx`](../../src/pages/cognitive/NeuralVolumePage.tsx) | **ACTIVO** | Pantalla `Volumen` (`[01]`): sincroniza asociaciones confirmadas y estado del grafo R8 en Tauri y renderiza el observatorio 3D `NeuralVolume`. |
-| 156 | [`src/pages/cognitive/StateControlsPage.tsx`](../../src/pages/cognitive/StateControlsPage.tsx) | **ACTIVO** | Pantalla `Estado` (`[03]`): presenta `InternalState` junto con un inspector lateral detallado de métricas internas y controles conductuales bloqueados. |
+| 156 | [`StateControlsHost.tsx`](../../src/components/cognitive/state-controls/StateControlsHost.tsx) | **ACTIVO** | Puente de la pantalla Dioxus con la sesión de React; el renderer Rust está en `crates/state-controls/src/ui.rs` y la vista React se conserva sólo como recuperación. |
 
 ### 4.2 `src/pages/conversation/` (`2` archivos)
 

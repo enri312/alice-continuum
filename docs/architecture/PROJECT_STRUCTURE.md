@@ -141,7 +141,8 @@ dividido sus funciones ni cambiado las claves de navegación existentes.
 
 ## Nombres y ubicación de las pantallas
 
-Todas las rutas anteriores partían de `src/Page/`. Ahora parten de `src/pages/`:
+Las rutas anteriores partían de `src/Page/`. La mayoría ahora parten de `src/pages/`;
+Estado se renderiza en Dioxus y se conecta a la aplicación mediante un puente React:
 
 | Archivo anterior | Ruta actual dentro de `src/pages/` |
 |---|---|
@@ -149,7 +150,7 @@ Todas las rutas anteriores partían de `src/Page/`. Ahora parten de `src/pages/`
 | `Identificacion.tsx` | `cognitive/InputIdentificationPage.tsx` |
 | `Volumen.tsx` | `cognitive/NeuralVolumePage.tsx` |
 | `Flujo.tsx` | `cognitive/EvidenceFlowPage.tsx` |
-| `Estado.tsx` | `cognitive/StateControlsPage.tsx` |
+| `Estado.tsx` | `crates/state-controls/src/ui.rs` y `src/components/cognitive/state-controls/StateControlsHost.tsx` |
 | `Planificador.tsx` | `cognitive/ActionPlannerPage.tsx` |
 | `Memoria.tsx` | `memory/MemoryVaultPage.tsx` |
 | `Conversacion.tsx` | `conversation/ConversationPage.tsx` |

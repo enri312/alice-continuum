@@ -6,11 +6,12 @@ No accede a Tauri, archivos, credenciales, red, modelos ni memoria persistente.
 Recibe el snapshot autorizado del contenedor y emite acciones de selección o
 cambio de un control. El contenedor valida cada acción contra el estado actual.
 
-- `src/ui.rs`: paneles, selección local, métricas, deslizadores, recuerdo e inspector.
-- `src/model.rs`: contrato cerrado, presentación del recuerdo y validación de controles.
+- `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
+- `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
-- `src/components/cognitive/state-controls/` en la raíz: adaptador React,
-  ciclo de vida y validación de acciones.
+- `src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
+  ciclo de vida, validación de acciones y una vista de recuperación. La antigua
+  `StateControlsPage.tsx` ya no es necesaria.
 
 El WASM y sus bindings generados se incluyen en
 `src/dioxus/state-controls/pkg/`, junto con sus hashes y el hash de las fuentes.

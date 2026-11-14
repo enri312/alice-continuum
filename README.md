@@ -127,9 +127,13 @@ La vista Dioxus carga su WASM al abrir esta página, valida cada acción contra 
 estado actual y conserva un panel React de respaldo ante fallo. Pasaron 863 pruebas
 frontend, 15 de Obsidian, 20 de respaldos, dos del contrato Rust y Clippy para WASM.
 El icono representa dos ajustes de sesión, seis controles bloqueados y memoria recuperada.
-La lógica de selección, inspector, presentación de memoria y validación de
-controles se ejecuta en Rust. El adaptador React refleja la selección para la
-vista de respaldo y mantiene los ajustes compartidos con Conversación.
+El marco R3, la selección, el inspector, la presentación de memoria y la
+preparación y validación de controles se ejecutan en Rust/Dioxus. Se retiró
+`StateControlsPage.tsx`: un puente React pequeño conecta los datos y ajustes
+compartidos con Conversación y conserva una vista de recuperación si falla WASM.
+En Tauri con datos aislados se comprobaron el marco R3, el inspector y los dos
+ajustes por teclado, incluida su conservación al cambiar de pantalla. La prueba
+no utilizó los recuerdos personales ni generó una respuesta real.
 [Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)

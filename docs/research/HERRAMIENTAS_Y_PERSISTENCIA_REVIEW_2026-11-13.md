@@ -160,11 +160,11 @@ migración de datos, índice vectorial ni nueva base de memoria.
 
 ### Primera pantalla: Estado y controles
 
-La candidata más acotada es la presentación de
-[StateControlsPage](../../src/pages/cognitive/StateControlsPage.tsx) y
-[InternalState](../../src/components/cognitive/InternalState.tsx). Hoy reciben
-un snapshot y permiten seleccionar un indicador para el inspector. Los controles
-de comportamiento son informativos; seleccionarlos no ejecuta cambios.
+En la revisión original, la candidata más acotada era la presentación de
+[la antigua StateControlsPage](../testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md) y
+[InternalState](../../src/components/cognitive/InternalState.tsx). Entonces recibían
+un snapshot y permitían seleccionar indicadores; los controles eran informativos.
+El enlace anterior recoge los cambios posteriores y las funciones ahora activas.
 
 La prueba debe conservar señales internas, memoria recuperada, controles,
 etiquetas de implementación/bloqueo, valores, inspector y procedencia. Los

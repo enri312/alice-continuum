@@ -189,7 +189,7 @@ La revisión de persistencia y grafos continúa aplazada. Los modelos, credencia
 audios, cachés y artefactos de prueba permanecen fuera del código publicable.
 
 Fuentes de implementación: [InternalState](../../src/components/cognitive/InternalState.tsx),
-[StateControlsPage](../../src/pages/cognitive/StateControlsPage.tsx),
+[el puente actual de Estado](../../src/components/cognitive/state-controls/StateControlsHost.tsx),
 [ajustes frontend](../../src/core/conversation/behavior-settings.ts),
 [contrato nativo de estilo](../../src-tauri/src/conversation_behavior.rs) y
 [adaptador de conversación](../../src-tauri/src/cloud.rs).

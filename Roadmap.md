@@ -802,10 +802,12 @@ conservan su política y procedencia; el avatar continúa al final.
 El tramo activo se limita a **Estado y controles**: comprobar esta primera página
 Dioxus, conservar diseño y funciones, actualizar su icono y cerrar sus pendientes.
 Las otras páginas, R9 y los cambios de persistencia no se amplían en este tramo.
-Estado y controles calcula en Rust su selección, inspector, presentación de
-memoria y validación de controles. La integración conserva en React un espejo de
-selección para el respaldo y los ajustes compartidos con Conversación. Está pendiente
-revisar la nueva lógica en Tauri antes de aceptar la página como completamente migrada.
+Estado y controles dibuja en Rust/Dioxus también el marco de actividad R3 y prepara
+sus controles de sesión, además de la selección, el inspector y la memoria real.
+Se eliminó `StateControlsPage.tsx`; el puente React conecta el estado compartido con
+Conversación y conserva la vista de recuperación. Se revisaron marco, inspector,
+controles y navegación en Tauri con datos aislados. La aceptación con recuerdos
+del usuario y una respuesta real sigue separada de esa prueba.
 Pensamiento crítico y ética se incorporan al autoestudio con tres lecciones y
 ejercicios por materia; las 42 lecciones anteriores se conservan sin cambios.
 La agenda siguiente se conserva para retomarla después.

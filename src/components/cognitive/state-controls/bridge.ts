@@ -1,14 +1,26 @@
 import type { BrainSnapshot } from "../../../core/cognitive/brain";
+import { hasCoreActivitySignal, type CoreActivitySnapshot } from "../../../core/cognitive/core-activity";
 import { behaviorKeyForControl } from "../../../core/conversation/behavior-settings";
+import type { ConversationBehaviorSettings } from "../../../core/conversation/behavior-settings";
+import type { NucleusActivityStatus } from "../../../pages/shared/nucleus-shared";
 
-export function buildStateControlsPayload(snapshot: BrainSnapshot, selectedId: string, editable: boolean) {
+export type StateControlsBehavior = { settings: ConversationBehaviorSettings; supported: boolean; busy: boolean };
+
+export function buildStateControlsPayload(snapshot: BrainSnapshot, selectedId: string, behavior: StateControlsBehavior | null, activity: CoreActivitySnapshot | null = null, activityStatus: NucleusActivityStatus = "unavailable") {
   return {
     hasActivity: snapshot.hasActivity,
     localRecords: (snapshot.nodes.find(node => node.id === "memory")?.value ?? "0 recuerdos").toUpperCase(),
     selectedId,
     metrics: snapshot.stateMetrics,
-    controls: snapshot.behaviorControls.map(control => ({ ...control, locked: control.locked || !editable })),
+    controls: snapshot.behaviorControls,
+    behavior,
     retrieval: snapshot.retrievedMemory,
+    activity: {
+      status: activityStatus, signalPresent: hasCoreActivitySignal(activity),
+      auditHealthy: activity?.auditHealthy ?? null, windowEventCount: activity?.windowEventCount ?? 0,
+      windowMs: activity?.windowMs ?? 0, overallSignal: activity?.overallSignal ?? 0,
+      method: activity?.method ?? null,
+    },
   };
 }
 
@@ -27,8 +39,8 @@ export function parseStateControlsAction(raw: string, payload: StateControlsPayl
       return { type: "select", id: item.id };
     }
     const control = payload.controls.find(entry => entry.id === item.id);
-    if (item.type === "changeBehavior" && Object.keys(item).length === 3 && control && !control.locked
-      && control.availability === "ready" && behaviorKeyForControl(control.id)
+    if (item.type === "changeBehavior" && Object.keys(item).length === 3 && control
+      && payload.behavior?.supported && !payload.behavior.busy && behaviorKeyForControl(control.id)
       && typeof item.value === "number" && Number.isFinite(item.value) && item.value >= 0 && item.value <= 1) {
       return { type: "changeBehavior", id: control.id, value: item.value };
     }

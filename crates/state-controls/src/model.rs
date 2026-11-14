@@ -30,6 +30,84 @@ pub struct Control {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BehaviorSettings {
+    pub creativity: f64,
+    pub empathy: f64,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Behavior {
+    pub settings: BehaviorSettings,
+    pub supported: bool,
+    pub busy: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ActivityStatus {
+    Loading,
+    Ready,
+    Unavailable,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Activity {
+    pub status: ActivityStatus,
+    pub signal_present: bool,
+    pub audit_healthy: Option<bool>,
+    pub window_event_count: u64,
+    pub window_ms: u64,
+    pub overall_signal: f64,
+    pub method: Option<String>,
+}
+
+impl Activity {
+    pub fn view_state(&self) -> &'static str {
+        match self.status {
+            ActivityStatus::Loading => "loading",
+            ActivityStatus::Unavailable => "unavailable",
+            ActivityStatus::Ready if self.signal_present => "ready",
+            ActivityStatus::Ready => "idle",
+        }
+    }
+    pub fn audit_state(&self) -> &'static str {
+        match self.audit_healthy {
+            Some(true) => "healthy",
+            Some(false) => "degraded",
+            None => "unknown",
+        }
+    }
+    pub fn label(&self) -> &'static str {
+        match self.view_state() {
+            "loading" => "cargando señal R3",
+            "unavailable" => "señal R3 no disponible",
+            "ready" => "señal R3 reciente",
+            _ => "sin señal R3 reciente",
+        }
+    }
+    pub fn summary(&self) -> String {
+        match self.status {
+            ActivityStatus::Loading => "LEYENDO AUDITORÍA LOCAL…".into(),
+            ActivityStatus::Unavailable => "SNAPSHOT NATIVO NO DISPONIBLE".into(),
+            ActivityStatus::Ready => format!(
+                "{} EVENTOS / {} MIN · SEÑAL {:.3} · {}",
+                self.window_event_count,
+                ((self.window_ms as f64) / 60_000.0).round() as u64,
+                self.overall_signal,
+                if self.audit_healthy == Some(true) {
+                    "AUDITORÍA ÍNTEGRA"
+                } else {
+                    "AUDITORÍA CON LÍNEAS INVÁLIDAS"
+                }
+            ),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Retrieval {
     pub phase: String,
     pub context_mode: Option<String>,
@@ -143,7 +221,9 @@ pub struct Payload {
     pub selected_id: String,
     pub metrics: Vec<Metric>,
     pub controls: Vec<Control>,
+    pub behavior: Option<Behavior>,
     pub retrieval: Retrieval,
+    pub activity: Activity,
 }
 
 impl Payload {
@@ -165,12 +245,53 @@ impl Payload {
         (&metric.label, metric.value, &metric.detail)
     }
     pub fn parse(raw: &str) -> Result<Self, String> {
-        let payload: Self = serde_json::from_str(raw).map_err(|error| error.to_string())?;
+        let mut payload: Self = serde_json::from_str(raw).map_err(|error| error.to_string())?;
         if payload.metrics.is_empty()
             || payload.metrics.iter().any(|item| !valid_value(item.value))
             || payload.controls.iter().any(|item| !valid_value(item.value))
+            || !valid_value(payload.activity.overall_signal)
+            || payload.behavior.as_ref().is_some_and(|behavior| {
+                !valid_value(behavior.settings.creativity)
+                    || !valid_value(behavior.settings.empathy)
+            })
         {
             return Err("Señales o controles fuera del contrato".into());
+        }
+        for control in &mut payload.controls {
+            let Some(behavior) = &payload.behavior else {
+                control.locked = true;
+                continue;
+            };
+            let value = match control.id.as_str() {
+                "control-creativity" => behavior.settings.creativity,
+                "control-empathy" => behavior.settings.empathy,
+                _ => {
+                    control.locked = true;
+                    continue;
+                }
+            };
+            control.availability = Availability::Ready;
+            control.locked = !behavior.supported || behavior.busy;
+            control.value = if behavior.supported { value } else { 0.0 };
+            control.detail = if !behavior.supported {
+                "Disponible para Gemma y Ollama locales. Este ajuste no se aplica al proveedor actual.".into()
+            } else if control.id == "control-creativity" {
+                format!("Temperatura de generación conversacional: {value:.2}. Se aplica al próximo envío; no cambia el reconocimiento de voz ni las órdenes de aplicaciones.")
+            } else {
+                let tone = if value < 1.0 / 3.0 {
+                    "directo y práctico"
+                } else if value > 2.0 / 3.0 {
+                    "más atento al contexto emocional"
+                } else {
+                    "estilo habitual"
+                };
+                format!("Tono para el próximo envío: {tone}. Tres tramos de estilo que mantienen respeto, personalidad y límites; no representa una emoción de Alice.")
+            };
+            if behavior.busy {
+                control.detail.push_str(
+                    " Hay una respuesta en curso; espera a que termine para modificarlo.",
+                );
+            }
         }
         Ok(payload)
     }
@@ -186,7 +307,9 @@ mod tests {
         serde_json::json!({"hasActivity":false,"localRecords":"0 RECUERDOS","selectedId":"state-memory",
             "metrics":[{"id":"state-memory","label":"Actividad de memoria","value":0,"detail":"Sin actividad","availability":"ready"}],
             "controls":[{"id":"control-autonomy","label":"Autonomía","value":0,"detail":"Bloqueada","availability":"ready","locked":true}],
-            "retrieval":{"phase":"idle","contextMode":null,"responseId":null,"count":0,"ids":[],"top":null}})
+            "behavior":null,
+            "retrieval":{"phase":"idle","contextMode":null,"responseId":null,"count":0,"ids":[],"top":null},
+            "activity":{"status":"unavailable","signalPresent":false,"auditHealthy":null,"windowEventCount":0,"windowMs":0,"overallSignal":0,"method":null}})
     }
     #[test]
     fn preserves_empty_data_and_locks() {
@@ -209,6 +332,31 @@ mod tests {
         );
     }
     #[test]
+    fn activity_distinguishes_loading_idle_signal_and_audit_degradation() {
+        let mut raw = fixture();
+        let activity = &mut raw["activity"];
+        activity["status"] = "loading".into();
+        let a = Payload::parse(&raw.to_string()).unwrap().activity;
+        assert_eq!(
+            (a.view_state(), a.summary().as_str()),
+            ("loading", "LEYENDO AUDITORÍA LOCAL…")
+        );
+        raw["activity"]["status"] = "ready".into();
+        raw["activity"]["auditHealthy"] = false.into();
+        let a = Payload::parse(&raw.to_string()).unwrap().activity;
+        assert_eq!((a.view_state(), a.audit_state()), ("idle", "degraded"));
+        raw["activity"]["signalPresent"] = true.into();
+        raw["activity"]["windowEventCount"] = 3.into();
+        raw["activity"]["windowMs"] = 300_000.into();
+        raw["activity"]["overallSignal"] = 0.5.into();
+        let a = Payload::parse(&raw.to_string()).unwrap().activity;
+        assert_eq!(a.view_state(), "ready");
+        assert_eq!(
+            a.summary(),
+            "3 EVENTOS / 5 MIN · SEÑAL 0.500 · AUDITORÍA CON LÍNEAS INVÁLIDAS"
+        );
+    }
+    #[test]
     fn rejects_missing_locks_unknown_fields_and_out_of_range_values() {
         let mut missing = fixture();
         missing["controls"][0]
@@ -228,16 +376,42 @@ mod tests {
     fn only_unlocked_implemented_session_controls_accept_valid_values() {
         let mut raw = fixture();
         raw["controls"][0]["id"] = "control-creativity".into();
-        raw["controls"][0]["locked"] = false.into();
+        raw["behavior"] = serde_json::json!({"settings":{"creativity":0.75,"empathy":0.5},"supported":true,"busy":false});
         let payload = Payload::parse(&raw.to_string()).unwrap();
         assert!(payload.can_change("control-creativity", 0.75));
+        assert_eq!(payload.controls[0].value, 0.75);
+        assert!(payload.controls[0].detail.contains("0.75"));
         assert!(!payload.can_change("control-creativity", 1.01));
         assert!(!payload.can_change("control-creativity", f64::NAN));
         assert!(!payload.can_change("control-autonomy", 0.5));
-        raw["controls"][0]["locked"] = true.into();
+        raw["behavior"]["busy"] = true.into();
         assert!(!Payload::parse(&raw.to_string())
             .unwrap()
             .can_change("control-creativity", 0.5));
+        raw["behavior"]["busy"] = false.into();
+        raw["behavior"]["supported"] = false.into();
+        let unsupported = Payload::parse(&raw.to_string()).unwrap();
+        assert!(!unsupported.can_change("control-creativity", 0.5));
+        assert_eq!(unsupported.controls[0].value, 0.0);
+        raw["behavior"]["settings"]["creativity"] = 1.5.into();
+        assert!(Payload::parse(&raw.to_string()).is_err());
+    }
+
+    #[test]
+    fn empathy_projects_shared_tone_and_other_controls_stay_locked() {
+        let mut raw = fixture();
+        raw["controls"][0]["id"] = "control-empathy".into();
+        raw["behavior"] = serde_json::json!({"settings":{"creativity":0.2,"empathy":0.9},"supported":true,"busy":false});
+        let payload = Payload::parse(&raw.to_string()).unwrap();
+        assert!(payload.can_change("control-empathy", 0.9));
+        assert!(payload.controls[0]
+            .detail
+            .contains("más atento al contexto emocional"));
+        raw["controls"][0]["id"] = "control-autonomy".into();
+        raw["controls"][0]["locked"] = false.into();
+        let payload = Payload::parse(&raw.to_string()).unwrap();
+        assert!(payload.controls[0].locked);
+        assert!(!payload.can_change("control-autonomy", 0.5));
     }
 
     #[test]
