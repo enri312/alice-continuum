@@ -125,6 +125,22 @@ propietario sigue siendo una aceptación separada.
 
 ## Preservación y límites
 
+### Etiquetas de la fila en español
+
+El propietario confirmó que la fila debe mostrar únicamente recuerdos reales.
+Su presentación se localiza a `EPISÓDICA`, `SEMÁNTICA`, `PROCEDIMENTAL` y
+`PREFERENCIA`; los episodios conversacionales muestran
+`USUARIO: <entrada real> → Alice`. Se mantienen las claves internas, la
+procedencia, los filtros y la puntuación original. El título de personalidad y
+el valor 0,503 de la referencia no se insertan como datos.
+
+El estado vacío indica cómo iniciar una consulta con Recuerdos activos en
+Conversación. Este ajuste pasó **16 pruebas dirigidas en dos archivos** y la
+compilación TypeScript/Vite; el aviso conocido de chunks grandes se mantiene.
+Logs privados: `local/experiments/memory-row-label-tests.log` y
+`memory-row-label-build.log`. No se ejecutaron otra vez las suites Rust o de
+respaldos por este cambio de presentación, ni se escribieron recuerdos de prueba.
+
 Antes de modificar el código se verificó el respaldo de `6f8a223`:
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-14T00-00-07-727Z-0bb32fe3-ac5a-443b-b588-14256759e2d1`.
 El nombre del snapshot usa UTC; la fecha de este informe sigue la zona del propietario.

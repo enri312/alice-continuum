@@ -103,7 +103,7 @@ export function failMemoryRetrieval(sent: MemoryRetrievalObservation): MemoryRet
 }
 
 const labels: Record<CognitiveMemoryLayer, string> = {
-  episodic: "EPISODIC", semantic: "SEMANTIC", procedural: "PROCEDURAL", preference: "PREFERENCE", self: "PERFIL", unclassified: "SIN CLASIFICAR",
+  episodic: "EPISÓDICA", semantic: "SEMÁNTICA", procedural: "PROCEDIMENTAL", preference: "PREFERENCIA", self: "PERFIL", unclassified: "SIN CLASIFICAR",
 };
 
 export function projectMemoryRetrieval(observation: MemoryRetrievalObservation, memories: ObservedMemoryInput[]): RetrievedMemoryView {
@@ -117,7 +117,7 @@ export function projectMemoryRetrieval(observation: MemoryRetrievalObservation, 
     view.ids.push(reference.id);
     if (!view.top) view.top = {
       id: node.id, layer: node.layer, typeLabel: labels[node.layer],
-      text: memory.kind === "Conversación" ? `USER: ${memory.intention} → Alice` : memory.intention,
+      text: memory.kind === "Conversación" ? `USUARIO: ${memory.intention} → Alice` : memory.intention,
       source: node.source, origin: node.origin, score: reference.score, scoreKind: reference.scoreKind,
     };
   }

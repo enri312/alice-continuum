@@ -22,7 +22,7 @@ describe("observación efímera de recuperación", () => {
   });
   it("distingue una coincidencia preparada de contexto proporcionado y conserva puntuación léxica sin normalizar", () => {
     expect(projectMemoryRetrieval(prepared(), [episode])).toMatchObject({ phase: "prepared", contextMode: null, count: 1,
-      top: { id: episode.id, layer: "episodic", typeLabel: "EPISODIC", text: "USER: Quiero practicar fracciones → Alice", source: "Conversación local", origin: "record", score: 7.425, scoreKind: "lexical" } });
+      top: { id: episode.id, layer: "episodic", typeLabel: "EPISÓDICA", text: "USUARIO: Quiero practicar fracciones → Alice", source: "Conversación local", origin: "record", score: 7.425, scoreKind: "lexical" } });
     const sent = beginMemoryRetrieval(prepared());
     const completed = completeMemoryRetrieval(sent, "response-1", "full");
     expect(projectMemoryRetrieval(completed, [episode])).toMatchObject({ phase: "responded", contextMode: "full", responseId: "response-1", count: 1 });
@@ -76,7 +76,7 @@ describe("observación efímera de recuperación", () => {
   it("no transforma perfil o autoestudio en un episodio del usuario y retira lecciones no disponibles", () => {
     const study = { id: "study", intention: "Fracciones equivalentes", memoryType: "semantic" as const, studyLearning: true, studyState: "available" as const, studyPasses: 1, source: "Fuente curada" };
     const observation = prepareMemoryRetrieval([{ memory: study, score: 1 }], "lexical");
-    expect(projectMemoryRetrieval(observation, [study]).top).toMatchObject({ layer: "semantic", typeLabel: "SEMANTIC", text: "Fracciones equivalentes", origin: "study" });
+    expect(projectMemoryRetrieval(observation, [study]).top).toMatchObject({ layer: "semantic", typeLabel: "SEMÁNTICA", text: "Fracciones equivalentes", origin: "study" });
     expect(projectMemoryRetrieval(observation, [{ ...study, studyState: "withdrawn" }]).top).toBeNull();
     const profile = { id: "profile", kind: "Perfil", intention: "Preferencia confirmada", source: "Perfil revisado" };
     expect(projectMemoryRetrieval(prepareMemoryRetrieval([{ memory: profile }], null), [profile]).top).toMatchObject({ layer: "self", typeLabel: "PERFIL", origin: "profile", score: null });

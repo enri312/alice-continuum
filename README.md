@@ -110,6 +110,8 @@ Gemma/Ollama, y memoria recuperada con categoría y procedencia reales. Son ajus
 de sesión para el próximo envío. Se comprobaron contratos, compilación y la
 pantalla Tauri; la valoración del tono y la revisión completa a otros anchos
 siguen pendientes. El rótulo técnico y «Modelo interno» se conservan sin solaparse.
+La fila usa etiquetas en español, como **EPISÓDICA · USUARIO: … → Alice**,
+y conserva el contenido y la puntuación reales de la recuperación.
 [Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)

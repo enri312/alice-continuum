@@ -121,7 +121,7 @@ describe("buildBrainSnapshot", () => {
     const inputs = { ...emptyInputs, memories: [memory], memoryRetrievalObservation: observation };
     const snapshot = buildBrainSnapshot(inputs);
     expect(snapshot.retrievedMemoryCount).toBe(1);
-    expect(snapshot.retrievedMemory.top).toMatchObject({ typeLabel: "EPISODIC", text: "USER: Mi ejercicio de álgebra → Alice", score: 6.2 });
+    expect(snapshot.retrievedMemory.top).toMatchObject({ typeLabel: "EPISÓDICA", text: "USUARIO: Mi ejercicio de álgebra → Alice", score: 6.2 });
     expect(snapshot.memoryNodes[0].retrieved).toBe(true);
     const removed = buildBrainSnapshot({ ...inputs, memories: [{ ...memory, deletionStatus: "scheduled" }] });
     expect(removed.retrievedMemoryCount).toBe(0);
