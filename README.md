@@ -104,6 +104,10 @@ El ajuste del piloto presenta los controles de comportamiento como deslizadores
 bloqueados y una fila de memoria `EPISODIC` de ejemplo, sin activar capacidades
 ni registrar recuerdos reales. Compilación WASM, cuatro pruebas de modelo y
 revisión de escritorio aprobadas; la integración nativa sigue pendiente.
+La [revisión de la exportación de Google AI Studio](docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
+recomienda comenzar por **Estado y controles**, conservando estilos y backend.
+Su TypeScript pasó la comprobación; faltan conectar acciones, mantener datos reales
+y validar la presentación. La exportación no se ha integrado al principal.
 En la aplicación principal ya está disponible **Estado y controles**:
 ocho deslizadores, con Creatividad y Estilo empático conectados a la conversación
 Gemma/Ollama, y memoria recuperada con categoría y procedencia reales. Son ajustes

@@ -811,6 +811,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    Sus [instrucciones](experiments/dioxus-state/README.md) permiten abrirlo aparte.
    No sustituye pantallas ni añade trabajo al arranque actual; la adopción queda
    condicionada a la validación y aceptación posterior.
+   La [revisión de la exportación de AI Studio](docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
+   recomienda migrar primero sólo el renderizado de Estado y controles, preservando
+   CSS, contratos, bloqueos y backend; esta revisión no incorpora aún la exportación.
    Completar además la validación del incremento autorizado de Estado y controles:
    dos ajustes reales de conversación local y trazabilidad de la memoria
    proporcionada al modelo, conservando permisos y controles bloqueados.
