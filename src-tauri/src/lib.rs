@@ -2,6 +2,7 @@ mod audit;
 mod avatar;
 mod capabilities;
 mod cloud;
+mod conversation_behavior;
 mod conversation_history;
 mod conversation_learning;
 mod conversation_reference;

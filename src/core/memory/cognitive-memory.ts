@@ -167,7 +167,7 @@ export function buildCognitiveMemoryNodes(memories: CognitiveMemoryInput[], retr
       importance,
       successfulRecalls: nonNegativeInteger(memory.successfulRecalls),
       successfulReviews: nonNegativeInteger(memory.successfulReviews),
-      retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed"
+      retrieved: !archived && status !== "conflict" && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && memory.deletionStatus !== "scheduled"
         && (!memory.studyLearning || study.studyState === "available") && retrieved.has(id),
       ...neuralMemoryPosition(id),
     });

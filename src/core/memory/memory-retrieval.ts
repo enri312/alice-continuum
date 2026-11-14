@@ -9,6 +9,7 @@ export type RetrievableMemory = {
   accessibilityStatus?: "accessible" | "dormant";
   suppressionStatus?: "suppressed";
   archiveStatus?: "archived";
+  deletionStatus?: "scheduled";
 };
 
 export type MemoryMatch<T extends RetrievableMemory = RetrievableMemory> = {
@@ -68,7 +69,7 @@ export function retrieveMemories<T extends RetrievableMemory>(query: string, mem
   const queryTokens = tokens(query);
   if (!queryTokens.length || !memories.length || limit <= 0) return [];
 
-  const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && memory.archiveStatus !== "archived");
+  const eligibleMemories = memories.filter((memory) => (memory.memoryStatus === undefined || memory.memoryStatus === "confirmed") && memory.accessibilityStatus !== "dormant" && memory.suppressionStatus !== "suppressed" && memory.archiveStatus !== "archived" && memory.deletionStatus !== "scheduled");
   // En una conversación, `intention` es la entrada real del propietario y
   // `summary` contiene la antigua respuesta del modelo. Esa respuesta puede estar
   // equivocada o desactualizada y no debe funcionar como evidencia RAG.

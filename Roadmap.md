@@ -42,6 +42,16 @@ para comportamiento y fila `EPISODIC` sintética. Compilación, cuatro pruebas d
 modelo, inspector y presentación de escritorio comprobados; quedan la revisión
 completa a otros anchos y la validación nativa antes de considerar su adopción.
 
+**Incremento implementado en la aplicación principal:** encabezado de
+Estado y controles sin superposición, ocho deslizadores y conexión de Creatividad y Estilo
+empático con la generación local de Gemma/Ollama. Los demás controles conservan
+su bloqueo. La fila de memoria muestra el contexto recuperado real, distinguiendo
+preparación, envío, respuesta, ruta sin memoria y fallo. Contratos, compilación y
+revisión Tauri de escritorio comprobados; quedan la aceptación del tono y la
+revisión completa a otros anchos. El
+[incremento React/Tauri](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md) conserva
+el rótulo técnico y «Modelo interno»; no adopta Dioxus ni migra la persistencia de R6/R8.
+
 ## Propósito
 
 Esta hoja de ruta ordena la evolución de Alice desde el prototipo actual hacia una asistente personal con memoria, habilidades y capacidades locales gobernadas. Cada fase debe terminar con evidencia verificable antes de comenzar la siguiente.
@@ -798,6 +808,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    Sus [instrucciones](experiments/dioxus-state/README.md) permiten abrirlo aparte.
    No sustituye pantallas ni añade trabajo al arranque actual; la adopción queda
    condicionada a la validación y aceptación posterior.
+   Completar además la validación del incremento autorizado de Estado y controles:
+   dos ajustes reales de conversación local y trazabilidad de la memoria
+   proporcionada al modelo, conservando permisos y controles bloqueados.
    Después, reproducir Spotify, pausar,
    reanudar, atender un turno libre y apagar el micrófono. Verificar la acción
    y el servicio reconocidos, el resultado real, una respuesta pertinente en el

@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import type { VoiceIgnoredTakeObservation, VoiceLoopState } from "../../core/voice/voice-loop";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildRetrievalQuery, retrieveMemories } from "../../core/memory/memory-retrieval";
+import { emptyMemoryRetrieval, prepareMemoryRetrieval, type MemoryRetrievalObservation } from "../../core/memory/retrieval-observation";
 import { buildCloudPayloadReview, type CloudPayloadBudget } from "../../core/conversation/cloud-payload";
 import { selectReinforceableMemoryIds } from "../../core/memory/memory-consolidation";
 import type { RetrievalOutcome } from "../../core/memory/memory-consolidation";
@@ -44,7 +45,7 @@ type ConversacionProps = {
   foregroundContext: { windowTitle: string; processName: string } | null;
   onToggleObservation: () => Promise<void>;
   onDraftChange: (value: string) => void;
-  onMemoryRetrieval: (state: { count: number; top: string; ids: string[] }) => void;
+  onMemoryRetrieval: (state: MemoryRetrievalObservation) => void;
   onHybridRetrieve: (request: HybridRetrievalRequest) => Promise<HybridRetrievalPreview>;
   onPreviewConversationLearning: (exchangeId: string) => Promise<ConversationLearningPreview>;
   onConfirmConversationLearning: (preview: ConversationLearningPreview, candidate: ConversationLearningCandidate, approved: ConversationLearningApproval) => Promise<{ recordId: string; recordCount: number; alreadyConfirmed: boolean }>;
@@ -58,7 +59,7 @@ type ConversacionProps = {
   onPrepareVoiceTurn: () => Promise<void>;
   onOpenSettings: () => void;
   showFullHistory?: boolean;
-  onSend: (request: CloudRequest, recalledMemoryIds: string[]) => Promise<CloudResponse>;
+  onSend: (request: CloudRequest, recalledMemoryIds: string[], retrieval?: MemoryRetrievalObservation) => Promise<CloudResponse>;
   onRetrievalOutcome: (recordId: string, outcome: RetrievalOutcome) => Promise<void>;
 };
 
@@ -120,6 +121,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
   const [reviewRequest, setReviewRequest] = useState<CloudRequest | null>(null);
   const [reviewBudget, setReviewBudget] = useState<CloudPayloadBudget | null>(null);
   const [reviewMemoryIds, setReviewMemoryIds] = useState<string[]>([]);
+  const [reviewRetrieval, setReviewRetrieval] = useState<MemoryRetrievalObservation>(emptyMemoryRetrieval);
   const [sending, setSending] = useState(false);
   const [pendingRetrievals, setPendingRetrievals] = useState<{ key: string; recordId: string }[]>([]);
   const [retrievalFeedbackPending, setRetrievalFeedbackPending] = useState<string | null>(null);
@@ -199,8 +201,8 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
 
   useEffect(() => {
     if (handsFreeActive) return;
-    onMemoryRetrieval({ count: includeMemory ? memoryMatches.length : 0, top: includeMemory ? memoryMatches[0]?.memory.intention ?? "" : "", ids: includeMemory ? memoryMatches.flatMap((match) => match.memory.id ? [match.memory.id] : []) : [] });
-  }, [memoryMatches, onMemoryRetrieval, handsFreeActive, includeMemory]);
+    onMemoryRetrieval(prepareMemoryRetrieval(includeMemory ? memoryMatches : [], hybridActive ? "rank" : "lexical", Boolean(draft.trim()), draft.trim()));
+  }, [draft, memoryMatches, onMemoryRetrieval, handsFreeActive, includeMemory, hybridActive]);
 
   useEffect(() => {
     const enableLocalContext = selectedProvider?.id === "ollama" || selectedProvider?.id === "llamacpp";
@@ -212,6 +214,11 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
 
   useEffect(() => {
     setHybridPreview(null);
+    setReviewing(false);
+    setReviewRequest(null);
+    setReviewBudget(null);
+    setReviewMemoryIds([]);
+    setReviewRetrieval(emptyMemoryRetrieval());
   }, [memories, model]);
 
   useEffect(() => {
@@ -290,6 +297,7 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     });
     setReviewBudget(payloadReview.budget);
     setReviewMemoryIds(includeMemory ? selectReinforceableMemoryIds(retrievedMemories) : []);
+    setReviewRetrieval(prepareMemoryRetrieval(includeMemory ? memoryMatches : [], hybridActive ? "rank" : "lexical", true, draft.trim()));
     setReviewing(true);
   }
 
@@ -556,16 +564,17 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
 
   async function processSpokenTurn(text: string, sessionId: string) {
     const history = (includeHistory ? messages : messages.filter(item => !voiceHistoryBaseline.current.has(item.id))).slice(-10);
-    const matches = includeMemory ? retrieveMemories(buildRetrievalQuery(text, history), memories, 3).map(match => match.memory) : [];
+    const matches = includeMemory ? retrieveMemories(buildRetrievalQuery(text, history), memories, 3) : [];
+    const retrieval = prepareMemoryRetrieval(matches, "lexical", true, text.trim());
     const review = buildCloudPayloadReview({ draft: text, includeHistory: history.length > 0, includeAssistantDialogue: true,
-      recentHistory: history, includeMemory, memories: matches, includeWindow: false, observationEnabled: false, foregroundContext: null });
-    onMemoryRetrieval({count: matches.length, top:matches[0]?.intention ?? "", ids:matches.flatMap(memory => memory.id ? [memory.id] : [])});
+      recentHistory: history, includeMemory, memories: matches.map(match => match.memory), includeWindow: false, observationEnabled: false, foregroundContext: null });
+    onMemoryRetrieval(retrieval);
     setSending(true);
     setError("");
     try {
       const response = await onSend({ message: text, payload: review.payload, provider: "llamacpp",
         model: "gemma-4-E2B-it-Q4_K_M", voiceSessionId: sessionId,
-        historyCount: history.filter(item => item.role === "user").length, memoryCount: matches.length }, []);
+        historyCount: history.filter(item => item.role === "user").length, memoryCount: matches.length }, [], retrieval);
       const exchangeId = response.conversationHistory?.exchanges.find(item => item.responseId === response.responseId)?.exchangeId;
       if (!exchangeId) throw Error("La respuesta llegó, pero no pudo guardarse el historial para darle voz.");
       return { exchangeId };
@@ -585,8 +594,8 @@ export function Conversacion({ visionPanel, automaticLearning, embedded = false,
     setSending(true);
     setError("");
     try {
-      const response = await onSend(reviewRequest, reviewMemoryIds);
-      if (reviewMemoryIds.length) setPendingRetrievals((current) => [...current, ...reviewMemoryIds.map((recordId) => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId }))]);
+      const response = await onSend(reviewRequest, reviewMemoryIds, reviewRetrieval);
+      if (reviewMemoryIds.length && response.memoryContextMode === "full") setPendingRetrievals((current) => [...current, ...reviewMemoryIds.map((recordId) => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId }))]);
       if (response.workingMemoryError) setError(`La respuesta llegó, pero la memoria de trabajo informó: ${response.workingMemoryError}`);
       if (response.conversationHistoryError) setError(`La respuesta llegó, pero el historial local no pudo guardarse: ${response.conversationHistoryError}`);
       onDraftChange("");

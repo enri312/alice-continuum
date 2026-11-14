@@ -1,6 +1,7 @@
 use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
+use crate::conversation_behavior::ConversationBehavior;
 use crate::conversation_history::{record_real_conversation_exchange, ConversationHistorySnapshot};
 use crate::util::{alice_data_root, timestamp_ms};
 use crate::working_memory::{
@@ -57,6 +58,7 @@ fn direct_reference_response(request: &CloudRequest) -> Option<CloudResponse> {
         response_id: format!("reference:{}", new_operation_id()),
         input_tokens: 0,
         output_tokens: 0,
+        memory_context_mode: MemoryContextMode::None,
         working_memory: None,
         working_memory_error: None,
         conversation_history: None,
@@ -96,6 +98,8 @@ struct CloudProvider {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CloudRequest {
     #[serde(default)]
+    behavior: Option<ConversationBehavior>,
+    #[serde(default)]
     vision: Option<crate::conversation_vision::VisionInput>,
     #[serde(default)]
     voice_session_id: Option<String>,
@@ -107,6 +111,15 @@ pub(crate) struct CloudRequest {
     memory_count: usize,
 }
 
+/// Describes context supplied to the response path, never causal use or truth.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum MemoryContextMode {
+    None,
+    Full,
+    Limited,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CloudResponse {
@@ -116,6 +129,7 @@ pub(crate) struct CloudResponse {
     response_id: String,
     input_tokens: u64,
     output_tokens: u64,
+    memory_context_mode: MemoryContextMode,
     working_memory: Option<WorkingMemorySnapshot>,
     working_memory_error: Option<String>,
     conversation_history: Option<ConversationHistorySnapshot>,
@@ -278,6 +292,10 @@ fn validate_compatible_probe_url(value: &str) -> Result<(), String> {
 }
 
 fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
+    request
+        .behavior
+        .unwrap_or_default()
+        .validate_for_provider(&request.provider)?;
     if request.message.trim().is_empty() || request.payload.trim().is_empty() {
         return Err("El mensaje está vacío".into());
     }
@@ -394,8 +412,8 @@ fn apply_response_provenance(provider: &str, text: String) -> String {
     format!("{LOCAL_UNVERIFIED_NOTICE}\n\n{}", text.trim_start())
 }
 
-fn ollama_chat_body(request: &CloudRequest) -> serde_json::Value {
-    serde_json::json!({
+fn ollama_chat_body(request: &CloudRequest) -> Result<serde_json::Value, String> {
+    let mut body = serde_json::json!({
         "model": &request.model,
         "messages": [
             { "role": "system", "content": SYSTEM_PROMPT },
@@ -409,7 +427,49 @@ fn ollama_chat_body(request: &CloudRequest) -> serde_json::Value {
             "num_predict": 900,
             "temperature": 0.2
         }
-    })
+    });
+    request
+        .behavior
+        .unwrap_or_default()
+        .apply_to_local_chat_body(&request.provider, &mut body)?;
+    Ok(body)
+}
+
+fn gemma_conversation_body(
+    request: &CloudRequest,
+    desktop: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let mut body = if let Some(vision) = &request.vision {
+        crate::conversation_vision::chat_body(
+            &request.message,
+            &request.payload,
+            vision,
+            desktop,
+            request.voice_session_id.is_some(),
+        )
+    } else {
+        serde_json::json!({
+            "model": crate::local_inference::GEMMA_MODEL, "stream": false, "temperature": 0.2, "max_tokens": if request.voice_session_id.is_some() { 240 } else { 900 },
+            "messages": [{"role":"system","content":if request.voice_session_id.is_some() { gemma_voice_prompt(&request.message) } else { SYSTEM_PROMPT.to_string() }},{"role":"user","content":request.payload}]
+        })
+    };
+    request
+        .behavior
+        .unwrap_or_default()
+        .apply_to_local_chat_body(&request.provider, &mut body)?;
+    Ok(body)
+}
+
+fn conversation_memory_context_mode(request: &CloudRequest) -> MemoryContextMode {
+    if request.memory_count == 0 {
+        MemoryContextMode::None
+    } else if request.vision.is_some() {
+        // Vision reconstructs context and retains at most its last 700 chars.
+        // The receipt cannot attest which complete memory fragments survived.
+        MemoryContextMode::Limited
+    } else {
+        MemoryContextMode::Full
+    }
 }
 
 #[tauri::command]
@@ -652,6 +712,7 @@ async fn send_cloud_message_inner(
                 ),
                 input_tokens: usage.0,
                 output_tokens: usage.1,
+                memory_context_mode: MemoryContextMode::None,
                 working_memory: None,
                 working_memory_error: None,
                 conversation_history: None,
@@ -720,6 +781,7 @@ async fn send_cloud_message_inner(
                 response_id: format!("desktop:{}", new_operation_id()),
                 input_tokens: tool_usage.0,
                 output_tokens: tool_usage.1,
+                memory_context_mode: MemoryContextMode::None,
                 working_memory: None,
                 working_memory_error: None,
                 conversation_history: None,
@@ -745,28 +807,19 @@ async fn send_cloud_message_inner(
         reqwest::Client::new()
     };
     let (provider_label, value) = if request.provider == "llamacpp" {
-        let body = if let Some(vision) = &request.vision {
+        let desktop = if let Some(vision) = &request.vision {
             use tauri::Manager;
             let store = app.state::<crate::conversation_vision::VisionSessionStore>();
             crate::conversation_vision::validate_input(&store, vision, &request.provider)?;
-            let desktop = if vision.desktop_enabled() {
+            if vision.desktop_enabled() {
                 Some(crate::conversation_vision::desktop_frame(&store, &vision.session_id).await?)
             } else {
                 None
-            };
-            crate::conversation_vision::chat_body(
-                &request.message,
-                &request.payload,
-                vision,
-                desktop,
-                request.voice_session_id.is_some(),
-            )
+            }
         } else {
-            serde_json::json!({
-                "model": crate::local_inference::GEMMA_MODEL, "stream": false, "temperature": 0.2, "max_tokens": if request.voice_session_id.is_some() { 240 } else { 900 },
-                "messages": [{"role":"system","content":if request.voice_session_id.is_some() { gemma_voice_prompt(&request.message) } else { SYSTEM_PROMPT.to_string() }},{"role":"user","content":request.payload}]
-            })
+            None
         };
+        let body = gemma_conversation_body(request, desktop)?;
         let value = crate::local_inference::gemma_chat(body).await?;
         if let Some(vision) = &request.vision {
             use tauri::Manager;
@@ -789,7 +842,7 @@ async fn send_cloud_message_inner(
                 let response = client
                     .post(OLLAMA_LOCAL_CHAT_ENDPOINT)
                     .timeout(Duration::from_secs(180))
-                    .json(&ollama_chat_body(request))
+                    .json(&ollama_chat_body(request)?)
                     .send()
                     .await;
                 ("Ollama local", response)
@@ -997,6 +1050,7 @@ async fn send_cloud_message_inner(
         response_id,
         input_tokens,
         output_tokens,
+        memory_context_mode: conversation_memory_context_mode(request),
         working_memory: None,
         working_memory_error: None,
         conversation_history: None,
@@ -1142,6 +1196,7 @@ mod tests {
 
     fn valid_cloud_request(provider: &str) -> CloudRequest {
         CloudRequest {
+            behavior: None,
             vision: None,
             voice_session_id: None,
             message: "Hola".into(),
@@ -1155,6 +1210,232 @@ mod tests {
             history_count: 0,
             memory_count: 0,
         }
+    }
+
+    fn conversational_request(oral: bool, vision: bool) -> CloudRequest {
+        let mut request = valid_cloud_request("llamacpp");
+        request.model = crate::local_inference::GEMMA_MODEL.into();
+        request.message = "Necesito explicar este ejercicio".into();
+        request.payload = "REFERENCIA AUTORIZADA\nFracciones: ejemplo del propietario\nMENSAJE ACTUAL\nNecesito explicar este ejercicio".into();
+        request.memory_count = 1;
+        if oral {
+            request.voice_session_id = Some("synthetic-voice-session".into());
+        }
+        if vision {
+            request.vision = Some(
+                serde_json::from_value(serde_json::json!({
+                    "sessionId": "synthetic-vision-session", "camera": null, "desktop": false
+                }))
+                .unwrap(),
+            );
+        }
+        request
+    }
+
+    #[test]
+    fn legacy_and_explicit_default_behavior_keep_text_voice_and_vision_bodies_exact() {
+        for (oral, vision) in [(false, false), (true, false), (false, true), (true, true)] {
+            let mut request = conversational_request(oral, vision);
+            assert!(validate_cloud_request(&request).is_ok());
+            let legacy = if let Some(input) = &request.vision {
+                crate::conversation_vision::chat_body(
+                    &request.message,
+                    &request.payload,
+                    input,
+                    None,
+                    oral,
+                )
+            } else {
+                serde_json::json!({
+                    "model": crate::local_inference::GEMMA_MODEL, "stream": false,
+                    "temperature": 0.2, "max_tokens": if oral {240} else {900},
+                    "messages": [
+                        {"role":"system", "content": if oral {gemma_voice_prompt(&request.message)} else {SYSTEM_PROMPT.to_string()}},
+                        {"role":"user", "content":request.payload}
+                    ]
+                })
+            };
+            assert_eq!(gemma_conversation_body(&request, None).unwrap(), legacy);
+            request.behavior = Some(ConversationBehavior::default());
+            assert_eq!(gemma_conversation_body(&request, None).unwrap(), legacy);
+        }
+        let mut ollama = valid_cloud_request("ollama");
+        let legacy = ollama_chat_body(&ollama).unwrap();
+        ollama.behavior = Some(ConversationBehavior::default());
+        assert_eq!(ollama_chat_body(&ollama).unwrap(), legacy);
+        assert_eq!(legacy["messages"][0]["content"], SYSTEM_PROMPT);
+        assert_eq!(legacy["options"]["temperature"], 0.2);
+    }
+
+    #[test]
+    fn local_generation_changes_only_temperature_and_bounded_system_style() {
+        for (oral, vision) in [(false, false), (true, false), (false, true), (true, true)] {
+            let mut request = conversational_request(oral, vision);
+            let baseline = gemma_conversation_body(&request, None).unwrap();
+            request.behavior = Some(ConversationBehavior {
+                creativity: 0.8,
+                empathy: 0.9,
+            });
+            assert!(validate_cloud_request(&request).is_ok());
+            let mut adjusted = gemma_conversation_body(&request, None).unwrap();
+            assert_eq!(adjusted["temperature"], 0.8);
+            let base_system = baseline["messages"][0]["content"].as_str().unwrap();
+            let system = adjusted["messages"][0]["content"].as_str().unwrap();
+            assert!(system.starts_with(base_system));
+            assert!(system.starts_with(include_str!("prompts/personality.txt")));
+            assert!(system.contains("No inventes emociones, vivencias o necesidades"));
+            assert!(system.contains("límites y autorizaciones"));
+            // No reviewed user context, images, token bounds, role or model may change.
+            adjusted["temperature"] = baseline["temperature"].clone();
+            adjusted["messages"][0]["content"] = baseline["messages"][0]["content"].clone();
+            assert_eq!(adjusted, baseline);
+        }
+        let mut request = valid_cloud_request("ollama");
+        let baseline = ollama_chat_body(&request).unwrap();
+        request.behavior = Some(ConversationBehavior {
+            creativity: 0.7,
+            empathy: 0.1,
+        });
+        let mut adjusted = ollama_chat_body(&request).unwrap();
+        assert_eq!(adjusted["options"]["temperature"], 0.7);
+        let system = adjusted["messages"][0]["content"].as_str().unwrap();
+        assert!(system.starts_with(SYSTEM_PROMPT));
+        assert!(system.contains("Conserva siempre respeto, empatía, solidaridad y humildad"));
+        adjusted["options"]["temperature"] = baseline["options"]["temperature"].clone();
+        adjusted["messages"][0]["content"] = baseline["messages"][0]["content"].clone();
+        assert_eq!(adjusted, baseline);
+    }
+
+    #[test]
+    fn middle_empathy_never_appends_a_prompt_even_when_creativity_changes() {
+        for (oral, vision) in [(false, false), (true, false), (false, true)] {
+            let mut request = conversational_request(oral, vision);
+            let baseline = gemma_conversation_body(&request, None).unwrap();
+            request.behavior = Some(ConversationBehavior {
+                creativity: 0.9,
+                empathy: 0.5,
+            });
+            let adjusted = gemma_conversation_body(&request, None).unwrap();
+            assert_eq!(adjusted["temperature"], 0.9);
+            assert_eq!(adjusted["messages"][0], baseline["messages"][0]);
+        }
+    }
+
+    #[test]
+    fn behavior_preflight_rejects_invalid_settings_even_for_recognized_actions() {
+        let mut request = conversational_request(false, false);
+        request.message = "Alice pausa Spotify".into();
+        assert!(crate::media_actions::parse_request(&request.message).is_some());
+        for behavior in [
+            ConversationBehavior {
+                creativity: -0.1,
+                empathy: 0.5,
+            },
+            ConversationBehavior {
+                creativity: 0.2,
+                empathy: f64::NAN,
+            },
+        ] {
+            request.behavior = Some(behavior);
+            assert!(validate_cloud_request(&request).is_err());
+        }
+        request.behavior = Some(ConversationBehavior {
+            creativity: 1.0,
+            empathy: 0.0,
+        });
+        assert!(validate_cloud_request(&request).is_ok());
+        // The deterministic router receives exactly the same message; its model
+        // helper keeps its own temperature and never consumes conversational knobs.
+        let router = crate::media_actions::tool_body(&request.message);
+        assert_eq!(router["temperature"], 0);
+        assert_eq!(router["tool_choice"], "required");
+    }
+
+    #[test]
+    fn cloud_contract_rejects_unknown_behavior_fields_and_external_nondefault_settings() {
+        let base = serde_json::json!({
+            "message":"Hola", "payload":"MENSAJE ACTUAL\nHola", "provider":"llamacpp",
+            "model":crate::local_inference::GEMMA_MODEL, "historyCount":0,"memoryCount":0
+        });
+        let legacy: CloudRequest = serde_json::from_value(base.clone()).unwrap();
+        assert!(legacy.behavior.is_none());
+        assert!(validate_cloud_request(&legacy).is_ok());
+        for behavior in [
+            serde_json::json!({"autonomy":1}),
+            serde_json::json!({"creativity":"0.8"}),
+            serde_json::json!({"empathy":null}),
+        ] {
+            let mut invalid = base.clone();
+            invalid["behavior"] = behavior;
+            assert!(serde_json::from_value::<CloudRequest>(invalid).is_err());
+        }
+        for provider in ["openai", "google", "anthropic", "xai", "compatible"] {
+            let mut request = valid_cloud_request(provider);
+            request.behavior = Some(ConversationBehavior {
+                creativity: 0.8,
+                empathy: 0.5,
+            });
+            assert!(validate_cloud_request(&request)
+                .unwrap_err()
+                .contains("sólo están disponibles"));
+            request.behavior = Some(ConversationBehavior::default());
+            assert!(validate_cloud_request(&request).is_ok());
+        }
+    }
+
+    #[test]
+    fn memory_context_receipts_distinguish_none_complete_and_visual_partial_context() {
+        let mut request = conversational_request(false, false);
+        assert_eq!(
+            conversation_memory_context_mode(&request),
+            MemoryContextMode::Full
+        );
+        request.memory_count = 0;
+        assert_eq!(
+            conversation_memory_context_mode(&request),
+            MemoryContextMode::None
+        );
+        for size in [1, 1000] {
+            let mut visual = conversational_request(false, true);
+            visual.payload = format!("{}\nMENSAJE ACTUAL\nHola", "x".repeat(size));
+            assert_eq!(
+                conversation_memory_context_mode(&visual),
+                MemoryContextMode::Limited
+            );
+            visual.memory_count = 0;
+            assert_eq!(
+                conversation_memory_context_mode(&visual),
+                MemoryContextMode::None
+            );
+        }
+        for (mode, label) in [
+            (MemoryContextMode::None, "none"),
+            (MemoryContextMode::Full, "full"),
+            (MemoryContextMode::Limited, "limited"),
+        ] {
+            assert_eq!(serde_json::to_value(mode).unwrap(), label);
+        }
+    }
+
+    #[test]
+    fn direct_reference_ignores_memory_payload_and_conversation_knobs_in_its_receipt() {
+        let mut request = conversational_request(false, false);
+        request.message =
+            "Mi hermano me dijo: «Quiero mejorar tu forma de explicar». ¿De quién estaba hablando?"
+                .into();
+        let baseline = direct_reference_response(&request).unwrap();
+        request.behavior = Some(ConversationBehavior {
+            creativity: 1.0,
+            empathy: 1.0,
+        });
+        request.memory_count = 3;
+        request.payload = "OTRO CONTEXTO AUTORIZADO, NO CONSULTADO EN ESTA RUTA".into();
+        let response = direct_reference_response(&request).unwrap();
+        assert_eq!(response.text, baseline.text);
+        assert_eq!(response.memory_context_mode, MemoryContextMode::None);
+        let serialized = serde_json::to_value(response).unwrap();
+        assert_eq!(serialized["memoryContextMode"], "none");
+        assert!(serialized.get("memory_context_mode").is_none());
     }
 
     #[test]
@@ -1330,7 +1611,7 @@ mod tests {
     #[test]
     fn ollama_adapter_is_fixed_to_loopback_and_disables_streaming_and_thinking() {
         let request = valid_cloud_request("ollama");
-        let body = ollama_chat_body(&request);
+        let body = ollama_chat_body(&request).unwrap();
 
         assert_eq!(
             OLLAMA_LOCAL_CHAT_ENDPOINT,

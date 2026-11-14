@@ -2,6 +2,7 @@ import { createPlannedAffectChannels } from "./affect";
 import type { AffectChannel } from "./affect";
 import { buildCognitiveMemoryNodes } from "../memory/cognitive-memory";
 import type { CognitiveMemoryInput, CognitiveMemoryNode } from "../memory/cognitive-memory";
+import { prepareMemoryRetrieval, projectMemoryRetrieval, type MemoryRetrievalObservation, type RetrievedMemoryView } from "../memory/retrieval-observation";
 
 export type BrainGroup = "input" | "memory" | "output";
 
@@ -47,6 +48,7 @@ export type BrainSnapshot = {
   persistentMemoryCount: number;
   retrievedMemoryCount: number;
   retrievedMemoryTop: string;
+  retrievedMemory: RetrievedMemoryView;
   focus: string;
   focusStatus: string;
   focusDetail: string;
@@ -65,6 +67,7 @@ type BrainInputs = {
   retrievedMemoryCount: number;
   retrievedMemoryTop: string;
   retrievedMemoryIds: string[];
+  memoryRetrievalObservation?: MemoryRetrievalObservation;
   observerEnabled: boolean;
   foregroundContext: { windowTitle: string; processName: string } | null;
   cloudConfigured: boolean;
@@ -73,6 +76,16 @@ type BrainInputs = {
 
 // Traduce únicamente estados comprobables de Alice al mapa del Núcleo.
 export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
+  const observation = inputs.memoryRetrievalObservation ?? prepareMemoryRetrieval(inputs.retrievedMemoryIds.flatMap(id => {
+    const memory = inputs.memories.find(item => item.id === id);
+    return memory ? [{ memory }] : [];
+  }), null, inputs.retrievedMemoryCount > 0);
+  const retrievedMemory = projectMemoryRetrieval(observation, inputs.memories);
+  if (inputs.memoryRetrievalObservation) inputs = { ...inputs,
+    retrievedMemoryCount: retrievedMemory.count,
+    retrievedMemoryTop: retrievedMemory.top?.text ?? "",
+    retrievedMemoryIds: retrievedMemory.ids,
+  };
   const memoryNodes = buildCognitiveMemoryNodes(inputs.memories, inputs.retrievedMemoryIds);
   const memoryCount = memoryNodes.length;
   const focus = inputs.lastUserMessage?.trim() || (inputs.retrievedMemoryCount ? `Memoria relacionada: ${inputs.retrievedMemoryTop}` : "Lista para conversar");
@@ -102,6 +115,7 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
     persistentMemoryCount: memoryCount,
     retrievedMemoryCount: inputs.retrievedMemoryCount,
     retrievedMemoryTop: inputs.retrievedMemoryTop,
+    retrievedMemory,
     focus: shortFocus,
     focusStatus: inputs.cloudPending ? "consultando la nube" : inputs.retrievedMemoryCount ? "recuperando memoria" : inputs.lastUserMessage ? "conversación activa" : "en espera",
     focusDetail: inputs.retrievedMemoryCount ? `La búsqueda local encontró ${inputs.retrievedMemoryCount} recuerdos relacionados. Principal: ${inputs.retrievedMemoryTop}.` : inputs.lastUserMessage ? `Último mensaje autorizado de Carlos Nuñez: ${focus}` : "Alice espera una pregunta; ya no hace falta iniciar una misión.",

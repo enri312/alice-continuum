@@ -933,11 +933,18 @@
   font-size: .56rem;
 }
 
-/* Estado y controles: lectura diagnóstica clara, no controles falsos. */
+/* Estado y controles: señales de lectura y ajustes disponibles de sesión. */
 .internal-state {
   min-height: auto;
   padding: 16px;
 }
+
+.internal-state > .state-panel-caption {
+  position: static;
+  flex-wrap: wrap;
+  margin: 0 0 11px;
+}
+
 
 .state-header small,
 .state-records,
@@ -1072,6 +1079,103 @@
   white-space: normal;
 }
 
+.shell .internal-state .state-control-slider {
+  min-height: 68px;
+  cursor: default;
+}
+
+.shell .internal-state .state-control-inspect {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  box-shadow: none;
+  clip-path: none;
+}
+
+.shell .internal-state .state-control-inspect:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 4px;
+}
+
+.shell .internal-state .state-control-inspect::before,
+.shell .internal-state .state-control-inspect::after {
+  display: none;
+}
+
+.shell .internal-state .state-behavior-range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  accent-color: #a5f3fc;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.shell .internal-state .state-behavior-range:disabled {
+  opacity: .62;
+  cursor: not-allowed;
+}
+
+.shell .internal-state .state-behavior-range:focus-visible {
+  outline: 2px solid #67e8f9;
+  outline-offset: 3px;
+}
+
+.state-behavior-range::-webkit-slider-runnable-track {
+  height: 7px;
+  border: 1px solid #3b6970;
+  background: repeating-linear-gradient(0deg, #34565b 0 1px, #1a333b 1px 3px);
+}
+
+.state-behavior-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  margin-top: -6px;
+  border: 1px solid #a7eee5;
+  border-radius: 50%;
+  background: #e1fff4;
+  box-shadow: 0 0 7px #5eead44d;
+}
+
+.state-behavior-range::-moz-range-track {
+  height: 5px;
+  border: 1px solid #3b6970;
+  background: #1a333b;
+}
+
+.state-behavior-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #a7eee5;
+  border-radius: 50%;
+  background: #e1fff4;
+}
+
+.state-retrieval-detail {
+  margin: 0;
+  padding: 0 11px 11px;
+  color: #8da1b1;
+  font: 500 var(--alice-type-micro)/1.5 Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
 /* Microtipografía operativa de Embodiment y Governance. */
 .face-diagnostic.face-diagnostic :is(small, dt, dd),
 .body-diagnostic.body-diagnostic :is(small, dt, dd),
@@ -1123,6 +1227,7 @@
   .neuro-inspector {
     min-height: 0;
   }
+
 
   .conversation-page.embedded .conversation-layout {
     grid-template-columns: 1fr;
@@ -1188,6 +1293,11 @@
   }
 
   .state-value-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .state-behavior-range {
     grid-column: 1 / -1;
     grid-row: 2;
   }

@@ -6,10 +6,11 @@ import { selfStudyForConversation, selfStudyForCognitiveVolume } from "./core/me
 import { automaticMemoryForConversation } from "./core/memory/automatic-memory";
 import { useLearningSources } from "./hooks/useLearningSources";
 import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./pages/conversation/ConversationPage";
 import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
+import { DEFAULT_CONVERSATION_BEHAVIOR, supportsConversationBehavior, updateConversationBehavior } from "./core/conversation/behavior-settings";
 import { Volumen } from "./pages/cognitive/NeuralVolumePage";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { Estado } from "./pages/cognitive/StateControlsPage";
@@ -27,6 +28,7 @@ import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cog
 import { NavigationIcon } from "./components/icons/NavigationIcon";
 import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
 import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
+import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
 import { loadCompatibleArray } from "./core/shared/storage-migration";
 import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
@@ -142,7 +144,7 @@ export function App() {
 
   async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
     await reviewLearningMemory(input);
-    setMemoryRetrieval({ count: 0, top: "", ids: [] });
+    setMemoryRetrieval(emptyMemoryRetrieval());
   }
 
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -158,7 +160,12 @@ export function App() {
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
   const [cloudPending, setCloudPending] = useState(false);
-  const [memoryRetrieval, setMemoryRetrieval] = useState<{ count: number; top: string; ids: string[] }>({ count: 0, top: "", ids: [] });
+  const [conversationBehavior, setConversationBehavior] = useState(() => ({ ...DEFAULT_CONVERSATION_BEHAVIOR }));
+  const [memoryRetrieval, setMemoryRetrieval] = useState<MemoryRetrievalObservation>(emptyMemoryRetrieval);
+  const memoryRetrievalGeneration = useRef(0);
+  const observeMemoryRetrieval = useCallback((prepared: MemoryRetrievalObservation) => {
+    setMemoryRetrieval(previous => observePreparedMemory(previous, prepared));
+  }, []);
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
     { id: "llamacpp", label: "Gemma local · llama.cpp", configured: false, defaultModel: "gemma-4-E2B-it-Q4_K_M", protocol: "Local · inicio por autoestudio o desde Configuración", retentionMode: "Sin nube" },
     { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
@@ -193,6 +200,7 @@ export function App() {
     retrievedMemoryCount: memoryRetrieval.count,
     retrievedMemoryTop: memoryRetrieval.top,
     retrievedMemoryIds: memoryRetrieval.ids,
+    memoryRetrievalObservation: memoryRetrieval,
     observerEnabled: observationEnabled,
     foregroundContext,
     cloudConfigured: cloudStatus.providers.some((provider) => provider.configured),
@@ -391,12 +399,19 @@ export function App() {
       : "La activación requiere un grant de sesión en el Gateway R2");
   }
 
-  async function sendCloudMessage(request: CloudRequest, recalledMemoryIds: string[]) {
+  async function sendCloudMessage(request: CloudRequest, recalledMemoryIds: string[], retrieval?: MemoryRetrievalObservation) {
+    const authorizedRequest = { ...request, behavior: supportsConversationBehavior(request.provider) ? { ...conversationBehavior } : undefined };
+    const retrievalGeneration = ++memoryRetrievalGeneration.current;
+    const sentRetrieval = beginMemoryRetrieval(retrieval ?? emptyMemoryRetrieval(), request.message.trim(), request.memoryCount > 0);
+    setMemoryRetrieval(sentRetrieval);
     setCloudPending(true);
     recordEvent("PERCEPTION", "INFERENCE_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · RAG ${request.memoryCount}`);
     try {
       const vision = await visionRef.current?.capture();
-      const response = await invoke<CloudResponse>("send_cloud_message", { request: {...request, ...(vision ? {vision} : {})} });
+      const response = await invoke<CloudResponse>("send_cloud_message", { request: {...authorizedRequest, ...(vision ? {vision} : {})} });
+      if (memoryRetrievalGeneration.current === retrievalGeneration) {
+        setMemoryRetrieval(completeMemoryRetrieval(sentRetrieval, response.responseId, response.memoryContextMode));
+      }
       const now = new Date().toISOString();
       if (response.workingMemory) {
         try {
@@ -428,10 +443,11 @@ export function App() {
       }
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
       if (response.conversationHistoryError) recordEvent("SECURITY", "CONVERSATION_HISTORY_RECORD_ERROR", response.conversationHistoryError, "WARN");
-      if (recalledMemoryIds.length) recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} usado${recalledMemoryIds.length === 1 ? "" : "s"} · utilidad aún no confirmada`);
+      if (recalledMemoryIds.length && response.memoryContextMode === "full") recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} incluido${recalledMemoryIds.length === 1 ? "" : "s"} en el contexto · utilidad aún no confirmada`);
       recordEvent("OUTPUT", "CLOUD_RESPONSE", `${response.provider}/${response.model} · ${response.inputTokens} entrada · ${response.outputTokens} salida`);
       return response;
     } catch (error) {
+      if (memoryRetrievalGeneration.current === retrievalGeneration) setMemoryRetrieval(failMemoryRetrieval(sentRetrieval));
       recordEvent("SECURITY", "CLOUD_REQUEST_ERROR", String(error), "WARN");
       throw error;
     } finally {
@@ -662,9 +678,9 @@ export function App() {
       recordsError: ownerProfileError || (memoryStatus === "error" ? "No se pudieron leer los recuerdos guardados. Puedes reintentar la lectura." : ""),
     }} onRefreshLearning={refreshVolumeLearning} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} />}
+    {screen === "estado" && <Estado snapshot={brainSnapshot} desktopApp={desktopApp} behavior={{ settings: conversationBehavior, supported: desktopApp && supportsConversationBehavior(cloudSelection.provider), busy: cloudPending, onChange: (key, value) => { if (!cloudPending) setConversationBehavior(current => updateConversationBehavior(current, key, value)); } }} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={memoryRetrieval.count} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion visionPanel={<ConversationVision ref={visionRef} desktopApp={desktopApp} provider={cloudSelection.provider} />} automaticLearning={automaticMemory ? {enabled:automaticMemory.enabled, count:automaticMemory.activeCount, phase:automaticPhase, onOpen:() => setScreen("memoria")} : undefined} showFullHistory={showFullHistory} embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={setMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession} onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
+    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={brainSnapshot.retrievedMemoryCount} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion visionPanel={<ConversationVision ref={visionRef} desktopApp={desktopApp} provider={cloudSelection.provider} />} automaticLearning={automaticMemory ? {enabled:automaticMemory.enabled, count:automaticMemory.activeCount, phase:automaticPhase, onOpen:() => setScreen("memoria")} : undefined} showFullHistory={showFullHistory} embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={observeMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession} onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
     {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad key="cognitive-activity" scope="cognitive" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
     {screen === "auditoria" && <Actividad key="governance-audit" scope="governance" desktopApp={desktopApp} events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}

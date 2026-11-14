@@ -6,6 +6,10 @@ y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
 
 Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
 
+[Estado y controles en la aplicación principal](testing/STATE_CONTROLS_REPORT_2026-11-13.md):
+deslizadores de sesión, ajustes conversacionales locales y procedencia real de la
+memoria recuperada. Validación del incremento pendiente; no es adopción de Dioxus.
+
 [Pilotos aislados de ASR y Dioxus](testing/ISOLATED_PILOTS_REPORT_2026-11-13.md):
 pruebas separadas del runtime y criterios de adopción. La persistencia y los
 grafos R6/R8 quedan aplazados para una revisión profunda posterior.

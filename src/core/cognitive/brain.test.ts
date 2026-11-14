@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildBrainSnapshot } from "./brain";
+import { beginMemoryRetrieval, completeMemoryRetrieval, prepareMemoryRetrieval } from "../memory/retrieval-observation";
 
 const memories = (count: number) => Array.from({ length: count }, (_, index) => ({ id: `memory-${index}`, intention: `Recuerdo ${index}`, memoryStatus: "confirmed" as const }));
 
@@ -112,5 +113,19 @@ describe("buildBrainSnapshot", () => {
     expect(initial.persistentNeuralDensity).toBeLessThan(.07);
     expect(mature.persistentNeuralDensity).toBeGreaterThan(.72);
     expect(mature.persistentNeuralDensity).toBeLessThanOrEqual(.86);
+  });
+
+  it("proyecta el recibo de contexto con tipo real y deja de atribuir recuperación si se retira su registro", () => {
+    const memory = { id: "episode", kind: "Conversación", intention: "Mi ejercicio de álgebra", memoryType: "episodic" as const };
+    const observation = completeMemoryRetrieval(beginMemoryRetrieval(prepareMemoryRetrieval([{ memory, score: 6.2 }], "lexical")), "response-1", "full");
+    const inputs = { ...emptyInputs, memories: [memory], memoryRetrievalObservation: observation };
+    const snapshot = buildBrainSnapshot(inputs);
+    expect(snapshot.retrievedMemoryCount).toBe(1);
+    expect(snapshot.retrievedMemory.top).toMatchObject({ typeLabel: "EPISODIC", text: "USER: Mi ejercicio de álgebra → Alice", score: 6.2 });
+    expect(snapshot.memoryNodes[0].retrieved).toBe(true);
+    const removed = buildBrainSnapshot({ ...inputs, memories: [{ ...memory, deletionStatus: "scheduled" }] });
+    expect(removed.retrievedMemoryCount).toBe(0);
+    expect(removed.retrievedMemory.top).toBeNull();
+    expect(removed.memoryNodes[0].retrieved).toBe(false);
   });
 });

@@ -162,4 +162,9 @@ describe("proyección cognitiva de memoria real", () => {
       ["available", null, "learned", true], ["review", 0, "historical", false],
     ]);
   });
+
+  it("conserva visible un registro con eliminación programada pero nunca lo marca recuperado", () => {
+    const [node] = buildCognitiveMemoryNodes([{ id: "scheduled", intention: "Recuerdo en retirada", memoryStatus: "confirmed", deletionStatus: "scheduled" }], ["scheduled"]);
+    expect(node).toMatchObject({ id: "scheduled", deletionScheduled: true, retrieved: false, status: "confirmed" });
+  });
 });

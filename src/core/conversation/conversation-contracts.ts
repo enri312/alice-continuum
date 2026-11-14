@@ -1,5 +1,6 @@
 import type { WorkingMemorySnapshot } from "../memory/working-memory";
 import type { ConversationHistorySnapshot } from "./conversation-history";
+import type { ConversationBehaviorSettings } from "./behavior-settings";
 
 export type ConversationMessage = {
   id: string;
@@ -17,6 +18,7 @@ export type CloudStatus = {
 export type CloudProvider = { id: string; label: string; configured: boolean; defaultModel: string; protocol: string; retentionMode: string };
 
 export type CloudRequest = {
+  behavior?: ConversationBehaviorSettings;
   voiceSessionId?: string;
   message: string;
   payload: string;
@@ -27,6 +29,7 @@ export type CloudRequest = {
 };
 
 export type CloudResponse = {
+  memoryContextMode?: "none" | "full" | "limited";
   text: string;
   provider: string;
   model: string;

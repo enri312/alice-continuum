@@ -104,6 +104,13 @@ El ajuste del piloto presenta los controles de comportamiento como deslizadores
 bloqueados y una fila de memoria `EPISODIC` de ejemplo, sin activar capacidades
 ni registrar recuerdos reales. Compilación WASM, cuatro pruebas de modelo y
 revisión de escritorio aprobadas; la integración nativa sigue pendiente.
+En la aplicación principal ya está disponible **Estado y controles**:
+ocho deslizadores, con Creatividad y Estilo empático conectados a la conversación
+Gemma/Ollama, y memoria recuperada con categoría y procedencia reales. Son ajustes
+de sesión para el próximo envío. Se comprobaron contratos, compilación y la
+pantalla Tauri; la valoración del tono y la revisión completa a otros anchos
+siguen pendientes. El rótulo técnico y «Modelo interno» se conservan sin solaparse.
+[Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
 ordena la aceptación del aprendizaje, la estructura del núcleo y el avance conjunto de R9.

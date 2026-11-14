@@ -89,4 +89,11 @@ describe("recuperación local de memoria", () => {
     expect(retrieveMemories("Nebulosa 99", candidates)).toEqual([]);
     expect(retrieveMemories("versión Linux", candidates).map((match) => match.memory.id)).toEqual(["episode"]);
   });
+
+  it("excluye la eliminación programada aunque el recuerdo siga confirmado y coincida", () => {
+    expect(retrieveMemories("Proyecto Alice", [
+      { id: "valid", intention: "Proyecto Alice", memoryStatus: "confirmed" as const },
+      { id: "scheduled", intention: "Proyecto Alice", memoryStatus: "confirmed" as const, deletionStatus: "scheduled" as const },
+    ]).map(match => match.memory.id)).toEqual(["valid"]);
+  });
 });
