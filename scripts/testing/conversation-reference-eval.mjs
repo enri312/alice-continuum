@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { buildCloudPayload } from '../../src/core/conversation/cloud-payload.ts';
+import { readRustPrompt } from './rust-prompt-reader.mjs';
 
 if (!process.argv.includes('--live')) throw Error('Usar --live para evaluar Gemma con ejemplos ficticios.');
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -29,12 +30,7 @@ if (runtimePid) {
 
 function promptFrom(file) {
   const source = fs.readFileSync(file, 'utf8');
-  const read = name => {
-    const include = source.match(new RegExp(`const ${name}: &str = include_str!\\("([^"]+)"\\);`));
-    if (include) return fs.readFileSync(path.resolve(path.dirname(file), include[1]), 'utf8');
-    const match = source.match(new RegExp(`const ${name}: &str = ("(?:[^"\\\\]|\\\\.)*");`));
-    return match ? JSON.parse(match[1]) : null;
-  };
+  const read = name => readRustPrompt(file, name);
   const voiceBase = read('VOICE_SYSTEM_PROMPT');
   if (voiceBase) return { base: voiceBase, greeting: read('VOICE_GREETING_PROMPT') ?? '' };
   const base = read('SYSTEM_PROMPT');

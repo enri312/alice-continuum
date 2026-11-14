@@ -114,6 +114,7 @@ Alice Continuum/
 ├── Backend/
 │   ├── src-tauri/                 backend Rust y configuración de Tauri
 │   └── adapters/                  lectores y puente de medios en Python
+├── crates/state-controls/         pantalla Estado y controles en Dioxus/Rust
 ├── icons/                         catálogo SVG consumido por la interfaz
 ├── public/                        recursos públicos de Vite
 ├── scripts/
@@ -121,10 +122,10 @@ Alice Continuum/
 │   │   ├── generate-icons.mjs     generador del catálogo funcional
 │   │   ├── scenes/                una escena por icono de equipo
 │   │   ├── shared/                geometría y acabados compartidos; pruebas
-│   │   └── legacy/                escena anterior conservada, no importada
-│   ├── adapters/                  lector documental revisado y sus pruebas
+│   ├── dioxus/                    construcción y verificación del paquete Dioxus
 │   ├── backups/                   copias integrales, verificación y restauración
 │   ├── obsidian/                  proyección privada de memoria hacia la bóveda
+│   ├── setup/                     instalación y lanzadores de plataforma
 │   └── testing/                   sondas visuales y evaluaciones opcionales
 ├── docs/                          manual, arquitectura, ADR, planes e informes
 ├── local/                         recursos privados y generados

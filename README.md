@@ -386,7 +386,7 @@ scripts/testing/       pilotos y evaluación reproducible
 docs/                  manual, arquitectura, decisiones e informes
 ```
 
-[Mapa de módulos](docs/architecture/PROJECT_STRUCTURE.md) · [Decisiones ADR](docs/decisions/README.md) · [Contexto recuperado](docs/CONTEXTO_RECUPERADO_2026-11-03.md)
+[Mapa de carpetas de la raíz](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Mapa de módulos](docs/architecture/PROJECT_STRUCTURE.md) · [Decisiones ADR](docs/decisions/README.md) · [Contexto recuperado](docs/CONTEXTO_RECUPERADO_2026-11-03.md)
 
 La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
 explica qué se movió, qué iconos se usan y qué herramientas aún requieren revisión.

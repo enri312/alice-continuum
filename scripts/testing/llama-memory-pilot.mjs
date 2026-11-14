@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { retrieveMemories, buildRetrievalQuery } from '../../src/core/memory/memory-retrieval.ts';
 import { buildCloudPayload } from '../../src/core/conversation/cloud-payload.ts';
+import { readRustPrompt } from './rust-prompt-reader.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const backend = process.argv[2] ?? 'gemma';
@@ -44,8 +45,8 @@ function snapshot(dir) {
 const before = snapshot(data);
 const records = JSON.parse(fs.readFileSync(path.join(data, 'memory/records.json'), 'utf8'));
 const eligible = records.filter(r => r.memoryStatus === 'confirmed' && !r.deletionStatus && !r.archiveStatus && !r.suppressionStatus && r.accessibilityStatus !== 'dormant');
-const rust = fs.readFileSync(path.join(root, 'Backend/src-tauri/src/cloud.rs'), 'utf8');
-const system = JSON.parse(rust.match(/const SYSTEM_PROMPT: &str = ("[^\n]+");/)[1]);
+const system = readRustPrompt(path.join(root, 'Backend/src-tauri/src/cloud.rs'), 'SYSTEM_PROMPT');
+if (system === null) throw new Error('No se encontró SYSTEM_PROMPT en el backend');
 const ollama = await fetch('http://127.0.0.1:11434/api/ps', { signal: AbortSignal.timeout(5000), redirect: 'error' }).then(r => r.json());
 if (ollama.models.length) throw new Error('Ollama model active: aborting one-model pilot');
 try { await fetch('http://127.0.0.1:18089/health', { signal: AbortSignal.timeout(2000), redirect: 'error' }); throw new Error('Pilot port already occupied'); }

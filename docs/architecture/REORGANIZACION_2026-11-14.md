@@ -1,5 +1,18 @@
 # Organización del proyecto — 14 de noviembre de 2026
 
+Revisión posterior: el [mapa de carpetas de la raíz](MAPA_CARPETAS_RAIZ.md)
+describe las fuentes, datos privados y resultados generados. Se corrigió el árbol
+de `PROJECT_STRUCTURE.md` y los pilotos `llama-memory-pilot.mjs` y
+`conversation-reference-eval.mjs` leen de nuevo las instrucciones de Rust,
+incluidas las declaraciones `concat!` con archivos `include_str!`. Sus pruebas
+verifican la reconstrucción del texto; las evaluaciones con modelos reales no se
+ejecutaron en esta revisión.
+
+En la revisión posterior se arrancó Tauri con `ALICE_DATA_DIR` y perfil WebView
+aislados en `local/`: un recuerdo ficticio terminado apareció en la lista y en
+el contador de Memoria, y se observaron los iconos de navegación. El autoestudio
+estaba pausado; no se usaron los recuerdos personales, el modelo ni el micrófono.
+
 El backend Rust/Tauri se trasladó de `src-tauri/` a `Backend/src-tauri/` y los
 adaptadores Python de `scripts/adapters/` a `Backend/adapters/`. Se actualizaron
 las rutas de compilación, Python, documentación, pruebas y CI. Los datos de
