@@ -1,4 +1,5 @@
 import type { BrainSnapshot } from "../../core/cognitive/brain";
+import { RetrievedMemoryPanel } from "./RetrievedMemory";
 
 type InternalStateProps = {
   snapshot: BrainSnapshot;
@@ -15,19 +16,6 @@ function metricStatus(availability: "ready" | "planned") {
 
 export function InternalState({ snapshot, selectedId, onSelect, onControlChange }: InternalStateProps) {
   const localRecords = snapshot.nodes.find((node) => node.id === "memory")?.value ?? "0 recuerdos";
-  const retrieval = snapshot.retrievedMemory;
-  const recalled = retrieval?.top;
-  const retrievalLabels = { idle: "SIN RECUPERACIÓN", prepared: "COINCIDENCIAS PREPARADAS", sending: "CONTEXTO EN ENVÍO", responded: "CONTEXTO PROPORCIONADO", bypassed: "RUTA SIN MEMORIA", failed: "ENVÍO FALLIDO" };
-  const retrievalLabel = retrieval?.phase === "responded"
-    ? retrieval.contextMode === "full" ? "CONTEXTO PROPORCIONADO" : retrieval.contextMode === "limited" ? "CONTEXTO LIMITADO" : "CONTEXTO NO CONFIRMADO"
-    : retrieval?.phase === "prepared" && !retrieval.count ? "SIN COINCIDENCIAS" : retrieval ? retrievalLabels[retrieval.phase] : "SIN RECUPERACIÓN";
-  const limited = retrieval?.contextMode === "limited";
-  const recallText = limited ? "CONTEXTO RECORTADO · NO SE CONFIRMA UN RECUERDO COMPLETO" : recalled?.text ?? "NINGÚN RECUERDO INCLUIDO EN UNA RESPUESTA";
-  const recallType = !limited && recalled ? recalled.typeLabel : "SIN TIPO";
-  const score = !limited && recalled?.score !== null && recalled?.score !== undefined
-    ? recalled.scoreKind === "rank" ? `#${recalled.score}` : recalled.score.toFixed(3)
-    : "—";
-  const scoreLabel = recalled?.scoreKind === "rank" ? "Rango de recuperación" : recalled?.scoreKind === "lexical" ? "Puntuación léxica, no probabilidad" : "Sin puntuación disponible";
 
   return <div className={`internal-state ${snapshot.hasActivity ? "has-activity" : "is-empty"}`}>
     <div className="nucleus-panel-label state-panel-caption"><span>[03]</span><strong>REPLY + AFFECT + DRIVE STATE</strong><small>SEÑALES DE LECTURA · AJUSTES DE SESIÓN</small></div>
@@ -63,19 +51,7 @@ export function InternalState({ snapshot, selectedId, onSelect, onControlChange 
       </div>
     </section>
 
-    <section className="state-section retrieved-memory" aria-labelledby="retrieved-title">
-      <div className="state-section-title"><span id="retrieved-title" role="heading" aria-level={3}>MEMORIA RECUPERADA</span><small>{retrievalLabel}{retrieval?.count ? ` · ${retrieval.count}` : ""}</small></div>
-      <button
-        type="button"
-        className={`retrieved-row state-selection-target state-kind-retrieval ${selectedId === "state-memory" ? "selected" : ""}`}
-        aria-pressed={selectedId === "state-memory"}
-        aria-label={`Memoria recuperada, ${recallType}: ${recallText}. ${retrievalLabel}. ${scoreLabel}: ${score}. Abrir en el inspector.`}
-        onClick={() => onSelect("state-memory")}
-      >
-        <span>{recallType}</span><strong>{recallText}</strong><em title={scoreLabel}>{score}</em>
-      </button>
-      <p className="state-retrieval-detail">{retrieval?.phase === "prepared" ? retrieval.count ? "Coincidencias locales para revisar: todavía no se han enviado al modelo." : "No se encontraron recuerdos elegibles para este mensaje." : limited ? "La ruta de visión limita el contexto enviado. No se presenta una coincidencia como recuerdo utilizado íntegramente." : retrieval?.phase === "responded" ? retrieval.contextMode !== "full" ? "La respuesta no incluye un recibo que confirme el contexto de memoria proporcionado." : recalled ? "Recuerdo incluido en el contexto del envío; esto no prueba que haya determinado la respuesta." : "Los recuerdos del envío ya no están disponibles o cambiaron en los registros actuales." : retrieval?.phase === "bypassed" ? "La acción o respuesta local no necesitó el contexto de recuerdos." : retrieval?.phase === "failed" ? "El envío no terminó; no se atribuye el uso de un recuerdo a una respuesta." : retrieval?.phase === "sending" ? "Contexto autorizado para el envío en curso; todavía no hay respuesta." : "Escribe una consulta en Conversación con Recuerdos activos para ver aquí los recuerdos recuperados."}{!limited && recalled?.source ? ` Fuente: ${recalled.source}.` : ""}</p>
-    </section>
+    <RetrievedMemoryPanel retrieval={snapshot.retrievedMemory} selected={selectedId === "state-memory"} onSelect={() => onSelect("state-memory")} />
 
     <section className="state-section behavior-section" aria-labelledby="behavior-title">
       <div className="state-section-title"><span id="behavior-title" role="heading" aria-level={3}>CONTROLES DE COMPORTAMIENTO</span><small>AJUSTES DEL PRÓXIMO ENVÍO · BLOQUEO SEGÚN DISPONIBILIDAD</small></div>

@@ -1061,15 +1061,26 @@
 }
 
 .shell .internal-state .retrieved-row {
-  grid-template-columns: minmax(110px, auto) minmax(0, 1fr) 58px;
-  width: calc(100% - 22px);
-  margin: 11px;
+  grid-template-columns: 132px minmax(0, 1fr) 58px;
+  min-height: 58px;
+  width: calc(100% - 28px);
+  margin: 8px 14px;
+  padding: 10px 12px;
+  border-color: #102332;
+  background: rgba(4, 12, 22, .5);
+  box-shadow: none;
+}
+
+.retrieved-memory .state-section-title {
+  padding-inline: 18px;
 }
 
 .retrieved-row span,
 .retrieved-row strong,
 .retrieved-row em {
-  font-size: var(--alice-type-micro);
+  color: #dce6ed;
+  font-weight: 800;
+  font-size: .8125rem;
   line-height: 1.4;
 }
 
@@ -1168,12 +1179,26 @@
   background: #e1fff4;
 }
 
-.state-retrieval-detail {
-  margin: 0;
-  padding: 0 11px 11px;
-  color: #8da1b1;
-  font: 500 var(--alice-type-micro)/1.5 Consolas, monospace;
+.state-retrieval-inspector {
+  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.state-retrieval-status {
+  color: #9fb2c1;
+  font: 700 var(--alice-type-micro)/1.5 Consolas, monospace;
+}
+
+.state-retrieval-inspector dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  font: 600 .75rem/1.5 Consolas, monospace;
+}
+
+.state-retrieval-inspector dd {
+  margin: 0;
+  text-align: right;
 }
 
 /* Microtipografía operativa de Embodiment y Governance. */

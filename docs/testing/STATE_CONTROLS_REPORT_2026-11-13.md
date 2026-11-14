@@ -44,7 +44,7 @@ reducir la latencia mediante un ajuste de estilo.
 
 La fila representa contexto recuperado para un envío, con la categoría y
 procedencia del registro real. En una memoria conversacional episódica puede
-mostrar **`EPISODIC — USER: <entrada real del propietario> → Alice`**. Los demás
+mostrar **`EPISÓDICA — USUARIO: <entrada real del propietario> → Alice`**. Los demás
 orígenes conservan su categoría y contenido propios; no se clasifican todos los
 recuerdos como episódicos ni se inventa una fuente del usuario.
 
@@ -79,6 +79,41 @@ Cuando existe una puntuación real se identifica como puntuación léxica o rang
 híbrido. La puntuación léxica no es una probabilidad y puede superar 1. Si no se
 dispone de esa información se muestra ausencia; no se usa actividad técnica R3
 como supuesto score de recuperación ni se copia el 0,503 de la referencia.
+
+### Presentación compacta y selección de memoria
+
+La referencia visual se aplica a un encabezado sencillo y una fila con tres
+columnas: categoría real, contenido y puntuación. Se elimina del panel el estado
+permanente a la derecha y el párrafo de ayuda inferior. Esos detalles se
+conservan al seleccionar la fila en el inspector y en su nombre accesible.
+Los títulos pueden ocupar varias líneas y el contenido se redistribuye a
+anchos menores de 600 px. El vacío muestra ausencia sin asignar una categoría.
+
+Se corrigió un fallo del inspector: seleccionar `state-memory` antes caía en la
+señal Curiosidad, porque no era una métrica ni un control de comportamiento.
+Ahora muestra el estado de recuperación, categoría, texto, significado de la
+puntuación, cantidad vigente y fuente del recuerdo seleccionado.
+
+**Comprobaciones de este ajuste:** 20 pruebas dirigidas en tres archivos y
+compilación TypeScript/Vite aprobadas. Incluyen preparación frente a contexto
+proporcionado, categoría de autoestudio, puntuación/rango, contexto limitado y
+ausencia de datos anteriores tras retirar un registro o fallar el envío.
+Logs privados: `local/experiments/compact-memory-tests.log` y
+`local/experiments/compact-memory-build.log`. Se mantiene el aviso conocido de
+chunks grandes; no se añadieron dependencias ni consultas periódicas.
+
+En la aplicación Tauri se comprobó el panel vacío y después una consulta local
+de matemáticas con Recuerdos activos: aparecieron tres coincidencias reales,
+con categoría semántica, título y puntuación léxica sin normalizar. Pulsar la
+fila abrió el inspector con su fuente y la indicación de coincidencias preparadas.
+La consulta temporal se retiró para restaurar el borrador vacío. No se envió al
+modelo, no se encendió el micrófono ni se insertaron recuerdos de prueba. Esta
+comprobación no sustituye una nueva generación ni la revisión a todos los anchos.
+
+Respaldo previo de `df6b4a1`, creado y verificado en D:
+`D:\Alice Backups\Alice Continuum\snapshot-2026-11-14T02-02-55-716Z-be6bef41-a378-4285-960a-8c348ac8f739`.
+La exportación terminada en Google AI Studio se revisará por separado al conocer
+su ubicación; este ajuste no incorpora esa migración.
 
 ## Validación realizada
 

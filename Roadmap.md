@@ -51,6 +51,9 @@ revisión Tauri de escritorio comprobados; quedan la aceptación del tono y la
 revisión completa a otros anchos. El
 [incremento React/Tauri](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md) conserva
 el rótulo técnico y «Modelo interno»; no adopta Dioxus ni migra la persistencia de R6/R8.
+La memoria recuperada adopta una fila compacta de categoría, contenido y puntuación,
+con estado y procedencia al seleccionarla en el inspector. Recuperación local real
+y selección comprobadas en Tauri; 20 pruebas dirigidas y compilación aprobadas.
 
 ## Propósito
 

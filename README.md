@@ -112,6 +112,9 @@ pantalla Tauri; la valoración del tono y la revisión completa a otros anchos
 siguen pendientes. El rótulo técnico y «Modelo interno» se conservan sin solaparse.
 La fila usa etiquetas en español, como **EPISÓDICA · USUARIO: … → Alice**,
 y conserva el contenido y la puntuación reales de la recuperación.
+Su presentación compacta muestra categoría, texto y puntuación; al pulsarla,
+el inspector abre estado, procedencia y detalles. Se comprobó en Tauri con
+coincidencias reales y pasó 20 pruebas dirigidas y la compilación.
 [Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)
