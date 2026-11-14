@@ -31,7 +31,7 @@ reconocimiento por micrófono, que sigue sin resolverse.
 El [próximo paso autorizado](#próximo-paso-autorizado) fija el orden y sus criterios.
 
 **Condición para los pilotos:** ASR de R9 y Dioxus se prueban en
-[`experiments/`](experiments/README.md), separados de la aplicación. Sólo se
+`experiments/` (carpeta local privada), separados de la aplicación. Sólo se
 considerará su incorporación tras validar funcionamiento, contenido, límites y
 reversión; un build o una muestra sintética no bastan. La propuesta
 «Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada para una
@@ -50,10 +50,17 @@ preparación, envío, respuesta, ruta sin memoria y fallo. Contratos, compilaci�
 revisión Tauri de escritorio comprobados; quedan la aceptación del tono y la
 revisión completa a otros anchos. El
 [incremento React/Tauri](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md) conserva
-el rótulo técnico y «Modelo interno»; no adopta Dioxus ni migra la persistencia de R6/R8.
+el rótulo técnico y «Modelo interno», sin migrar la persistencia de R6/R8.
 La memoria recuperada adopta una fila compacta de categoría, contenido y puntuación,
 con estado y procedencia al seleccionarla en el inspector. Recuperación local real
 y selección comprobadas en Tauri; 20 pruebas dirigidas y compilación aprobadas.
+
+**Primera página Dioxus incorporada el 14 de noviembre:** sólo Estado y controles,
+con el mismo CSS y contenido, dos ajustes conectados, seis controles bloqueados,
+memoria real e inspector. El adaptador React conserva el estado y una vista de
+respaldo. Pasaron 863 pruebas frontend, 15 de Obsidian, 20 de respaldos, dos del
+contrato Rust, compilación WASM y Clippy. Ver [evidencia y límites](docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
+`experiments/` queda fuera de Git; de `data/obsidian/` sólo se versiona `.gitkeep`.
 
 ## Propósito
 
@@ -791,6 +798,13 @@ conservan su política y procedencia; el avatar continúa al final.
 
 ## Próximo paso autorizado
 
+El tramo activo se limita a **Estado y controles**: comprobar esta primera página
+Dioxus, conservar diseño y funciones, actualizar su icono y cerrar sus pendientes.
+Las otras páginas, R9 y los cambios de persistencia no se amplían en este tramo.
+Tras cerrar la vista y el icono, el siguiente incremento acordado será trasladar
+la lógica propia de Estado y controles a Rust antes de avanzar a otra página.
+La agenda siguiente se conserva para retomarla después.
+
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
@@ -808,12 +822,12 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    La persistencia y los grafos de R6/R8 se revisarán posteriormente a fondo.
    Como evaluación de interfaz separada, el piloto Dioxus-Web reproduce
    **Estado y controles** con fixtures, inspector y estados de lectura.
-   Sus [instrucciones](experiments/dioxus-state/README.md) permiten abrirlo aparte.
+   Sus instrucciones locales en `experiments/dioxus-state/README.md` permiten abrirlo aparte.
    No sustituye pantallas ni añade trabajo al arranque actual; la adopción queda
    condicionada a la validación y aceptación posterior.
    La [revisión de la exportación de AI Studio](docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
-   recomienda migrar primero sólo el renderizado de Estado y controles, preservando
-   CSS, contratos, bloqueos y backend; esta revisión no incorpora aún la exportación.
+   sirvió para incorporar sólo el renderizado de Estado y controles, preservando
+   CSS, contratos, bloqueos y backend. Ver el [cierre de la primera página](docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
    Completar además la validación del incremento autorizado de Estado y controles:
    dos ajustes reales de conversación local y trazabilidad de la memoria
    proporcionada al modelo, conservando permisos y controles bloqueados.

@@ -3,6 +3,7 @@
 [![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
 [![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
+[![Dioxus 0.7.0](https://img.shields.io/badge/Dioxus-0.7.0-25A7D7?logo=rust&logoColor=white)](crates/state-controls/Cargo.toml)
 [![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](src-tauri/Cargo.lock)
 [![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
 [![npm 11.20.0](https://img.shields.io/badge/npm-11.20.0-CB3837?logo=npm&logoColor=white)](package.json)
@@ -88,9 +89,9 @@ La [revisión de herramientas y persistencia](docs/research/HERRAMIENTAS_Y_PERSI
 prioriza comparar ASR con mediciones equivalentes. Evalúa faster-whisper,
 activación acústica y Open Interpreter, y señala incompatibilidades del SQL
 propuesto; no activa herramientas o una migración.
-Los [pilotos aislados](experiments/README.md) comparan ASR y reproducen **Estado y
-controles** con Dioxus-Web y datos sintéticos. Sus herramientas, dependencias y
-salidas permanecen fuera del arranque y del código operativo de Alice.
+Los pilotos locales de `experiments/` comparan ASR y reproducen **Estado y
+controles** con Dioxus-Web y datos sintéticos. Esa carpeta es privada y queda
+completamente fuera de Git; sus herramientas y salidas no forman parte del arranque.
 **Sólo se considerará incorporarlos después de validar su funcionamiento**:
 las pruebas sintéticas no cierran la aceptación de R9 ni la integración nativa.
 La sección «Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada
@@ -104,10 +105,11 @@ El ajuste del piloto presenta los controles de comportamiento como deslizadores
 bloqueados y una fila de memoria `EPISODIC` de ejemplo, sin activar capacidades
 ni registrar recuerdos reales. Compilación WASM, cuatro pruebas de modelo y
 revisión de escritorio aprobadas; la integración nativa sigue pendiente.
-La [revisión de la exportación de Google AI Studio](docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
-recomienda comenzar por **Estado y controles**, conservando estilos y backend.
-Su TypeScript pasó la comprobación; faltan conectar acciones, mantener datos reales
-y validar la presentación. La exportación no se ha integrado al principal.
+La [exportación de Google AI Studio](docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
+se utiliza como material para revisar y pulir por partes. La primera incorporación
+es **Estado y controles**, renderizada con Dioxus en el principal, con el CSS,
+la lógica de conversación y el backend existentes. El resto de las páginas sigue
+en React. [Alcance y validación de la migración](docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
 En la aplicación principal ya está disponible **Estado y controles**:
 ocho deslizadores, con Creatividad y Estilo empático conectados a la conversación
 Gemma/Ollama, y memoria recuperada con categoría y procedencia reales. Son ajustes
@@ -119,6 +121,12 @@ y conserva el contenido y la puntuación reales de la recuperación.
 Su presentación compacta muestra categoría, texto y puntuación; al pulsarla,
 el inspector abre estado, procedencia y detalles. Se comprobó en Tauri con
 coincidencias reales y pasó 20 pruebas dirigidas y la compilación.
+La vista Dioxus carga su WASM al abrir esta página, valida cada acción contra el
+estado actual y conserva un panel React de respaldo ante fallo. Pasaron 863 pruebas
+frontend, 15 de Obsidian, 20 de respaldos, dos del contrato Rust y Clippy para WASM.
+El icono representa dos ajustes de sesión, seis controles bloqueados y memoria recuperada.
+El siguiente incremento acordado trasladará la lógica propia de esta página a
+Rust; la navegación y los servicios compartidos se migrarán por separado.
 [Alcance y comprobaciones](docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md).
 [Estructura, comprobaciones y pendientes](docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 El [Roadmap actualizado al 13 de noviembre](Roadmap.md#próximo-paso-autorizado)

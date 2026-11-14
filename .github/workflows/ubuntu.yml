@@ -41,6 +41,8 @@ jobs:
           npm run build
       - name: Núcleo nativo
         run: |
+          cargo fmt --manifest-path crates/state-controls/Cargo.toml -- --check
+          cargo test --locked --manifest-path crates/state-controls/Cargo.toml
           cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
           cargo test --locked --manifest-path src-tauri/Cargo.toml
           cargo test --locked --manifest-path src-tauri/Cargo.toml documents::tests::live_document_manual_with_real_runtime -- --ignored --exact

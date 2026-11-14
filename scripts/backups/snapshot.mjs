@@ -21,7 +21,7 @@ const ENV_NAMES = [
 const SNAPSHOT_NAME = /^snapshot-\d{4}-\d{2}-\d{2}T[\d-]+Z-[a-f0-9-]{36}$/;
 const EXCLUSIONS = [
   'Pesos y motores externos (ALICE_INFERENCE_HOME y rutas equivalentes).',
-  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, local/assets/ y configuracion seleccionada.',
+  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, fuentes de experiments/, local/assets/ y configuracion seleccionada.',
   'Memoria RAM, audio y fotogramas efimeros, credenciales del sistema no presentes en el entorno del lanzador, Git reflogs y objetos sin referencias.',
 ];
 
@@ -85,6 +85,16 @@ async function inventory(config) {
   };
   const files = (await git(config.projectRoot, ['ls-files', '-z', '--cached', '--others', '--exclude-standard'])).split('\0').filter(Boolean);
   for (const relative of new Set(files)) await put(relative, path.join(config.projectRoot, relative), 'code');
+  // Private experiments remain recoverable after being removed from Git.
+  // Reinstallable environments, generated output, recordings and model weights
+  // stay outside the snapshot, as they do for the main application.
+  const experimentRoot = path.join(config.projectRoot, 'experiments');
+  const skipExperiment = (name, directory) => directory
+    ? ['.git', 'node_modules', 'target', 'dist', '.venv', 'venv', '.cache', '__pycache__'].includes(name)
+    : /\.(log|pyc|tsbuildinfo|gguf|ggml|safetensors|onnx|pt|wav|mp3|mp4)$/i.test(name);
+  for (const relative of await walk(experimentRoot, '', skipExperiment)) {
+    await put(`experiments/${relative}`, path.join(experimentRoot, relative), 'code');
+  }
   for (const [source, prefix, kind] of [
     [config.dataRoot, 'data', 'data'],
     [path.join(config.projectRoot, 'local/assets'), 'local/assets', 'assets'],

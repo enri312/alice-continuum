@@ -10,8 +10,11 @@ src-tauri/target/
 .cargo-target/
 # Generated on Linux; equivalent to the existing desktop schema.
 /src-tauri/gen/schemas/linux-schema.json
-data/*
-!data/README.md
+/data/*
+!/data/README.md
+!/data/obsidian/
+/data/obsidian/*
+!/data/obsidian/.gitkeep
 
 # Evidencia local, borradores de agentes y documentos personales: nunca publicar.
 /.openchamber/
@@ -44,8 +47,6 @@ __pycache__/
 !/local/assets/Models/
 !/local/assets/Models/README.md
 
-# Pilotos independientes: sólo fuentes y manifiestos, nunca salidas o entornos.
-/experiments/**/target/
-/experiments/**/dist/
-/experiments/**/.venv/
-/experiments/**/.cache/
+# Laboratorio privado: sus fuentes y resultados permanecen sólo en el equipo.
+/experiments/
+/crates/*/target/

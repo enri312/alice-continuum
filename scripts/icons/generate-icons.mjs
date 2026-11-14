@@ -354,7 +354,7 @@ const definitions = [
   ["governance-skill-workshop.svg", "skills", "Taller de habilidades", "skill-workshop draft simulation approval", "#a78bfa", "#22d3ee"],
   ["cognitive-evidence-flow.svg", "flow", "Flujo cognitivo", "cognitive-flow evidenced-links input-memory-output", "#8b5cf6", "#ec4899"],
   ["cognitive-action-planner.svg", "planner", "Planificador", "governed-arbitration empty-planning-bench uncalculated-metrics no-selection no-execution owner-temporal-dock", "#f59e0b", "#38bdf8"],
-  ["cognitive-state-controls.svg", "state", "Estado y controles", "observable-internal-state readiness controls", "#10b981", "#f59e0b"],
+  ["cognitive-state-controls.svg", "state", "Estado y controles", "observable-internal-state technical-signals session-controls retrieved-memory", "#10b981", "#f59e0b"],
   ["cognitive-neural-volume.svg", "volume", "Volumen cognitivo", "organic-neural-volume cortex dendrites memories provenance", "#22d3ee", "#8b5cf6"],
   ["camera-pan-control.svg", "pan", "Desplazar vista", "camera pan tactile-control", "#38bdf8", "#22d3ee", true],
   ["camera-reset-control.svg", "reset", "Restablecer vista", "camera reset home-dock", "#a78bfa", "#f472b6", true],

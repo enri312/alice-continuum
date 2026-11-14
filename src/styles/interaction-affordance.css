@@ -934,6 +934,16 @@
 }
 
 /* Estado y controles: señales de lectura y ajustes disponibles de sesión. */
+.state-view-recovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: #9fb2c1;
+  font: .75rem/1.5 Consolas, monospace;
+}
+
 .internal-state {
   min-height: auto;
   padding: 16px;
@@ -1075,7 +1085,13 @@
   padding-inline: 18px;
 }
 
-.retrieved-row span,
+.retrieved-row span {
+  color: #38bdf8;
+  font-weight: 800;
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
 .retrieved-row strong,
 .retrieved-row em {
   color: #dce6ed;

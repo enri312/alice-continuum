@@ -73,7 +73,7 @@ const expectedSemantics: Record<keyof typeof functionalIcons, string> = {
   navSkills: "skill-workshop draft simulation approval",
   nucleusFlow: "cognitive-flow evidenced-links input-memory-output",
   nucleusPlanner: "governed-arbitration empty-planning-bench uncalculated-metrics no-selection no-execution owner-temporal-dock",
-  nucleusState: "observable-internal-state readiness controls",
+  nucleusState: "observable-internal-state technical-signals session-controls retrieved-memory",
   nucleusVolume: "organic-neural-volume cortex dendrites memories provenance",
   viewPan: "camera pan tactile-control",
   viewReset: "camera reset home-dock",
@@ -471,17 +471,16 @@ describe("sistema de iconos funcionales", () => {
     expect(nucleusFlow).not.toContain('class="mechanical"');
   });
 
-  it("representa Estado con ocho controles bloqueados en lugar de placeholders", () => {
-    expect(nucleusState).toContain('data-detail="locked-behavior-control-deck"');
+  it("representa Estado con dos ajustes de sesión y seis controles bloqueados", () => {
+    expect(nucleusState).toContain('data-detail="session-behavior-control-deck"');
     expect(nucleusState).toContain('data-control-count="8"');
-    expect(nucleusState.match(/data-detail="locked-control-pair"/g)).toHaveLength(4);
-    expect(nucleusState.match(/data-detail="control-guide-index"/g)).toHaveLength(4);
-    expect(nucleusState.match(/data-state="locked-read-only"/g)).toHaveLength(4);
+    expect(nucleusState).toContain('data-editable-count="2"');
+    expect(nucleusState.match(/data-state="adjustable-session"/g)).toHaveLength(2);
+    expect(nucleusState.match(/data-state="locked"/g)).toHaveLength(6);
     expect(nucleusState).toContain('data-detail="read-only-interlock"');
     expect(nucleusState).toContain('data-detail="selected-state-inspector"');
     expect(nucleusState).toContain('data-detail="retrieved-memory-cartridge"');
-    expect(nucleusState.match(/data-availability="ready"/g)).toHaveLength(2);
-    expect(nucleusState.match(/data-availability="planned"/g)).toHaveLength(6);
+    expect(nucleusState.match(/data-availability="ready"/g)).toHaveLength(8);
     expect(nucleusState.match(/data-control="[^"]+"/g)).toHaveLength(8);
     expect(nucleusState).not.toContain('<rect x="50" y="150" width="22" height="8" rx="2"');
     expect(nucleusState).not.toContain('<rect x="134" y="150" width="17" height="8" rx="2"');

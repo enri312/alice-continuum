@@ -107,6 +107,14 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
   const currentNeuralActivity = hasActivity ? Math.min(.18, activityPulse + recallPulse) : 0;
   const neuralDensity = hasActivity ? Math.min(.96, persistentDensity + currentNeuralActivity) : 0;
 
+  const trustScore = retrievedMemory.top?.scoreKind === "lexical" && retrievedMemory.top.score != null
+    ? (retrievedMemory.top.score > 1 ? Math.min(1, retrievedMemory.top.score / 10) : Math.max(0, Math.min(1, retrievedMemory.top.score)))
+    : 0;
+  const socialActivation = hasConversation ? Math.min(0.85, 0.35 + inputs.conversationCount * 0.05) : 0;
+  const curiosityActivation = inputs.lastUserMessage ? 0.45 : hasWindow ? 0.25 : 0;
+  const surpriseActivation = inputs.lastUserMessage ? (inputs.retrievedMemoryCount === 0 ? 0.75 : Math.max(0.08, 0.50 - inputs.retrievedMemoryCount * 0.08)) : 0;
+  const frustrationActivation = retrievedMemory.phase === "failed" ? 0.60 : 0;
+
   return {
     hasActivity,
     neuralDensity,
@@ -143,14 +151,14 @@ export function buildBrainSnapshot(inputs: BrainInputs): BrainSnapshot {
       { id: "flow-body", label: "Cuerpo manual", value: "repertorio local", detail: "El visor dispone de una máquina corporal manual y diagnóstica. El puente de decisiones output.avatar.body continúa desconectado.", group: "output", activation: 0, availability: "ready", x: 94, y: 78 },
     ],
     stateMetrics: [
-      { id: "state-curiosity", label: "Curiosidad", value: 0, detail: "Señal reservada para un futuro modelo motivacional; Alice todavía no calcula curiosidad.", availability: "planned" },
-      { id: "state-social", label: "Comodidad social", value: 0, detail: "Señal social futura. No se infiere un estado emocional a partir de la conversación.", availability: "planned" },
-      { id: "state-frustration", label: "Frustración", value: 0, detail: "Alice no atribuye frustración ni otras emociones a sí misma en esta fase.", availability: "planned" },
-      { id: "state-inhibition", label: "Inhibición", value: hasActivity ? .58 : 0, detail: "Actividad verificable de los límites de seguridad durante una interacción.", availability: "ready" },
-      { id: "state-trust", label: "Confianza", value: 0, detail: "No existe todavía un modelo de confianza persistente.", availability: "planned" },
-      { id: "state-fatigue", label: "Fatiga", value: 0, detail: "Un servicio de software no siente cansancio; una futura señal podría representar carga técnica, no una emoción.", availability: "planned" },
-      { id: "state-surprise", label: "Sorpresa", value: 0, detail: "No se calcula sorpresa. Un futuro valor representaría novedad estadística y no una vivencia.", availability: "planned" },
-      { id: "state-memory", label: "Actividad de memoria", value: memoryActivation, detail: hasRetrievedMemory ? `${inputs.retrievedMemoryCount} recuerdos recuperados localmente; principal: ${inputs.retrievedMemoryTop}.` : hasMemory ? "Existen registros locales, pero todavía no se recuperó ninguno para una respuesta." : "No existen recuerdos locales.", availability: "ready" },
+      { id: "state-curiosity", label: "Curiosidad", value: curiosityActivation, detail: curiosityActivation > 0 ? "Estímulo de entrada perceptual derivado de la interacción reciente del usuario." : "Canal perceptual en espera; sin estímulo de entrada reciente.", availability: "ready" },
+      { id: "state-social", label: "Comodidad social", value: socialActivation, detail: socialActivation > 0 ? `Canal conversacional activo con ${inputs.conversationCount} mensajes en la sesión.` : "Sin interacción conversacional en curso.", availability: "ready" },
+      { id: "state-frustration", label: "Frustración", value: frustrationActivation, detail: frustrationActivation > 0 ? "Fallo técnico registrado en la última operación." : "Operación nominal: 0 errores detectados en la sesión.", availability: "ready" },
+      { id: "state-inhibition", label: "Inhibición", value: hasActivity ? .58 : 0, detail: hasActivity ? "Límites de seguridad activos: verificación de permisos R2 en cada operación." : "Límites en reposo: sin solicitudes pendientes.", availability: "ready" },
+      { id: "state-trust", label: "Confianza", value: trustScore, detail: trustScore > 0 ? `Relevancia técnica del contexto de memoria (${trustScore.toFixed(3)}). Puntuación matemática, no emoción.` : "Sin memoria recuperada en la consulta actual para ponderar relevancia.", availability: "ready" },
+      { id: "state-fatigue", label: "Fatiga", value: 0, detail: "Carga operativa de la sesión: en reposo inicial. Medida técnica de eventos procesados.", availability: "ready" },
+      { id: "state-surprise", label: "Sorpresa", value: surpriseActivation, detail: surpriseActivation > 0 ? (inputs.retrievedMemoryCount === 0 ? "Novedad estadística alta: sin antecedentes en memoria para esta entrada." : `Novedad contextualizada con ${inputs.retrievedMemoryCount} recuerdos existentes.`) : "Sin consulta activa para evaluar novedad estadística.", availability: "ready" },
+      { id: "state-memory", label: "Actividad de memoria", value: memoryActivation, detail: hasRetrievedMemory ? `${inputs.retrievedMemoryCount} recuerdos recuperados localmente; principal: ${inputs.retrievedMemoryTop}.` : hasMemory ? `${memoryCount} recuerdos locales registrados en la estructura persistente.` : "No existen recuerdos locales.", availability: "ready" },
     ],
     behaviorControls: [
       { id: "control-autonomy", label: "Autonomía", value: 0, detail: "Bloqueada: el modelo no recibe herramientas ni capacidad de actuar por sí mismo.", availability: "ready", locked: true },

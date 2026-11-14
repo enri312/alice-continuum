@@ -6,6 +6,8 @@
 *.css text eol=lf
 *.html text eol=lf
 *.js text eol=lf
+*.mjs text eol=lf
+*.lock text eol=lf
 *.json text eol=lf
 *.md text eol=lf whitespace=-trailing-space
 *.rs text eol=lf
@@ -25,3 +27,4 @@
 *.icns binary
 *.ico binary
 *.png binary
+*.wasm binary

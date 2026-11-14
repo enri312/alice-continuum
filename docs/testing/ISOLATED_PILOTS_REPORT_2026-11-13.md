@@ -18,7 +18,7 @@ profunda del proyecto. No se cambia la memoria canónica, su esquema ni su índi
 - Documento original del propietario conservado, sin incluirlo en este commit.
   Datos vivos tratados por separado; no se exige que permanezcan inmóviles
   mientras Alice funciona ni se usan como fixtures.
-- Código publicable en [`experiments/`](../../experiments/README.md); modelos,
+- Código de pilotos en `experiments/` (privado desde el 14 de noviembre); modelos,
   binarios descargados, corpus, entornos, cachés, temporales y resultados privados
   bajo `local/experiments/` en D:, fuera de Git.
 - Sin cambios a `src/`, `src-tauri/`, manifiestos raíz, dependencias operativas,
@@ -30,7 +30,7 @@ El respaldo en el mismo disco conserva el límite de protección ya documentado.
 
 ## Dioxus-Web: Estado y controles
 
-[`experiments/dioxus-state/`](../../experiments/dioxus-state/README.md) contiene
+`experiments/dioxus-state/` (carpeta local privada) contiene
 un crate con workspace y lock propios. Dioxus facade **0.7.0**, componentes
 internos compatibles **0.7.10**, wasm-bindgen crate/CLI **0.2.105**, Rust
 **1.99.1** en toolchain privado D:. No requiere dx, Trunk ni npm.
@@ -99,7 +99,7 @@ ocho pruebas y observaciones del apartado anterior conservan su alcance históri
 
 ## ASR: método
 
-[`experiments/asr-comparison/`](../../experiments/asr-comparison/README.md)
+`experiments/asr-comparison/` (carpeta local privada)
 compara el CLI whisper.cpp instalado con faster-whisper **1.2.1**, CTranslate2
 **4.9.0**, small multilingüe, CPU de cuatro hilos e INT8 para faster-whisper.
 El tipo efectivo informado por CTranslate2 fue **int8_float32**. Venv propio

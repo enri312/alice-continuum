@@ -32,7 +32,7 @@ async function fixture(t) {
   });
   const projectRoot = path.join(temporary, 'project');
   const destination = path.join(temporary, 'backups');
-  await write(path.join(projectRoot, '.gitignore'), 'data/\nlocal/\n.env*\nnode_modules/\n');
+  await write(path.join(projectRoot, '.gitignore'), 'data/\nlocal/\n.env*\nnode_modules/\nexperiments/\n');
   await write(path.join(projectRoot, 'source.txt'), 'committed code\n');
   await write(path.join(projectRoot, 'deleted.txt'), 'delete me after commit\n');
   await git(projectRoot, 'init', '-q');
@@ -48,6 +48,8 @@ async function fixture(t) {
   await write(path.join(projectRoot, 'data/conversation/history-v1.json'), '{"exchanges":["private dialogue"]}\n');
   await write(path.join(projectRoot, 'data/audit/events.jsonl'), '{"event":"one"}\n{"event":"two"}\n');
   await write(path.join(projectRoot, 'data/obsidian/My note.md'), 'manual Obsidian note\n');
+  await write(path.join(projectRoot, 'experiments/pilot/source.py'), '# private experiment\n');
+  await write(path.join(projectRoot, 'experiments/pilot/dist/generated.js'), 'generated output\n');
   await write(path.join(projectRoot, 'local/assets/avatar.vrm'), 'synthetic asset\n');
   await write(path.join(projectRoot, 'local/ubuntu.env'), 'PRIVATE_FIXTURE=value\n');
   await write(path.join(projectRoot, '.env'), 'LOCAL_FIXTURE=value\n');
@@ -72,6 +74,9 @@ test('full backup and offline restore preserve code, deletions, Git branches and
   } else assert.equal((await fs.stat(config.destination)).mode & 0o777, 0o700);
   assert.ok(manifest.files.some(entry => entry.path.endsWith('self-study-v1.json')));
   assert.ok(!manifest.files.some(entry => entry.path.includes('node_modules')));
+  assert.ok(manifest.files.some(entry => entry.path === 'experiments/pilot/source.py'));
+  assert.ok(!manifest.files.some(entry => entry.path === 'experiments/pilot/dist/generated.js'));
+  assert.equal(await git(config.projectRoot, 'ls-files', '--', 'experiments', 'data/obsidian'), '');
   const target = path.join(config.temporary, 'recovered');
   await restoreSnapshot(result.snapshot, target);
   for (const entry of manifest.files) {

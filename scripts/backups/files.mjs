@@ -84,15 +84,16 @@ export async function copyNew(source, target, expected, mode = 0o600) {
   }
 }
 
-export async function walk(directory, prefix = '') {
+export async function walk(directory, prefix = '', skip = () => false) {
   await noLinks(directory);
   const result = [];
   if (!await exists(directory)) return result;
   for (const entry of (await fs.readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (skip(entry.name, entry.isDirectory())) continue;
     const relative = relativePath(`${prefix}${entry.name}`);
     const file = path.join(directory, entry.name);
     if (entry.isSymbolicLink()) fail('Hay un enlace en los archivos que se deben respaldar.');
-    if (entry.isDirectory()) result.push(...await walk(file, `${relative}/`));
+    if (entry.isDirectory()) result.push(...await walk(file, `${relative}/`, skip));
     else if (entry.isFile()) result.push(relative);
     else fail('Hay un archivo especial que no puede respaldarse de forma portable.');
   }

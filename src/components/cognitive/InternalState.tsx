@@ -51,7 +51,7 @@ export function InternalState({ snapshot, selectedId, onSelect, onControlChange 
       </div>
     </section>
 
-    <RetrievedMemoryPanel retrieval={snapshot.retrievedMemory} selected={selectedId === "state-memory"} onSelect={() => onSelect("state-memory")} />
+    <RetrievedMemoryPanel retrieval={snapshot.retrievedMemory} selected={selectedId === "retrieved-memory"} onSelect={() => onSelect("retrieved-memory")} />
 
     <section className="state-section behavior-section" aria-labelledby="behavior-title">
       <div className="state-section-title"><span id="behavior-title" role="heading" aria-level={3}>CONTROLES DE COMPORTAMIENTO</span><small>AJUSTES DEL PRÓXIMO ENVÍO · BLOQUEO SEGÚN DISPONIBILIDAD</small></div>

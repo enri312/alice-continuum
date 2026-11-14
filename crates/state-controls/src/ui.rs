@@ -1,0 +1,158 @@
+use crate::model::{Availability, Payload};
+use dioxus::prelude::*;
+use futures_channel::mpsc::UnboundedReceiver;
+use futures_util::StreamExt;
+use std::{cell::RefCell, rc::Rc};
+use wasm_bindgen::JsValue;
+
+#[derive(Clone)]
+pub struct PageProps {
+    pub initial: Payload,
+    pub rx: Rc<RefCell<Option<UnboundedReceiver<Payload>>>>,
+    pub on_action: js_sys::Function,
+    pub on_ready: js_sys::Function,
+}
+impl PartialEq for PageProps {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+fn emit(callback: &js_sys::Function, event: serde_json::Value) {
+    let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&event.to_string()));
+}
+fn status(availability: &Availability) -> (&'static str, &'static str) {
+    match availability {
+        Availability::Ready => ("implemented", "IMPLEMENTADO"),
+        Availability::Planned => ("planned", "FUTURO"),
+    }
+}
+
+pub fn page(props: PageProps) -> Element {
+    let mut payload = use_signal(|| props.initial.clone());
+    let rx = props.rx.clone();
+    use_future(move || {
+        let receiver = rx.borrow_mut().take();
+        async move {
+            if let Some(mut receiver) = receiver {
+                while let Some(next) = receiver.next().await {
+                    payload.set(next);
+                }
+            }
+        }
+    });
+    let on_ready = props.on_ready.clone();
+    use_effect(move || {
+        let _ = on_ready.call0(&JsValue::NULL);
+    });
+    let snap = payload.read();
+    let recall = &snap.retrieval;
+    let memory_selected = snap.selected_id == "retrieved-memory";
+    let memory_callback = props.on_action.clone();
+    let retrieval_aria = format!(
+        "Memoria recuperada, {}: {}. {}. {}: {}. Abrir detalles en el inspector.",
+        recall.type_label, recall.text, recall.status, recall.score_label, recall.score
+    );
+
+    rsx! {
+        div { class: "neuro-layout",
+            div { class: "neuro-stage",
+                div { class: if snap.has_activity { "internal-state has-activity" } else { "internal-state is-empty" },
+                    div { class: "nucleus-panel-label state-panel-caption",
+                        span { "[03]" } strong { "REPLY + AFFECT + DRIVE STATE" } small { "SEÑALES DE LECTURA · AJUSTES DE SESIÓN" }
+                    }
+                    header { class: "state-header",
+                        div { span { class: "state-monogram", "ALI" } strong { "ALICE" } small { "MODELO INTERNO · SEÑALES Y AJUSTES DE SESIÓN" } }
+                        span { class: "state-records", "{snap.local_records}" }
+                    }
+                    section { class: "state-section", "aria-label": "SEÑALES INTERNAS",
+                        div { class: "state-section-title",
+                            span { role: "heading", "aria-level": "3", "SEÑALES INTERNAS" }
+                            small { if snap.has_activity { "DATOS VERIFICABLES" } else { "SIN ACTIVIDAD" } }
+                        }
+                        div { class: "metric-grid",
+                            for metric in &snap.metrics {
+                                {
+                                    let (availability, label) = status(&metric.availability);
+                                    let selected = if snap.selected_id == metric.id { "selected" } else { "" };
+                                    let ready = if metric.availability == Availability::Ready { "ready" } else { "planned" };
+                                    let classes = format!("metric-row state-selection-target state-kind-metric state-availability-{ready} {ready} {selected}");
+                                    let id = metric.id.clone(); let callback = props.on_action.clone();
+                                    let value = format!("{:.3}", metric.value);
+                                    let aria = format!("{}: {}. Estado: {}. Abrir en el inspector.", metric.label, value, label.to_lowercase());
+                                    rsx! { button { key: "{metric.id}", r#type: "button", class: classes, "aria-pressed": !selected.is_empty(), "aria-label": aria,
+                                        onclick: move |_| emit(&callback, serde_json::json!({"type":"select","id":id})),
+                                        span { class: "metric-label state-item-label", span { class: "state-item-name", "{metric.label}" } i { class: "state-status-chip state-status-{availability}", "{label}" } }
+                                        span { class: "metric-track state-value-track", "aria-hidden": "true", i { style: "width: {metric.value * 100.0}%" } }
+                                        strong { class: "state-value-output", "aria-hidden": "true", "{value}" }
+                                    } }
+                                }
+                            }
+                        }
+                    }
+                    section { class: "state-section retrieved-memory", "aria-label": "MEMORIA RECUPERADA",
+                        div { class: "state-section-title", span { role: "heading", "aria-level": "3", "MEMORIA RECUPERADA" } }
+                        button { r#type: "button", class: if memory_selected { "retrieved-row state-selection-target state-kind-retrieval selected" } else { "retrieved-row state-selection-target state-kind-retrieval" },
+                            "aria-pressed": memory_selected, "aria-label": retrieval_aria,
+                            onclick: move |_| emit(&memory_callback, serde_json::json!({"type":"select","id":"retrieved-memory"})),
+                            span { "{recall.type_label}" } strong { "{recall.text}" } em { title: "{recall.score_label}", "{recall.score}" }
+                        }
+                    }
+                    section { class: "state-section behavior-section", "aria-label": "CONTROLES DE COMPORTAMIENTO",
+                        div { class: "state-section-title",
+                            span { role: "heading", "aria-level": "3", "CONTROLES DE COMPORTAMIENTO" }
+                            small { "AJUSTES DEL PRÓXIMO ENVÍO · BLOQUEO SEGÚN DISPONIBILIDAD" }
+                        }
+                        div { class: "control-grid",
+                            for control in &snap.controls {
+                                {
+                                    let (availability, label) = status(&control.availability);
+                                    let selected = if snap.selected_id == control.id { "selected" } else { "" };
+                                    let ready = if control.availability == Availability::Ready { "ready" } else { "planned" };
+                                    let lock = if control.locked { "locked" } else { "available" };
+                                    let lock_label = if control.locked { " Bloqueado." } else { " Ajuste de esta sesión." };
+                                    let classes = format!("control-row state-control-slider state-selection-target state-kind-control state-availability-{ready} state-lock-{lock} {ready} {selected}");
+                                    let value = format!("{:.2}", control.value);
+                                    let aria = format!("{}: {}. Estado: {}.{} Abrir en el inspector.", control.label, value, label.to_lowercase(), lock_label);
+                                    let inspect_id = control.id.clone(); let focus_id = control.id.clone(); let input_id = control.id.clone();
+                                    let inspect_cb = props.on_action.clone(); let focus_cb = props.on_action.clone(); let input_cb = props.on_action.clone();
+                                    rsx! { div { key: "{control.id}", class: classes,
+                                        button { r#type: "button", class: "state-control-inspect", "aria-pressed": !selected.is_empty(), "aria-label": aria,
+                                            onclick: move |_| emit(&inspect_cb, serde_json::json!({"type":"select","id":inspect_id})),
+                                            span { class: "state-item-name", "{control.label}" }
+                                            span { class: "state-status-list",
+                                                i { class: "state-status-chip state-status-{availability}", "{label}" }
+                                                i { class: if control.locked { "state-status-chip state-status-locked" } else { "state-status-chip state-status-implemented" }, if control.locked { "BLOQUEADO" } else { "AJUSTABLE" } }
+                                            }
+                                        }
+                                        input { r#type: "range", class: "state-behavior-range", min: "0", max: "1", step: "0.01", value: "{value}", disabled: control.locked,
+                                            "aria-label": "{control.label}.{lock_label}", "aria-valuetext": "{value}",
+                                            onfocus: move |_| emit(&focus_cb, serde_json::json!({"type":"select","id":focus_id})),
+                                            oninput: move |event| { if let Ok(value) = event.value().parse::<f64>() { if value.is_finite() && (0.0..=1.0).contains(&value) { emit(&input_cb, serde_json::json!({"type":"changeBehavior","id":input_id,"value":value})); } } },
+                                        }
+                                        strong { class: "state-value-output", "aria-hidden": "true", "{value}" }
+                                    } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            aside { class: "neuro-inspector",
+                p { class: "eyebrow", "INSPECTOR" }
+                if memory_selected {
+                    div { class: "state-retrieval-inspector",
+                        h3 { "Memoria recuperada" } span { class: "state-retrieval-status", "{recall.status}" }
+                        p { strong { "{recall.type_label}" } } p { "{recall.text}" }
+                        dl { dt { "{recall.score_label}" } dd { "{recall.score}" } dt { "Coincidencias vigentes" } dd { "{recall.count}" } }
+                        p { "{recall.detail}" }
+                        if let Some(source) = &recall.source { small { "Fuente: {source}." } }
+                    }
+                } else {
+                    h3 { "{snap.inspector.label}" } span { class: "inspector-value", "{snap.inspector.value}" } p { "{snap.inspector.detail}" }
+                    small { "Creatividad y estilo empático se aplican a la conversación local. Los controles bloqueados conservan sus límites." }
+                }
+            }
+        }
+    }
+}

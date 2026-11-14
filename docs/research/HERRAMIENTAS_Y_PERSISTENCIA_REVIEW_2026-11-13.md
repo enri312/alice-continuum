@@ -138,7 +138,7 @@ no entrena una wake word y no afirma resuelta la aceptación prolongada de R9.
 ## Pilotos factibles y alcance propuesto para Dioxus
 
 Esta ampliación delimita qué probar primero y qué parte de la interfaz evaluar.
-Los [pilotos separados](../../experiments/README.md) implementan la comparación
+Los pilotos separados de `experiments/` (carpeta local privada) implementan la comparación
 ASR y la vista Dioxus con sus propias dependencias; no sustituyen pantallas ni
 cambian el arranque de Alice. Su incorporación al principal exige validación y
 aceptación posterior.

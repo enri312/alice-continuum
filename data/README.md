@@ -61,7 +61,10 @@ Incluir `obsidian/` al respaldar los datos privados.
 
 Procedimiento y límites: [Memoria en Obsidian](../docs/runbooks/05-memoria-obsidian.md).
 
-El contenido generado dentro de `data/` está excluido de Git. Este archivo sí se
+El contenido generado dentro de `data/` está excluido de Git. De `obsidian/` sólo
+se versiona `.gitkeep`, un marcador vacío para crear la carpeta al clonar.
+Las notas, la proyección sincronizada y `.obsidian/` permanecen privadas.
+Este archivo sí se
 conserva para explicar la estructura cuando el proyecto se comparte.
 
 No guardar claves de API, contraseñas ni otros secretos como recuerdos.

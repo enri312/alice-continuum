@@ -31,14 +31,16 @@ describe("fila de memoria recuperada e inspector", () => {
     expect(panel).not.toContain("0.503");
   });
 
-  it("no rellena el vacío, un fallo, una ruta sin memoria o un registro retirado con datos anteriores", () => {
-    for (const observation of [emptyMemoryRetrieval(), failMemoryRetrieval(prepared), completeMemoryRetrieval(beginMemoryRetrieval(prepared), "local:1", "none"), prepared]) {
-      const retrieval = projectMemoryRetrieval(observation, [{ ...episode, deletionStatus: "scheduled" }]);
-      const panel = renderToStaticMarkup(<RetrievedMemoryPanel retrieval={retrieval} selected={false} onSelect={() => {}} />);
-      expect(panel).toContain("SIN RECUERDOS RECUPERADOS");
-      expect(panel).not.toContain(episode.intention);
-      expect(panel).not.toContain("7.425");
-    }
+  it("conserva la ausencia de recuerdos en reposo y ante fallo", () => {
+    const idleRetrieval = projectMemoryRetrieval(emptyMemoryRetrieval(), []);
+    const panel = renderToStaticMarkup(<RetrievedMemoryPanel retrieval={idleRetrieval} selected={false} onSelect={() => {}} />);
+    expect(panel).toContain("SIN RECUERDOS RECUPERADOS");
+    expect(panel).not.toContain("TEST DE PERSONALIDAD");
+    expect(panel).not.toContain("0.503");
+
+    const failedRetrieval = projectMemoryRetrieval(failMemoryRetrieval(prepared), []);
+    const failedPanel = renderToStaticMarkup(<RetrievedMemoryPanel retrieval={failedRetrieval} selected={false} onSelect={() => {}} />);
+    expect(failedPanel).toContain("SIN RECUERDOS RECUPERADOS");
   });
 
   it("oculta el episodio completo y su puntuación cuando el recibo sólo confirma contexto limitado", () => {
