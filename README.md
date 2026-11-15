@@ -431,6 +431,12 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
+Se evalúa además una [nueva dirección visual para Alice](docs/architecture/DIRECCION_VISUAL_ALICE.md):
+Observatorio y Cuaderno permiten comparar navegación, conversación, memoria y
+volumen cognitivo. Son propuestas con contenido ilustrativo en `experiments/`;
+la renovación aún no está aplicada y conserva como requisito todas las funciones
+y fuentes actuales.
+
 El objetivo final es **retirar React por completo**, incluidos el estado global,
 la navegación, el arranque y las vistas de recuperación. Los hosts actuales son
 temporales; el [inventario de migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md)

@@ -23,6 +23,13 @@ Dioxus aislada no cierra la migración de la aplicación. El
 [inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 guían los siguientes incrementos.
 
+**Dirección visual en revisión (2026-11-15):** el propietario pide renovar el
+diseño para dar a Alice una identidad seria y propia, conservando contenido y
+funciones. Se prepararon las alternativas Observatorio y Cuaderno, con tres
+vistas ilustrativas navegables y revisión en cuatro anchos. La aplicación sigue
+con su diseño actual; la elección se incorporará por pantallas y coordinada con
+Dioxus. Ver [criterios, mapa de contenido y alcance](docs/architecture/DIRECCION_VISUAL_ALICE.md).
+
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado
 comparó bytes de 18 casos y midió lotes antes de incorporar el comando manual

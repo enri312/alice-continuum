@@ -17,6 +17,11 @@ macOS. El funcionamiento básico se explicará sin asumir conocimientos de Rust 
 Node. La conversación debe mantenerse sencilla y el diseño industrial existente,
 el contenido, la identidad y los iconos deben conservarse durante la migración.
 
+Actualización de diseño (2026-11-15): el propietario solicitó renovar la identidad
+visual sin perder contenido ni funciones. Esa revisión se prepara por separado
+de las sustituciones de framework; las maquetas no cambian el producto actual.
+Ver [alternativas y criterios de incorporación](DIRECCION_VISUAL_ALICE.md).
+
 El propietario informó que otras personas ya intentaron ejecutarla en Windows y
 Linux sin éxito. Aún no se conocen sus errores, versiones ni forma de descarga:
 los problemas siguientes son **causas posibles comprobadas en la configuración**,
