@@ -22,16 +22,22 @@ proyecto anterior Alice Cognitive Core.
 
 **Diseño de Conversación (15 de noviembre de 2026):** se incorporó la Propuesta 04
 elegida por el propietario: superficies translúcidas, bordes redondeados y acentos
-violeta, azul y cian. Conserva los iconos originales y las funciones reales de texto,
+violeta, azul y cian. Conserva el catálogo de iconos y las funciones reales de texto,
 voz, visión, recuerdos y revisión del mensaje. Las fuentes Sora y JetBrains Mono
 se sirven localmente. Las otras páginas conservan su presentación; el cambio no
 declara migrada Conversación a Dioxus.
 Tras comparar con la interfaz anterior, se retiraron el aro decorativo, las dos
 flechas añadidas y la repetición visible del encabezado técnico. La navegación
-original y los 22 SVG se conservan; el cambio sigue siendo de presentación.
+original se conserva; el cambio sigue siendo de presentación.
 Las pestañas usan dos filas uniformes para centrar cada icono con su etiqueta,
 con espacio para nombres de dos líneas y contadores separados del contenido.
 [Alcance y validación](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+
+**Icono de Conversación:** por solicitud del propietario se adaptó su composición
+al acabado de IA con cristal, circuitos finos y paleta violeta/azul/cian. Mantiene
+mensajes, micrófono con filtro local, respuesta de voz y visión opcional; es una
+ilustración estática. Los otros 21 SVG, incluido el emblema, permanecen intactos.
+[Generación y pruebas](docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 

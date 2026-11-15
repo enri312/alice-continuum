@@ -1,53 +1,74 @@
-// Conversation, locally filtered voice and optional visual context.
-// This illustration never represents a live microphone/camera indicator.
-export function conversationChannelScene(a, b, { plinth, fastener }) {
-  return `${plinth(a,b,158)}
-  <g data-detail="conversation-channel-chassis" filter="url(#shadow)">
-    <path d="M22 140V48l16-17h124l16 17v92l-14 15H37Z" fill="url(#dark-metal)" stroke="#a9bdce" stroke-width="1"/>
-    <path d="M30 135V52l13-13h114l13 13v83l-10 11H40Z" fill="#040d18" stroke="#546e85" stroke-width=".65"/>
-    <path d="M44 35h109M26 59v66m148-66v66M42 151h116" fill="none" stroke="#a3bacb" stroke-width=".4"/>
-    ${fastener(33,46,a,1.5)}${fastener(167,46,b,1.5)}${fastener(34,140,b,1.3)}${fastener(166,140,a,1.3)}
-  </g>
-  <g data-detail="optional-visual-context" data-activation="separate-session">
-    <path d="M117 39h44l9 8v33l-6 6h-47l-6-6V45Z" fill="url(#metal)" stroke="#a9bdce" stroke-width=".9"/>
-    <path d="M120 45h40l4 4v26l-4 4h-40Z" fill="#0b1729" stroke="${b}" stroke-width=".8"/>
-    <path d="M139 86v5m-8 0h16" fill="none" stroke="#9eacc5" stroke-width="1.1"/>
-    <g data-detail="camera-context-lens">
-      <circle cx="153" cy="58" r="9" fill="#020912" stroke="#bbcbd7" stroke-width=".9"/>
-      <circle cx="153" cy="58" r="5.7" fill="url(#glass)" stroke="${b}" stroke-width="1.2"/>
-      <circle cx="153" cy="58" r="2.1" fill="#bdb0ee"/>
-      <path d="m150 53 3-1" stroke="#f2efff" stroke-width=".6" stroke-linecap="round"/>
-    </g>
-  </g>
-  <g data-detail="conversation-turns">
-    <g data-detail="text-message-input">
-      <path d="M49 50h86l12 11v44l-11 11H91l-20 15v-15H49l-10-11V61Z" fill="url(#metal)" stroke="#c3dbe6" stroke-width="1"/>
-      <path d="M52 57h79l9 8v36l-8 8H88l-10 8v-8H52l-6-7V64Z" fill="#092333" stroke="${a}" stroke-width="1.7"/>
-      <path d="M105 70h24m-24 9h19m-19 9h13" stroke="#afd5e5" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M53 53h75m-85 13v31" fill="none" stroke="#ecf6ff" stroke-width=".45" opacity=".7"/>
-    </g>
-    <g data-detail="owner-voice-microphone" data-activation="started-session">
-      <rect x="68" y="64" width="20" height="34" rx="10" fill="url(#metal)" stroke="#d9edf3" stroke-width="1.2"/>
-      <rect x="72" y="68" width="12" height="26" rx="6" fill="#124354" stroke="${a}" stroke-width=".8"/>
-      ${[73,78,83,88].map(y=>`<path d="M75 ${y}h6" stroke="#b9f5ff" stroke-width="1" stroke-linecap="round"/>`).join('')}
-      <path d="M61 85v7a17 17 0 0 0 34 0v-7M78 109v8m-9 0h18" fill="none" stroke="${a}" stroke-width="2" stroke-linecap="round"/>
-    </g>
-    <g data-detail="conversational-voice-output" data-transmission="session-or-manual">
-      <path d="M108 99h50l13 12v25l-10 9h-13v12l-18-12h-22l-10-10v-26Z" fill="url(#metal)" stroke="#c7bbef" stroke-width="1"/>
-      <path d="M111 106h43l10 9v17l-7 6h-15v7l-11-7h-20l-6-6v-20Z" fill="#1a1b38" stroke="${b}" stroke-width="1.4"/>
-      <g data-detail="speech-waveform" stroke="#d8cbff" stroke-width="2.2" stroke-linecap="round">
-        <path d="M114 119v7m8-14v21m8-17v13m8-20v27m8-20v13m8-10v7"/>
+// The original conversation composition, adapted to Proposal 04's AI/glass finish.
+// This is a static illustration of capabilities, never a live device indicator.
+export function renderConversationChannelIcon({ title, semantic }) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="${title}" data-icon="identification" data-semantic="${semantic}" data-visual-style="proposal04-ai-glass" data-detail-scale="navigation-readable" data-motion="static" shape-rendering="geometricPrecision">
+  <title>${title}</title>
+  <desc>Mensajes, micrófono con filtrado local, respuesta de voz y visión opcional. Ilustración estática; no indica que los dispositivos estén activos.</desc>
+  <defs>
+    <linearGradient id="conversation-p04-rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c4b5fd"/><stop offset=".25" stop-color="#8b5cf6"/><stop offset=".6" stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="conversation-p04-frame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b427e" stop-opacity=".92"/><stop offset=".4" stop-color="#1c2039" stop-opacity=".96"/><stop offset="1" stop-color="#0d2935" stop-opacity=".94"/></linearGradient>
+    <linearGradient id="conversation-p04-face" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c4b5fd" stop-opacity=".16"/><stop offset=".42" stop-color="#111524" stop-opacity=".92"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".12"/></linearGradient>
+    <linearGradient id="conversation-p04-input" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3f4169"/><stop offset=".42" stop-color="#132538"/><stop offset="1" stop-color="#113845"/></linearGradient>
+    <linearGradient id="conversation-p04-reply" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#66518b"/><stop offset=".5" stop-color="#29243f"/><stop offset="1" stop-color="#203b56"/></linearGradient>
+    <linearGradient id="conversation-p04-microphone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfeff"/><stop offset=".2" stop-color="#67e8f9"/><stop offset=".55" stop-color="#248fa9"/><stop offset="1" stop-color="#2563eb"/></linearGradient>
+    <linearGradient id="conversation-p04-highlight" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f3ff" stop-opacity=".85"/><stop offset=".45" stop-color="#c4b5fd" stop-opacity=".26"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+    <linearGradient id="conversation-p04-base" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#52466f"/><stop offset=".4" stop-color="#25263f"/><stop offset="1" stop-color="#111320"/></linearGradient>
+    <radialGradient id="conversation-p04-lens"><stop stop-color="#a5f3fc"/><stop offset=".2" stop-color="#38bdf8"/><stop offset=".55" stop-color="#3b3481"/><stop offset="1" stop-color="#111827"/></radialGradient>
+    <filter id="conversation-p04-shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#03030c" flood-opacity=".55"/></filter>
+    <clipPath id="conversation-p04-interior"><rect x="33" y="34" width="134" height="112" rx="17"/></clipPath>
+  </defs>
+  <g data-symbol="${semantic}" data-detail="conversation-channel-chassis">
+    <ellipse cx="100" cy="180" rx="73" ry="8" fill="#030511" opacity=".35"/>
+    <g data-detail="glass-supports" fill="url(#conversation-p04-frame)" stroke="url(#conversation-p04-rim)" stroke-width=".9"><path d="M56 147h10v19H53Z"/><path d="M134 147h10l3 19h-13Z"/></g>
+    <g data-detail="glass-console-base"><ellipse cx="100" cy="173" rx="70" ry="9" fill="url(#conversation-p04-base)" stroke="url(#conversation-p04-rim)" stroke-width="1.2"/><path d="M39 171c19-9 101-9 122 0" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".8"/><path d="M69 179h10m5 0h5m22 0h5m5 0h10" fill="none" stroke="#7dd3fc" stroke-width=".8" opacity=".65"/></g>
+    <g filter="url(#conversation-p04-shadow)">
+      <rect x="25" y="26" width="150" height="128" rx="23" fill="url(#conversation-p04-frame)" stroke="url(#conversation-p04-rim)" stroke-width="1.8"/>
+      <rect x="30" y="31" width="140" height="118" rx="19" fill="url(#conversation-p04-face)" stroke="#ddd6fe" stroke-opacity=".22" stroke-width=".8"/>
+      <path d="M45 31h107m-122 19v73" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M171 54v73q0 20-20 23H47" fill="none" stroke="#22d3ee" stroke-opacity=".35" stroke-width=".8"/>
+      <g data-detail="etched-conversation-circuits" clip-path="url(#conversation-p04-interior)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 49h9m-9 9h5m-5 50h8l7 7v11m-15-7h5l4 4v8M138 39v8l8 8h16m-19-16v5l9 9h10M160 85h-9l-7 7v9m16-9h-6l-5 5v4" stroke="#8b5cf6" stroke-width=".8" opacity=".65"/>
+        <path d="M38 120v14l9 8h50m39 0h21l6-6M43 39h11m4 0h5m44 0h12" stroke="#67e8f9" stroke-width=".65" opacity=".5"/>
+        <g fill="#a5f3fc" stroke="none" opacity=".6"><circle cx="45" cy="49" r="1.2"/><circle cx="51" cy="126" r="1.2"/><circle cx="151" cy="85" r="1.2"/><circle cx="97" cy="142" r="1.2"/></g>
       </g>
-      <path d="M113 102h36m-47 13v14" fill="none" stroke="#e9e0ff" stroke-width=".45"/>
+      <g data-detail="glass-bezel-fasteners" fill="#161b30" stroke="#c4b5fd" stroke-width=".55">
+        ${[[37,38],[163,38],[37,142],[163,142]].map(([x,y])=>`<g transform="translate(${x} ${y})"><circle r="2.1"/><path d="M-1 0h2" stroke="#67e8f9" stroke-width=".5"/></g>`).join('')}
+      </g>
+    </g>
+    <g data-detail="optional-visual-context" data-activation="separate-session" data-indicator="illustration-only">
+      <rect x="141" y="25" width="35" height="35" rx="10" fill="url(#conversation-p04-reply)" stroke="url(#conversation-p04-rim)" stroke-width="1.3"/>
+      <path d="M149 29h17m-20 4v11" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".7"/>
+      <g data-detail="camera-context-lens"><circle cx="158.5" cy="42.5" r="10.5" fill="#121528" stroke="#a78bfa" stroke-width="1"/><circle cx="158.5" cy="42.5" r="7.5" fill="url(#conversation-p04-lens)" stroke="#67e8f9" stroke-width=".9"/><circle cx="158.5" cy="42.5" r="2.7" fill="#0b1327"/><path d="m154 37 3-1" stroke="#ecfeff" stroke-width="1.1" stroke-linecap="round"/><path d="M149 48h2m15-11h2" stroke="#c4b5fd" stroke-width=".7"/></g>
+    </g>
+    <g data-detail="conversation-turns" filter="url(#conversation-p04-shadow)">
+      <g data-detail="text-message-input">
+        <path d="M54 45h69q13 0 13 13v39q0 13-13 13H84l-20 15v-15H54q-13 0-13-13V58q0-13 13-13Z" fill="url(#conversation-p04-input)" stroke="url(#conversation-p04-rim)" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M55 49h67m-77 12v31" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M101 63h22m-22 10h17m-17 10h21m-21 10h11" fill="none" stroke="#c4e9fa" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M105 99h10m4 0h4" stroke="#38bdf8" stroke-opacity=".6" stroke-width=".7"/>
+      </g>
+      <g data-detail="owner-voice-microphone" data-activation="started-session">
+        <rect x="65" y="58" width="19" height="34" rx="9.5" fill="url(#conversation-p04-microphone)" stroke="#cffafe" stroke-width="1.1"/>
+        <rect x="69" y="63" width="11" height="24" rx="5.5" fill="#143345" stroke="#a5f3fc" stroke-opacity=".6" stroke-width=".6"/>
+        ${[67,71,75,79,83].map(y=>`<path d="M72 ${y}h5" stroke="#a5f3fc" stroke-width=".85" stroke-linecap="round"/>`).join('')}
+        <path d="M58 80v8a16.5 16.5 0 0 0 33 0v-8M74.5 105v8m-8 0h16" fill="none" stroke="#a5f3fc" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M62 93q2 8 10 9" fill="none" stroke="#22d3ee" stroke-width=".7" opacity=".6"/>
+      </g>
+      <g data-detail="conversational-voice-output" data-transmission="session-or-manual">
+        <path d="M115 101h46q13 0 13 13v21q0 12-12 12h-11v12l-17-12h-19q-12 0-12-12v-21q0-13 12-13Z" fill="url(#conversation-p04-reply)" stroke="url(#conversation-p04-rim)" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M117 105h42m-52 12v14" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".9" stroke-linecap="round"/>
+        <g data-detail="speech-waveform" stroke-linecap="round"><path d="M116 122v6m8-12v18m8-15v12m8-20v28m8-20v12m8-16v20m8-13v6" fill="none" stroke="#e9e3ff" stroke-width="2.4"/><path d="M140 116v18m16-14v10" stroke="#67e8f9" stroke-width="1.1"/></g>
+        <path d="M115 141h13m25 0h7" stroke="#c4b5fd" stroke-opacity=".6" stroke-width=".6"/>
+      </g>
+    </g>
+    <g data-detail="local-noise-filter" data-processing="local-before-transcription">
+      <rect x="38" y="130" width="55" height="21" rx="6" fill="url(#conversation-p04-input)" stroke="#a5b4fc" stroke-opacity=".65" stroke-width="1"/>
+      <path d="M44 133h36" stroke="url(#conversation-p04-highlight)" stroke-width=".65"/>
+      <path data-detail="background-noise-input" d="m43 141 2-3 3 7 3-5 3 1" fill="none" stroke="#8d91ae" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+      <g data-detail="noise-filter-fins" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"><path d="M60 135v12m5-9v6m5-9v12"/></g>
+      <path data-detail="filtered-voice-signal" d="M76 141h3l2-4 3 8 2-4h3" fill="none" stroke="#a5f3fc" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </g>
-  <g data-detail="local-noise-filter" data-processing="local-before-transcription">
-    <path d="M43 129h45l9 8v12l-7 6H43l-7-7v-12Z" fill="url(#dark-metal)" stroke="#abcbd8" stroke-width=".8"/>
-    <path data-detail="background-noise-input" d="m42 142 3-4 3 8 3-6 3 2" fill="none" stroke="#78909f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <g data-detail="noise-filter-fins" stroke="${a}" stroke-width="1.5" stroke-linecap="round">
-      <path d="M60 135v14m6-11v8m6-11v14"/>
-    </g>
-    <path data-detail="filtered-voice-signal" d="M79 142h3l2-4 3 8 2-4h3" fill="none" stroke="#b2f6ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M44 132h40" fill="none" stroke="#b2c8d4" stroke-width=".4"/>
-  </g>`;
+</svg>
+`;
 }

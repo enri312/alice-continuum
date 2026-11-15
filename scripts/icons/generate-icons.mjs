@@ -13,7 +13,7 @@ import { memoryRepositoryScene } from "./scenes/cognitive-memory-vault.mjs";
 import { volumeObservatoryScene } from "./scenes/cognitive-neural-volume.mjs";
 import { avatarMiniatureScene } from "./scenes/embodiment-avatar-vrm.mjs";
 import { faceCalibrationScene } from "./scenes/embodiment-face-calibration.mjs";
-import { conversationChannelScene } from "./scenes/cognitive-conversation-channel.mjs";
+import { renderConversationChannelIcon } from "./scenes/cognitive-conversation-channel.mjs";
 import { evidenceFlowScene } from "./scenes/cognitive-evidence-flow.mjs";
 import { permissionGatewayScene } from "./scenes/governance-permissions-gateway.mjs";
 import { actionPlanningScene } from "./scenes/cognitive-action-planner.mjs";
@@ -422,12 +422,13 @@ scenes.memory = (a, b) => memoryRepositoryScene(a, b, { plinth, fastener, socket
 scenes.volume = (a, b) => volumeObservatoryScene(a, b, { plinth, fastener, socket });
 scenes.avatar = (a, b) => avatarMiniatureScene(a, b, { plinth, fastener });
 scenes.face = (a, b) => faceCalibrationScene(a, b, { plinth, fastener });
-scenes.identification = (a, b) => conversationChannelScene(a, b, { plinth, fastener });
 scenes.flow = (a, b) => evidenceFlowScene(a, b, { plinth, fastener });
 scenes.gateway = (a, b) => permissionGatewayScene(a, b, { plinth, fastener });
 scenes.planner = (a, b) => actionPlanningScene(a, b, { plinth, fastener });
 
 function renderIcon([file, id, title, semantic, accent, secondary, compact = false]) {
+  // Conversation follows its approved glass theme without changing the other icons.
+  if (id === "identification") return renderConversationChannelIcon({ title, semantic });
   const componentScene = finishComponentPanels(scenes[id](accent, secondary), id);
   const mountedScene = `${compact ? "" : chassisPlinthMounts(accent, secondary)}${componentScene}${compact ? precisionControlRim(id, accent, secondary) : ""}`;
   const scene = refineHeavyStrokes(mountedScene);

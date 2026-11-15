@@ -127,20 +127,31 @@ describe("sistema de iconos funcionales", () => {
     expect(source).not.toMatch(/<foreignObject\b/i);
   });
 
-  it.each(Object.entries(functionalIcons))("%s mantiene accesibilidad de movimiento", (_name, source) => {
+  it.each(Object.entries(functionalIcons))("%s mantiene accesibilidad de movimiento", (name, source) => {
+    if (name === "navIdentification") {
+      expect(source).toContain('data-motion="static"');
+      expect(source).not.toMatch(/@keyframes|\banimation\s*:|<animate\b|<animateTransform\b|<animateMotion\b|<set\b/i);
+      return;
+    }
     expect(source).toMatch(/animation:/);
     expect(source).toContain("prefers-reduced-motion");
     expect(source).toContain('class="alive"');
     expect(source).toContain('data-motion="semantic-micro-motion"');
   });
 
-  it.each(Object.entries(functionalIcons))("%s no dibuja texto dentro del icono", (_name, source) => {
+  it.each(Object.entries(functionalIcons))("%s no dibuja texto dentro del icono", (name, source) => {
     expect(source).not.toMatch(/<text\b/i);
     expect(source).not.toMatch(/font-family\s*=/i);
     expect(source).not.toMatch(/<pattern\b/i);
     expect(source).not.toContain("M45 62V47");
     expect(source).toMatch(/data-semantic="[^"]+"/);
     expect(source).toContain('data-detail-scale="navigation-readable"');
+    // Only Conversation has adopted the glass finish; hardware assertions remain
+    // required for every other icon in the original industrial family.
+    if (name === "navIdentification") {
+      expect(source).toContain('data-visual-style="proposal04-ai-glass"');
+      return;
+    }
     expect(source).toContain('data-detail-pass="precision-finish-v15"');
     expect(source).toContain('data-component-refinement="precision-components-v15"');
     expect(source).toContain('data-material-finish="micro-etched-v15"');
@@ -364,6 +375,17 @@ describe("sistema de iconos funcionales", () => {
     expect(navIdentification).not.toContain('data-detail="turn-review-switch"');
     expect(navIdentification).not.toContain('data-detail="token-inspection-optic"');
     expect(navIdentification).not.toContain('data-detail="biometric-owner-print"');
+  });
+
+  it("adapta sólo Conversación al cristal de Propuesta 04 con recursos locales propios", () => {
+    expect(navIdentification).toContain('data-visual-style="proposal04-ai-glass"');
+    expect(navIdentification).toContain('data-detail="etched-conversation-circuits"');
+    expect(navIdentification).toContain('data-detail="camera-context-lens"');
+    expect(navIdentification).toContain('data-indicator="illustration-only"');
+    expect(navIdentification).toContain("no indica que los dispositivos estén activos");
+    expect(navIdentification).not.toContain('data-detail="chassis-to-plinth-mounts"');
+    expect(navIdentification).not.toMatch(/id="(?!conversation-p04-)/);
+    expect(Object.values(functionalIcons).filter(source => source.includes('data-visual-style="proposal04-ai-glass"'))).toEqual([navIdentification]);
   });
 
   it("representa Capacidades con siete dominios, madurez y estado separados", () => {
@@ -644,7 +666,7 @@ describe("sistema de iconos funcionales", () => {
   it("distingue equipos montados de controles independientes", () => {
     const equipmentIcons = [
       bridgeBody, bridgeFace, bridgeOverview, navActivity, navAudit, navAvatar,
-      navBridges, navIdentification, navMemory, navProcedures, navSettings, navSkills,
+      navBridges, navMemory, navProcedures, navSettings, navSkills,
       nucleusFlow, nucleusPlanner, nucleusState, nucleusVolume,
     ];
     const independentControls = [viewPan, viewReset, viewRotate, viewZoomIn, viewZoomOut];
@@ -667,7 +689,7 @@ describe("sistema de iconos funcionales", () => {
   it("refina las bases del resto de equipos sin alterar la base propia de Memoria", () => {
     const equipmentIcons = [
       bridgeBody, bridgeFace, bridgeOverview, navActivity, navAudit, navAvatar,
-      navBridges, navIdentification, navProcedures, navSettings, navSkills,
+      navBridges, navProcedures, navSettings, navSkills,
       nucleusFlow, nucleusPlanner, nucleusState, nucleusVolume,
     ];
     for (const source of equipmentIcons) {

@@ -106,6 +106,14 @@ try {
   await send('Page.navigate',{url:url.href}); await ready(); await evaluate('document.fonts.ready');
   await until(()=>evaluate('document.querySelector(".conversation-status").textContent.includes("Motor de prueba local")'),'estado real del adaptador simulado');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),7);
+  assert.equal(await evaluate('document.querySelector(".icon-identification svg").dataset.visualStyle'),'proposal04-ai-glass');
+  assert.equal(await evaluate('document.querySelector(".icon-identification svg").dataset.motion'),'static');
+  assert.ok(await evaluate(`(()=>{const svg=document.querySelector('.icon-identification svg');
+    return [...svg.querySelectorAll('[id]')].every(node=>node.id.startsWith('conversation-p04-')&&document.querySelectorAll('#'+node.id).length===1)
+      && [...svg.outerHTML.matchAll(/url\\(#([^)]*)\\)/g)].every(match=>svg.querySelector('#'+match[1]));})()`),'Gradientes y referencias SVG propios sin colisiones');
+  const iconBounds=await evaluate(`(()=>{const r=document.querySelector('.icon-identification').getBoundingClientRect();return {x:r.x-8,y:r.y-8,width:r.width+16,height:r.height+16,scale:3};})()`);
+  const iconShot=await send('Page.captureScreenshot',{format:'png',clip:iconBounds});
+  await fs.writeFile(path.join(artifacts,'conversation-icon-detail.png'),Buffer.from(iconShot.data,'base64'));
   assert.equal(await evaluate('document.querySelectorAll(".screen-tabs button").length'),7,'Sólo las pestañas originales, sin flechas añadidas');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading"),"::before").content'),'none','Sin aro decorativo');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading")).clipPath'),'inset(50%)','Encabezado técnico compacto como antes');

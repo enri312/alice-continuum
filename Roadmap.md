@@ -39,11 +39,19 @@ Ver [dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md) e
 **Limpieza de elementos añadidos:** por observación del propietario se retiraron
 el aro decorativo, las dos flechas y el encabezado técnico repetido que se había
 hecho visible. `App.tsx` vuelve a coincidir con la versión previa al rediseño;
-los 22 SVG y sus consumidores originales permanecen intactos. Se conserva el
+en esa revisión los 22 SVG y sus consumidores originales permanecieron intactos. Se conserva el
 estilo elegido y el desplazamiento nativo de las pestañas, sin controlador extra.
 La alineación de iconos y etiquetas se corrigió separándolos en dos filas fijas:
 misma altura, eje central común y texto completo en anchos 320–1280 px, sin
 modificar los SVG ni sus componentes.
+
+**Icono de Conversación adaptado:** tras aprobar la alineación, el propietario
+solicitó un estilo de IA con más detalle. Sólo este SVG evoluciona a capas de
+cristal, circuitos y acentos violeta/azul/cian, conservando mensajes, micrófono,
+filtro local, respuesta vocal y visión opcional. La escena es estática y no
+indica dispositivos activos. Generación individual reproducible, otros 21 SVG
+intactos, 173 comprobaciones de iconos, compilación y aceptación de navegador
+correctas. Ver [informe](docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
 
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado

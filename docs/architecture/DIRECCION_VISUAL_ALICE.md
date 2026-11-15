@@ -20,7 +20,7 @@ Dioxus continúa pendiente.
   técnicos. Archivos WOFF2 locales, con licencias SIL OFL 1.1 incluidas, sin
   solicitudes a Google Fonts durante el uso.
 - Sistemas en tarjetas redondeadas, área de trabajo con radio de 24 px y pestañas
-  con los SVG originales. Desplazamiento horizontal nativo y acceso por teclado.
+  con los SVG propios. Desplazamiento horizontal nativo y acceso por teclado.
 - Mensajes en un área de lectura diferenciada; controles de voz junto al
   compositor, acción principal con degradado y revisión explícita antes de enviar.
 - Contexto, documentos y diagnóstico bajo demanda. Foco visible, adaptación a
@@ -29,6 +29,12 @@ Dioxus continúa pendiente.
 La marca, el lema y el indicador Local-first permanecen en una línea compacta.
 Los tres sistemas y todos los destinos siguen accesibles. No se renombraron
 funciones ni se reemplazaron iconos por los glifos genéricos del HTML.
+Después de aprobar la alineación, el propietario pidió adaptar el icono de
+Conversación al estilo de IA con más detalle. Su composición conserva mensajes,
+micrófono, filtro, onda vocal y lente opcional, con capas de cristal y circuitos
+violeta/azul/cian. Es un SVG estático con identificadores propios. Los otros 21
+recursos, incluido el emblema de Alice, conservan sus contenidos originales.
+[Fuente reproducible y validación](../testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
 Tras la revisión del propietario se quitaron el aro decorativo y las dos flechas
 añadidas. El encabezado técnico vuelve al tratamiento compacto previo, sin
 repetirse visualmente sobre Conversación. No se añaden emblemas a los originales.
