@@ -14,6 +14,18 @@ contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
 para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
 siguen pendientes; el plan no da por resuelto R9 ni R10.
 
+**Prioridad posterior del propietario:** continuar en Windows y reducir React
+mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector
+de Flujo cognitivo pasan a Rust/Dioxus con los mismos estilos y datos. Las
+conexiones y sus señales, la geometría y la selección se resuelven en Rust.
+El contenedor, el sondeo R3 y las asociaciones de memoria siguen en React.
+El WASM se comparte con Estado y controles y se carga bajo demanda. Ocho pruebas
+Rust del módulo, compilación WASM y Clippy aprobadas; 872 pruebas frontend,
+15 de Obsidian, 20 de respaldos y dos de privacidad aprobadas. La revisión Edge
+del build mostró once nodos y renderer Dioxus. La interacción de Tauri sigue
+pendiente: la automatización de ventanas no se conectó. Este incremento no
+completa la migración de la pantalla ni del proyecto.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

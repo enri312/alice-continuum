@@ -1,5 +1,11 @@
 # Estado y controles en Dioxus
 
+Este paquete también incorpora el grafo y el inspector de Flujo cognitivo:
+`flow_model.rs` valida nodos, geometría, selección y señales R3; `flow_ui.rs`
+los dibuja con las clases CSS existentes. Los dos renderers comparten un único
+WASM y tienen ciclos de montaje independientes. El contenedor y las asociaciones
+de Flujo continúan en React; esta incorporación no es una migración completa.
+
 Renderer de la página principal, con Dioxus 0.7.0 y dioxus-web 0.7.10 fijados
 en `Cargo.lock`. El contenido conserva las clases CSS del panel React.
 No accede a Tauri, archivos, credenciales, red, modelos ni memoria persistente.

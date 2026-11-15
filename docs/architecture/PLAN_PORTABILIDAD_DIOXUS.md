@@ -3,6 +3,11 @@
 Fecha: 14 de noviembre de 2026. Estado: **planificación; los trabajos y criterios
 pendientes de este documento no se consideran implementados**.
 
+Prioridad actualizada por el propietario: trabajar primero en Windows y avanzar
+en Dioxus para reducir React; retomar Ubuntu después. El Roadmap registra los
+incrementos implementados y sus límites. Las fases de portabilidad permanecen
+como objetivo, sin exigir cambios en Ubuntu durante este tramo.
+
 ## Objetivo y alcance
 
 Alice será una asistente personal de escritorio que acompaña, conversa, conserva
