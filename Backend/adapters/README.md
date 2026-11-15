@@ -34,6 +34,20 @@ Python se selecciona mediante `ALICE_PYTHON_BIN` absoluto o el entorno
 `runtime/venv` en Windows / `runtime/venv-linux` en Linux.
 Ver [uso y límites](../../docs/runbooks/05-memoria-obsidian.md#formateo-manual-con-python).
 
+## Informe offline de reranqueo R8
+
+`r8_rerank_report.py` recibe un lote de rankings numéricos por stdin y construye
+el informe Top-1/Top-3 y de latencia media. El evaluador manual R8 conserva la
+inferencia, recuperación TypeScript y verificación SHA-256. Python no recibe
+textos ni IDs canónicos, no abre rutas ni llama a servicios.
+
+El comando `npm run eval:r8:report -- --input <rankings.json>` sirve para analizar
+un archivo elegido explícitamente. Sólo imprime JSON: no guarda informes ni
+modifica la entrada. Usa el mismo Python seleccionable que Obsidian y sólo
+biblioteca estándar. Límite de 10.000 filas, 1 MiB de entrada, 16 KiB de salida
+y diez segundos; un fallo no recurre a otra implementación ni imprime los datos.
+No interviene en el arranque. Ver [formato y alcance](../../docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+
 ## Lector documental
 
 ```powershell

@@ -31,9 +31,20 @@ validaciones, índices y escritura protegida; Python construye el Markdown.
 La vigilancia automática sigue con Node por el coste de iniciar otro proceso.
 La integración se probó únicamente con bóvedas ficticias, incluidos conflictos
 y fallo del adaptador. Respaldos, núcleo, permisos y diseño conservan su función.
-Los análisis e informes de evaluación quedan como siguiente revisión; Dioxus
-mantiene el objetivo de retirar React. Ver [reparto y estado](docs/architecture/REPARTO_NODE_PYTHON.md)
+El segundo incremento incorpora el análisis del reranqueo R8 descrito debajo;
+Dioxus mantiene el objetivo de retirar React. Ver [reparto y estado](docs/architecture/REPARTO_NODE_PYTHON.md)
 y [pruebas](docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
+
+**Reparto Node.js/Python, segundo incremento (2026-11-15):** el evaluador manual
+`r8-gemma-rerank-eval.test.ts` delega conteos Top-1/Top-3, proporciones, latencia
+media y construcción del informe en `Backend/adapters/r8_rerank_report.py`.
+TypeScript conserva el contrato de recuperación, inferencia, selección de fuentes
+y comprobación SHA-256. El modo offline `eval:r8:report` procesa sólo rankings
+numéricos elegidos expresamente, sin modelos ni textos personales. Se compara
+con el cálculo anterior usando 25 lotes ficticios; el ensayo con Gemma y perfil
+real continúa siendo optativo y no se ejecutó en este incremento. No se portan
+los pilotos históricos ni se modifica su evidencia. Ver [auditoría y validación](docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+El siguiente bloque de interfaz sigue siendo el contenedor de Actividad en Dioxus.
 
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector

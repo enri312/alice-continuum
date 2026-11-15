@@ -1,6 +1,6 @@
-# Reparto futuro entre Node.js, Python y Rust
+# Reparto entre Node.js, Python y Rust
 
-Fecha: 2026-11-15. Estado: **primer módulo manual implementado y probado**.
+Fecha: 2026-11-15. Estado: **formateo manual e informe R8 incorporados**.
 El propietario pidió iniciar este reparto. La migración a Dioxus conserva su
 objetivo; el resto de transferencias descritas aquí permanece como propuesta.
 
@@ -19,7 +19,7 @@ cambiar de lenguaje no constituye una mejora de rendimiento demostrada.
 | Componente | Responsabilidad verificada |
 |---|---|
 | Node.js/npm | Vite/TypeScript, pruebas frontend, CLI Tauri, herramientas Dioxus, generación de iconos, respaldos y proyección Obsidian. |
-| Python | Extracción y fragmentación de documentos (`document_reader.py`); puente multimedia Linux (`linux_media_bridge.py`); algunos instaladores y ensayos. |
+| Python | Extracción documental, puente multimedia Linux, formateo manual de notas Obsidian e informe offline de reranqueo R8; algunos instaladores y ensayos. |
 | Rust/Tauri | Núcleo nativo, permisos, auditoría, memoria operativa, control de procesos/modelos e invocación de adaptadores. Dioxus incorpora progresivamente la interfaz y sus modelos. |
 
 El JavaScript que usa la WebView para audio, cámara o servicios del navegador
@@ -31,7 +31,7 @@ Dioxus y el reparto de tareas auxiliares con Python se verifican por separado.
 | Tarea actual | Propuesta | Prioridad |
 |---|---|---|
 | Construcción de notas Markdown en `scripts/obsidian/sync.mjs` | Implementada como opción manual por lotes. Node prepara campos y JSON técnico; Python construye Markdown y cercas; Node conserva validaciones y escritura protegida. | Primer incremento terminado; automatización Python no activada. |
-| Cálculos y generación de informes en evaluaciones de `scripts/testing/` | Mover análisis por lotes e informes a Python después de identificar qué ensayos siguen vigentes. Conservar en TS las pruebas que ejercitan contratos TypeScript y evitar duplicar lógica productiva. | Segunda revisión. |
+| Cálculos y generación de informes en evaluaciones de `scripts/testing/` | Incorporado el informe del evaluador manual de reranqueo R8: conteos, proporciones, media y JSON en Python. El contrato de recuperación, inferencia y comprobación de fuentes sigue en TS. | Segundo incremento; otros evaluadores no transferidos. |
 | Respaldos integrales en `scripts/backups/` | Conservar su implementación actual. Una eventual sustitución exigiría paridad de inventario, hashes, permisos, enlaces, bloqueo y restauración aislada. | Revisión independiente posterior. |
 | Compilación, CLI Tauri y herramientas del frontend | Mantener Node donde las herramientas actuales lo requieren. La salida de React no implica por sí misma retirar Vite o npm. | Sin transferencia propuesta ahora. |
 | Generadores SVG de iconos | Mantenerlos: incorporan las escenas del diseño existente y no participan en el uso cotidiano de la aplicación. | Sin beneficio medido que justifique portarlos. |
@@ -40,6 +40,28 @@ Python puede recibir más trabajo de análisis documental o evaluación de audio
 aprovechando los adaptadores existentes. Eso debe distinguirse de trasladar una
 tarea que hoy haga Node: la transcripción productiva actual ya la controla Rust
 mediante el ejecutable Whisper configurado.
+
+## Segundo incremento: informe del evaluador R8
+
+La revisión de referencias, contratos y dependencias seleccionó
+`r8-gemma-rerank-eval.test.ts`, una evaluación manual optativa que sigue usando
+la recuperación léxica del producto. Se conservan esas llamadas TypeScript y
+la inferencia; sólo se trasladan los cálculos y la construcción del resumen a
+`Backend/adapters/r8_rerank_report.py`. El adaptador recibe índices efímeros de
+candidatos, latencia y el resultado de preservación comprobado por el llamador.
+
+`npm run eval:r8:report -- --input <rankings.json>` permite probar el informe
+offline, sin leer almacenes ni iniciar modelos. La entrada elegida debe usar
+el esquema cerrado de números y booleanos. No hay proceso residente ni cambios
+de arranque. Mantiene los nombres JSON del informe anterior; la presencia del
+campo `realConfirmedProfileRecords` no demuestra que una entrada offline sea
+real ni que haya pasado la evaluación con Gemma.
+
+La paridad se comprobó con 25 lotes ficticios y con la función anterior extraída
+de Git. Se rechazaron entradas inválidas y se probaron ausencia, fallo y tiempo
+límite de Python. El arranque del intérprete añade coste; no se promete una mejora
+de rendimiento. Los pilotos antiguos con rutas personales no se migraron ni se
+eliminaron. Ver [auditoría, uso y resultados](../testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 
 ## Primer ensayo y posterior incorporación
 

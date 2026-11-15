@@ -444,6 +444,13 @@ Python. Se probaron paridad, lotes, fallos y protección de datos con bóvedas
 ficticias; no se usó el modo Python sobre los recuerdos personales.
 [Uso del comando](docs/runbooks/05-memoria-obsidian.md#formateo-manual-con-python) · [Resultados y mediciones](docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
+El segundo módulo traslada a Python los cálculos Top-1/Top-3 y el informe del
+evaluador manual de reranqueo R8. TypeScript conserva inferencia, recuperación
+léxica y comprobación de fuentes; Python recibe posiciones numéricas y latencia.
+`npm run eval:r8:report -- --input <rankings.json>` también permite analizar un
+lote sin iniciar modelos. No añade procesos al arranque ni modifica la interfaz.
+Ver [alcance, formato de entrada y pruebas](docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+
 La línea temporal de Actividad pasa a Rust/Dioxus: ventana de 24 eventos,
 selección, posiciones, contadores, duración, inspector y leyenda. Se conserva el
 contenido y CSS, y se retira su implementación visual React anterior. El host

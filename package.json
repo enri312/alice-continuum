@@ -16,6 +16,7 @@
     "test:dioxus:native": "node scripts/testing/dioxus-native-smoke.mjs",
     "test:obsidian": "node --test scripts/obsidian/*.test.mjs",
     "test:backup": "node --test scripts/backups/*.test.mjs",
+    "eval:r8:report": "node scripts/testing/r8-report.mjs",
     "backup": "node scripts/backups/cli.mjs",
     "obsidian:sync": "node scripts/obsidian/sync.mjs",
     "obsidian:sync:python": "node scripts/obsidian/sync.mjs --formatter python",

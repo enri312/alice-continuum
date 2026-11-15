@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { spawn, type ChildProcess } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { retrieveMemories } from "../../Frontend/src/core/memory/memory-retrieval";
+import { createRerankReport, resolveRerankPython, type RerankReportRequest } from "./r8-report.mjs";
 
 const enabled = process.env.ALICE_R8_REAL_RERANK_EVAL === "1";
 const engine = "D:/Alice-model-evaluation/runtimes/llama-b10809/bin/llama-server.exe";
@@ -114,6 +115,7 @@ async function rank(query: string, candidates: ProfileRecord[]) {
 
 describe.skipIf(!enabled)("R8.3 · reranqueo real con la misma Gemma", () => {
   it("compara ranking semántico y léxico sobre el perfil confirmado", async () => {
+    const pythonExecutable = resolveRerankPython(); // Fail before loading a model if the offline reporter is unavailable.
     expect(await portIsOccupied(), "Apagá Gemma desde Configuración antes de ejecutar R8.3").toBe(false);
     const ollama = await fetch("http://127.0.0.1:11434/api/ps", { signal: AbortSignal.timeout(2_000) });
     expect((await ollama.json() as { models?: unknown[] }).models).toEqual([]);
@@ -124,6 +126,8 @@ describe.skipIf(!enabled)("R8.3 · reranqueo real con la misma Gemma", () => {
     const profile = (JSON.parse(before.toString("utf8")) as OwnerProfile).records
       .filter((record) => record.memoryStatus === "confirmed" && record.id && record.intention?.trim() && record.summary?.trim());
     expect(profile.length).toBeGreaterThan(2);
+    const candidateIndexes = new Map(profile.map((record, index) => [record.id, index]));
+    expect(candidateIndexes.size, "El perfil no debe contener IDs duplicados").toBe(profile.length);
 
     const child = spawn(engine, [
       "-m", modelPath,
@@ -134,17 +138,12 @@ describe.skipIf(!enabled)("R8.3 · reranqueo real con la misma Gemma", () => {
 
     try {
       await waitUntilReady(child);
-      let rerankTop1 = 0;
-      let rerankTop3 = 0;
-      let lexicalTop1 = 0;
-      let lexicalTop3 = 0;
+      const rankings: RerankReportRequest["rankings"] = [];
       const started = performance.now();
       for (let index = 0; index < profile.length; index += 1) {
         const expected = profile[index];
         const candidates = rotate(profile, index + 1);
         const ids = await rank(expected.intention, candidates);
-        if (ids[0] === expected.id) rerankTop1 += 1;
-        if (ids.includes(expected.id)) rerankTop3 += 1;
 
         const lexicalCandidates = candidates.map((candidate) => ({
           id: candidate.id,
@@ -154,22 +153,19 @@ describe.skipIf(!enabled)("R8.3 · reranqueo real con la misma Gemma", () => {
           memoryStatus: "confirmed" as const,
         }));
         const lexical = retrieveMemories(expected.intention, lexicalCandidates, 3);
-        if (lexical[0]?.memory.id === expected.id) lexicalTop1 += 1;
-        if (lexical.some((match) => match.memory.id === expected.id)) lexicalTop3 += 1;
+        rankings.push({
+          lexical: lexical.map((match) => candidateIndexes.get(match.memory.id)!),
+          reranked: ids.map((id) => candidateIndexes.get(id)!),
+        });
       }
       const elapsedMs = Math.round(performance.now() - started);
       expect(sha256(await readFile(profilePath))).toBe(sha256(before));
-      console.log(JSON.stringify({
-        realConfirmedProfileRecords: profile.length,
-        lexicalTop1: lexicalTop1 / profile.length,
-        lexicalTop3: lexicalTop3 / profile.length,
-        gemmaRerankTop1: rerankTop1 / profile.length,
-        gemmaRerankTop3: rerankTop3 / profile.length,
+      console.log(JSON.stringify(createRerankReport({
+        schemaVersion: 1,
+        rankings,
         totalRerankLatencyMs: elapsedMs,
-        meanRerankLatencyMs: Math.round(elapsedMs / profile.length),
         sourcePreserved: true,
-        indexPersisted: false,
-      }));
+      }, { pythonExecutable })));
     } finally {
       await stopChild(child);
     }

@@ -7,6 +7,8 @@
   pruebas y requisitos. Rust incluye los dos scripts usados por la aplicación.
   El formateador Obsidian se invoca desde el comando Node manual y usa sólo la
   biblioteca estándar de Python; no participa en el arranque automático.
+  `r8_rerank_report.py` calcula métricas de evaluación bajo demanda desde Node;
+  tampoco se inicia con la aplicación ni forma parte del núcleo de memoria.
 
 Los datos privados no están aquí: se mantienen en `data/`, y los modelos, entornos
 y recursos locales en `runtime/` o en las rutas configuradas por el propietario.

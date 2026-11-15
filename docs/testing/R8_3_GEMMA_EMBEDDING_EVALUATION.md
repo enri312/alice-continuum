@@ -1,5 +1,12 @@
 # R8.3 — Evaluación de recuperación híbrida con un solo modelo
 
+Actualización del arnés (2026-11-15): el evaluador de reranqueo conserva sus
+llamadas TypeScript y comprobaciones de fuentes, pero delega el cálculo y el
+informe final en Python. Se validó con rankings ficticios; no se repitieron las
+evaluaciones reales descritas en este documento. Requiere el Python configurado
+en `runtime/venv` o mediante `ALICE_PYTHON_BIN` absoluto.
+Ver [uso offline, auditoría y pruebas](NODE_PYTHON_R8_REPORT_2026-11-15.md).
+
 Estado: arnés preparado; ejecución real pendiente de apagar el modo chat de Gemma.
 
 ## Decisión bajo prueba
