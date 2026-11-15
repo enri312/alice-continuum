@@ -45,6 +45,16 @@ de persistencia del backend usan datos temporales. El
 [inventario de dependencias pendientes](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 guía la limpieza después de completar y validar cada sustitución.
 
+**Formulario de fuentes:** selectores, lectura original y citas pasan a Dioxus.
+La validación bloquea fuentes repetidas o ausentes, citas vacías, longitud mayor
+de 2048 unidades UTF-16 y edición durante una revisión. El adaptador rechaza
+eventos que intenten aportar confirmaciones, hashes o revisiones. El controlador
+actual conserva el borrador, obtiene la evidencia vigente y solicita la revisión
+al backend; editar invalida la revisión anterior. La sonda Edge con IPC ficticio
+comprobó edición, bloqueo, confirmación separada, rechazo de cita no literal y
+recuperación tras un fallo de WASM manteniendo fuentes y citas. La aceptación
+nativa y la migración de las confirmaciones siguen pendientes.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

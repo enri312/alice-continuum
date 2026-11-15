@@ -10,6 +10,9 @@ mod ui;
 pub mod relations_model;
 #[cfg(target_arch = "wasm32")]
 mod relations_ui;
+pub mod source_form_model;
+#[cfg(target_arch = "wasm32")]
+mod source_form_ui;
 #[cfg(target_arch = "wasm32")]
 #[macro_use]
 mod browser_runtime;
@@ -40,4 +43,13 @@ mountable_view!(
     mount_saved_relations,
     update_saved_relations,
     unmount_saved_relations
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    source_form_browser,
+    crate::source_form_model::Payload,
+    crate::source_form_ui,
+    mount_source_form,
+    update_source_form,
+    unmount_source_form
 );

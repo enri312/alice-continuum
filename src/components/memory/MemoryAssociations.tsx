@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "../documents/DocumentPreview.css";
 import { SavedRelationsDioxus } from "./SavedRelationsDioxus";
+import { SourceFormDioxus } from "./SourceFormDioxus";
+import { buildSourceChoices } from "./source-form-bridge";
 
 type Evidence = { recordId: string; recordVersion: number; recordSha256: string; quote: string };
 type Node = { evidenceUse: string; recordVersion: number; lifecycle: { recordId: string; recordSha256: string } };
@@ -53,20 +55,18 @@ export function MemoryAssociations({ desktopApp }: { desktopApp: boolean }) {
       <button type="button" disabled={busy} onClick={() => void run(refresh)}>Actualizar relaciones</button>
       {status && <div>
         <p>{status.associations.filter(r => !r.withdrawn && r.sourcesCurrent).length} vigentes · revisión {status.revision} · estado comprobado al actualizar</p>
-        {nodes.length < 2 ? <p>Se necesitan dos episodios recuperables para proponer una relación.</p> : <fieldset disabled={busy} style={{ border: "1px solid #315366", padding: 16 }}>
-          <legend>Elegir fuentes y copiar una cita literal de cada entrada</legend>
-          {[0, 1].map(index => <div key={index} style={{ marginBottom: 16 }}>
-            <label>Experiencia {index + 1}<select aria-label={`Experiencia ${index + 1}`} value={selected[index]}
-              onChange={event => { setSelected(old => old.map((value, i) => i === index ? event.target.value : value)); setQuotes(old => old.map((value, i) => i === index ? "" : value)); setReview(null); }}>
-              <option value="">Seleccionar episodio</option>
-              {nodes.map(node => <option key={node.lifecycle.recordId} value={node.lifecycle.recordId}>{title(node.lifecycle.recordId)}</option>)}
-            </select></label>
-            {selected[index] && <details><summary>Leer entrada original {index + 1}</summary><pre style={{ whiteSpace: "pre-wrap" }}>{records.find(r => r.id === selected[index])?.intention}</pre></details>}
-            <label>Cita {index + 1}<textarea aria-label={`Cita ${index + 1}`} value={quotes[index]} maxLength={2048} rows={2}
-              onChange={event => { setQuotes(old => old.map((value, i) => i === index ? event.target.value : value)); setReview(null); }} /></label>
-          </div>)}
-          <button type="button" disabled={selected.some(id => !id) || selected[0] === selected[1] || quotes.some(q => !q.trim())} onClick={() => void run(preview)}>Revisar relación</button>
-        </fieldset>}
+        <SourceFormDioxus busy={busy}
+          sources={buildSourceChoices(nodes.map(node => node.lifecycle.recordId), records, selected)}
+          selected={[selected[0], selected[1]]} quotes={[quotes[0], quotes[1]]} onAction={action => {
+          if (action.type === "selectSource") {
+            setSelected(old => old.map((value, index) => index === action.index ? action.id : value));
+            setQuotes(old => old.map((value, index) => index === action.index ? "" : value));
+            setReview(null);
+          } else if (action.type === "editQuote") {
+            setQuotes(old => old.map((value, index) => index === action.index ? action.quote : value));
+            setReview(null);
+          } else void run(preview);
+        }} />
         {review && <div role="region" aria-label="Confirmar relación revisada">
           <p>Las dos citas coinciden con las fuentes actuales. Revisá si realmente querés relacionar estas experiencias:</p>
           {review.evidence.map(e => <blockquote key={e.recordId}>{e.quote}</blockquote>)}

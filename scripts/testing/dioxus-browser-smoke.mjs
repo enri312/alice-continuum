@@ -152,13 +152,33 @@ try {
       transformCallback: () => 0,
       invoke: async (cmd,args={}) => {
         __relationCalls.push({cmd,args:structuredClone(args)});
-        if(cmd==='knowledge_graph_snapshot') return {nodes:[]};
+        if(cmd==='knowledge_graph_snapshot') return {nodes:[
+          {evidenceUse:'episodeOnly',recordVersion:2,lifecycle:{recordId:'a',recordSha256:'a'.repeat(64)}},
+          {evidenceUse:'episodeOnly',recordVersion:3,lifecycle:{recordId:'b',recordSha256:'b'.repeat(64)}},
+          {evidenceUse:'notAnEpisode',recordVersion:1,lifecycle:{recordId:'c',recordSha256:'c'.repeat(64)}}
+        ]};
         if(cmd==='load_memory') return {existed:true,storagePath:'synthetic-only/records.json',sessions:[
           {id:'a',kind:'Enseñanza',intention:'Experiencia A',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
           {id:'b',kind:'Enseñanza',intention:'Experiencia B',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
           {id:'c',kind:'Enseñanza',intention:'Experiencia C',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
           {id:'d',kind:'Enseñanza',intention:'Experiencia <D>',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'}]};
         if(cmd==='knowledge_graph_associations') return structuredClone(__relationFixture);
+        if(cmd==='preview_knowledge_graph_association') {
+          const evidence=args.evidence;
+          if(evidence?.length!==2 || evidence[0].recordId===evidence[1].recordId) throw Error('Fuentes ficticias inválidas');
+          for(const item of evidence) {
+            const id=item.recordId;
+            if(!['a','b'].includes(id) || item.recordVersion!==(id==='a'?2:3) || item.recordSha256!==id.repeat(64)
+              || !item.quote?.trim() || !('Experiencia '+id.toUpperCase()).includes(item.quote)) throw Error('Cita ficticia no coincide con la fuente');
+          }
+          if(globalThis.__holdSourcePreview) await new Promise(resolve=>globalThis.__releaseSourcePreview=resolve);
+          return null;
+        }
+        if(cmd==='confirm_knowledge_graph_association') {
+          if(args.confirmed!==true || args.expectedRevision!==__relationFixture.revision) throw Error('Confirmación ficticia inválida');
+          __relationFixture.associations.push({id:'new',revision:1,withdrawn:false,sourcesCurrent:true,evidence:args.evidence});
+          __relationFixture.revision++; return null;
+        }
         if(cmd==='set_knowledge_graph_association_withdrawn') {
           if(globalThis.__failRelationWrite) { globalThis.__failRelationWrite=false; throw Error('Fallo sintético de relación'); }
           if(args.confirmed!==true || args.expectedRevision!==__relationFixture.revision) throw Error('Confirmación o revisión inválida');
@@ -199,16 +219,96 @@ try {
   const relationsShot = await send('Page.captureScreenshot', {format:'png'});
   await fs.writeFile(path.join(artifacts, 'saved-relations.png'), Buffer.from(relationsShot.data, 'base64'));
 
+  const sourceFormReady = () => until(() => evaluate('document.querySelectorAll(\'[data-source-form-renderer="dioxus"] select\').length === 2'), 'formulario Dioxus');
+  const sourceSelector = index => `.memory-associations select[aria-label="Experiencia ${index + 1}"]`;
+  const quoteSelector = index => `.memory-associations textarea[aria-label="Cita ${index + 1}"]`;
+  const selectSource = (index, id) => evaluate(`(() => {const element=document.querySelector(${JSON.stringify(sourceSelector(index))}); element.value=${JSON.stringify(id)}; element.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  const typeQuote = async (index, text) => {
+    await evaluate(`(() => {const element=document.querySelector(${JSON.stringify(quoteSelector(index))}); element.focus(); element.select();})()`);
+    await send('Input.insertText', {text});
+  };
+  const previewEnabled = () => evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Revisar relación")?.matches(":enabled")');
+  const previewCalls = () => evaluate('__relationCalls.filter(call=>call.cmd==="preview_knowledge_graph_association")');
+  const sourceWrites = () => evaluate('__relationCalls.filter(call=>call.cmd==="confirm_knowledge_graph_association")');
+  const clickText = text => evaluate(`Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent===${JSON.stringify(text)}).click()`);
+  await sourceFormReady();
+  assert.deepEqual(await evaluate('Array.from(document.querySelector(\'select[aria-label="Experiencia 1"]\').options).map(option=>option.value)'),['','a','b']);
+  assert.equal(await previewEnabled(), false);
+  await selectSource(0, 'a');
+  await selectSource(1, 'a');
+  await until(() => evaluate('document.querySelectorAll(".memory-associations details").length === 2'), 'lectura de entradas originales');
+  await typeQuote(0, 'Experiencia A');
+  await typeQuote(1, 'Experiencia A');
+  assert.equal(await previewEnabled(), false, 'Dos fuentes iguales no se revisan');
+  await selectSource(1, 'b');
+  await until(() => evaluate('document.querySelector(\'textarea[aria-label="Cita 2"]\').value === ""'), 'limpieza de cita al cambiar fuente');
+  await typeQuote(1, 'Experiencia B');
+  await until(previewEnabled, 'revisión de dos fuentes distintas');
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations pre")).map(item=>item.textContent)'), ['Experiencia A','Experiencia B']);
+  await evaluate('document.querySelector(".memory-associations details summary").click()');
+  assert.equal(await evaluate('document.querySelector(".memory-associations details").open'),true);
+  assert.equal((await sourceWrites()).length, 0);
+  await evaluate('globalThis.__holdSourcePreview=true');
+  await clickText('Revisar relación');
+  await until(() => evaluate('document.querySelector(".memory-associations fieldset").matches(":disabled")'), 'bloqueo durante revisión');
+  assert.deepEqual((await previewCalls())[0].args.evidence, [
+    {recordId:'a',recordVersion:2,recordSha256:'a'.repeat(64),quote:'Experiencia A'},
+    {recordId:'b',recordVersion:3,recordSha256:'b'.repeat(64),quote:'Experiencia B'},
+  ]);
+  await until(() => evaluate('typeof globalThis.__releaseSourcePreview === "function"'), 'revisión ficticia suspendida');
+  await evaluate('globalThis.__holdSourcePreview=false; __releaseSourcePreview()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'revisión visible');
+  assert.equal((await sourceWrites()).length, 0, 'Revisar no guarda');
+  await until(previewEnabled,'fin de revisión');
+  await selectSource(1,'a');
+  await until(() => evaluate('!document.querySelector(\'[aria-label="Confirmar relación revisada"]\')'), 'cambiar fuente invalida revisión');
+  assert.equal(await previewEnabled(),false);
+  await selectSource(1,'b');
+  await typeQuote(1,'Experiencia B');
+  await until(previewEnabled,'nueva cita después de cambiar fuente');
+  await clickText('Revisar relación');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'revisión con nuevas fuentes');
+  await until(previewEnabled,'fin de nueva revisión');
+  await typeQuote(0, 'Experiencia');
+  await until(() => evaluate('!document.querySelector(\'[aria-label="Confirmar relación revisada"]\')'), 'editar invalida revisión anterior');
+  await clickText('Revisar relación');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'nueva revisión');
+  await until(previewEnabled,'formulario disponible después de revisar');
+  await evaluate('document.querySelector(".memory-associations fieldset").scrollIntoView({block:"center"})');
+  const sourceShot=await send('Page.captureScreenshot',{format:'png'});
+  await fs.writeFile(path.join(artifacts,'source-form.png'),Buffer.from(sourceShot.data,'base64'));
+  await clickText('Confirmar y guardar relación');
+  await until(async () => (await sourceWrites()).length === 1, 'guardado sólo después de confirmar');
+  assert.equal((await sourceWrites())[0].args.confirmed, true);
+  assert.equal((await sourceWrites())[0].args.expectedRevision, 8);
+  await until(() => evaluate('document.querySelectorAll(".memory-associations article").length === 5'), 'nueva relación ficticia en lista');
+  await typeQuote(0,'texto inexistente');
+  await until(previewEnabled,'cita pendiente de validación nativa');
+  await clickText('Revisar relación');
+  await until(() => evaluate('document.querySelector(".memory-associations [role=alert]")?.textContent.includes("no coincide")'), 'cita no literal rechazada');
+  assert.equal(await evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'),false);
+  assert.equal((await sourceWrites()).length,1);
+
   await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
   await send('Page.navigate', { url: url.href });
   await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
+  await until(() => evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'), 'formulario de respaldo');
+  await selectSource(0,'a'); await selectSource(1,'b');
+  await typeQuote(0,'Experiencia A'); await typeQuote(1,'Experiencia B');
+  await until(previewEnabled,'edición en respaldo');
   await send('Network.setBlockedURLs', { urls: [] });
+  await clickText('Reintentar formulario');
+  await sourceFormReady();
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations select")).map(element=>element.value)'),['a','b']);
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations textarea")).map(element=>element.value)'),['Experiencia A','Experiencia B']);
+  assert.equal((await previewCalls()).length,0,'Recuperar el formulario no revisa automáticamente');
+  assert.equal((await sourceWrites()).length,0,'Recuperar el formulario no guarda');
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar lista").click()');
   await relationsReady();
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.equal((await writes()).length, 0, 'Reintentar no escribe');
-  console.log(`Dioxus: navegación, estados R3, lista, confirmaciones con IPC ficticio y recuperación comprobados. Capturas: ${artifacts}`);
+  console.log(`Dioxus: navegación, estados R3, lista, formulario de fuentes, confirmaciones con IPC ficticio y recuperación comprobados. Capturas: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try {

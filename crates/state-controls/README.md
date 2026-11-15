@@ -17,6 +17,8 @@ cambio de un control. El contenedor valida cada acción contra el estado actual.
 - `src/activity_ui.rs`: encabezado y banda R3 compartidos por Estado y Flujo.
 - `src/relations_model.rs`, `src/relations_ui.rs`: lista de relaciones guardadas
   y solicitud de revisión; sin confirmación ni escritura.
+- `src/source_form_model.rs`, `src/source_form_ui.rs`: fuentes y citas; las
+  versiones y hashes se obtienen en el controlador y se validan en el backend.
 - `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
   con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
@@ -69,3 +71,6 @@ bloqueos y títulos como texto. Seleccionar y cancelar no escriben; confirmar
 envía la revisión esperada al servicio ficticio. Se ensayan un error de guardado
 y la recuperación de la lista tras un fallo de WASM. Nunca conecta esa simulación
 con los almacenes del propietario.
+El ensayo del formulario usa únicamente fuentes ficticias: prueba selectores,
+entradas originales, citas por teclado, revisión separada de confirmación,
+invalidación al editar, error de cita no literal y reintento conservando el borrador.
