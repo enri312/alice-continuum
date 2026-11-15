@@ -18,23 +18,23 @@ El checkout sigue en la partición NTFS compartida con Windows.
 - Añadidas las cuatro variantes Linux de Node verificando la integridad del
   lockfile. Se conservaron las variantes Windows y ambos archivos de paquetes.
   `scripts/setup/install-linux-node-bindings.py` permite repetir este paso.
-- Python documental Linux separado en `local/venv-linux/`, con PyMuPDF 1.26.4.
-  Windows conserva `local/venv/`.
+- Python documental Linux separado en `runtime/venv-linux/`, con PyMuPDF 1.26.4.
+  Windows conserva `runtime/venv/`.
 - llama.cpp b10809, commit `5266f24da75dc449bd56cbed7addb9c8e4a6a73e`, compilado
   para Linux con Vulkan y bibliotecas internas estáticas. Instalado en
-  `local/inference/runtimes/llama/bin/llama-server`.
+  `runtime/inference/runtimes/llama/bin/llama-server`.
 - whisper.cpp v1.9.2, commit `306c88f4d1286aec1bf96e544632897886af5501`,
   compilado para CPU e instalado en
-  `local/inference/runtimes/whisper/bin/whisper-cli`.
+  `runtime/inference/runtimes/whisper/bin/whisper-cli`.
 - Reutilizados Gemma E2B Q4_K_M, su proyector y Whisper base desde la partición
-  Windows de datos, montada en lectura. Se copiaron a `local/inference/models/`:
+  Windows de datos, montada en lectura. Se copiaron a `runtime/inference/models/`:
   el uso cotidiano no depende de mantener montada esa partición. Whisper
   conserva el SHA-256 fijado en el instalador Windows.
 
 ## Compatibilidad entre sistemas
 
 El lanzador Linux usa `.cargo-target/linux/` y admite una configuración local
-`local/ubuntu.env`; el perfil de esta notebook configura 24 capas GPU. Los
+`runtime/ubuntu.env`; el perfil de esta notebook configura 24 capas GPU. Los
 ejecutables, rutas D:, entorno Python y lanzador Windows se conservan.
 El chequeo de arranque respeta `CARGO_TARGET_DIR`; el workflow Ubuntu adopta
 el mismo destino y el entorno Python Linux.
@@ -128,8 +128,8 @@ pendiente. Cámara requiere aceptación real; escritorio, Spotify, YouTube y
 acciones Windows siguen necesitando adaptadores Linux, no paquetes adicionales.
 El avatar continúa pospuesto.
 
-Evidencia privada: `local/artifacts/ubuntu-r9-2026-11-06/` y el informe
-`local/artifacts/gemma-evaluation/native-runtime-smoke.json`.
+Evidencia privada: `runtime/artifacts/ubuntu-r9-2026-11-06/` y el informe
+`runtime/artifacts/gemma-evaluation/native-runtime-smoke.json`.
 
 Fuentes de instalación: [Tauri](https://v2.tauri.app/start/prerequisites/),
 [rustup](https://rust-lang.github.io/rustup/installation/index.html),

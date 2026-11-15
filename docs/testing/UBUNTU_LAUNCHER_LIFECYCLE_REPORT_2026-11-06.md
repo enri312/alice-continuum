@@ -56,4 +56,4 @@ systemd de usuario que ejecuta el mismo comando del acceso directo, evitando
 que la finalización del proceso de herramientas cierre sus descendientes.
 No se creó un servicio habilitado al arrancar ni una automatización recurrente.
 
-Evidencias privadas: `local/artifacts/ubuntu-r9-2026-11-06/lifecycle-*`.
+Evidencias privadas: `runtime/artifacts/ubuntu-r9-2026-11-06/lifecycle-*`.

@@ -1,5 +1,5 @@
 // Real component rendering with existing local records, read-only.
-// No model requests, memory writes or synthetic activity. Screenshots stay in local/artifacts/.
+// No model requests, memory writes or synthetic activity. Screenshots stay in runtime/artifacts/.
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
@@ -44,7 +44,7 @@ const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary
     await page.getByRole('button', { name: 'Cerrar ficha' }).click();
     assert.equal(await page.locator('.volume-inspector-rail').count(), 0);
     await page.locator('.observatory-search summary').click();
-    const artifacts = 'local/artifacts/visual-checks';
+    const artifacts = 'runtime/artifacts/visual-checks';
     fs.mkdirSync(artifacts, { recursive: true });
     await page.screenshot({ path: `${artifacts}/volume-observatory-desktop.png`, fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });

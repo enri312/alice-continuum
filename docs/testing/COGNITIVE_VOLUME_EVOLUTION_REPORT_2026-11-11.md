@@ -46,7 +46,7 @@ controles autónomos ni afirmaciones biológicas del video como capacidades de A
 
 No se añaden almacenes de memoria, permisos, sensores ni cambios de pesos. El
 código anterior de la vista quedó respaldado en
-`local/backups/volume-modernization-20261111/source-before.zip`, fuera de Git.
+`runtime/backups/volume-modernization-20261111/source-before.zip`, fuera de Git.
 
 ## Validación
 
@@ -70,7 +70,7 @@ el lienzo ocupa los 1360 px de ancho disponibles.
 La pausa se comprueba comparando imágenes del lienzo: los fotogramas quedan
 estables mientras la evidencia permanece consultable.
 
-Artefactos locales: `local/artifacts/volume-observatory-20261111/qa-report.json`
+Artefactos locales: `runtime/artifacts/volume-observatory-20261111/qa-report.json`
 y cinco PNG; fixtures sintéticos y runner permanecen fuera de Git. Navegador,
 servidor y caché temporal de la prueba se cerraron al terminar.
 

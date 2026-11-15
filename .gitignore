@@ -38,14 +38,15 @@ Assets/Models/private/
 __pycache__/
 
 # Recursos privados y resultados locales; sólo se publican las guías.
-/local/*
-!/local/README.md
-!/local/assets/
-/local/assets/**
-!/local/assets/Animations/
-!/local/assets/Animations/README.md
-!/local/assets/Models/
-!/local/assets/Models/README.md
+/local/
+/runtime/*
+!/runtime/README.md
+!/runtime/assets/
+/runtime/assets/**
+!/runtime/assets/Animations/
+!/runtime/assets/Animations/README.md
+!/runtime/assets/Models/
+!/runtime/assets/Models/README.md
 
 # Laboratorio privado: sus fuentes y resultados permanecen sólo en el equipo.
 /experiments/

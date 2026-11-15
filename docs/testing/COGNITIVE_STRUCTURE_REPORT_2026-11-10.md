@@ -76,4 +76,4 @@ del motor frente al transporte de inferencia y evaluar una primitiva de archivos
 compartida para los almacenes. Son incrementos posteriores; este informe no
 afirma que todo el proyecto aplique Clean Architecture estricta.
 
-Evidencia local: `local/artifacts/cognitive-structure-20261110-101041/`.
+Evidencia local: `runtime/artifacts/cognitive-structure-20261110-101041/`.

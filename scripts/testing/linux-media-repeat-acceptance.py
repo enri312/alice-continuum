@@ -3,7 +3,7 @@
 Requires the owner's configured playlist and signed-in Alice Chrome profile.
 Changes playback selection; never run in CI or alongside other media actions.
 For small playlists with all rows accessible; waits at most 150 seconds at end.
-Output includes private video IDs: keep its log under local/artifacts/.
+Output includes private video IDs: keep its log under runtime/artifacts/.
 """
 import json
 import os

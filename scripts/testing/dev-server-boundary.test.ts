@@ -14,7 +14,7 @@ describe("frontera HTTP del servidor de desarrollo", () => {
   // its raw static root on that drive. A cross-drive URL can fall back to HTML.
   const fixtureParent = fileURLToPath(new URL("../../node_modules/.cache/", import.meta.url));
   const marker = "ALICE_SYNTHETIC_PRIVATE_FIXTURE";
-  const privateFiles = ["data/records.json", "local/assets/avatar.vrm", ".cargo-target/cache.txt", ".env", "credentials.key", ".npmrc"];
+  const privateFiles = ["data/records.json", "runtime/assets/avatar.vrm", ".cargo-target/cache.txt", ".env", "credentials.key", ".npmrc"];
 
   beforeAll(async () => {
     await mkdir(fixtureParent, {recursive:true});

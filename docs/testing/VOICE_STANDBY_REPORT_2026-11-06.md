@@ -63,12 +63,12 @@ Después, cinco rutas al archivo ficticio devuelven **403**, incluyendo mayúscu
 nombre codificado, consulta `?raw` y ruta absoluta `@fs`. No se descargaron recuerdos.
 
 Ocho pruebas HTTP usan una tienda desechable en el caché del proyecto y comprueban
-también `local/`, caché Rust y credenciales, además de la disponibilidad del HTML
+también `runtime/`, caché Rust y credenciales, además de la disponibilidad del HTML
 y los iconos. Se corrigió una suposición de la prueba en Linux: una ruta inexistente
 con mayúsculas puede devolver el HTML público de la SPA con 200; se comprueba su
 contenido para distinguirlo de la exposición de un archivo privado.
 
-Los pilotos antiguos dejan de leer `local/` por HTTP. El preparador explícito
+Los pilotos antiguos dejan de leer `runtime/` por HTTP. El preparador explícito
 `node scripts/testing/prepare-voice-fixtures.mjs` copia sólo las fixtures sintéticas
 conocidas a `scripts/testing/.fixtures/`, ignorado en Git. El piloto de conversación
 ahora comprueba retorno a espera al tercer audio. No se ejecutó esta sonda con
@@ -88,4 +88,4 @@ frase sin nombre; «¿Me escuchas otra vez, Alice?»; «Apaga el micrófono, Ali
 Verificar estado, ausencia de respuestas ambientales y apagado final. Repetir
 con música de la notebook y de otro equipo después de la pasada sin música.
 
-Evidencia privada: `local/artifacts/voice-standby-2026-11-06/`.
+Evidencia privada: `runtime/artifacts/voice-standby-2026-11-06/`.

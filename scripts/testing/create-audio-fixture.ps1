@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Speech
-$evalAudioDir = Join-Path $PSScriptRoot '../../local/artifacts/gemma-evaluation'
+$evalAudioDir = Join-Path $PSScriptRoot '../../runtime/artifacts/gemma-evaluation'
 New-Item -ItemType Directory -Path $evalAudioDir -Force | Out-Null
 $evalSpeaker = New-Object System.Speech.Synthesis.SpeechSynthesizer
 try {

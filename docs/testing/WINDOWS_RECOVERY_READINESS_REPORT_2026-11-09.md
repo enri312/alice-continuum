@@ -134,4 +134,4 @@ Para recuperar el código aunque GitHub no esté disponible, se puede clonar el
 por separado, con Alice cerrada y comprobando sus huellas. El bundle no contiene
 claves ni modelos; no reemplaza el respaldo privado ni copia el sistema operativo.
 
-Evidencia local: `local/artifacts/windows-recovery-2026-11-09/`.
+Evidencia local: `runtime/artifacts/windows-recovery-2026-11-09/`.

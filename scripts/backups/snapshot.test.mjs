@@ -19,7 +19,7 @@ const write = async (file, text) => { await fs.mkdir(path.dirname(file), { recur
 const read = (file) => fs.readFile(file, 'utf8');
 
 async function fixture(t) {
-  const testRoot = fileURLToPath(new URL('../../local/artifacts/backup-tests/', import.meta.url));
+  const testRoot = fileURLToPath(new URL('../../runtime/artifacts/backup-tests/', import.meta.url));
   await fs.mkdir(testRoot, { recursive: true });
   const temporary = await fs.mkdtemp(path.join(testRoot, 'alice-backup-test-'));
   // Only this freshly allocated test directory can be removed; never a user path.
@@ -32,7 +32,7 @@ async function fixture(t) {
   });
   const projectRoot = path.join(temporary, 'project');
   const destination = path.join(temporary, 'backups');
-  await write(path.join(projectRoot, '.gitignore'), 'data/\nlocal/\n.env*\nnode_modules/\nexperiments/\n');
+  await write(path.join(projectRoot, '.gitignore'), 'data/\nruntime/\n.env*\nnode_modules/\nexperiments/\n');
   await write(path.join(projectRoot, 'source.txt'), 'committed code\n');
   await write(path.join(projectRoot, 'deleted.txt'), 'delete me after commit\n');
   await git(projectRoot, 'init', '-q');
@@ -50,14 +50,14 @@ async function fixture(t) {
   await write(path.join(projectRoot, 'data/obsidian/My note.md'), 'manual Obsidian note\n');
   await write(path.join(projectRoot, 'experiments/pilot/source.py'), '# private experiment\n');
   await write(path.join(projectRoot, 'experiments/pilot/dist/generated.js'), 'generated output\n');
-  await write(path.join(projectRoot, 'local/assets/avatar.vrm'), 'synthetic asset\n');
-  await write(path.join(projectRoot, 'local/archives/recovery/original.txt'), 'synthetic recovery original\n');
-  await write(path.join(projectRoot, 'local/drafts/review.wav'), 'synthetic private recording\n');
-  await write(path.join(projectRoot, 'local/maintenance/repair.mjs'), '// synthetic private maintenance source\n');
-  await write(path.join(projectRoot, 'local/artifacts/derived.log'), 'regenerable evidence\n');
-  await write(path.join(projectRoot, 'local/dioxus-build/target/cache.bin'), 'regenerable Rust cache\n');
-  await write(path.join(projectRoot, 'local/venv/Scripts/python.exe'), 'regenerable environment\n');
-  await write(path.join(projectRoot, 'local/ubuntu.env'), 'PRIVATE_FIXTURE=value\n');
+  await write(path.join(projectRoot, 'runtime/assets/avatar.vrm'), 'synthetic asset\n');
+  await write(path.join(projectRoot, 'runtime/archives/recovery/original.txt'), 'synthetic recovery original\n');
+  await write(path.join(projectRoot, 'runtime/drafts/review.wav'), 'synthetic private recording\n');
+  await write(path.join(projectRoot, 'runtime/maintenance/repair.mjs'), '// synthetic private maintenance source\n');
+  await write(path.join(projectRoot, 'runtime/artifacts/derived.log'), 'regenerable evidence\n');
+  await write(path.join(projectRoot, 'runtime/dioxus-build/target/cache.bin'), 'regenerable Rust cache\n');
+  await write(path.join(projectRoot, 'runtime/venv/Scripts/python.exe'), 'regenerable environment\n');
+  await write(path.join(projectRoot, 'runtime/ubuntu.env'), 'PRIVATE_FIXTURE=value\n');
   await write(path.join(projectRoot, '.env'), 'LOCAL_FIXTURE=value\n');
   await write(path.join(projectRoot, 'node_modules/excluded.txt'), 'reinstallable\n');
   const env = { XDG_CONFIG_HOME: path.join(temporary, 'config'), FISH_API_KEY: 'SYNTHETIC_SECRET', UNRELATED_TOKEN: 'MUST_NOT_COPY' };
@@ -79,10 +79,10 @@ test('full backup and offline restore preserve code, deletions, Git branches and
     assert.ok(!acl.rules.includes('S-1-1-0'));
   } else assert.equal((await fs.stat(config.destination)).mode & 0o777, 0o700);
   assert.ok(manifest.files.some(entry => entry.path.endsWith('self-study-v1.json')));
-  for (const file of ['local/archives/recovery/original.txt', 'local/drafts/review.wav', 'local/maintenance/repair.mjs']) {
+  for (const file of ['runtime/archives/recovery/original.txt', 'runtime/drafts/review.wav', 'runtime/maintenance/repair.mjs']) {
     assert.ok(manifest.files.some(entry => entry.path === file), `Private local source backed up: ${file}`);
   }
-  for (const prefix of ['local/artifacts/', 'local/dioxus-build/', 'local/venv/']) {
+  for (const prefix of ['runtime/artifacts/', 'runtime/dioxus-build/', 'runtime/venv/']) {
     assert.ok(!manifest.files.some(entry => entry.path.startsWith(prefix)), `Regenerable files excluded: ${prefix}`);
   }
   assert.ok(!manifest.files.some(entry => entry.path.includes('node_modules')));
@@ -99,7 +99,7 @@ test('full backup and offline restore preserve code, deletions, Git branches and
   assert.equal(await git(target, 'rev-parse', 'HEAD'), manifest.git.head);
   assert.equal(await git(target, 'rev-parse', 'saved-branch'), manifest.git.head);
   assert.equal(await git(target, 'diff', '--name-only', '--diff-filter=D'), 'deleted.txt');
-  const credentials = await read(path.join(target, 'local/recovered-settings/environment.json'));
+  const credentials = await read(path.join(target, 'runtime/recovered-settings/environment.json'));
   assert.match(credentials, /SYNTHETIC_SECRET/);
   assert.ok(!credentials.includes('MUST_NOT_COPY'));
   // The original private file was only read.
@@ -177,7 +177,7 @@ test('a rewritten manifest cannot traverse directories or modify Git metadata', 
   const config = await fixture(t);
   const { snapshot } = await createSnapshot(config);
   const original = await verifySnapshot(snapshot);
-  for (const unsafe of ['../escape', '/absolute', 'local\\escape', '.git/config', '.GIT/config', '.git~1/config', 'data/name:stream', 'data/CON', 'data/trailing.']) {
+  for (const unsafe of ['../escape', '/absolute', 'runtime\\escape', '.git/config', '.GIT/config', '.git~1/config', 'data/name:stream', 'data/CON', 'data/trailing.']) {
     const manifest = structuredClone(original);
     manifest.files[0].path = unsafe;
     const bytes = jsonBytes(manifest);
@@ -261,14 +261,14 @@ test('backup after restore preserves recovery credentials not yet applied to the
   const target = path.join(config.temporary, 'recovered');
   await restoreSnapshot(snapshot, target);
   const next = await createSnapshot({ ...config, projectRoot: target, env: { XDG_CONFIG_HOME: config.env.XDG_CONFIG_HOME } });
-  assert.match(await read(path.join(next.snapshot, 'files/local/recovered-settings/environment.json')), /SYNTHETIC_SECRET/);
+  assert.match(await read(path.join(next.snapshot, 'files/runtime/recovered-settings/environment.json')), /SYNTHETIC_SECRET/);
 });
 
 test('configuration resolves per-platform paths and rejects an invalid interval', async t => {
   const config = await fixture(t);
   const defaults = await settings({ projectRoot: config.projectRoot, env: config.env });
   assert.equal(defaults.destination, path.join(config.temporary, 'Alice Backups/project'));
-  await write(path.join(config.projectRoot, 'local/backup.json'), JSON.stringify({ schemaVersion: 1, intervalMinutes: 10, destinations: { [process.platform]: config.destination } }));
+  await write(path.join(config.projectRoot, 'runtime/backup.json'), JSON.stringify({ schemaVersion: 1, intervalMinutes: 10, destinations: { [process.platform]: config.destination } }));
   const resolved = await settings({ projectRoot: config.projectRoot, env: config.env });
   assert.equal(resolved.destination, config.destination);
   assert.equal(resolved.intervalMinutes, 10);

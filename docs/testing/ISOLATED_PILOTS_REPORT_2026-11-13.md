@@ -11,7 +11,7 @@ profunda del proyecto. No se cambia la memoria canónica, su esquema ni su índi
 
 - Respaldo integral verificado antes de preparar los pilotos:
   `D:\Alice Backups\Alice Continuum\snapshot-2026-11-13T17-08-24-037Z-ca8956e8-47e5-4164-a088-c67e22be4678`.
-- Baseline privado: `local/experiments/baseline-20261113.json`, HEAD `836b8b5`.
+- Baseline privado: `runtime/experiments/baseline-20261113.json`, HEAD `836b8b5`.
 - Revisión posterior: **364/364 archivos de producción idénticos**, sin archivos
   añadidos o eliminados en ese alcance. SHA-256 agregado:
   `521d00fd55e1cb178cb517308ab3cc1a373d0c7244c69ae9d6e396104b03f83d`.
@@ -20,7 +20,7 @@ profunda del proyecto. No se cambia la memoria canónica, su esquema ni su índi
   mientras Alice funciona ni se usan como fixtures.
 - Código de pilotos en `experiments/` (privado desde el 14 de noviembre); modelos,
   binarios descargados, corpus, entornos, cachés, temporales y resultados privados
-  bajo `local/experiments/` en D:, fuera de Git.
+  bajo `runtime/experiments/` en D:, fuera de Git.
 - Sin cambios a `src/`, `src-tauri/`, manifiestos raíz, dependencias operativas,
   launcher, configuración del micrófono o proveedores. Sin instalaciones globales.
 
@@ -82,7 +82,7 @@ personalidad. La memoria canónica y la aplicación principal quedan fuera del c
 salida 0 (14,83 s iniciales; 1,18 s en el build final tras ajustar accesibilidad).
 Las cuatro pruebas de modelo existentes pasaron nuevamente. No se repitieron
 las pruebas del servidor, cuyo código no cambió. Logs privados:
-`local/experiments/dioxus-state/slider-build-20261113.log` y
+`runtime/experiments/dioxus-state/slider-build-20261113.log` y
 `slider-model-tests-20261113.log`.
 
 En Chrome se observaron las ocho pistas/tiradores; accesibilidad los expone como
@@ -162,7 +162,7 @@ Segunda pasada de inferencia: 2.861, 3.188 y 2.674 s; mediana **2.861 s**. No ha
 CLI persistente equivalente en este piloto; esa cifra no es una comparación
 directa con los 6.177 s completos ni demuestra la latencia futura de Alice.
 
-Los informes privados están en `local/experiments/asr-comparison/evidence/`:
+Los informes privados están en `runtime/experiments/asr-comparison/evidence/`:
 `comparison-20261113-195010.json` y `warm-20261113-195053.json`. El primer informe
 válido conservó el ID `stdin` del worker en tres filas; la copia revisada enlaza
 cada una mediante el SHA-256 del WAV, sin cambiar tiempos o transcripciones.

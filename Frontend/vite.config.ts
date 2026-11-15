@@ -34,14 +34,14 @@ export default defineConfig({
       const privateRoots = [...new Set([projectRoot, root, ...(path.basename(root).toLowerCase() === "frontend" ? [path.dirname(root)] : [])])];
       return { server: { fs: { allow: [root, path.join(projectRoot, "node_modules")], deny: [
         ".env", ".env.*", "*.{crt,pem,key,p12,pfx,cer,der}", ".npmrc", ".yarnrc.yml", "**/.git/**",
-        ...privateRoots.flatMap(base => ["data", "local", ".cargo-target", ".venv-adapters", "Assets", "adapters", "artifacts", "scratch", "experiments"]
+        ...privateRoots.flatMap(base => ["data", "runtime", "local", ".cargo-target", ".venv-adapters", "Assets", "adapters", "artifacts", "scratch", "experiments"]
           .map(directory => `${normalizePath(path.join(base, directory))}/**`)),
       ] } } };
     },
   }],
   worker: { format: "es" },
   test: {
-    exclude: [...configDefaults.exclude, "**/local/**", "**/.cargo-target/**", "**/*.node.test.ts", "scripts/obsidian/**/*.test.mjs", "scripts/backups/**/*.test.mjs"],
+    exclude: [...configDefaults.exclude, "**/runtime/**", "**/local/**", "**/.cargo-target/**", "**/*.node.test.ts", "scripts/obsidian/**/*.test.mjs", "scripts/backups/**/*.test.mjs"],
   },
   server: {
     host: "127.0.0.1",
@@ -50,6 +50,7 @@ export default defineConfig({
     watch: {
       ignored: [
         "**/.git/**",
+        "**/runtime/**",
         "**/local/**",
         "**/.cargo-target/**",
         "**/node_modules/**",

@@ -245,7 +245,7 @@ esta notebook usa llama.cpp y modelos bajo `D:\Alice-model-evaluation`; no se
 incluyen los pesos ni se descargan automáticamente al abrir Alice.
 
 En un equipo Windows sin esa carpeta histórica, los motores y modelos se buscan
-por defecto en `local/inference/`, como en Linux. Una instalación Windows que ya
+por defecto en `runtime/inference/`, como en Linux. Una instalación Windows que ya
 disponga de la carpeta histórica conserva su prioridad. `ALICE_INFERENCE_HOME`
 permite seleccionar otra raíz absoluta y prevalece sobre ambas ubicaciones;
 una configuración explícita inválida produce un error. Esto configura rutas,
@@ -286,12 +286,12 @@ representa comprensión general ni una modificación de Gemma.
 
 ## Ubuntu y recursos locales
 
-Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
+Las carpetas privadas se agrupan en `runtime/`: `assets`, `reference-adapters`,
 `drafts`, `archives`, `maintenance`, `artifacts`, entornos y cachés. Las fuentes
 están en `Frontend/` y `Backend/`; `.cargo`, `.git` y `node_modules` conservan
 las ubicaciones esperadas por sus herramientas.
 La memoria sigue en `data/`; los motores actuales permanecen en D:.
-Las guías de [`local/`](local/README.md) y [`data/`](data/README.md) explican qué
+Las guías de [`runtime/`](runtime/README.md) y [`data/`](data/README.md) explican qué
 se instala, qué se respalda y qué puede regenerarse.
 
 Ubuntu dispone de lanzador Bash, dependencias nativas delimitadas y rutas
@@ -372,6 +372,13 @@ y voz real se ejecutan por separado y no se dan por aprobadas por las unitarias.
 
 ## Estructura del proyecto
 
+La carpeta privada antes llamada `local/` se llama ahora **`runtime/`**. Se
+actualizaron las rutas del backend, respaldos, pilotos, CI y configuración; los
+datos siguen en `data/`. El traslado conservó el árbol de 69.831 archivos antes
+de actualizar doce archivos de configuración y activación con rutas privadas.
+Python documental, compilación, pruebas y arranque Tauri desde la nueva ruta
+aprobados. [Alcance y evidencia](docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
+
 Monolito de escritorio parcialmente modularizado, con capas técnicas y áreas
 funcionales. Los contratos de conversación están separados de las pantallas React
 y los sondeos de estado evitan consultas superpuestas. Este primer incremento
@@ -394,7 +401,7 @@ Backend/adapters/                adaptadores Python nativos y sus pruebas
 scripts/                        instalación, generación, respaldos y pruebas
 docs/                           manual, arquitectura, decisiones e informes
 data/                           conversación, memoria y auditorías privadas
-local/                          activos, configuración y evidencias privadas
+runtime/                          activos, configuración y evidencias privadas
 experiments/                    ensayos privados, fuera de Git
 node_modules/                   dependencias npm compartidas (regenerables)
 .cargo-target/                  caché Rust compartida (regenerable)
@@ -410,12 +417,12 @@ almacenamiento siguen en `scripts/`. El traslado no cambia versiones ni diseño.
 La [verificación del traslado](docs/testing/FRONTEND_REORGANIZATION_REPORT_2026-11-15.md)
 registra las comprobaciones de rutas, privacidad y arranque nativo.
 
-**Revisión de `local/` y `data/` (2026-11-15):** 42 elementos auxiliares quedaron
+**Revisión de `runtime/` y `data/` (2026-11-15):** 42 elementos auxiliares quedaron
 agrupados por función; se verificaron los hashes de 16.342 archivos trasladados.
 Los recuerdos, conversaciones, perfiles y archivos manuales conservaron sus
 rutas y contenido. Los respaldos incluyen ahora los originales de
-`local/archives/`, `local/drafts/` y `local/maintenance/`; las nuevas pruebas
-escriben bajo `local/artifacts/dioxus/`. Build, 894 pruebas frontend, Obsidian,
+`runtime/archives/`, `runtime/drafts/` y `runtime/maintenance/`; las nuevas pruebas
+escriben bajo `runtime/artifacts/dioxus/`. Build, 894 pruebas frontend, Obsidian,
 respaldos, privacidad y los ensayos Edge y Tauri/WebView2 pasaron después del
 traslado. [Distribución, respaldo y límites de la comprobación](docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md).
 

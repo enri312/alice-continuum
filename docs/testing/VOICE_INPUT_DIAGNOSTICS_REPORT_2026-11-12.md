@@ -69,7 +69,7 @@ respaldo corresponden a sus validaciones anteriores.
 
 Alice se cerró antes de editar. Se verificó el respaldo privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T19-08-52-998Z-bedfae1c-e196-41c7-9b27-812b9bb16c9d`.
-El código anterior está en `local/backups/voice-signal-diagnostics-20261112/source-before.zip`.
+El código anterior está en `runtime/backups/voice-signal-diagnostics-20261112/source-before.zip`.
 El borrador del propietario se conservó temporalmente para devolverlo a la
 interfaz; no se creó un archivo adicional con ese texto.
 Los 134 archivos privados conservaron sus huellas durante edición y pruebas,

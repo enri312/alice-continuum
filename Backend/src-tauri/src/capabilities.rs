@@ -219,7 +219,7 @@ pub(crate) fn capability_registry_from_probes(
             CapabilityEffect::ProcessLaunch,
         ],
         &["selectedDocument", "auditMetadata"],
-        &["Entorno local/venv con PyMuPDF"],
+        &["Entorno runtime/venv con PyMuPDF"],
         permission(
             CapabilityPermissionMode::ExplicitPreview,
             CapabilityPermissionEnforcer::CurrentUi,

@@ -13,7 +13,7 @@ verifican la reconstrucción del texto; las evaluaciones con modelos reales no s
 ejecutaron en esta revisión.
 
 En la revisión posterior se arrancó Tauri con `ALICE_DATA_DIR` y perfil WebView
-aislados en `local/`: un recuerdo ficticio terminado apareció en la lista y en
+aislados en `runtime/`: un recuerdo ficticio terminado apareció en la lista y en
 el contador de Memoria, y se observaron los iconos de navegación. El autoestudio
 estaba pausado; no se usaron los recuerdos personales, el modelo ni el micrófono.
 
@@ -34,7 +34,7 @@ contiene los SVG versionados:
 - `NucleusViewIcon.tsx` no tenía importadores y se retiró del código activo.
   La escena anterior `scripts/icons/legacy/activity-timeline-scene.mjs` tampoco
   tenía importadores y se retiró. Ambos están en el historial Git y en
-  `local/archives/retired-code/cleanup-archive-2026-11-14/`, excluido de Git.
+  `runtime/archives/retired-code/cleanup-archive-2026-11-14/`, excluido de Git.
 
 Los generadores y SVG activos permanecen en su lugar; los iconos de Tauri se
 conservaron junto con el backend trasladado. Se retiró el comparador antiguo
@@ -42,7 +42,7 @@ conservaron junto con el backend trasladado. Se retiró el comparador antiguo
 dependía de un formato de prompt que ya no existe y no tenía llamadas operativas;
 se conservó junto a los dos archivos anteriores. No se eliminaron otros scripts sólo por no aparecer
 como importados: algunos son ejecutables manuales o documentan pruebas históricas.
-La sonda documental ahora crea su carpeta de capturas en `local/artifacts/`, en
+La sonda documental ahora crea su carpeta de capturas en `runtime/artifacts/`, en
 lugar de dejar un directorio `artifacts/` en la raíz.
 El [catálogo de 2026-11-06](../catalogo-archivos/README.md) es un inventario
 histórico; sus propuestas de borrado requieren validación individual.
@@ -55,7 +55,7 @@ siguen ejecutándose desde ella. Los comandos Cargo usan el manifiesto
 Las carpetas `node_modules/`, `dist/` y `.cargo-target/` contienen dependencias
 o resultados regenerables; no son fuentes ni deben borrarse durante una ejecución.
 
-La migración se ensayó primero en una copia aislada en `local/`, con autoestudio
+La migración se ensayó primero en una copia aislada en `runtime/`, con autoestudio
 desactivado y datos separados. El respaldo anterior a la reorganización está en
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-14T12-50-10-779Z-b45c1c49-703b-4ed9-a412-732720356dc6`.
 

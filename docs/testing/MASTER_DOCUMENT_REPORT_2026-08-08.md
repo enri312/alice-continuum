@@ -16,7 +16,7 @@ Se consultó `E:\SKYTECH\documentacion_tecnica.html` únicamente como referencia
 - Tema propio en `docs/assets/alice-documento.css`: azul marino, cuadrícula, cian operativo, ámbar de advertencia y violeta del Núcleo.
 - Portada con autor, formación, versión documental y versión de producto.
 - Autoría corregida a Carlos Nuñez y ficha de portada reducida a autor y formación, sin institución ni fecha de actualización.
-- Firma del Núcleo rediseñada como un módulo HUD: código del sistema, identidad Alice y señales cognitivo/local/observable.
+- Firma del Núcleo rediseñada como un módulo HUD: código del sistema, identidad Alice y señales cognitivo/runtime/observable.
 - Capítulo 7 rediseñado como un pipeline cognitivo de cinco etapas: Percepción, Memoria, Workspace, Planificador y Salida.
 - Índice navegable de 20 capítulos y navegación lateral agrupada.
 - 11 requisitos funcionales y 12 no funcionales verificables.

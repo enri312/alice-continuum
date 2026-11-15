@@ -7,7 +7,7 @@ pub(crate) fn local_dir() -> PathBuf {
         .parent()
         .and_then(Path::parent)
         .expect("src-tauri has a project root")
-        .join("local")
+        .join("runtime")
 }
 
 fn configured(
@@ -46,7 +46,7 @@ fn resolve_inference_home(
         return configured(explicit, "ALICE_INFERENCE_HOME", portable);
     }
     // Preserve existing Windows installations, including shared Linux resources
-    // under local/inference that must not be adopted as Windows executables.
+    // under runtime/inference that must not be adopted as Windows executables.
     if let Some(legacy) = legacy {
         if legacy.is_dir() {
             return Ok(legacy);
@@ -54,9 +54,9 @@ fn resolve_inference_home(
     }
     match std::fs::metadata(&portable) {
         Ok(metadata) if metadata.is_dir() => return Ok(portable),
-        Ok(_) => return Err("local/inference debe ser una carpeta".into()),
+        Ok(_) => return Err("runtime/inference debe ser una carpeta".into()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(_) => return Err("No se pudo consultar local/inference".into()),
+        Err(_) => return Err("No se pudo consultar runtime/inference".into()),
     }
     Ok(portable)
 }
@@ -153,7 +153,7 @@ mod tests {
     fn inference_root_preserves_existing_windows_installations_and_new_defaults() {
         let root =
             std::env::temp_dir().join(format!("alice-inference-paths-{}", uuid::Uuid::new_v4()));
-        let portable = root.join("local/inference");
+        let portable = root.join("runtime/inference");
         let legacy = root.join("legacy");
         let resolve =
             || resolve_inference_home(None, portable.clone(), Some(legacy.clone())).unwrap();
@@ -196,7 +196,7 @@ mod tests {
             .unwrap()
             .parent()
             .unwrap();
-        assert_eq!(local_dir(), root.join("local"));
+        assert_eq!(local_dir(), root.join("runtime"));
         assert!(root.join("package.json").is_file());
         assert!(root.join("Backend/adapters/document_reader.py").is_file());
     }

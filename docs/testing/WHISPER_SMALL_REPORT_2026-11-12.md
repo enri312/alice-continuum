@@ -54,7 +54,7 @@ correcto de voz baja real. Base también se verificó y permanece instalado.
 
 Alice se cerró normalmente. Se creó y verificó el respaldo privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T03-38-04-453Z-3519c32b-7d49-450e-a121-3a8e43327cb7`.
-El código previo está en `local/backups/voice-small-20261112/source-before.zip`.
+El código previo está en `runtime/backups/voice-small-20261112/source-before.zip`.
 Los **134 archivos privados** conservaron sus huellas durante los cambios y las
 pruebas, antes de reabrir Alice. Los modelos quedan fuera del repositorio y los audios de conversación siguen
 siendo efímeros. No se guardan tomas personales para esta evaluación.
@@ -63,7 +63,7 @@ Antes de añadir observación a la interfaz se cerró Alice normalmente y se
 verificó otro respaldo completo:
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T04-01-30-371Z-2579c91b-943a-4d0d-acf2-31ae24c5a292`.
 El código previo a ese incremento está en
-`local/backups/voice-dictation-20261112/source-before.zip`.
+`runtime/backups/voice-dictation-20261112/source-before.zip`.
 Durante las comprobaciones Alice volvió a abrirse desde el lanzador del
 escritorio. La comparación posterior encontró 4 cambios de 134 archivos:
 auditoría, estado de autoestudio, manifiesto de Obsidian y progreso del
@@ -116,7 +116,7 @@ rechaza iniciar dictado en ese estado.
 
 Para ese ajuste se cerró Alice y se verificó el respaldo privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T18-33-32-220Z-947bf83b-6def-4f6a-959b-e18c3f840f50`.
-El código anterior está en `local/backups/voice-manual-entry-20261112/source-before.zip`.
+El código anterior está en `runtime/backups/voice-manual-entry-20261112/source-before.zip`.
 No se cambian filtros, modelo, umbrales de voz ni plazo de cierre.
 Las **10 pruebas existentes de la pantalla** y la compilación TypeScript/Vite
 pasaron para ese ajuste. La suite global anterior conserva 753 pruebas frontend

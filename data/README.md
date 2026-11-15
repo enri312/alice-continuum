@@ -67,7 +67,7 @@ La revisión del 15 de noviembre mantuvo las rutas de datos y `ALICE_DATA_DIR`.
 También se conservaron las configuraciones de editor en `data/.obsidian/` y
 `data/obsidian/.obsidian/`, y los archivos manuales de la raíz. No deben unificarse
 sin revisar qué bóveda utiliza el propietario. Sólo las dos capturas técnicas de
-`visual-checks/` pasaron a `../local/artifacts/visual-checks/`.
+`visual-checks/` pasaron a `../runtime/artifacts/visual-checks/`.
 
 Procedimiento y límites: [Memoria en Obsidian](../docs/runbooks/05-memoria-obsidian.md).
 

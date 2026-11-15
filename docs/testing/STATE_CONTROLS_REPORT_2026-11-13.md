@@ -98,8 +98,8 @@ puntuación, cantidad vigente y fuente del recuerdo seleccionado.
 compilación TypeScript/Vite aprobadas. Incluyen preparación frente a contexto
 proporcionado, categoría de autoestudio, puntuación/rango, contexto limitado y
 ausencia de datos anteriores tras retirar un registro o fallar el envío.
-Logs privados: `local/experiments/compact-memory-tests.log` y
-`local/experiments/compact-memory-build.log`. Se mantiene el aviso conocido de
+Logs privados: `runtime/experiments/compact-memory-tests.log` y
+`runtime/experiments/compact-memory-build.log`. Se mantiene el aviso conocido de
 chunks grandes; no se añadieron dependencias ni consultas periódicas.
 
 En la aplicación Tauri se comprobó el panel vacío y después una consulta local
@@ -148,7 +148,7 @@ la preparación con datos existentes, no una nueva generación ni la aceptación
 del tono de un modelo. El formato episódico `USER: … → Alice` se verifica con
 fixtures; no se escribió el texto de personalidad del laboratorio en datos reales.
 
-Logs privados bajo `local/experiments/`: `state-controls-frontend-tests.log`,
+Logs privados bajo `runtime/experiments/`: `state-controls-frontend-tests.log`,
 `state-controls-final-targets.log`, `state-controls-frontend-build.log`,
 `state-controls-rust-tests.log` y `state-controls-clippy.log`.
 
@@ -172,7 +172,7 @@ el valor 0,503 de la referencia no se insertan como datos.
 El estado vacío indica cómo iniciar una consulta con Recuerdos activos en
 Conversación. Este ajuste pasó **16 pruebas dirigidas en dos archivos** y la
 compilación TypeScript/Vite; el aviso conocido de chunks grandes se mantiene.
-Logs privados: `local/experiments/memory-row-label-tests.log` y
+Logs privados: `runtime/experiments/memory-row-label-tests.log` y
 `memory-row-label-build.log`. No se ejecutaron otra vez las suites Rust o de
 respaldos por este cambio de presentación, ni se escribieron recuerdos de prueba.
 

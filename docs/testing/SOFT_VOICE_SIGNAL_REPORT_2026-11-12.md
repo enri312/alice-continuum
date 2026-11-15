@@ -51,7 +51,7 @@ La precisión de una frase real se comprobará por separado al reabrir Alice.
 
 Alice se cerró normalmente antes de modificar audio. Se verificó el respaldo
 privado `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T18-48-00-474Z-351d8352-c2d7-4cbf-a743-b101519840f4`.
-El código anterior está en `local/backups/voice-soft-preserve-20261112/source-before.zip`.
+El código anterior está en `runtime/backups/voice-soft-preserve-20261112/source-before.zip`.
 El ajuste no añade archivos de audio, métricas persistidas ni envíos externos.
 Los **134 archivos privados** conservaron sus huellas durante este ajuste y
 sus pruebas, antes de reabrir Alice.

@@ -164,7 +164,7 @@ establece la causa del resultado.
 Para mantener Conversación con sólo lo indispensable, se acorta la explicación
 de reposo, se muestra la ayuda manual sólo al abrir el dictado y se llevan los
 ejemplos de acciones al apartado existente Contexto y permisos. Se conservan la
-explicación de transcripción local/Gemma y envío de texto de respuesta a Fish,
+explicación de transcripción runtime/Gemma y envío de texto de respuesta a Fish,
 los controles para detener y los límites de duración. El diagnóstico sigue
 plegado en Audio de entrada. No se añade una función, hook, proceso o cambio
 de audio en esta limpieza visual.

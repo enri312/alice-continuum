@@ -13,7 +13,7 @@ no una garantía de rendimiento. Los **87 archivos de `data/`** conservaron sus
 hashes y el historial restaurado pasó `git fsck --full`.
 
 Se preservaron código sin commit, memoria confirmada y automática, conversaciones,
-autoestudio, Obsidian y sus notas manuales, recursos de `local/assets/` y
+autoestudio, Obsidian y sus notas manuales, recursos de `runtime/assets/` y
 configuración privada. No se inició la aplicación recuperada ni se aplicaron
 credenciales. El ensayo usó HEAD `4fa6da6` más el árbol de trabajo de este
 incremento; las copias posteriores identifican su HEAD en el manifiesto.
@@ -27,7 +27,7 @@ Destinos de esta instalación:
 
 - Copias completas: `D:\Alice Backups\Alice Continuum`.
 - Restauración de ensayo: `D:\Alice Restore Checks\snapshot-2026-11-10T16-26-07-916Z-92ba991a-faf4-4792-a9e0-57405bf20dc3`.
-- Evidencia local, excluida de Git: `local/artifacts/backup-integral-20261110/`.
+- Evidencia local, excluida de Git: `runtime/artifacts/backup-integral-20261110/`.
 
 Por instrucción del propietario, las nuevas copias, restauraciones y archivos
 temporales de pruebas se hicieron en D:. No se usó C: como destino. D: sigue

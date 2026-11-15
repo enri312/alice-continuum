@@ -67,7 +67,7 @@ de desborde de salida es controlada; no reproduce la causa acústica observada.
 Antes de editar se cerró Alice normalmente y se verificó el respaldo privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T02-35-50-692Z-6288fca0-c17e-44b2-8be6-6595572a223c`.
 La fecha del nombre está en UTC. El código previo se archivó en
-`local/backups/voice-recovery-20261111/source-before.zip` y se tomaron huellas
+`runtime/backups/voice-recovery-20261111/source-before.zip` y se tomaron huellas
 privadas antes de las pruebas aisladas. Los 134 archivos privados mantuvieron
 sus huellas hasta reabrir Alice; no se añadieron archivos de datos durante
 esas pruebas. No se publica audio, historial personal,

@@ -117,20 +117,30 @@ nueva. Se conserva la separación entre datos privados y código. La revisión
 actual de la raíz está en el [mapa de carpetas](docs/architecture/MAPA_CARPETAS_RAIZ.md).
 Este incremento ordena las fuentes; no declara migrada otra pantalla a Dioxus.
 
-**Organización de recursos y datos (2026-11-15):** se revisaron `local/` y `data/`
+**Organización de recursos y datos (2026-11-15):** se revisaron `runtime/` y `data/`
 y se agruparon 42 elementos de pruebas, caché, revisiones, recuperaciones y
 scripts auxiliares. Se comprobaron por SHA-256 16.342 archivos trasladados y
 159 archivos protegidos. Las rutas de memoria, historial, perfiles, bóvedas,
 modelos, entornos y herramientas activas se conservaron. Dos capturas técnicas
-pasaron de `data/visual-checks/` a `local/artifacts/visual-checks/`. Las sondas
-nuevas usan `local/artifacts/dioxus/` y los respaldos cubren también
-`local/archives/`, `local/drafts/` y `local/maintenance/`. Compilación, 894 pruebas
+pasaron de `data/visual-checks/` a `runtime/artifacts/visual-checks/`. Las sondas
+nuevas usan `runtime/artifacts/dioxus/` y los respaldos cubren también
+`runtime/archives/`, `runtime/drafts/` y `runtime/maintenance/`. Compilación, 894 pruebas
 frontend (dos omitidas), 15 Obsidian, 20 respaldos y dos privacidad aprobadas.
 Edge con IPC ficticio y Tauri/WebView2 con backend real y datos aislados
 comprobaron navegación, R3, relaciones y persistencia tras la movida.
 El [informe de organización](docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
 detalla el alcance. La siguiente migración continúa de una pantalla por vez;
 este incremento no modifica componentes ni estilos.
+
+**Nombre de los recursos privados (2026-11-15):** `local/` se renombra a
+`runtime/`, con actualización de backend, respaldos, lanzador Linux, CI, pilotos,
+configuración y guías. `data/` permanece estable. Se verificó el inventario de
+69.831 archivos antes de ajustar rutas de configuración; el respaldo anterior y
+los originales de esas configuraciones se conservaron en D:. Build, 894 pruebas
+frontend, 421 del backend Rust (32 omitidas), Obsidian, respaldos, privacidad y
+19 pruebas Python (una omitida) aprobados. Tauri/WebView2 comprobó navegación,
+R3 y persistencia desde la nueva ruta. Linux nativo se comprobará por separado.
+Ver [informe del renombrado](docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
 
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
@@ -140,7 +150,7 @@ modelos, voz ni datos personales. Aún no reproduce el error de la otra persona.
 El lanzador aclara que `--check` no valida modelos, micrófono, voz ni proveedores.
 
 **Primer ajuste de rutas:** las instalaciones Windows sin la carpeta histórica
-`D:/Alice-model-evaluation` usan `local/inference/` como raíz predeterminada.
+`D:/Alice-model-evaluation` usan `runtime/inference/` como raíz predeterminada.
 La carpeta histórica existente conserva prioridad en Windows, para no seleccionar
 por accidente los motores Linux compartidos. `ALICE_INFERENCE_HOME` prevalece
 cuando está configurada. Sigue pendiente instalar los recursos en equipos nuevos,

@@ -1,8 +1,14 @@
 # Recursos privados de esta instalación
 
-`local/` reúne recursos instalados, configuración y trabajo auxiliar. La memoria
+`runtime/` reúne recursos instalados, configuración y trabajo auxiliar. La memoria
 operativa y el historial están en [`../data/`](../data/README.md). Git sólo publica
 esta guía y las guías de activos permitidas; los demás archivos permanecen privados.
+
+Desde el 15 de noviembre de 2026 el nombre es `runtime/` (antes `local/`). Se
+actualizaron sus consumidores y la configuración privada necesaria. Los scripts
+históricos dentro de `maintenance/` y las copias de pilotos pueden conservar
+rutas anteriores y necesitan revisión antes de reutilizarlos. El contenido de
+`data/` no se trasladó. Ver [verificación del renombrado](../docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
 
 ## Ubicaciones por función
 

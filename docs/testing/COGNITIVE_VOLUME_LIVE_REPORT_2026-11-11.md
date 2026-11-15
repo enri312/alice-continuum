@@ -62,9 +62,9 @@ comprobaciones anteriores de crecimiento, inspector, fuentes, cámara y señales
 
 Artefactos ignorados por Git:
 
-- `local/artifacts/volume-live-20261111/`: runner, reporte y capturas sintéticas.
-- `local/artifacts/learning-sources-20261111/`: integración del hook con IPC simulado.
-- `local/backups/volume-live-20261111/source-before.zip`: archivo de código y
+- `runtime/artifacts/volume-live-20261111/`: runner, reporte y capturas sintéticas.
+- `runtime/artifacts/learning-sources-20261111/`: integración del hook con IPC simulado.
+- `runtime/backups/volume-live-20261111/source-before.zip`: archivo de código y
   documentación versionados antes del cambio, SHA-256
   `D38A377AA59152D86838CD08B59FC15997D66EE159198BF77C22BB965EC56C0D`.
 

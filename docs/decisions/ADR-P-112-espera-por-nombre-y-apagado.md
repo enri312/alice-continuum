@@ -49,6 +49,6 @@ accidentalmente todo AppData/Local en Windows. No se cambian ACL del equipo.
 
 Los pilotos toman únicamente fixtures sintéticas preparadas explícitamente en
 `scripts/testing/.fixtures/`, ignorado en Git. No se habilita el acceso HTTP a
-`local/`, recuerdos, modelos ni activos privados para ejecutar QA.
+`runtime/`, recuerdos, modelos ni activos privados para ejecutar QA.
 
 [Pruebas y aceptación pendiente](../testing/VOICE_STANDBY_REPORT_2026-11-06.md).

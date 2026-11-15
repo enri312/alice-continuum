@@ -64,7 +64,7 @@ en [el módulo](../../Frontend/crates/state-controls/README.md).
 El icono conserva el acabado industrial e incorpora dos faders de sesión
 destacados, seis controles bloqueados y la franja de memoria. Su generador SVG
 y el catálogo semántico se actualizaron juntos. El rediseño se renderizó y revisó
-en una vista PNG aislada, guardada en `local/dioxus-build/icon-preview/state.png`.
+en una vista PNG aislada, guardada en `runtime/dioxus-build/icon-preview/state.png`.
 
 ## Validación
 
@@ -79,7 +79,7 @@ en una vista PNG aislada, guardada en `local/dioxus-build/icon-preview/state.png
 | Contratos de iconos tras actualizar Estado | 172 aprobadas |
 | Exclusión de contenido privado del índice y archivos futuros | 2 aprobadas |
 
-Los logs privados se guardan en `local/dioxus-build/`. La compilación usa herramientas
+Los logs privados se guardan en `runtime/dioxus-build/`. La compilación usa herramientas
 ya disponibles en D:, sin instalaciones globales ni descarga de modelos.
 
 En Tauri se observó el renderer Dioxus, conservando paneles y contenido. Se

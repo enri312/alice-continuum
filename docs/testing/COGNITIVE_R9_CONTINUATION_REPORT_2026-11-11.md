@@ -23,7 +23,7 @@ Fecha local: 2026-11-11. Entorno: Windows, `D:\Alice Continuum`.
 Antes de editar se creó y verificó el respaldo integral privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T01-36-46-233Z-f6fda5b7-6ba2-4ae7-b441-70018c67c155`.
 La fecha del nombre está en UTC. El código anterior se archivó en
-`local/backups/cognitive-r9-20261111/source-before.zip`, SHA-256
+`runtime/backups/cognitive-r9-20261111/source-before.zip`, SHA-256
 `481516549751481f5fd3578e23fdc31d0b310659b930bbac2bbcd8f37d2879da`.
 
 Las huellas de los 132 archivos de datos existentes se mantuvieron iguales

@@ -33,8 +33,8 @@ if (check) {
 } else {
   const rustRoot = option("--rust-root");
   const executable = name => rustRoot ? path.join(rustRoot, "bin", `${name}${process.platform === "win32" ? ".exe" : ""}`) : name;
-  const cargoHome = path.resolve(option("--cargo-home") ?? path.join(project, "local/dioxus-build/cargo"));
-  const privateRoot = path.join(project, "local/dioxus-build");
+  const cargoHome = path.resolve(option("--cargo-home") ?? path.join(project, "runtime/dioxus-build/cargo"));
+  const privateRoot = path.join(project, "runtime/dioxus-build");
   const bindgen = option("--bindgen") ?? "wasm-bindgen";
   for (const directory of [cargoHome, privateRoot, path.join(privateRoot, "temp"), output]) mkdirSync(directory, { recursive: true });
   const env = { ...process.env, CARGO_HOME: cargoHome, CARGO_TARGET_DIR: path.join(privateRoot, "target"), TEMP: path.join(privateRoot, "temp"), TMP: path.join(privateRoot, "temp"), CARGO_BUILD_JOBS: "2" };

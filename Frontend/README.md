@@ -33,6 +33,6 @@ se ejecutan desde la raíz. Sus herramientas en `scripts/` resuelven las nuevas
 rutas. Los scripts de aceptación de navegador y Tauri siguen en `scripts/testing/`.
 
 Los datos, Obsidian, modelos, credenciales, configuración privada y ensayos no
-pertenecen a este workspace: conservan sus ubicaciones en `data/`, `local/` y
+pertenecen a este workspace: conservan sus ubicaciones en `data/`, `runtime/` y
 `experiments/`. El servidor Vite mantiene bloqueados esos directorios, incluso
 cuando las dependencias npm se comparten con la raíz.

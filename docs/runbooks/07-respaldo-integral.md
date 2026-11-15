@@ -19,28 +19,28 @@ original. Falta una copia en otra unidad física o fuera del equipo.
 | Todo `ALICE_DATA_DIR`, por defecto `data/` | Memoria confirmada y automática, perfil, conversaciones, autoestudio, auditorías, índices, respaldos previos y bóveda Obsidian completa con notas manuales |
 | Archivos versionados y nuevos no ignorados por Git | Código y documentos tal como estaban, incluidos cambios sin commit y eliminaciones locales |
 | `project.bundle` | Historial Git completo alcanzable desde sus referencias y HEAD; ramas y etiquetas |
-| Todo `local/assets/` | Avatar, animaciones y recursos privados existentes en esa carpeta |
-| `local/archives/`, `local/drafts/`, `local/maintenance/` | Recuperaciones y código retirado, originales privados de trabajo y scripts/manifiestos de intervenciones puntuales; incluidos desde el 15 de noviembre de 2026 |
+| Todo `runtime/assets/` | Avatar, animaciones y recursos privados existentes en esa carpeta |
+| `runtime/archives/`, `runtime/drafts/`, `runtime/maintenance/` | Recuperaciones y código retirado, originales privados de trabajo y scripts/manifiestos de intervenciones puntuales; incluidos desde el 15 de noviembre de 2026 |
 | Fuentes de `experiments/` | Pilotos privados, excluyendo entornos, dependencias, salidas generadas, registros, grabaciones y pesos de modelos |
-| `.env`, `.env.*`, `local/ubuntu.env`, `local/backup.json` | Archivos de configuración privados presentes |
-| Configuración Fish de Linux y variables de entorno seleccionadas de Alice/proveedores | Copias privadas bajo `local/recovered-settings/`; no se ejecutan ni importan automáticamente |
+| `.env`, `.env.*`, `runtime/ubuntu.env`, `runtime/backup.json` | Archivos de configuración privados presentes |
+| Configuración Fish de Linux y variables de entorno seleccionadas de Alice/proveedores | Copias privadas bajo `runtime/recovered-settings/`; no se ejecutan ni importan automáticamente |
 
 Las claves se copian sólo desde los archivos indicados y el entorno del proceso
 que respalda. No se recorren el registro, llaveros, otros perfiles ni credenciales
 ajenas a Alice. Las variables seleccionadas están enumeradas en
 `scripts/backups/snapshot.mjs`. Los archivos privados permanecen fuera de Git.
 
-No se incluyen los modelos o motores **externos** a `local/assets/`,
-`node_modules`, `dist`, `local/artifacts/`, caches Rust, entornos Python, otros archivos ignorados,
+No se incluyen los modelos o motores **externos** a `runtime/assets/`,
+`node_modules`, `dist`, `runtime/artifacts/`, caches Rust, entornos Python, otros archivos ignorados,
 reflogs/objetos Git sin referencias ni la distribución de cambios entre staging
 y working tree. Tampoco se conserva la memoria RAM, el audio o los fotogramas
 efímeros. Las dependencias se reinstalan y las rutas de modelos se revisan al
 recuperar. Los directorios vacíos se recrean cuando se necesitan.
 
-Una grabación original guardada expresamente en `local/drafts/` sí se respalda;
-el audio efímero y las tomas sintéticas en `local/artifacts/` quedan fuera.
-Las copias parciales históricas de `local/backups/` tampoco forman parte de este
-inventario. Consultar la [guía de recursos locales](../../local/README.md) antes
+Una grabación original guardada expresamente en `runtime/drafts/` sí se respalda;
+el audio efímero y las tomas sintéticas en `runtime/artifacts/` quedan fuera.
+Las copias parciales históricas de `runtime/backups/` tampoco forman parte de este
+inventario. Consultar la [guía de recursos locales](../../runtime/README.md) antes
 de limpiar archivos que no sean regenerables.
 
 ## Operación manual
@@ -58,7 +58,7 @@ npm run backup -- verify --snapshot 'D:\Alice Backups\Alice Continuum\snapshot-F
 Para forzar otra copia aunque el contenido no haya cambiado, usar
 `npm run backup -- create --force`. No se eliminan versiones automáticamente.
 
-El archivo privado `local/backup.json` permite configurar cada sistema:
+El archivo privado `runtime/backup.json` permite configurar cada sistema:
 
 ```json
 {
@@ -101,7 +101,7 @@ Después de recuperar:
 
 1. Revisar código y datos antes de abrir la copia.
 2. Comprobar `ALICE_DATA_DIR`: el entorno anterior podría apuntar al original.
-3. Revisar los valores de `local/recovered-settings/`; restaurar sólo los que
+3. Revisar los valores de `runtime/recovered-settings/`; restaurar sólo los que
    correspondan al equipo. El archivo Fish externo se conserva allí para revisión.
 4. Reinstalar dependencias, revisar rutas de modelos y ejecutar el lanzador con
    `--check`. No iniciar las dos copias sobre los mismos datos.

@@ -14,7 +14,7 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 | Categoría | Elementos detectados | Espacio aprox. | Riesgo de limpieza |
 |---|---:|---:|---|
 | Basura directa en el repo (carpeta vacía, iconos móviles/macOS, escena legacy, docs viejos de agosto) | **49 elementos** | **~2,25 MB** | **Nulo** (Nivel 1) |
-| Artefactos viejos descartables en `local/artifacts/` y `local/drafts/` *(respetando `.wav` de tests)* | **~900+ archivos** | **~118 MB** | **Nulo** si se conservan 2 rutas `.wav` (Nivel 1.B) |
+| Artefactos viejos descartables en `runtime/artifacts/` y `runtime/drafts/` *(respetando `.wav` de tests)* | **~900+ archivos** | **~118 MB** | **Nulo** si se conservan 2 rutas `.wav` (Nivel 1.B) |
 | Código huérfano / desconectado de la UI (`src/` + `Backend/src-tauri/`) | **7 archivos TS/TSX (+ 3 tests) + 3 módulos Rust** | Código fuente | **Bajo**, requiere borrar en bloque coordinado (Nivel 2) |
 | Scripts de prueba rotos, superados o atados a rutas personales (`C:/Users/enri3/...`) | **11 scripts** | **~120 KB** | **Medio**, reparar o retirar (Nivel 4) |
 | Caché de compilación Rust (`.cargo-target/`) y bundle web (`dist/`) | **6.976 archivos** | **~9,36 GB** | **Regenerable** (`cargo clean` / `npm run build`) (Nivel 5) |
@@ -36,18 +36,18 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 | [`docs/Analisis_Estado_Proyecto_2026-08-19.docx`](../Analisis_Estado_Proyecto_2026-08-19.docx) (**1,22 MB**) | Documento Word binario de agosto de 2026 con capturas viejas de la etapa *Alice Cognitive Core* (hasta R5). Superado por `especificacion_alice_continuum.html`. | Borrar o mover fuera del repositorio. |
 | [`docs/analysis_results.md`](../analysis_results.md) | Volcado genérico de IA del 18 de agosto de 2026 (46 ADRs) que además pisó un archivo previo del 10 de agosto. Engañoso y obsoleto. | Borrar. |
 
-### 1.B Peso muerto descartable en `local/` (~118 MB ignorados por Git)
+### 1.B Peso muerto descartable en `runtime/` (~118 MB ignorados por Git)
 
-`local/` pesa **221,27 MB**, pero solo `local/assets/` (~57,5 MB: `Alice.vrm`, animaciones FBX y `face_landmarker.task`) y `local/venv/` (~41 MB: entorno Python con `PyMuPDF`) son necesarios para usar Alice. El resto es basura de corridas pasadas:
+`runtime/` pesa **221,27 MB**, pero solo `runtime/assets/` (~57,5 MB: `Alice.vrm`, animaciones FBX y `face_landmarker.task`) y `runtime/venv/` (~41 MB: entorno Python con `PyMuPDF`) son necesarios para usar Alice. El resto es basura de corridas pasadas:
 
-1. `local/artifacts/vision-conversation-2026-11-03/` (**~27,8 MB**): contiene un ejecutable compilado viejo **`alice-review.exe` (27,75 MB)** más una carpeta temporal `alice-data/`. **100 % descartable.**
-2. `local/artifacts/architecture-review-2026-11-05/` (**10,16 MB**): contiene **una copia duplicada entera del código fuente** en `snapshot/` (646 archivos) más `source-aa6a749.zip`. **100 % descartable.**
-3. `local/artifacts/r9-hands-free-2026-11-03/` (**8,56 MB**): contiene `node-msi.log` y datos de prueba aislados. **100 % descartable.**
-4. **216 archivos sueltos `.html`/`.png` en la raíz de `local/artifacts/` (~57,34 MB)** + subcarpetas `icons-v3-2026-11-01/`, `icons-v4-2026-11-01/`, `ui-affordance-2026-11-01/` y `avatar-clothing-2026-11-05/` (~14 MB): capturas históricas de iteraciones visuales (incluyendo `r7-2b-live-before.png` truncado a 144 bytes). **Descartables.**
-5. `local/drafts/` (**1,48 MB**, 17 archivos): 3 PNG de agosto + 14 scripts sueltos en `local/drafts/avatar-height-detail/` que apuntan a la ruta antigua inexistente `Assets/Alice.vrm`. **Descartable.**
-6. `local/artifacts/visual-checks/*.png` (**592 KB**, 3 capturas): capturas de verificación visual Playwright que no forman parte de la memoria ni configuración de Alice.
+1. `runtime/artifacts/vision-conversation-2026-11-03/` (**~27,8 MB**): contiene un ejecutable compilado viejo **`alice-review.exe` (27,75 MB)** más una carpeta temporal `alice-data/`. **100 % descartable.**
+2. `runtime/artifacts/architecture-review-2026-11-05/` (**10,16 MB**): contiene **una copia duplicada entera del código fuente** en `snapshot/` (646 archivos) más `source-aa6a749.zip`. **100 % descartable.**
+3. `runtime/artifacts/r9-hands-free-2026-11-03/` (**8,56 MB**): contiene `node-msi.log` y datos de prueba aislados. **100 % descartable.**
+4. **216 archivos sueltos `.html`/`.png` en la raíz de `runtime/artifacts/` (~57,34 MB)** + subcarpetas `icons-v3-2026-11-01/`, `icons-v4-2026-11-01/`, `ui-affordance-2026-11-01/` y `avatar-clothing-2026-11-05/` (~14 MB): capturas históricas de iteraciones visuales (incluyendo `r7-2b-live-before.png` truncado a 144 bytes). **Descartables.**
+5. `runtime/drafts/` (**1,48 MB**, 17 archivos): 3 PNG de agosto + 14 scripts sueltos en `runtime/drafts/avatar-height-detail/` que apuntan a la ruta antigua inexistente `Assets/Alice.vrm`. **Descartable.**
+6. `runtime/artifacts/visual-checks/*.png` (**592 KB**, 3 capturas): capturas de verificación visual Playwright que no forman parte de la memoria ni configuración de Alice.
 
-> **CUIDADO al limpiar `local/artifacts/`:** No borres `local/artifacts/conversation-session-2026-11-04/*.wav` ni `local/artifacts/voice-noise-2026-11-04/synthetic-speech.wav` sin antes copiarlos a `scripts/testing/.fixtures/`, porque [`scripts/testing/prepare-voice-fixtures.mjs`](../../scripts/testing/prepare-voice-fixtures.mjs) los busca como origen para regenerar fixtures de voz.
+> **CUIDADO al limpiar `runtime/artifacts/`:** No borres `runtime/artifacts/conversation-session-2026-11-04/*.wav` ni `runtime/artifacts/voice-noise-2026-11-04/synthetic-speech.wav` sin antes copiarlos a `scripts/testing/.fixtures/`, porque [`scripts/testing/prepare-voice-fixtures.mjs`](../../scripts/testing/prepare-voice-fixtures.mjs) los busca como origen para regenerar fixtures de voz.
 
 ---
 
@@ -103,7 +103,7 @@ Estos archivos **sí son esenciales y no deben borrarse**, pero contienen bloque
 - `scripts/testing/compare-local-models.mjs` se retiró del código activo y se conservó en el archivo local de recuperación.
 - [`scripts/testing/llama-memory-pilot.mjs`](../../scripts/testing/llama-memory-pilot.mjs)
   - **Por qué fallan:** ambos ejecutan una expresión regular buscando `const SYSTEM_PROMPT: &str = "..."` dentro de `Backend/src-tauri/src/cloud.rs`, pero `cloud.rs` ahora carga el prompt con `include_str!("prompts/conversation.txt")`. Resultado: `match(...)` devuelve `null` y el script explota con `TypeError` al iniciar.
-  - **Efecto colateral histórico:** ambos creaban una carpeta `artifacts/` en la raíz; la sonda documental ahora usa `local/artifacts/`.
+  - **Efecto colateral histórico:** ambos creaban una carpeta `artifacts/` en la raíz; la sonda documental ahora usa `runtime/artifacts/`.
 
 ### 4.2 Prototipos de evaluación ya reemplazados
 - [`scripts/testing/voice-turn-pilot.mjs`](../../scripts/testing/voice-turn-pilot.mjs) + [`scripts/testing/voice-turn-pilot/client.js`](../../scripts/testing/voice-turn-pilot/client.js) + [`scripts/testing/voice-turn-pilot/index.html`](../../scripts/testing/voice-turn-pilot/index.html): primer piloto de voz de un solo turno manual, superado primero por `conversation-session-pilot` y luego integrado de forma nativa en `src/core/voice/` y `Backend/src-tauri/src/voice_input.rs`.
@@ -111,9 +111,9 @@ Estos archivos **sí son esenciales y no deben borrarse**, pero contienen bloque
 
 ### 4.3 Rutas personales hardcodeadas a la máquina actual
 - **Caché personal de Playwright en Codex (`C:/Users/enri3/.cache/codex-runtimes/.../node_modules/playwright`):** presente en [`gemma-evaluation.mjs`](../../scripts/testing/gemma-evaluation.mjs), [`settings-runtime-visual.cjs`](../../scripts/testing/settings-runtime-visual.cjs), [`voice-turn-pilot-smoke.mjs`](../../scripts/testing/voice-turn-pilot-smoke.mjs) y [`volume-observatory.cjs`](../../scripts/testing/volume-observatory.cjs). Fallan en cualquier otro PC si no se define `PLAYWRIGHT_MODULE_PATH`.
-- **Disco `D:\Alice-model-evaluation\...`:** usado como ruta por defecto en varios pilotos de `scripts/testing/` (mientras que `runtime_paths.rs` ya unificó el runtime real bajo `local/runtimes/` y `local/models/` o variables `ALICE_*`).
+- **Disco `D:\Alice-model-evaluation\...`:** usado como ruta por defecto en varios pilotos de `scripts/testing/` (mientras que `runtime_paths.rs` ya unificó el runtime real bajo `runtime/runtimes/` y `runtime/models/` o variables `ALICE_*`).
 - **Disco `E:\Ollama\models`:** comprobado directamente en [`Iniciar Alice Continuum.cmd`](../../Iniciar%20Alice%20Continuum.cmd).
-- **`"python"` global en vez de `runtime_paths::python()`:** tanto [`Backend/src-tauri/src/face_readiness.rs`](../../Backend/src-tauri/src/face_readiness.rs) como [`Backend/src-tauri/src/sensory.rs`](../../Backend/src-tauri/src/sensory.rs) invocan `"python"` del `PATH` global en vez del intérprete aislado de `local/venv` que sí usa `documents.rs`.
+- **`"python"` global en vez de `runtime_paths::python()`:** tanto [`Backend/src-tauri/src/face_readiness.rs`](../../Backend/src-tauri/src/face_readiness.rs) como [`Backend/src-tauri/src/sensory.rs`](../../Backend/src-tauri/src/sensory.rs) invocan `"python"` del `PATH` global en vez del intérprete aislado de `runtime/venv` que sí usa `documents.rs`.
 
 ---
 
@@ -124,7 +124,7 @@ Estos archivos **sí son esenciales y no deben borrarse**, pero contienen bloque
    - Si necesitas recuperar ~9 GB de disco de golpe, puedes ejecutar `cargo clean --manifest-path Backend/src-tauri/Cargo.toml`; se regenerará limpia la próxima vez que compiles (tardando unos minutos en recompilar crates).
 2. **`dist/` (`7,29 MB`, 13 archivos) y `node_modules/` (`158,78 MB`, 4.117 archivos):**
    - Salida del frontend compilado (`npm run build`) y dependencias npm (`npm ci`). Regenerables en cualquier momento.
-3. **`local/reference-adapters/` (`12` scripts Python en cuarentena):**
+3. **`runtime/reference-adapters/` (`12` scripts Python en cuarentena):**
    - **No intervienen en ejecución**, pero están documentados intencionalmente en [`docs/architecture/ADAPTER_QUARANTINE.md`](../architecture/ADAPTER_QUARANTINE.md) como material de referencia aislado para futuras etapas de rostro/cuerpo/voz local. Conviene mantenerlos mientras sirvan de referencia.
 4. **Archivos históricos pre-v1 en `data/memory/` (`sessions.json`, `sessions.backup.json`, `memory-audit.jsonl`, `layer-index-v2.json`):**
    - Hoy están inactivos (el runtime vigente usa `records.json`, `layer-index-v3.json` y `data/audit/events-v1.jsonl`), pero contienen historia local del propietario y siguen listados en rutas de compatibilidad/diagnóstico. **Regla de oro del proyecto: jamás borrar nada dentro de `data/memory/` sin copia de seguridad externa previa y decisión explícita tuya.**

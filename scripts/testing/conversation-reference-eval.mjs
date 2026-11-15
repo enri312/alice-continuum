@@ -12,7 +12,7 @@ import { readRustPrompt } from './rust-prompt-reader.mjs';
 if (!process.argv.includes('--live')) throw Error('Usar --live para evaluar Gemma con ejemplos ficticios.');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const option = name => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
-const output = option('--output') ? path.resolve(option('--output')) : path.join(root, 'local/artifacts/r9-reference-stop-rust-2026-11-03');
+const output = option('--output') ? path.resolve(option('--output')) : path.join(root, 'runtime/artifacts/r9-reference-stop-rust-2026-11-03');
 fs.mkdirSync(output, { recursive: true });
 const endpoint = 'http://127.0.0.1:18089';
 const fetchLocal = (url, options = {}) => fetch(url, { signal: AbortSignal.timeout(120_000), ...options });

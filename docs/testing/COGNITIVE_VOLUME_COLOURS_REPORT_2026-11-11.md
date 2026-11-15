@@ -69,12 +69,12 @@ el canvas, sin modificar datos ni código de la aplicación personal.
 La guía usa dos columnas a 1440 y 1000 px, y una a 420 px, sin desborde.
 El navegador de prueba, servidor y caché temporal se cerraron al finalizar.
 
-Artefactos sintéticos y runner: `local/artifacts/volume-colours-20261111/` y
+Artefactos sintéticos y runner: `runtime/artifacts/volume-colours-20261111/` y
 `scripts/testing/.fixtures/volume-colours-20261111/`, ignorados por Git. No se
 repitió Rust porque no cambió el backend.
 
 Antes de editar se archivó el código versionado en
-`local/backups/volume-colours-20261111/source-before.zip`, SHA-256
+`runtime/backups/volume-colours-20261111/source-before.zip`, SHA-256
 `C4321DF749D236B2E6D444CDB0CCE876F0CEDC6337D1E9B588477CEEC76F4E18`.
 Es un respaldo del código anterior, no una copia de modelos o recuerdos privados.
 

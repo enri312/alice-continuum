@@ -37,7 +37,7 @@ texto inicial en una salida no demuestra por sí sola causalidad.
 
 Antes de editar se cerró Alice normalmente y se verificó el respaldo privado
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T03-05-10-807Z-749681f2-afad-4fb0-8969-999ff68716f6`.
-El archivo de código anterior está en `local/backups/voice-asr-20261112/source-before.zip`.
+El archivo de código anterior está en `runtime/backups/voice-asr-20261112/source-before.zip`.
 Los 134 archivos privados mantuvieron sus huellas durante edición y pruebas
 aisladas, hasta reabrir la aplicación. Los turnos posteriores de la prueba usan
 el guardado normal del historial; no se publican audio ni conversaciones privadas.

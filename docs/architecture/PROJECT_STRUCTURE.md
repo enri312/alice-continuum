@@ -36,7 +36,7 @@ CLI. Los lanzadores crean versiones privadas completas y permiten restaurarlas
 en otra carpeta. No modifica los contratos ni formatos del núcleo Rust.
 
 Organización 2026-11-04 — [ADR-P-109](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md):
-los recursos privados se agrupan en `local/`; se conservan las carpetas
+los recursos privados se agrupan en `runtime/`; se conservan las carpetas
 convencionales de Tauri, Rust y Vite. `runtime_paths.rs` concentra rutas nativas
 configurables. Las API Win32 se compilan sólo en Windows.
 [Compatibilidad Ubuntu](../runbooks/04-ubuntu.md).
@@ -113,7 +113,7 @@ Alice Continuum/
 │   ├── setup/                     instalación y lanzadores
 │   └── testing/                   pruebas de frontend, backend e integración
 ├── docs/                          manual, arquitectura, ADR e informes
-├── local/                         recursos, configuración y evidencias privadas
+├── runtime/                         recursos, configuración y evidencias privadas
 ├── data/                          memoria, conversación y auditorías privadas
 ├── experiments/                   ensayos privados, excluidos de Git
 ├── node_modules/                  dependencias npm compartidas, regenerables
@@ -183,10 +183,10 @@ CSS y los formatos de almacenamiento; no hay una migración de datos.
 | `index.html`, `vite.config.ts`, `tsconfig*.json` | Puntos de descubrimiento del frontend y sus herramientas. |
 | `rust-toolchain.toml`, `.cargo/` | Selección de Rust y destino compartido de compilación. |
 | `Backend/src-tauri/` | Backend y estructura convencional de Tauri. |
-| `local/assets/` | Activos privados; rutas configurables y alcance Tauri limitado a archivos conocidos. |
+| `runtime/assets/` | Activos privados; rutas configurables y alcance Tauri limitado a archivos conocidos. |
 | `data/` | Datos privados; el lanzador y el backend dependen de esta ruta configurable. |
-| `local/reference-adapters/`, `local/venv/` | Cuarentena local y entorno Python; no equivalen a `Backend/adapters/`. |
-| `local/artifacts/`, `local/drafts/` | Evidencia local y trabajo privado, excluidos de Git. |
+| `runtime/reference-adapters/`, `runtime/venv/` | Cuarentena local y entorno Python; no equivalen a `Backend/adapters/`. |
+| `runtime/artifacts/`, `runtime/drafts/` | Evidencia local y trabajo privado, excluidos de Git. |
 | `node_modules/`, `dist/`, `.cargo-target/` | Dependencias o resultados regenerables, excluidos de Git. |
 
 Se agruparon recursos privados según el mapa anterior; datos y motores conservan su ubicación. Estas

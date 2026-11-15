@@ -55,7 +55,7 @@ controlador anterior y sus adaptadores; todavía son necesarios para recuperaci�
 - **Revisión visual:** capturas de fuentes y confirmación revisadas. Se mantiene
   el diseño existente: colores, bordes, dos columnas de fuentes, controles y
   confirmaciones. Las capturas privadas quedan en
-  `local/artifacts/dioxus/browser/dioxus-browser-FiSgIz/`, fuera de Git.
+  `runtime/artifacts/dioxus/browser/dioxus-browser-FiSgIz/`, fuera de Git.
 
 Las llamadas IPC del navegador son ficticias. No se abrió un almacén personal,
 no se ejecutó un modelo ni se probó voz. Los comandos del backend no cambiaron;

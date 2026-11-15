@@ -11,11 +11,11 @@ Whisper dependían de rutas absolutas a ejecutables Windows de esta notebook.
 
 ## Decisión
 
-Agrupar los recursos privados y de trabajo en `local/assets`,
-`local/reference-adapters`, `local/drafts`, `local/artifacts` y `local/venv`.
+Agrupar los recursos privados y de trabajo en `runtime/assets`,
+`runtime/reference-adapters`, `runtime/drafts`, `runtime/artifacts` y `runtime/venv`.
 El entorno Python se recrea y verifica antes de retirar el anterior a la Papelera.
 Conservar `data/`, el caché `.cargo-target/` y los nombres de Rust, Tauri y Vite.
-Git sólo publica las guías de `local/`; los recursos privados siguen excluidos.
+Git sólo publica las guías de `runtime/`; los recursos privados siguen excluidos.
 
 Centralizar rutas en `runtime_paths.rs` con variables absolutas para motores,
 modelos y Python. Windows conserva la instalación evaluada en D:. Ubuntu usa

@@ -11,7 +11,7 @@ El ZIP tiene 917 entradas, incluidos directorios, y su SHA-256 es
 `ad81317d21c4f9fc3597f1a5dc5d48758c777caeb6c36a15ac8eafbb509d7bbb`.
 
 La copia de revisión permanece en
-`local/experiments/ai-studio-20261113/source/`, fuera de Git, en D:.
+`runtime/experiments/ai-studio-20261113/source/`, fuera de Git, en D:.
 Se validaron las rutas del archivo antes de extraerlo. No se instaló software,
 no se ejecutaron sus scripts de arranque, no se copiaron datos privados del
 principal a la exportación y no se inició otra aplicación Tauri.
@@ -85,7 +85,7 @@ La comprobación de TypeScript de la exportación pasó con `--noEmit` e
 `--incremental false`, usando las herramientas ya instaladas del proyecto.
 No se recompiló Rust/WASM ni se hizo aceptación visual o nativa de esa exportación.
 La presencia de un binario WASM en el paquete no sustituye esas comprobaciones.
-Log privado: `local/experiments/ai-studio-20261113/export-typecheck.log`.
+Log privado: `runtime/experiments/ai-studio-20261113/export-typecheck.log`.
 
 Durante la revisión aparecieron cambios locales en cinco archivos del principal,
 que se conservaron sin modificarlos ni incluirlos en el commit de documentación.

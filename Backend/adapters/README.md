@@ -1,6 +1,6 @@
 # Adaptadores adaptados para Alice
 
-Esta carpeta contiene versiones revisadas. Los originales de `local/reference-adapters/` se
+Esta carpeta contiene versiones revisadas. Los originales de `runtime/reference-adapters/` se
 conservan intactos y excluidos de Git. Nada aquí se ejecuta al iniciar Alice.
 
 ## Música en Ubuntu
@@ -20,10 +20,10 @@ del navegador. Ver [instalación y órdenes de voz](../../docs/runbooks/04-ubunt
 ## Lector documental
 
 ```powershell
-python -m venv local/venv
-.\local/venv\Scripts\python.exe -m pip install -r Backend/adapters/requirements.txt
-.\local/venv\Scripts\python.exe -B Backend/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
-.\local/venv\Scripts\python.exe -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
+python -m venv runtime/venv
+.\runtime/venv\Scripts\python.exe -m pip install -r Backend/adapters/requirements.txt
+.\runtime/venv\Scripts\python.exe -B Backend/adapters/document_reader.py --root docs --file MANUAL_DE_USO.md
+.\runtime/venv\Scripts\python.exe -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
 ```
 
 `--root` define la carpeta autorizada; `--file` selecciona el documento. La salida

@@ -39,7 +39,7 @@ El despachador verifica fuente, cero tokens y continuidad de otros proveedores.
 - CI Ubuntu 24.04 aprobada en [41964663108](https://github.com/enri312/alice-continuum/actions/runs/41964663108), código `b751981`: 329 pruebas Rust, prueba documental adicional, 563 frontend, cinco Python, Clippy, build y arranque aislado. La prueba específica de Windows explica la diferencia de recuento. Esto no acredita Ubuntu 26.04.1 ni dispositivos reales.
 - Permanece el aviso previo de Vite por tamaño de paquetes.
 
-Evidencia privada: `local/artifacts/r9-conversation-context-2026-11-05/`, incluidas
+Evidencia privada: `runtime/artifacts/r9-conversation-context-2026-11-05/`, incluidas
 las alternativas rechazadas y sus respuestas completas. El evaluador Node mide
 al modelo aislado; las respuestas locales del producto se verifican en Rust.
 

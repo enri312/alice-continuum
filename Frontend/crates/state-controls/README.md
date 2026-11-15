@@ -63,7 +63,7 @@ npm run dioxus:build -- --rust-root 'D:\ruta\rust' --cargo-home 'D:\ruta\cargo-c
 
 El comando trabaja sin red por defecto. `--online` permite a Cargo obtener las
 dependencias fijadas; no instala toolchains. Las salidas de compilación y los
-temporales están en `local/dioxus-build/`, fuera de Git.
+temporales están en `runtime/dioxus-build/`, fuera de Git.
 La compilación normal del frontend utiliza los artefactos incluidos y no necesita
 esas herramientas. Las pruebas del contrato pueden ejecutarse con
 `cargo test --locked --manifest-path Frontend/crates/state-controls/Cargo.toml`.
@@ -80,7 +80,7 @@ node scripts/testing/dioxus-browser-smoke.mjs
 ```
 
 La sonda abre un perfil nuevo sin ventana y escribe capturas en
-`local/artifacts/dioxus/browser/dioxus-browser-*`.
+`runtime/artifacts/dioxus/browser/dioxus-browser-*`.
 Comprueba selección por clic/teclado, navegación entre Flujo y Estado, ausencia
 de duplicados y anchos de 1440/1000 px. Inyecta estados R3 ficticios sólo en
 una instancia de prueba de WASM y verifica el rechazo de una señal inválida.
@@ -116,7 +116,7 @@ npm run test:dioxus:native
 ```
 
 El ensayo compila y abre una ventana real de Tauri/WebView2 con el frontend de
-producción. Usa una carpeta nueva en `local/artifacts/dioxus/native/dioxus-native-*` para datos, perfil
+producción. Usa una carpeta nueva en `runtime/artifacts/dioxus/native/dioxus-native-*` para datos, perfil
 WebView, configuración, temporales y evidencia. No copia la memoria personal y
 excluye claves/proveedores del entorno. Desactiva aprendizaje en el fixture;
 no ejecuta modelos ni requiere voz.

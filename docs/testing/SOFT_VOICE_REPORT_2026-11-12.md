@@ -36,7 +36,7 @@ una grabación con la voz del propietario ni una medición de precisión de Whis
 
 Alice se cerró normalmente antes de editar. Se creó y verificó el respaldo
 privado `D:\Alice Backups\Alice Continuum\snapshot-2026-11-12T03-20-46-650Z-440bfe84-1a31-4a5c-b694-65ba5f7e10e1`.
-El archivo de código previo está en `local/backups/voice-soft-20261112/source-before.zip`.
+El archivo de código previo está en `runtime/backups/voice-soft-20261112/source-before.zip`.
 Los 134 archivos privados conservaron sus huellas durante edición y pruebas,
 antes de reabrir la aplicación. No se cambian permisos ni volumen del sistema.
 

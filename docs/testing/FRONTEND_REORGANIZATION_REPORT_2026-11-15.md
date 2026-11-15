@@ -8,7 +8,7 @@ el contenido ni los formatos de persistencia. No migra otra pantalla a Dioxus.
 Se trasladaron `src/`, `icons/`, `public/`, `crates/`, `dist/`, `index.html`,
 `vite.config.ts` y los tres `tsconfig*.json` a `Frontend/`. El crate Dioxus
 pertenece a la interfaz; el backend Rust/Tauri y sus iconos nativos permanecen
-en `Backend/`. `data/`, `local/` y `experiments/` no se trasladaron.
+en `Backend/`. `data/`, `runtime/` y `experiments/` no se trasladaron.
 
 `Frontend/package.json` declara las dependencias de interfaz. La raíz coordina
 el workspace npm, conserva el lockfile único, Tauri, pruebas integrales y
@@ -54,12 +54,12 @@ conclusiones de inventarios históricos ni se borran sus archivos recomendados.
 - Edge aislado sobre el build nuevo: aprobado. Conserva 11 nodos, navegación,
   teclado, formulario/confirmaciones, sondeo R3 sin solapamientos, cancelación
   al navegar y recuperación ante descarga WASM fallida. Evidencia privada en
-  `local/artifacts/dioxus/browser/dioxus-browser-rOpNAp/`.
+  `runtime/artifacts/dioxus/browser/dioxus-browser-rOpNAp/`.
 - Tauri/WebView2 real: **aprobado** con el backend real y fuentes sintéticas.
   Abrió Conversación y Estado/Flujo, inspector y R3; revisó y confirmó una
   relación, canceló su retirada y comprobó persistencia al recargar. Las fuentes
   conservaron su SHA-256. Captura revisada y resultado en
-  `local/artifacts/dioxus/native/dioxus-native-3oQOrX/`. No usa mocks de IPC ni recuerdos personales.
+  `runtime/artifacts/dioxus/native/dioxus-native-3oQOrX/`. No usa mocks de IPC ni recuerdos personales.
 - Lanzador habitual: tras la prueba aislada, inició Vite desde el workspace y
   abrió la ventana normal de Alice. La página y `/src/main.tsx` respondieron
   HTTP 200 en el servidor de desarrollo. Se dejó Alice abierta.
@@ -73,6 +73,6 @@ host React siguen siendo necesarios según el inventario de migración.
 
 Respaldo previo creado y verificado en
 `D:\Alice Backups\Alice Continuum\snapshot-2026-11-15T06-38-42-810Z-bc5844d1-9121-47a8-a536-229d6dc80d1b`.
-Las evidencias y el inventario de hashes están en `local/`, excluido de Git.
+Las evidencias y el inventario de hashes están en `runtime/`, excluido de Git.
 El documento personal `docs/herramientas-y-persistencia-alice.md` permanece
 sin cambios y fuera del commit.

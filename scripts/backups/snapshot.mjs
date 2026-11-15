@@ -21,7 +21,7 @@ const ENV_NAMES = [
 const SNAPSHOT_NAME = /^snapshot-\d{4}-\d{2}-\d{2}T[\d-]+Z-[a-f0-9-]{36}$/;
 const EXCLUSIONS = [
   'Pesos y motores externos (ALICE_INFERENCE_HOME y rutas equivalentes).',
-  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, fuentes de experiments/, local/assets/, local/archives/, local/drafts/, local/maintenance/ y configuracion seleccionada.',
+  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, fuentes de experiments/, runtime/assets/, runtime/archives/, runtime/drafts/, runtime/maintenance/ y configuracion seleccionada.',
   'Memoria RAM, audio y fotogramas efimeros, credenciales del sistema no presentes en el entorno del lanzador, Git reflogs y objetos sin referencias.',
 ];
 
@@ -38,12 +38,12 @@ async function git(cwd, args) {
 export async function settings(options = {}) {
   const projectRoot = path.resolve(options.projectRoot ?? PROJECT);
   await noLinks(projectRoot);
-  const configPath = path.join(projectRoot, 'local/backup.json');
+  const configPath = path.join(projectRoot, 'runtime/backup.json');
   let config = {};
   if (await exists(configPath)) {
     await noLinks(configPath);
     try { config = JSON.parse(await fs.readFile(configPath, 'utf8')); }
-    catch { fail('local/backup.json no contiene una configuracion JSON valida.'); }
+    catch { fail('runtime/backup.json no contiene una configuracion JSON valida.'); }
     if (config.schemaVersion !== 1) fail('Version de configuracion de respaldo no admitida.');
   }
   const env = options.env ?? process.env;
@@ -97,24 +97,24 @@ async function inventory(config) {
   }
   for (const [source, prefix, kind] of [
     [config.dataRoot, 'data', 'data'],
-    [path.join(config.projectRoot, 'local/assets'), 'local/assets', 'assets'],
-    [path.join(config.projectRoot, 'local/archives'), 'local/archives', 'assets'],
-    [path.join(config.projectRoot, 'local/drafts'), 'local/drafts', 'assets'],
-    [path.join(config.projectRoot, 'local/maintenance'), 'local/maintenance', 'code'],
-    [path.join(config.projectRoot, 'local/recovered-settings'), 'local/recovered-settings', 'configuration'],
+    [path.join(config.projectRoot, 'runtime/assets'), 'runtime/assets', 'assets'],
+    [path.join(config.projectRoot, 'runtime/archives'), 'runtime/archives', 'assets'],
+    [path.join(config.projectRoot, 'runtime/drafts'), 'runtime/drafts', 'assets'],
+    [path.join(config.projectRoot, 'runtime/maintenance'), 'runtime/maintenance', 'code'],
+    [path.join(config.projectRoot, 'runtime/recovered-settings'), 'runtime/recovered-settings', 'configuration'],
   ]) {
     for (const relative of await walk(source)) await put(`${prefix}/${relative}`, path.join(source, relative), kind);
   }
   for (const name of await fs.readdir(config.projectRoot)) {
     if (name === '.env' || name.startsWith('.env.')) await put(name, path.join(config.projectRoot, name), 'configuration');
   }
-  for (const relative of ['local/ubuntu.env', 'local/backup.json']) await put(relative, path.join(config.projectRoot, relative), 'configuration');
+  for (const relative of ['runtime/ubuntu.env', 'runtime/backup.json']) await put(relative, path.join(config.projectRoot, relative), 'configuration');
   // Windows does not load the Linux Fish file. Do not inspect its user home.
   if (process.platform !== 'win32' || config.env.XDG_CONFIG_HOME) {
     const fish = path.join(config.env.XDG_CONFIG_HOME ?? os.homedir() + '/.config', 'alice-continuum/fish.env');
-    await put('local/recovered-settings/fish.env', fish, 'configuration');
+    await put('runtime/recovered-settings/fish.env', fish, 'configuration');
   }
-  const savedEnvironment = path.join(config.projectRoot, 'local/recovered-settings/environment.json');
+  const savedEnvironment = path.join(config.projectRoot, 'runtime/recovered-settings/environment.json');
   let savedVariables = {};
   if (await exists(savedEnvironment)) {
     await noLinks(savedEnvironment);
@@ -128,8 +128,8 @@ async function inventory(config) {
     .map(name => [name, config.env[name] ?? savedVariables[name]]));
   if (Object.values(environment).some(value => typeof value !== 'string')) fail('La configuracion recuperada contiene valores no textuales.');
   const content = jsonBytes({ schemaVersion: 1, variables: environment });
-  entries.set('local/recovered-settings/environment.json', {
-    path: 'local/recovered-settings/environment.json', kind: 'configuration',
+  entries.set('runtime/recovered-settings/environment.json', {
+    path: 'runtime/recovered-settings/environment.json', kind: 'configuration',
     sha256: digest(content), size: content.length, mode: 0o600, content,
   });
   // Refuse case aliases even on Linux so the same backup can be restored on NTFS.

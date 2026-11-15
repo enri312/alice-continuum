@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Se revisaron `local/` y `data/` antes de continuar la migración progresiva a
+Se revisaron `runtime/` y `data/` antes de continuar la migración progresiva a
 Dioxus. Se trasladaron evidencias y auxiliares; no se modificaron componentes,
 estilos, dependencias ni formatos de memoria. La rama de trabajo sigue siendo
 `master` y los comandos de arranque permanecen en la raíz.
@@ -11,19 +11,19 @@ estilos, dependencias ni formatos de memoria. La rama de trabajo sigue siendo
 
 | Contenido revisado | Ubicación resultante |
 |---|---|
-| Ensayos Edge y Tauri/WebView2 | `local/artifacts/dioxus/browser/` y `local/artifacts/dioxus/native/`; las sondas generan allí los ensayos futuros |
-| Revisiones de portabilidad, traslado y organización | Subcarpetas de `local/artifacts/` |
-| Dos capturas técnicas de `data/visual-checks/` | `local/artifacts/visual-checks/`; sin referencias encontradas en los 139 archivos de texto de datos revisados |
-| Caché npm del traslado Frontend | `local/cache/npm-workspace/` |
-| Audio original aportado para revisión | `local/drafts/whatsapp-audio-review/` |
-| Código retirado y recuperación anterior | Subcarpetas de `local/archives/` |
-| Scripts y manifiestos de intervenciones puntuales | Subcarpetas de `local/maintenance/`; no se llaman durante el arranque |
+| Ensayos Edge y Tauri/WebView2 | `runtime/artifacts/dioxus/browser/` y `runtime/artifacts/dioxus/native/`; las sondas generan allí los ensayos futuros |
+| Revisiones de portabilidad, traslado y organización | Subcarpetas de `runtime/artifacts/` |
+| Dos capturas técnicas de `data/visual-checks/` | `runtime/artifacts/visual-checks/`; sin referencias encontradas en los 139 archivos de texto de datos revisados |
+| Caché npm del traslado Frontend | `runtime/cache/npm-workspace/` |
+| Audio original aportado para revisión | `runtime/drafts/whatsapp-audio-review/` |
+| Código retirado y recuperación anterior | Subcarpetas de `runtime/archives/` |
+| Scripts y manifiestos de intervenciones puntuales | Subcarpetas de `runtime/maintenance/`; no se llaman durante el arranque |
 
 Los scripts privados trasladados conservan sus bytes y pueden mencionar rutas
 históricas. Deben revisarse antes de reutilizarlos. Los informes versionados de
 ensayos conservan sus fechas y actualizan las rutas de sus evidencias.
 
-Se mantienen en su ubicación `local/assets/`, `inference/`, `venv/`,
+Se mantienen en su ubicación `runtime/assets/`, `inference/`, `venv/`,
 `venv-linux/`, `experiments/` con herramientas instaladas, `dioxus-build/`,
 `reference-adapters/`, `backups/`, `backup.json`, `ubuntu.env` y
 `alice-launch.lock`. Este bloqueo todavía lo usa el lanzador Linux con `flock`;
@@ -31,13 +31,13 @@ su traslado inicial se revirtió al revisar ese consumidor. Los motores
 Windows existentes en `D:/Alice-model-evaluation` tampoco se trasladan. Cambiar
 de sitio entornos o herramientas con rutas absolutas necesita otra intervención.
 Los ensayos nuevos usan `experiments/` de la raíz; no se fusionaron las copias
-anteriores homónimas dentro de `local/experiments/`.
+anteriores homónimas dentro de `runtime/experiments/`.
 
 Los recuerdos, historial, auditoría, perfiles y bóvedas siguen en `data/`, con el
 mismo `ALICE_DATA_DIR`. `memory/records.json` es canónico y `sessions.json`
 permanece como legado sin reimportarlo. Se conservaron ambas configuraciones
 Obsidian, las notas manuales y el archivo de base personal de la raíz. Las guías
-de [`local/`](../../local/README.md) y [`data/`](../../data/README.md) detallan sus
+de [`runtime/`](../../runtime/README.md) y [`data/`](../../data/README.md) detallan sus
 funciones; no se incluyen inventarios personales en el repositorio.
 
 ## Integridad y respaldos
@@ -50,17 +50,17 @@ funciones; no se incluyen inventarios personales en el repositorio.
 - Se reagruparon 42 elementos y se verificaron por SHA-256 sus 16.342 archivos.
   Otros 159 archivos de datos, activos y configuración protegidos permanecieron
   idénticos. La verificación se repitió después de las sondas y antes del arranque
-  personal; los informes privados están en `local/artifacts/storage-review-2026-11-15/`.
-- Los nuevos respaldos incluyen `local/archives/`, `local/drafts/` y
-  `local/maintenance/`. Se conserva el esquema 1 y las categorías existentes del
+  personal; los informes privados están en `runtime/artifacts/storage-review-2026-11-15/`.
+- Los nuevos respaldos incluyen `runtime/archives/`, `runtime/drafts/` y
+  `runtime/maintenance/`. Se conserva el esquema 1 y las categorías existentes del
   manifiesto. Los anteriores conservan el alcance que tenían al crearse.
-- `local/artifacts/`, cachés, entornos y motores externos a `local/assets/`
+- `runtime/artifacts/`, cachés, entornos y motores externos a `runtime/assets/`
   permanecen excluidos. La copia en D: no sustituye un respaldo en otro disco.
 - Después del traslado se creó y verificó
   `D:/Alice Backups/Alice Continuum/snapshot-2026-11-15T07-38-53-231Z-729dc6fa-d73c-48f1-9a16-c4d959879067`:
-  1.081 archivos, incluidos 13 de `local/archives/`, 19 de `local/drafts/` y
-  nueve de `local/maintenance/`. Su manifiesto no incluye los árboles de
-  artefactos, cachés, entornos, inferencia ni compilación de `local/`.
+  1.081 archivos, incluidos 13 de `runtime/archives/`, 19 de `runtime/drafts/` y
+  nueve de `runtime/maintenance/`. Su manifiesto no incluye los árboles de
+  artefactos, cachés, entornos, inferencia ni compilación de `runtime/`.
 
 ## Comprobaciones después del traslado
 
@@ -72,12 +72,12 @@ funciones; no se incluyen inventarios personales en el repositorio.
 - `npm run test:dioxus:browser`: aprobado sobre el build servido en loopback.
   Comprueba teclado, navegación, estados R3 ficticios, sondeo sin solapamiento,
   descarte al desmontar, relaciones y recuperación. Evidencia privada:
-  `local/artifacts/dioxus/browser/dioxus-browser-w9dRHD/`.
+  `runtime/artifacts/dioxus/browser/dioxus-browser-w9dRHD/`.
 - `npm run test:dioxus:native`: aprobado con ventana real Tauri/WebView2, IPC real
   y datos sintéticos aislados. Comprobó apertura de Conversación, navegación
   Estado/Flujo, once nodos, R3, fuentes, revisión/confirmación, cancelación y
   persistencia de una relación tras recargar. Los registros fuente conservaron
-  sus hashes. Evidencia: `local/artifacts/dioxus/native/dioxus-native-xJjnaq/`.
+  sus hashes. Evidencia: `runtime/artifacts/dioxus/native/dioxus-native-xJjnaq/`.
   La captura nativa se revisó visualmente.
 - `node --check scripts/testing/volume-observatory.cjs`: aprobado tras cambiar
   sólo el destino de sus capturas. Ese piloto histórico con datos personales no
@@ -86,7 +86,7 @@ funciones; no se incluyen inventarios personales en el repositorio.
 - El lanzador habitual inició Vite desde `Frontend/` y abrió la ventana normal
   de Alice; se verificó su identificador de ventana y HTTP 200 para `/` y
   `/src/main.tsx` en el puerto 5173. Se dejó Alice abierta. Los registros están
-  en `local/artifacts/storage-review-2026-11-15/normal-launch.*.log`.
+  en `runtime/artifacts/storage-review-2026-11-15/normal-launch.*.log`.
 
 Mientras se actualizaba este informe, la copia automática de inicio detectó un
 cambio de fuentes y rechazó publicar su versión incompleta. Conservó las copias

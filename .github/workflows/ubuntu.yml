@@ -31,9 +31,9 @@ jobs:
           rustup show
       - name: Entorno documental
         run: |
-          python3 -m venv local/venv-linux
-          local/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
-          local/venv-linux/bin/python -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
+          python3 -m venv runtime/venv-linux
+          runtime/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
+          runtime/venv-linux/bin/python -B -m unittest discover -s Backend/adapters -p 'test_*.py' -v
       - name: Interfaz
         run: |
           npm ci

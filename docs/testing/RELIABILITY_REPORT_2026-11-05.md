@@ -36,8 +36,8 @@ arbitraje, cierre idempotente y rechazo de modelos residentes incompatibles.
 ## Validación
 
 Vitest también recorría el snapshot privado de la revisión anterior dentro de
-`local/`: ejecutaba dos copias de la suite. Se conserva la exclusión predeterminada
-y se añaden `local/` y `.cargo-target/` al descubrimiento de pruebas. La búsqueda
+`runtime/`: ejecutaba dos copias de la suite. Se conserva la exclusión predeterminada
+y se añaden `runtime/` y `.cargo-target/` al descubrimiento de pruebas. La búsqueda
 de fuentes deja de depender de qué copias de trabajo estén guardadas allí.
 En esta máquina pasó de 1.126 casos duplicados en 10,26 s a 563 en 3,90 s;
 es una observación de dos ejecuciones, no un benchmark de la aplicación.
@@ -69,7 +69,7 @@ es una observación de dos ejecuciones, no un benchmark de la aplicación.
 - Alice nativa quedó abierta en Conversación; se verificó «Micrófono apagado» y
   los botones «Activar cámara»/«Compartir escritorio», sin iniciar voz ni vistas.
 
-Evidencia local privada: `local/artifacts/reliability-2026-11-05/`.
+Evidencia local privada: `runtime/artifacts/reliability-2026-11-05/`.
 
 ## Límites y continuación R9
 

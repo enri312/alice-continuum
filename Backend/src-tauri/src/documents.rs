@@ -39,7 +39,7 @@ fn extract(python: &Path, bytes: Vec<u8>, format: &str) -> Result<Value, String>
     }
     let mut child = command
         .spawn()
-        .map_err(|_| "Falta el entorno documental local/venv o ALICE_PYTHON_BIN")?;
+        .map_err(|_| "Falta el entorno documental runtime/venv o ALICE_PYTHON_BIN")?;
     let mut input = child
         .stdin
         .take()

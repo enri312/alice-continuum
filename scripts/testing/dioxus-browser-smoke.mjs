@@ -1,5 +1,5 @@
 // Optional browser acceptance against a local production preview, with a fresh
-// profile and no Tauri/data access. All artifacts stay in ignored local/.
+// profile and no Tauri/data access. All artifacts stay in ignored runtime/.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
@@ -12,7 +12,7 @@ const browser = process.env.ALICE_BROWSER_BIN;
 if (!browser || !path.isAbsolute(browser)) throw Error('Define ALICE_BROWSER_BIN con la ruta absoluta de Edge/Chromium.');
 const url = new URL(process.env.ALICE_PREVIEW_URL ?? 'http://127.0.0.1:4173/');
 if (url.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) throw Error('El ensayo sólo admite un preview HTTP de loopback.');
-const artifactRoot = path.join(root, 'local/artifacts/dioxus/browser');
+const artifactRoot = path.join(root, 'runtime/artifacts/dioxus/browser');
 await fs.mkdir(artifactRoot, { recursive: true });
 const artifacts = await fs.mkdtemp(path.join(artifactRoot, 'dioxus-browser-'));
 const profile = path.join(artifacts, 'profile');

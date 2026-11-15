@@ -168,6 +168,6 @@ la base tiene sus verificaciones previas y aquí se añadieron sólo las dos son
 de fallo en una copia aislada. Su corrección y validación posterior están
 documentadas en el informe de fiabilidad enlazado arriba.
 
-Evidencia local: `local/artifacts/architecture-review-2026-11-05/` contiene el
+Evidencia local: `runtime/artifacts/architecture-review-2026-11-05/` contiene el
 snapshot, el inventario detallado y `persistence-probes.log`. Las pruebas de
 demostración están en el snapshot, no en las fuentes de producción.

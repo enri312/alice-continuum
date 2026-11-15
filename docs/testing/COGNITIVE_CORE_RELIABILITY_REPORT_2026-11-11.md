@@ -36,7 +36,7 @@ integral privado antes del cambio:
 
 El nombre del snapshot usa UTC; corresponde al 11 de noviembre en la zona del
 propietario. El archivo de código versionado previo está en
-`local/backups/core-learning-20261111/source-before.zip`, SHA-256
+`runtime/backups/core-learning-20261111/source-before.zip`, SHA-256
 `80A90D377D6511FFE9C9B795929DC07EFB385023EB788088CCF3024FDF4043B8`.
 Este ZIP no incluye recuerdos ni modelos. Los recursos externos conservan los
 límites del respaldo integral documentado.
@@ -85,7 +85,7 @@ Las escrituras posteriores del ciclo normal quedan fuera de la comparación de
 integridad anterior y corresponden al aprendizaje ya autorizado al arrancar.
 
 Los logs y las huellas locales están en
-`local/artifacts/core-learning-20261111/`, fuera de Git. Las pruebas no introducen
+`runtime/artifacts/core-learning-20261111/`, fuera de Git. Las pruebas no introducen
 un almacén nuevo ni cambian los pesos del modelo.
 
 ## Continuación

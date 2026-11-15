@@ -1,7 +1,7 @@
 # Modelos locales
 
 Esta carpeta documenta modelos necesarios para diagnósticos locales. Los binarios viven en
-`local/assets/Models/private/`, quedan excluidos de Git y deben verificarse antes de abrir un sensor.
+`runtime/assets/Models/private/`, quedan excluidos de Git y deben verificarse antes de abrir un sensor.
 
 ## Face Landmarker
 

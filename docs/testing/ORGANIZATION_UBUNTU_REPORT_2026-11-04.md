@@ -6,11 +6,11 @@ Fecha: 2026-11-04. Base: `18b8ec5`.
 
 | Antes | Ahora |
 |---|---|
-| `Assets/` | `local/assets/` |
-| `adapters/` | `local/reference-adapters/` |
-| `scratch/` | `local/drafts/` |
-| `artifacts/` | `local/artifacts/` |
-| `.venv-adapters/` | `local/venv/`, recreado y comprobado |
+| `Assets/` | `runtime/assets/` |
+| `adapters/` | `runtime/reference-adapters/` |
+| `scratch/` | `runtime/drafts/` |
+| `artifacts/` | `runtime/artifacts/` |
+| `.venv-adapters/` | `runtime/venv/`, recreado y comprobado |
 
 Se verificaron **708 archivos** mediante SHA-256 con correspondencia entre rutas:
 activos, datos, prototipos, borradores y evidencias permanecen idénticos después
@@ -19,14 +19,14 @@ en D: permanecen en su instalación anterior. El entorno Python antiguo se enví
 a la Papelera tras pasar las pruebas con su reemplazo.
 
 Las carpetas de herramientas conservan sus nombres. Los pilotos activos apuntan
-ahora a `local/artifacts/`. Las rutas en informes históricos describen ensayos
-anteriores y se resuelven mediante el mapa de `local/README.md`.
+ahora a `runtime/artifacts/`. Las rutas en informes históricos describen ensayos
+anteriores y se resuelven mediante el mapa de `runtime/README.md`.
 
 ## Windows
 
 - Interfaz: **563 aprobadas, 2 omitidas**; TypeScript y build Vite aprobados.
 - Rust: **327 aprobadas, 28 ignoradas** en la primera comprobación del cambio.
-- Python: **5 aprobadas** con PyMuPDF real en `local/venv`.
+- Python: **5 aprobadas** con PyMuPDF real en `runtime/venv`.
 - Manual documental: extracción real válida y puente Rust/Python aprobado desde el entorno nuevo.
 - Gemma real: inicio, inferencia y parada comprobados sin escribir memoria canónica.
 - Clippy con advertencias como errores y compilación nativa: aprobados.
@@ -61,6 +61,6 @@ El propietario tiene Ubuntu en otro disco de 2 TB del mismo equipo; la aceptaci�
 de esos componentes se hará allí. Captura de escritorio, ventana activa, música,
 aperturas D:/E: y diagnóstico DirectShow conservan adaptadores Windows.
 
-Evidencia privada: `local/artifacts/organization-ubuntu-2026-11-04/`.
+Evidencia privada: `runtime/artifacts/organization-ubuntu-2026-11-04/`.
 [Guía Ubuntu](../runbooks/04-ubuntu.md) ·
 [Decisión](../decisions/ADR-P-109-organizacion-local-y-ubuntu.md).

@@ -40,8 +40,8 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
 git clone https://github.com/enri312/alice-continuum.git
 cd alice-continuum
 npm ci
-python3 -m venv --copies local/venv-linux
-local/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
+python3 -m venv --copies runtime/venv-linux
+runtime/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
 bash 'Iniciar Alice Continuum.sh' --check
 bash 'Iniciar Alice Continuum.sh'
 ```
@@ -55,14 +55,14 @@ directorio de datos de aplicación, salvo que se defina `ALICE_DATA_DIR`.
 
 El lanzador incluye [copias integrales versionadas](07-respaldo-integral.md)
 al inicio, cada 15 minutos y al cierre normal. En Linux se puede elegir una
-carpeta absoluta con `destinations.linux` en `local/backup.json` o
+carpeta absoluta con `destinations.linux` en `runtime/backup.json` o
 `ALICE_BACKUP_DIR`. El destino predeterminado es una carpeta junto al proyecto;
 no supone que esté en otro disco. `--check` no escribe respaldos.
 
 Si rustup se instaló después de iniciar la sesión del escritorio, el lanzador
 carga su entorno automáticamente. Linux compila en `.cargo-target/linux/`
 (o en `CARGO_TARGET_DIR` si se define); Windows conserva `.cargo-target/`.
-El Python Linux vive en `local/venv-linux/`; Windows conserva `local/venv/`.
+El Python Linux vive en `runtime/venv-linux/`; Windows conserva `runtime/venv/`.
 No se reutilizan entornos Python entre sistemas.
 
 La grabación WebM/Opus de WebKit requiere **GStreamer 1.24.9 o posterior**.
@@ -73,7 +73,7 @@ de `MediaRecorder.isTypeSupported('audio/webm;codecs=opus')`, sin abrir disposit
 Fuentes: [requisito de WebKitGTK](https://webkitgtk.org/2025/03/14/webkitgtk2.48.0-released.html)
 y [runner oficial de Ubuntu 26.04](https://github.com/actions/runner-images/issues/14747).
 
-El lanzador Linux carga opcionalmente `local/ubuntu.env`, un archivo de shell
+El lanzador Linux carga opcionalmente `runtime/ubuntu.env`, un archivo de shell
 privado excluido de Git. Allí puedes definir rutas, `ALICE_GPU_LAYERS` y
 `ALICE_YOUTUBE_PLAYLIST_URL` (el enlace de tu playlist).
 El lanzador Windows no lee este archivo.
@@ -132,7 +132,7 @@ Utiliza motores compilados para Linux. Los GGUF sí son portables. Los activos p
 La instalación de Windows conserva sus rutas evaluadas en D:. Ubuntu busca:
 
 ```text
-local/inference/
+runtime/inference/
   runtimes/llama/bin/llama-server
   runtimes/whisper/bin/whisper-cli
   models/gemma4-e2b/gemma-4-E2B-it-Q4_K_M.gguf
@@ -160,9 +160,9 @@ Puedes usar cualquier otra ubicación mediante variables **absolutas**:
 | `ALICE_GEMMA_PROJECTOR` | Proyector multimodal |
 | `ALICE_WHISPER_BIN` | Ejecutable whisper-cli |
 | `ALICE_WHISPER_MODEL` | Modelo Whisper |
-| `ALICE_PYTHON_BIN` | Python del entorno documental; predeterminado `local/venv-linux/bin/python` |
-| `ALICE_AVATAR_PATH` | Avatar VRM; predeterminado `local/assets/Alice.vrm` |
-| `ALICE_ANIMATION_DIR` | Clips privados; predeterminado `local/assets/Animations/private/mixamo` |
+| `ALICE_PYTHON_BIN` | Python del entorno documental; predeterminado `runtime/venv-linux/bin/python` |
+| `ALICE_AVATAR_PATH` | Avatar VRM; predeterminado `runtime/assets/Alice.vrm` |
+| `ALICE_ANIMATION_DIR` | Clips privados; predeterminado `runtime/assets/Animations/private/mixamo` |
 | `ALICE_GPU_LAYERS` | Capas GPU; Ubuntu inicia en CPU (`0`), Windows conserva `24` |
 
 Ejemplo antes del lanzador:
@@ -183,16 +183,16 @@ Para compilar llama.cpp b10809 con GPU Vulkan (sin instalar CUDA):
 
 ```bash
 sudo apt install cmake ninja-build libvulkan-dev glslc spirv-headers glslang-tools vulkan-tools
-cmake -S local/inference/sources/llama.cpp -B local/inference/build/llama \
+cmake -S runtime/inference/sources/llama.cpp -B runtime/inference/build/llama \
   -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
   -DGGML_VULKAN=ON -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
   -DLLAMA_BUILD_WEBUI=OFF
-cmake --build local/inference/build/llama --target llama-server -j 4
+cmake --build runtime/inference/build/llama --target llama-server -j 4
 ```
 
 Las fuentes deben proceder del tag oficial b10809. Copia el ejecutable compilado
-a `local/inference/runtimes/llama/bin/llama-server`. Valida el dispositivo mediante
-`--list-devices` antes de definir las capas GPU en `local/ubuntu.env`.
+a `runtime/inference/runtimes/llama/bin/llama-server`. Valida el dispositivo mediante
+`--list-devices` antes de definir las capas GPU en `runtime/ubuntu.env`.
 En esta RTX 3050 se verificó `ALICE_GPU_LAYERS=99` con el proyector también en
 GPU; no se cambia el valor de Windows ni se prescribe para otras computadoras.
 Whisper v1.9.2 se compila para CPU; no comparte la GPU del diálogo.
@@ -209,7 +209,7 @@ Free, el orden que Spotify permita ni los anuncios.
 
 YouTube utiliza Google Chrome con un perfil propio en
 `~/.local/share/alice-continuum/youtube-profile`. No reutiliza ni reinicia tu
-perfil habitual. Configura el enlace completo en `local/ubuntu.env`:
+perfil habitual. Configura el enlace completo en `runtime/ubuntu.env`:
 
 ```bash
 export ALICE_YOUTUBE_PLAYLIST_URL='https://www.youtube.com/playlist?list=ID_DE_TU_PLAYLIST'

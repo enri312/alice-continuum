@@ -37,7 +37,7 @@ La prueba acústica del propietario sigue siendo necesaria: micrófono real,
 RNNoise, transcripción, respuesta, reproducción y apagado. La prueba simulada
 no sustituye esa aceptación. Windows no se volvió a ejecutar desde Ubuntu.
 
-Evidencias privadas: `local/artifacts/ubuntu-r9-2026-11-06/linux-media-*`.
+Evidencias privadas: `runtime/artifacts/ubuntu-r9-2026-11-06/linux-media-*`.
 
 ## Comprobación posterior de la entrada física
 

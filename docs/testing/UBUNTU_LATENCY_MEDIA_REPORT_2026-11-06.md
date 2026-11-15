@@ -48,7 +48,7 @@ Las acciones sólo recorren documentos de YouTube permitidos. El cierre de Alice
 revoca futuras acciones del ayudante sin cerrar los reproductores externos.
 
 Tras la aclaración del propietario, **YouTube sólo admite su playlist configurada**
-en `ALICE_YOUTUBE_PLAYLIST_URL`, guardada en `local/ubuntu.env` privado. No se
+en `ALICE_YOUTUBE_PLAYLIST_URL`, guardada en `runtime/ubuntu.env` privado. No se
 guardan su ID, enlaces personales ni credenciales en las pruebas publicadas.
 La búsqueda general por nombres se retiró del adaptador Ubuntu. Otras canciones,
 otras listas y referencias de una reproducción anterior ajena se rechazan antes
@@ -123,7 +123,7 @@ utilizó la orden de avance, que había sido aceptada sin producir el salto pedi
 latencia completa. R9 sigue abierto. Windows conserva sus adaptadores anteriores;
 esta preferencia de lista única y repetición deberá verificarse allí al migrar.
 
-Evidencias privadas: `local/artifacts/ubuntu-r9-2026-11-06/`, en particular
+Evidencias privadas: `runtime/artifacts/ubuntu-r9-2026-11-06/`, en particular
 `latency-context-benchmarks.json`, `latency-native-gemma.log`,
 `media-native-acceptance.log`, `media-linux-rust-tests.log`,
 `media-linux-clippy.log`, `media-python-tests.log`, `youtube-repeat-acceptance.log`

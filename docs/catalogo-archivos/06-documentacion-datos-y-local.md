@@ -1,7 +1,7 @@
-# 06 · Documentación (`docs/`), estructura de `data/` y carpeta `local/`
+# 06 · Documentación (`docs/`), estructura de `data/` y carpeta `runtime/`
 
 Fecha de verificación: 2026-11-06  
-Cobertura: todos los documentos de `docs/` (**249 archivos previos a este catálogo**), la estructura completa de almacenamiento en tiempo de ejecución de `data/` (**45 archivos + 4 carpetas vacías**, inspeccionados únicamente por estructura/metadatos respetando 100 % la privacidad de los recuerdos) y el desglose íntegro de `local/` (`assets/`, `drafts/`, `reference-adapters/`, `artifacts/` y `venv/`).
+Cobertura: todos los documentos de `docs/` (**249 archivos previos a este catálogo**), la estructura completa de almacenamiento en tiempo de ejecución de `data/` (**45 archivos + 4 carpetas vacías**, inspeccionados únicamente por estructura/metadatos respetando 100 % la privacidad de los recuerdos) y el desglose íntegro de `runtime/` (`assets/`, `drafts/`, `reference-adapters/`, `artifacts/` y `venv/`).
 
 Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-auditoria-basura-y-huerfanos.md`](01-auditoria-basura-y-huerfanos.md)
 
@@ -13,7 +13,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 |---|---|---|
 | [`docs/Analisis_Estado_Proyecto_2026-08-19.docx`](../Analisis_Estado_Proyecto_2026-08-19.docx) | **BASURA / OBSOLETO (1,22 MB)** | Informe binario en Word del 19–20 de agosto de 2026 con capturas incrustadas sobre la antigua etapa *Alice Cognitive Core* (hasta `ADR-P-074` y R5). Huérfano y desactualizado. |
 | [`docs/analysis_results.md`](../analysis_results.md) | **BASURA / OBSOLETO** | Volcado genérico del 18 de agosto de 2026 sobre el commit `8b9dc9c` (*Alice Cognitive Core*, 46 ADRs). Además sobrescribió un análisis previo del 10 de agosto citado en `REVIEW_OPENCLAW_TENCENT_2026-08-10.md`, quedando engañoso y sin uso. |
-| [`docs/analisis_estado_seguridad.md`](../analisis_estado_seguridad.md) | **HISTÓRICO SUPERADO PARCIALMENTE** | Auditoría del 4 de octubre de 2026 (`e8158c8`). Varios hallazgos ya se resolvieron (`memory.rs` modularizado en `ADR-P-108`, `.venv-adapters` movido a `local/venv` en `ADR-P-109`, rollback en `ADR-P-111`, bloqueo HTTP 403 en Vite en `ADR-P-112`), aunque conserva contexto histórico de CSP/cifrado en reposo. |
+| [`docs/analisis_estado_seguridad.md`](../analisis_estado_seguridad.md) | **HISTÓRICO SUPERADO PARCIALMENTE** | Auditoría del 4 de octubre de 2026 (`e8158c8`). Varios hallazgos ya se resolvieron (`memory.rs` modularizado en `ADR-P-108`, `.venv-adapters` movido a `runtime/venv` en `ADR-P-109`, rollback en `ADR-P-111`, bloqueo HTTP 403 en Vite en `ADR-P-112`), aunque conserva contexto histórico de CSP/cifrado en reposo. |
 | [`docs/CONTEXTO_RECUPERADO_2026-11-03.md`](../CONTEXTO_RECUPERADO_2026-11-03.md) | **ACTIVO** | Bitácora de recuperación de contexto tras pérdida de chats, documentando el estado desde `e8158c8` hasta inicios de noviembre. |
 | [`docs/especificacion_alice_continuum.html`](../especificacion_alice_continuum.html) | **ACTIVO (DOCUMENTO MAESTRO)** | Especificación técnica e interactiva consolidada de 20 secciones (portada, RF/RNF, arquitectura, memoria, seguridad, runbooks, pruebas, trazabilidad e historial de versiones). |
 | [`docs/evaluacion_frameworks_ia_asistente.md`](../evaluacion_frameworks_ia_asistente.md) | **ACTIVO** | Evaluación comparativa del stack de Alice frente a los frameworks habituales de una IA asistente moderna (`sqlite-vec`, ONNX/VAD/TTS, streaming + AEC, MCP). |
@@ -178,7 +178,7 @@ Volver al índice: [`README.md`](README.md) · Ver hallazgos de limpieza: [`01-a
 - `ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md`: Incorporación de Whisper CPU local para español y exclusión de domótica.
 - `ADR-P-107-contratos-conversacion-y-sondeos.md`: Extracción de contratos TS de conversación y sondeos serializados sin solapamiento.
 - `ADR-P-108-memoria-modular-react-19-3.md`: División modular de `memory.rs` en `Backend/src-tauri/src/memory/` y actualización a React 19.3.1.
-- `ADR-P-109-organizacion-local-y-ubuntu.md`: Agrupación de recursos privados en `local/` y soporte base para Ubuntu.
+- `ADR-P-109-organizacion-local-y-ubuntu.md`: Agrupación de recursos privados en `runtime/` y soporte base para Ubuntu.
 - `ADR-P-110-referencias-explicitas-en-citas.md`: Resolución local determinista de posesivos en citas con destinatario explícito.
 - `ADR-P-111-persistencia-y-control-del-motor.md`: Rollback transaccional en memoria básica y cancelación inmediata de peticiones HTTP a Gemma.
 - `ADR-P-112-espera-por-nombre-y-apagado.md`: Modo de espera oral activado al decir «Alice», pausa por voz, apagado explícito de micrófono y bloqueo HTTP 403 en servidor Vite.
@@ -211,23 +211,23 @@ Todos los informes de evidencia verificada por fase e incremento:
   - **Activos:** `records.json` (recuerdos confirmados), `automatic-v1.json` + `automatic-v1.backup.json` (memoria automática de conversación), `manifest.json`, `owner-profile.json`, `layer-index-v3.json`, `lifecycle-index-v1.json`, `audit/memory-events.jsonl`, `reviews/episode-review-2026-09-04.md`, `notes/` (`9` archivos de bóveda Markdown/Obsidian del perfil) y `backups/` (`14` respaldos transaccionales).
   - **Legados inactivos en `data/memory/` (no en uso actual, conservar respaldo antes de tocar):** `sessions.json`, `sessions.backup.json`, `memory-audit.jsonl` (de agosto pre-v1) y `layer-index-v2.json` (sustituido por `v3`).
   - **Carpetas vacías reservadas (`4`):** `attachments/`, `exports/`, `indexes/` y `revisions/`.
-- `local/artifacts/visual-checks/` (`2` PNG: `volume-observatory-desktop.png`, `volume-observatory-mobile.png`): **Residuos visuales desechables** generados el `2026-09-08` por `scripts/testing/volume-observatory.cjs`.
+- `runtime/artifacts/visual-checks/` (`2` PNG: `volume-observatory-desktop.png`, `volume-observatory-mobile.png`): **Residuos visuales desechables** generados el `2026-09-08` por `scripts/testing/volume-observatory.cjs`.
 
 ---
 
-## 8. `local/` — Recursos privados, borradores, adaptadores en cuarentena y artefactos (`221 MB`)
+## 8. `runtime/` — Recursos privados, borradores, adaptadores en cuarentena y artefactos (`221 MB`)
 
-- [`local/README.md`](../../local/README.md): Guía rastreada en Git sobre la organización de carpetas privadas bajo `local/`.
-- **`local/assets/` (`17` archivos — ACTIVO PRIVADO, NO BORRAR):**
+- [`runtime/README.md`](../../runtime/README.md): Guía rastreada en Git sobre la organización de carpetas privadas bajo `runtime/`.
+- **`runtime/assets/` (`17` archivos — ACTIVO PRIVADO, NO BORRAR):**
   - `Alice.vrm` (26,7 MB): Avatar 3D privado de Alice.
-  - [`local/assets/Animations/README.md`](../../local/assets/Animations/README.md) + `Animations/private/mixamo/` (`13` archivos `.fbx`: `Breathing Idle`, `Idle`, `Jump`, `Left Strafe Walking`, `Left Turn`, `Right Strafe Walking`, `Right Turn`, `Run Forward`, `Sitting Idle`, `Standing Up`, `Start Walking`, `Walking Backwards`, `Walking`).
-  - [`local/assets/Models/README.md`](../../local/assets/Models/README.md) + `Models/private/face_landmarker_float16_v1.task` (3,6 MB): Modelo MediaPipe Face Landmarker.
-- **`local/venv/` (`1.026` archivos, ~63 MB — ACTIVO EN WINDOWS):** Entorno virtual Python con `pip` y `PyMuPDF 1.26.4` usado por `documents.rs` para leer PDFs.
-- **`local/reference-adapters/` (`12` scripts Python — EN CUARENTENA, SIN USO EN RUNTIME):** `document-reader.py`, `knowledge-graph.py`, `probe-face-landmarker.py`, `stt.py`, `system-actuator.py`, `tts.py`, `video-analyzer.py`, `vision-analyzer.py`, `weather-sensor.py`, `web-scraper.py`, `web-searcher.py`, `windows-ocr.py`. Prototipos antiguos auditados y aislados fuera del runtime.
-- **`local/drafts/` (`17` archivos, ~1,48 MB — BORRADORES HISTÓRICOS DESECHABLES):**
+  - [`runtime/assets/Animations/README.md`](../../runtime/assets/Animations/README.md) + `Animations/private/mixamo/` (`13` archivos `.fbx`: `Breathing Idle`, `Idle`, `Jump`, `Left Strafe Walking`, `Left Turn`, `Right Strafe Walking`, `Right Turn`, `Run Forward`, `Sitting Idle`, `Standing Up`, `Start Walking`, `Walking Backwards`, `Walking`).
+  - [`runtime/assets/Models/README.md`](../../runtime/assets/Models/README.md) + `Models/private/face_landmarker_float16_v1.task` (3,6 MB): Modelo MediaPipe Face Landmarker.
+- **`runtime/venv/` (`1.026` archivos, ~63 MB — ACTIVO EN WINDOWS):** Entorno virtual Python con `pip` y `PyMuPDF 1.26.4` usado por `documents.rs` para leer PDFs.
+- **`runtime/reference-adapters/` (`12` scripts Python — EN CUARENTENA, SIN USO EN RUNTIME):** `document-reader.py`, `knowledge-graph.py`, `probe-face-landmarker.py`, `stt.py`, `system-actuator.py`, `tts.py`, `video-analyzer.py`, `vision-analyzer.py`, `weather-sensor.py`, `web-scraper.py`, `web-searcher.py`, `windows-ocr.py`. Prototipos antiguos auditados y aislados fuera del runtime.
+- **`runtime/drafts/` (`17` archivos, ~1,48 MB — BORRADORES HISTÓRICOS DESECHABLES):**
   - 3 capturas PNG de agosto (`neural-volume-redesign.png`, `volume-review.png`, `volume-review-final.png`).
   - `avatar-height-detail/` (`14` scripts/archivos puntuales de septiembre usados una vez para ajustar texturas/ojos/piel de `Alice.vrm`: `check.mjs`, `compare-textures.mjs`, `eye-life-preview.mjs`, `eye-life-settings.mjs`, `hair-eyes-palette.mjs`, `hair-eyes-preview.mjs`, `package-textures.py`, `prepare-texture.mjs`, `preview.html`, `preview.tsx`, `skin-preview.mjs`, `update-eye-life.mjs`, `update-hair-eyes.mjs`, `update-skin.mjs`; varios apuntan a rutas antiguas `Assets/Alice.vrm` y caché interna de Codex).
-- **`local/artifacts/` (`1.410` archivos, ~120 MB — EVIDENCIAS Y BASURA PESADA DE QA/BUILDS):**
+- **`runtime/artifacts/` (`1.410` archivos, ~120 MB — EVIDENCIAS Y BASURA PESADA DE QA/BUILDS):**
   - **`vision-conversation-2026-11-03/` (27,75 MB):** Incluye un ejecutable compilado antiguo `alice-review.exe` (~27 MB).
   - **`architecture-review-2026-11-05/` (10,16 MB):** Duplica dos veces el repositorio completo (`snapshot/` con 646 archivos + `source-aa6a749.zip`).
   - **`r9-hands-free-2026-11-03/` (8,56 MB):** Log gigante de instalador `node-msi.log` y datos de prueba.

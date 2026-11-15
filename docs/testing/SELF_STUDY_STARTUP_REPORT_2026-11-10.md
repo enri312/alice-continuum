@@ -53,7 +53,7 @@ La sincronización final conservó las huellas de los ocho archivos personales
 comprobados: tres almacenes y cinco notas Markdown existentes.
 
 Los archivos modificados cuentan con respaldo privado en
-`local/backups/self-study-20261110-073940-020429/`. La revisión visual de Obsidian
+`runtime/backups/self-study-20261110-073940-020429/`. La revisión visual de Obsidian
 y Tauri, y una conversación real con voz, no forman parte de esta aceptación
 automatizada. El aprendizaje descrito añade memoria recuperable y práctica;
 no reentrena los pesos ni prueba dominio general de las materias.

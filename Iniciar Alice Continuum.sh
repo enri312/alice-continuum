@@ -19,9 +19,9 @@ if [[ -f $fish_config ]]; then
   source "$fish_config"
 fi
 # Private, Linux-only shell configuration; never loaded by the Windows launcher.
-if [[ -f local/ubuntu.env ]]; then
+if [[ -f runtime/ubuntu.env ]]; then
   set -a
-  source local/ubuntu.env
+  source runtime/ubuntu.env
   set +a
 fi
 for tool in node npm cargo pkg-config; do
@@ -46,7 +46,7 @@ if [[ ${1:-} == '--check' ]]; then exit 0; fi
 mkdir -p -- "$ALICE_DATA_DIR"
 command -v flock >/dev/null || { echo 'Falta flock (paquete util-linux).' >&2; exit 1; }
 # The lock belongs to this checkout; unrelated apps are never closed.
-mkdir -p -- local
-exec 9>local/alice-launch.lock
+mkdir -p -- runtime
+exec 9>runtime/alice-launch.lock
 flock -n 9 || { echo 'Alice ya está iniciada desde esta carpeta.' >&2; exit 1; }
 exec node scripts/backups/cli.mjs run
