@@ -82,6 +82,30 @@ La automatización de escritorio no pudo inicializarse ni recuperarse: devolvió
 incorporación inicial; no se presenta como una nueva inspección visual de esta
 limpieza. No se detuvo la instancia normal de Alice ni se tocaron sus datos.
 
+## Alineación de iconos y etiquetas
+
+El propietario detectó que la imagen y su nombre no compartían el mismo eje.
+La regla antigua `align-self: start` seguía activa en el contenedor del icono,
+ahora distribuido con flex. La prueba geométrica reprodujo un desplazamiento
+horizontal de −19 px y sólo 3 px entre imagen y etiqueta.
+
+Las tarjetas usan ahora dos filas de cuadrícula: 76 px para la imagen y 34 px
+para el nombre, separadas por 8 px. Las siete tarjetas tienen la misma altura
+de 140 px y la primera línea de las etiquetas queda alineada. Se restablece
+explícitamente el centrado del icono; los contadores permanecen en una esquina
+sin desplazar la imagen ni el texto. Los SVG originales no se editaron.
+
+La compilación y la aceptación de navegador pasaron. En 320, 390, 1024 y
+1280 px el desplazamiento respecto del eje central fue de 0 px; se comprobaron
+filas alineadas, etiquetas completas y navegación por teclado. La aceptación
+también conserva las comprobaciones de revisión y envío con respuesta sintética.
+Se revisaron capturas de escritorio y ancho pequeño. No se realizó una nueva
+captura de la ventana nativa para este ajuste de CSS.
+
+Evidencia privada: `runtime/artifacts/navigation-alignment-2026-11-15/` contiene
+la compilación y los resultados antes/después; `result.json` y las capturas están
+en `runtime/artifacts/conversation-design/proposal04-blcWN3/`.
+
 ## Reproducción
 
 ```powershell

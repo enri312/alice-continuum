@@ -47,14 +47,16 @@ body:has(.shell.is-conversation) {
 /* Keep the original compact heading treatment; no new emblem or duplicate title. */
 .shell.is-conversation .core-system-content { padding:0; min-width:0; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped { display:flex; align-items:center; flex-wrap:nowrap; gap:10px; padding:0 0 8px; margin:0 0 18px; overflow-x:auto; overflow-y:hidden; border:0; background:none; scrollbar-width:thin; scrollbar-color:#8b5cf650 transparent; scroll-padding:12px; }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped button { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:0 0 132px; width:132px; height:auto; min-height:132px; padding:10px 8px 12px; gap:2px; border:1px solid var(--conversation-line); border-radius:18px; background:#ffffff09; color:var(--conversation-sub); clip-path:none; box-shadow:none; transform:none; }
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped button { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:76px 34px; align-content:start; align-items:start; justify-items:center; flex:0 0 132px; width:132px; height:140px; min-height:140px; padding:10px 8px; gap:8px; border:1px solid var(--conversation-line); border-radius:18px; background:#ffffff09; color:var(--conversation-sub); clip-path:none; box-shadow:none; transform:none; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button::before { display:none; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button.selected { border-color:#a78bfa88; background:linear-gradient(145deg,#8b5cf640,#3b82f618); box-shadow:0 6px 20px #8b5cf620; color:#f1eefe; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button.selected::after { left:30px; right:30px; bottom:0; height:3px; border-radius:3px; background:var(--conversation-gradient); }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button:hover { background-color:#ffffff10; border-color:#a78bfa77; }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-icon { width:76px; height:76px; flex:0 0 76px; margin:0; }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-label { position:static; display:flex; align-items:center; justify-content:center; width:100%; height:auto; min-height:32px; overflow:visible; clip:auto; clip-path:none; white-space:normal; padding:0; color:inherit; font:600 12px/1.35 "Sora",sans-serif; letter-spacing:-.02em; text-align:center; }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-count { top:8px; right:8px; height:auto; min-height:18px; border:1px solid #ffffff20; border-radius:6px; background:#00000030; color:#a5f3fc; font:500 10px/1.4 var(--conversation-mono); }
+/* Explicitly reset the old grid/flex alignment; artwork and text share one axis. */
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-icon { display:grid; place-items:center; align-self:center; justify-self:center; width:76px; height:76px; margin:0; line-height:0; transform:none; }
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-icon svg { display:block; width:100%; height:100%; }
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-label { position:static; display:block; align-self:start; justify-self:stretch; width:100%; height:34px; min-height:34px; overflow:visible; clip:auto; clip-path:none; white-space:normal; padding:0; color:inherit; font:600 12px/1.35 "Sora",sans-serif; letter-spacing:-.02em; text-align:center; }
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-count { position:absolute; inset:8px 8px auto auto; display:grid; place-items:center; min-width:20px; height:20px; padding:0 4px; border:1px solid #ffffff20; border-radius:6px; background:#00000030; color:#a5f3fc; font:500 10px/1.4 var(--conversation-mono); }
 .shell.is-conversation button:disabled { cursor:not-allowed; opacity:.48; }
 .shell.is-conversation :is(button,summary,input,select,textarea):focus-visible,
 .shell.is-conversation button:not(.timeline-node):focus-visible { outline:2px solid #67e8f9; outline-offset:3px; }
@@ -156,7 +158,7 @@ body:has(.shell.is-conversation) {
   .shell.is-conversation .core-system-selector button { min-height:80px; padding:12px 12px 12px 64px; }
   .shell.is-conversation .core-system-selector button>strong { font-size:15px; }
   .shell.is-conversation .core-system-frame { padding:14px; border-radius:20px; }
-  .shell.is-conversation .core-system-frame>.screen-tabs.grouped button { flex-basis:116px; width:116px; min-height:124px; }
+  .shell.is-conversation .core-system-frame>.screen-tabs.grouped button { flex-basis:116px; width:116px; }
   .shell.is-conversation .conversation-home-heading { gap:10px; flex-wrap:wrap; }
   .shell.is-conversation .conversation-home-heading h2 { font-size:19px; }
   .shell.is-conversation .conversation-status>span { flex-basis:100%; margin-left:16px; }

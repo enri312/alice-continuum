@@ -41,6 +41,9 @@ el aro decorativo, las dos flechas y el encabezado técnico repetido que se hab�
 hecho visible. `App.tsx` vuelve a coincidir con la versión previa al rediseño;
 los 22 SVG y sus consumidores originales permanecen intactos. Se conserva el
 estilo elegido y el desplazamiento nativo de las pestañas, sin controlador extra.
+La alineación de iconos y etiquetas se corrigió separándolos en dos filas fijas:
+misma altura, eje central común y texto completo en anchos 320–1280 px, sin
+modificar los SVG ni sus componentes.
 
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado

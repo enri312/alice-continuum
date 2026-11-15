@@ -29,6 +29,8 @@ declara migrada Conversación a Dioxus.
 Tras comparar con la interfaz anterior, se retiraron el aro decorativo, las dos
 flechas añadidas y la repetición visible del encabezado técnico. La navegación
 original y los 22 SVG se conservan; el cambio sigue siendo de presentación.
+Las pestañas usan dos filas uniformes para centrar cada icono con su etiqueta,
+con espacio para nombres de dos líneas y contadores separados del contenido.
 [Alcance y validación](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)

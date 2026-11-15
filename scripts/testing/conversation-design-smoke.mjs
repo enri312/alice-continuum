@@ -59,6 +59,31 @@ try {
     const r=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,...size,scale:1}});
     await fs.writeFile(path.join(artifacts,name),Buffer.from(r.data,'base64'));
   };
+  const navigationLayout=()=>evaluate(`Array.from(document.querySelectorAll('.screen-tabs button')).map(button=>{
+    const icon=button.querySelector('.screen-tab-icon'),label=button.querySelector('.screen-tab-label');
+    const card=button.getBoundingClientRect(),picture=icon.getBoundingClientRect(),caption=label.getBoundingClientRect();
+    const range=document.createRange();range.selectNodeContents(label);
+    return {text:label.textContent,cardHeight:card.height,iconTop:picture.top,iconHeight:picture.height,
+      labelTop:caption.top,lineTop:range.getClientRects()[0]?.top,
+      iconOffset:(picture.left+picture.width/2)-(card.left+card.width/2),
+      labelOffset:(caption.left+caption.width/2)-(card.left+card.width/2),
+      gap:caption.top-picture.bottom,labelFits:label.scrollHeight<=label.clientHeight+1&&label.scrollWidth<=label.clientWidth+1};
+  })`);
+  const checkNavigation=async width=>{
+    const layout=await navigationLayout();
+    assert.equal(layout.length,7);
+    for(const item of layout){
+      assert.ok(Math.abs(item.iconOffset)<1,'Icono centrado a '+width+' px: '+JSON.stringify(item));
+      assert.ok(Math.abs(item.labelOffset)<1,'Etiqueta centrada: '+item.text);
+      assert.ok(item.gap>=6,'Separación entre imagen y etiqueta: '+item.text);
+      assert.ok(item.labelFits,'Etiqueta completa: '+item.text+' a '+width+' px');
+      assert.ok(Math.abs(item.cardHeight-layout[0].cardHeight)<1,'Altura uniforme');
+      assert.ok(Math.abs(item.iconTop-layout[0].iconTop)<1,'Fila de iconos alineada');
+      assert.ok(Math.abs(item.labelTop-layout[0].labelTop)<1,'Fila de etiquetas alineada');
+      assert.ok(Math.abs(item.lineTop-layout[0].lineTop)<1,'Primera línea de texto alineada');
+    }
+    return layout;
+  };
   await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
@@ -88,6 +113,7 @@ try {
   assert.ok(await evaluate('document.fonts.check(\'500 14px "Sora"\')&&document.fonts.check(\'500 14px "JetBrains Mono"\')'));
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'24px');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".composer")).display'),'flex');
+  await checkNavigation(1280);
   assert.equal(await evaluate('document.querySelector(".composer-footer button").disabled'),true);
   await input('Prueba visual: empatía y álgebra.');
   assert.ok(await evaluate('getComputedStyle(document.querySelector(".composer-footer .primary")).backgroundImage.includes("139, 92, 246")'),'Acción principal con el degradado de la propuesta');
@@ -116,7 +142,8 @@ try {
   for(const width of [1280,1024,390,320]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});await pause(150);
     const size=await evaluate('({width:innerWidth,scroll:document.documentElement.scrollWidth})');
-    assert.ok(size.scroll<=size.width+1,'Sin desborde: '+JSON.stringify(size));sizes.push(size);
+    assert.ok(size.scroll<=size.width+1,'Sin desborde: '+JSON.stringify(size));
+    size.navigation=await checkNavigation(width);sizes.push(size);
   }
   await click('.review-actions .secondary'); await click('.conversation-context-drawer>summary');
   await screenshot('conversation-mobile.png');
