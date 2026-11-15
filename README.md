@@ -232,6 +232,8 @@ El lanzador valida el entorno, evita instancias duplicadas y usa el puerto fijo
 5173. Mantiene los datos en `data/` mediante `ALICE_DATA_DIR` y comparte el caché
 Rust `.cargo-target`. La instalación actual está en `D:\Alice Continuum`.
 Un clon nuevo requiere configurar las rutas de sus recursos locales.
+La opción `--check` verifica los requisitos del entorno de desarrollo, pero no
+certifica modelos, micrófono, voz ni proveedores de conversación.
 
 La [validación Windows de la recuperación](docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md)
 registra el checkpoint remoto y la copia privada de datos y recursos en otro disco.

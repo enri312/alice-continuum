@@ -132,7 +132,8 @@ try {
     $listeners = [Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
     if ($listeners.Port -contains 5173) { throw 'El puerto 5173 ya está ocupado por otro proceso.' }
     if ($checkOnly) {
-        Write-Host '[ALICE] Verificación completada: el entorno está listo para iniciar.'
+        Write-Host '[ALICE] Verificación del entorno de desarrollo completada.'
+        Write-Host '[ALICE] No se han comprobado modelos, micrófono, voz ni proveedores.'
         exit 0
     }
 

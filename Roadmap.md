@@ -14,6 +14,13 @@ contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
 para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
 siguen pendientes; el plan no da por resuelto R9 ni R10.
 
+**Primer ensayo de instalación limpia Windows:** en un clon aislado sin
+dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
+instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo
+utilizó Node y Rust ya instalados en este equipo; no incluyó arranque nativo,
+modelos, voz ni datos personales. Aún no reproduce el error de la otra persona.
+El lanzador aclara que `--check` no valida modelos, micrófono, voz ni proveedores.
+
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
 Conversación durante la aceptación de R9. Whisper conserva el manejo de proceso
