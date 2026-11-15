@@ -392,7 +392,7 @@ conservando respaldos, auditoría y formatos. [Modularización y React 19.3.1](d
 
 ```text
 Frontend/src/                    pantallas, componentes, estilos y lógica TypeScript
-Frontend/crates/state-controls/   fuentes Rust/Dioxus de Estado y Flujo
+Frontend/crates/state-controls/   fuentes Rust/Dioxus de Estado, Flujo y línea temporal
 Frontend/icons/                  recursos SVG editables
 Frontend/public/                 recursos estáticos y licencias
 Frontend/dist/                   build de interfaz para Tauri (regenerable)
@@ -431,6 +431,18 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
+El objetivo final es **retirar React por completo**, incluidos el estado global,
+la navegación, el arranque y las vistas de recuperación. Los hosts actuales son
+temporales; el [inventario de migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
+enumera los bloques pendientes y los criterios de cierre.
+
+La línea temporal de Actividad pasa a Rust/Dioxus: ventana de 24 eventos,
+selección, posiciones, contadores, duración, inspector y leyenda. Se conserva el
+contenido y CSS, y se retira su implementación visual React anterior. El host
+sólo conecta los eventos de sesión y el montaje/reintento; el formato horario
+usa un módulo Intl sin React. La página de Actividad completa aún está pendiente.
+Pasaron 32 pruebas Rust, Clippy WASM, 900 pruebas frontend y las sondas de
+navegador y Tauri con datos aislados. [Alcance y evidencia de la línea temporal](docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
 Estado y controles también mantiene en Rust su sesión R3: sondeo de cinco
 segundos, validación y proyección de métricas, con una lectura pendiente y
 cancelación al salir. Su presentación conserva contenido y clases CSS. React

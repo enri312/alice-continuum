@@ -4,7 +4,7 @@ Fecha: 14 de noviembre de 2026. Estado: **planificación; los trabajos y criteri
 pendientes de este documento no se consideran implementados**.
 
 Prioridad actualizada por el propietario: trabajar primero en Windows y avanzar
-en Dioxus para reducir React; retomar Ubuntu después. El Roadmap registra los
+en Dioxus para sustituir React por completo, de forma gradual; retomar Ubuntu después. El Roadmap registra los
 incrementos implementados y sus límites. Las fases de portabilidad permanecen
 como objetivo, sin exigir cambios en Ubuntu durante este tramo.
 
@@ -147,9 +147,12 @@ y la [guía de estilos](https://dioxuslabs.com/learn/0.7/tutorial/assets/).
    contenido, datos reales autorizados, estados vacíos y errores, permisos,
    consumo y comportamiento al cambiar de página. Si falla, volver al estado
    anterior verificado. Retirar código React sólo tras cumplir estos criterios.
-6. Al final, evaluar si React, Vite, Node y los puentes siguen siendo necesarios
-   para el producto y/o para su construcción. Retirarlos únicamente con una
-   compilación y pruebas completas que demuestren que no son dependencia.
+6. Terminar la sustitución de React, incluido el estado global, la navegación,
+   el arranque, los hosts y las vistas de recuperación. Retirar React, React DOM,
+   sus tipos y el plugin/configuración JSX después de probar sus sustitutos.
+   Verificar que el bundle y una instalación limpia funcionan sin React.
+   Vite, Node y los puentes JavaScript independientes se evalúan por su función
+   de construcción o acceso al navegador; no deben confundirse con React.
 
 ## Fase 4 — Producto y aceptación
 

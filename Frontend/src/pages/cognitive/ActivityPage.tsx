@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { CognitiveEvent, CognitiveModule } from "../../core/cognitive/cognitive-events";
-import { CognitiveTimeline } from "../../components/cognitive/CognitiveTimeline";
+import { CognitiveTimeline } from "../../components/cognitive/CognitiveTimelineHost";
 import { auditSizeLabel, parseAuditSnapshot } from "../../core/governance/audit";
 import type { AuditSnapshot } from "../../core/governance/audit";
 import { parseDiagnosticSnapshot } from "../../core/governance/diagnostics";

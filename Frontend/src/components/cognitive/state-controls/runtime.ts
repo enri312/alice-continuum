@@ -6,6 +6,7 @@ import initialize, {
   mount_relation_confirmation, update_relation_confirmation, unmount_relation_confirmation,
   mount_memory_associations, update_memory_associations, unmount_memory_associations,
   mount_flow_page, update_flow_page, unmount_flow_page,
+  mount_cognitive_timeline, update_cognitive_timeline, unmount_cognitive_timeline,
 } from "../../../dioxus/state-controls/pkg/alice_state_controls";
 import wasmUrl from "../../../dioxus/state-controls/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
@@ -45,4 +46,8 @@ export async function loadAssociationsRuntime(): Promise<StateControlsRuntime> {
 export async function loadFlowPageRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return { mount: mount_flow_page, update: update_flow_page, unmount: unmount_flow_page };
+}
+export async function loadTimelineRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_cognitive_timeline, update: update_cognitive_timeline, unmount: unmount_cognitive_timeline };
 }

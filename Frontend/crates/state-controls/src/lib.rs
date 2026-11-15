@@ -26,6 +26,9 @@ pub mod source_form_model;
 #[cfg(target_arch = "wasm32")]
 mod source_form_ui;
 pub mod state_page_model;
+pub mod timeline_model;
+#[cfg(target_arch = "wasm32")]
+mod timeline_ui;
 #[cfg(target_arch = "wasm32")]
 #[macro_use]
 mod browser_runtime;
@@ -92,4 +95,13 @@ mountable_view!(
     mount_flow_page,
     update_flow_page,
     unmount_flow_page
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    timeline_browser,
+    crate::timeline_model::Payload,
+    crate::timeline_ui,
+    mount_cognitive_timeline,
+    update_cognitive_timeline,
+    unmount_cognitive_timeline
 );

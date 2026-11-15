@@ -125,6 +125,56 @@ try {
   assert.equal(await evaluate(`(() => { const invalid=structuredClone(__aliceSmoke.payload); invalid.activity.overallSignal=2; try { __aliceSmoke.runtime.update(__aliceSmoke.id,JSON.stringify(invalid)); return false; } catch { return true; } })()`), true, 'Rechaza señales inválidas');
   await evaluate("__aliceSmoke.runtime.unmount(__aliceSmoke.id); document.getElementById('dioxus-smoke-signal').remove(); delete globalThis.__aliceSmoke");
 
+  // Timeline is a single Rust renderer; its fixture has no IPC or persistent stores.
+  // Unmount Flow first, matching the app's one-page-at-a-time ownership of keyboard events.
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
+  await until(() => evaluate('Boolean(document.querySelector(".activity-view-tabs"))'), 'contenedor de Actividad');
+  await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
+  await until(() => evaluate('Boolean(document.querySelector(".event-console"))&&!document.querySelector("[data-flow-page-renderer]")&&!document.querySelector("[data-timeline-renderer]")'), 'fuente de eventos sin otro renderer');
+  await evaluate(`(async () => {
+    const runtime = await (await import(${JSON.stringify(runtimeUrl)})).loadTimelineRuntime();
+    const container = document.createElement('div'); container.id='dioxus-smoke-timeline'; container.style.margin='20px'; container.style.width=(innerWidth-40)+'px'; document.body.append(container);
+    const payload={events:[],selectedId:''}; const actions=[];
+    const id=await new Promise(resolve=>{const mounted=runtime.mount(container.id,JSON.stringify(payload),raw=>actions.push(JSON.parse(raw)),()=>queueMicrotask(()=>resolve(mounted)));});
+    globalThis.__timelineSmoke={runtime,id,payload,actions};
+  })()`);
+  const timeline = '#dioxus-smoke-timeline';
+  await until(() => evaluate(`Boolean(document.querySelector('${timeline} .timeline-empty'))`), 'línea temporal vacía');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector strong')?.textContent`),'NINGÚN EVENTO DISPONIBLE');
+  await evaluate(`__timelineSmoke.payload.events=Array.from({length:30},(_,index)=>({id:'event-'+(index+1),sequence:index+1,timestampMs:1000+index*1250,timeLabel:'10:00:'+String(index).padStart(2,'0'),module:index%2?'MEMORY':'SYSTEM',level:'INFO',node:'NODE-'+(index+1),payload:index===7?'<img src=x onerror="globalThis.__timelineInjected=true">':'Evento '+(index+1)})); __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
+  await until(() => evaluate(`document.querySelectorAll('${timeline} .timeline-node').length===24`), 'últimos 24 eventos en Rust');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-summary dd')?.textContent`),'24 / 30');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-node span')?.textContent`),'0007');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-node').style.getPropertyValue('--timeline-left')`),'4%');
+  await evaluate(`document.querySelectorAll('${timeline} .timeline-node')[1].click()`);
+  await until(() => evaluate(`document.querySelector('${timeline} .timeline-inspector p')?.textContent.startsWith('<img')`), 'selección e inspección literal');
+  assert.equal(await evaluate(`document.querySelectorAll('${timeline} img').length`),0,'El payload se dibuja como texto');
+  assert.equal(await evaluate('globalThis.__timelineInjected===true'),false);
+  await evaluate(`document.querySelectorAll('${timeline} .timeline-node')[2].focus()`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r',unmodifiedText:'\r'});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await until(() => evaluate(`document.querySelector('${timeline} .timeline-inspector span')?.textContent.includes('SEQ 00009')`), 'selección de evento por teclado');
+  await evaluate(`__timelineSmoke.payload.events.push({...__timelineSmoke.payload.events.at(-1),id:'event-31',sequence:31,timestampMs:38500,payload:'Evento 31'}); __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
+  await until(() => evaluate(`document.querySelector('${timeline} .timeline-summary dd')?.textContent==='24 / 31'`), 'actualización de la ventana temporal');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector span')?.textContent.includes('SEQ 00009')`),true,'Se conserva la selección vigente');
+  const captureTimeline = async (width,name) => {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
+    await evaluate(`document.querySelector('${timeline}').style.width=(innerWidth-40)+'px'`);
+    const clip=await evaluate(`(()=>{const r=document.querySelector('${timeline} .cognitive-timeline').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1}})()`);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});
+    await fs.writeFile(path.join(artifacts,name),Buffer.from(shot.data,'base64'));
+    assert.equal(await evaluate(`document.querySelector('${timeline} .cognitive-timeline').scrollWidth<=document.querySelector('${timeline} .cognitive-timeline').clientWidth`),true,'Línea temporal sin desbordamiento');
+  };
+  await captureTimeline(1440,'timeline-1440.png');
+  await captureTimeline(390,'timeline-390.png');
+  await send('Emulation.setDeviceMetricsOverride',{width:1000,height:900,deviceScaleFactor:1,mobile:false});
+  assert.equal(await evaluate(`(()=>{const invalid=structuredClone(__timelineSmoke.payload); invalid.events.push(invalid.events[0]); try{__timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(invalid));return false}catch{return true}})()`),true,'IDs ambiguos rechazados');
+  await evaluate(`__timelineSmoke.payload.events=[]; __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
+  await until(() => evaluate(`document.querySelectorAll('${timeline} .timeline-node').length===0`), 'vaciar la fuente temporal');
+  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector strong')?.textContent`),'NINGÚN EVENTO DISPONIBLE');
+  assert.equal(await evaluate('__timelineSmoke.actions.every(action=>action.type==="select"&&Object.keys(action).length===2)'),true,'La línea temporal sólo emite selección');
+  await evaluate(`__timelineSmoke.runtime.unmount(__timelineSmoke.id); document.querySelector('${timeline}').remove(); delete globalThis.__timelineSmoke`);
+
   // A failed WASM download must retain the React view and its selection on retry.
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
@@ -475,7 +525,16 @@ try {
   await stateReady();
   assert.equal(await inspector(),'Memoria recuperada','Reintentar conserva la selección del respaldo');
   assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'),1);
-  console.log(`Dioxus: Estado y Flujo, sondeos R3 Rust sin solapamiento, desmontaje, señales, ajustes, asociaciones, teclado y recuperación comprobados con IPC ficticio. Capturas: ${artifacts}`);
+  await send('Network.setBlockedURLs',{urls:['*.wasm']});
+  url.searchParams.set('screen','actividad'); url.searchParams.set('activityView','timeline');
+  await send('Page.navigate',{url:url.href});
+  await until(() => evaluate('document.body.textContent.includes("LÍNEA TEMPORAL NO DISPONIBLE")'),'error recuperable de línea temporal');
+  assert.equal(await evaluate('document.querySelectorAll(".cognitive-timeline").length'),0,'Sin una segunda implementación visual React');
+  await send('Network.setBlockedURLs',{urls:[]});
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar línea temporal").click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-timeline-renderer="dioxus"] .cognitive-timeline\'))'),'línea temporal recuperada con eventos de la sesión');
+  assert.equal(await evaluate('document.querySelectorAll(".cognitive-timeline").length'),1);
+  console.log(`Dioxus: línea temporal, Estado y Flujo; ventanas de eventos, selección, teclado, señales, desmontaje, asociaciones y recuperación comprobados. Capturas: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try {

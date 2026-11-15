@@ -2,7 +2,7 @@
 
 Este paquete también incorpora el grafo y el inspector de Flujo cognitivo:
 `flow_model.rs` valida nodos, geometría, selección y señales R3; `flow_ui.rs`
-los dibuja con las clases CSS existentes. Los siete renderers comparten un único
+los dibuja con las clases CSS existentes. Los ocho renderers comparten un único
 WASM y tienen ciclos de montaje independientes. La página completa de Flujo
 integra el grafo y las asociaciones en un solo montaje y mantiene en Rust su
 selección, validación/proyección R3 y sondeo serializado de cinco segundos.
@@ -20,6 +20,11 @@ la validación de evidencia y toda persistencia siguen en el backend.
 
 - `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
 - `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
+- `src/timeline_model.rs`, `src/timeline_ui.rs`: línea temporal de eventos de
+  sesión, ventana visible, selección, geometría, contadores, duración e inspector.
+  Sustituyen la presentación React anterior; no solicitan IPC ni persisten eventos.
+  `CognitiveTimelineHost.tsx` aporta eventos y montaje/reintento. El puente Intl
+  sólo prepara fechas locales; no calcula la ventana visible ni la selección.
 - `src/state_page_model.rs`: sesión R3 de Estado, una lectura pendiente,
   validación, proyección de métricas y conservación de controles y recuerdos.
 - `src/activity_ui.rs`: encabezado y banda R3 compartidos por Estado y Flujo.
@@ -56,6 +61,12 @@ El WASM y sus bindings generados se incluyen en
 `npm run dev` y `npm run build` realizan esta comprobación. El módulo se carga
 al abrir Estado y controles o Flujo. Una carga, montaje o actualización fallida conserva
 la vista React con los mismos datos y funciones.
+
+La línea temporal tiene un único renderer Dioxus: un fallo muestra un aviso y
+permite reintentar con los eventos que siguen en la sesión. No carga otra línea
+temporal React. Las demás recuperaciones anteriores se mantienen hasta cubrir
+su sustitución; el objetivo final incluye retirarlas junto con el contenedor
+React. [Alcance y pruebas de la línea temporal](../../../docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
 
 La [migración de la sesión de Estado](../../../docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md)
 también verifica métricas R3, dos ajustes disponibles, teclado, ausencia de

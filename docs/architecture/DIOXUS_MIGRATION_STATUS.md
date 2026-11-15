@@ -1,5 +1,10 @@
 # Migración Dioxus: componentes y retirada de React
 
+**Objetivo confirmado el 15 de noviembre de 2026:** retirar React por completo
+del producto, avanzando por componentes y pantallas. Los hosts y las vistas de
+recuperación actuales son transitorios. Tener un renderer Dioxus no basta para
+declarar terminada una página ni para dejar React de forma permanente.
+
 La migración continúa por componentes en Windows. Cada sustitución conserva
 contenido, clases CSS, datos y permisos. Eliminar un archivo requiere comprobar
 sus importadores y cubrir su función con una ruta probada de funcionamiento y
@@ -7,12 +12,45 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
+| Línea temporal cognitiva | Ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. La implementación visual React anterior se retira. | Host temporal de montaje/reintento y recepción de eventos desde Actividad; el formato de hora usa Intl en un módulo sin React. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
 | Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
 | Formulario de fuentes | Selectores, entradas, citas, borrador, evidencia derivada y solicitud de revisión. | Adaptador y formulario sólo para recuperación. |
 | Confirmaciones de relaciones | Revisión pendiente, confirmación de creación, retirada/restauración, cancelación y bloqueo de doble clic. | Adaptador y confirmación sólo para recuperación. |
 | Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Host de montaje y carga diferida del controlador anterior ante fallo; transporte TypeScript limitado a comandos existentes. |
+
+## Camino hasta retirar React por completo
+
+| Bloque pendiente | Trabajo que falta |
+|---|---|
+| Actividad | Contenedor, cambio de vistas y flujo de eventos; la línea temporal avanza en el incremento actual. |
+| Auditoría y diagnóstico | Presentación, lecturas, validación y estados de error de sus vistas. Los servicios Rust existentes se conservan. |
+| Planificador | Presentación e inspector; después el registro R7 con sus revisiones y confirmaciones. |
+| Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
+| Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
+| Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
+| Configuración | Proveedores y preferencias compartidas; se conserva el almacenamiento seguro. |
+| Conversación | Texto, historial, contexto, captura, escucha y voz; exige aceptación de dispositivos y servicios reales. |
+| Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
+| Aplicación y recuperación | Estado compartido de `App.tsx`, navegación, entrada, hosts y todas las vistas anteriores de respaldo. |
+
+Después de migrar las pantallas se sustituirá el contenedor raíz y el arranque.
+Los errores de carga deben permitir reintentar y recuperar datos sin necesitar
+la interfaz React anterior. Los archivos retirados seguirán disponibles en Git.
+
+La salida de React exige cero importaciones productivas de `react`, `react-dom`
+y `react/jsx-runtime`; retirar las pruebas que requieran esas vistas después de
+cubrir sus comportamientos con Rust y aceptación de interfaz. Se eliminan las
+dependencias directas, sus tipos, el plugin Vite React y la configuración JSX
+correspondiente. El bundle final y una instalación limpia deben abrir y funcionar
+sin React. Vite, Node y los adaptadores JavaScript independientes se evalúan por
+su función de construcción o acceso al navegador, separada del framework de UI.
+
+Cada incremento conserva diseño, datos, permisos, teclado y navegación; termina
+con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
+retirada completa permanece pendiente mientras cualquiera de estos bloques
+siga dependiendo de React.
 
 ## Sesión de Estado: estado vigente (2026-11-15)
 
@@ -91,7 +129,7 @@ controlador Rust. El adaptador independiente sigue disponible en el respaldo.
 El backend sigue validando revisión, fuentes, confirmación y bloqueos.
 
 El montaje duplicado de Estado y Flujo se sustituyó por `browser_runtime.rs`.
-Las siete vistas reutilizan ese código, con registros de instancias independientes.
+Las vistas reutilizan ese código, con registros de instancias independientes.
 El mismo WASM conserva sus comprobaciones de fuentes y artefactos.
 
 ## Incremento del formulario de fuentes

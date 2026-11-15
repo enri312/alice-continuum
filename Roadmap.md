@@ -14,6 +14,15 @@ contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
 para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
 siguen pendientes; el plan no da por resuelto R9 ni R10.
 
+**Cierre de la migración:** el objetivo es dejar de usar React por completo,
+avanzando por componentes. Se incluyen las pantallas, el estado compartido de
+`App.tsx`, la navegación, el arranque y las recuperaciones. Los hosts y respaldos
+React actuales son temporales. La retirada de dependencias, tipos y plugin JSX
+se hará después de sustituir y probar todos sus consumidores; una pantalla
+Dioxus aislada no cierra la migración de la aplicación. El
+[inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
+guían los siguientes incrementos.
+
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector
 de Flujo cognitivo pasan a Rust/Dioxus con los mismos estilos y datos. Las
@@ -153,6 +162,17 @@ señal inválida, teclado, ajustes, desmontaje y recuperación. Tauri/WebView2 a
 Estado con R3 real y comprobó navegación y persistencia con datos aislados.
 Ver [informe y límites](docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
 
+**Línea temporal cognitiva (2026-11-15):** la ventana de 24 eventos, selección,
+geometría, contadores, duración, inspector y leyenda pasan a Rust/Dioxus.
+Se retira `CognitiveTimeline.tsx`; su host temporal sólo monta, recibe eventos
+y permite reintentar. No se añade otra línea temporal en React para recuperación.
+Se conservan los contenidos, clases CSS y eventos de sesión; no hay IPC ni
+persistencia en este renderer. El contenedor de Actividad y las otras vistas
+continúan pendientes. Build, 32 pruebas Rust, Clippy WASM, 900 frontend,
+Obsidian, respaldos y privacidad aprobados. Navegador y Tauri comprobaron
+selección por teclado, actualización, vaciado, navegación y recuperación.
+Ver [informe del incremento](docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo
@@ -171,7 +191,7 @@ sondas omitidas, Rustfmt y Clippy sin advertencias; seis comprobaciones de
 identidad/recursos y dos de privacidad aprobadas. No se realizó un turno de voz
 ni una aceptación de instalación en Linux o macOS en este incremento.
 
-**Prioridad vigente:** estabilizar captura y transcripción con la voz del
+**Prioridad de R9, pendiente mientras avanza la migración:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
 Conversación durante la aceptación de R9. Whisper conserva el manejo de proceso
 validado en `1120ddc`. Un fallo posterior del filtro local detuvo la captura antes

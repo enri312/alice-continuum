@@ -118,6 +118,33 @@ try {
   await evaluate('document.querySelector(".state-controls-host").scrollIntoView({block:"start"})');
   const stateScreenshot = await send('Page.captureScreenshot', {format:'png'});
   await fs.writeFile(path.join(artifacts,'state-native.png'),Buffer.from(stateScreenshot.data,'base64'));
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
+  await until(() => evaluate('document.querySelectorAll(\'[data-timeline-renderer="dioxus"] .timeline-node\').length>0'), 'línea temporal nativa Dioxus');
+  await evaluate('document.querySelector(".cognitive-timeline").scrollIntoView({block:"start"})');
+  await screenshot('timeline-native.png');
+  await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
+  await until(() => evaluate('Boolean(document.querySelector(".event-console"))'), 'flujo de eventos de sesión');
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Limpiar vista").click()');
+  await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("COGNITIVE TIMELINE")).click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-timeline-renderer="dioxus"] .timeline-empty\'))'), 'vaciado temporal reflejado sin escribir datos');
+  // A controlled pair ensures keyboard selection actually changes the inspector.
+  await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
+  const timelineRuntimeFile=(await fs.readdir(path.join(root,'Frontend/dist/assets'))).find(name=>/^runtime-.*\.js$/.test(name));
+  assert.ok(timelineRuntimeFile);
+  const timelineRuntimeUrl=new URL(`/assets/${timelineRuntimeFile}`,preview).href;
+  await evaluate(`(async()=>{
+    const runtime=await(await import(${JSON.stringify(timelineRuntimeUrl)})).loadTimelineRuntime();
+    const host=document.createElement('div');host.id='native-timeline-keyboard';document.body.append(host);
+    const payload={selectedId:'',events:[1,2].map(sequence=>({id:'native-'+sequence,sequence,timestampMs:sequence*1000,timeLabel:'10:00:0'+sequence,module:'MEMORY',level:'INFO',node:'FIXTURE-'+sequence,payload:'Evento sintético '+sequence}))};
+    const id=await new Promise(resolve=>{const mounted=runtime.mount(host.id,JSON.stringify(payload),()=>{},()=>queueMicrotask(()=>resolve(mounted)));});
+    globalThis.__nativeTimelineFixture={runtime,id};
+  })()`);
+  await until(() => evaluate('document.querySelector("#native-timeline-keyboard .timeline-inspector span")?.textContent.includes("SEQ 00002")'), 'selección inicial del par sintético');
+  await evaluate('document.querySelector("#native-timeline-keyboard .timeline-node").focus()');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r',unmodifiedText:'\r'});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await until(() => evaluate('document.querySelector("#native-timeline-keyboard .timeline-inspector span")?.textContent.includes("SEQ 00001")'), 'selección por teclado modifica el inspector nativo');
+  await evaluate('__nativeTimelineFixture.runtime.unmount(__nativeTimelineFixture.id); document.getElementById("native-timeline-keyboard").remove(); delete globalThis.__nativeTimelineFixture');
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Flujo cognitivo").click()');
   await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations select").length===2'), 'fuentes nativas');
@@ -141,7 +168,7 @@ try {
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
   const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, nodes: 11,
-    r3Validated: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
+    r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: ventana, Conversación, 11 nodos, R3, navegación, citas, confirmación, cancelación y persistencia tras recarga comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {
