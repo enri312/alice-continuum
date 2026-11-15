@@ -2,16 +2,19 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { BrainSnapshot } from "../../core/cognitive/brain";
 import type { CoreActivitySnapshot } from "../../core/cognitive/core-activity";
 import { startStateControlsView, type ViewStatus } from "./state-controls/lifecycle";
+import { buildActivityPayload } from "./activity-payload";
+import type { NucleusActivityStatus } from "../../pages/shared/nucleus-shared";
 
 type Props = {
   snapshot: BrainSnapshot;
   activity: CoreActivitySnapshot | null;
+  activityStatus: NucleusActivityStatus;
   selectedId: string;
   onSelect: (id: string) => void;
   fallback: ReactNode;
 };
 
-export function CognitiveFlowDioxus({ snapshot, activity, selectedId, onSelect, fallback }: Props) {
+export function CognitiveFlowDioxus({ snapshot, activity, activityStatus, selectedId, onSelect, fallback }: Props) {
   const root = `alice-flow-${useId().replace(/[^a-z0-9_-]/gi, "")}`;
   const [status, setStatus] = useState<ViewStatus>("loading");
   const [attempt, setAttempt] = useState(0);
@@ -19,8 +22,7 @@ export function CognitiveFlowDioxus({ snapshot, activity, selectedId, onSelect, 
     nodes: snapshot.flowNodes,
     links: activity?.links.map(({ id, signal }) => ({ id, signal })) ?? [],
     selectedId, hasActivity: snapshot.hasActivity,
-    eventCount: activity?.windowEventCount ?? null,
-    method: activity?.method ?? null,
+    activity: buildActivityPayload(activity, activityStatus),
   });
   const current = useRef({ snapshot, onSelect });
   current.current = { snapshot, onSelect };

@@ -1,3 +1,5 @@
+#[cfg(target_arch = "wasm32")]
+mod activity_ui;
 pub mod flow_model;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;

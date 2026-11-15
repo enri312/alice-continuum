@@ -1,4 +1,6 @@
+use crate::activity_ui::ActivityIntro;
 use crate::flow_model::{curve, Payload, CONNECTIONS};
+use crate::model::ActivityStatus;
 use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::StreamExt;
@@ -42,21 +44,23 @@ pub fn page(props: PageProps) -> Element {
     } else {
         "is-empty"
     };
-    let signal_label = if snap.event_count.unwrap_or(0) > 0 {
+    let signal_label = if snap.activity.window_event_count > 0 {
         "SEÑAL R3 DERIVADA"
     } else {
         "SIN EVENTOS R3 RECIENTES"
     };
-    let summary = snap
-        .event_count
-        .map(|count| {
-            format!(
-                "{count} eventos · heurística {}",
-                snap.method.as_deref().unwrap_or("")
-            )
-        })
-        .unwrap_or("snapshot no disponible".into());
-    rsx! { div { class: "neuro-layout",
+    let summary = if snap.activity.status == ActivityStatus::Ready {
+        format!(
+            "{} eventos · heurística {}",
+            snap.activity.window_event_count,
+            snap.activity.method.as_deref().unwrap_or("")
+        )
+    } else {
+        "snapshot no disponible".into()
+    };
+    rsx! {
+        ActivityIntro { activity: snap.activity.clone(), code: "[02]", title: "Flujo cognitivo", description: "Relaciones funcionales entre percepción, memoria, espacio de trabajo y salida." }
+        div { class: "neuro-layout",
         div { class: "neuro-stage", div { class: "cognitive-flow {activity_class}",
             div { class:"nucleus-panel-label", span {"[02]"} strong {"COGNITIVE GRAPH / GLOBAL WORKSPACE"} small {"FUNCTIONAL FLOW"} }
             div { class:"flow-state", span {"{signal_label}"} strong {"{summary}"} }

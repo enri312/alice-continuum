@@ -26,6 +26,15 @@ del build mostró once nodos y renderer Dioxus. La interacción de Tauri sigue
 pendiente: la automatización de ventanas no se conectó. Este incremento no
 completa la migración de la pantalla ni del proyecto.
 
+**Siguiente componente sencillo:** el encabezado y la banda de actividad de Flujo
+se trasladan a `activity_ui.rs`, compartido con Estado y controles. Sus clases,
+rótulos, estados de carga, ausencia de señal y auditoría degradada se conservan.
+El adaptador de datos R3 es común y el sondeo existente no se duplica. Un ensayo
+Edge aislado sobre el build verificó clic, teclado, navegación de ida y vuelta,
+ausencia de duplicados, anchos de 1440/1000 px y estados R3 ficticios. También
+bloqueó la descarga de WASM y comprobó el respaldo y el reintento conservando la
+selección. La aceptación nativa Tauri y la migración de asociaciones siguen pendientes.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

@@ -51,7 +51,7 @@ pub enum ActivityStatus {
     Unavailable,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Activity {
     pub status: ActivityStatus,

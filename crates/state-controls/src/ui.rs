@@ -1,4 +1,5 @@
-use crate::model::{ActivityStatus, Availability, Payload};
+use crate::activity_ui::ActivityIntro;
+use crate::model::{Availability, Payload};
 use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::StreamExt;
@@ -57,47 +58,11 @@ pub fn page(props: PageProps) -> Element {
         "Memoria recuperada, {}: {}. {}. {}: {}. Abrir detalles en el inspector.",
         recall.type_label, recall.text, recall.status, recall.score_label, recall.score
     );
-    let activity = &snap.activity;
-    let view_state = activity.view_state();
-    let audit_state = activity.audit_state();
-    let activity_class = match activity.status {
-        ActivityStatus::Loading => "loading",
-        ActivityStatus::Ready => "ready",
-        ActivityStatus::Unavailable => "unavailable",
-    };
-    let header_class = format!("neuro-heading nucleus-page-header is-{view_state}");
-    let live_class = format!("neuro-live {view_state} is-{view_state}");
-    let provenance_class = format!(
-        "core-activity-provenance {activity_class} is-{view_state} {}",
-        if audit_state == "degraded" {
-            "degraded"
-        } else {
-            ""
-        }
-    );
-    let method = activity
-        .method
-        .as_deref()
-        .unwrap_or("r3-recency-motor-v2")
-        .to_uppercase();
-    let summary = activity.summary();
-    let activity_label = activity.label();
+    let view_state = snap.activity.view_state();
 
     rsx! {
         section { class: "neuro-panel nucleus-page", "data-activity-state": "{view_state}", "aria-labelledby": "[03]-title",
-            div { class: "{header_class}", "data-activity-state": "{view_state}",
-                div { p { class: "eyebrow", "[03] · ESTADO VERIFICABLE" }
-                    h2 { id: "[03]-title", "Estado y controles" }
-                    p { class: "nucleus-page-description", "Señales verificables, memoria recuperada y ajustes disponibles para el próximo envío." }
-                }
-                span { class: "{live_class}", "data-activity-state": "{view_state}", "data-signal-present": view_state == "ready", role: "status", "aria-live": "polite", "aria-atomic": "true", "aria-busy": view_state == "loading",
-                    i { "aria-hidden": "true" } "{activity_label}"
-                }
-            }
-            div { class: "{provenance_class}", "data-activity-state": "{view_state}", "data-audit-state": "{audit_state}", role: "status", "aria-live": "polite", "aria-atomic": "true", "aria-busy": view_state == "loading",
-                strong { "R3 · ACTIVIDAD DERIVADA" } span { "{summary}" }
-                small { "HEURÍSTICA {method} · NO ES EMOCIÓN NI CONCIENCIA" }
-            }
+            ActivityIntro { activity: snap.activity.clone(), code: "[03]", title: "Estado y controles", description: "Señales verificables, memoria recuperada y ajustes disponibles para el próximo envío." }
         div { class: "neuro-layout",
             div { class: "neuro-stage",
                 div { class: if snap.has_activity { "internal-state has-activity" } else { "internal-state is-empty" },

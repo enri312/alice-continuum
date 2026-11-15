@@ -402,11 +402,14 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
-El grafo y el inspector de Flujo cognitivo ya se renderizan en Rust/Dioxus,
-conservando los estilos, nodos y evidencia R3. Su contenedor, el sondeo y las
-asociaciones de memoria siguen en React; también existe una vista de respaldo.
-La revisión visual se realizó en Edge sin ventana con datos vacíos. La selección
-interactiva en Tauri queda pendiente por falta de conexión de automatización.
+El grafo, el inspector, el encabezado y la banda R3 de Flujo cognitivo se renderizan
+en Rust/Dioxus, conservando los estilos, nodos y evidencia. El encabezado se
+comparte con Estado y controles. El contenedor, el sondeo y las asociaciones de
+memoria siguen en React; también existe una vista de respaldo.
+En Edge aislado se comprobaron clic, teclado, navegación, dos anchos, estados R3
+sintéticos y recuperación tras un fallo de descarga WASM. La interacción nativa
+en Tauri queda pendiente; esta prueba de navegador no utiliza recuerdos personales.
+La [guía del módulo](crates/state-controls/README.md) explica cómo repetirla.
 
 La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
 explica qué se movió, qué iconos se usan y qué herramientas aún requieren revisión.

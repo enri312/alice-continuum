@@ -14,6 +14,7 @@ cambio de un control. El contenedor valida cada acción contra el estado actual.
 
 - `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
 - `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
+- `src/activity_ui.rs`: encabezado y banda R3 compartidos por Estado y Flujo.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
 - `src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
   ciclo de vida, validación de acciones y una vista de recuperación. La antigua
@@ -40,3 +41,22 @@ temporales están en `local/dioxus-build/`, fuera de Git.
 La compilación normal del frontend utiliza los artefactos incluidos y no necesita
 esas herramientas. Las pruebas del contrato pueden ejecutarse con
 `cargo test --locked --manifest-path crates/state-controls/Cargo.toml`.
+
+## Ensayo opcional en Edge/Chromium
+
+Desde la raíz, ejecutar `npm run build` y mantener un preview local en otra
+terminal: `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`.
+Después, indicar la ruta absoluta del navegador instalado y lanzar la sonda:
+
+```powershell
+$env:ALICE_BROWSER_BIN = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+node scripts/testing/dioxus-browser-smoke.mjs
+```
+
+La sonda abre un perfil nuevo sin ventana y escribe capturas en `local/`.
+Comprueba selección por clic/teclado, navegación entre Flujo y Estado, ausencia
+de duplicados y anchos de 1440/1000 px. Inyecta estados R3 ficticios sólo en
+una instancia de prueba de WASM y verifica el rechazo de una señal inválida.
+Bloquea la descarga de WASM para comprobar el respaldo y el reintento conservando
+la selección. `ALICE_PREVIEW_URL` admite otro preview HTTP de loopback.
+Requiere un build actual del proyecto; no valida Tauri, voz ni memoria personal.

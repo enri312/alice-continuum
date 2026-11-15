@@ -1,3 +1,4 @@
+use crate::model::Activity;
 use serde::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -26,8 +27,7 @@ pub struct Payload {
     pub links: Vec<Link>,
     pub selected_id: String,
     pub has_activity: bool,
-    pub event_count: Option<u64>,
-    pub method: Option<String>,
+    pub activity: Activity,
 }
 pub const CONNECTIONS: [(&str, &str, Option<&str>); 13] = [
     (
@@ -58,6 +58,11 @@ impl Payload {
         let mut ids = std::collections::HashSet::new();
         if value.nodes.is_empty() || value.nodes.len() > 64 || value.links.len() > 64 {
             return Err("Grafo inválido".into());
+        }
+        if !value.activity.overall_signal.is_finite()
+            || !(0.0..=1.0).contains(&value.activity.overall_signal)
+        {
+            return Err("Señal R3 inválida".into());
         }
         for node in &value.nodes {
             if node.id.is_empty()
@@ -105,7 +110,7 @@ pub fn curve(from: &Node, to: &Node) -> String {
 mod tests {
     use super::*;
     fn fixture() -> serde_json::Value {
-        serde_json::json!({"nodes":[{"id":"flow-input","label":"Entrada","value":"0","detail":"Sin señal","group":"input","activation":0.0,"availability":"ready","x":10.0,"y":50.0}],"links":[{"id":"permission-perception","signal":0.7}],"selectedId":"flow-input","hasActivity":false,"eventCount":null,"method":null})
+        serde_json::json!({"nodes":[{"id":"flow-input","label":"Entrada","value":"0","detail":"Sin señal","group":"input","activation":0.0,"availability":"ready","x":10.0,"y":50.0}],"links":[{"id":"permission-perception","signal":0.7}],"selectedId":"flow-input","hasActivity":false,"activity":{"status":"unavailable","signalPresent":false,"auditHealthy":null,"windowEventCount":0,"windowMs":0,"overallSignal":0.0,"method":null}})
     }
     #[test]
     fn selection_and_evidence_never_invent_signals() {
