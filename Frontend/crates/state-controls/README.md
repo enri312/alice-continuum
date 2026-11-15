@@ -12,13 +12,16 @@ y el sondeo compartido siguen disponibles para recuperación y otras pantallas.
 Renderer de la página principal, con Dioxus 0.7.0 y dioxus-web 0.7.10 fijados
 en `Cargo.lock`. El contenido conserva las clases CSS del panel React.
 No accede directamente a Tauri, archivos, credenciales, red ni modelos.
-Estado/Flujo reciben snapshots del contenedor. El controlador de asociaciones
+Estado/Flujo reciben el snapshot base del contenedor y solicitan R3 mediante
+un transporte cerrado; sus tareas Dioxus mantienen el sondeo. El controlador de asociaciones
 recibe las lecturas autorizadas de grafo, registros y relaciones mediante un
 transporte limitado a seis comandos existentes. Mantiene la sesión en memoria;
 la validación de evidencia y toda persistencia siguen en el backend.
 
 - `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
 - `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
+- `src/state_page_model.rs`: sesión R3 de Estado, una lectura pendiente,
+  validación, proyección de métricas y conservación de controles y recuerdos.
 - `src/activity_ui.rs`: encabezado y banda R3 compartidos por Estado y Flujo.
 - `src/relations_model.rs`, `src/relations_ui.rs`: lista de relaciones guardadas
   y solicitud de revisión; sin confirmación ni escritura.
@@ -42,8 +45,9 @@ la validación de evidencia y toda persistencia siguen en el backend.
   sin selección de fuentes ni estado de confirmación. Descarta solicitudes repetidas
   y respuestas tras desmontar. `MemoryAssociationsFallback.tsx` sólo se carga ante
   un fallo del módulo; conserva la recuperación React y sus tres adaptadores.
-- `Frontend/src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
-  ciclo de vida, validación de acciones y una vista de recuperación. La antigua
+- `Frontend/src/components/cognitive/state-controls/` en la raíz: montaje, transporte R3,
+  frontera con los ajustes compartidos de Conversación y recuperación React
+  cargada sólo tras fallo. La antigua
   `StateControlsPage.tsx` ya no es necesaria.
 
 El WASM y sus bindings generados se incluyen en
@@ -52,6 +56,10 @@ El WASM y sus bindings generados se incluyen en
 `npm run dev` y `npm run build` realizan esta comprobación. El módulo se carga
 al abrir Estado y controles o Flujo. Una carga, montaje o actualización fallida conserva
 la vista React con los mismos datos y funciones.
+
+La [migración de la sesión de Estado](../../../docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md)
+también verifica métricas R3, dos ajustes disponibles, teclado, ausencia de
+lecturas superpuestas, descarte al salir y recuperación conservando selección.
 
 Para regenerar, usar un Rust con `wasm32-unknown-unknown` y wasm-bindgen CLI
 0.2.105 ya instalados. Los argumentos permiten seleccionar herramientas y caché

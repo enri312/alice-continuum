@@ -1,5 +1,6 @@
 use crate::activity_ui::ActivityIntro;
-use crate::model::{Availability, Payload};
+use crate::model::Availability;
+use crate::state_page_model::{Payload, State};
 use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::StreamExt;
@@ -30,15 +31,64 @@ fn status(availability: &Availability) -> (&'static str, &'static str) {
 }
 
 pub fn page(props: PageProps) -> Element {
-    let mut payload = use_signal(|| props.initial.clone());
-    let mut selected_id = use_signal(|| props.initial.selected_id.clone());
+    let Payload::Configure {
+        base,
+        persistent_memory_count,
+        desktop_app,
+    } = &props.initial
+    else {
+        return rsx! { p { role: "alert", "Configuración de Estado no disponible." } };
+    };
+    let mut state =
+        use_signal(|| State::new((**base).clone(), *persistent_memory_count, *desktop_app));
+    let mut payload = use_signal(|| state.peek().view());
+    let mut selected_id = use_signal(|| base.selected_id.clone());
     let rx = props.rx.clone();
+    let callback = props.on_action.clone();
     use_future(move || {
         let receiver = rx.borrow_mut().take();
+        let callback = callback.clone();
         async move {
             if let Some(mut receiver) = receiver {
                 while let Some(next) = receiver.next().await {
-                    payload.set(next);
+                    match next {
+                        Payload::Configure {
+                            base,
+                            persistent_memory_count,
+                            desktop_app,
+                        } => {
+                            let id = state.write().configure(
+                                *base,
+                                persistent_memory_count,
+                                desktop_app,
+                            );
+                            if let Some(id) = id {
+                                emit(&callback, serde_json::json!({"scope":"activity","id":id}));
+                            }
+                        }
+                        Payload::ActivitySuccess { id, value } => {
+                            state.write().complete(id, Some(value))
+                        }
+                        Payload::ActivityFailure { id } => state.write().complete(id, None),
+                    }
+                    payload.set(state.peek().view());
+                }
+            }
+        }
+    });
+    let callback = props.on_action.clone();
+    use_future(move || {
+        let callback = callback.clone();
+        async move {
+            loop {
+                if crate::browser_timer::delay(5_000).await.is_err() {
+                    break;
+                }
+                if state.peek().can_read() {
+                    let id = state.write().begin_read();
+                    if let Some(id) = id {
+                        emit(&callback, serde_json::json!({"scope":"activity","id":id}));
+                    }
                 }
             }
         }

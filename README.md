@@ -431,6 +431,14 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
+Estado y controles también mantiene en Rust su sesión R3: sondeo de cinco
+segundos, validación y proyección de métricas, con una lectura pendiente y
+cancelación al salir. Su presentación conserva contenido y clases CSS. React
+conecta el snapshot base y los ajustes compartidos de conversación; el sondeo
+anterior se carga sólo si falla WASM. Pasaron 28 pruebas Rust, Clippy WASM,
+898 pruebas frontend y los ensayos de navegador y Tauri con datos aislados.
+[Alcance de esta migración](docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
+
 El grafo, el inspector, el encabezado y la banda R3 de Flujo cognitivo se renderizan
 en Rust/Dioxus, conservando los estilos, nodos y evidencia. El encabezado se
 comparte con Estado y controles. El contenedor completo de Flujo, la selección y

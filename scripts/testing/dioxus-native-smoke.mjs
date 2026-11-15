@@ -111,7 +111,13 @@ try {
   await evaluate('document.querySelector(\'.flow-node[aria-label^="Memoria:"]\').dispatchEvent(new MouseEvent("click",{bubbles:true}))');
   await until(() => evaluate('document.querySelector(".neuro-inspector h3")?.textContent==="Memoria"'), 'inspector nativo');
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Estado y controles").click()');
-  await until(() => evaluate('Boolean(document.querySelector(".internal-state"))'), 'navegación nativa a Estado');
+  await until(() => evaluate('Boolean(document.querySelector(\'.state-controls-host[data-renderer="dioxus"] .internal-state\'))'), 'Estado Dioxus nativo');
+  await until(() => evaluate('["ready","idle"].includes(document.querySelector(".neuro-live")?.dataset.activityState)'), 'R3 nativo de Estado validado en Rust');
+  assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'), 1);
+  assert.equal(await evaluate('document.querySelectorAll(".core-activity-provenance").length'), 1);
+  await evaluate('document.querySelector(".state-controls-host").scrollIntoView({block:"start"})');
+  const stateScreenshot = await send('Page.captureScreenshot', {format:'png'});
+  await fs.writeFile(path.join(artifacts,'state-native.png'),Buffer.from(stateScreenshot.data,'base64'));
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Flujo cognitivo").click()');
   await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations select").length===2'), 'fuentes nativas');

@@ -7,12 +7,33 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
-| Estado y controles | Panel, métricas, ajustes, recuerdo, inspector y encabezado R3. | Contenedor de sesión, sondeo, validación de acciones y vista de respaldo. |
+| Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
 | Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
 | Formulario de fuentes | Selectores, entradas, citas, borrador, evidencia derivada y solicitud de revisión. | Adaptador y formulario sólo para recuperación. |
 | Confirmaciones de relaciones | Revisión pendiente, confirmación de creación, retirada/restauración, cancelación y bloqueo de doble clic. | Adaptador y confirmación sólo para recuperación. |
 | Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Host de montaje y carga diferida del controlador anterior ante fallo; transporte TypeScript limitado a comandos existentes. |
+
+## Sesión de Estado: estado vigente (2026-11-15)
+
+`state_page_model.rs` conserva una sola lectura pendiente y valida R3 con el
+contrato común. Proyecta las métricas conservando las fórmulas y descripciones
+anteriores, separadas de emociones o conciencia. `ui.rs` mantiene selección,
+temporizador de cinco segundos, contenido y deslizadores; desmontar cancela la
+tarea. Una señal inválida retira la anterior y no desbloquea controles futuros.
+
+`StateControlsHost.tsx` aporta sólo el snapshot base, conserva una referencia de
+selección para recuperar y conecta los dos ajustes compartidos con Conversación.
+`transport.ts` admite la lectura R3 cerrada y revalida acciones contra el bloqueo
+actual. No proyecta R3 ni contiene un intervalo. Una lectura de configuración
+nueva espera al terminar la anterior; las respuestas tras desmontar se descartan.
+
+`StateControlsRecovery.tsx` se carga sólo si falla el módulo. Entonces utiliza
+el sondeo React anterior y los mismos contenidos; se desmonta antes de recuperar
+Dioxus. La aplicación general y ese camino aún requieren React. La migración de
+esta sesión no elimina sus dependencias globales ni las de otras páginas.
+Build, 28 pruebas Rust, Clippy WASM, 898 frontend, Obsidian, respaldos, privacidad,
+Edge y Tauri/WebView2 aprobados. Ver [alcance y evidencia](../testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
 
 ## Página y sondeo de Flujo: estado vigente (2026-11-15)
 

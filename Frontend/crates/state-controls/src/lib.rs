@@ -25,6 +25,7 @@ mod relations_ui;
 pub mod source_form_model;
 #[cfg(target_arch = "wasm32")]
 mod source_form_ui;
+pub mod state_page_model;
 #[cfg(target_arch = "wasm32")]
 #[macro_use]
 mod browser_runtime;
@@ -32,7 +33,7 @@ mod browser_runtime;
 #[cfg(target_arch = "wasm32")]
 mountable_view!(
     browser,
-    crate::model::Payload,
+    crate::state_page_model::Payload,
     crate::ui,
     mount_state_controls,
     update_state_controls,

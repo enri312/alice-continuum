@@ -142,6 +142,17 @@ frontend, 421 del backend Rust (32 omitidas), Obsidian, respaldos, privacidad y
 R3 y persistencia desde la nueva ruta. Linux nativo se comprobará por separado.
 Ver [informe del renombrado](docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
 
+**Sesión R3 de Estado y controles (2026-11-15):** sondeo serializado de cinco
+segundos, validación y proyección de métricas pasan a Rust/Dioxus. El host React
+aporta el snapshot base y comunica los ajustes compartidos con Conversación;
+la recuperación anterior se carga sólo ante fallo, conservando selección y
+ajustes al reintentar. Se conserva el contenido y no se modifican estilos.
+Build, 28 pruebas Rust, Clippy WASM y 898 frontend aprobados; también Obsidian,
+respaldos y privacidad. Edge verificó lecturas suspendidas durante dos intervalos,
+señal inválida, teclado, ajustes, desmontaje y recuperación. Tauri/WebView2 abrió
+Estado con R3 real y comprobó navegación y persistencia con datos aislados.
+Ver [informe y límites](docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo
