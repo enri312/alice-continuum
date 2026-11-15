@@ -63,6 +63,44 @@ También se pueden seleccionar explícitamente el proyecto y los datos:
 node scripts/obsidian/sync.mjs --project-root "D:\Alice Continuum" --data-root "D:\Alice Continuum\data"
 ```
 
+## Formateo manual con Python
+
+Con Alice y cualquier observador de Obsidian cerrados, desde la raíz:
+
+```powershell
+npm run obsidian:sync:python
+```
+
+Este comando **actualiza la bóveda administrada**, como `obsidian:sync`.
+Python sólo produce el Markdown de los recuerdos registrados, automáticos y
+del perfil; Node conserva las validaciones, rutas, índices, notas de autoestudio,
+conflictos y escrituras. Los JSON canónicos y las notas manuales se conservan.
+La salida muestra `recordFormatter: "python"`. Con cero registros no se inicia
+ningún proceso Python.
+
+Para probar con una raíz de datos aislada, seleccionar su ruta absoluta:
+
+```powershell
+npm run obsidian:sync:python -- --data-root 'D:\Alice Prueba\data'
+```
+
+Usa el Python de `runtime/venv/Scripts/python.exe` en Windows o
+`runtime/venv-linux/bin/python` en Linux. `ALICE_PYTHON_BIN` permite elegir otro
+ejecutable mediante una ruta absoluta. El formateador no requiere PyMuPDF ni
+paquetes adicionales. La distribución de Python en instaladores sigue pendiente.
+
+Se procesa un lote de hasta 1.000 notas a la vez, sin servidor permanente.
+Cada lote admite 8 MiB de entrada, 32 MiB de salida y diez segundos. Una ausencia,
+fallo, cancelación o respuesta inválida del adaptador detiene la preparación
+antes de escribir; el modo solicitado no cambia silenciosamente a Node.
+El formato técnico JSON sigue serializándose en Node para conservar su
+representación exacta, incluidos números y Unicode.
+
+La vigilancia automática continúa con Node y `--watch --formatter python` se
+rechaza. La medición del ensayo mostró más latencia al iniciar Python; este modo
+es una opción por lotes, no una mejora de velocidad demostrada.
+Ver [paridad, pruebas y mediciones](../testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
+
 ## Ediciones y conflictos
 
 La sincronización es de **Alice hacia Obsidian**. Las correcciones operativas se

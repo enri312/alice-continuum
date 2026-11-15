@@ -23,14 +23,17 @@ Dioxus aislada no cierra la migración de la aplicación. El
 [inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 guían los siguientes incrementos.
 
-**Etapa posterior: reparto Node.js/Python.** Después de la migración a Dioxus se
-evaluará transferir tareas auxiliares concretas a Python, conservando Node donde
-lo requieran las herramientas. La primera candidata es el formateo de notas
-Obsidian con datos ficticios, sin escribir en la bóveda y comparando su salida
-con la actual. Seguirían los análisis e informes de evaluaciones vigentes.
-Respaldos, núcleo y permisos conservan su implementación. No se activará un
-adaptador hasta comprobar equivalencia y medir su coste de proceso y arranque.
-Ver [reparto propuesto y primer ensayo](docs/architecture/REPARTO_NODE_PYTHON.md).
+**Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
+propietario se inició el formateo de notas Obsidian en Python. El ensayo privado
+comparó bytes de 18 casos y midió lotes antes de incorporar el comando manual
+`obsidian:sync:python`. Node conserva preparación de campos, JSON técnico,
+validaciones, índices y escritura protegida; Python construye el Markdown.
+La vigilancia automática sigue con Node por el coste de iniciar otro proceso.
+La integración se probó únicamente con bóvedas ficticias, incluidos conflictos
+y fallo del adaptador. Respaldos, núcleo, permisos y diseño conservan su función.
+Los análisis e informes de evaluación quedan como siguiente revisión; Dioxus
+mantiene el objetivo de retirar React. Ver [reparto y estado](docs/architecture/REPARTO_NODE_PYTHON.md)
+y [pruebas](docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector

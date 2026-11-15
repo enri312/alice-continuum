@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { prepareNoteJob, renderNotesWithPython } from "./python-renderer.mjs";
 
 const OWNER = "alice-continuum-obsidian-sync";
 const MANAGED = "Alice (sincronizado)";
@@ -209,7 +210,7 @@ async function walkNotes(directory, relative = "", result = [], depth = 0) {
   return result;
 }
 
-async function prepare(dataRoot) {
+async function prepare(dataRoot, options) {
   const memory = path.join(dataRoot, "memory");
   const [confirmedSource, automaticSource, profileSource, studySource] = await Promise.all([
     readJson(path.join(memory, "records.json"), SOURCE_LABELS[0]),
@@ -226,6 +227,7 @@ async function prepare(dataRoot) {
   const legacySessions = confirmedSource === null && (await statOrMissing(path.join(memory, "sessions.json")))?.isFile();
   const files = new Map();
   const caseNames = new Set();
+  const pythonNotes = [];
   const add = (relative, content) => {
     safeRelative(relative);
     const key = relative.toLowerCase();
@@ -246,7 +248,10 @@ async function prepare(dataRoot) {
     index.push(`## ${folder} (${list.length})`, "");
     for (const record of [...list].sort((a, b) => a.id.localeCompare(b.id))) {
       const relative = `${folder}/${hash(record.id)}.md`;
-      add(relative, recordNote(label, source, record));
+      if (options.recordFormatter === "python") {
+        add(relative, ""); // Reserve the same map order; nothing is written before the whole projection succeeds.
+        pythonNotes.push({ relative, job: prepareNoteJob(String(pythonNotes.length), label, source, record) });
+      } else add(relative, recordNote(label, source, record));
       index.push(`- ${wiki(relative, record.intention ?? record.content)}`);
     }
     if (list.length === 0) index.push("Sin registros en esta fuente.");
@@ -294,6 +299,12 @@ async function prepare(dataRoot) {
     + `${wiki("Recuerdos sincronizados.md", "Consultar recuerdos y fuentes")}\n`);
   index.push(`## Fuentes existentes (${legacy.length})`, "", ...legacy.map(([relative]) => `- ${wiki(`Fuentes existentes/${relative}`, path.posix.basename(relative, ".md"))}`), "");
   add("Recuerdos sincronizados.md", index.join("\n"));
+  if (pythonNotes.length) {
+    let rendered;
+    try { rendered = await renderNotesWithPython(pythonNotes.map(note => note.job), options); }
+    catch (error) { fail(error.message); }
+    for (const [index, note] of pythonNotes.entries()) files.set(note.relative, rendered[index]);
+  }
   return { files, memoryPath: memory, confirmedCount: confirmed.length, automaticCount: automatic.length, profileCount: profile.length, studyCount: study.length, legacyNoteCount: legacy.length };
 }
 
@@ -339,11 +350,13 @@ async function seedVault(vaultPath) {
 async function synchronize(options) {
   if (!object(options) || !text(options.projectRoot) || (options.dataRoot !== undefined && !text(options.dataRoot))) fail("Se requiere una ruta de proyecto valida.");
   const projectRoot = path.resolve(options.projectRoot);
+  const recordFormatter = options.recordFormatter ?? "node";
+  if (!["node", "python"].includes(recordFormatter)) fail("Formateador de notas no admitido.");
   const dataRoot = path.resolve(options.dataRoot ?? process.env.ALICE_DATA_DIR ?? path.join(projectRoot, "data"));
   await noLinks(projectRoot);
   await noLinks(dataRoot);
   if (!(await statOrMissing(projectRoot))?.isDirectory()) fail("La carpeta del proyecto no existe.");
-  const prepared = await prepare(dataRoot); // Validate every source before writing anything.
+  const prepared = await prepare(dataRoot, { ...options, projectRoot, recordFormatter }); // Validate and render everything before writing.
   const vaultPath = path.join(dataRoot, "obsidian");
   const managed = path.join(vaultPath, MANAGED);
   await noLinks(managed);
@@ -389,7 +402,7 @@ async function synchronize(options) {
   }
   await seedVault(vaultPath);
   const { files: _files, ...counts } = prepared;
-  return { vaultPath, ...counts, changed };
+  return { vaultPath, ...counts, changed, recordFormatter };
 }
 
 /** Export validated sources without modifying the application's JSON stores. */
@@ -407,6 +420,7 @@ export async function syncObsidianVault(options) {
 
 /** Background development helper; no overlapping polls and no process keepalive. */
 export function startObsidianSync(options) {
+  if (options?.recordFormatter === "python") fail("El modo Python es puntual; no admite vigilancia automatica.");
   let closed = false;
   let pending;
   let lastError;
@@ -433,12 +447,18 @@ async function cli() {
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
     if (argument === "--watch") watch = true;
+    else if (argument === "--formatter") {
+      const value = args[++index];
+      if (!["node", "python"].includes(value)) fail("Formateador de notas no admitido.");
+      options.recordFormatter = value;
+    }
     else if (argument === "--project-root" || argument === "--data-root") {
       const value = args[++index];
       if (!value || value.startsWith("--")) fail("Falta una ruta en las opciones de sincronizacion.");
       options[argument === "--project-root" ? "projectRoot" : "dataRoot"] = value;
     } else fail("Opcion de sincronizacion no admitida.");
   }
+  if (watch && options.recordFormatter === "python") fail("El modo Python es puntual; no admite vigilancia automatica.");
   const result = await syncObsidianVault(options);
   const { vaultPath: _vaultPath, ...counts } = result;
   console.log(JSON.stringify(counts));

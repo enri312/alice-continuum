@@ -1,6 +1,8 @@
 export interface ObsidianSyncOptions {
   projectRoot: string;
   dataRoot?: string;
+  recordFormatter?: "node" | "python";
+  pythonExecutable?: string;
 }
 
 export interface ObsidianSyncResult {
@@ -12,6 +14,7 @@ export interface ObsidianSyncResult {
   studyCount: number;
   legacyNoteCount: number;
   changed: boolean;
+  recordFormatter: "node" | "python";
 }
 
 export function syncObsidianVault(options: ObsidianSyncOptions): Promise<ObsidianSyncResult>;

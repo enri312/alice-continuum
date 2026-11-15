@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { promises as fs } from 'node:fs';
+import { promises as fs, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,6 +10,8 @@ import { startObsidianSync, syncObsidianVault } from './sync.mjs';
 const stamp = '2026-11-10T12:00:00.000Z';
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const managedName = 'Alice (sincronizado)';
+const testPython = process.env.ALICE_TEST_PYTHON ?? fileURLToPath(new URL(process.platform === 'win32'
+  ? '../../runtime/venv/Scripts/python.exe' : '../../runtime/venv-linux/bin/python', import.meta.url));
 
 async function write(file, content) {
   await fs.mkdir(path.dirname(file), { recursive: true });
@@ -87,6 +90,37 @@ function study(lessonId = 'arithmetic-fractions') {
 function studyDocument(records) {
   return { schemaVersion: 1, enabled: true, biblicalTradition: 'catholic', phase: 'partial', lastStartedAt: stamp, lastCompletedAt: null, lastError: null, records };
 }
+
+test('Python batch produces byte-identical vault output and preserves canonical sources and edits', { skip: !existsSync(testPython) }, async t => {
+  const f = await fixture(t);
+  const records = [confirmed('unicode', 'Unicode ñ 😀 e\u0301;\r\n\0\ud800'),
+    { ...confirmed('fences', '````text\n<script>literal</script>\n````'), memoryStatus: 'archived', source: '', contextEvents: [{value:1e-7}] }];
+  await json(path.join(f.memoryRoot, 'records.json'), records);
+  await syncObsidianVault(f);
+  const sourceBefore = await snapshot(f.memoryRoot);
+  const vaultBefore = await snapshot(f.vault);
+  const result = await syncObsidianVault({ ...f, recordFormatter: 'python', pythonExecutable: testPython });
+  assert.equal(result.recordFormatter, 'python'); assert.equal(result.changed, false);
+  assert.deepEqual(await snapshot(f.vault), vaultBefore);
+  assert.deepEqual(await snapshot(f.memoryRoot), sourceBefore);
+  const [file] = [...await notes(f.managed)].find(([, content]) => content.includes('Tema sintético de perfil'));
+  await fs.appendFile(file, '\nEdición manual ficticia.\n');
+  const edited = await snapshot(f.vault);
+  await assert.rejects(syncObsidianVault({ ...f, recordFormatter: 'python', pythonExecutable: testPython }), /editada/);
+  assert.deepEqual(await snapshot(f.vault), edited);
+});
+
+test('Python launch failure and invalid modes do not create or change a vault', async t => {
+  const f = await fixture(t);
+  const before = await snapshot(f.root);
+  await assert.rejects(syncObsidianVault({ ...f, recordFormatter: 'python', pythonExecutable: path.join(f.root, 'missing-python.exe') }), /Python/);
+  assert.deepEqual(await snapshot(f.root), before);
+  await assert.rejects(syncObsidianVault({ ...f, recordFormatter: 'other' }), /Formateador/);
+  assert.throws(() => startObsidianSync({ ...f, recordFormatter: 'python' }), /puntual/);
+  assert.deepEqual(await snapshot(f.root), before);
+  const node = await syncObsidianVault({ ...f, pythonExecutable: path.join(f.root, 'missing-python.exe') });
+  assert.equal(node.recordFormatter, 'node');
+});
 
 test('projects separately sourced self-study, failed exercises and curriculum progress without changing source stores', async (t) => {
   const f = await fixture(t);

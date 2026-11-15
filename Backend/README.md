@@ -5,6 +5,8 @@
   al iniciarse desde la raíz.
 - `adapters/`: lectores de documentos y puente de medios Linux en Python, con sus
   pruebas y requisitos. Rust incluye los dos scripts usados por la aplicación.
+  El formateador Obsidian se invoca desde el comando Node manual y usa sólo la
+  biblioteca estándar de Python; no participa en el arranque automático.
 
 Los datos privados no están aquí: se mantienen en `data/`, y los modelos, entornos
 y recursos locales en `runtime/` o en las rutas configuradas por el propietario.

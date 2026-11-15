@@ -17,6 +17,23 @@ controles cuando termina su proceso padre; los reproductores externos conservan
 su vida independiente. No recibe claves de proveedores ni copia credenciales
 del navegador. Ver [instalación y órdenes de voz](../../docs/runbooks/04-ubuntu.md).
 
+## Formateador de notas Obsidian
+
+`obsidian_note_formatter.py` construye Markdown desde campos de texto ya
+preparados por Node. Usa sólo la biblioteca estándar; no abre rutas, consulta
+red ni accede a los almacenes. Recibe un JSON por stdin y devuelve las notas por
+stdout. Admite hasta 1.000 notas y 8 MiB de entrada por lote, con salida máxima
+de 32 MiB. El supervisor Node limita cada proceso a diez segundos, valida IDs
+y estructura de respuesta y completa todos los lotes antes de escribir la bóveda.
+
+El comando manual es `npm run obsidian:sync:python`, con Alice y su observador
+cerrados. Actualiza la proyección administrada usando el escritor Node existente;
+no modifica los recuerdos canónicos. La sincronización automática sigue usando
+Node: el arranque de un proceso Python por cada revisión no mostró una ventaja.
+Python se selecciona mediante `ALICE_PYTHON_BIN` absoluto o el entorno
+`runtime/venv` en Windows / `runtime/venv-linux` en Linux.
+Ver [uso y límites](../../docs/runbooks/05-memoria-obsidian.md#formateo-manual-con-python).
+
 ## Lector documental
 
 ```powershell

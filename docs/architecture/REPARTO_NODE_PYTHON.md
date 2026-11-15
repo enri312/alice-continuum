@@ -1,7 +1,14 @@
 # Reparto futuro entre Node.js, Python y Rust
 
-Fecha: 2026-11-15. Estado: **propuesta posterior a la migración a Dioxus**.
-Este documento no cambia comandos, procesos ni el arranque actual.
+Fecha: 2026-11-15. Estado: **primer módulo manual implementado y probado**.
+El propietario pidió iniciar este reparto. La migración a Dioxus conserva su
+objetivo; el resto de transferencias descritas aquí permanece como propuesta.
+
+`npm run obsidian:sync:python` permite generar las notas con Python y conservar
+la validación y escritura Node. La vigilancia de dos segundos y el arranque
+habitual mantienen Node. El ensayo produjo notas idénticas, pero el coste de
+iniciar Python fue mayor: se incorpora bajo demanda, sin activar un proceso
+por revisión automática. [Pruebas y mediciones](../testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
 La intención es transferir una parte del trabajo auxiliar de Node.js a Python.
 El reparto se decide por responsabilidad, equivalencia funcional y coste medido;
@@ -23,7 +30,7 @@ Dioxus y el reparto de tareas auxiliares con Python se verifican por separado.
 
 | Tarea actual | Propuesta | Prioridad |
 |---|---|---|
-| Construcción de notas Markdown en `scripts/obsidian/sync.mjs` | Probar en Python la transformación de registros ya validados a notas. Mantener inicialmente lecturas, vigilancia y escritura protegida en el módulo actual. | Primera prueba acotada. |
+| Construcción de notas Markdown en `scripts/obsidian/sync.mjs` | Implementada como opción manual por lotes. Node prepara campos y JSON técnico; Python construye Markdown y cercas; Node conserva validaciones y escritura protegida. | Primer incremento terminado; automatización Python no activada. |
 | Cálculos y generación de informes en evaluaciones de `scripts/testing/` | Mover análisis por lotes e informes a Python después de identificar qué ensayos siguen vigentes. Conservar en TS las pruebas que ejercitan contratos TypeScript y evitar duplicar lógica productiva. | Segunda revisión. |
 | Respaldos integrales en `scripts/backups/` | Conservar su implementación actual. Una eventual sustitución exigiría paridad de inventario, hashes, permisos, enlaces, bloqueo y restauración aislada. | Revisión independiente posterior. |
 | Compilación, CLI Tauri y herramientas del frontend | Mantener Node donde las herramientas actuales lo requieren. La salida de React no implica por sí misma retirar Vite o npm. | Sin transferencia propuesta ahora. |
@@ -34,7 +41,7 @@ aprovechando los adaptadores existentes. Eso debe distinguirse de trasladar una
 tarea que hoy haga Node: la transcripción productiva actual ya la controla Rust
 mediante el ejecutable Whisper configurado.
 
-## Primer ensayo propuesto: una nota Obsidian, sin escritura
+## Primer ensayo y posterior incorporación
 
 1. Prototipar sólo el formateo equivalente a `recordNote` y sus bloques de texto,
    con entradas ficticias en un laboratorio privado de `experiments/`.
@@ -49,6 +56,12 @@ mediante el ejecutable Whisper configurado.
 5. Integrar sólo después de demostrar equivalencia y un coste aceptable.
    Mantener los permisos, detección de notas editadas, hashes y escritura atómica
    existentes. `records.json` y los demás almacenes de Alice siguen siendo canónicos.
+
+El ensayo inicial se realizó en `experiments/node-python-obsidian/`, excluido
+de Git. La versión utilizable está en `Backend/adapters/obsidian_note_formatter.py`
+y `scripts/obsidian/python-renderer.mjs`. Se comprobó la equivalencia del resultado
+y se aceptó el coste para un comando manual. Las pruebas de integración escriben
+únicamente bóvedas ficticias; no se ejecutó ese comando sobre los datos personales.
 
 La integración puede seguir el patrón de proceso con entrada/salida acotadas
 que ya usa `Backend/src-tauri/src/documents.rs`: duración limitada, cancelación y
