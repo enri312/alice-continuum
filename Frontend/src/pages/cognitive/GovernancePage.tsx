@@ -1,36 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import type { CognitiveEvent, CognitiveModule } from "../../core/cognitive/cognitive-events";
-import { CognitiveTimeline } from "../../components/cognitive/CognitiveTimelineHost";
 import { auditSizeLabel, parseAuditSnapshot } from "../../core/governance/audit";
 import type { AuditSnapshot } from "../../core/governance/audit";
 import { parseDiagnosticSnapshot } from "../../core/governance/diagnostics";
 import type { DiagnosticCategory, DiagnosticSnapshot, DiagnosticStatus } from "../../core/governance/diagnostics";
 
-type ActivityView = "timeline" | "events" | "audit" | "diagnostic";
-type ActividadProps = { desktopApp: boolean; events: CognitiveEvent[]; onClear: () => void; scope?: "cognitive" | "governance" };
+type ActivityView = "audit" | "diagnostic";
+type GovernanceProps = { desktopApp: boolean };
 
 function eventTime(iso: string) {
   return new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 }).format(new Date(iso));
 }
 
-export function Actividad({ desktopApp, events, onClear, scope = "cognitive" }: ActividadProps) {
+export function AuditoriaDiagnostico({ desktopApp }: GovernanceProps) {
   const requestedView = new URLSearchParams(window.location.search).get("activityView");
-  const allowedViews: ActivityView[] = scope === "cognitive" ? ["timeline", "events"] : ["audit", "diagnostic"];
+  const allowedViews: ActivityView[] = ["audit", "diagnostic"];
   const [view, setView] = useState<ActivityView>(allowedViews.includes(requestedView as ActivityView) ? requestedView as ActivityView : allowedViews[0]);
-  const [module, setModule] = useState<CognitiveModule | "ALL">("ALL");
-  const [query, setQuery] = useState("");
   const [audit, setAudit] = useState<AuditSnapshot | null>(null);
   const [auditError, setAuditError] = useState("");
   const [auditLoading, setAuditLoading] = useState(false);
   const [diagnostic, setDiagnostic] = useState<DiagnosticSnapshot | null>(null);
   const [diagnosticError, setDiagnosticError] = useState("");
   const [diagnosticLoading, setDiagnosticLoading] = useState(false);
-  const filtered = useMemo(() => events.filter((event) => {
-    const text = `${event.module} ${event.node} ${event.payload}`.toLocaleLowerCase();
-    return (module === "ALL" || event.module === module) && text.includes(query.toLocaleLowerCase().trim());
-  }).reverse(), [events, module, query]);
-
   const refreshAudit = useCallback(async () => {
     if (!desktopApp) return;
     setAuditLoading(true);
@@ -44,7 +35,7 @@ export function Actividad({ desktopApp, events, onClear, scope = "cognitive" }: 
     }
   }, [desktopApp]);
 
-  useEffect(() => { if (scope === "governance") void refreshAudit(); }, [scope, refreshAudit]);
+  useEffect(() => { void refreshAudit(); }, [refreshAudit]);
 
   const refreshDiagnostic = useCallback(async () => {
     if (!desktopApp) return;
@@ -67,15 +58,9 @@ export function Actividad({ desktopApp, events, onClear, scope = "cognitive" }: 
   const diagnosticStatusLabel: Record<DiagnosticStatus, string> = { healthy: "SALUDABLE", configurationPending: "CONFIGURACIÓN PENDIENTE", unavailable: "NO DISPONIBLE", error: "ERROR" };
 
   return <section className="activity-page" aria-labelledby="activity-title">
-    <div className="activity-heading"><div><p className="eyebrow">{scope === "cognitive" ? "[06—07] COGNITIVE ACTIVITY · LOCAL" : "[08—09] OWNER INSPECTION · LOCAL"}</p><h2 id="activity-title">{scope === "cognitive" ? "Actividad cognitiva" : "Auditoría y diagnóstico"}</h2><p>{scope === "cognitive" ? "Línea temporal y eventos observables de la conducta actual de Alice." : "Evidencia persistente y salud técnica para inspección del propietario."}</p></div><div className={`activity-status ${(scope === "cognitive" ? events.length : audit?.totalValidEvents) ? "" : "idle"}`}><i />{(scope === "cognitive" ? events.length : audit?.totalValidEvents) ? "EVIDENCIA REAL" : "EN ESPERA"}</div></div>
-    <div className="activity-view-tabs" role="tablist" aria-label={scope === "cognitive" ? "Visualizaciones de actividad cognitiva" : "Herramientas de auditoría y diagnóstico"}>{scope === "cognitive" ? <><button type="button" role="tab" aria-selected={view === "timeline"} className={view === "timeline" ? "selected" : ""} onClick={() => setView("timeline")}><span>[06]</span>COGNITIVE TIMELINE</button><button type="button" role="tab" aria-selected={view === "events"} className={view === "events" ? "selected" : ""} onClick={() => setView("events")}><span>[07]</span>EVENT STREAM</button></> : <><button type="button" role="tab" aria-selected={view === "audit"} className={view === "audit" ? "selected" : ""} onClick={() => setView("audit")}><span>[08]</span>NATIVE AUDIT R3</button><button type="button" role="tab" aria-selected={view === "diagnostic"} className={view === "diagnostic" ? "selected" : ""} onClick={() => setView("diagnostic")}><span>[09]</span>PASSIVE DIAGNOSTIC</button></>}</div>
-    {view === "timeline" ? <CognitiveTimeline events={events} /> : <>
-    {view === "events" ? <>
-      <div className="event-console-title"><span>[07]</span><strong>EVENT STREAM / LOCAL CONSOLE</strong><small>{events.length} RECORDS</small></div>
-      <div className="activity-controls"><input aria-label="Buscar eventos" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar nodo o contenido" /><select aria-label="Filtrar módulo" value={module} onChange={(event) => setModule(event.target.value as CognitiveModule | "ALL")}><option value="ALL">TODOS LOS MÓDULOS</option><option value="SYSTEM">SYSTEM</option><option value="PERCEPTION">PERCEPTION</option><option value="MEMORY">MEMORY</option><option value="WORKSPACE">WORKSPACE</option><option value="OUTPUT">OUTPUT</option><option value="SECURITY">SECURITY</option></select><button className="console-button" onClick={onClear} disabled={!events.length}>Limpiar vista</button></div>
-      <div className="event-console"><div className="event-row event-header"><span>SEQ</span><span>TIME</span><span>MODULE</span><span>LEVEL</span><span>NODE</span><span>PAYLOAD</span></div>{filtered.length ? filtered.map((event) => <div className="event-row" key={event.id}><span>{String(event.sequence).padStart(5, "0")}</span><span>{eventTime(event.createdAt)}</span><span className={`module module-${event.module.toLowerCase()}`}>{event.module}</span><span>{event.level}</span><span>{event.node}</span><span title={event.payload}>{event.payload}</span></div>) : <div className="event-empty">No hay eventos que coincidan con este filtro.</div>}</div>
-      <div className="console-prompt"><strong>ALICE_CORE@LOCAL_PROCESS:~$</strong><span>{events.length} eventos temporales · limpiar no modifica la auditoría nativa</span></div>
-    </> : view === "audit" ? <section className="native-audit" aria-labelledby="native-audit-title">
+    <div className="activity-heading"><div><p className="eyebrow">[08—09] OWNER INSPECTION · LOCAL</p><h2 id="activity-title">Auditoría y diagnóstico</h2><p>Evidencia persistente y salud técnica para inspección del propietario.</p></div><div className={`activity-status ${audit?.totalValidEvents ? "" : "idle"}`}><i />{audit?.totalValidEvents ? "EVIDENCIA REAL" : "EN ESPERA"}</div></div>
+    <div className="activity-view-tabs" role="tablist" aria-label="Herramientas de auditoría y diagnóstico"><button type="button" role="tab" aria-selected={view === "audit"} className={view === "audit" ? "selected" : ""} onClick={() => setView("audit")}><span>[08]</span>NATIVE AUDIT R3</button><button type="button" role="tab" aria-selected={view === "diagnostic"} className={view === "diagnostic" ? "selected" : ""} onClick={() => setView("diagnostic")}><span>[09]</span>PASSIVE DIAGNOSTIC</button></div>
+    {view === "audit" ? <section className="native-audit" aria-labelledby="native-audit-title">
       <header className="event-console-title"><span>[08]</span><strong id="native-audit-title">UNIFIED NATIVE AUDIT · SCHEMA V1</strong><small>{audit?.totalValidEvents ?? 0} VALID EVENTS</small></header>
       <div className="native-audit-toolbar"><p>Metadatos mínimos correlacionados. Nunca guarda mensajes, imágenes, audio, parámetros privados ni claves.</p><button className="console-button" type="button" onClick={() => void refreshAudit()} disabled={!desktopApp || auditLoading}>{auditLoading ? "Leyendo…" : "Actualizar lectura"}</button></div>
       {!desktopApp ? <div className="event-empty">La auditoría nativa está disponible únicamente en Alice Desktop.</div> : auditError ? <div className="native-audit-error"><strong>LECTURA NO DISPONIBLE</strong><span>{auditError}</span></div> : audit ? <>
@@ -92,6 +77,5 @@ export function Actividad({ desktopApp, events, onClear, scope = "cognitive" }: 
         <footer className="diagnostic-footnote">GENERADO LOCALMENTE · {new Date(diagnostic.generatedAtMs).toLocaleString("es-PY")} · SIN EFECTOS LATERALES</footer>
       </> : <div className="event-empty">Abrí esta vista para ejecutar la inspección pasiva.</div>}
     </section>}
-    </>}
   </section>;
 }

@@ -73,9 +73,13 @@ impl Payload {
     pub fn parse(raw: &str) -> Result<Self, String> {
         let value: Self =
             serde_json::from_str(raw).map_err(|_| "Eventos temporales inválidos".to_string())?;
+        value.validate()?;
+        Ok(value)
+    }
+    pub fn validate(&self) -> Result<(), String> {
         let mut ids = HashSet::new();
-        if value.events.len() > 200
-            || value.events.iter().any(|event| {
+        if self.events.len() > 200
+            || self.events.iter().any(|event| {
                 event.id.trim().is_empty()
                     || event.id.encode_utf16().count() > 128
                     || !ids.insert(&event.id)
@@ -87,7 +91,7 @@ impl Payload {
         {
             return Err("Eventos temporales fuera del contrato".into());
         }
-        Ok(value)
+        Ok(())
     }
 }
 pub struct State {
@@ -106,6 +110,9 @@ impl State {
     }
     pub fn visible(&self) -> &[Event] {
         &self.events[self.events.len().saturating_sub(24)..]
+    }
+    pub fn events(&self) -> &[Event] {
+        &self.events
     }
     pub fn total(&self) -> usize {
         self.events.len()

@@ -451,13 +451,14 @@ léxica y comprobación de fuentes; Python recibe posiciones numéricas y latenc
 lote sin iniciar modelos. No añade procesos al arranque ni modifica la interfaz.
 Ver [alcance, formato de entrada y pruebas](docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 
-La línea temporal de Actividad pasa a Rust/Dioxus: ventana de 24 eventos,
-selección, posiciones, contadores, duración, inspector y leyenda. Se conserva el
-contenido y CSS, y se retira su implementación visual React anterior. El host
-sólo conecta los eventos de sesión y el montaje/reintento; el formato horario
-usa un módulo Intl sin React. La página de Actividad completa aún está pendiente.
-Pasaron 32 pruebas Rust, Clippy WASM, 900 pruebas frontend y las sondas de
-navegador y Tauri con datos aislados. [Alcance y evidencia de la línea temporal](docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
+Actividad presenta en Rust/Dioxus su encabezado, pestañas, consola, filtros y
+línea temporal de 24 eventos, con el mismo contenido y CSS. Los filtros y la
+selección se conservan al cambiar de vista. Se retiran `ActivityPage.tsx`, el
+host React de la línea temporal y su montaje WASM independiente; Auditoría y
+diagnóstico conserva su contenido en `GovernancePage.tsx`.
+`ActivityHost.tsx` conecta el montaje/reintento y los eventos del buffer de sesión,
+que aún pertenece a `App.tsx`. La aplicación raíz y las otras pantallas siguen
+en migración. [Alcance y pruebas de Actividad](docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 Estado y controles también mantiene en Rust su sesión R3: sondeo de cinco
 segundos, validación y proyección de métricas, con una lectura pendiente y
 cancelación al salir. Su presentación conserva contenido y clases CSS. React

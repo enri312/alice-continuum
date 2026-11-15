@@ -1,5 +1,10 @@
 # Línea temporal en Dioxus y salida completa de React, 2026-11-15
 
+Actualización posterior del mismo día: la línea temporal se integra directamente
+en la página de Actividad Dioxus; se retiran el host y el montaje independiente
+descritos aquí. Se conserva este informe como evidencia del primer incremento.
+Ver [estado y aceptación de Actividad](ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
+
 Se confirma como objetivo retirar React por completo del producto, de forma
 gradual. El [inventario de migración](../architecture/DIOXUS_MIGRATION_STATUS.md)
 incluye pantallas, estado global, navegación, entrada y recuperaciones, además

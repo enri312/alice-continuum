@@ -130,11 +130,11 @@ dividido sus funciones ni cambiado las claves de navegación existentes.
 ## Nombres y ubicación de las pantallas
 
 Las rutas anteriores partían de `Frontend/src/Page/`. La mayoría ahora parten de `Frontend/src/pages/`;
-Estado se renderiza en Dioxus y se conecta a la aplicación mediante un puente React:
+Las vistas migradas a Dioxus se conectan a la aplicación mediante hosts React temporales:
 
 | Archivo anterior | Ruta actual dentro de `Frontend/src/pages/` |
 |---|---|
-| `Actividad.tsx` | `cognitive/ActivityPage.tsx` |
+| `Actividad.tsx` | `cognitive/ActivityHost.tsx` (página Rust/Dioxus); auditoría/diagnóstico en `cognitive/GovernancePage.tsx` |
 | `Identificacion.tsx` | `cognitive/InputIdentificationPage.tsx` |
 | `Volumen.tsx` | `cognitive/NeuralVolumePage.tsx` |
 | `Flujo.tsx` | `cognitive/EvidenceFlowPage.tsx` |

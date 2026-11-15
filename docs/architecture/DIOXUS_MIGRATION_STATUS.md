@@ -12,7 +12,8 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
-| Línea temporal cognitiva | Ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. La implementación visual React anterior se retira. | Host temporal de montaje/reintento y recepción de eventos desde Actividad; el formato de hora usa Intl en un módulo sin React. |
+| Actividad | Página, encabezado, pestañas, consola inversa, búsqueda y filtro por módulo, estado y línea temporal en un solo montaje. | Host temporal de montaje/reintento y vaciado; el buffer y sus productores siguen en `App.tsx`. |
+| Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
 | Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
@@ -24,7 +25,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Bloque pendiente | Trabajo que falta |
 |---|---|
-| Actividad | Contenedor, cambio de vistas y flujo de eventos; la línea temporal avanza en el incremento actual. |
+| Conexión de Actividad con la aplicación | Retirar el host al sustituir el estado raíz, productores y buffer compartido de `App.tsx`. La presentación y los filtros de la página ya están en Dioxus. |
 | Auditoría y diagnóstico | Presentación, lecturas, validación y estados de error de sus vistas. Los servicios Rust existentes se conservan. |
 | Planificador | Presentación e inspector; después el registro R7 con sus revisiones y confirmaciones. |
 | Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
@@ -51,6 +52,30 @@ Cada incremento conserva diseño, datos, permisos, teclado y navegación; termin
 con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
+
+## Página de Actividad: estado vigente (2026-11-15)
+
+`activity_page_model.rs` mantiene vista, filtros y línea temporal sobre la misma
+fuente temporal. `activity_page_ui.rs` presenta el encabezado, pestañas y consola
+y reutiliza el panel de `timeline_ui.rs` sin otro renderer montado. Conserva
+contenido y clases CSS, orden inverso de consola, contadores de fuente y horas
+locales preparadas con Date/Intl. La búsqueda admite hasta 8192 unidades UTF-16;
+los textos de los eventos no se recortan. Cambiar de vista conserva filtros y
+selección, y actualizar la fuente no sustituye las preferencias de UI.
+
+`ActivityHost.tsx` sólo monta, actualiza, reintenta y conecta el vaciado del buffer.
+Valida los callbacks cerrados y conserva una referencia de recuperación sin
+reimplementar filtros ni presentación. Una carga o actualización inválida retira
+el montaje y ofrece reintento; la fuente sigue en la sesión. Se retiraron
+`ActivityPage.tsx`, `CognitiveTimelineHost.tsx`, su callback de selección anterior
+y las funciones WASM independientes de Timeline. Auditoría y diagnóstico se
+separó en `GovernancePage.tsx`, con su contenido y lecturas anteriores en React.
+
+El buffer de hasta 200 eventos, su secuencia y productores siguen en `App.tsx`;
+la línea sólo proyecta los últimos 24. Limpiar se limita a `onClear`: no hay IPC,
+escritura persistente ni modificación de R3 en esta página. La retirada del host
+y de React global requiere migrar la aplicación raíz, como las demás pantallas.
+Ver [pruebas y evidencia](../testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 ## Sesión de Estado: estado vigente (2026-11-15)
 

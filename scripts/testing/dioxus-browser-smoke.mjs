@@ -128,52 +128,83 @@ try {
   // Timeline is a single Rust renderer; its fixture has no IPC or persistent stores.
   // Unmount Flow first, matching the app's one-page-at-a-time ownership of keyboard events.
   await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
-  await until(() => evaluate('Boolean(document.querySelector(".activity-view-tabs"))'), 'contenedor de Actividad');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .activity-view-tabs\'))'), 'contenedor Dioxus de Actividad');
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
-  await until(() => evaluate('Boolean(document.querySelector(".event-console"))&&!document.querySelector("[data-flow-page-renderer]")&&!document.querySelector("[data-timeline-renderer]")'), 'fuente de eventos sin otro renderer');
-  await evaluate(`(async () => {
-    const runtime = await (await import(${JSON.stringify(runtimeUrl)})).loadTimelineRuntime();
-    const container = document.createElement('div'); container.id='dioxus-smoke-timeline'; container.style.margin='20px'; container.style.width=(innerWidth-40)+'px'; document.body.append(container);
-    const payload={events:[],selectedId:''}; const actions=[];
+  await until(() => evaluate('Boolean(document.querySelector(".event-console"))&&!document.querySelector("[data-flow-page-renderer]")'), 'consola de Actividad en Rust');
+  assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),1);
+  await evaluate('document.querySelector(".core-system-selector .governance").click()');
+  await until(()=>evaluate('Boolean(document.querySelector(\'button[aria-label="Auditoría y diagnóstico"]\'))'),'navegación al sistema de gobierno');
+  await clickTab('Auditoría y diagnóstico');
+  await until(() => evaluate('Boolean(document.querySelector(".native-audit"))&&!document.querySelector("[data-activity-renderer]")'), 'gobierno separado sin otro renderer Dioxus');
+  // Full Activity page, synthetic session only. Root app and native stores are untouched.
+  await evaluate(`(async()=>{
+    const runtime=await(await import(${JSON.stringify(runtimeUrl)})).loadActivityPageRuntime();
+    const container=document.createElement('div');container.id='dioxus-smoke-activity';container.style.margin='20px';container.style.width=(innerWidth-40)+'px';document.body.append(container);
+    const events=Array.from({length:30},(_,index)=>({id:'activity-'+index,sequence:index+1,timestampMs:1000+index*500,timeLabel:'10:00:'+String(index).padStart(2,'0'),module:index%2?'MEMORY':'SYSTEM',level:'INFO',node:'ÁRBOL-'+index,payload:index===7?'<img src=x onerror="globalThis.__activityInjected=true">':'Evento '+index}));
+    const payload={timeline:{events,selectedId:''},streamTimes:events.map((_,index)=>'10:00:00,'+String(index).padStart(3,'0')),requestedView:'events',settings:null};
+    const actions=[];
     const id=await new Promise(resolve=>{const mounted=runtime.mount(container.id,JSON.stringify(payload),raw=>actions.push(JSON.parse(raw)),()=>queueMicrotask(()=>resolve(mounted)));});
-    globalThis.__timelineSmoke={runtime,id,payload,actions};
+    globalThis.__activitySmoke={runtime,id,payload,actions};
   })()`);
-  const timeline = '#dioxus-smoke-timeline';
-  await until(() => evaluate(`Boolean(document.querySelector('${timeline} .timeline-empty'))`), 'línea temporal vacía');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector strong')?.textContent`),'NINGÚN EVENTO DISPONIBLE');
-  await evaluate(`__timelineSmoke.payload.events=Array.from({length:30},(_,index)=>({id:'event-'+(index+1),sequence:index+1,timestampMs:1000+index*1250,timeLabel:'10:00:'+String(index).padStart(2,'0'),module:index%2?'MEMORY':'SYSTEM',level:'INFO',node:'NODE-'+(index+1),payload:index===7?'<img src=x onerror="globalThis.__timelineInjected=true">':'Evento '+(index+1)})); __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
-  await until(() => evaluate(`document.querySelectorAll('${timeline} .timeline-node').length===24`), 'últimos 24 eventos en Rust');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-summary dd')?.textContent`),'24 / 30');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-node span')?.textContent`),'0007');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-node').style.getPropertyValue('--timeline-left')`),'4%');
-  await evaluate(`document.querySelectorAll('${timeline} .timeline-node')[1].click()`);
-  await until(() => evaluate(`document.querySelector('${timeline} .timeline-inspector p')?.textContent.startsWith('<img')`), 'selección e inspección literal');
-  assert.equal(await evaluate(`document.querySelectorAll('${timeline} img').length`),0,'El payload se dibuja como texto');
-  assert.equal(await evaluate('globalThis.__timelineInjected===true'),false);
-  await evaluate(`document.querySelectorAll('${timeline} .timeline-node')[2].focus()`);
+  const activity='#dioxus-smoke-activity';
+  const activityQuery=async value=>evaluate(`(()=>{const input=document.querySelector('${activity} [aria-label="Buscar eventos"]');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const activityModule=async value=>evaluate(`(()=>{const select=document.querySelector('${activity} [aria-label="Filtrar módulo"]');select.value=${JSON.stringify(value)};select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  const activityView=async label=>evaluate(`Array.from(document.querySelectorAll('${activity} [role="tab"]')).find(tab=>tab.textContent.includes(${JSON.stringify(label)})).click()`);
+  const activityRows=()=>evaluate(`document.querySelectorAll('${activity} .event-row:not(.event-header)').length`);
+  await until(async()=>await activityRows()===30,'todos los eventos en la consola Rust');
+  assert.equal(await evaluate(`document.querySelector('${activity} .event-row:not(.event-header) span').textContent`),'00030','Consola en orden inverso');
+  assert.equal(await evaluate(`document.querySelector('${activity} .event-row:not(.event-header) span:nth-child(2)').textContent`),'10:00:00,029');
+  await activityQuery('  ÁRBOL-7  ');
+  await until(async()=>await activityRows()===1,'búsqueda Unicode sin cambiar el origen');
+  assert.equal(await evaluate(`document.querySelectorAll('${activity} img').length`),0);
+  assert.equal(await evaluate('globalThis.__activityInjected===true'),false,'Payload sólo como texto');
+  await activityModule('SYSTEM');
+  await until(async()=>await activityRows()===0,'filtros combinados');
+  await activityModule('MEMORY');
+  await until(async()=>await activityRows()===1,'filtro de módulo recupera contenido');
+  await activityView('COGNITIVE TIMELINE');
+  await until(()=>evaluate(`document.querySelectorAll('${activity} .timeline-node').length===24`),'línea temporal dentro del mismo montaje');
+  assert.equal(await evaluate(`document.querySelector('${activity} .timeline-summary dd').textContent`),'24 / 30');
+  assert.equal(await evaluate(`document.querySelector('${activity} .timeline-node').style.getPropertyValue('--timeline-left')`),'4%');
+  await evaluate(`document.querySelectorAll('${activity} .timeline-node')[1].click()`);
+  await until(()=>evaluate(`document.querySelector('${activity} .timeline-inspector p').textContent.startsWith('<img')`),'inspector compartido');
+  await evaluate(`document.querySelectorAll('${activity} .timeline-node')[2].focus()`);
   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r',unmodifiedText:'\r'});
   await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-  await until(() => evaluate(`document.querySelector('${timeline} .timeline-inspector span')?.textContent.includes('SEQ 00009')`), 'selección de evento por teclado');
-  await evaluate(`__timelineSmoke.payload.events.push({...__timelineSmoke.payload.events.at(-1),id:'event-31',sequence:31,timestampMs:38500,payload:'Evento 31'}); __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
-  await until(() => evaluate(`document.querySelector('${timeline} .timeline-summary dd')?.textContent==='24 / 31'`), 'actualización de la ventana temporal');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector span')?.textContent.includes('SEQ 00009')`),true,'Se conserva la selección vigente');
-  const captureTimeline = async (width,name) => {
-    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
-    await evaluate(`document.querySelector('${timeline}').style.width=(innerWidth-40)+'px'`);
-    const clip=await evaluate(`(()=>{const r=document.querySelector('${timeline} .cognitive-timeline').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1}})()`);
-    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});
-    await fs.writeFile(path.join(artifacts,name),Buffer.from(shot.data,'base64'));
-    assert.equal(await evaluate(`document.querySelector('${timeline} .cognitive-timeline').scrollWidth<=document.querySelector('${timeline} .cognitive-timeline').clientWidth`),true,'Línea temporal sin desbordamiento');
-  };
-  await captureTimeline(1440,'timeline-1440.png');
-  await captureTimeline(390,'timeline-390.png');
+  await until(()=>evaluate(`document.querySelector('${activity} .timeline-inspector span').textContent.includes('SEQ 00009')`),'selección por teclado dentro de Actividad');
+  await activityView('EVENT STREAM');
+  await until(async()=>await activityRows()===1,'filtros conservados entre vistas');
+  assert.equal(await evaluate(`document.querySelector('${activity} input').value`),'  ÁRBOL-7  ');
+  await evaluate(`__activitySmoke.payload.timeline.events.push({...__activitySmoke.payload.timeline.events.at(-1),id:'activity-30',sequence:31,timestampMs:16000});__activitySmoke.payload.streamTimes.push('10:00:00,030');__activitySmoke.runtime.update(__activitySmoke.id,JSON.stringify(__activitySmoke.payload))`);
+  await until(()=>evaluate(`document.querySelector('${activity} .event-console-title small').textContent==='31 RECORDS'`),'actualización de fuente sin borrar filtros');
+  assert.equal(await activityRows(),1);
+  assert.equal(await evaluate(`(()=>{const invalid=structuredClone(__activitySmoke.payload);invalid.streamTimes=[];try{__activitySmoke.runtime.update(__activitySmoke.id,JSON.stringify(invalid));return false}catch{return true}})()`),true);
+  await activityQuery(''); await activityModule('ALL');
+  await until(async()=>await activityRows()===31,'volver a todos los eventos');
+  for(const [width,name] of [[1440,'activity-1440.png'],[390,'activity-390.png']]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1100,deviceScaleFactor:1,mobile:false});
+    await evaluate(`document.querySelector('${activity}').style.width=(innerWidth-40)+'px';document.querySelector('${activity}').scrollIntoView()`);
+    assert.equal(await evaluate(`document.querySelector('${activity} .activity-page').scrollWidth<=document.querySelector('${activity} .activity-page').clientWidth`),true,'Página conserva el ancho; la consola desplaza su tabla internamente');
+    const clip=await evaluate(`(()=>{const r=document.querySelector('${activity} .activity-page').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:Math.min(r.height,1100),scale:1}})()`);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});await fs.writeFile(path.join(artifacts,name),Buffer.from(shot.data,'base64'));
+  }
   await send('Emulation.setDeviceMetricsOverride',{width:1000,height:900,deviceScaleFactor:1,mobile:false});
-  assert.equal(await evaluate(`(()=>{const invalid=structuredClone(__timelineSmoke.payload); invalid.events.push(invalid.events[0]); try{__timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(invalid));return false}catch{return true}})()`),true,'IDs ambiguos rechazados');
-  await evaluate(`__timelineSmoke.payload.events=[]; __timelineSmoke.runtime.update(__timelineSmoke.id,JSON.stringify(__timelineSmoke.payload))`);
-  await until(() => evaluate(`document.querySelectorAll('${timeline} .timeline-node').length===0`), 'vaciar la fuente temporal');
-  assert.equal(await evaluate(`document.querySelector('${timeline} .timeline-inspector strong')?.textContent`),'NINGÚN EVENTO DISPONIBLE');
-  assert.equal(await evaluate('__timelineSmoke.actions.every(action=>action.type==="select"&&Object.keys(action).length===2)'),true,'La línea temporal sólo emite selección');
-  await evaluate(`__timelineSmoke.runtime.unmount(__timelineSmoke.id); document.querySelector('${timeline}').remove(); delete globalThis.__timelineSmoke`);
+  await evaluate(`document.querySelector('${activity} .console-button').click()`);
+  await until(()=>evaluate('__activitySmoke.actions.some(action=>action.type==="clear")'),'vaciar sólo solicita borrar la vista');
+  assert.equal(await activityRows(),31,'La fuente sólo cambia cuando su propietario confirma el vaciado');
+  await evaluate(`__activitySmoke.payload.timeline.events=[];__activitySmoke.payload.streamTimes=[];__activitySmoke.runtime.update(__activitySmoke.id,JSON.stringify(__activitySmoke.payload))`);
+  await until(()=>evaluate(`document.querySelector('${activity} .console-button').disabled`),'consola vacía y botón deshabilitado');
+  await evaluate(`__activitySmoke.runtime.unmount(__activitySmoke.id);document.querySelector('${activity}').remove();delete globalThis.__activitySmoke`);
+
+  const activityUrl=new URL(url);activityUrl.searchParams.set('screen','actividad');activityUrl.searchParams.set('activityView','events');
+  await send('Network.enable');await send('Network.setCacheDisabled',{cacheDisabled:true});await send('Network.setBlockedURLs',{urls:['*.wasm']});
+  await send('Page.navigate',{url:activityUrl.href});
+  await until(()=>evaluate('document.querySelector("[data-activity-renderer]")?.dataset.activityRenderer==="error"'),'fallo de carga de Actividad visible');
+  assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),0,'No monta una segunda página React');
+  await send('Network.setBlockedURLs',{urls:[]});
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar actividad").click()');
+  await until(()=>evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .event-console\'))'),'reintento conserva vista solicitada por URL');
+  assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),1);
 
   // A failed WASM download must retain the React view and its selection on retry.
   await send('Network.enable');
@@ -528,11 +559,11 @@ try {
   await send('Network.setBlockedURLs',{urls:['*.wasm']});
   url.searchParams.set('screen','actividad'); url.searchParams.set('activityView','timeline');
   await send('Page.navigate',{url:url.href});
-  await until(() => evaluate('document.body.textContent.includes("LÍNEA TEMPORAL NO DISPONIBLE")'),'error recuperable de línea temporal');
+  await until(() => evaluate('document.body.textContent.includes("ACTIVIDAD NO DISPONIBLE")'),'error recuperable de Actividad');
   assert.equal(await evaluate('document.querySelectorAll(".cognitive-timeline").length'),0,'Sin una segunda implementación visual React');
   await send('Network.setBlockedURLs',{urls:[]});
-  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar línea temporal").click()');
-  await until(() => evaluate('Boolean(document.querySelector(\'[data-timeline-renderer="dioxus"] .cognitive-timeline\'))'),'línea temporal recuperada con eventos de la sesión');
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar actividad").click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .cognitive-timeline\'))'),'Actividad recuperada con eventos de la sesión');
   assert.equal(await evaluate('document.querySelectorAll(".cognitive-timeline").length'),1);
   console.log(`Dioxus: línea temporal, Estado y Flujo; ventanas de eventos, selección, teclado, señales, desmontaje, asociaciones y recuperación comprobados. Capturas: ${artifacts}`);
 } catch (error) {

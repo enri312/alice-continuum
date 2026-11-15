@@ -44,7 +44,7 @@ numéricos elegidos expresamente, sin modelos ni textos personales. Se compara
 con el cálculo anterior usando 25 lotes ficticios; el ensayo con Gemma y perfil
 real continúa siendo optativo y no se ejecutó en este incremento. No se portan
 los pilotos históricos ni se modifica su evidencia. Ver [auditoría y validación](docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
-El siguiente bloque de interfaz sigue siendo el contenedor de Actividad en Dioxus.
+El contenedor de Actividad avanzó en el incremento Dioxus descrito más abajo.
 
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector
@@ -190,11 +190,23 @@ geometría, contadores, duración, inspector y leyenda pasan a Rust/Dioxus.
 Se retira `CognitiveTimeline.tsx`; su host temporal sólo monta, recibe eventos
 y permite reintentar. No se añade otra línea temporal en React para recuperación.
 Se conservan los contenidos, clases CSS y eventos de sesión; no hay IPC ni
-persistencia en este renderer. El contenedor de Actividad y las otras vistas
-continúan pendientes. Build, 32 pruebas Rust, Clippy WASM, 900 frontend,
+persistencia en este renderer. En ese incremento, el contenedor de Actividad y
+las otras vistas continuaban pendientes. Build, 32 pruebas Rust, Clippy WASM, 900 frontend,
 Obsidian, respaldos y privacidad aprobados. Navegador y Tauri comprobaron
 selección por teclado, actualización, vaciado, navegación y recuperación.
 Ver [informe del incremento](docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
+
+**Página de Actividad (2026-11-15):** encabezado, pestañas Timeline/Event Stream,
+consola, búsqueda, filtro por módulo y estado visible pasan a Rust/Dioxus en un
+solo montaje con la línea temporal. Se mantienen textos, contenido, clases CSS,
+horas locales con milisegundos y los 200 eventos de sesión; la línea muestra
+los últimos 24. Filtros y selección se conservan entre vistas. Limpiar sólo
+solicita vaciar el buffer temporal, sin comandos ni escrituras de auditoría.
+Se retiran `ActivityPage.tsx`, `CognitiveTimelineHost.tsx` y el montaje WASM
+independiente de Timeline. Auditoría/diagnóstico queda separado, con su contenido
+React anterior. `ActivityHost.tsx` es una frontera temporal de montaje/reintento;
+`App.tsx` todavía produce y conserva el buffer y la navegación. La salida total
+de React permanece pendiente. Ver [alcance y aceptación](docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de

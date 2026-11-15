@@ -1,24 +1,24 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
-export const mount_cognitive_timeline: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_flow_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_relation_confirmation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_saved_relations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_source_form: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_state_controls: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+export const unmount_activity_page: (a: number) => void;
 export const unmount_cognitive_flow: (a: number) => void;
-export const unmount_cognitive_timeline: (a: number) => void;
 export const unmount_flow_page: (a: number) => void;
 export const unmount_memory_associations: (a: number) => void;
 export const unmount_relation_confirmation: (a: number) => void;
 export const unmount_saved_relations: (a: number) => void;
 export const unmount_source_form: (a: number) => void;
 export const unmount_state_controls: (a: number) => void;
+export const update_activity_page: (a: number, b: number, c: number) => [number, number];
 export const update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
-export const update_cognitive_timeline: (a: number, b: number, c: number) => [number, number];
 export const update_flow_page: (a: number, b: number, c: number) => [number, number];
 export const update_memory_associations: (a: number, b: number, c: number) => [number, number];
 export const update_relation_confirmation: (a: number, b: number, c: number) => [number, number];

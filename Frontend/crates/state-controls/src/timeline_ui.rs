@@ -1,41 +1,7 @@
-use crate::timeline_model::{elapsed_label, Module, Payload, State};
+use crate::timeline_model::{elapsed_label, Module, State};
 use dioxus::prelude::*;
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::StreamExt;
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::JsValue;
 
-#[derive(Clone)]
-pub struct PageProps {
-    pub initial: Payload,
-    pub rx: Rc<RefCell<Option<UnboundedReceiver<Payload>>>>,
-    pub on_action: js_sys::Function,
-    pub on_ready: js_sys::Function,
-}
-impl PartialEq for PageProps {
-    fn eq(&self, _: &Self) -> bool {
-        true
-    }
-}
-
-pub fn page(props: PageProps) -> Element {
-    let mut state = use_signal(|| State::new(props.initial.clone()));
-    let rx = props.rx.clone();
-    use_future(move || {
-        let receiver = rx.borrow_mut().take();
-        async move {
-            if let Some(mut receiver) = receiver {
-                while let Some(next) = receiver.next().await {
-                    state.write().update(next);
-                }
-            }
-        }
-    });
-    let ready = props.on_ready.clone();
-    use_effect(move || {
-        let _ = ready.call0(&JsValue::NULL);
-    });
-    let view = state.read();
+pub fn panel(view: &State, on_select: EventHandler<String>) -> Element {
     let visible = view.visible();
     let selected = view.selected();
     let modules = view.modules();
@@ -61,7 +27,6 @@ pub fn page(props: PageProps) -> Element {
                         for (index, event) in visible.iter().enumerate() {
                             {
                                 let id = event.id.clone();
-                                let callback = props.on_action.clone();
                                 let selected_class = if selected.is_some_and(|selected| selected.id == event.id) { "selected" } else { "" };
                                 let class = format!("timeline-node module-{} {selected_class} lane-{}", event.module.class(), index % 3);
                                 let position = view.position(event);
@@ -69,7 +34,7 @@ pub fn page(props: PageProps) -> Element {
                                 let sequence = format!("{:04}", event.sequence);
                                 rsx! { button { key: "{event.id}", r#type: "button", role: "listitem", class,
                                     style: "--timeline-left: {position}%", "aria-label": label,
-                                    onclick: move |_| { if state.write().select(&id) { let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&serde_json::json!({"type":"select","id":id}).to_string())); } },
+                                    onclick: move |_| on_select.call(id.clone()),
                                     i {} span { "{sequence}" }
                                 } }
                             }

@@ -1,3 +1,6 @@
+pub mod activity_page_model;
+#[cfg(target_arch = "wasm32")]
+mod activity_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod activity_ui;
 pub mod associations_model;
@@ -98,10 +101,10 @@ mountable_view!(
 );
 #[cfg(target_arch = "wasm32")]
 mountable_view!(
-    timeline_browser,
-    crate::timeline_model::Payload,
-    crate::timeline_ui,
-    mount_cognitive_timeline,
-    update_cognitive_timeline,
-    unmount_cognitive_timeline
+    activity_page_browser,
+    crate::activity_page_model::Payload,
+    crate::activity_page_ui,
+    mount_activity_page,
+    update_activity_page,
+    unmount_activity_page
 );

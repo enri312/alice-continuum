@@ -3,9 +3,6 @@
 export function unmount_cognitive_flow(id: number): void;
 export function update_cognitive_flow(id: number, raw: string): void;
 export function mount_cognitive_flow(root: string, raw: string, on_action: Function, on_ready: Function): number;
-export function unmount_cognitive_timeline(id: number): void;
-export function update_cognitive_timeline(id: number, raw: string): void;
-export function mount_cognitive_timeline(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_flow_page(id: number): void;
 export function update_flow_page(id: number, raw: string): void;
 export function mount_flow_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -21,6 +18,9 @@ export function mount_memory_associations(root: string, raw: string, on_action: 
 export function unmount_relation_confirmation(id: number): void;
 export function update_relation_confirmation(id: number, raw: string): void;
 export function mount_relation_confirmation(root: string, raw: string, on_action: Function, on_ready: Function): number;
+export function unmount_activity_page(id: number): void;
+export function update_activity_page(id: number, raw: string): void;
+export function mount_activity_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_state_controls(id: number): void;
 export function update_state_controls(id: number, raw: string): void;
 export function mount_state_controls(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -29,24 +29,24 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
-  readonly mount_cognitive_timeline: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_flow_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_relation_confirmation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_saved_relations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_source_form: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_state_controls: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly unmount_activity_page: (a: number) => void;
   readonly unmount_cognitive_flow: (a: number) => void;
-  readonly unmount_cognitive_timeline: (a: number) => void;
   readonly unmount_flow_page: (a: number) => void;
   readonly unmount_memory_associations: (a: number) => void;
   readonly unmount_relation_confirmation: (a: number) => void;
   readonly unmount_saved_relations: (a: number) => void;
   readonly unmount_source_form: (a: number) => void;
   readonly unmount_state_controls: (a: number) => void;
+  readonly update_activity_page: (a: number, b: number, c: number) => [number, number];
   readonly update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
-  readonly update_cognitive_timeline: (a: number, b: number, c: number) => [number, number];
   readonly update_flow_page: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];
   readonly update_relation_confirmation: (a: number, b: number, c: number) => [number, number];
