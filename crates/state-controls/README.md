@@ -15,6 +15,10 @@ cambio de un control. El contenedor valida cada acción contra el estado actual.
 - `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
 - `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
 - `src/activity_ui.rs`: encabezado y banda R3 compartidos por Estado y Flujo.
+- `src/relations_model.rs`, `src/relations_ui.rs`: lista de relaciones guardadas
+  y solicitud de revisión; sin confirmación ni escritura.
+- `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
+  con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
 - `src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
   ciclo de vida, validación de acciones y una vista de recuperación. La antigua
@@ -60,3 +64,8 @@ una instancia de prueba de WASM y verifica el rechazo de una señal inválida.
 Bloquea la descarga de WASM para comprobar el respaldo y el reintento conservando
 la selección. `ALICE_PREVIEW_URL` admite otro preview HTTP de loopback.
 Requiere un build actual del proyecto; no valida Tauri, voz ni memoria personal.
+También simula IPC con cuatro relaciones ficticias y comprueba sus estados,
+bloqueos y títulos como texto. Seleccionar y cancelar no escriben; confirmar
+envía la revisión esperada al servicio ficticio. Se ensayan un error de guardado
+y la recuperación de la lista tras un fallo de WASM. Nunca conecta esa simulación
+con los almacenes del propietario.

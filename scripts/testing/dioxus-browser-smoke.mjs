@@ -61,6 +61,7 @@ try {
     if (result.exceptionDetails) throw Error(result.exceptionDetails.text);
     return result.result.value;
   };
+  await send('Page.enable');
   const ready = () => until(() => evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .flow-node\'))'), 'montaje Dioxus');
   const inspector = () => evaluate('document.querySelector(".neuro-inspector h3")?.textContent');
   const clickTab = label => evaluate(`Array.from(document.querySelectorAll("button")).find(button => button.getAttribute("aria-label") === ${JSON.stringify(label)})?.click()`);
@@ -136,7 +137,87 @@ try {
   assert.equal(await inspector(), 'Memoria', 'Conserva selección al recuperar Dioxus');
   assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'), 1);
   assert.equal(await evaluate('document.body.textContent.includes("Vista de respaldo activa.")'), false);
-  console.log(`Dioxus: montaje, clic, teclado, navegación, dos anchos, estados R3 y recuperación comprobados. Capturas: ${artifacts}`);
+
+  // Simulated IPC only: this browser has no native bridge or access to stores.
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: `
+    globalThis.isTauri = true;
+    globalThis.__relationCalls = [];
+    globalThis.__relationFixture = {revision:7,associations:[
+      {id:'active',revision:1,withdrawn:false,sourcesCurrent:true,evidence:[{recordId:'a'},{recordId:'b'}]},
+      {id:'withdrawn',revision:1,withdrawn:true,sourcesCurrent:true,evidence:[{recordId:'a'},{recordId:'c'}]},
+      {id:'blocked',revision:1,withdrawn:true,sourcesCurrent:false,evidence:[{recordId:'b'},{recordId:'c'}]},
+      {id:'stale',revision:1,withdrawn:false,sourcesCurrent:false,evidence:[{recordId:'a'},{recordId:'d'}]}
+    ]};
+    globalThis.__TAURI_INTERNALS__ = {
+      transformCallback: () => 0,
+      invoke: async (cmd,args={}) => {
+        __relationCalls.push({cmd,args:structuredClone(args)});
+        if(cmd==='knowledge_graph_snapshot') return {nodes:[]};
+        if(cmd==='load_memory') return {existed:true,storagePath:'synthetic-only/records.json',sessions:[
+          {id:'a',kind:'Enseñanza',intention:'Experiencia A',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
+          {id:'b',kind:'Enseñanza',intention:'Experiencia B',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
+          {id:'c',kind:'Enseñanza',intention:'Experiencia C',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
+          {id:'d',kind:'Enseñanza',intention:'Experiencia <D>',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'}]};
+        if(cmd==='knowledge_graph_associations') return structuredClone(__relationFixture);
+        if(cmd==='set_knowledge_graph_association_withdrawn') {
+          if(globalThis.__failRelationWrite) { globalThis.__failRelationWrite=false; throw Error('Fallo sintético de relación'); }
+          if(args.confirmed!==true || args.expectedRevision!==__relationFixture.revision) throw Error('Confirmación o revisión inválida');
+          const relation=__relationFixture.associations.find(item=>item.id===args.id);
+          if(!relation) throw Error('Relación desconocida');
+          relation.withdrawn=args.withdrawn; __relationFixture.revision++; return null;
+        }
+        throw Error('Servicio no incluido en la simulación: '+cmd);
+      }
+    };
+  ` });
+  await send('Page.navigate', { url: url.href });
+  await until(() => evaluate('globalThis.isTauri === true'), 'instalación de IPC ficticio');
+  const relationsReady = () => until(() => evaluate('document.querySelectorAll(\'[data-relations-renderer="dioxus"] article\').length === 4'), 'lista Dioxus con IPC ficticio');
+  await relationsReady();
+  assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations article button")).map(button=>button.disabled)'), [false,false,true,false]);
+  assert.equal(await evaluate('document.querySelector(".memory-associations").textContent.includes("Experiencia <D>")'), true);
+  assert.equal(await evaluate('document.querySelectorAll(".memory-associations article d").length'), 0, 'Los títulos se muestran como texto');
+  const writes = () => evaluate('__relationCalls.filter(call=>call.cmd==="set_knowledge_graph_association_withdrawn")');
+  await evaluate('document.querySelectorAll(".memory-associations article button")[0].click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión antes de escribir');
+  assert.equal((await writes()).length, 0, 'Seleccionar no escribe');
+  await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Cancelar").click()');
+  assert.equal((await writes()).length, 0, 'Cancelar no escribe');
+  await evaluate('document.querySelectorAll(".memory-associations article button")[1].click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión de restauración');
+  await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar cambio").click()');
+  await until(async () => (await writes()).length === 1, 'confirmación explícita');
+  assert.deepEqual((await writes())[0].args, {id:'withdrawn',withdrawn:false,expectedRevision:7,confirmed:true});
+  await until(() => evaluate('document.querySelectorAll(".memory-associations article button")[1]?.textContent === "Retirar relación"'), 'lista actualizada después de confirmar');
+  await evaluate('globalThis.__failRelationWrite=true; document.querySelectorAll(".memory-associations article button")[0].click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión con error simulado');
+  await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar cambio").click()');
+  await until(() => evaluate('document.querySelector(".memory-associations [role=alert]")?.textContent.includes("Fallo sintético")'), 'error comunicado');
+  assert.equal(await evaluate('__relationFixture.associations[0].withdrawn'), false);
+  await evaluate('document.querySelector(".memory-associations h4").scrollIntoView({block:"center"})');
+  const relationsShot = await send('Page.captureScreenshot', {format:'png'});
+  await fs.writeFile(path.join(artifacts, 'saved-relations.png'), Buffer.from(relationsShot.data, 'base64'));
+
+  await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
+  await send('Page.navigate', { url: url.href });
+  await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
+  assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
+  await send('Network.setBlockedURLs', { urls: [] });
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar lista").click()');
+  await relationsReady();
+  assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
+  assert.equal((await writes()).length, 0, 'Reintentar no escribe');
+  console.log(`Dioxus: navegación, estados R3, lista, confirmaciones con IPC ficticio y recuperación comprobados. Capturas: ${artifacts}`);
+} catch (error) {
+  if (send && socket?.readyState === WebSocket.OPEN) {
+    try {
+      const state = await send('Runtime.evaluate', {expression:'JSON.stringify({text:document.body.innerText,calls:globalThis.__relationCalls,tauri:globalThis.isTauri})',returnByValue:true});
+      await fs.writeFile(path.join(artifacts, 'failure.json'), state.result.value ?? '{}');
+      console.error(`Estado de prueba aislada: ${artifacts}`);
+    } catch { /* Preserve the original failure. */ }
+  }
+  throw error;
 } finally {
   try { if (send && socket?.readyState === WebSocket.OPEN) await send('Browser.close'); } catch { /* Browser may close before acknowledging. */ }
   socket?.close();

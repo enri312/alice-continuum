@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "../documents/DocumentPreview.css";
+import { SavedRelationsDioxus } from "./SavedRelationsDioxus";
 
 type Evidence = { recordId: string; recordVersion: number; recordSha256: string; quote: string };
 type Node = { evidenceUse: string; recordVersion: number; lifecycle: { recordId: string; recordSha256: string } };
@@ -74,13 +75,13 @@ export function MemoryAssociations({ desktopApp }: { desktopApp: boolean }) {
             await refresh(); setMessage("Relación guardada por tu confirmación.");
           })}>Confirmar y guardar relación</button>
         </div>}
-        <h4>Relaciones guardadas</h4>
-        {!status.associations.length && <p>No hay relaciones guardadas. No se crearon conexiones automáticas.</p>}
-        {status.associations.map(relation => <article key={relation.id} style={{ borderTop: "1px solid #315366", padding: "14px 0" }}>
-          <p>{relation.evidence.map(e => title(e.recordId)).join(" ↔ ")}</p>
-          <p>{relation.withdrawn ? "Retirada" : relation.sourcesCurrent ? "Vigente · confirmada por vos" : "No vigente · fuente cambiada o no recuperable"}</p>
-          <button type="button" disabled={busy || (relation.withdrawn && !relation.sourcesCurrent)} onClick={() => setDecision(relation)}>{relation.withdrawn ? "Restaurar relación" : "Retirar relación"}</button>
-        </article>)}
+        <SavedRelationsDioxus busy={busy} relations={status.associations.map(relation => ({
+          id: relation.id, title: relation.evidence.map(e => title(e.recordId)).join(" ↔ "),
+          withdrawn: relation.withdrawn, sourcesCurrent: relation.sourcesCurrent,
+        }))} onReview={id => {
+          const relation = status.associations.find(relation => relation.id === id);
+          if (!busy && relation && !(relation.withdrawn && !relation.sourcesCurrent)) setDecision(relation);
+        }} />
         {decision && <div role="region" aria-label="Confirmar cambio de relación">
           <p>¿{decision.withdrawn ? "Restaurar" : "Retirar"} esta relación? No modifica recuerdos y conserva las revisiones anteriores.</p>
           <button type="button" disabled={busy} onClick={() => void run(async () => {

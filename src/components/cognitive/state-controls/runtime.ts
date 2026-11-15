@@ -1,4 +1,4 @@
-import initialize, { mount_state_controls, update_state_controls, unmount_state_controls, mount_cognitive_flow, update_cognitive_flow, unmount_cognitive_flow } from "../../../dioxus/state-controls/pkg/alice_state_controls";
+import initialize, { mount_state_controls, update_state_controls, unmount_state_controls, mount_cognitive_flow, update_cognitive_flow, unmount_cognitive_flow, mount_saved_relations, update_saved_relations, unmount_saved_relations } from "../../../dioxus/state-controls/pkg/alice_state_controls";
 import wasmUrl from "../../../dioxus/state-controls/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
 
@@ -12,4 +12,9 @@ export async function loadRuntime(): Promise<StateControlsRuntime> {
 export async function loadFlowRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return {mount:mount_cognitive_flow, update:update_cognitive_flow, unmount:unmount_cognitive_flow};
+}
+
+export async function loadRelationsRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_saved_relations, update: update_saved_relations, unmount: unmount_saved_relations };
 }

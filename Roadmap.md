@@ -35,6 +35,16 @@ ausencia de duplicados, anchos de 1440/1000 px y estados R3 ficticios. También
 bloqueó la descarga de WASM y comprobó el respaldo y el reintento conservando la
 selección. La aceptación nativa Tauri y la migración de asociaciones siguen pendientes.
 
+**Lista de relaciones guardadas:** títulos, estados y botones pasan a Dioxus.
+El renderer sólo solicita abrir una revisión; los formularios, confirmaciones y
+comandos siguen en su controlador actual. La frontera valida de nuevo IDs y
+bloqueos. Se retiró el montaje duplicado en favor de una plantilla compartida.
+La prueba Edge con IPC ficticio comprobó cancelación, confirmación con revisión,
+error y recuperación sin escritura durante selección o reintento; las pruebas
+de persistencia del backend usan datos temporales. El
+[inventario de dependencias pendientes](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
+guía la limpieza después de completar y validar cada sustitución.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo
