@@ -1,10 +1,45 @@
 # Dirección visual de Alice Continuum
 
-Fecha: 2026-11-15. Estado: **propuestas para revisión; no aplicadas al producto**.
+Fecha: 2026-11-15. Estado: **evolución del diseño actual en revisión; no aplicada al producto**.
 
 El propietario pide una identidad seria y propia para una asistente que conversa,
 acompaña, conserva recuerdos y realiza acciones autorizadas. El objetivo es renovar
 la presentación conservando contenido, funciones, datos y permisos.
+
+**Aclaración vigente del propietario:** conservar también todos los iconos y
+la identidad visual existente. La propuesta actual evoluciona los marcos,
+espaciado, tipografía y superficies de Alice; no usa iconos sustitutos ni adopta
+Observatorio o Cuaderno como una interfaz que reemplace la suya.
+
+## Propuesta actual: evolución de la interfaz real
+
+Se preparó una capa CSS privada sobre el build real del proyecto, dentro de un
+navegador aislado. Conserva las tres áreas de navegación, sus nombres, los SVG
+originales, las pantallas y la escena cerebral existente. No se reconstruyeron
+los paneles con contenido abreviado. Se mejoran la coherencia de los marcos,
+contraste entre superficies, espacio de los controles y legibilidad.
+
+El estudio está en `experiments/alice-evolution-2026-11-15/`, excluido de Git.
+`evolution.css` no se importa desde la aplicación. La vista previa muestra
+capturas reales de esa composición en Conversación, Volumen y Estado; Memoria
+tiene también una captura privada. La galería está en `alice-evolution.html`.
+
+La comprobación comparó el estado inicial de las 15 rutas antes y después del
+estilo: mismos nodos de texto, estructura DOM, botones, campos y marcado SVG de
+navegación. Los hashes de los 22 archivos SVG originales también se conservaron.
+Se revisaron capturas de escritorio, incluido el volumen generado por el renderer
+existente. No se sustituyó la escena 3D por el esquema de las primeras maquetas.
+
+Las capturas usan seis registros ficticios en un perfil de navegador independiente,
+sin puente nativo, servicios ni datos personales. Los avisos de disponibilidad
+corresponden a ese entorno visual, no a un diagnóstico de Alice Desktop. La
+verificación cubre los estados muestreados a 1360 px; no certifica todas las
+subvistas ni la operación real de dispositivos. La aceptación nativa y los anchos
+adicionales se comprobarán al incorporar una propuesta al producto.
+
+Evidencia privada: `runtime/artifacts/alice-evolution-2026-11-15/verification.json`,
+capturas anteriores/posteriores y la galería. Las fuentes y hojas de estilo
+productivas, los datos y los iconos permanecen sin cambios.
 
 ## Diagnóstico del diseño actual
 
@@ -19,11 +54,11 @@ La dirección propuesta pone la personalidad en la continuidad de la conversaci�
 la memoria con origen visible y el volumen cognitivo. La navegación y las
 superficies acompañan esos elementos con una jerarquía más tranquila.
 
-## Dos alternativas comparables
+## Exploraciones anteriores, sin adoptar
 
 | Propuesta | Organización | Carácter y uso |
 |---|---|---|
-| Observatorio | Navegación lateral compacta, conversación despejada, memoria como registro y volumen con inspector contextual. | Recomendada como punto de partida por la cantidad de módulos y la importancia de explorar el núcleo de Alice. |
+| Observatorio | Navegación lateral compacta, conversación despejada, memoria como registro y volumen con inspector contextual. | Exploración anterior de organización; no es la base vigente tras la aclaración de conservar la identidad y los iconos actuales. |
 | Cuaderno | Navegación superior de espacios principales y una composición más editorial para mensajes y recuerdos. | Alternativa más cálida para dar prioridad al acompañamiento y la lectura cotidiana. |
 
 Las maquetas permiten alternar Conversación, Memoria y Volumen cognitivo. Todo
@@ -50,9 +85,9 @@ del producto. La actividad real y una demostración conservarán sus distincione
   memoria como contenido legible con tipo, origen y acciones de revisión claras.
 - Estados reales visibles y acompañados de texto. Los colores de tipos de memoria
   y estados conservan su significado; no se usan como adorno intercambiable.
-- Catálogo actual de iconos conservado. Los símbolos de las maquetas son
-  representativos; adaptar tamaños o redibujar un icono requiere una revisión
-  individual antes de retirar su versión anterior.
+- Catálogo e iconos originales conservados: la propuesta vigente utiliza los
+  recursos reales, sin redibujarlos ni sustituirlos por una biblioteca genérica.
+  Sólo su marco, distribución y tamaño pueden ajustarse dentro de la evolución.
 
 ## Mapa de contenido que debe conservarse
 
@@ -73,8 +108,8 @@ en una maqueta.
 
 ## Incorporación gradual
 
-1. Revisar las dos propuestas y concretar la dirección visual y los elementos
-   que se quieren combinar.
+1. Revisar la evolución de la interfaz real y concretar sus ajustes conservando
+   iconos, identidad y contenido. Las exploraciones previas quedan como referencia.
 2. Definir colores, tipografía, espacios, superficies y estados en una base común.
    Probarla en `experiments/`, sin introducir dependencias React nuevas.
 3. Aplicar primero una pantalla Dioxus acotada, como Actividad, comparando sus

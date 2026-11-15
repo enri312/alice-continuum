@@ -18,8 +18,10 @@ Node. La conversación debe mantenerse sencilla y el diseño industrial existent
 el contenido, la identidad y los iconos deben conservarse durante la migración.
 
 Actualización de diseño (2026-11-15): el propietario solicitó renovar la identidad
-visual sin perder contenido ni funciones. Esa revisión se prepara por separado
-de las sustituciones de framework; las maquetas no cambian el producto actual.
+visual sin perder contenido ni funciones y aclaró que quiere preservar también
+todos los iconos y la identidad actual. Se estudia una evolución de sus pantallas
+reales por separado de las sustituciones de framework; la propuesta no cambia
+el producto actual.
 Ver [alternativas y criterios de incorporación](DIRECCION_VISUAL_ALICE.md).
 
 El propietario informó que otras personas ya intentaron ejecutarla en Windows y
