@@ -17,10 +17,6 @@ impl PartialEq for PageProps {
         true
     }
 }
-fn emit(callback: &js_sys::Function, action: &str, token: &str) {
-    let event = serde_json::json!({"type":action,"token":token});
-    let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&event.to_string()));
-}
 pub fn page(props: PageProps) -> Element {
     let mut payload = use_signal(|| props.initial.clone());
     let rx = props.rx.clone();
@@ -38,7 +34,14 @@ pub fn page(props: PageProps) -> Element {
     use_effect(move || {
         let _ = ready.call0(&JsValue::NULL);
     });
-    let snapshot = payload.read();
+    rsx! { Confirmation { payload: payload.read().clone(), on_action: move |event: serde_json::Value| {
+        let _ = props.on_action.call1(&JsValue::NULL, &JsValue::from_str(&event.to_string()));
+    } } }
+}
+
+#[component]
+pub fn Confirmation(payload: Payload, on_action: EventHandler<serde_json::Value>) -> Element {
+    let snapshot = &payload;
     let create = snapshot.kind == Kind::Create;
     let label = if create {
         "Confirmar relación revisada"
@@ -60,15 +63,15 @@ pub fn page(props: PageProps) -> Element {
             }
             button { r#type: "button", disabled: snapshot.busy,
                 onclick: {
-                    let token=snapshot.token.clone(); let callback=props.on_action.clone();
-                    move |_| { if payload.read().accepts(&token,false) { emit(&callback,"confirm",&token); } }
+                    let token=snapshot.token.clone(); let allowed=snapshot.accepts(&token,false);
+                    move |_| { if allowed { on_action.call(serde_json::json!({"type":"confirm","token":token})); } }
                 }, "{confirm_label}"
             }
             if !create {
                 button { r#type: "button", disabled: snapshot.busy,
                     onclick: {
-                        let token=snapshot.token.clone(); let callback=props.on_action.clone();
-                        move |_| { if payload.read().accepts(&token,true) { emit(&callback,"cancel",&token); } }
+                        let token=snapshot.token.clone(); let allowed=snapshot.accepts(&token,true);
+                        move |_| { if allowed { on_action.call(serde_json::json!({"type":"cancel","token":token})); } }
                     }, "Cancelar"
                 }
             }

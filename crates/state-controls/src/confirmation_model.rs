@@ -7,7 +7,7 @@ pub enum Kind {
     Change,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Payload {
     pub kind: Kind,
@@ -25,7 +25,8 @@ impl Payload {
                     value.withdrawn
                         || value.quotes.len() != 2
                         || value.quotes.iter().any(|quote| {
-                            quote.trim().is_empty() || quote.encode_utf16().count() > 2048
+                            !crate::source_form_model::nonempty_quote(quote)
+                                || quote.encode_utf16().count() > 2048
                         })
                 }
                 Kind::Change => !value.quotes.is_empty(),

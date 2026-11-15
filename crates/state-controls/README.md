@@ -2,15 +2,18 @@
 
 Este paquete también incorpora el grafo y el inspector de Flujo cognitivo:
 `flow_model.rs` valida nodos, geometría, selección y señales R3; `flow_ui.rs`
-los dibuja con las clases CSS existentes. Los dos renderers comparten un único
-WASM y tienen ciclos de montaje independientes. El contenedor y las asociaciones
-de Flujo continúan en React; esta incorporación no es una migración completa.
+los dibuja con las clases CSS existentes. Los seis renderers comparten un único
+WASM y tienen ciclos de montaje independientes. El panel de asociaciones y su
+controlador normal también funcionan en Rust/Dioxus. El contenedor, el sondeo R3
+y la recuperación siguen usando React; la pantalla aún conserva esas dependencias.
 
 Renderer de la página principal, con Dioxus 0.7.0 y dioxus-web 0.7.10 fijados
 en `Cargo.lock`. El contenido conserva las clases CSS del panel React.
-No accede a Tauri, archivos, credenciales, red, modelos ni memoria persistente.
-Recibe el snapshot autorizado del contenedor y emite acciones de selección o
-cambio de un control. El contenedor valida cada acción contra el estado actual.
+No accede directamente a Tauri, archivos, credenciales, red ni modelos.
+Estado/Flujo reciben snapshots del contenedor. El controlador de asociaciones
+recibe las lecturas autorizadas de grafo, registros y relaciones mediante un
+transporte limitado a seis comandos existentes. Mantiene la sesión en memoria;
+la validación de evidencia y toda persistencia siguen en el backend.
 
 - `src/ui.rs`: marco R3, paneles, selección local, métricas, deslizadores, recuerdo e inspector.
 - `src/model.rs`: contrato cerrado, presentación de R3 y recuerdos, preparación y validación de controles.
@@ -20,10 +23,17 @@ cambio de un control. El contenedor valida cada acción contra el estado actual.
 - `src/source_form_model.rs`, `src/source_form_ui.rs`: fuentes y citas; las
   versiones y hashes se obtienen en el controlador y se validan en el backend.
 - `src/confirmation_model.rs`, `src/confirmation_ui.rs`: presentación de revisiones
-  y decisiones; el adaptador valida la identidad temporal y el estado pendiente.
+  y decisiones; se reutiliza tanto dentro del panel como en el respaldo.
+- `src/associations_model.rs`, `src/associations_ui.rs`: controlador y panel completo
+  de relaciones; deriva evidencia desde las fuentes cargadas y rechaza acciones
+  ocupadas, confirmaciones atrasadas y respuestas de operaciones anteriores.
 - `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
   con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
+- `src/components/memory/associations-transport.ts` en la raíz: transporte cerrado,
+  sin selección de fuentes ni estado de confirmación. Descarta solicitudes repetidas
+  y respuestas tras desmontar. `MemoryAssociationsFallback.tsx` sólo se carga ante
+  un fallo del módulo; conserva la recuperación React y sus tres adaptadores.
 - `src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
   ciclo de vida, validación de acciones y una vista de recuperación. La antigua
   `StateControlsPage.tsx` ya no es necesaria.
@@ -80,3 +90,6 @@ Las confirmaciones se comprueban en Dioxus, incluido el doble clic con una sola
 solicitud, bloqueo durante la espera del servicio ficticio y recuperación del
 renderer sin confirmar. Las pruebas del adaptador rechazan identidades antiguas
 y parámetros de persistencia aportados por eventos.
+El ensayo exige además que el controlador completo esté en Dioxus. Salir durante
+una revisión y volver no entrega su respuesta a la sesión nueva ni guarda una
+relación. Al bloquear WASM se comprueba por separado la recuperación React.

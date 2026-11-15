@@ -1,6 +1,13 @@
 use serde::Deserialize;
 
-#[derive(Clone, Debug, Deserialize)]
+// Treat a BOM as whitespace too, so empty quotes never reach the JS transport.
+pub fn nonempty_quote(quote: &str) -> bool {
+    !quote
+        .trim_matches(|ch: char| ch.is_whitespace() || ch == '\u{feff}')
+        .is_empty()
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Source {
     pub id: String,
@@ -8,7 +15,7 @@ pub struct Source {
     pub entry: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Payload {
     pub busy: bool,
@@ -47,7 +54,7 @@ impl Payload {
             && self
                 .quotes
                 .iter()
-                .all(|quote| !quote.trim().is_empty() && quote.encode_utf16().count() <= 2048)
+                .all(|quote| nonempty_quote(quote) && quote.encode_utf16().count() <= 2048)
     }
 }
 
@@ -66,6 +73,7 @@ mod tests {
             ("selected", serde_json::json!(["a", "a"])),
             ("selected", serde_json::json!(["a", "removed"])),
             ("quotes", serde_json::json!([" ", "Cita B"])),
+            ("quotes", serde_json::json!(["\u{feff}", "Cita B"])),
         ] {
             let mut invalid = valid.clone();
             invalid[key] = value;

@@ -37,7 +37,12 @@ pub fn page(props: PageProps) -> Element {
     use_effect(move || {
         let _ = ready.call0(&JsValue::NULL);
     });
-    let snapshot = payload.read();
+    rsx! { Form { payload: payload.read().clone(), on_action: move |action| emit(&props.on_action, action) } }
+}
+
+#[component]
+pub fn Form(payload: Payload, on_action: EventHandler<serde_json::Value>) -> Element {
+    let snapshot = &payload;
     rsx! {
         if snapshot.sources.len() < 2 {
             p { "Se necesitan dos episodios recuperables para proponer una relación." }
@@ -49,12 +54,11 @@ pub fn page(props: PageProps) -> Element {
                         label { "Experiencia {index + 1}"
                             select { "aria-label": "Experiencia {index + 1}", value: "{snapshot.selected[index]}",
                                 onchange: {
-                                    let callback = props.on_action.clone();
+                                    let current = payload.clone();
                                     move |event: FormEvent| {
                                         let id = event.value();
-                                        let current = payload.read();
                                         if !current.busy && (id.is_empty() || current.source(&id).is_some()) {
-                                            emit(&callback, serde_json::json!({"type":"selectSource","index":index,"id":id}));
+                                            on_action.call(serde_json::json!({"type":"selectSource","index":index,"id":id}));
                                         }
                                     }
                                 },
@@ -73,11 +77,11 @@ pub fn page(props: PageProps) -> Element {
                         label { "Cita {index + 1}"
                             textarea { "aria-label": "Cita {index + 1}", value: "{snapshot.quotes[index]}", maxlength: 2048, rows: 2,
                                 oninput: {
-                                    let callback = props.on_action.clone();
+                                    let busy = snapshot.busy;
                                     move |event: FormEvent| {
                                         let quote = event.value();
-                                        if !payload.read().busy && quote.encode_utf16().count() <= 2048 {
-                                            emit(&callback, serde_json::json!({"type":"editQuote","index":index,"quote":quote}));
+                                        if !busy && quote.encode_utf16().count() <= 2048 {
+                                            on_action.call(serde_json::json!({"type":"editQuote","index":index,"quote":quote}));
                                         }
                                     }
                                 }
@@ -86,7 +90,7 @@ pub fn page(props: PageProps) -> Element {
                     }
                 }
                 button { r#type: "button", disabled: !snapshot.can_preview(),
-                    onclick: move |_| { if payload.read().can_preview() { emit(&props.on_action, serde_json::json!({"type":"previewSources"})); } },
+                    onclick: { let allowed = snapshot.can_preview(); move |_| { if allowed { on_action.call(serde_json::json!({"type":"previewSources"})); } } },
                     "Revisar relación"
                 }
             }

@@ -1,5 +1,8 @@
 #[cfg(target_arch = "wasm32")]
 mod activity_ui;
+pub mod associations_model;
+#[cfg(target_arch = "wasm32")]
+mod associations_ui;
 pub mod confirmation_model;
 #[cfg(target_arch = "wasm32")]
 mod confirmation_ui;
@@ -64,4 +67,13 @@ mountable_view!(
     mount_relation_confirmation,
     update_relation_confirmation,
     unmount_relation_confirmation
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    associations_browser,
+    crate::associations_model::Payload,
+    crate::associations_ui,
+    mount_memory_associations,
+    update_memory_associations,
+    unmount_memory_associations
 );

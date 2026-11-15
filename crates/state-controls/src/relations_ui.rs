@@ -35,7 +35,14 @@ pub fn page(props: PageProps) -> Element {
     use_effect(move || {
         let _ = ready.call0(&JsValue::NULL);
     });
-    let snapshot = payload.read();
+    rsx! { List { payload: payload.read().clone(), on_action: move |event: serde_json::Value| {
+        let _ = props.on_action.call1(&JsValue::NULL, &JsValue::from_str(&event.to_string()));
+    } } }
+}
+
+#[component]
+pub fn List(payload: Payload, on_action: EventHandler<serde_json::Value>) -> Element {
+    let snapshot = &payload;
     rsx! {
         h4 { "Relaciones guardadas" }
         if snapshot.relations.is_empty() {
@@ -47,11 +54,11 @@ pub fn page(props: PageProps) -> Element {
                 p { {relation.label()} }
                 button { r#type: "button", disabled: relation.disabled(snapshot.busy),
                     onclick: {
-                        let id = relation.id.clone(); let callback = props.on_action.clone();
+                        let id = relation.id.clone(); let allowed = snapshot.can_review(&id);
                         move |_| {
-                            if payload.read().can_review(&id) {
+                            if allowed {
                                 let event = serde_json::json!({"type":"reviewRelation","id":id});
-                                let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&event.to_string()));
+                                on_action.call(event);
                             }
                         }
                     },

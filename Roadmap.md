@@ -1,7 +1,7 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-14**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-15**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
@@ -18,7 +18,9 @@ siguen pendientes; el plan no da por resuelto R9 ni R10.
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector
 de Flujo cognitivo pasan a Rust/Dioxus con los mismos estilos y datos. Las
 conexiones y sus señales, la geometría y la selección se resuelven en Rust.
-El contenedor, el sondeo R3 y las asociaciones de memoria siguen en React.
+En ese primer tramo, el contenedor, el sondeo R3 y las asociaciones de memoria
+permanecían en React; el controlador de relaciones avanzó en el incremento del
+2026-11-15 descrito más abajo.
 El WASM se comparte con Estado y controles y se carga bajo demanda. Ocho pruebas
 Rust del módulo, compilación WASM y Clippy aprobadas; 872 pruebas frontend,
 15 de Obsidian, 20 de respaldos y dos de privacidad aprobadas. La revisión Edge
@@ -33,11 +35,12 @@ El adaptador de datos R3 es común y el sondeo existente no se duplica. Un ensay
 Edge aislado sobre el build verificó clic, teclado, navegación de ida y vuelta,
 ausencia de duplicados, anchos de 1440/1000 px y estados R3 ficticios. También
 bloqueó la descarga de WASM y comprobó el respaldo y el reintento conservando la
-selección. La aceptación nativa Tauri y la migración de asociaciones siguen pendientes.
+selección. La aceptación nativa Tauri sigue pendiente; las asociaciones avanzaron
+en los incrementos siguientes.
 
 **Lista de relaciones guardadas:** títulos, estados y botones pasan a Dioxus.
-El renderer sólo solicita abrir una revisión; los formularios, confirmaciones y
-comandos siguen en su controlador actual. La frontera valida de nuevo IDs y
+El renderer sólo solicita abrir una revisión; inicialmente los formularios,
+confirmaciones y comandos seguían en el controlador React. La frontera valida IDs y
 bloqueos. Se retiró el montaje duplicado en favor de una plantilla compartida.
 La prueba Edge con IPC ficticio comprobó cancelación, confirmación con revisión,
 error y recuperación sin escritura durante selección o reintento; las pruebas
@@ -53,7 +56,7 @@ actual conserva el borrador, obtiene la evidencia vigente y solicita la revisió
 al backend; editar invalida la revisión anterior. La sonda Edge con IPC ficticio
 comprobó edición, bloqueo, confirmación separada, rechazo de cita no literal y
 recuperación tras un fallo de WASM manteniendo fuentes y citas. La aceptación
-nativa y la migración de las confirmaciones siguen pendientes.
+nativa sigue pendiente; las confirmaciones avanzaron en el incremento siguiente.
 
 **Confirmaciones de relaciones:** la revisión de citas y las pantallas de
 creación, retirada/restauración y cancelación pasan a Dioxus. El controlador
@@ -63,6 +66,20 @@ pendiente, evitando duplicar solicitudes por doble clic. Las pruebas Edge con
 IPC ficticio verificaron renderer Dioxus activo, bloqueo durante el guardado,
 cancelación, revisión esperada, error y recuperación sin escritura automática.
 La aceptación nativa con datos reales sigue pendiente.
+
+**Controlador de relaciones (2026-11-15):** el panel completo y la sesión normal
+pasan a Rust/Dioxus: borrador, fuentes/citas, evidencia derivada, revisión,
+confirmaciones, bloqueos, actualización y errores. Las tres presentaciones se
+reutilizan en un único montaje; el host React sólo monta y conecta un transporte
+cerrado con los comandos existentes. El controlador anterior se carga de forma
+diferida únicamente si falla Dioxus. El backend conserva confirmación, revisión
+durable y validación de fuentes. Verificación: 19 pruebas Rust, Clippy WASM,
+build, 883 pruebas frontend (dos omitidas), 15 Obsidian, 20 respaldos y dos
+privacidad; Edge con IPC ficticio comprueba también desmontaje y respuesta
+tardía sin guardar. Se conservaron clases CSS, rótulos y contenido; no se usaron
+recuerdos personales. Siguen pendientes la aceptación nativa Tauri y retirar
+las dependencias del contenedor/sondeo de Flujo y sus respaldos.
+Ver [informe y límites](docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md).
 
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de

@@ -196,6 +196,7 @@ try {
   await until(() => evaluate('globalThis.isTauri === true'), 'instalación de IPC ficticio');
   const relationsReady = () => until(() => evaluate('document.querySelectorAll(\'[data-relations-renderer="dioxus"] article\').length === 4'), 'lista Dioxus con IPC ficticio');
   await relationsReady();
+  assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'dioxus', 'Controlador y panel de relaciones en Rust/Dioxus');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations article button")).map(button=>button.disabled)'), [false,false,true,false]);
   assert.equal(await evaluate('document.querySelector(".memory-associations").textContent.includes("Experiencia <D>")'), true);
@@ -299,9 +300,26 @@ try {
   assert.equal(await evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'),false);
   assert.equal((await sourceWrites()).length,1);
 
+  // Leaving while a preview is in flight must not deliver a response to a new session.
+  await typeQuote(0,'Experiencia A');
+  await until(previewEnabled,'nueva revisión antes de navegar');
+  await evaluate('globalThis.__holdSourcePreview=true; delete globalThis.__releaseSourcePreview');
+  await clickText('Revisar relación');
+  await until(() => evaluate('typeof globalThis.__releaseSourcePreview === "function"'), 'revisión pendiente antes de salir');
+  await clickTab('Estado y controles');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .internal-state\'))'), 'salida del controlador de asociaciones');
+  await evaluate('globalThis.__holdSourcePreview=false; __releaseSourcePreview()');
+  await clickTab('Flujo cognitivo');
+  await ready(); await sourceFormReady();
+  assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'dioxus');
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations textarea")).map(element=>element.value)'),['','']);
+  assert.equal(await evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'),false,'La respuesta anterior no crea una revisión en la nueva sesión');
+  assert.equal((await sourceWrites()).length,1,'Navegar y recibir una respuesta tardía no guarda');
+
   await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
   await send('Page.navigate', { url: url.href });
   await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
+  assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'react', 'Recuperación con controlador anterior sólo tras fallo de carga');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
   await until(() => evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'), 'formulario de respaldo');
   await evaluate('document.querySelectorAll(".memory-associations article button")[0].click()');
@@ -326,7 +344,7 @@ try {
   await relationsReady();
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.equal((await writes()).length, 0, 'Reintentar no escribe');
-  console.log(`Dioxus: navegación, estados R3, lista, formulario de fuentes, confirmaciones con IPC ficticio y recuperación comprobados. Capturas: ${artifacts}`);
+  console.log(`Dioxus: navegación, estados R3, controlador de asociaciones Rust, fuentes, confirmaciones, respuesta tardía y recuperación con IPC ficticio comprobados. Capturas: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try {

@@ -8,23 +8,48 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
 | Estado y controles | Panel, métricas, ajustes, recuerdo, inspector y encabezado R3. | Contenedor de sesión, sondeo, validación de acciones y vista de respaldo. |
-| Flujo cognitivo | Encabezado R3, grafo, conexiones, selección e inspector. | Contenedor, sondeo y controlador de asociaciones, recuperación visual. |
-| Lista de relaciones guardadas | Títulos, estado, botones y bloqueos según datos actuales. | Adaptador, validación de solicitud de revisión y lista de respaldo. |
-| Formulario de fuentes | Selectores, lectura de entradas, citas y disponibilidad de revisión. | Borrador controlado, validación de eventos, comandos de revisión y guardado, formulario de respaldo. |
-| Confirmaciones de relaciones | Revisión de citas, confirmación de creación, retirada/restauración y cancelación. | Revisión pendiente, guardia de eventos, ejecución de comandos y confirmación de respaldo. |
+| Flujo cognitivo | Encabezado R3, grafo, conexiones, selección, inspector y panel/controlador de asociaciones. | Contenedor, sondeo R3, montaje, transporte IPC y recuperación visual. |
+| Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
+| Formulario de fuentes | Selectores, entradas, citas, borrador, evidencia derivada y solicitud de revisión. | Adaptador y formulario sólo para recuperación. |
+| Confirmaciones de relaciones | Revisión pendiente, confirmación de creación, retirada/restauración, cancelación y bloqueo de doble clic. | Adaptador y confirmación sólo para recuperación. |
+| Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Host de montaje y carga diferida del controlador anterior ante fallo; transporte TypeScript limitado a comandos existentes. |
+
+## Controlador de asociaciones: estado vigente (2026-11-15)
+
+`associations_model.rs` mantiene la sesión normal y prepara solicitudes con
+evidencia derivada de las fuentes cargadas. Una operación ocupa la sesión hasta
+su respuesta; su ID permite ignorar respuestas atrasadas. Editar invalida la
+revisión y confirmar exige una identidad pendiente vigente. Tras guardar sólo
+se actualizan las lecturas; no se repite una escritura automáticamente.
+
+`associations_ui.rs` presenta el panel completo y reutiliza `Form`, `List` y
+`Confirmation` de los renderers existentes. Conserva clases CSS, rótulos y orden.
+`MemoryAssociations.tsx` sólo monta ese panel y conecta el transporte cerrado
+`associations-transport.ts`. Éste limita las operaciones a las tres lecturas,
+revisión, confirmación y retirada/restauración existentes; no decide fuentes,
+citas ni revisiones. Descarta solicitudes repetidas y respuestas tras desmontar.
+El backend sigue comprobando evidencia, revisión durable y confirmación.
+
+`MemoryAssociationsFallback.tsx` conserva el controlador anterior, cargado sólo
+si falla el módulo. Sus tres adaptadores permiten recuperar sus vistas sin
+perder el borrador del respaldo. Reintentar esas vistas no sustituye su sesión
+por una nueva ni autoriza escrituras. React sigue siendo necesario para ese
+camino de recuperación y para el contenedor/sondeo de la pantalla.
+
+Los incrementos siguientes describen las piezas reutilizadas; el controlador
+normal que antes estaba en React queda sustituido por el modelo Rust anterior.
 
 ## Incremento de lista de relaciones
 
 `relations_model.rs` y `relations_ui.rs` presentan la lista y emiten únicamente
 `reviewRelation` con un ID. El adaptador vuelve a comprobar el ID y los bloqueos
 contra el estado actual. El renderer no acepta una confirmación ni elige la
-revisión de persistencia. `MemoryAssociations.tsx` conserva el estado de revisión,
-los comandos Tauri y la actualización posterior; su presentación de confirmación
-ya está delegada al renderer correspondiente.
+revisión de persistencia. El panel completo combina estas piezas con el
+controlador Rust. El adaptador independiente sigue disponible en el respaldo.
 El backend sigue validando revisión, fuentes, confirmación y bloqueos.
 
 El montaje duplicado de Estado y Flujo se sustituyó por `browser_runtime.rs`.
-Las cinco vistas reutilizan ese código, con registros de instancias independientes.
+Las seis vistas reutilizan ese código, con registros de instancias independientes.
 El mismo WASM conserva sus comprobaciones de fuentes y artefactos.
 
 ## Incremento del formulario de fuentes
@@ -32,15 +57,15 @@ El mismo WASM conserva sus comprobaciones de fuentes y artefactos.
 `source_form_model.rs` y `source_form_ui.rs` presentan sólo los episodios
 recuperables, las entradas originales y dos citas de hasta 2048 unidades UTF-16.
 Bloquean la revisión con fuentes repetidas, ausentes, citas vacías o una operación
-en curso. Dioxus emite selección, edición o solicitud de revisión; el adaptador
-revalida el evento contra las fuentes y el estado actuales. Versiones, hashes,
-evidencia y revisión durable se preparan en el controlador existente.
+en curso. Dioxus emite selección, edición o solicitud de revisión; el controlador
+Rust revalida el evento contra las fuentes y el estado actuales. Versiones,
+hashes y revisión esperada se derivan de esas lecturas.
 El backend conserva la validación literal y el guardado requiere su confirmación
 separada. Editar una fuente o una cita invalida la revisión anterior. El borrador
-queda en el controlador para sobrevivir a un fallo de WASM y al reintento.
-El renderer recibe los títulos limitados de las opciones y el texto completo
-únicamente de las fuentes seleccionadas; no se copian todas las entradas al
-serializar cada cambio de cita.
+queda en Rust en la ruta normal y en el controlador anterior durante la
+recuperación. El formulario recibe los títulos limitados y el texto completo
+únicamente de las fuentes seleccionadas. En la ruta normal, editar no vuelve a
+serializar los registros completos entre React y WASM.
 
 ## Incremento de confirmaciones
 
@@ -48,9 +73,10 @@ serializar cada cambio de cita.
 y la confirmación de creación, o la pregunta para retirar/restaurar con su botón
 Cancelar. Conservan los rótulos y el bloqueo durante una operación. El controlador
 asigna un token nuevo a cada revisión pendiente: es una identidad temporal de UI,
-no una autorización ni una revisión del almacén. El adaptador rechaza eventos
-atrasados, campos adicionales y eventos ocupados, y consume una sola acción por
-token para impedir solicitudes duplicadas por doble clic.
+no una autorización ni una revisión del almacén. El modelo Rust rechaza eventos
+atrasados, campos adicionales y acciones ocupadas. El bloqueo síncrono y el
+transporte evitan solicitudes duplicadas por doble clic. El adaptador anterior
+mantiene sus guardias en el respaldo.
 
 Las versiones, evidencia, IDs y revisión durable siguen en el controlador.
 Sólo una acción válida contra la revisión pendiente llama al comando existente.
@@ -60,7 +86,9 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 
 ## Verificación y límites
 
-- Compilación TypeScript/Vite, catorce pruebas del módulo Rust y Clippy para WASM.
+- Compilación TypeScript/Vite, 19 pruebas del módulo Rust y Clippy para WASM.
+- 883 pruebas frontend aprobadas (dos omitidas), 15 Obsidian, 20 respaldos y dos
+  privacidad. Incluyen transporte cerrado, escritura única, errores y desmontaje.
 - Pruebas de frontera que rechazan solicitudes con confirmación, revisión elegida,
   IDs ausentes y acciones atrasadas cuando cambian los bloqueos.
 - Edge aislado verifica navegación, clic, teclado y recuperación de Estado/Flujo.
@@ -79,6 +107,11 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 - Las cinco pruebas existentes de asociaciones del backend comprueban persistencia,
   fuentes cambiadas, revisión atrasada, confirmación ausente, corrupción y bloqueo
   entre procesos sobre datos temporales.
+  No se modificaron esos comandos; su ejecución registrada corresponde al
+  incremento anterior, no a una nueva aceptación nativa.
+- El ensayo del controlador exige el panel completo en Dioxus, sale durante una
+  revisión y vuelve: la respuesta anterior no crea una revisión ni guarda en la
+  sesión nueva. Bloquear WASM activa por separado el controlador React anterior.
 
 Estas pruebas no sustituyen la aceptación de la aplicación nativa con datos reales.
 No se utilizaron recuerdos personales. El ensayo opcional está documentado en la
@@ -87,7 +120,8 @@ No se utilizaron recuerdos personales. El ensayo opcional está documentado en l
 ## Código que todavía tiene uso
 
 - `CognitiveFlow.tsx` y los componentes de encabezado React presentan el respaldo.
-- `MemoryAssociations.tsx` mantiene el borrador, revisiones pendientes, errores y comandos.
+- `MemoryAssociations.tsx` mantiene montaje, transporte y selección del respaldo.
+- `MemoryAssociationsFallback.tsx` mantiene la sesión anterior sólo ante fallo.
 - `SavedRelationsFallback` mantiene la lista durante carga, fallo y reintento.
 - `SourceFormFallback` mantiene los selectores y citas durante carga o fallo.
 - `ConfirmationFallback` conserva las pantallas de confirmación durante carga o fallo.

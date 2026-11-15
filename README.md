@@ -404,18 +404,22 @@ Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
 El grafo, el inspector, el encabezado y la banda R3 de Flujo cognitivo se renderizan
 en Rust/Dioxus, conservando los estilos, nodos y evidencia. El encabezado se
-comparte con Estado y controles. El contenedor, el sondeo y las asociaciones de
-memoria siguen en React; también existe una vista de respaldo. La lista de
-relaciones guardadas, el formulario de fuentes y las pantallas de confirmación
-se presentan en Dioxus. El controlador conserva el borrador, las revisiones y los
-comandos actuales: editar invalida la revisión anterior y sólo una confirmación
-vigente permite solicitar el guardado. Los eventos atrasados y dobles clics se filtran.
+comparte con Estado y controles. El contenedor y el sondeo R3 siguen en React.
+El panel de relaciones y su controlador de sesión ya funcionan en Rust/Dioxus:
+fuentes, citas, revisiones pendientes, confirmaciones, bloqueos y errores.
+Editar invalida la revisión anterior; los dobles clics y las respuestas de una
+sesión abandonada no repiten escrituras. Un transporte TypeScript limitado
+conecta los comandos existentes de Tauri; el backend conserva la validación y
+persistencia. El controlador React anterior se carga sólo como respaldo si
+falla el módulo, junto con sus vistas de recuperación.
 En Edge aislado se comprobaron clic, teclado, navegación, dos anchos, estados R3
 sintéticos y recuperación tras un fallo de descarga WASM. La interacción nativa
 en Tauri queda pendiente; esta prueba de navegador no utiliza recuerdos personales.
 La [guía del módulo](crates/state-controls/README.md) explica cómo repetirla.
 El [estado de migración y retirada de React](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 identifica qué componentes siguen siendo necesarios y cuándo pueden retirarse.
+El [informe del controlador de relaciones](docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md)
+separa las comprobaciones automáticas de la aceptación nativa pendiente.
 
 La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
 explica qué se movió, qué iconos se usan y qué herramientas aún requieren revisión.
