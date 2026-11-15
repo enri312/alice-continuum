@@ -6,7 +6,7 @@ const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 850, height: 500 } });
-    const css = fs.readdirSync('dist/assets').filter(n => n.endsWith('.css')).map(n => fs.readFileSync('dist/assets/' + n, 'utf8')).join('\n');
+    const css = fs.readdirSync('Frontend/dist/assets').filter(n => n.endsWith('.css')).map(n => fs.readFileSync('Frontend/dist/assets/' + n, 'utf8')).join('\n');
     await page.setContent(`<style>${css}</style><main class="settings-page"><section class="settings-card"><div class="settings-policy settings-runtime"><strong>GEMMA LOCAL · INICIADO</strong><p>El botón de inicio está deshabilitado porque Gemma ya está funcionando.</p><div class="settings-runtime-actions"><button class="runtime-start" disabled>Iniciar Gemma local</button><button class="runtime-stop">Apagar Gemma</button></div></div></section></main>`);
     const stop = page.locator('.runtime-stop');
     const initial = await stop.evaluate(b => ({ background: getComputedStyle(b).backgroundColor, height: b.getBoundingClientRect().height }));

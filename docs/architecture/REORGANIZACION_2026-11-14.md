@@ -1,5 +1,9 @@
 # Organización del proyecto — 14 de noviembre de 2026
 
+Actualización posterior: el traslado de la interfaz a `Frontend/` está descrito
+en el [informe del 15 de noviembre](../testing/FRONTEND_REORGANIZATION_REPORT_2026-11-15.md).
+Los nombres de carpetas del resto de este informe describen el incremento del 14.
+
 Revisión posterior: el [mapa de carpetas de la raíz](MAPA_CARPETAS_RAIZ.md)
 describe las fuentes, datos privados y resultados generados. Se corrigió el árbol
 de `PROJECT_STRUCTURE.md` y los pilotos `llama-memory-pilot.mjs` y

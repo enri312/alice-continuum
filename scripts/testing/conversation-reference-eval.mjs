@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { buildCloudPayload } from '../../src/core/conversation/cloud-payload.ts';
+import { buildCloudPayload } from '../../Frontend/src/core/conversation/cloud-payload.ts';
 import { readRustPrompt } from './rust-prompt-reader.mjs';
 
 if (!process.argv.includes('--live')) throw Error('Usar --live para evaluar Gemma con ejemplos ficticios.');

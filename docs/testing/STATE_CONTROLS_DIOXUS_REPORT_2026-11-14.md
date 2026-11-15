@@ -39,7 +39,7 @@ El WASM, bindings y snippets generados se incluyen en el código operativo,
 separados de `experiments/`. Un manifiesto registra hashes de todas las salidas,
 fuentes y Cargo.lock. `npm run dev` y `npm run build` verifican esa correspondencia
 sin instalar herramientas ni compilar Rust. La regeneración manual está descrita
-en [el módulo](../../crates/state-controls/README.md).
+en [el módulo](../../Frontend/crates/state-controls/README.md).
 
 ## Funciones y datos
 

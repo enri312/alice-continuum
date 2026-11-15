@@ -49,4 +49,4 @@ __pycache__/
 
 # Laboratorio privado: sus fuentes y resultados permanecen sólo en el equipo.
 /experiments/
-/crates/*/target/
+/Frontend/crates/*/target/

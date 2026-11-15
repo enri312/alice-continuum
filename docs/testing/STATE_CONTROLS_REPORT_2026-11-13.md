@@ -188,8 +188,8 @@ No utiliza recuerdos privados como fixtures ni amplía las materias de autoestud
 La revisión de persistencia y grafos continúa aplazada. Los modelos, credenciales,
 audios, cachés y artefactos de prueba permanecen fuera del código publicable.
 
-Fuentes de implementación: [InternalState](../../src/components/cognitive/InternalState.tsx),
-[el puente actual de Estado](../../src/components/cognitive/state-controls/StateControlsHost.tsx),
-[ajustes frontend](../../src/core/conversation/behavior-settings.ts),
+Fuentes de implementación: [InternalState](../../Frontend/src/components/cognitive/InternalState.tsx),
+[el puente actual de Estado](../../Frontend/src/components/cognitive/state-controls/StateControlsHost.tsx),
+[ajustes frontend](../../Frontend/src/core/conversation/behavior-settings.ts),
 [contrato nativo de estilo](../../Backend/src-tauri/src/conversation_behavior.rs) y
 [adaptador de conversación](../../Backend/src-tauri/src/cloud.rs).

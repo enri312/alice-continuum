@@ -86,7 +86,7 @@ de usar ese DDL o esas consultas:
    eliminación programada. Exigir accesibilidad explícita también pierde
    registros heredados válidos. Indexar indiscriminadamente `summary` de
    conversaciones reutilizaría respuestas anteriores como evidencia. El
-   [RAG actual](../../src/core/memory/memory-retrieval.ts) distingue esos campos;
+   [RAG actual](../../Frontend/src/core/memory/memory-retrieval.ts) distingue esos campos;
    [Gemma reranquea](../../Backend/src-tauri/src/hybrid_retrieval.rs), sin verificar verdad.
 3. El CTE del grafo admite revisiones históricas no retiradas aunque exista una
    retirada posterior, y no liga ambas evidencias a la misma revisión ni valida
@@ -162,7 +162,7 @@ migración de datos, índice vectorial ni nueva base de memoria.
 
 En la revisión original, la candidata más acotada era la presentación de
 [la antigua StateControlsPage](../testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md) y
-[InternalState](../../src/components/cognitive/InternalState.tsx). Entonces recibían
+[InternalState](../../Frontend/src/components/cognitive/InternalState.tsx). Entonces recibían
 un snapshot y permitían seleccionar indicadores; los controles eran informativos.
 El enlace anterior recoge los cambios posteriores y las funciones ahora activas.
 
@@ -189,7 +189,7 @@ alcance frente a una primera vista de indicadores.
    migrar a Rust no demuestra por sí solo una mejora de rendimiento o diseño.
 3. Si el piloto resulta útil, evaluar Dioxus-Web dentro del contenedor Tauri
    existente, con un adaptador de sólo lectura y las mismas restricciones. La
-   [lectura actual](../../src/pages/shared/nucleus-shared.tsx) usa
+   [lectura actual](../../Frontend/src/pages/shared/nucleus-shared.tsx) usa
    `core_activity_snapshot` cada cinco segundos; conservar un solo responsable
    del polling y no duplicar solicitudes entre interfaces.
 

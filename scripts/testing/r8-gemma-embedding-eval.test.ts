@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { spawn, type ChildProcess } from "node:child_process";
 import { describe, expect, it } from "vitest";
-import { retrieveMemories } from "../../src/core/memory/memory-retrieval";
+import { retrieveMemories } from "../../Frontend/src/core/memory/memory-retrieval";
 
 const enabled = process.env.ALICE_R8_REAL_EMBEDDING_EVAL === "1";
 const engine = "D:/Alice-model-evaluation/runtimes/llama-b10809/bin/llama-server.exe";

@@ -8,7 +8,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/node.tsbuildinfo"
+    "tsBuildInfoFile": "../node_modules/.cache/tsbuildinfo/node.tsbuildinfo"
   },
   "include": ["vite.config.ts"]
 }

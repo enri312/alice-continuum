@@ -3,7 +3,10 @@ import react from "@vitejs/plugin-react";
 import { normalizePath, type Plugin } from "vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { startObsidianSync } from "./scripts/obsidian/sync.mjs";
+import { startObsidianSync } from "../scripts/obsidian/sync.mjs";
+
+const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
+const projectRoot = fileURLToPath(new URL("../", import.meta.url));
 
 function obsidianMemoryVault(): Plugin {
   let close = async () => {};
@@ -11,7 +14,7 @@ function obsidianMemoryVault(): Plugin {
     name: "alice-obsidian-memory",
     apply: (config, environment) => environment.command === "serve" && config.mode !== "test" && !process.env.VITEST,
     configureServer(server) {
-      const sync = startObsidianSync({ projectRoot: fileURLToPath(new URL(".", import.meta.url)) });
+      const sync = startObsidianSync({ projectRoot });
       close = () => sync.close();
       server.httpServer?.once("close", () => { void close(); });
     },
@@ -20,14 +23,19 @@ function obsidianMemoryVault(): Plugin {
 }
 
 export default defineConfig({
+  root: frontendRoot,
+  envDir: projectRoot,
   plugins: [react(), obsidianMemoryVault(), {
     name: "alice-private-development-files",
     config(config) {
-      const root = path.resolve(config.root ?? fileURLToPath(new URL(".", import.meta.url)));
-      return { server: { fs: { deny: [
+      const root = path.resolve(config.root ?? frontendRoot);
+      // npm hoists dependencies to the repository. Private siblings must remain
+      // denied even when Vite permits reading that workspace's node_modules.
+      const privateRoots = [...new Set([projectRoot, root, ...(path.basename(root).toLowerCase() === "frontend" ? [path.dirname(root)] : [])])];
+      return { server: { fs: { allow: [root, path.join(projectRoot, "node_modules")], deny: [
         ".env", ".env.*", "*.{crt,pem,key,p12,pfx,cer,der}", ".npmrc", ".yarnrc.yml", "**/.git/**",
-        ...["data", "local", ".cargo-target", ".venv-adapters", "Assets", "adapters", "artifacts", "scratch"]
-          .map(directory => `${normalizePath(path.join(root, directory))}/**`),
+        ...privateRoots.flatMap(base => ["data", "local", ".cargo-target", ".venv-adapters", "Assets", "adapters", "artifacts", "scratch", "experiments"]
+          .map(directory => `${normalizePath(path.join(base, directory))}/**`)),
       ] } } };
     },
   }],

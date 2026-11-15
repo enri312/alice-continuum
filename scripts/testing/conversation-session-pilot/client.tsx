@@ -1,14 +1,14 @@
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { invoke } from "@tauri-apps/api/core";
-import { HandsFreeVoice } from "../../../src/components/conversation/HandsFreeVoice";
-import { buildCloudPayload } from "../../../src/core/conversation/cloud-payload";
-import { processMicrophone } from "../../../src/core/voice/noise-pipeline";
-import { isVoiceStopCommand } from "../../../src/core/voice/voice-commands";
-import type { CaptureEnvironment } from "../../../src/core/voice/voice-capture";
-import type { VoiceTurnTranscript } from "../../../src/core/voice/voice-input";
-import type { VoiceOutputResult } from "../../../src/core/voice/voice-output";
-import "../../../src/styles/conversation-home.css";
+import { HandsFreeVoice } from "../../../Frontend/src/components/conversation/HandsFreeVoice";
+import { buildCloudPayload } from "../../../Frontend/src/core/conversation/cloud-payload";
+import { processMicrophone } from "../../../Frontend/src/core/voice/noise-pipeline";
+import { isVoiceStopCommand } from "../../../Frontend/src/core/voice/voice-commands";
+import type { CaptureEnvironment } from "../../../Frontend/src/core/voice/voice-capture";
+import type { VoiceTurnTranscript } from "../../../Frontend/src/core/voice/voice-input";
+import type { VoiceOutputResult } from "../../../Frontend/src/core/voice/voice-output";
+import "../../../Frontend/src/styles/conversation-home.css";
 import "./pilot.css";
 
 function Pilot() {

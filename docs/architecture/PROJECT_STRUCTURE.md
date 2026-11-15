@@ -1,5 +1,11 @@
 # Estructura del proyecto
 
+Actualización 2026-11-15: fuentes, configuración y recursos de interfaz se agrupan
+en [`Frontend/`](../../Frontend/README.md), incluido el módulo Rust/Dioxus.
+La raíz conserva la coordinación npm y los lanzadores; `Backend/` conserva los
+servicios nativos. El [mapa de la raíz](MAPA_CARPETAS_RAIZ.md) distingue las
+fuentes de las dependencias, resultados generados y datos privados.
+
 [Revisión estructural con hallazgos, 5 de noviembre de 2026](CODE_REVIEW_2026-11-05.md).
 El inventario registra por separado lectura automática y revisión focal; las
 pruebas aprobadas no equivalen a una auditoría manual completa de cada línea.
@@ -11,8 +17,8 @@ persiste una calificación después de validar la respuesta; los fallos técnico
 guardan estado de error y preservan las lecciones. No cambian contratos ni datos.
 
 Actualización 2026-11-11 — [ADR-P-116](../decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md):
-`src/hooks/useLearningSources.ts` adapta los estados y eventos de aprendizaje.
-El controlador puro `src/core/memory/learning-source.ts` serializa lecturas,
+`Frontend/src/hooks/useLearningSources.ts` adapta los estados y eventos de aprendizaje.
+El controlador puro `Frontend/src/core/memory/learning-source.ts` serializa lecturas,
 ordena mutaciones e invalida respuestas desplazadas. `App.tsx` conserva la
 composición y los filtros de conversación; las vistas reciben estados y acciones.
 
@@ -48,8 +54,8 @@ Actualización arquitectónica 2026-11-04 —
 es un monolito de escritorio parcialmente modularizado, con capas técnicas y
 áreas funcionales. Todavía no aplica Clean Architecture estricta ni organiza
 todo por Vertical Slice. Los contratos compartidos de conversación viven en
-`src/core/conversation/conversation-contracts.ts`, fuera de las pantallas React.
-`src/core/shared/polling.ts` serializa los sondeos de ventana y memoria de trabajo
+`Frontend/src/core/conversation/conversation-contracts.ts`, fuera de las pantallas React.
+`Frontend/src/core/shared/polling.ts` serializa los sondeos de ventana y memoria de trabajo
 y descarta sus resultados después de cerrar la suscripción. La memoria básica ya separa casos de uso y persistencia; quedan casos avanzados
 para incrementos posteriores.
 
@@ -59,22 +65,22 @@ al abrirlo. Se conserva la ruta `identificacion`. El icono actual se genera desd
 `scripts/icons/scenes/cognitive-conversation-channel.mjs`. Ver [ADR-P-098](../decisions/ADR-P-098-inicio-centrado-en-conversacion.md).
 
 La sesión automática de voz se presenta en
-`src/components/conversation/HandsFreeVoice.tsx`. La captura, el detector de pausa
-y el ciclo viven en `src/core/voice/`; `Backend/src-tauri/src/voice_session.rs` mantiene la
+`Frontend/src/components/conversation/HandsFreeVoice.tsx`. La captura, el detector de pausa
+y el ciclo viven en `Frontend/src/core/voice/`; `Backend/src-tauri/src/voice_session.rs` mantiene la
 sesión nativa revocable. `.node-version` y `package.json` fijan la rama Node 26
 LTS. Ver [ADR-P-099](../decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
 
 Las instrucciones conversacionales legibles viven en
 `Backend/src-tauri/src/prompts/conversation.txt`, incluidas en el binario mediante
-`include_str!`. `src/core/voice/voice-commands.ts` reconoce la orden directa de
+`include_str!`. `Frontend/src/core/voice/voice-commands.ts` reconoce la orden directa de
 parada antes de inferencia conversacional. `rust-toolchain.toml` fija Rust 1.99.1.
 
 Reorganización: 2026-09-14. Identidad actualizada: 2026-09-16. Esta guía describe la reorganización de archivos, no un
 cambio de funcionalidades ni de contratos de Alice.
 
 La memoria automática vive en `Backend/src-tauri/src/automatic_memory.rs` y su proyección
-se valida en `src/core/memory/automatic-memory.ts`. `AutomaticMemoryPanel.tsx`
-ofrece pausa, corrección y retirada. `src/core/cognitive/neural-geometry.ts`
+se valida en `Frontend/src/core/memory/automatic-memory.ts`. `AutomaticMemoryPanel.tsx`
+ofrece pausa, corrección y retirada. `Frontend/src/core/cognitive/neural-geometry.ts`
 define la forma ilustrativa y `NeuralVolume.tsx` dibuja los registros reales.
 Ver [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 
@@ -82,78 +88,57 @@ Ver [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.m
 
 ```text
 Alice Continuum/
-├── src/
-│   ├── App.tsx                    composición y navegación de la aplicación
-│   ├── main.tsx                   punto de entrada de React
-│   ├── hooks/                     coordinación React de fuentes nativas
-│   ├── pages/                     pantallas, agrupadas por responsabilidad
-│   │   ├── cognitive/
-│   │   ├── conversation/
-│   │   ├── embodiment/
-│   │   ├── governance/
-│   │   ├── memory/
-│   │   └── shared/                marco y lectura pasiva del núcleo
-│   ├── components/                paneles reutilizables y visualizaciones
-│   │   ├── cognitive/
-│   │   ├── documents/
-│   │   ├── embodiment/
-│   │   ├── governance/
-│   │   ├── icons/
-│   │   └── memory/
-│   ├── core/                      lógica y contratos TypeScript
-│   │   ├── cognitive/             estado, eventos, afecto y volumen
-│   │   ├── conversation/          conversación, perfil y contexto de envío
-│   │   ├── embodiment/            avatar, animación y preparación facial
-│   │   ├── governance/            permisos, auditoría, habilidades y tareas
-│   │   ├── memory/                ciclo de memoria, recuperación y grafo
-│   │   ├── navigation/            espacios de trabajo y pruebas de iconos
-│   │   ├── shared/                compatibilidad del almacenamiento
-│   │   └── voice/                 entrada/salida, sesión y filtro RNNoise local
-│   ├── styles/                    estilos globales y de áreas funcionales
-│   └── types/                     declaraciones de recursos SVG
+├── Frontend/
+│   ├── src/
+│   │   ├── App.tsx / main.tsx      composición y entrada de la aplicación
+│   │   ├── pages/                 cognitive, conversation, embodiment, governance, memory
+│   │   ├── components/            paneles, controles, visualizaciones e iconos
+│   │   ├── core/                  contratos y lógica TypeScript
+│   │   ├── hooks/                 coordinación de fuentes nativas
+│   │   ├── dioxus/                WASM y bindings verificados
+│   │   ├── styles/                diseño y estilos existentes
+│   │   └── types/                 declaraciones de recursos
+│   ├── crates/state-controls/     fuentes Rust/Dioxus de Estado y Flujo
+│   ├── icons/                     SVG de interfaz
+│   ├── public/                    recursos estáticos y licencias
+│   ├── dist/                      build regenerable, excluido de Git
+│   ├── package.json               dependencias del workspace de interfaz
+│   └── index.html, vite.config.ts y tsconfig*.json
 ├── Backend/
 │   ├── src-tauri/                 backend Rust y configuración de Tauri
 │   └── adapters/                  lectores y puente de medios en Python
-├── crates/state-controls/         pantalla Estado y controles en Dioxus/Rust
-├── icons/                         catálogo SVG consumido por la interfaz
-├── public/                        recursos públicos de Vite
 ├── scripts/
-│   ├── icons/
-│   │   ├── generate-icons.mjs     generador del catálogo funcional
-│   │   ├── scenes/                una escena por icono de equipo
-│   │   ├── shared/                geometría y acabados compartidos; pruebas
-│   ├── dioxus/                    construcción y verificación del paquete Dioxus
-│   ├── backups/                   copias integrales, verificación y restauración
-│   ├── obsidian/                  proyección privada de memoria hacia la bóveda
-│   ├── setup/                     instalación y lanzadores de plataforma
-│   └── testing/                   sondas visuales y evaluaciones opcionales
-├── docs/                          manual, arquitectura, ADR, planes e informes
-├── local/                         recursos privados y generados
-│   ├── assets/                    avatar, animaciones y modelos locales
-│   ├── reference-adapters/        prototipos originales en cuarentena
-│   ├── drafts/                    borradores y capturas útiles
-│   ├── artifacts/                 evidencias y resultados de pruebas
-│   └── venv/                      Python recreado por sistema operativo
-└── data/                          memoria y auditorías privadas
+│   ├── icons/ y dioxus/            generación y verificación de recursos de interfaz
+│   ├── backups/ y obsidian/        persistencia y proyección privada
+│   ├── setup/                     instalación y lanzadores
+│   └── testing/                   pruebas de frontend, backend e integración
+├── docs/                          manual, arquitectura, ADR e informes
+├── local/                         recursos, configuración y evidencias privadas
+├── data/                          memoria, conversación y auditorías privadas
+├── experiments/                   ensayos privados, excluidos de Git
+├── node_modules/                  dependencias npm compartidas, regenerables
+├── .cargo-target/                 caché Rust compartida, regenerable
+├── package.json / package-lock.json  coordinación del workspace y lock único
+└── lanzadores, README, Roadmap y configuración común de herramientas
 ```
 
-Las pruebas permanecen junto a los módulos que verifican. `src/core/` no concede
+Las pruebas permanecen junto a los módulos que verifican. `Frontend/src/core/` no concede
 autoridad nativa: reagrupar un contrato TypeScript no mueve permisos desde Rust.
 La página de capacidades conserva sus vistas de rostro y cuerpo; no se han
 dividido sus funciones ni cambiado las claves de navegación existentes.
 
 ## Nombres y ubicación de las pantallas
 
-Las rutas anteriores partían de `src/Page/`. La mayoría ahora parten de `src/pages/`;
+Las rutas anteriores partían de `Frontend/src/Page/`. La mayoría ahora parten de `Frontend/src/pages/`;
 Estado se renderiza en Dioxus y se conecta a la aplicación mediante un puente React:
 
-| Archivo anterior | Ruta actual dentro de `src/pages/` |
+| Archivo anterior | Ruta actual dentro de `Frontend/src/pages/` |
 |---|---|
 | `Actividad.tsx` | `cognitive/ActivityPage.tsx` |
 | `Identificacion.tsx` | `cognitive/InputIdentificationPage.tsx` |
 | `Volumen.tsx` | `cognitive/NeuralVolumePage.tsx` |
 | `Flujo.tsx` | `cognitive/EvidenceFlowPage.tsx` |
-| `Estado.tsx` | `crates/state-controls/src/ui.rs` y `src/components/cognitive/state-controls/StateControlsHost.tsx` |
+| `Estado.tsx` | `Frontend/crates/state-controls/src/ui.rs` y `Frontend/src/components/cognitive/state-controls/StateControlsHost.tsx` |
 | `Planificador.tsx` | `cognitive/ActionPlannerPage.tsx` |
 | `Memoria.tsx` | `memory/MemoryVaultPage.tsx` |
 | `Conversacion.tsx` | `conversation/ConversationPage.tsx` |
@@ -177,15 +162,15 @@ CSS y los formatos de almacenamiento; no hay una migración de datos.
   `nombre.test.mjs`. Las sondas de evaluación permanecen en `scripts/testing/`.
 - Rust y Python conservan `snake_case`, sus convenciones de módulos y las rutas
   que el backend utiliza para cargar el lector documental.
-- `src/styles/base.css` reemplaza a `src/styles.css`;
-  `src/styles/industrial-theme.css` reemplaza a `src/cyrcetech-theme.css`.
+- `Frontend/src/styles/base.css` reemplaza a `Frontend/src/styles.css`;
+  `Frontend/src/styles/industrial-theme.css` reemplaza a `Frontend/src/cyrcetech-theme.css`.
   Se conserva el orden de carga de estilos. Los CSS exclusivos de un componente
   permanecen junto a él.
 - Los archivos de `scripts/icons/scenes/` coinciden con el nombre del SVG que
   representan. Los controles de cámara siguen definidos por el generador.
 - La escena antigua de actividad sin importadores se retiró del código activo;
   permanece en el historial Git y en la copia local de recuperación.
-- Los nombres y contenido de `icons/*.svg` se mantienen, incluido `app-alice.svg`.
+- Los nombres y contenido de `Frontend/icons/*.svg` se mantienen, incluido `app-alice.svg`.
 
 ## Revisión de la raíz: rutas que deben permanecer estables
 
@@ -208,13 +193,13 @@ Se agruparon recursos privados según el mapa anterior; datos y motores conserva
 carpetas no deben fusionarse con fuentes versionadas para reducir el número de
 entradas de la raíz.
 
-El README contiene ahora el diagrama actualizado de `src/pages/`. Esta guía
+El README contiene ahora el diagrama actualizado de `Frontend/src/pages/`. Esta guía
 mantiene el mapa de la reorganización. Los informes
 históricos que describen aquella estructura siguen siendo evidencia de su fecha;
 las referencias explícitas a archivos trasladados se actualizaron donde procedía,
 sin cambiar los resultados que documentan.
 
-La antigua carpeta `src/Page/` quedó vacía y el propietario la retiró manualmente.
+La antigua carpeta `Frontend/src/Page/` quedó vacía y el propietario la retiró manualmente.
 Git no versiona directorios vacíos. La nueva identidad y las rutas preservadas
 están documentadas en [CONTINUUM_IDENTITY.md](CONTINUUM_IDENTITY.md).
 
@@ -261,7 +246,7 @@ modelos, voz, cámara o proveedores externos no se ejecutaron.
 
 Visión conversacional (ADR-P-102): `Backend/src-tauri/src/conversation_vision.rs` mantiene
 la sesión efímera, valida cámaras y captura escritorio con GDI; `cloud.rs` construye
-la petición multimodal local. `src/core/conversation/vision-session.ts` controla
+la petición multimodal local. `Frontend/src/core/conversation/vision-session.ts` controla
 cámara y cancelaciones; `ConversationVision.tsx` expone controles y selector.
 
 Aperturas delegadas: `Backend/src-tauri/src/desktop_actions.rs` contiene intención actual,

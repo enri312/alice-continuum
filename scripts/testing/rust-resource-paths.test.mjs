@@ -14,7 +14,7 @@ function rustSources(directory) {
 
 describe('rutas de recursos compilados por Rust', () => {
   it('resuelve recursos literales incluso en módulos de otras plataformas', () => {
-    const sources = [path.join(root, 'Backend/src-tauri/src'), path.join(root, 'crates/state-controls/src')].flatMap(rustSources);
+    const sources = [path.join(root, 'Backend/src-tauri/src'), path.join(root, 'Frontend/crates/state-controls/src')].flatMap(rustSources);
     const missing = [];
     let references = 0;
     for (const file of sources) {

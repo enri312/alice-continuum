@@ -20,7 +20,7 @@ import { actionPlanningScene } from "./scenes/cognitive-action-planner.mjs";
 import { finishComponentPanels, precisionControlRim } from "./shared/component-panel-finish.mjs";
 import { precisionDriveHub, precisionRotorDetails, gearToothCrown } from "./shared/gear-drive-hub.mjs";
 
-const outputDirectory = fileURLToPath(new URL("../../icons/", import.meta.url));
+const outputDirectory = fileURLToPath(new URL("../../Frontend/icons/", import.meta.url));
 
 const polar = (cx, cy, radius, count, offset = -90) => Array.from({ length: count }, (_, index) => {
   const angle = (index * 360 / count + offset) * Math.PI / 180;
@@ -452,7 +452,7 @@ function renderIcon([file, id, title, semantic, accent, secondary, compact = fal
 const requestedFiles = new Set(process.argv.slice(2));
 const selectedDefinitions = requestedFiles.size ? definitions.filter(([file]) => requestedFiles.has(file)) : definitions;
 if (requestedFiles.size && selectedDefinitions.length !== requestedFiles.size) {
-  throw new Error("Unknown icon filename; use filenames from icons/.");
+  throw new Error("Unknown icon filename; use filenames from Frontend/icons/.");
 }
 for (const definition of selectedDefinitions) {
   writeFileSync(join(outputDirectory, definition[0]), renderIcon(definition), "utf8");

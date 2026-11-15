@@ -38,19 +38,19 @@ la validación de evidencia y toda persistencia siguen en el backend.
 - `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
   con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
-- `src/components/memory/associations-transport.ts` en la raíz: transporte cerrado,
+- `Frontend/src/components/memory/associations-transport.ts` en la raíz: transporte cerrado,
   sin selección de fuentes ni estado de confirmación. Descarta solicitudes repetidas
   y respuestas tras desmontar. `MemoryAssociationsFallback.tsx` sólo se carga ante
   un fallo del módulo; conserva la recuperación React y sus tres adaptadores.
-- `src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
+- `Frontend/src/components/cognitive/state-controls/` en la raíz: puente con la sesión React,
   ciclo de vida, validación de acciones y una vista de recuperación. La antigua
   `StateControlsPage.tsx` ya no es necesaria.
 
 El WASM y sus bindings generados se incluyen en
-`src/dioxus/state-controls/pkg/`, junto con sus hashes y el hash de las fuentes.
+`Frontend/src/dioxus/state-controls/pkg/`, junto con sus hashes y el hash de las fuentes.
 `npm run dioxus:check` comprueba su correspondencia sin compilar Rust.
 `npm run dev` y `npm run build` realizan esta comprobación. El módulo se carga
-al abrir Estado y controles. Una carga, montaje o actualización fallida conserva
+al abrir Estado y controles o Flujo. Una carga, montaje o actualización fallida conserva
 la vista React con los mismos datos y funciones.
 
 Para regenerar, usar un Rust con `wasm32-unknown-unknown` y wasm-bindgen CLI
@@ -66,7 +66,7 @@ dependencias fijadas; no instala toolchains. Las salidas de compilación y los
 temporales están en `local/dioxus-build/`, fuera de Git.
 La compilación normal del frontend utiliza los artefactos incluidos y no necesita
 esas herramientas. Las pruebas del contrato pueden ejecutarse con
-`cargo test --locked --manifest-path crates/state-controls/Cargo.toml`.
+`cargo test --locked --manifest-path Frontend/crates/state-controls/Cargo.toml`.
 
 ## Ensayo opcional en Edge/Chromium
 

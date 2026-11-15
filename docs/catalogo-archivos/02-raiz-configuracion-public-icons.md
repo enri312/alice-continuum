@@ -44,13 +44,13 @@ Vite copia todo el contenido de `public/` sin transformaciones dentro de `dist/`
 
 | # | Archivo | Estado | Qué hace exactamente |
 |---:|---|---|---|
-| 18 | [`public/favicon.svg`](../../public/favicon.svg) | **Activo (estética antigua)** | Icono SVG `512x512` enlazado directamente en `index.html` (`href="/favicon.svg"`). Conserva un diseño plano anterior (monograma «A» sobre cerebro estilizado), distinto del emblema actual `icons/app-alice.svg`. |
-| 19 | [`public/licenses/rnnoise-BSD-3-Clause.txt`](../../public/licenses/rnnoise-BSD-3-Clause.txt) | **Activo (legal en build)** | Licencia BSD-3-Clause original de Xiph.Org para el algoritmo de supresión de ruido RNNoise. Se distribuye en `dist/licenses/` (no tiene enlace visible en la UI). |
-| 20 | [`public/licenses/RNNoise-NOTICE.txt`](../../public/licenses/RNNoise-NOTICE.txt) | **Activo (legal en build)** | Aviso de atribución de Alice explicando el uso local en navegador de `@shiguredo/rnnoise-wasm` derivado de Xiph RNNoise. |
-| 21 | [`public/licenses/rnnoise-wasm-Apache-2.0.txt`](../../public/licenses/rnnoise-wasm-Apache-2.0.txt) | **Activo (legal en build)** | Texto completo de la licencia Apache 2.0 del paquete WebAssembly `@shiguredo/rnnoise-wasm`. |
-| 22 | [`public/licenses/whisper-model-MIT.txt`](../../public/licenses/whisper-model-MIT.txt) | **Activo (legal en build)** | Licencia MIT de OpenAI aplicable a los pesos del modelo `ggml-base.bin` de Whisper. |
-| 23 | [`public/licenses/whisper-NOTICE.txt`](../../public/licenses/whisper-NOTICE.txt) | **Activo (legal en build)** | Aviso de atribución sobre la ejecución local opcional en CPU de `whisper.cpp` (`v1.9.2`) y el modelo `base` de OpenAI. |
-| 24 | [`public/licenses/whisper.cpp-MIT.txt`](../../public/licenses/whisper.cpp-MIT.txt) | **Activo (legal en build)** | Licencia MIT de Georgi Gerganov para el motor nativo `whisper.cpp`. |
+| 18 | [`public/favicon.svg`](../../Frontend/public/favicon.svg) | **Activo (estética antigua)** | Icono SVG `512x512` enlazado directamente en `index.html` (`href="/favicon.svg"`). Conserva un diseño plano anterior (monograma «A» sobre cerebro estilizado), distinto del emblema actual `icons/app-alice.svg`. |
+| 19 | [`public/licenses/rnnoise-BSD-3-Clause.txt`](../../Frontend/public/licenses/rnnoise-BSD-3-Clause.txt) | **Activo (legal en build)** | Licencia BSD-3-Clause original de Xiph.Org para el algoritmo de supresión de ruido RNNoise. Se distribuye en `dist/licenses/` (no tiene enlace visible en la UI). |
+| 20 | [`public/licenses/RNNoise-NOTICE.txt`](../../Frontend/public/licenses/RNNoise-NOTICE.txt) | **Activo (legal en build)** | Aviso de atribución de Alice explicando el uso local en navegador de `@shiguredo/rnnoise-wasm` derivado de Xiph RNNoise. |
+| 21 | [`public/licenses/rnnoise-wasm-Apache-2.0.txt`](../../Frontend/public/licenses/rnnoise-wasm-Apache-2.0.txt) | **Activo (legal en build)** | Texto completo de la licencia Apache 2.0 del paquete WebAssembly `@shiguredo/rnnoise-wasm`. |
+| 22 | [`public/licenses/whisper-model-MIT.txt`](../../Frontend/public/licenses/whisper-model-MIT.txt) | **Activo (legal en build)** | Licencia MIT de OpenAI aplicable a los pesos del modelo `ggml-base.bin` de Whisper. |
+| 23 | [`public/licenses/whisper-NOTICE.txt`](../../Frontend/public/licenses/whisper-NOTICE.txt) | **Activo (legal en build)** | Aviso de atribución sobre la ejecución local opcional en CPU de `whisper.cpp` (`v1.9.2`) y el modelo `base` de OpenAI. |
+| 24 | [`public/licenses/whisper.cpp-MIT.txt`](../../Frontend/public/licenses/whisper.cpp-MIT.txt) | **Activo (legal en build)** | Licencia MIT de Georgi Gerganov para el motor nativo `whisper.cpp`. |
 
 ---
 
@@ -60,26 +60,26 @@ Catálogo vectorial SVG del sistema visual de Alice. Los 21 iconos de `200x200` 
 
 | # | Archivo | Estado | Qué hace y dónde se usa |
 |---:|---|---|---|
-| 25 | [`icons/app-alice.svg`](../../icons/app-alice.svg) | **Activo (fuente maestra, no en UI React)** | Emblema maestro estático `512x512` de marca. No se pinta dentro del DOM React, sino que actúa como fuente maestra para generar los iconos nativos de ventana/ejecutable (`Backend/src-tauri/icons/`) y es auditado en `icon-system.test.ts` y `project-identity.test.mjs`. |
-| 26 | [`icons/camera-orbit-control.svg`](../../icons/camera-orbit-control.svg) | **Activo** | Icono del botón de rotación orbital 3D en `NeuralVolume.tsx`. |
-| 27 | [`icons/camera-pan-control.svg`](../../icons/camera-pan-control.svg) | **Activo** | Icono del botón de paneo planar de cámara en `NeuralVolume.tsx`. |
-| 28 | [`icons/camera-reset-control.svg`](../../icons/camera-reset-control.svg) | **Activo** | Icono del botón para restablecer el encuadre 3D en `NeuralVolume.tsx`. |
-| 29 | [`icons/camera-zoom-in-control.svg`](../../icons/camera-zoom-in-control.svg) | **Activo** | Icono del botón de acercar zoom en `NeuralVolume.tsx`. |
-| 30 | [`icons/camera-zoom-out-control.svg`](../../icons/camera-zoom-out-control.svg) | **Activo** | Icono del botón de alejar zoom en `NeuralVolume.tsx`. |
-| 31 | [`icons/cognitive-action-planner.svg`](../../icons/cognitive-action-planner.svg) | **Activo** | Icono de la vista *Planificador / Tareas R7*, usado en `NavigationIcon.tsx` (y referenciado por el componente huérfano `NucleusViewIcon.tsx`). |
-| 32 | [`icons/cognitive-activity-timeline.svg`](../../icons/cognitive-activity-timeline.svg) | **Activo** | Icono de la pestaña *Actividad*, usado en `NavigationIcon.tsx`. |
-| 33 | [`icons/cognitive-conversation-channel.svg`](../../icons/cognitive-conversation-channel.svg) | **Activo** | Icono principal del canal *Conversación* (texto, voz y visión opcional), usado en `NavigationIcon.tsx`. |
-| 34 | [`icons/cognitive-evidence-flow.svg`](../../icons/cognitive-evidence-flow.svg) | **Activo** | Icono de la vista *Flujo de evidencia*, usado en `NavigationIcon.tsx`. |
-| 35 | [`icons/cognitive-memory-vault.svg`](../../icons/cognitive-memory-vault.svg) | **Activo** | Icono de la pestaña *Memoria*, usado en `NavigationIcon.tsx`. |
-| 36 | [`icons/cognitive-neural-volume.svg`](../../icons/cognitive-neural-volume.svg) | **Activo** | Icono de la vista *Núcleo / Volumen cognitivo*, usado en `NavigationIcon.tsx`. |
-| 37 | [`icons/cognitive-state-controls.svg`](../../icons/cognitive-state-controls.svg) | **Activo** | Icono de la vista *Estado y controles*, usado en `NavigationIcon.tsx`. |
-| 38 | [`icons/embodiment-avatar-vrm.svg`](../../icons/embodiment-avatar-vrm.svg) | **Activo** | Icono de la pestaña *Avatar VRM*, usado en `NavigationIcon.tsx`. |
-| 39 | [`icons/embodiment-body-solver.svg`](../../icons/embodiment-body-solver.svg) | **Activo** | Icono de *Cuerpo / Body Solver*, usado en `NavigationIcon.tsx` y `BridgeViewIcon.tsx`. |
-| 40 | [`icons/embodiment-face-calibration.svg`](../../icons/embodiment-face-calibration.svg) | **Activo** | Icono de *Rostro / Calibración facial*, usado en `NavigationIcon.tsx` y `BridgeViewIcon.tsx`. |
-| 41 | [`icons/governance-audit-diagnostics.svg`](../../icons/governance-audit-diagnostics.svg) | **Activo** | Icono de *Auditoría y diagnóstico R3*, usado en `NavigationIcon.tsx`. |
-| 42 | [`icons/governance-capability-registry.svg`](../../icons/governance-capability-registry.svg) | **Activo** | Icono del *Registro de capacidades R1*, usado en la subvista `BridgeViewIcon.tsx`. |
-| 43 | [`icons/governance-permissions-gateway.svg`](../../icons/governance-permissions-gateway.svg) | **Activo** | Icono del *Gateway de permisos R2 / Puentes*, usado en `NavigationIcon.tsx`. |
-| 44 | [`icons/governance-procedure-observer.svg`](../../icons/governance-procedure-observer.svg) | **Activo** | Icono de *Procedimientos R5*, usado en `NavigationIcon.tsx`. |
-| 45 | [`icons/governance-skill-workshop.svg`](../../icons/governance-skill-workshop.svg) | **Activo** | Icono del *Taller de habilidades R4*, usado en `NavigationIcon.tsx`. |
-| 46 | [`icons/governance-system-settings.svg`](../../icons/governance-system-settings.svg) | **Activo** | Icono de *Configuración del sistema*, usado en `NavigationIcon.tsx`. |
+| 25 | [`icons/app-alice.svg`](../../Frontend/icons/app-alice.svg) | **Activo (fuente maestra, no en UI React)** | Emblema maestro estático `512x512` de marca. No se pinta dentro del DOM React, sino que actúa como fuente maestra para generar los iconos nativos de ventana/ejecutable (`Backend/src-tauri/icons/`) y es auditado en `icon-system.test.ts` y `project-identity.test.mjs`. |
+| 26 | [`icons/camera-orbit-control.svg`](../../Frontend/icons/camera-orbit-control.svg) | **Activo** | Icono del botón de rotación orbital 3D en `NeuralVolume.tsx`. |
+| 27 | [`icons/camera-pan-control.svg`](../../Frontend/icons/camera-pan-control.svg) | **Activo** | Icono del botón de paneo planar de cámara en `NeuralVolume.tsx`. |
+| 28 | [`icons/camera-reset-control.svg`](../../Frontend/icons/camera-reset-control.svg) | **Activo** | Icono del botón para restablecer el encuadre 3D en `NeuralVolume.tsx`. |
+| 29 | [`icons/camera-zoom-in-control.svg`](../../Frontend/icons/camera-zoom-in-control.svg) | **Activo** | Icono del botón de acercar zoom en `NeuralVolume.tsx`. |
+| 30 | [`icons/camera-zoom-out-control.svg`](../../Frontend/icons/camera-zoom-out-control.svg) | **Activo** | Icono del botón de alejar zoom en `NeuralVolume.tsx`. |
+| 31 | [`icons/cognitive-action-planner.svg`](../../Frontend/icons/cognitive-action-planner.svg) | **Activo** | Icono de la vista *Planificador / Tareas R7*, usado en `NavigationIcon.tsx` (y referenciado por el componente huérfano `NucleusViewIcon.tsx`). |
+| 32 | [`icons/cognitive-activity-timeline.svg`](../../Frontend/icons/cognitive-activity-timeline.svg) | **Activo** | Icono de la pestaña *Actividad*, usado en `NavigationIcon.tsx`. |
+| 33 | [`icons/cognitive-conversation-channel.svg`](../../Frontend/icons/cognitive-conversation-channel.svg) | **Activo** | Icono principal del canal *Conversación* (texto, voz y visión opcional), usado en `NavigationIcon.tsx`. |
+| 34 | [`icons/cognitive-evidence-flow.svg`](../../Frontend/icons/cognitive-evidence-flow.svg) | **Activo** | Icono de la vista *Flujo de evidencia*, usado en `NavigationIcon.tsx`. |
+| 35 | [`icons/cognitive-memory-vault.svg`](../../Frontend/icons/cognitive-memory-vault.svg) | **Activo** | Icono de la pestaña *Memoria*, usado en `NavigationIcon.tsx`. |
+| 36 | [`icons/cognitive-neural-volume.svg`](../../Frontend/icons/cognitive-neural-volume.svg) | **Activo** | Icono de la vista *Núcleo / Volumen cognitivo*, usado en `NavigationIcon.tsx`. |
+| 37 | [`icons/cognitive-state-controls.svg`](../../Frontend/icons/cognitive-state-controls.svg) | **Activo** | Icono de la vista *Estado y controles*, usado en `NavigationIcon.tsx`. |
+| 38 | [`icons/embodiment-avatar-vrm.svg`](../../Frontend/icons/embodiment-avatar-vrm.svg) | **Activo** | Icono de la pestaña *Avatar VRM*, usado en `NavigationIcon.tsx`. |
+| 39 | [`icons/embodiment-body-solver.svg`](../../Frontend/icons/embodiment-body-solver.svg) | **Activo** | Icono de *Cuerpo / Body Solver*, usado en `NavigationIcon.tsx` y `BridgeViewIcon.tsx`. |
+| 40 | [`icons/embodiment-face-calibration.svg`](../../Frontend/icons/embodiment-face-calibration.svg) | **Activo** | Icono de *Rostro / Calibración facial*, usado en `NavigationIcon.tsx` y `BridgeViewIcon.tsx`. |
+| 41 | [`icons/governance-audit-diagnostics.svg`](../../Frontend/icons/governance-audit-diagnostics.svg) | **Activo** | Icono de *Auditoría y diagnóstico R3*, usado en `NavigationIcon.tsx`. |
+| 42 | [`icons/governance-capability-registry.svg`](../../Frontend/icons/governance-capability-registry.svg) | **Activo** | Icono del *Registro de capacidades R1*, usado en la subvista `BridgeViewIcon.tsx`. |
+| 43 | [`icons/governance-permissions-gateway.svg`](../../Frontend/icons/governance-permissions-gateway.svg) | **Activo** | Icono del *Gateway de permisos R2 / Puentes*, usado en `NavigationIcon.tsx`. |
+| 44 | [`icons/governance-procedure-observer.svg`](../../Frontend/icons/governance-procedure-observer.svg) | **Activo** | Icono de *Procedimientos R5*, usado en `NavigationIcon.tsx`. |
+| 45 | [`icons/governance-skill-workshop.svg`](../../Frontend/icons/governance-skill-workshop.svg) | **Activo** | Icono del *Taller de habilidades R4*, usado en `NavigationIcon.tsx`. |
+| 46 | [`icons/governance-system-settings.svg`](../../Frontend/icons/governance-system-settings.svg) | **Activo** | Icono de *Configuración del sistema*, usado en `NavigationIcon.tsx`. |
 

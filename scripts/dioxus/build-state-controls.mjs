@@ -5,8 +5,8 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const project = fileURLToPath(new URL("../../", import.meta.url));
-const crate = path.join(project, "crates/state-controls");
-const output = path.join(project, "src/dioxus/state-controls/pkg");
+const crate = path.join(project, "Frontend/crates/state-controls");
+const output = path.join(project, "Frontend/src/dioxus/state-controls/pkg");
 const args = process.argv.slice(2);
 const check = args.includes("--check");
 function option(name) { const index = args.indexOf(name); return index < 0 ? undefined : args[index + 1]; }

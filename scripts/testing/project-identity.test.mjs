@@ -6,11 +6,26 @@ import { describe, expect, it } from "vitest";
 const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
 describe("Alice Continuum identity", () => {
+  it("separa las fuentes de Frontend y mantiene la coordinación desde la raíz", () => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    const project = JSON.parse(read("package.json"));
+    const frontend = JSON.parse(read("Frontend/package.json"));
+    const lock = JSON.parse(read("package-lock.json"));
+    expect(project.workspaces).toEqual(["Frontend"]);
+    expect(frontend.name).toBe("@alice-continuum/frontend");
+    expect(lock.packages.Frontend.name).toBe(frontend.name);
+    expect(project.scripts.dev).toContain("--workspace=Frontend");
+    expect(project.scripts.build).toContain("--workspace=Frontend");
+    for (const file of ["Frontend/src/main.tsx", "Frontend/index.html", "Frontend/vite.config.ts", "Frontend/public/favicon.svg", "Frontend/crates/state-controls/Cargo.toml"]) {
+      expect(existsSync(path.join(root, file)), file).toBe(true);
+    }
+    for (const previous of ["src", "public", "icons", "crates", "index.html", "vite.config.ts"]) expect(existsSync(path.join(root, previous)), previous).toBe(false);
+  });
   it("mantiene backend y adaptadores juntos y conserva la ruta del frontend de Tauri", () => {
     const root = fileURLToPath(new URL("../../", import.meta.url));
     const native = path.join(root, "Backend", "src-tauri");
     const config = JSON.parse(read("Backend/src-tauri/tauri.conf.json"));
-    expect(path.resolve(native, config.build.frontendDist)).toBe(path.join(root, "dist"));
+    expect(path.resolve(native, config.build.frontendDist)).toBe(path.join(root, "Frontend/dist"));
     expect(existsSync(path.join(root, "Backend/adapters/document_reader.py"))).toBe(true);
     expect(existsSync(path.join(root, "Backend/adapters/linux_media_bridge.py"))).toBe(true);
     expect(existsSync(path.join(root, "src-tauri"))).toBe(false);
@@ -31,18 +46,18 @@ describe("Alice Continuum identity", () => {
 
   it("preserves persistent identity and storage keys during the rebrand", () => {
     expect(JSON.parse(read("Backend/src-tauri/tauri.conf.json")).identifier).toBe("com.carlosnunez.alicecognitivecore");
-    const app = read("src/App.tsx");
+    const app = read("Frontend/src/App.tsx");
     expect(app).toContain('const storageKey = "alice-cognitive-core-sessions-v1"');
     expect(app).toContain('const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1"');
     expect(app).toContain('"proyecto-p-sessions-v1"');
   });
 
   it("brands the UI and documentation without renaming the character asset", () => {
-    expect(read("src/App.tsx")).toContain("ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA");
-    expect(read("index.html")).toContain("<title>Alice Continuum</title>");
+    expect(read("Frontend/src/App.tsx")).toContain("ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA");
+    expect(read("Frontend/index.html")).toContain("<title>Alice Continuum</title>");
     expect(read("README.md")).toMatch(/^# Alice Continuum/);
     expect(read("docs/especificacion_alice_continuum.html")).toContain("<title>Alice Continuum — Documento maestro</title>");
-    expect(read("icons/app-alice.svg")).toContain('aria-label="Emblema de Alice Continuum"');
+    expect(read("Frontend/icons/app-alice.svg")).toContain('aria-label="Emblema de Alice Continuum"');
   });
 
   it("recognizes both executable names for launch and self-observation safety", () => {

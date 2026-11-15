@@ -4,8 +4,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { retrieveMemories, buildRetrievalQuery } from '../../src/core/memory/memory-retrieval.ts';
-import { buildCloudPayload } from '../../src/core/conversation/cloud-payload.ts';
+import { retrieveMemories, buildRetrievalQuery } from '../../Frontend/src/core/memory/memory-retrieval.ts';
+import { buildCloudPayload } from '../../Frontend/src/core/conversation/cloud-payload.ts';
 import { readRustPrompt } from './rust-prompt-reader.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));

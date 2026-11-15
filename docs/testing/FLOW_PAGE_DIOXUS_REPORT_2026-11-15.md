@@ -63,7 +63,7 @@ la comprobación funcional utilizó el diagnóstico de la WebView del proceso re
 
 Por indicación del propietario, cada migración debe abrir y comprobar Alice
 además de compilar. Los comandos repetibles y sus requisitos están en la
-[guía del módulo](../../crates/state-controls/README.md). El arranque nativo con
+[guía del módulo](../../Frontend/crates/state-controls/README.md). El arranque nativo con
 fixtures no acredita voz, motores externos ni todas las pantallas. No se probó
 una conversación con un modelo ni se utilizaron recuerdos personales.
 

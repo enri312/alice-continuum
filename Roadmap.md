@@ -104,6 +104,19 @@ nativa de la simulada. No dar por comprobado el arranque sólo por compilar.
 El ensayo nativo usa una carpeta temporal privada y el backend real; voz,
 proveedores y datos personales requieren su propia aceptación cuando corresponda.
 
+**Organización Frontend (2026-11-15):** fuentes, estilos, iconos, recursos,
+configuración de Vite/TypeScript y el crate Dioxus pasan a `Frontend/`.
+La raíz coordina un workspace npm con lock único y mantiene los comandos y
+lanzadores habituales. Tauri usa `Frontend/dist/`; los generadores, pilotos,
+pruebas y CI apuntan a las nuevas rutas. El traslado conservó los hashes de 293
+archivos y las versiones de dependencias; no se editaron componentes ni estilos.
+Build, 894 pruebas frontend (dos omitidas), 25 Rust, Clippy WASM, Obsidian,
+respaldos y privacidad aprobados. Edge y Tauri/WebView2 verificaron navegación,
+R3, fuentes, confirmación y persistencia con datos aislados desde la estructura
+nueva. Se conserva la separación entre datos privados y código. La revisión
+actual de la raíz está en el [mapa de carpetas](docs/architecture/MAPA_CARPETAS_RAIZ.md).
+Este incremento ordena las fuentes; no declara migrada otra pantalla a Dioxus.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

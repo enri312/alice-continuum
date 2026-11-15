@@ -14,7 +14,7 @@ las guías de los activos; los recursos, modelos, evidencias y entornos se exclu
 
 Los datos de conversación y memoria siguen en `../data/`. Los motores de esta
 notebook siguen en `D:/Alice-model-evaluation`; no se duplican ni se trasladan.
-No copies `venv/`, `.cargo-target/`, `node_modules/` o `dist/` entre sistemas.
+No copies `venv/`, `.cargo-target/`, `node_modules/` o `Frontend/dist/` entre sistemas.
 Recréalos a partir de los manifiestos. Consulta [Ubuntu](../docs/runbooks/04-ubuntu.md).
 
 Los informes históricos conservan las rutas y fechas de sus ensayos. Una ruta

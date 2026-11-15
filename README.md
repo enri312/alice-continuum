@@ -3,7 +3,7 @@
 [![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
 [![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
-[![Dioxus 0.7.0](https://img.shields.io/badge/Dioxus-0.7.0-25A7D7?logo=rust&logoColor=white)](crates/state-controls/Cargo.toml)
+[![Dioxus 0.7.0](https://img.shields.io/badge/Dioxus-0.7.0-25A7D7?logo=rust&logoColor=white)](Frontend/crates/state-controls/Cargo.toml)
 [![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](Backend/src-tauri/Cargo.lock)
 [![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
 [![npm 11.20.0](https://img.shields.io/badge/npm-11.20.0-CB3837?logo=npm&logoColor=white)](package.json)
@@ -381,21 +381,31 @@ viven en `Backend/src-tauri/src/memory/`. El almacenamiento básico se prueba po
 conservando respaldos, auditoría y formatos. [Modularización y React 19.3.1](docs/decisions/ADR-P-108-memoria-modular-react-19-3.md).
 
 ```text
-src/pages/             pantallas de conversación, memoria, núcleo y gobierno
-src/components/        componentes, controles de voz y visualizaciones
-src/core/              contratos, recuperación y procesamiento de audio
-Backend/src-tauri/     aplicación nativa Rust/Tauri, memoria y permisos
-Backend/adapters/      adaptadores Python nativos y sus pruebas
-local/                 activos privados, entorno Python, borradores y evidencias
-data/                  conversación, memoria y auditorías privadas
-.cargo-target/         caché Rust compartido (no se publica)
-icons/                 recursos SVG editables
-public/licenses/       avisos de RNNoise y Whisper
-scripts/testing/       pilotos y evaluación reproducible
-docs/                  manual, arquitectura, decisiones e informes
+Frontend/src/                    pantallas, componentes, estilos y lógica TypeScript
+Frontend/crates/state-controls/   fuentes Rust/Dioxus de Estado y Flujo
+Frontend/icons/                  recursos SVG editables
+Frontend/public/                 recursos estáticos y licencias
+Frontend/dist/                   build de interfaz para Tauri (regenerable)
+Backend/src-tauri/               aplicación nativa Rust/Tauri, memoria y permisos
+Backend/adapters/                adaptadores Python nativos y sus pruebas
+scripts/                        instalación, generación, respaldos y pruebas
+docs/                           manual, arquitectura, decisiones e informes
+data/                           conversación, memoria y auditorías privadas
+local/                          activos, configuración y evidencias privadas
+experiments/                    ensayos privados, fuera de Git
+node_modules/                   dependencias npm compartidas (regenerables)
+.cargo-target/                  caché Rust compartida (regenerable)
 ```
 
 [Mapa de carpetas de la raíz](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Mapa de módulos](docs/architecture/PROJECT_STRUCTURE.md) · [Decisiones ADR](docs/decisions/README.md) · [Contexto recuperado](docs/CONTEXTO_RECUPERADO_2026-11-03.md)
+
+La [interfaz está agrupada en `Frontend/`](Frontend/README.md), incluidos Vite,
+TypeScript, recursos y el módulo Dioxus. La raíz coordina un workspace npm con un
+único lockfile: `npm ci`, `npm run dev`, `npm run build`, `npm test` y los
+lanzadores mantienen su uso. Los comandos que conectan frontend, backend y
+almacenamiento siguen en `scripts/`. El traslado no cambia versiones ni diseño.
+La [verificación del traslado](docs/testing/FRONTEND_REORGANIZATION_REPORT_2026-11-15.md)
+registra las comprobaciones de rutas, privacidad y arranque nativo.
 
 El [plan de portabilidad y migración a Dioxus](docs/architecture/PLAN_PORTABILIDAD_DIOXUS.md)
 ordena la reproducción de fallos, la instalación y las pruebas en Windows,
@@ -420,7 +430,7 @@ React permanece para otras pantallas y para la recuperación de Flujo.
 En Edge aislado se comprobaron clic, teclado, navegación, dos anchos, estados R3
 sintéticos y recuperación tras un fallo de descarga WASM. La interacción nativa
 en Tauri queda pendiente; esta prueba de navegador no utiliza recuerdos personales.
-La [guía del módulo](crates/state-controls/README.md) explica cómo repetirla.
+La [guía del módulo](Frontend/crates/state-controls/README.md) explica cómo repetirla.
 El [estado de migración y retirada de React](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 identifica qué componentes siguen siendo necesarios y cuándo pueden retirarse.
 El [informe del controlador de relaciones](docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md)
@@ -434,7 +444,7 @@ Las pruebas de navegador y la compilación no sustituyen ese paso. El ensayo
 `npm run test:dioxus:native` abre Tauri/WebView2 con datos sintéticos separados,
 comprueba el backend real y cierra su propia instancia. Requiere primero
 `npm run build` y un `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`
-en otra terminal; Alice debe estar cerrada. La [guía del módulo](crates/state-controls/README.md)
+en otra terminal; Alice debe estar cerrada. La [guía del módulo](Frontend/crates/state-controls/README.md)
 explica el alcance y los recursos privados de esta prueba.
 
 La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
@@ -445,7 +455,7 @@ explica qué se movió, qué iconos se usan y qué herramientas aún requieren r
 Los recuerdos, auditorías, grabaciones de prueba, capturas, claves, modelos y
 activos privados del avatar permanecen fuera de Git. `data/README.md` explica el
 almacenamiento; las pruebas utilizan raíces separadas de los datos personales.
-Las licencias de terceros se conservan en `public/licenses/`.
+Las licencias de terceros se conservan en `Frontend/public/licenses/`.
 
 R9 sigue abierta: falta aceptación de conversación con la voz del propietario y
 música de notebook y otros equipos, menor demora de síntesis, mejores referentes

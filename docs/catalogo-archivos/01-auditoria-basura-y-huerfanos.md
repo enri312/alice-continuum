@@ -60,12 +60,12 @@ Cuando Alice migró su aprendizaje conversacional y su visión desde **Ollama/Qw
 | Archivo | Estado exacto | Explicación |
 |---|---|---|
 | `src/components/icons/NucleusViewIcon.tsx` | **RETIRADO** | Sin importadores; copia local de recuperación y contenido en el historial Git. |
-| [`src/components/memory/MemoryCandidatePanel.tsx`](../../src/components/memory/MemoryCandidatePanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel R6.4-C de candidatos vía Ollama; reemplazado por `AutomaticMemoryPanel.tsx` y propuestas por turno en `ConversationPage.tsx`. |
-| [`src/components/memory/SensoryLearningPanel.tsx`](../../src/components/memory/SensoryLearningPanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel de concesiones de cámara/micrófono de 60 s y análisis de pantalla cada 5 min vía Ollama; reemplazado por `ConversationVision.tsx`. |
-| [`src/components/icons/BridgeViewIcon.tsx`](../../src/components/icons/BridgeViewIcon.tsx) | **MUERTO EN RUNTIME** | Solo se importa en `CapabilityRegistryPage.tsx` dentro de `{!fixedView && ...}`, pero `App.tsx` (líneas 667–669) **siempre** pasa `fixedView` definido (`"overview"`, `"face"` o `"body"`). |
-| [`src/core/cognitive/neural-volume-visual.ts`](../../src/core/cognitive/neural-volume-visual.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST** | Cálculos visuales antiguos superados por `cognitive-volume.ts` y `NeuralVolume.tsx`. |
-| [`src/core/conversation/teaching-templates.ts`](../../src/core/conversation/teaching-templates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST** | Plantillas del formulario retirado *"Enseñarle a Alice"*. Ningún componente las importa. |
-| [`src/core/memory/learning-candidates.ts`](../../src/core/memory/learning-candidates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST + HUÉRFANO** | En código de app solo lo importaba el huérfano `MemoryCandidatePanel.tsx`. |
+| [`src/components/memory/MemoryCandidatePanel.tsx`](../../Frontend/src/components/memory/MemoryCandidatePanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel R6.4-C de candidatos vía Ollama; reemplazado por `AutomaticMemoryPanel.tsx` y propuestas por turno en `ConversationPage.tsx`. |
+| [`src/components/memory/SensoryLearningPanel.tsx`](../../Frontend/src/components/memory/SensoryLearningPanel.tsx) | **HUÉRFANO TOTAL** | **0 importadores.** Viejo panel de concesiones de cámara/micrófono de 60 s y análisis de pantalla cada 5 min vía Ollama; reemplazado por `ConversationVision.tsx`. |
+| [`src/components/icons/BridgeViewIcon.tsx`](../../Frontend/src/components/icons/BridgeViewIcon.tsx) | **MUERTO EN RUNTIME** | Solo se importa en `CapabilityRegistryPage.tsx` dentro de `{!fixedView && ...}`, pero `App.tsx` (líneas 667–669) **siempre** pasa `fixedView` definido (`"overview"`, `"face"` o `"body"`). |
+| [`src/core/cognitive/neural-volume-visual.ts`](../../Frontend/src/core/cognitive/neural-volume-visual.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST** | Cálculos visuales antiguos superados por `cognitive-volume.ts` y `NeuralVolume.tsx`. |
+| [`src/core/conversation/teaching-templates.ts`](../../Frontend/src/core/conversation/teaching-templates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST** | Plantillas del formulario retirado *"Enseñarle a Alice"*. Ningún componente las importa. |
+| [`src/core/memory/learning-candidates.ts`](../../Frontend/src/core/memory/learning-candidates.ts) *(+ `.test.ts`)* | **SOLO USADO EN SU TEST + HUÉRFANO** | En código de app solo lo importaba el huérfano `MemoryCandidatePanel.tsx`. |
 
 ### 2.2 Módulos y comandos Tauri en Rust desconectados de la UI activa (`Backend/src-tauri/src/`)
 
@@ -85,14 +85,14 @@ Cuando Alice migró su aprendizaje conversacional y su visión desde **Ollama/Qw
 Estos archivos **sí son esenciales y no deben borrarse**, pero contienen bloques muertos adentro:
 
 1. [`scripts/icons/generate-icons.mjs`](../../scripts/icons/generate-icons.mjs) (**líneas 132–420, ~280 líneas muertas**): define las 16 escenas inline antiguas en `const scenes = { ... }` e inmediatamente después (líneas 422–437) sobrescribe esas mismas 16 claves con las escenas modulares importadas de `./scenes/*.mjs`.
-2. [`src/App.tsx`](../../src/App.tsx) (**líneas 201–202**): constantes `ollamaProvider` y `ollamaModel` calculadas en cada render sin ningún consumidor.
-3. [`src/pages/governance/CapabilityRegistryPage.tsx`](../../src/pages/governance/CapabilityRegistryPage.tsx) (**líneas 84–92**): bloque `{!fixedView && <div className="bridge-view-tabs">...}` nunca alcanzado desde `App.tsx`.
+2. [`src/App.tsx`](../../Frontend/src/App.tsx) (**líneas 201–202**): constantes `ollamaProvider` y `ollamaModel` calculadas en cada render sin ningún consumidor.
+3. [`src/pages/governance/CapabilityRegistryPage.tsx`](../../Frontend/src/pages/governance/CapabilityRegistryPage.tsx) (**líneas 84–92**): bloque `{!fixedView && <div className="bridge-view-tabs">...}` nunca alcanzado desde `App.tsx`.
 4. **Selectores CSS heredados en 5 hojas activas:**
-   - [`src/styles/industrial-theme.css`](../../src/styles/industrial-theme.css): `.learning-candidate-*`, `.sensory-*`, `.sensor-*`, `.neuro-view-icon`, `.neuro-view-tabs`, `.bridge-view-tabs`, `.brain-node-strip`, `.teaching-panel`, `.provider-picker`, `.social-hypotheses`.
-   - [`src/styles/base.css`](../../src/styles/base.css): `.teaching-panel`, `.teaching-starters`, `.kind-grid`, `.session-overview`, `.reflection`, `.lobe`, `.focus-core`, `.neuro-node`.
-   - [`src/styles/interaction-affordance.css`](../../src/styles/interaction-affordance.css): `.neuro-view-tabs`, `.identification-injector`.
-   - [`src/styles/conversation-context.css`](../../src/styles/conversation-context.css): `.conversation-history-gate`, `.voice-turn-steps`.
-   - [`src/styles/conversation-home.css`](../../src/styles/conversation-home.css): `.audio-focus-option`.
+   - [`src/styles/industrial-theme.css`](../../Frontend/src/styles/industrial-theme.css): `.learning-candidate-*`, `.sensory-*`, `.sensor-*`, `.neuro-view-icon`, `.neuro-view-tabs`, `.bridge-view-tabs`, `.brain-node-strip`, `.teaching-panel`, `.provider-picker`, `.social-hypotheses`.
+   - [`src/styles/base.css`](../../Frontend/src/styles/base.css): `.teaching-panel`, `.teaching-starters`, `.kind-grid`, `.session-overview`, `.reflection`, `.lobe`, `.focus-core`, `.neuro-node`.
+   - [`src/styles/interaction-affordance.css`](../../Frontend/src/styles/interaction-affordance.css): `.neuro-view-tabs`, `.identification-injector`.
+   - [`src/styles/conversation-context.css`](../../Frontend/src/styles/conversation-context.css): `.conversation-history-gate`, `.voice-turn-steps`.
+   - [`src/styles/conversation-home.css`](../../Frontend/src/styles/conversation-home.css): `.audio-focus-option`.
 5. **Listas heredadas de rutas antiguas ya migradas** en [`.gitignore`](../../.gitignore) y [`vite.config.ts`](../../vite.config.ts): entradas como `Assets/`, `adapters/`, `.venv-adapters/`, `artifacts/`, `scratch/`, `.openchamber/` (inofensivas como defensa extra, pero históricas).
 
 ---

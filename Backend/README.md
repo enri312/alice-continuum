@@ -8,8 +8,9 @@
 
 Los datos privados no están aquí: se mantienen en `data/`, y los modelos, entornos
 y recursos locales en `local/` o en las rutas configuradas por el propietario.
-La interfaz Dioxus de Estado y controles sigue en `crates/state-controls/`, porque
+La interfaz Dioxus de Estado y controles sigue en `Frontend/crates/state-controls/`, porque
 es una vista de la aplicación, no un servicio del backend.
+El resto de la interfaz y sus recursos están en [Frontend](../Frontend/README.md).
 
 Desde la raíz, `npm test`, `npm run build` y los lanzadores mantienen sus usos.
 Para las pruebas nativas se usa `cargo test --locked --manifest-path Backend/src-tauri/Cargo.toml`.

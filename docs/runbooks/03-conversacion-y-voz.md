@@ -250,7 +250,7 @@ otra toma, descartar o cerrar el dictado. El sonido no se guarda como archivo.
 ## Evaluación y reporte
 
 Antes de cambiar instrucciones, inspeccionar `Backend/src-tauri/src/cloud.rs` (prompt y
-muestreo) y `src/core/conversation/cloud-payload.ts` (fuentes y orden). No asumir
+muestreo) y `Frontend/src/core/conversation/cloud-payload.ts` (fuentes y orden). No asumir
 que el historial visible equivale al contexto recibido: el modo manual excluye las respuestas anteriores de Alice; el automático las
 conserva como diálogo no factual autorizado por la sesión. No reconstruir un envío histórico como si
 fuera exacto cuando no se dispone de su payload autorizado.

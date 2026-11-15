@@ -102,7 +102,7 @@ try {
   await fs.writeFile(path.join(artifacts, 'flow-1000.png'), Buffer.from(narrowShot.data, 'base64'));
 
   // Exercise real WASM updates independently of Tauri, using synthetic signals.
-  const runtimeFile = (await fs.readdir(path.join(root, 'dist/assets'))).find(name => /^runtime-.*\.js$/.test(name));
+  const runtimeFile = (await fs.readdir(path.join(root, 'Frontend/dist/assets'))).find(name => /^runtime-.*\.js$/.test(name));
   assert.ok(runtimeFile, 'Runtime generado disponible');
   const runtimeUrl = new URL(`/assets/${runtimeFile}`, url).href;
   await evaluate(`(async () => {

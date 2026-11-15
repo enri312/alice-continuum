@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 // Exercise the real project configuration against disposable files, never actual memories.
 describe("frontera HTTP del servidor de desarrollo", () => {
   let root: string;
+  let workspace: string;
   let server: ViteDevServer;
   let origin: string;
   // Keep fixtures on the project's drive: Vite's Windows /@fs middleware resolves
@@ -17,17 +18,20 @@ describe("frontera HTTP del servidor de desarrollo", () => {
 
   beforeAll(async () => {
     await mkdir(fixtureParent, {recursive:true});
-    root = await mkdtemp(path.join(fixtureParent, "alice-dev-boundary-"));
+    workspace = await mkdtemp(path.join(fixtureParent, "alice-dev-boundary-"));
+    root = path.join(workspace, "Frontend");
     for (const file of privateFiles) {
       await mkdir(path.dirname(path.join(root, file)), { recursive:true });
       await writeFile(path.join(root, file), marker);
+      await mkdir(path.dirname(path.join(workspace, file)), { recursive:true });
+      await writeFile(path.join(workspace, file), marker);
     }
     await mkdir(path.join(root, "icons"));
     await writeFile(path.join(root, "icons/app.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>');
     await writeFile(path.join(root, "index.html"), "<!doctype html><title>Alice fixture</title>");
     server = await createServer({
-      configFile: fileURLToPath(new URL("../../vite.config.ts", import.meta.url)),
-      root, logLevel:"silent", server:{host:"127.0.0.1",port:0,watch:null},
+      configFile: fileURLToPath(new URL("../../Frontend/vite.config.ts", import.meta.url)),
+      root, logLevel:"silent", server:{host:"127.0.0.1",port:0,watch:null,fs:{allow:[workspace]}},
     });
     await server.listen();
     const address = server.httpServer!.address();
@@ -37,10 +41,16 @@ describe("frontera HTTP del servidor de desarrollo", () => {
 
   afterAll(async () => {
     await server?.close();
-    if (root && path.dirname(path.resolve(root)) === path.resolve(fixtureParent)
-        && path.basename(root).startsWith("alice-dev-boundary-")) {
-      await rm(root, {recursive:true,force:true});
+    if (workspace && path.dirname(path.resolve(workspace)) === path.resolve(fixtureParent)
+        && path.basename(workspace).startsWith("alice-dev-boundary-")) {
+      await rm(workspace, {recursive:true,force:true});
     }
+  });
+  it.each(privateFiles)("bloquea también el recurso hermano de Frontend: %s", async file => {
+    const route = `/@fs/${path.join(workspace, file).replaceAll("\\", "/")}`;
+    const response = await fetch(`${origin}${route}`);
+    expect(response.status, route).toBe(403);
+    expect(await response.text()).not.toContain(marker);
   });
 
   it.each(privateFiles)("bloquea %s con y sin consulta o ruta absoluta", async file => {

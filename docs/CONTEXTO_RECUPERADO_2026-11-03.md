@@ -61,7 +61,7 @@ repetición quedó sin respuesta porque el motor local dejó de aceptar conexion
 Esta revisión no volvió a ejecutar generaciones ni llamadas a Fish.
 
 Un punto concreto para investigar es que
-[`cloud-payload.ts`](../src/core/conversation/cloud-payload.ts) excluye las
+[`cloud-payload.ts`](../Frontend/src/core/conversation/cloud-payload.ts) excluye las
 respuestas anteriores de Alice del contexto enviado al modelo. Es una decisión
 para evitar reutilizarlas como evidencia factual. Puede limitar la continuidad
 del diálogo, pero no se ha demostrado que sea la causa única de las respuestas

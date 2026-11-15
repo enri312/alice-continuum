@@ -145,7 +145,7 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 
 La prueba nativa usa datos sintéticos y no certifica voz, proveedores ni datos
 personales. No se utilizaron recuerdos personales. Los ensayos están documentados en la
-[guía del módulo](../../crates/state-controls/README.md).
+[guía del módulo](../../Frontend/crates/state-controls/README.md).
 
 ## Código que todavía tiene uso
 
