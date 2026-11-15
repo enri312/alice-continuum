@@ -406,9 +406,10 @@ El grafo, el inspector, el encabezado y la banda R3 de Flujo cognitivo se render
 en Rust/Dioxus, conservando los estilos, nodos y evidencia. El encabezado se
 comparte con Estado y controles. El contenedor, el sondeo y las asociaciones de
 memoria siguen en React; también existe una vista de respaldo. La lista de
-relaciones guardadas y el formulario de fuentes se presentan en Dioxus. El
-borrador, las confirmaciones y los comandos conservan sus conexiones actuales:
-editar invalida la revisión anterior y sólo confirmar permite solicitar el guardado.
+relaciones guardadas, el formulario de fuentes y las pantallas de confirmación
+se presentan en Dioxus. El controlador conserva el borrador, las revisiones y los
+comandos actuales: editar invalida la revisión anterior y sólo una confirmación
+vigente permite solicitar el guardado. Los eventos atrasados y dobles clics se filtran.
 En Edge aislado se comprobaron clic, teclado, navegación, dos anchos, estados R3
 sintéticos y recuperación tras un fallo de descarga WASM. La interacción nativa
 en Tauri queda pendiente; esta prueba de navegador no utiliza recuerdos personales.

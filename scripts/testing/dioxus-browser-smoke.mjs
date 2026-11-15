@@ -65,6 +65,7 @@ try {
   const ready = () => until(() => evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .flow-node\'))'), 'montaje Dioxus');
   const inspector = () => evaluate('document.querySelector(".neuro-inspector h3")?.textContent');
   const clickTab = label => evaluate(`Array.from(document.querySelectorAll("button")).find(button => button.getAttribute("aria-label") === ${JSON.stringify(label)})?.click()`);
+  const confirmationReady = label => until(() => evaluate(`Array.from(document.querySelectorAll('[data-confirmation-renderer="dioxus"] [role="region"]')).some(element=>element.getAttribute('aria-label')===${JSON.stringify(label)})`), `confirmación Dioxus: ${label}`);
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1400, deviceScaleFactor: 1, mobile: false });
   url.searchParams.set('screen', 'flujo');
   await send('Page.navigate', { url: url.href });
@@ -180,6 +181,7 @@ try {
           __relationFixture.revision++; return null;
         }
         if(cmd==='set_knowledge_graph_association_withdrawn') {
+          if(globalThis.__holdRelationWrite) await new Promise(resolve=>globalThis.__releaseRelationWrite=resolve);
           if(globalThis.__failRelationWrite) { globalThis.__failRelationWrite=false; throw Error('Fallo sintético de relación'); }
           if(args.confirmed!==true || args.expectedRevision!==__relationFixture.revision) throw Error('Confirmación o revisión inválida');
           const relation=__relationFixture.associations.find(item=>item.id===args.id);
@@ -200,18 +202,26 @@ try {
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article d").length'), 0, 'Los títulos se muestran como texto');
   const writes = () => evaluate('__relationCalls.filter(call=>call.cmd==="set_knowledge_graph_association_withdrawn")');
   await evaluate('document.querySelectorAll(".memory-associations article button")[0].click()');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión antes de escribir');
+  await confirmationReady('Confirmar cambio de relación');
   assert.equal((await writes()).length, 0, 'Seleccionar no escribe');
   await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Cancelar").click()');
   assert.equal((await writes()).length, 0, 'Cancelar no escribe');
   await evaluate('document.querySelectorAll(".memory-associations article button")[1].click()');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión de restauración');
-  await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar cambio").click()');
+  await confirmationReady('Confirmar cambio de relación');
+  assert.equal(await evaluate('document.querySelector(\'[aria-label="Confirmar cambio de relación"] p\').textContent'), '¿Restaurar esta relación? No modifica recuerdos y conserva las revisiones anteriores.');
+  await evaluate('document.querySelector(\'[aria-label="Confirmar cambio de relación"]\').scrollIntoView({block:"center"})');
+  const confirmationShot=await send('Page.captureScreenshot',{format:'png'});
+  await fs.writeFile(path.join(artifacts,'confirmation-change.png'),Buffer.from(confirmationShot.data,'base64'));
+  await evaluate('globalThis.__holdRelationWrite=true; const button=Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar cambio"); button.click(); button.click()');
   await until(async () => (await writes()).length === 1, 'confirmación explícita');
+  await until(() => evaluate('(() => { const buttons=Array.from(document.querySelectorAll(\'[aria-label="Confirmar cambio de relación"] button\')); return buttons.length===2 && buttons.every(button=>button.disabled); })()'), 'confirmación ocupada bloquea confirmar y cancelar');
+  assert.equal((await writes()).length,1,'Doble clic no duplica la solicitud');
+  await until(() => evaluate('typeof globalThis.__releaseRelationWrite === "function"'), 'guardado ficticio suspendido');
+  await evaluate('globalThis.__holdRelationWrite=false; __releaseRelationWrite()');
   assert.deepEqual((await writes())[0].args, {id:'withdrawn',withdrawn:false,expectedRevision:7,confirmed:true});
   await until(() => evaluate('document.querySelectorAll(".memory-associations article button")[1]?.textContent === "Retirar relación"'), 'lista actualizada después de confirmar');
   await evaluate('globalThis.__failRelationWrite=true; document.querySelectorAll(".memory-associations article button")[0].click()');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar cambio de relación"]\'))'), 'revisión con error simulado');
+  await confirmationReady('Confirmar cambio de relación');
   await evaluate('Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar cambio").click()');
   await until(() => evaluate('document.querySelector(".memory-associations [role=alert]")?.textContent.includes("Fallo sintético")'), 'error comunicado');
   assert.equal(await evaluate('__relationFixture.associations[0].withdrawn'), false);
@@ -257,7 +267,7 @@ try {
   ]);
   await until(() => evaluate('typeof globalThis.__releaseSourcePreview === "function"'), 'revisión ficticia suspendida');
   await evaluate('globalThis.__holdSourcePreview=false; __releaseSourcePreview()');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'revisión visible');
+  await confirmationReady('Confirmar relación revisada');
   assert.equal((await sourceWrites()).length, 0, 'Revisar no guarda');
   await until(previewEnabled,'fin de revisión');
   await selectSource(1,'a');
@@ -267,12 +277,12 @@ try {
   await typeQuote(1,'Experiencia B');
   await until(previewEnabled,'nueva cita después de cambiar fuente');
   await clickText('Revisar relación');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'revisión con nuevas fuentes');
+  await confirmationReady('Confirmar relación revisada');
   await until(previewEnabled,'fin de nueva revisión');
   await typeQuote(0, 'Experiencia');
   await until(() => evaluate('!document.querySelector(\'[aria-label="Confirmar relación revisada"]\')'), 'editar invalida revisión anterior');
   await clickText('Revisar relación');
-  await until(() => evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'), 'nueva revisión');
+  await confirmationReady('Confirmar relación revisada');
   await until(previewEnabled,'formulario disponible después de revisar');
   await evaluate('document.querySelector(".memory-associations fieldset").scrollIntoView({block:"center"})');
   const sourceShot=await send('Page.captureScreenshot',{format:'png'});
@@ -294,10 +304,18 @@ try {
   await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
   await until(() => evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'), 'formulario de respaldo');
+  await evaluate('document.querySelectorAll(".memory-associations article button")[0].click()');
+  await until(() => evaluate('document.body.textContent.includes("Confirmación de respaldo activa.")'), 'confirmación de respaldo');
+  assert.equal((await writes()).length,0,'Abrir confirmación de respaldo no escribe');
   await selectSource(0,'a'); await selectSource(1,'b');
   await typeQuote(0,'Experiencia A'); await typeQuote(1,'Experiencia B');
   await until(previewEnabled,'edición en respaldo');
   await send('Network.setBlockedURLs', { urls: [] });
+  await clickText('Reintentar confirmación');
+  await confirmationReady('Confirmar cambio de relación');
+  assert.equal((await writes()).length,0,'Recuperar confirmación no escribe');
+  await clickText('Cancelar');
+  await until(() => evaluate('!document.querySelector(\'[aria-label="Confirmar cambio de relación"]\')'), 'cancelar después de recuperar');
   await clickText('Reintentar formulario');
   await sourceFormReady();
   assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations select")).map(element=>element.value)'),['a','b']);

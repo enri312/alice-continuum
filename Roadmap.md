@@ -55,6 +55,15 @@ comprobó edición, bloqueo, confirmación separada, rechazo de cita no literal 
 recuperación tras un fallo de WASM manteniendo fuentes y citas. La aceptación
 nativa y la migración de las confirmaciones siguen pendientes.
 
+**Confirmaciones de relaciones:** la revisión de citas y las pantallas de
+creación, retirada/restauración y cancelación pasan a Dioxus. El controlador
+conserva los comandos y la revisión durable; cada pendiente tiene una identidad
+temporal para rechazar eventos atrasados. Una guardia admite una acción por
+pendiente, evitando duplicar solicitudes por doble clic. Las pruebas Edge con
+IPC ficticio verificaron renderer Dioxus activo, bloqueo durante el guardado,
+cancelación, revisión esperada, error y recuperación sin escritura automática.
+La aceptación nativa con datos reales sigue pendiente.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

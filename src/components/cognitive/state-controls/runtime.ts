@@ -3,6 +3,7 @@ import initialize, {
   mount_cognitive_flow, update_cognitive_flow, unmount_cognitive_flow,
   mount_saved_relations, update_saved_relations, unmount_saved_relations,
   mount_source_form, update_source_form, unmount_source_form,
+  mount_relation_confirmation, update_relation_confirmation, unmount_relation_confirmation,
 } from "../../../dioxus/state-controls/pkg/alice_state_controls";
 import wasmUrl from "../../../dioxus/state-controls/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
@@ -27,4 +28,9 @@ export async function loadRelationsRuntime(): Promise<StateControlsRuntime> {
 export async function loadSourceFormRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return { mount: mount_source_form, update: update_source_form, unmount: unmount_source_form };
+}
+
+export async function loadConfirmationRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_relation_confirmation, update: update_relation_confirmation, unmount: unmount_relation_confirmation };
 }

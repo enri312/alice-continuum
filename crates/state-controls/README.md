@@ -19,6 +19,8 @@ cambio de un control. El contenedor valida cada acción contra el estado actual.
   y solicitud de revisión; sin confirmación ni escritura.
 - `src/source_form_model.rs`, `src/source_form_ui.rs`: fuentes y citas; las
   versiones y hashes se obtienen en el controlador y se validan en el backend.
+- `src/confirmation_model.rs`, `src/confirmation_ui.rs`: presentación de revisiones
+  y decisiones; el adaptador valida la identidad temporal y el estado pendiente.
 - `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
   con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
@@ -74,3 +76,7 @@ con los almacenes del propietario.
 El ensayo del formulario usa únicamente fuentes ficticias: prueba selectores,
 entradas originales, citas por teclado, revisión separada de confirmación,
 invalidación al editar, error de cita no literal y reintento conservando el borrador.
+Las confirmaciones se comprueban en Dioxus, incluido el doble clic con una sola
+solicitud, bloqueo durante la espera del servicio ficticio y recuperación del
+renderer sin confirmar. Las pruebas del adaptador rechazan identidades antiguas
+y parámetros de persistencia aportados por eventos.

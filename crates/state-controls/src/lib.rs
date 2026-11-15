@@ -1,5 +1,8 @@
 #[cfg(target_arch = "wasm32")]
 mod activity_ui;
+pub mod confirmation_model;
+#[cfg(target_arch = "wasm32")]
+mod confirmation_ui;
 pub mod flow_model;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;
@@ -52,4 +55,13 @@ mountable_view!(
     mount_source_form,
     update_source_form,
     unmount_source_form
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    confirmation_browser,
+    crate::confirmation_model::Payload,
+    crate::confirmation_ui,
+    mount_relation_confirmation,
+    update_relation_confirmation,
+    unmount_relation_confirmation
 );
