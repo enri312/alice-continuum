@@ -244,6 +244,13 @@ Gemma y su proyector multimodal se instalan fuera de Git. La configuración de
 esta notebook usa llama.cpp y modelos bajo `D:\Alice-model-evaluation`; no se
 incluyen los pesos ni se descargan automáticamente al abrir Alice.
 
+En un equipo Windows sin esa carpeta histórica, los motores y modelos se buscan
+por defecto en `local/inference/`, como en Linux. Una instalación Windows que ya
+disponga de la carpeta histórica conserva su prioridad. `ALICE_INFERENCE_HOME`
+permite seleccionar otra raíz absoluta y prevalece sobre ambas ubicaciones;
+una configuración explícita inválida produce un error. Esto configura rutas,
+no instala motores ni demuestra compatibilidad con macOS.
+
 Para instalar Whisper small multilingüe en la ruta prevista:
 
 ```powershell

@@ -30,14 +30,35 @@ fn resource(name: &str, fallback: PathBuf) -> Result<PathBuf, String> {
 }
 
 fn inference_home() -> Result<PathBuf, String> {
-    resource(
-        "ALICE_INFERENCE_HOME",
-        if cfg!(windows) {
-            PathBuf::from("D:/Alice-model-evaluation")
-        } else {
-            local_dir().join("inference")
-        },
+    resolve_inference_home(
+        std::env::var_os("ALICE_INFERENCE_HOME"),
+        local_dir().join("inference"),
+        cfg!(windows).then(|| PathBuf::from("D:/Alice-model-evaluation")),
     )
+}
+
+fn resolve_inference_home(
+    explicit: Option<std::ffi::OsString>,
+    portable: PathBuf,
+    legacy: Option<PathBuf>,
+) -> Result<PathBuf, String> {
+    if explicit.as_ref().is_some_and(|value| !value.is_empty()) {
+        return configured(explicit, "ALICE_INFERENCE_HOME", portable);
+    }
+    // Preserve existing Windows installations, including shared Linux resources
+    // under local/inference that must not be adopted as Windows executables.
+    if let Some(legacy) = legacy {
+        if legacy.is_dir() {
+            return Ok(legacy);
+        }
+    }
+    match std::fs::metadata(&portable) {
+        Ok(metadata) if metadata.is_dir() => return Ok(portable),
+        Ok(_) => return Err("local/inference debe ser una carpeta".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(_) => return Err("No se pudo consultar local/inference".into()),
+    }
+    Ok(portable)
 }
 
 pub(crate) fn llama_server() -> Result<PathBuf, String> {
@@ -128,6 +149,46 @@ pub(crate) fn gpu_layers() -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn inference_root_preserves_existing_windows_installations_and_new_defaults() {
+        let root =
+            std::env::temp_dir().join(format!("alice-inference-paths-{}", uuid::Uuid::new_v4()));
+        let portable = root.join("local/inference");
+        let legacy = root.join("legacy");
+        let resolve =
+            || resolve_inference_home(None, portable.clone(), Some(legacy.clone())).unwrap();
+        assert_eq!(resolve(), portable);
+        std::fs::create_dir_all(&legacy).unwrap();
+        assert_eq!(resolve(), legacy);
+        std::fs::create_dir_all(&portable).unwrap();
+        assert_eq!(resolve(), legacy);
+        assert_eq!(
+            resolve_inference_home(None, portable.clone(), None).unwrap(),
+            portable
+        );
+        let explicit = root.join("explicit-not-installed");
+        assert_eq!(
+            resolve_inference_home(
+                Some(explicit.clone().into_os_string()),
+                portable.clone(),
+                Some(legacy.clone())
+            )
+            .unwrap(),
+            explicit
+        );
+        assert!(resolve_inference_home(
+            Some("relative".into()),
+            portable.clone(),
+            Some(legacy.clone())
+        )
+        .is_err());
+        std::fs::remove_dir(&portable).unwrap();
+        std::fs::write(&portable, b"invalid-directory").unwrap();
+        assert!(resolve_inference_home(None, portable.clone(), None).is_err());
+        assert_eq!(std::fs::read(&portable).unwrap(), b"invalid-directory");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn local_resources_resolve_to_the_project_root_after_backend_move() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"))

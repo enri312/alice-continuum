@@ -10,7 +10,7 @@ las guías de los activos; los recursos, modelos, evidencias y entornos se exclu
 | `drafts/` | Borradores y capturas útiles | `scratch/` |
 | `artifacts/` | Evidencias y resultados de pruebas | `artifacts/` |
 | `venv/` | Entorno Python documental recreable para cada sistema | `.venv-adapters/` |
-| `inference/` | Ubicación predeterminada de motores/modelos en Ubuntu | Nueva, opcional |
+| `inference/` | Motores/modelos en Linux y en Windows sin la instalación histórica de D: | Nueva, opcional |
 
 Los datos de conversación y memoria siguen en `../data/`. Los motores de esta
 notebook siguen en `D:/Alice-model-evaluation`; no se duplican ni se trasladan.

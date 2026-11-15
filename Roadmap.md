@@ -21,6 +21,17 @@ utilizó Node y Rust ya instalados en este equipo; no incluyó arranque nativo,
 modelos, voz ni datos personales. Aún no reproduce el error de la otra persona.
 El lanzador aclara que `--check` no valida modelos, micrófono, voz ni proveedores.
 
+**Primer ajuste de rutas:** las instalaciones Windows sin la carpeta histórica
+`D:/Alice-model-evaluation` usan `local/inference/` como raíz predeterminada.
+La carpeta histórica existente conserva prioridad en Windows, para no seleccionar
+por accidente los motores Linux compartidos. `ALICE_INFERENCE_HOME` prevalece
+cuando está configurada. Sigue pendiente instalar los recursos en equipos nuevos,
+validar los ejecutables por plataforma y preparar los instaladores.
+Verificación de este incremento en Windows: 421 pruebas Rust aprobadas, 32
+sondas omitidas, Rustfmt y Clippy sin advertencias; seis comprobaciones de
+identidad/recursos y dos de privacidad aprobadas. No se realizó un turno de voz
+ni una aceptación de instalación en Linux o macOS en este incremento.
+
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a
 Conversación durante la aceptación de R9. Whisper conserva el manejo de proceso
