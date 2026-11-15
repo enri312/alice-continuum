@@ -1,9 +1,18 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-13**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-14**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
+
+**Dirección acordada:** Alice será una asistente y compañía capaz de realizar
+acciones autorizadas, con objetivo Windows, Linux y macOS. Se prioriza reproducir
+los fallos comunicados en instalaciones limpias de Windows y Linux; aún no se
+conoce el error exacto. La migración progresiva a Dioxus conservará diseño,
+contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
+[plan de portabilidad y Dioxus](docs/architecture/PLAN_PORTABILIDAD_DIOXUS.md)
+para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
+siguen pendientes; el plan no da por resuelto R9 ni R10.
 
 **Prioridad vigente:** estabilizar captura y transcripción con la voz del
 propietario y mantener un diagnóstico compacto, sin incorporar más funciones a

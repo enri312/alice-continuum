@@ -388,6 +388,10 @@ docs/                  manual, arquitectura, decisiones e informes
 
 [Mapa de carpetas de la raíz](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Mapa de módulos](docs/architecture/PROJECT_STRUCTURE.md) · [Decisiones ADR](docs/decisions/README.md) · [Contexto recuperado](docs/CONTEXTO_RECUPERADO_2026-11-03.md)
 
+El [plan de portabilidad y migración a Dioxus](docs/architecture/PLAN_PORTABILIDAD_DIOXUS.md)
+ordena la reproducción de fallos, la instalación y las pruebas en Windows,
+Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
+
 La [revisión de organización](docs/architecture/REORGANIZACION_2026-11-14.md)
 explica qué se movió, qué iconos se usan y qué herramientas aún requieren revisión.
 
