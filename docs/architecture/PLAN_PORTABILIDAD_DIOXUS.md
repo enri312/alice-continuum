@@ -14,15 +14,16 @@ Alice será una asistente personal de escritorio que acompaña, conversa, conser
 memoria bajo control del usuario y realiza acciones solicitadas dentro de permisos
 definidos. Se busca que otras personas puedan instalarla en Windows, Linux y
 macOS. El funcionamiento básico se explicará sin asumir conocimientos de Rust o
-Node. La conversación debe mantenerse sencilla y el diseño industrial existente,
-el contenido, la identidad y los iconos deben conservarse durante la migración.
+Node. La conversación debe mantenerse sencilla; el contenido, la identidad y
+los iconos deben conservarse durante la migración.
 
 Actualización de diseño (2026-11-15): el propietario solicitó renovar la identidad
 visual sin perder contenido ni funciones y aclaró que quiere preservar también
-todos los iconos y la identidad actual. Se estudia una evolución de sus pantallas
-reales por separado de las sustituciones de framework; la propuesta no cambia
-el producto actual.
-Ver [alternativas y criterios de incorporación](DIRECCION_VISUAL_ALICE.md).
+todos los iconos y la identidad actual. Después eligió la Propuesta 04, incorporada
+primero a Conversación mediante estilos acotados y fuentes locales. Las otras
+pantallas conservan su presentación. El cambio visual no sustituye su migración
+de lógica y componentes a Dioxus ni añade dependencias React.
+Ver [dirección y criterios de incorporación](DIRECCION_VISUAL_ALICE.md).
 
 El propietario informó que otras personas ya intentaron ejecutarla en Windows y
 Linux sin éxito. Aún no se conocen sus errores, versiones ni forma de descarga:

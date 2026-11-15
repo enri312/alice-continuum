@@ -14,6 +14,7 @@
     "test:privacy": "node --test scripts/testing/repository-privacy.node.test.ts",
     "test:dioxus:browser": "node scripts/testing/dioxus-browser-smoke.mjs",
     "test:dioxus:native": "node scripts/testing/dioxus-native-smoke.mjs",
+    "test:conversation:browser": "node scripts/testing/conversation-design-smoke.mjs",
     "test:obsidian": "node --test scripts/obsidian/*.test.mjs",
     "test:backup": "node --test scripts/backups/*.test.mjs",
     "eval:r8:report": "node scripts/testing/r8-report.mjs",

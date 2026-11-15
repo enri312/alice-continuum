@@ -20,6 +20,14 @@ La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
+**Diseño de Conversación (15 de noviembre de 2026):** se incorporó la Propuesta 04
+elegida por el propietario: superficies translúcidas, bordes redondeados y acentos
+violeta, azul y cian. Conserva los iconos originales y las funciones reales de texto,
+voz, visión, recuerdos y revisión del mensaje. Las fuentes Sora y JetBrains Mono
+se sirven localmente. Las otras páginas conservan su presentación; el cambio no
+declara migrada Conversación a Dioxus.
+[Alcance y validación](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 
 Próximo paso: evaluar la latencia por etapas y comprobar
@@ -431,12 +439,12 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
-Se evalúa una [evolución del diseño actual de Alice](docs/architecture/DIRECCION_VISUAL_ALICE.md),
-conservando sus iconos originales, identidad, contenido y controles. La propuesta
-vigente prueba estilos sobre las pantallas reales y conserva la escena cerebral.
-Se compararon textos, controles y SVG en las 15 rutas con datos ficticios; los
-22 archivos SVG siguen intactos. El estudio está en `experiments/` y no se aplica
-todavía al programa. Observatorio y Cuaderno quedan como exploraciones anteriores.
+La [dirección visual vigente](docs/architecture/DIRECCION_VISUAL_ALICE.md) es la
+Propuesta 04 proporcionada por el propietario, aplicada primero a Conversación.
+Conserva los iconos originales, identidad, contenido y controles. El resto se
+adaptará por pantalla con comprobaciones de sus funciones; la escena cerebral
+sigue intacta. Observatorio, Cuaderno y la primera evolución CSS quedan como
+exploraciones anteriores privadas en `experiments/`, excluidas de Git.
 
 El objetivo final es **retirar React por completo**, incluidos el estado global,
 la navegación, el arranque y las vistas de recuperación. Los hosts actuales son

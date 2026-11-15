@@ -23,14 +23,18 @@ Dioxus aislada no cierra la migración de la aplicación. El
 [inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 guían los siguientes incrementos.
 
-**Evolución visual en revisión (2026-11-15):** el propietario aclara que se
-conservarán los iconos y la identidad actual, además del contenido y funciones.
-La propuesta vigente aplica una capa CSS privada sobre el frontend real y
-conserva la escena cerebral. Se compararon las 15 rutas antes/después: mismos
-textos, campos, botones y SVG; 22 archivos de iconos intactos. Se prepararon
-capturas de Conversación, Volumen, Memoria y Estado con datos ficticios. La
-aplicación principal sigue sin cambios visuales; Observatorio y Cuaderno quedan
-como exploraciones anteriores. Ver [criterios y alcance](docs/architecture/DIRECCION_VISUAL_ALICE.md).
+**Propuesta 04 incorporada a Conversación (2026-11-15):** el propietario eligió
+el HTML «Mejora del diseño actual» como referencia. La pantalla principal adopta
+superficies translúcidas, bordes redondeados, degradado violeta/azul/cian y fuentes
+locales, conservando los iconos y las funciones existentes. Revisión obligatoria,
+contexto, voz, visión y herramientas plegadas siguen conectados al producto;
+no se copiaron respuestas, recuerdos ni alarmas simuladas del HTML. Se probaron
+cancelación, edición, confirmación y error con IPC sintético, teclado, carrusel
+y anchos 320–1280 px. La aceptación Tauri usa IPC real y datos aislados, sin
+enviar una consulta a un modelo ni abrir dispositivos. Las otras pantallas
+conservan su diseño; Conversación sigue pendiente de migrar a Dioxus.
+Ver [dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md) e
+[informe y límites](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado
