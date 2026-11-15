@@ -411,4 +411,6 @@ evalúa por la fiabilidad de la asistente; el cuerpo será una salida posterior
 para expresiones y movimiento y queda fuera de su cálculo de avance. Atlas y Nerumi son referencias para
 ordenar esa evolución, no funciones ya verificadas de Alice.
 
-Repositorio: [enri312/alice-continuum](https://github.com/enri312/alice-continuum) · Rama principal: `master`.
+Repositorio: [enri312/alice-continuum](https://github.com/enri312/alice-continuum) · Rama de trabajo: `master`.
+El proyecto se mantiene directamente en `master`: antes de publicar cambios,
+comprueba el estado local y sincroniza con el repositorio para conservar el trabajo del equipo.
