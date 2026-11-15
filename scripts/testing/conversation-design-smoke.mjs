@@ -81,6 +81,9 @@ try {
   await send('Page.navigate',{url:url.href}); await ready(); await evaluate('document.fonts.ready');
   await until(()=>evaluate('document.querySelector(".conversation-status").textContent.includes("Motor de prueba local")'),'estado real del adaptador simulado');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),7);
+  assert.equal(await evaluate('document.querySelectorAll(".screen-tabs button").length'),7,'Sólo las pestañas originales, sin flechas añadidas');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading"),"::before").content'),'none','Sin aro decorativo');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading")).clipPath'),'inset(50%)','Encabezado técnico compacto como antes');
   assert.equal(await evaluate('document.querySelectorAll(".conversation-secondary-panel[open],.conversation-context-drawer[open]").length'),0);
   assert.ok(await evaluate('document.fonts.check(\'500 14px "Sora"\')&&document.fonts.check(\'500 14px "JetBrains Mono"\')'));
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'24px');
@@ -118,10 +121,9 @@ try {
   await click('.review-actions .secondary'); await click('.conversation-context-drawer>summary');
   await screenshot('conversation-mobile.png');
   const scrollBefore=await evaluate('document.querySelector(".screen-tabs").scrollLeft');
-  await click('.conversation-nav-scroll.next');
-  await until(()=>evaluate(`document.querySelector('.screen-tabs').scrollLeft>${scrollBefore}`),'flecha desplaza el carrusel');
+  await evaluate('document.querySelector(".screen-tabs").scrollBy({left:200,behavior:"instant"})');
+  await until(()=>evaluate(`document.querySelector('.screen-tabs').scrollLeft>${scrollBefore}`),'el desplazamiento nativo conserva acceso a las pestañas');
   await evaluate('document.querySelector(".screen-tabs").scrollLeft=0');
-  await pause(100); assert.equal(await evaluate('document.querySelector(".conversation-nav-scroll.previous").disabled'),true);
   await evaluate('document.querySelector(\'[aria-label="Estado y controles"]\').focus()');
   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});
   await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});

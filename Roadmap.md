@@ -36,6 +36,12 @@ conservan su diseño; Conversación sigue pendiente de migrar a Dioxus.
 Ver [dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md) e
 [informe y límites](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
+**Limpieza de elementos añadidos:** por observación del propietario se retiraron
+el aro decorativo, las dos flechas y el encabezado técnico repetido que se había
+hecho visible. `App.tsx` vuelve a coincidir con la versión previa al rediseño;
+los 22 SVG y sus consumidores originales permanecen intactos. Se conserva el
+estilo elegido y el desplazamiento nativo de las pestañas, sin controlador extra.
+
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado
 comparó bytes de 18 casos y midió lotes antes de incorporar el comando manual

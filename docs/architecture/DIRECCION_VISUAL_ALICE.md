@@ -20,7 +20,7 @@ Dioxus continúa pendiente.
   técnicos. Archivos WOFF2 locales, con licencias SIL OFL 1.1 incluidas, sin
   solicitudes a Google Fonts durante el uso.
 - Sistemas en tarjetas redondeadas, área de trabajo con radio de 24 px y pestañas
-  con los SVG originales. Carrusel horizontal, flechas y acceso por teclado.
+  con los SVG originales. Desplazamiento horizontal nativo y acceso por teclado.
 - Mensajes en un área de lectura diferenciada; controles de voz junto al
   compositor, acción principal con degradado y revisión explícita antes de enviar.
 - Contexto, documentos y diagnóstico bajo demanda. Foco visible, adaptación a
@@ -29,6 +29,9 @@ Dioxus continúa pendiente.
 La marca, el lema y el indicador Local-first permanecen en una línea compacta.
 Los tres sistemas y todos los destinos siguen accesibles. No se renombraron
 funciones ni se reemplazaron iconos por los glifos genéricos del HTML.
+Tras la revisión del propietario se quitaron el aro decorativo y las dos flechas
+añadidas. El encabezado técnico vuelve al tratamiento compacto previo, sin
+repetirse visualmente sobre Conversación. No se añaden emblemas a los originales.
 
 ## Del HTML de referencia al producto
 
@@ -49,8 +52,8 @@ acciones reales de Alice:
 
 `Frontend/src/styles/conversation-proposal04.css` acota sus reglas a
 `.shell.is-conversation`, incluidos los fondos del documento mientras esa ruta
-está activa. No cambia los tokens globales. El pequeño controlador de carrusel
-no contiene estado conversacional, datos privados ni nuevos servicios.
+está activa. No cambia los tokens globales. Se retiró el controlador de carrusel
+añadido inicialmente: la navegación conserva su desplazamiento nativo.
 
 ## Validación y límites
 

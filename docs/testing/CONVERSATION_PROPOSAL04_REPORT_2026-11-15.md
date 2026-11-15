@@ -12,8 +12,8 @@ archivos WOFF2 suman 80 496 bytes; no se añadieron dependencias npm.
 
 Se conservaron los SVG originales y los manejadores de conversación, voz, visión,
 contexto, documentos y diagnóstico. La revisión antes de enviar sigue siendo
-obligatoria. Se añadió un controlador DOM pequeño para desplazar las pestañas
-y deshabilitar sus flechas en los extremos; se desconecta al salir de la pantalla.
+obligatoria. Las flechas y el controlador de carrusel de la incorporación inicial
+se retiraron tras la revisión del propietario; se conserva el desplazamiento nativo.
 
 El estilo está acotado a Conversación. Estado, Flujo, Memoria y las demás páginas
 conservan su presentación. La modificación no migra Conversación a Dioxus ni
@@ -25,7 +25,7 @@ Referencia auditada: SHA-256
 La copia original y las capturas comparativas se guardan privadamente en
 `runtime/artifacts/proposal04-2026-11-15/`.
 
-## Comprobaciones
+## Comprobaciones de la incorporación inicial
 
 | Comprobación | Resultado y alcance |
 |---|---|
@@ -49,6 +49,38 @@ el selector superior, encabezado estrecho y degradado de botones. La prueba de
 edición espera al foco diferido del panel de revisión antes de introducir texto.
 La prueba Dioxus de navegador requiere `ALICE_BROWSER_BIN` con la ruta del
 navegador instalado; se ejecutó con Edge aislado.
+
+## Revisión de elementos añadidos
+
+El propietario señaló el aro del encabezado y pidió comparar con la presentación
+anterior. La comparación con `62be1d0` identifica estos cambios adicionales:
+
+| Elemento | Procedencia y ajuste |
+|---|---|
+| Aro violeta/cian | Pseudoelemento decorativo nuevo, tomado de la referencia. Retirado. |
+| Encabezado técnico y badge LOCAL COGNITIVE CORE | Ya existían en el DOM, pero estaban ocultos visualmente. Se restaura su tratamiento compacto anterior para evitar repetir el título. |
+| Dos flechas de pestañas | Botones y controlador nuevos. Retirados; el desplazamiento horizontal nativo y el teclado permanecen. |
+| Iconos de navegación | Recursos SVG originales, sin cambios. No fueron sustituidos por iconos de la referencia. |
+| Voz, cámara, escritorio, contexto, documentos y diagnóstico | Funciones anteriores conservadas; no son añadidos del rediseño. |
+| Descripciones de sistemas y nota del compositor | Texto anterior que el estilo hizo visible. Se conserva su contenido. |
+
+`Frontend/src/App.tsx` vuelve a coincidir con la versión previa al rediseño.
+Se elimina el archivo `conversation-navigation.ts`, que quedó sin consumidores.
+La comparación de los 22 SVG y del módulo que los muestra usa los blobs Git de
+la versión anterior, respetando la normalización de finales de línea.
+
+La revisión se comprueba con compilación y aceptación de navegador sobre el
+build real: siete pestañas originales, ausencia del aro y de flechas añadidas,
+encabezado compacto, navegación por teclado y desplazamiento nativo, además de
+revisión/cancelación/edición/envío/error con IPC sintético. No se abren dispositivos.
+Pasaron también las 12 pruebas de los dos módulos de Conversación e identificación.
+Evidencia privada: `runtime/artifacts/proposal04-cleanup-2026-11-15/` y la nueva
+carpeta generada por `test:conversation:browser`.
+
+La automatización de escritorio no pudo inicializarse ni recuperarse: devolvió
+`Transport closed`. La comprobación nativa del cuadro anterior corresponde a la
+incorporación inicial; no se presenta como una nueva inspección visual de esta
+limpieza. No se detuvo la instancia normal de Alice ni se tocaron sus datos.
 
 ## Reproducción
 

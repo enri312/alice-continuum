@@ -34,7 +34,6 @@ import { loadCompatibleArray } from "./core/shared/storage-migration";
 import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
 import { workspaceForScreen, workspaceScreens } from "./core/navigation/workspaces";
-import { bindConversationNavigation } from "./core/ui/conversation-navigation";
 import type { Screen } from "./core/navigation/workspaces";
 import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/memory/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/memory/working-memory";
@@ -134,7 +133,6 @@ function saveSessions(sessions: Session[]) {
 
 export function App() {
   const visionRef = useRef<ConversationVisionHandle>(null);
-  const navigationRef = useRef<HTMLElement>(null);
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
@@ -161,9 +159,6 @@ export function App() {
     return avatarDiagnostic ? "avatar" : "identificacion";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
-  useEffect(() => {
-    if (screen === "identificacion" && navigationRef.current) return bindConversationNavigation(navigationRef.current);
-  }, [screen]);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
   const [cloudPending, setCloudPending] = useState(false);
   const [conversationBehavior, setConversationBehavior] = useState(() => ({ ...DEFAULT_CONVERSATION_BEHAVIOR }));
@@ -652,8 +647,7 @@ export function App() {
         <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "OWNER CONTROL · LOCAL ONLY"}</p>
       </header>
 
-    <nav ref={navigationRef} className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas del núcleo cognitivo" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
-      {screen === "identificacion" && <button type="button" className="conversation-nav-scroll previous" aria-label="Mostrar pantallas anteriores">‹</button>}
+    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas del núcleo cognitivo" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
       {workspace === "cognitive" && <>
       <button className={screen === "identificacion" ? "selected" : ""} aria-label="Conversación con Alice" data-tooltip="Conversación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Conversación</span></button>
       <button className={screen === "nucleo" ? "selected" : ""} aria-label="Volumen cognitivo" data-tooltip="Volumen cognitivo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="volume" active={screen === "nucleo"} /><span className="screen-tab-label">Volumen cognitivo</span></button>
@@ -675,7 +669,6 @@ export function App() {
       <button className={screen === "procedimientos" ? "selected" : ""} aria-label="Procedimientos observados" data-tooltip="Procedimientos" aria-current={screen === "procedimientos" ? "page" : undefined} onClick={() => setScreen("procedimientos")}><NavigationIcon kind="procedures" active={screen === "procedimientos"} /><span className="screen-tab-label">Procedimientos</span><span className="screen-count">R5</span></button>
       <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
       </>}
-      {screen === "identificacion" && <button type="button" className="conversation-nav-scroll next" aria-label="Mostrar pantallas siguientes">›</button>}
     </nav>
 
     <div className="core-system-content">

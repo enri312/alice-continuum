@@ -106,6 +106,8 @@ try {
   await evaluate('document.fonts.ready');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'), '24px', 'Propuesta 04 cargada en Tauri');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'), 7, 'Iconos originales presentes');
+  assert.equal(await evaluate('document.querySelectorAll(".screen-tabs button").length'), 7, 'Sin controles de navegación añadidos');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading"),"::before").content'), 'none', 'Sin aro decorativo');
   assert.equal(await evaluate('document.querySelectorAll(".conversation-secondary-panel[open]").length'), 0, 'Herramientas secundarias plegadas');
   await evaluate('document.querySelector("#alice-message").focus()');
   await send('Input.insertText', { text: 'Prueba nativa de diseño sin enviar a un modelo.' });

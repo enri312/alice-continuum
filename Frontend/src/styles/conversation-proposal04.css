@@ -44,15 +44,9 @@ body:has(.shell.is-conversation) {
 .shell.is-conversation .core-system-selector button:hover { border-color:#a78bfa88; transform:translateY(-1px); }
 
 .shell.is-conversation .core-system-frame { padding:20px; overflow:hidden; border:1px solid var(--conversation-line); border-radius:24px; background:var(--conversation-panel); box-shadow:0 25px 70px #00000035; }
-.shell.is-conversation .core-system-heading { position:relative; display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; width:auto; height:auto; overflow:visible; clip-path:none; white-space:normal; gap:14px; padding:4px 0 22px; border:0; background:none; }
-.shell.is-conversation .core-system-heading::before { content:""; flex:0 0 46px; width:46px; height:46px; border:5px solid transparent; border-radius:50%; background:linear-gradient(#090c16,#090c16) padding-box,conic-gradient(#8b5cf6,#22d3ee,#8b5cf6,#ec4899,#8b5cf6) border-box; box-shadow:0 0 20px #8b5cf640; }
-.shell.is-conversation .core-system-heading>div { flex:1; }
-.shell.is-conversation .core-system-heading>div>span { color:#22d3ee; font:500 11px/1.5 var(--conversation-mono); letter-spacing:.08em; }
-.shell.is-conversation .core-system-heading h2 { margin:5px 0 0; color:#ece9fc; font:600 clamp(16px,1.8vw,23px)/1.4 var(--conversation-mono); letter-spacing:.025em; overflow-wrap:anywhere; }
-.shell.is-conversation .core-system-heading h2 em { color:#8bcff9; background:var(--conversation-gradient); background-clip:text; -webkit-text-fill-color:transparent; }
-.shell.is-conversation .core-system-heading>p { align-self:center; flex:0 0 auto; padding:7px 13px; border:1px solid #ffffff30; border-radius:99px; color:#6ee7b7; background:#ffffff05; font:500 10px/1.4 var(--conversation-mono); letter-spacing:.04em; }
+/* Keep the original compact heading treatment; no new emblem or duplicate title. */
 .shell.is-conversation .core-system-content { padding:0; min-width:0; }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped { display:flex; align-items:center; flex-wrap:nowrap; gap:10px; padding:0 0 8px; margin:0 0 18px; overflow-x:auto; overflow-y:hidden; border:0; background:none; scrollbar-width:thin; scrollbar-color:#8b5cf650 transparent; scroll-padding:44px; }
+.shell.is-conversation .core-system-frame>.screen-tabs.grouped { display:flex; align-items:center; flex-wrap:nowrap; gap:10px; padding:0 0 8px; margin:0 0 18px; overflow-x:auto; overflow-y:hidden; border:0; background:none; scrollbar-width:thin; scrollbar-color:#8b5cf650 transparent; scroll-padding:12px; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:0 0 132px; width:132px; height:auto; min-height:132px; padding:10px 8px 12px; gap:2px; border:1px solid var(--conversation-line); border-radius:18px; background:#ffffff09; color:var(--conversation-sub); clip-path:none; box-shadow:none; transform:none; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button::before { display:none; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped button.selected { border-color:#a78bfa88; background:linear-gradient(145deg,#8b5cf640,#3b82f618); box-shadow:0 6px 20px #8b5cf620; color:#f1eefe; }
@@ -61,9 +55,6 @@ body:has(.shell.is-conversation) {
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-icon { width:76px; height:76px; flex:0 0 76px; margin:0; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-tab-label { position:static; display:flex; align-items:center; justify-content:center; width:100%; height:auto; min-height:32px; overflow:visible; clip:auto; clip-path:none; white-space:normal; padding:0; color:inherit; font:600 12px/1.35 "Sora",sans-serif; letter-spacing:-.02em; text-align:center; }
 .shell.is-conversation .core-system-frame>.screen-tabs.grouped .screen-count { top:8px; right:8px; height:auto; min-height:18px; border:1px solid #ffffff20; border-radius:6px; background:#00000030; color:#a5f3fc; font:500 10px/1.4 var(--conversation-mono); }
-.shell.is-conversation .core-system-frame>.screen-tabs.grouped .conversation-nav-scroll { position:sticky; z-index:6; flex:0 0 34px; width:34px; height:34px; min-height:34px; padding:0; border:1px solid #ffffff30; border-radius:10px; background:#252432; color:#e4e4f4; font:500 23px/1 "Sora",sans-serif; }
-.shell.is-conversation .conversation-nav-scroll.previous { left:0; }
-.shell.is-conversation .conversation-nav-scroll.next { right:0; margin-left:auto; }
 .shell.is-conversation button:disabled { cursor:not-allowed; opacity:.48; }
 .shell.is-conversation :is(button,summary,input,select,textarea):focus-visible,
 .shell.is-conversation button:not(.timeline-node):focus-visible { outline:2px solid #67e8f9; outline-offset:3px; }
@@ -156,7 +147,6 @@ body:has(.shell.is-conversation) {
   .shell.is-conversation .core-system-selector button::before { left:12px; width:38px; height:38px; }
   .shell.is-conversation .core-system-selector button>strong { font-size:13px; }
   .shell.is-conversation .core-system-selector button>small { font-size:11px; }
-  .shell.is-conversation .core-system-heading>p { flex-basis:fit-content; margin-left:60px; }
 }
 @media (max-width:720px) {
   .shell.is-conversation { width:calc(100% - 24px); padding-top:12px; }
@@ -166,14 +156,7 @@ body:has(.shell.is-conversation) {
   .shell.is-conversation .core-system-selector button { min-height:80px; padding:12px 12px 12px 64px; }
   .shell.is-conversation .core-system-selector button>strong { font-size:15px; }
   .shell.is-conversation .core-system-frame { padding:14px; border-radius:20px; }
-  .shell.is-conversation .core-system-heading { gap:10px; }
-  .shell.is-conversation .core-system-heading::before { flex-basis:36px; width:36px; height:36px; border-width:4px; }
-  .shell.is-conversation .core-system-heading>div { flex:1 1 calc(100% - 46px); }
-  .shell.is-conversation .core-system-heading>div>span { font-size:9px; }
-  .shell.is-conversation .core-system-heading h2 { font-size:14px; }
-  .shell.is-conversation .core-system-heading>p { margin-left:46px; font-size:9px; }
   .shell.is-conversation .core-system-frame>.screen-tabs.grouped button { flex-basis:116px; width:116px; min-height:124px; }
-  .shell.is-conversation .core-system-frame>.screen-tabs.grouped .conversation-nav-scroll { flex-basis:30px; width:30px; }
   .shell.is-conversation .conversation-home-heading { gap:10px; flex-wrap:wrap; }
   .shell.is-conversation .conversation-home-heading h2 { font-size:19px; }
   .shell.is-conversation .conversation-status>span { flex-basis:100%; margin-left:16px; }
