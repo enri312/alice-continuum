@@ -38,3 +38,17 @@ se evaluará por separado. Un binario iniciado sin estos lanzadores aún necesit
 integración propia para respaldar automáticamente.
 
 Contrato operativo y límites: [respaldo integral](../runbooks/07-respaldo-integral.md).
+
+## Ampliación del alcance privado, 2026-11-15
+
+Al ordenar `local/`, los originales de trabajo, recuperaciones y auxiliares
+puntuales quedaron en `local/drafts/`, `local/archives/` y `local/maintenance/`.
+Estos tres árboles se incluyen completos en los nuevos respaldos. Se mantienen
+el manifiesto versión 1, sus categorías existentes y la restauración aislada;
+los respaldos anteriores conservan el inventario que tenían al crearse.
+
+Las pruebas de copia y restauración verifican las tres ubicaciones nuevas y la
+exclusión de artefactos, entornos Python y caché de compilación. Los modelos,
+herramientas instaladas y perfiles de ensayo siguen fuera del respaldo integral.
+Antes de mover se verificó una copia integral y otra auxiliar de los originales
+que aún no cubría la política. Ver [alcance y evidencia de organización](../testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md).

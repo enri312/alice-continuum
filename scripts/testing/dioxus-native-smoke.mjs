@@ -14,7 +14,9 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const preview = new URL(process.env.ALICE_PREVIEW_URL ?? 'http://127.0.0.1:4173/');
 if (preview.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(preview.hostname)) throw Error('El preview debe ser HTTP de loopback.');
 assert.ok((await fetch(preview, { signal: AbortSignal.timeout(5000) })).ok, 'Preview disponible');
-const artifacts = await fs.mkdtemp(path.join(root, 'local/dioxus-native-'));
+const artifactRoot = path.join(root, 'local/artifacts/dioxus/native');
+await fs.mkdir(artifactRoot, { recursive: true });
+const artifacts = await fs.mkdtemp(path.join(artifactRoot, 'dioxus-native-'));
 const data = path.join(artifacts, 'data');
 await fs.mkdir(path.join(data, 'memory'), { recursive: true });
 const records = ['a', 'b'].map(id => ({ id, kind: 'Conversación', intention: `Experiencia nativa ${id.toUpperCase()}: aprender Rust`,

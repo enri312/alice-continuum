@@ -52,8 +52,8 @@ y el transporte esperaban 64 dígitos sin prefijo, mientras el backend entrega
 regresión verifica el formato nativo y rechaza hashes sin prefijo o corruptos.
 La prueba nativa completa pasó después de regenerar el módulo y el frontend.
 
-Evidencia privada revisada: `local/dioxus-native-0R1fVL/result.json` y
-`flow-native.png`; capturas de navegador en `local/dioxus-browser-5eqFEJ/`.
+Evidencia privada revisada: `local/artifacts/dioxus/native/dioxus-native-0R1fVL/result.json` y
+`flow-native.png`; capturas de navegador en `local/artifacts/dioxus/browser/dioxus-browser-5eqFEJ/`.
 El ensayo nativo usa datos/perfil/temporales nuevos en D:, excluye claves del
 entorno, pausa el aprendizaje en sus fixtures y cierra sólo su propia instancia.
 No usa mocks de Tauri. La automatización de ventanas no estaba disponible;

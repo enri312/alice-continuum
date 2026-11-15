@@ -51,6 +51,12 @@ async function fixture(t) {
   await write(path.join(projectRoot, 'experiments/pilot/source.py'), '# private experiment\n');
   await write(path.join(projectRoot, 'experiments/pilot/dist/generated.js'), 'generated output\n');
   await write(path.join(projectRoot, 'local/assets/avatar.vrm'), 'synthetic asset\n');
+  await write(path.join(projectRoot, 'local/archives/recovery/original.txt'), 'synthetic recovery original\n');
+  await write(path.join(projectRoot, 'local/drafts/review.wav'), 'synthetic private recording\n');
+  await write(path.join(projectRoot, 'local/maintenance/repair.mjs'), '// synthetic private maintenance source\n');
+  await write(path.join(projectRoot, 'local/artifacts/derived.log'), 'regenerable evidence\n');
+  await write(path.join(projectRoot, 'local/dioxus-build/target/cache.bin'), 'regenerable Rust cache\n');
+  await write(path.join(projectRoot, 'local/venv/Scripts/python.exe'), 'regenerable environment\n');
   await write(path.join(projectRoot, 'local/ubuntu.env'), 'PRIVATE_FIXTURE=value\n');
   await write(path.join(projectRoot, '.env'), 'LOCAL_FIXTURE=value\n');
   await write(path.join(projectRoot, 'node_modules/excluded.txt'), 'reinstallable\n');
@@ -73,6 +79,12 @@ test('full backup and offline restore preserve code, deletions, Git branches and
     assert.ok(!acl.rules.includes('S-1-1-0'));
   } else assert.equal((await fs.stat(config.destination)).mode & 0o777, 0o700);
   assert.ok(manifest.files.some(entry => entry.path.endsWith('self-study-v1.json')));
+  for (const file of ['local/archives/recovery/original.txt', 'local/drafts/review.wav', 'local/maintenance/repair.mjs']) {
+    assert.ok(manifest.files.some(entry => entry.path === file), `Private local source backed up: ${file}`);
+  }
+  for (const prefix of ['local/artifacts/', 'local/dioxus-build/', 'local/venv/']) {
+    assert.ok(!manifest.files.some(entry => entry.path.startsWith(prefix)), `Regenerable files excluded: ${prefix}`);
+  }
   assert.ok(!manifest.files.some(entry => entry.path.includes('node_modules')));
   assert.ok(manifest.files.some(entry => entry.path === 'experiments/pilot/source.py'));
   assert.ok(!manifest.files.some(entry => entry.path === 'experiments/pilot/dist/generated.js'));

@@ -21,7 +21,7 @@ const ENV_NAMES = [
 const SNAPSHOT_NAME = /^snapshot-\d{4}-\d{2}-\d{2}T[\d-]+Z-[a-f0-9-]{36}$/;
 const EXCLUSIONS = [
   'Pesos y motores externos (ALICE_INFERENCE_HOME y rutas equivalentes).',
-  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, fuentes de experiments/, local/assets/ y configuracion seleccionada.',
+  'node_modules, dist, caches Rust, entornos Python y otros archivos ignorados por Git fuera de data/, fuentes de experiments/, local/assets/, local/archives/, local/drafts/, local/maintenance/ y configuracion seleccionada.',
   'Memoria RAM, audio y fotogramas efimeros, credenciales del sistema no presentes en el entorno del lanzador, Git reflogs y objetos sin referencias.',
 ];
 
@@ -98,6 +98,9 @@ async function inventory(config) {
   for (const [source, prefix, kind] of [
     [config.dataRoot, 'data', 'data'],
     [path.join(config.projectRoot, 'local/assets'), 'local/assets', 'assets'],
+    [path.join(config.projectRoot, 'local/archives'), 'local/archives', 'assets'],
+    [path.join(config.projectRoot, 'local/drafts'), 'local/drafts', 'assets'],
+    [path.join(config.projectRoot, 'local/maintenance'), 'local/maintenance', 'code'],
     [path.join(config.projectRoot, 'local/recovered-settings'), 'local/recovered-settings', 'configuration'],
   ]) {
     for (const relative of await walk(source)) await put(`${prefix}/${relative}`, path.join(source, relative), kind);

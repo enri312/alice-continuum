@@ -1,5 +1,5 @@
 // Real component rendering with existing local records, read-only.
-// No model requests, memory writes or synthetic activity. Screenshots stay in data/.
+// No model requests, memory writes or synthetic activity. Screenshots stay in local/artifacts/.
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
@@ -44,10 +44,11 @@ const { chromium } = require('C:/Users/enri3/.cache/codex-runtimes/codex-primary
     await page.getByRole('button', { name: 'Cerrar ficha' }).click();
     assert.equal(await page.locator('.volume-inspector-rail').count(), 0);
     await page.locator('.observatory-search summary').click();
-    fs.mkdirSync('data/visual-checks', { recursive: true });
-    await page.screenshot({ path: 'data/visual-checks/volume-observatory-desktop.png', fullPage: true });
+    const artifacts = 'local/artifacts/visual-checks';
+    fs.mkdirSync(artifacts, { recursive: true });
+    await page.screenshot({ path: `${artifacts}/volume-observatory-desktop.png`, fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.screenshot({ path: 'data/visual-checks/volume-observatory-mobile.png', fullPage: true });
+    await page.screenshot({ path: `${artifacts}/volume-observatory-mobile.png`, fullPage: true });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'mobile overflow');
     assert.equal(errors.length, 0, errors.join('\n'));
     paths.forEach((p, i) => assert.equal(fs.readFileSync(p, 'utf8'), before[i]));

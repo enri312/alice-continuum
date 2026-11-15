@@ -12,7 +12,7 @@ revisar sus consumidores y probarlos antes de cambiarla.
 | `scripts/` | Generación de iconos, compilación Dioxus, respaldos, proyección Obsidian, instalación y pruebas. Algunos pilotos requieren servicios o modelos instalados y no forman parte del arranque. |
 | `docs/` | Manuales, arquitectura, decisiones y resultados de pruebas. Los informes con fecha describen su momento; no todos son instrucciones vigentes. |
 | `data/` | Memoria, conversación, auditorías y bóveda Obsidian privadas. El contenido no se publica en Git. `ALICE_DATA_DIR` permite usar una raíz de datos diferente. |
-| `local/` | Configuración, recursos y evidencias privadas; algunas guías están versionadas. No confundirlo con una carpeta vacía de trabajo temporal. |
+| `local/` | Configuración y recursos instalados; `artifacts/` para pruebas, `cache/` para cachés, `archives/` para recuperaciones, `drafts/` para originales de trabajo y `maintenance/` para intervenciones puntuales. Algunas guías están versionadas. |
 | `experiments/` | Ensayos privados separados del producto principal. Se excluyen de Git; el respaldo recupera sus fuentes aplicando las exclusiones documentadas. |
 | `.github/` | Flujos de integración y comprobaciones del repositorio. |
 | `.cargo/` | Configuración de Cargo y ubicación del directorio de compilación. |
@@ -27,6 +27,13 @@ Vite, TypeScript y la entrada HTML viven en `Frontend/`; las herramientas comune
 `Frontend/package.json`. Los comandos habituales desde la raíz delegan al workspace.
 No debe borrarse una carpeta generada durante una ejecución. Antes de limpiar
 archivos privados o mover código, comprobar sus referencias y el respaldo.
+
+Las guías de [`local/`](../../local/README.md) y [`data/`](../../data/README.md)
+explican sus ubicaciones y límites. La [revisión del 15 de noviembre](../testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+reubicó evidencias y auxiliares; mantuvo los datos operativos, modelos, entornos
+y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
+`local/artifacts/dioxus/{browser,native}/`. Los scripts privados de
+`local/maintenance/` son históricos y requieren revisar rutas antes de reutilizarlos.
 
 ## Iconos: qué se usa
 

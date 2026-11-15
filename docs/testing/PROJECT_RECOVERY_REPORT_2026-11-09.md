@@ -24,7 +24,7 @@ No se reparó, escribió ni borró el volumen original; quedó desmontado.
 - Se copiaron y verificaron por SHA-256 **30.999 archivos**, unos **18,9 GB**,
   en 4.484 directorios. El enlace relativo `local/venv-linux/lib64 → lib`
   también se conservó. El inventario incluye nueve versiones alternativas
-  asignadas, guardadas aparte en `local/recovery-extra-2026-11-09/`.
+  asignadas, guardadas aparte en `local/archives/recovery/recovery-extra-2026-11-09/`.
 - La copia temporal solo recibió el nombre definitivo después de verificarla.
   Git conserva HEAD `7e375c424130c69b51f0d16eb7b1cfeb9c0423f7`, sus ramas
   y los cambios locales anteriores. No se hizo reset, commit ni descarte.

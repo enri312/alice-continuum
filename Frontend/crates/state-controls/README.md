@@ -79,7 +79,8 @@ $env:ALICE_BROWSER_BIN = 'C:\Program Files (x86)\Microsoft\Edge\Application\msed
 node scripts/testing/dioxus-browser-smoke.mjs
 ```
 
-La sonda abre un perfil nuevo sin ventana y escribe capturas en `local/`.
+La sonda abre un perfil nuevo sin ventana y escribe capturas en
+`local/artifacts/dioxus/browser/dioxus-browser-*`.
 Comprueba selección por clic/teclado, navegación entre Flujo y Estado, ausencia
 de duplicados y anchos de 1440/1000 px. Inyecta estados R3 ficticios sólo en
 una instancia de prueba de WASM y verifica el rechazo de una señal inválida.
@@ -115,7 +116,7 @@ npm run test:dioxus:native
 ```
 
 El ensayo compila y abre una ventana real de Tauri/WebView2 con el frontend de
-producción. Usa una carpeta nueva en `local/dioxus-native-*` para datos, perfil
+producción. Usa una carpeta nueva en `local/artifacts/dioxus/native/dioxus-native-*` para datos, perfil
 WebView, configuración, temporales y evidencia. No copia la memoria personal y
 excluye claves/proveedores del entorno. Desactiva aprendizaje en el fixture;
 no ejecuta modelos ni requiere voz.

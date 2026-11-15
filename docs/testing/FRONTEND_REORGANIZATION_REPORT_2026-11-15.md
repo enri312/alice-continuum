@@ -54,12 +54,12 @@ conclusiones de inventarios históricos ni se borran sus archivos recomendados.
 - Edge aislado sobre el build nuevo: aprobado. Conserva 11 nodos, navegación,
   teclado, formulario/confirmaciones, sondeo R3 sin solapamientos, cancelación
   al navegar y recuperación ante descarga WASM fallida. Evidencia privada en
-  `local/dioxus-browser-rOpNAp/`.
+  `local/artifacts/dioxus/browser/dioxus-browser-rOpNAp/`.
 - Tauri/WebView2 real: **aprobado** con el backend real y fuentes sintéticas.
   Abrió Conversación y Estado/Flujo, inspector y R3; revisó y confirmó una
   relación, canceló su retirada y comprobó persistencia al recargar. Las fuentes
   conservaron su SHA-256. Captura revisada y resultado en
-  `local/dioxus-native-3oQOrX/`. No usa mocks de IPC ni recuerdos personales.
+  `local/artifacts/dioxus/native/dioxus-native-3oQOrX/`. No usa mocks de IPC ni recuerdos personales.
 - Lanzador habitual: tras la prueba aislada, inició Vite desde el workspace y
   abrió la ventana normal de Alice. La página y `/src/main.tsx` respondieron
   HTTP 200 en el servidor de desarrollo. Se dejó Alice abierta.

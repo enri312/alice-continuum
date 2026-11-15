@@ -20,6 +20,8 @@ original. Falta una copia en otra unidad física o fuera del equipo.
 | Archivos versionados y nuevos no ignorados por Git | Código y documentos tal como estaban, incluidos cambios sin commit y eliminaciones locales |
 | `project.bundle` | Historial Git completo alcanzable desde sus referencias y HEAD; ramas y etiquetas |
 | Todo `local/assets/` | Avatar, animaciones y recursos privados existentes en esa carpeta |
+| `local/archives/`, `local/drafts/`, `local/maintenance/` | Recuperaciones y código retirado, originales privados de trabajo y scripts/manifiestos de intervenciones puntuales; incluidos desde el 15 de noviembre de 2026 |
+| Fuentes de `experiments/` | Pilotos privados, excluyendo entornos, dependencias, salidas generadas, registros, grabaciones y pesos de modelos |
 | `.env`, `.env.*`, `local/ubuntu.env`, `local/backup.json` | Archivos de configuración privados presentes |
 | Configuración Fish de Linux y variables de entorno seleccionadas de Alice/proveedores | Copias privadas bajo `local/recovered-settings/`; no se ejecutan ni importan automáticamente |
 
@@ -29,11 +31,17 @@ ajenas a Alice. Las variables seleccionadas están enumeradas en
 `scripts/backups/snapshot.mjs`. Los archivos privados permanecen fuera de Git.
 
 No se incluyen los modelos o motores **externos** a `local/assets/`,
-`node_modules`, `dist`, caches Rust, entornos Python, otros archivos ignorados,
+`node_modules`, `dist`, `local/artifacts/`, caches Rust, entornos Python, otros archivos ignorados,
 reflogs/objetos Git sin referencias ni la distribución de cambios entre staging
 y working tree. Tampoco se conserva la memoria RAM, el audio o los fotogramas
 efímeros. Las dependencias se reinstalan y las rutas de modelos se revisan al
 recuperar. Los directorios vacíos se recrean cuando se necesitan.
+
+Una grabación original guardada expresamente en `local/drafts/` sí se respalda;
+el audio efímero y las tomas sintéticas en `local/artifacts/` quedan fuera.
+Las copias parciales históricas de `local/backups/` tampoco forman parte de este
+inventario. Consultar la [guía de recursos locales](../../local/README.md) antes
+de limpiar archivos que no sean regenerables.
 
 ## Operación manual
 

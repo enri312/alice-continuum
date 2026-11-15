@@ -211,7 +211,7 @@ Todos los informes de evidencia verificada por fase e incremento:
   - **Activos:** `records.json` (recuerdos confirmados), `automatic-v1.json` + `automatic-v1.backup.json` (memoria automática de conversación), `manifest.json`, `owner-profile.json`, `layer-index-v3.json`, `lifecycle-index-v1.json`, `audit/memory-events.jsonl`, `reviews/episode-review-2026-09-04.md`, `notes/` (`9` archivos de bóveda Markdown/Obsidian del perfil) y `backups/` (`14` respaldos transaccionales).
   - **Legados inactivos en `data/memory/` (no en uso actual, conservar respaldo antes de tocar):** `sessions.json`, `sessions.backup.json`, `memory-audit.jsonl` (de agosto pre-v1) y `layer-index-v2.json` (sustituido por `v3`).
   - **Carpetas vacías reservadas (`4`):** `attachments/`, `exports/`, `indexes/` y `revisions/`.
-- `data/visual-checks/` (`2` PNG: `volume-observatory-desktop.png`, `volume-observatory-mobile.png`): **Residuos visuales desechables** generados el `2026-09-08` por `scripts/testing/volume-observatory.cjs`.
+- `local/artifacts/visual-checks/` (`2` PNG: `volume-observatory-desktop.png`, `volume-observatory-mobile.png`): **Residuos visuales desechables** generados el `2026-09-08` por `scripts/testing/volume-observatory.cjs`.
 
 ---
 

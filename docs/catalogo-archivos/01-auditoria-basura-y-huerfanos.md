@@ -45,7 +45,7 @@ Este documento consolida **todos los archivos basura, carpetas vacías, plantill
 3. `local/artifacts/r9-hands-free-2026-11-03/` (**8,56 MB**): contiene `node-msi.log` y datos de prueba aislados. **100 % descartable.**
 4. **216 archivos sueltos `.html`/`.png` en la raíz de `local/artifacts/` (~57,34 MB)** + subcarpetas `icons-v3-2026-11-01/`, `icons-v4-2026-11-01/`, `ui-affordance-2026-11-01/` y `avatar-clothing-2026-11-05/` (~14 MB): capturas históricas de iteraciones visuales (incluyendo `r7-2b-live-before.png` truncado a 144 bytes). **Descartables.**
 5. `local/drafts/` (**1,48 MB**, 17 archivos): 3 PNG de agosto + 14 scripts sueltos en `local/drafts/avatar-height-detail/` que apuntan a la ruta antigua inexistente `Assets/Alice.vrm`. **Descartable.**
-6. `data/visual-checks/*.png` (**592 KB**, 3 capturas): capturas de verificación visual Playwright que no forman parte de la memoria ni configuración de Alice.
+6. `local/artifacts/visual-checks/*.png` (**592 KB**, 3 capturas): capturas de verificación visual Playwright que no forman parte de la memoria ni configuración de Alice.
 
 > **CUIDADO al limpiar `local/artifacts/`:** No borres `local/artifacts/conversation-session-2026-11-04/*.wav` ni `local/artifacts/voice-noise-2026-11-04/synthetic-speech.wav` sin antes copiarlos a `scripts/testing/.fixtures/`, porque [`scripts/testing/prepare-voice-fixtures.mjs`](../../scripts/testing/prepare-voice-fixtures.mjs) los busca como origen para regenerar fixtures de voz.
 

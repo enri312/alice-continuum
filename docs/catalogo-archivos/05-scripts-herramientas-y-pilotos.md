@@ -94,7 +94,7 @@ Cada archivo exporta la función constructora SVG de uno de los 16 iconos princi
 | 49 | [`scripts/testing/ubuntu-startup-smoke.py`](../../scripts/testing/ubuntu-startup-smoke.py) | **ACTIVO (CI UBUNTU)** | Smoke test oficial ejecutado al final de `.github/workflows/ubuntu.yml`: inicia el binario compilado `alice-continuum` con `ALICE_DATA_DIR` aislado y comprueba que registre `PROCESS_STARTED` en auditoría R3. |
 | 50 | [`scripts/testing/voice-turn-pilot-smoke.mjs`](../../scripts/testing/voice-turn-pilot-smoke.mjs) | **BASURA / OBSOLETO + RUTA PERSONAL** | Probaba el viejo servidor `voice-turn-pilot.mjs` (`18090`) e importa Playwright desde `C:/Users/enri3/.cache/codex-runtimes/...`. |
 | 51 | [`scripts/testing/voice-turn-pilot.mjs`](../../scripts/testing/voice-turn-pilot.mjs) | **OBSOLETO (PROTOTIPO SUPERADO)** | Antiguo servidor HTTP independiente (`127.0.0.1:18090`) que transcribía audio con Gemma multimodal antes de integrar RNNoise + Whisper + sesiones de voz en Tauri. |
-| 52 | [`scripts/testing/volume-observatory.cjs`](../../scripts/testing/volume-observatory.cjs) | **SONDA PUNTUAL (RUTA PERSONAL)** | Renderiza `NeuralVolume` en Edge headless y guarda capturas en `data/visual-checks/`. Importa Playwright desde `C:/Users/enri3/.cache/codex-runtimes/...`. |
+| 52 | [`scripts/testing/volume-observatory.cjs`](../../scripts/testing/volume-observatory.cjs) | **SONDA PUNTUAL (RUTA PERSONAL)** | Renderiza `NeuralVolume` en Edge headless y guarda capturas en `local/artifacts/visual-checks/`. Importa Playwright desde `C:/Users/enri3/.cache/codex-runtimes/...`. |
 
 ### 3.2 Subdirectorios de pilotos interactivos en `scripts/testing/` (`7` archivos)
 

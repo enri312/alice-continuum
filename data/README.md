@@ -5,14 +5,16 @@ El iniciador configura `ALICE_DATA_DIR` con esta carpeta. Alice crea aquí:
 - `memory/`: recuerdos, respaldos, exportaciones, adjuntos e índices.
 - `conversation/`: historial local durable de diálogos, separado de los recuerdos.
 - `cloud/`: auditoría técnica de llamadas a proveedores, sin claves.
+- `audit/`: registros de auditoría de acciones y del estado cognitivo.
+- `media-playlists.json`: configuración privada de listas multimedia.
 - `voice-profile.json`: selección privada de la voz Fish; esquema 1, separada
   de las credenciales y de los recuerdos.
 
 El avance del autoestudio de arranque se conserva en
 `memory/self-study-v1.json`, separado de las memorias personales. Su currículo
 está limitado a matemáticas, historia bíblica católica, psicología e inteligencia
-emocional, empatía, solidaridad y humildad. Las lecciones aprobadas pueden
-recuperarse al conversar y se proyectan en la bóveda. Ver
+emocional, empatía, solidaridad, humildad, pensamiento crítico y ética. Las
+lecciones aprobadas pueden recuperarse al conversar y se proyectan en la bóveda. Ver
 [Autoestudio al arrancar](../docs/runbooks/06-autoestudio-al-arrancar.md).
 
 ## Perfil privado de voz
@@ -58,6 +60,14 @@ manual detiene la actualización para evitar sobrescribirla. Guardar anotaciones
 propias en las demás carpetas. Los originales de `memory/`, los estados de
 retirada y el historial de `conversation/` conservan su función actual.
 Incluir `obsidian/` al respaldar los datos privados.
+
+La revisión del 15 de noviembre mantuvo las rutas de datos y `ALICE_DATA_DIR`.
+`memory/records.json` continúa como fuente canónica; el archivo heredado
+`memory/sessions.json` se conserva sin fusionarlo ni volver a importarlo.
+También se conservaron las configuraciones de editor en `data/.obsidian/` y
+`data/obsidian/.obsidian/`, y los archivos manuales de la raíz. No deben unificarse
+sin revisar qué bóveda utiliza el propietario. Sólo las dos capturas técnicas de
+`visual-checks/` pasaron a `../local/artifacts/visual-checks/`.
 
 Procedimiento y límites: [Memoria en Obsidian](../docs/runbooks/05-memoria-obsidian.md).
 

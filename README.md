@@ -287,9 +287,12 @@ representa comprensión general ni una modificación de Gemma.
 ## Ubuntu y recursos locales
 
 Las carpetas privadas se agrupan en `local/`: `assets`, `reference-adapters`,
-`drafts`, `artifacts` y `venv`. `src`, `Backend/src-tauri`, `.cargo`, `.git`,
-`node_modules` y `dist` conservan los nombres esperados por sus herramientas.
+`drafts`, `archives`, `maintenance`, `artifacts`, entornos y cachés. Las fuentes
+están en `Frontend/` y `Backend/`; `.cargo`, `.git` y `node_modules` conservan
+las ubicaciones esperadas por sus herramientas.
 La memoria sigue en `data/`; los motores actuales permanecen en D:.
+Las guías de [`local/`](local/README.md) y [`data/`](data/README.md) explican qué
+se instala, qué se respalda y qué puede regenerarse.
 
 Ubuntu dispone de lanzador Bash, dependencias nativas delimitadas y rutas
 configurables para Gemma, Whisper y Python. El 6 de noviembre se instalaron y
@@ -406,6 +409,15 @@ lanzadores mantienen su uso. Los comandos que conectan frontend, backend y
 almacenamiento siguen en `scripts/`. El traslado no cambia versiones ni diseño.
 La [verificación del traslado](docs/testing/FRONTEND_REORGANIZATION_REPORT_2026-11-15.md)
 registra las comprobaciones de rutas, privacidad y arranque nativo.
+
+**Revisión de `local/` y `data/` (2026-11-15):** 42 elementos auxiliares quedaron
+agrupados por función; se verificaron los hashes de 16.342 archivos trasladados.
+Los recuerdos, conversaciones, perfiles y archivos manuales conservaron sus
+rutas y contenido. Los respaldos incluyen ahora los originales de
+`local/archives/`, `local/drafts/` y `local/maintenance/`; las nuevas pruebas
+escriben bajo `local/artifacts/dioxus/`. Build, 894 pruebas frontend, Obsidian,
+respaldos, privacidad y los ensayos Edge y Tauri/WebView2 pasaron después del
+traslado. [Distribución, respaldo y límites de la comprobación](docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md).
 
 El [plan de portabilidad y migración a Dioxus](docs/architecture/PLAN_PORTABILIDAD_DIOXUS.md)
 ordena la reproducción de fallos, la instalación y las pruebas en Windows,

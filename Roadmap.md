@@ -117,6 +117,21 @@ nueva. Se conserva la separación entre datos privados y código. La revisión
 actual de la raíz está en el [mapa de carpetas](docs/architecture/MAPA_CARPETAS_RAIZ.md).
 Este incremento ordena las fuentes; no declara migrada otra pantalla a Dioxus.
 
+**Organización de recursos y datos (2026-11-15):** se revisaron `local/` y `data/`
+y se agruparon 42 elementos de pruebas, caché, revisiones, recuperaciones y
+scripts auxiliares. Se comprobaron por SHA-256 16.342 archivos trasladados y
+159 archivos protegidos. Las rutas de memoria, historial, perfiles, bóvedas,
+modelos, entornos y herramientas activas se conservaron. Dos capturas técnicas
+pasaron de `data/visual-checks/` a `local/artifacts/visual-checks/`. Las sondas
+nuevas usan `local/artifacts/dioxus/` y los respaldos cubren también
+`local/archives/`, `local/drafts/` y `local/maintenance/`. Compilación, 894 pruebas
+frontend (dos omitidas), 15 Obsidian, 20 respaldos y dos privacidad aprobadas.
+Edge con IPC ficticio y Tauri/WebView2 con backend real y datos aislados
+comprobaron navegación, R3, relaciones y persistencia tras la movida.
+El [informe de organización](docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+detalla el alcance. La siguiente migración continúa de una pantalla por vez;
+este incremento no modifica componentes ni estilos.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

@@ -34,7 +34,7 @@ contiene los SVG versionados:
 - `NucleusViewIcon.tsx` no tenía importadores y se retiró del código activo.
   La escena anterior `scripts/icons/legacy/activity-timeline-scene.mjs` tampoco
   tenía importadores y se retiró. Ambos están en el historial Git y en
-  `local/cleanup-archive-2026-11-14/`, excluido de Git.
+  `local/archives/retired-code/cleanup-archive-2026-11-14/`, excluido de Git.
 
 Los generadores y SVG activos permanecen en su lugar; los iconos de Tauri se
 conservaron junto con el backend trasladado. Se retiró el comparador antiguo
