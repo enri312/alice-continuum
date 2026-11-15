@@ -36,8 +36,20 @@ pub fn page(props: PageProps) -> Element {
     use_effect(move || {
         let _ = ready.call0(&wasm_bindgen::JsValue::NULL);
     });
-    let snap = payload.read();
-    let selected_id = selected.read().clone();
+    let mut view = payload.read().clone();
+    view.selected_id = selected.read().clone();
+    rsx! { Graph { payload: view, on_select: move |id: String| {
+        if payload.read().nodes.iter().any(|node| node.id == id) {
+            selected.set(id.clone());
+            let _ = props.on_action.call1(&wasm_bindgen::JsValue::NULL, &wasm_bindgen::JsValue::from_str(&serde_json::json!({"type":"select","id":id}).to_string()));
+        }
+    } } }
+}
+
+#[component]
+pub fn Graph(payload: Payload, on_select: EventHandler<String>) -> Element {
+    let snap = &payload;
+    let selected_id = snap.selected_id.clone();
     let inspector = snap.selected(&selected_id);
     let activity_class = if snap.has_activity {
         "has-activity"
@@ -77,8 +89,8 @@ pub fn page(props: PageProps) -> Element {
                         g { key:"{node.id}", class:format!("flow-node {} {} {}",node.group,node.availability,if inspector.id==node.id {"selected"} else {""}),
                             style:format!("--signal: {}",node.activation), transform:format!("translate({} {})",node.x*10.0,node.y*4.3), role:"button", tabindex:"0",
                             "aria-label":format!("{}: {}, activación {:.3}",node.label,node.value,node.activation),
-                            onclick:{ let id=node.id.clone(); let callback=props.on_action.clone(); move |_| { selected.set(id.clone()); let _=callback.call1(&wasm_bindgen::JsValue::NULL,&wasm_bindgen::JsValue::from_str(&serde_json::json!({"type":"select","id":id}).to_string())); } },
-                            onkeydown:{ let id=node.id.clone(); let callback=props.on_action.clone(); move |event: KeyboardEvent| { if event.key()==Key::Enter || event.key()==Key::Character(" ".into()) { event.prevent_default(); selected.set(id.clone()); let _=callback.call1(&wasm_bindgen::JsValue::NULL,&wasm_bindgen::JsValue::from_str(&serde_json::json!({"type":"select","id":id}).to_string())); } } },
+                            onclick:{ let id=node.id.clone(); move |_| on_select.call(id.clone()) },
+                            onkeydown:{ let id=node.id.clone(); move |event: KeyboardEvent| { if event.key()==Key::Enter || event.key()==Key::Character(" ".into()) { event.prevent_default(); on_select.call(id.clone()); } } },
                             circle { class:"flow-node-halo", r:"28" } circle { class:"flow-node-core", r:"11" }
                             text { class:"flow-score", y:"-23", text_anchor:"middle", {format!("{:.3}",node.activation)} }
                             text { class:"flow-label", y:"35", text_anchor:"middle", {node.label.to_uppercase()} }

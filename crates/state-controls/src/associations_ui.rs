@@ -28,29 +28,51 @@ fn emit(callback: &js_sys::Function, request: Option<Request>) {
 }
 pub fn page(props: PageProps) -> Element {
     let desktop_app = matches!(props.initial, Payload::Configure { desktop_app: true });
-    let mut state = use_signal(|| State::new(desktop_app));
-    let rx = props.rx.clone();
-    let callback = props.on_action.clone();
-    use_future(move || {
-        let receiver = rx.borrow_mut().take();
-        let callback = callback.clone();
-        async move {
-            if let Some(mut receiver) = receiver {
-                while let Some(payload) = receiver.next().await {
-                    let request = state.write().receive(payload);
-                    emit(&callback, request);
-                }
-            }
-        }
-    });
     let ready = props.on_ready.clone();
     use_effect(move || {
         let _ = ready.call0(&JsValue::NULL);
     });
+    rsx! { Session { desktop_app, rx: props.rx.clone(), on_request: move |request| emit(&props.on_action, Some(request)) } }
+}
+
+#[derive(Props, Clone)]
+pub struct SessionProps {
+    pub desktop_app: bool,
+    pub rx: Rc<RefCell<Option<UnboundedReceiver<Payload>>>>,
+    pub on_request: EventHandler<Request>,
+}
+impl PartialEq for SessionProps {
+    fn eq(&self, other: &Self) -> bool {
+        self.desktop_app == other.desktop_app
+            && Rc::ptr_eq(&self.rx, &other.rx)
+            && self.on_request == other.on_request
+    }
+}
+#[allow(non_snake_case)] // Dioxus component with a manually defined Props equality.
+pub fn Session(props: SessionProps) -> Element {
+    let desktop_app = props.desktop_app;
+    let mut state = use_signal(|| State::new(desktop_app));
+    let rx = props.rx.clone();
+    let callback = props.on_request;
+    use_future(move || {
+        let receiver = rx.borrow_mut().take();
+        async move {
+            if let Some(mut receiver) = receiver {
+                while let Some(payload) = receiver.next().await {
+                    let request = state.write().receive(payload);
+                    if let Some(request) = request {
+                        callback.call(request);
+                    }
+                }
+            }
+        }
+    });
     let dispatch = EventHandler::new(move |raw: serde_json::Value| {
         if let Ok(action) = serde_json::from_value::<Action>(raw) {
             let request = state.write().act(action);
-            emit(&props.on_action, request);
+            if let Some(request) = request {
+                props.on_request.call(request);
+            }
         }
     });
     let snapshot = state.read();

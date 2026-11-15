@@ -1,7 +1,7 @@
 use crate::model::Activity;
 use serde::Deserialize;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Node {
     pub id: String,
@@ -14,13 +14,13 @@ pub struct Node {
     pub x: f64,
     pub y: f64,
 }
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Link {
     pub id: String,
     pub signal: f64,
 }
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Payload {
     pub nodes: Vec<Node>,
@@ -55,6 +55,11 @@ pub const CONNECTIONS: [(&str, &str, Option<&str>); 13] = [
 impl Payload {
     pub fn parse(raw: &str) -> Result<Self, String> {
         let value: Self = serde_json::from_str(raw).map_err(|e| e.to_string())?;
+        value.validate()?;
+        Ok(value)
+    }
+    pub fn validate(&self) -> Result<(), String> {
+        let value = self;
         let mut ids = std::collections::HashSet::new();
         if value.nodes.is_empty() || value.nodes.len() > 64 || value.links.len() > 64 {
             return Err("Grafo inválido".into());
@@ -87,7 +92,7 @@ impl Payload {
         }) {
             return Err("Enlace inválido".into());
         }
-        Ok(value)
+        Ok(())
     }
     pub fn selected(&self, id: &str) -> &Node {
         self.nodes

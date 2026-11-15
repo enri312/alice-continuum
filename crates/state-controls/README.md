@@ -2,10 +2,12 @@
 
 Este paquete también incorpora el grafo y el inspector de Flujo cognitivo:
 `flow_model.rs` valida nodos, geometría, selección y señales R3; `flow_ui.rs`
-los dibuja con las clases CSS existentes. Los seis renderers comparten un único
-WASM y tienen ciclos de montaje independientes. El panel de asociaciones y su
-controlador normal también funcionan en Rust/Dioxus. El contenedor, el sondeo R3
-y la recuperación siguen usando React; la pantalla aún conserva esas dependencias.
+los dibuja con las clases CSS existentes. Los siete renderers comparten un único
+WASM y tienen ciclos de montaje independientes. La página completa de Flujo
+integra el grafo y las asociaciones en un solo montaje y mantiene en Rust su
+selección, validación/proyección R3 y sondeo serializado de cinco segundos.
+La aplicación React aporta el snapshot base y la navegación; la página anterior
+y el sondeo compartido siguen disponibles para recuperación y otras pantallas.
 
 Renderer de la página principal, con Dioxus 0.7.0 y dioxus-web 0.7.10 fijados
 en `Cargo.lock`. El contenido conserva las clases CSS del panel React.
@@ -27,6 +29,12 @@ la validación de evidencia y toda persistencia siguen en el backend.
 - `src/associations_model.rs`, `src/associations_ui.rs`: controlador y panel completo
   de relaciones; deriva evidencia desde las fuentes cargadas y rechaza acciones
   ocupadas, confirmaciones atrasadas y respuestas de operaciones anteriores.
+- `src/core_activity_model.rs`: contrato R3 cerrado y validación de cobertura,
+  topología, conteos y señales; conserva el caso de procedimientos sin señal.
+- `src/flow_page_model.rs`, `src/flow_page_ui.rs`: página completa, selección,
+  proyección R3, una lectura pendiente y canal independiente de asociaciones.
+- `src/browser_timer.rs`: temporizador propio de la tarea Dioxus, cancelado al
+  desmontar. El transporte TypeScript no contiene un intervalo ni proyecta R3.
 - `src/browser_runtime.rs`: plantilla común de montaje, actualización y cierre,
   con instancias separadas para cada renderer.
 - `src/lib.rs`: montaje, actualización y desmontaje del módulo WASM.
@@ -93,3 +101,33 @@ y parámetros de persistencia aportados por eventos.
 El ensayo exige además que el controlador completo esté en Dioxus. Salir durante
 una revisión y volver no entrega su respuesta a la sesión nueva ni guarda una
 relación. Al bloquear WASM se comprueba por separado la recuperación React.
+También exige la página completa en Dioxus. Una lectura R3 queda suspendida
+durante dos intervalos: no se superpone otra. Un snapshot inválido retira la
+señal anterior. Salir cancela el sondeo y una respuesta anterior no altera el
+estado de la sesión nueva.
+
+## Aceptación nativa Windows después de cada migración
+
+Con Alice cerrada y el build actual servido por el preview de loopback anterior:
+
+```powershell
+npm run test:dioxus:native
+```
+
+El ensayo compila y abre una ventana real de Tauri/WebView2 con el frontend de
+producción. Usa una carpeta nueva en `local/dioxus-native-*` para datos, perfil
+WebView, configuración, temporales y evidencia. No copia la memoria personal y
+excluye claves/proveedores del entorno. Desactiva aprendizaje en el fixture;
+no ejecuta modelos ni requiere voz.
+
+Comprueba la ventana, apertura de Conversación, navegación Estado/Flujo,
+inspector, lectura R3 del backend real y una relación entre dos episodios
+sintéticos: revisión, confirmación, cancelación de retirada y conservación al
+recargar. Verifica que las fuentes no cambien. No sustituye Tauri IPC por mocks.
+Cierra sólo la instancia que creó. Si Alice ya estaba abierta, se niega a iniciar.
+
+Utiliza diagnóstico de WebView2, habilitado sólo en el proceso de prueba mediante
+las [opciones oficiales de WebView2](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl?view=webview2-1.0.3967.48).
+La configuración habitual de Alice no recibe un puerto de depuración. Esta prueba
+comprueba arranque e interacción nativa con datos sintéticos; las pruebas con
+voz, motores externos y datos personales tienen un alcance separado.

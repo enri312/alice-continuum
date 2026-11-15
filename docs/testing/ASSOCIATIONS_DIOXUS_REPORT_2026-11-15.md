@@ -3,6 +3,11 @@
 Fecha: 2026-11-15. Alcance: Flujo cognitivo en Windows, sin modificar los
 comandos de persistencia ni utilizar recuerdos personales como datos de prueba.
 
+Actualización posterior: el [informe de la página completa](FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md)
+registra la aceptación nativa con fuentes sintéticas y la corrección del prefijo
+`sha256:` que no cubrían los fixtures originales. El presente informe conserva
+la evidencia y los límites del incremento inicial.
+
 ## Cambio
 
 El panel normal de relaciones pasa a un único montaje Dioxus. El modelo Rust

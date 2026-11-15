@@ -70,6 +70,7 @@ try {
   url.searchParams.set('screen', 'flujo');
   await send('Page.navigate', { url: url.href });
   await ready();
+  assert.equal(await evaluate('document.querySelector("[data-flow-page-renderer]")?.dataset.flowPageRenderer'), 'dioxus', 'Página de Flujo completa en Dioxus');
   assert.equal(await evaluate('document.querySelectorAll(".flow-node").length'), 11);
   assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'), 1);
   assert.equal(await evaluate('document.querySelectorAll(".core-activity-provenance").length'), 1);
@@ -143,6 +144,10 @@ try {
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `
     globalThis.isTauri = true;
     globalThis.__relationCalls = [];
+    globalThis.__coreMode = 'idle';
+    globalThis.__coreActivityCalls = 0;
+    globalThis.__corePending = 0;
+    globalThis.__coreMaxPending = 0;
     globalThis.__relationFixture = {revision:7,associations:[
       {id:'active',revision:1,withdrawn:false,sourcesCurrent:true,evidence:[{recordId:'a'},{recordId:'b'}]},
       {id:'withdrawn',revision:1,withdrawn:true,sourcesCurrent:true,evidence:[{recordId:'a'},{recordId:'c'}]},
@@ -153,10 +158,27 @@ try {
       transformCallback: () => 0,
       invoke: async (cmd,args={}) => {
         __relationCalls.push({cmd,args:structuredClone(args)});
+        if(cmd==='core_activity_snapshot') {
+          __coreActivityCalls++; __corePending++; __coreMaxPending=Math.max(__coreMaxPending,__corePending);
+          const mode=__coreMode;
+          try {
+            if(mode==='hold') await new Promise(resolve=>globalThis.__releaseCore=resolve);
+            if(mode==='failure') throw Error('Fallo R3 ficticio');
+            const active=mode==='active'||mode==='hold';
+            const regions=['perception','permission','memory','language','workspace','output','motor'].map(id=>{
+              const signaled=active&&['perception','permission','workspace','motor'].includes(id);
+              return {id,label:id,eventCount:signaled?1:0,signal:signaled?0.3:0,lastEventAtMs:signaled?1000:null};
+            });
+            const links=[['permission-perception','permission','perception'],['perception-workspace','perception','workspace'],['memory-workspace','memory','workspace'],['language-workspace','language','workspace'],['workspace-output','workspace','output']].map(([id,from,to])=>({id,from,to,evidenceCount:active&&id==='permission-perception'?1:0,signal:active&&id==='permission-perception'?0.3:0}));
+            const snapshot={schemaVersion:2,generatedAtMs:1000,method:'r3-recency-motor-v2',heuristic:true,windowMs:300000,auditHealthy:!active,visibleEventCount:1,windowEventCount:1,latestEventAtMs:active?1000:null,overallSignal:active?0.3:0,regions,links};
+            if(mode==='invalid') snapshot.private='campo no permitido';
+            return snapshot;
+          } finally { __corePending--; }
+        }
         if(cmd==='knowledge_graph_snapshot') return {nodes:[
-          {evidenceUse:'episodeOnly',recordVersion:2,lifecycle:{recordId:'a',recordSha256:'a'.repeat(64)}},
-          {evidenceUse:'episodeOnly',recordVersion:3,lifecycle:{recordId:'b',recordSha256:'b'.repeat(64)}},
-          {evidenceUse:'notAnEpisode',recordVersion:1,lifecycle:{recordId:'c',recordSha256:'c'.repeat(64)}}
+          {evidenceUse:'episodeOnly',recordVersion:2,lifecycle:{recordId:'a',recordSha256:'sha256:'+'a'.repeat(64)}},
+          {evidenceUse:'episodeOnly',recordVersion:3,lifecycle:{recordId:'b',recordSha256:'sha256:'+'b'.repeat(64)}},
+          {evidenceUse:'notAnEpisode',recordVersion:1,lifecycle:{recordId:'c',recordSha256:'sha256:'+'c'.repeat(64)}}
         ]};
         if(cmd==='load_memory') return {existed:true,storagePath:'synthetic-only/records.json',sessions:[
           {id:'a',kind:'Enseñanza',intention:'Experiencia A',startedAt:'2026-11-14T10:00:00Z',finishedAt:'2026-11-14T10:01:00Z'},
@@ -169,7 +191,7 @@ try {
           if(evidence?.length!==2 || evidence[0].recordId===evidence[1].recordId) throw Error('Fuentes ficticias inválidas');
           for(const item of evidence) {
             const id=item.recordId;
-            if(!['a','b'].includes(id) || item.recordVersion!==(id==='a'?2:3) || item.recordSha256!==id.repeat(64)
+            if(!['a','b'].includes(id) || item.recordVersion!==(id==='a'?2:3) || item.recordSha256!=='sha256:'+id.repeat(64)
               || !item.quote?.trim() || !('Experiencia '+id.toUpperCase()).includes(item.quote)) throw Error('Cita ficticia no coincide con la fuente');
           }
           if(globalThis.__holdSourcePreview) await new Promise(resolve=>globalThis.__releaseSourcePreview=resolve);
@@ -196,6 +218,7 @@ try {
   await until(() => evaluate('globalThis.isTauri === true'), 'instalación de IPC ficticio');
   const relationsReady = () => until(() => evaluate('document.querySelectorAll(\'[data-relations-renderer="dioxus"] article\').length === 4'), 'lista Dioxus con IPC ficticio');
   await relationsReady();
+  assert.equal(await evaluate('document.querySelector("[data-flow-page-renderer]")?.dataset.flowPageRenderer'), 'dioxus');
   assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'dioxus', 'Controlador y panel de relaciones en Rust/Dioxus');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".memory-associations article button")).map(button=>button.disabled)'), [false,false,true,false]);
@@ -263,8 +286,8 @@ try {
   await clickText('Revisar relación');
   await until(() => evaluate('document.querySelector(".memory-associations fieldset").matches(":disabled")'), 'bloqueo durante revisión');
   assert.deepEqual((await previewCalls())[0].args.evidence, [
-    {recordId:'a',recordVersion:2,recordSha256:'a'.repeat(64),quote:'Experiencia A'},
-    {recordId:'b',recordVersion:3,recordSha256:'b'.repeat(64),quote:'Experiencia B'},
+    {recordId:'a',recordVersion:2,recordSha256:'sha256:'+'a'.repeat(64),quote:'Experiencia A'},
+    {recordId:'b',recordVersion:3,recordSha256:'sha256:'+'b'.repeat(64),quote:'Experiencia B'},
   ]);
   await until(() => evaluate('typeof globalThis.__releaseSourcePreview === "function"'), 'revisión ficticia suspendida');
   await evaluate('globalThis.__holdSourcePreview=false; __releaseSourcePreview()');
@@ -316,9 +339,53 @@ try {
   assert.equal(await evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'),false,'La respuesta anterior no crea una revisión en la nueva sesión');
   assert.equal((await sourceWrites()).length,1,'Navegar y recibir una respuesta tardía no guarda');
 
+  // Real Rust/browser timer with fictitious IPC: a slow read spans two ticks.
+  const activityState = () => evaluate('document.querySelector(".neuro-live")?.dataset.activityState');
+  await until(async () => await activityState()==='idle','R3 de procedimientos sin señal');
+  await evaluate("__coreMode='hold'; delete globalThis.__releaseCore");
+  await until(() => evaluate('typeof __releaseCore === "function"'),'lectura R3 suspendida');
+  const heldCalls=await evaluate('__coreActivityCalls');
+  await pause(10_200);
+  assert.equal(await evaluate('__coreActivityCalls'),heldCalls,'Dos intervalos no superponen otra lectura R3');
+  assert.equal(await evaluate('__coreMaxPending'),1,'Una sola lectura nativa pendiente');
+  await evaluate("__coreMode='active'; __releaseCore()");
+  await until(async () => await activityState()==='ready','señal R3 validada en Rust');
+  assert.equal(await evaluate('document.querySelector(".core-activity-provenance")?.dataset.auditState'),'degraded');
+  const nodeSignal = label => evaluate(`document.querySelector('.flow-node[aria-label^="${label}:"]')?.style.getPropertyValue('--signal')`);
+  assert.equal(await nodeSignal('Entrada'),'0.3');
+  assert.equal(await nodeSignal('Cuerpo manual'),'0.3');
+  assert.equal(await nodeSignal('Rostro'),'0');
+  assert.equal(await nodeSignal('Social'),'0');
+  assert.equal(await evaluate('document.querySelector(".flow-connections path")?.style.getPropertyValue("--signal")'),'0.3');
+  const activityShot=await send('Page.captureScreenshot',{format:'png'});
+  await fs.writeFile(path.join(artifacts,'flow-page-r3.png'),Buffer.from(activityShot.data,'base64'));
+  await evaluate("__coreMode='invalid'");
+  await until(async () => await activityState()==='unavailable','snapshot inválido retira la señal anterior');
+  assert.equal(await nodeSignal('Entrada'),'0');
+  assert.equal(await evaluate('Array.from(document.querySelectorAll(".flow-connections path")).every(path=>path.style.getPropertyValue("--signal")==="0")'),true);
+  await evaluate("__coreMode='idle'");
+  await until(async () => await activityState()==='idle','recuperación R3 sin señal inventada');
+
+  // Unmount clears the timer; an old response cannot attach to the next session.
+  await evaluate("__coreMode='hold'; delete globalThis.__releaseCore");
+  await until(() => evaluate('typeof __releaseCore === "function"'),'lectura antes de desmontar Flujo');
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
+  await until(() => evaluate('!document.querySelector("[data-flow-page-renderer]")'),'Flujo desmontado');
+  const afterUnmount=await evaluate('__coreActivityCalls');
+  await pause(5_200);
+  assert.equal(await evaluate('__coreActivityCalls'),afterUnmount,'No quedan sondeos de Flujo al cambiar de pantalla');
+  await evaluate("__coreMode='idle'");
+  await clickTab('Flujo cognitivo'); await ready(); await sourceFormReady();
+  await until(async () => await activityState()==='idle','sesión nueva sin señal');
+  await evaluate('__releaseCore()');
+  await until(() => evaluate('__corePending===0'),'respuesta de sesión anterior descartada');
+  assert.equal(await activityState(),'idle','La respuesta activa anterior no cambia el estado de la sesión nueva');
+  assert.equal((await sourceWrites()).length,1,'Sondear y navegar no guarda relaciones');
+
   await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
   await send('Page.navigate', { url: url.href });
   await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
+  assert.equal(await evaluate('document.querySelector("[data-flow-page-renderer]")?.dataset.flowPageRenderer'),'react','Página anterior sólo como recuperación');
   assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'react', 'Recuperación con controlador anterior sólo tras fallo de carga');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
   await until(() => evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'), 'formulario de respaldo');
@@ -344,7 +411,7 @@ try {
   await relationsReady();
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.equal((await writes()).length, 0, 'Reintentar no escribe');
-  console.log(`Dioxus: navegación, estados R3, controlador de asociaciones Rust, fuentes, confirmaciones, respuesta tardía y recuperación con IPC ficticio comprobados. Capturas: ${artifacts}`);
+  console.log(`Dioxus: página completa de Flujo, sondeo R3 Rust sin solapamiento, descarte al desmontar, asociaciones, teclado y recuperación con IPC ficticio comprobados. Capturas: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseAssociationsRequest, startAssociationsTransport } from "./associations-transport";
 
-const evidence = ["a", "b"].map((id, index) => ({ recordId: id, recordVersion: index + 2, recordSha256: id.repeat(64), quote: `Entrada ${id}` }));
+const evidence = ["a", "b"].map((id, index) => ({ recordId: id, recordVersion: index + 2, recordSha256: `sha256:${id.repeat(64)}`, quote: `Entrada ${id}` }));
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 describe("transporte del controlador Rust de asociaciones", () => {
@@ -12,6 +12,7 @@ describe("transporte del controlador Rust de asociaciones", () => {
       { type: "create", id: 1, evidence, expectedRevision: -1 },
       { type: "create", id: 1, evidence: [evidence[0], evidence[0]], expectedRevision: 7 },
       { type: "preview", id: 1, evidence: [{ ...evidence[0], recordSha256: "bad" }, evidence[1]] },
+      { type: "preview", id: 1, evidence: [{ ...evidence[0], recordSha256: "a".repeat(64) }, evidence[1]] },
       { type: "preview", id: 1, evidence: [{ ...evidence[0], quote: "😀".repeat(1025) }, evidence[1]] },
       { type: "change", id: 1, relationId: "r", withdrawn: true, expectedRevision: 7, confirmed: true },
       { type: "refresh", id: 0 },

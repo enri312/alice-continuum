@@ -13,6 +13,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest run && npm run test:obsidian && npm run test:backup && npm run test:privacy",
     "test:privacy": "node --test scripts/testing/repository-privacy.node.test.ts",
+    "test:dioxus:browser": "node scripts/testing/dioxus-browser-smoke.mjs",
+    "test:dioxus:native": "node scripts/testing/dioxus-native-smoke.mjs",
     "test:obsidian": "node --test scripts/obsidian/sync.test.mjs",
     "test:backup": "node --test scripts/backups/*.test.mjs",
     "backup": "node scripts/backups/cli.mjs",

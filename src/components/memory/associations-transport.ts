@@ -19,7 +19,7 @@ export function parseAssociationsRequest(raw: string): Request | null {
     if ((value.type === "preview" && keys === 3) || (value.type === "create" && keys === 4 && integer(value.expectedRevision))) {
       if (!Array.isArray(value.evidence) || value.evidence.length !== 2 || !value.evidence.every(item => object(item)
         && Object.keys(item).length === 4 && typeof item.recordId === "string" && item.recordId.length > 0
-        && integer(item.recordVersion) && typeof item.recordSha256 === "string" && /^[a-f0-9]{64}$/i.test(item.recordSha256)
+        && integer(item.recordVersion) && typeof item.recordSha256 === "string" && /^sha256:[a-fA-F0-9]{64}$/.test(item.recordSha256)
         && typeof item.quote === "string" && item.quote.trim().length > 0 && item.quote.length <= 2048)) return null;
       const evidence = value.evidence as Evidence[];
       if (evidence[0].recordId === evidence[1].recordId) return null;

@@ -475,12 +475,13 @@ impl State {
                     node.lifecycle.record_id.is_empty()
                         || !ids.insert(&node.lifecycle.record_id)
                         || node.record_version > 9_007_199_254_740_991
-                        || node.lifecycle.record_sha256.len() != 64
                         || !node
                             .lifecycle
                             .record_sha256
-                            .bytes()
-                            .all(|b| b.is_ascii_hexdigit())
+                            .strip_prefix("sha256:")
+                            .is_some_and(|hash| {
+                                hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit())
+                            })
                 }) || data.relations.revision > 9_007_199_254_740_991
                 {
                     return Err("Las fuentes o la revisión de relaciones no son válidas.".into());
@@ -540,9 +541,9 @@ mod tests {
     use serde_json::json;
     fn data() -> Value {
         json!({"graph":{"nodes":[
-            {"evidenceUse":"episodeOnly","recordVersion":2,"lifecycle":{"recordId":"a","recordSha256":"a".repeat(64)}},
-            {"evidenceUse":"episodeOnly","recordVersion":3,"lifecycle":{"recordId":"b","recordSha256":"b".repeat(64)}},
-            {"evidenceUse":"notAnEpisode","recordVersion":1,"lifecycle":{"recordId":"c","recordSha256":"c".repeat(64)}}]},
+            {"evidenceUse":"episodeOnly","recordVersion":2,"lifecycle":{"recordId":"a","recordSha256":format!("sha256:{}", "a".repeat(64))}},
+            {"evidenceUse":"episodeOnly","recordVersion":3,"lifecycle":{"recordId":"b","recordSha256":format!("sha256:{}", "b".repeat(64))}},
+            {"evidenceUse":"notAnEpisode","recordVersion":1,"lifecycle":{"recordId":"c","recordSha256":format!("sha256:{}", "c".repeat(64))}}]},
             "memory":{"sessions":[{"id":"a","intention":"Entrada A"},{"id":"b","intention":"Entrada B"}]},
             "relations":{"revision":7,"associations":[{"id":"active","withdrawn":false,"sourcesCurrent":true,"evidence":[{"recordId":"a"},{"recordId":"b"}]},{"id":"blocked","withdrawn":true,"sourcesCurrent":false,"evidence":[]}]}})
     }
@@ -581,13 +582,37 @@ mod tests {
         state.review().unwrap().token
     }
     #[test]
+    fn native_prefixed_digests_are_preserved_and_bare_or_corrupt_digests_are_rejected() {
+        let state = loaded();
+        assert!(state.error.is_empty());
+        assert_eq!(state.form().sources.len(), 2);
+        for hash in ["a".repeat(64), format!("sha256:{}", "g".repeat(64))] {
+            let mut state = State::new(true);
+            let request = state
+                .receive(Payload::Configure { desktop_app: true })
+                .unwrap();
+            let mut value = data();
+            value["graph"]["nodes"][0]["lifecycle"]["recordSha256"] = serde_json::json!(hash);
+            state.receive(Payload::Success {
+                id: request.id(),
+                value,
+            });
+            assert!(state.summary().is_none());
+            assert!(!state.error.is_empty());
+            assert!(!state.busy());
+        }
+    }
+    #[test]
     fn preview_derives_evidence_and_confirm_requires_fresh_review_once() {
         let mut state = loaded();
         fill(&mut state);
         let request = state.act(Action::PreviewSources {}).unwrap();
         let serialized = serde_json::to_value(&request).unwrap();
         assert_eq!(serialized["evidence"][0]["recordVersion"], 2);
-        assert_eq!(serialized["evidence"][1]["recordSha256"], "b".repeat(64));
+        assert_eq!(
+            serialized["evidence"][1]["recordSha256"],
+            format!("sha256:{}", "b".repeat(64))
+        );
         assert!(state
             .act(Action::Confirm {
                 token: "guessed".into()

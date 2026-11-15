@@ -81,6 +81,29 @@ recuerdos personales. Siguen pendientes la aceptación nativa Tauri y retirar
 las dependencias del contenedor/sondeo de Flujo y sus respaldos.
 Ver [informe y límites](docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md).
 
+**Contenedor y sondeo de Flujo (2026-11-15):** el contenedor completo, la selección,
+la validación/proyección R3 y el sondeo de cinco segundos pasan a Rust/Dioxus.
+La página integra el grafo y la sesión de relaciones en un único montaje.
+Conserva los rótulos, CSS, inspector y contenido; no enciende regiones ni enlaces
+sin evidencia válida. La lectura pendiente bloquea otra consulta, salir cancela
+el temporizador y las respuestas anteriores no se aplican a una sesión nueva.
+El host React conserva el montaje y la entrada del snapshot base; la página
+anterior y el sondeo compartido quedan para recuperación y otras pantallas.
+Build, 25 pruebas Rust, Clippy WASM y 887 pruebas frontend aprobados; Edge
+comprobó también una lectura suspendida durante dos intervalos y la retirada de
+señal al recibir datos inválidos. La aceptación nativa pasó con una ventana real
+de Tauri/WebView2 y backend real sobre fuentes sintéticas: Conversación,
+Estado/Flujo, inspector, R3, revisión, confirmación, cancelación y persistencia
+al recargar. Esa prueba detectó y permitió corregir el formato de hashes de
+evidencia (`sha256:`); los fixtures y una regresión cubren ahora el contrato
+nativo. Ver [informe y límites](docs/testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
+
+**Cierre obligatorio de cada migración:** abrir Alice en Windows desde el código
+actual, comprobar la pantalla afectada y la navegación, y distinguir la prueba
+nativa de la simulada. No dar por comprobado el arranque sólo por compilar.
+El ensayo nativo usa una carpeta temporal privada y el backend real; voz,
+proveedores y datos personales requieren su propia aceptación cuando corresponda.
+
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
 instalar las dependencias, `--check` y la compilación frontend pasaron. El ensayo

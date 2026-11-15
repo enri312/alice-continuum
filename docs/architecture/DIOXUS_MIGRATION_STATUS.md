@@ -8,11 +8,32 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
 | Estado y controles | Panel, métricas, ajustes, recuerdo, inspector y encabezado R3. | Contenedor de sesión, sondeo, validación de acciones y vista de respaldo. |
-| Flujo cognitivo | Encabezado R3, grafo, conexiones, selección, inspector y panel/controlador de asociaciones. | Contenedor, sondeo R3, montaje, transporte IPC y recuperación visual. |
+| Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
 | Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
 | Formulario de fuentes | Selectores, entradas, citas, borrador, evidencia derivada y solicitud de revisión. | Adaptador y formulario sólo para recuperación. |
 | Confirmaciones de relaciones | Revisión pendiente, confirmación de creación, retirada/restauración, cancelación y bloqueo de doble clic. | Adaptador y confirmación sólo para recuperación. |
 | Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Host de montaje y carga diferida del controlador anterior ante fallo; transporte TypeScript limitado a comandos existentes. |
+
+## Página y sondeo de Flujo: estado vigente (2026-11-15)
+
+`flow_page_ui.rs` presenta la sección completa con el grafo reutilizable y la
+sesión de asociaciones integrada. `flow_page_model.rs` mantiene selección,
+snapshot R3 y una única lectura pendiente; `core_activity_model.rs` valida el
+contrato nativo y proyecta sólo los nodos/enlaces con evidencia. Los eventos de
+procedimientos sin señal siguen mostrando actividad en reposo. Un resultado
+inválido retira la señal anterior en vez de conservar una actividad no comprobada.
+
+El temporizador de cinco segundos vive en una tarea Dioxus y se cancela al
+desmontar. `flow-page-transport.ts` sólo transporta R3, selección para recuperación
+y los comandos existentes de asociaciones. No contiene timers ni un segundo
+parser de R3. El host `EvidenceFlowPage.tsx` aporta el snapshot base preparado
+por la aplicación y monta la página; su selección normal ya no es estado React.
+
+`EvidenceFlowFallback.tsx` conserva el camino anterior sólo ante fallo del
+módulo. `useNucleusSnapshot` sigue siendo necesario para ese respaldo y otras
+pantallas. No debe borrarse por haber migrado el sondeo de una sola página.
+Después de cada migración, el cierre incluye abrir y comprobar la aplicación
+nativa además de compilar y ejecutar las pruebas de navegador.
 
 ## Controlador de asociaciones: estado vigente (2026-11-15)
 
@@ -34,7 +55,7 @@ El backend sigue comprobando evidencia, revisión durable y confirmación.
 si falla el módulo. Sus tres adaptadores permiten recuperar sus vistas sin
 perder el borrador del respaldo. Reintentar esas vistas no sustituye su sesión
 por una nueva ni autoriza escrituras. React sigue siendo necesario para ese
-camino de recuperación y para el contenedor/sondeo de la pantalla.
+camino de recuperación y para la aplicación que monta la pantalla.
 
 Los incrementos siguientes describen las piezas reutilizadas; el controlador
 normal que antes estaba en React queda sustituido por el modelo Rust anterior.
@@ -49,7 +70,7 @@ controlador Rust. El adaptador independiente sigue disponible en el respaldo.
 El backend sigue validando revisión, fuentes, confirmación y bloqueos.
 
 El montaje duplicado de Estado y Flujo se sustituyó por `browser_runtime.rs`.
-Las seis vistas reutilizan ese código, con registros de instancias independientes.
+Las siete vistas reutilizan ese código, con registros de instancias independientes.
 El mismo WASM conserva sus comprobaciones de fuentes y artefactos.
 
 ## Incremento del formulario de fuentes
@@ -86,8 +107,8 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 
 ## Verificación y límites
 
-- Compilación TypeScript/Vite, 19 pruebas del módulo Rust y Clippy para WASM.
-- 883 pruebas frontend aprobadas (dos omitidas), 15 Obsidian, 20 respaldos y dos
+- Compilación TypeScript/Vite, 25 pruebas del módulo Rust y Clippy para WASM.
+- 887 pruebas frontend aprobadas (dos omitidas), 15 Obsidian, 20 respaldos y dos
   privacidad. Incluyen transporte cerrado, escritura única, errores y desmontaje.
 - Pruebas de frontera que rechazan solicitudes con confirmación, revisión elegida,
   IDs ausentes y acciones atrasadas cuando cambian los bloqueos.
@@ -112,14 +133,25 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 - El ensayo del controlador exige el panel completo en Dioxus, sale durante una
   revisión y vuelve: la respuesta anterior no crea una revisión ni guarda en la
   sesión nueva. Bloquear WASM activa por separado el controlador React anterior.
+- El ensayo de la página mantiene una lectura R3 suspendida durante dos intervalos:
+  no hay solapamiento. Comprueba señal derivada, auditoría degradada, rechazo de
+  datos inválidos, recuperación y cancelación del sondeo al navegar.
+- La aceptación Tauri/WebView2 abre una ventana real, verifica Conversación y
+  navegación Estado/Flujo, inspector, R3 del backend y confirmación/cancelación
+  de relaciones sintéticas. La relación guardada sobrevive a recargar la ventana
+  y las fuentes no cambian. Detectó el prefijo nativo `sha256:`, corregido en
+  modelo, transporte y fixtures con regresión. Ver el
+  [informe de la página](../testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
-Estas pruebas no sustituyen la aceptación de la aplicación nativa con datos reales.
-No se utilizaron recuerdos personales. El ensayo opcional está documentado en la
+La prueba nativa usa datos sintéticos y no certifica voz, proveedores ni datos
+personales. No se utilizaron recuerdos personales. Los ensayos están documentados en la
 [guía del módulo](../../crates/state-controls/README.md).
 
 ## Código que todavía tiene uso
 
 - `CognitiveFlow.tsx` y los componentes de encabezado React presentan el respaldo.
+- `EvidenceFlowFallback.tsx` y `CognitiveFlowDioxus.tsx` conservan el camino anterior.
+- `useNucleusSnapshot` permanece para otras pantallas y para ese respaldo.
 - `MemoryAssociations.tsx` mantiene montaje, transporte y selección del respaldo.
 - `MemoryAssociationsFallback.tsx` mantiene la sesión anterior sólo ante fallo.
 - `SavedRelationsFallback` mantiene la lista durante carga, fallo y reintento.

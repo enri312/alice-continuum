@@ -3,10 +3,16 @@ mod activity_ui;
 pub mod associations_model;
 #[cfg(target_arch = "wasm32")]
 mod associations_ui;
+#[cfg(target_arch = "wasm32")]
+mod browser_timer;
 pub mod confirmation_model;
 #[cfg(target_arch = "wasm32")]
 mod confirmation_ui;
+pub mod core_activity_model;
 pub mod flow_model;
+pub mod flow_page_model;
+#[cfg(target_arch = "wasm32")]
+mod flow_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;
 pub mod model;
@@ -76,4 +82,13 @@ mountable_view!(
     mount_memory_associations,
     update_memory_associations,
     unmount_memory_associations
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    flow_page_browser,
+    crate::flow_page_model::Payload,
+    crate::flow_page_ui,
+    mount_flow_page,
+    update_flow_page,
+    unmount_flow_page
 );
