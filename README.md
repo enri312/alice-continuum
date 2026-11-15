@@ -436,6 +436,11 @@ la navegación, el arranque y las vistas de recuperación. Los hosts actuales so
 temporales; el [inventario de migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 enumera los bloques pendientes y los criterios de cierre.
 
+Como etapa posterior se documentó un [reparto parcial de Node.js hacia Python](docs/architecture/REPARTO_NODE_PYTHON.md):
+probar primero el formateo de notas Obsidian en un ensayo sin escritura y después
+revisar los análisis e informes de evaluación. Es una propuesta; la ejecución y
+los respaldos actuales siguen funcionando con su implementación existente.
+
 La línea temporal de Actividad pasa a Rust/Dioxus: ventana de 24 eventos,
 selección, posiciones, contadores, duración, inspector y leyenda. Se conserva el
 contenido y CSS, y se retira su implementación visual React anterior. El host

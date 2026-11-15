@@ -23,6 +23,15 @@ Dioxus aislada no cierra la migración de la aplicación. El
 [inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
 guían los siguientes incrementos.
 
+**Etapa posterior: reparto Node.js/Python.** Después de la migración a Dioxus se
+evaluará transferir tareas auxiliares concretas a Python, conservando Node donde
+lo requieran las herramientas. La primera candidata es el formateo de notas
+Obsidian con datos ficticios, sin escribir en la bóveda y comparando su salida
+con la actual. Seguirían los análisis e informes de evaluaciones vigentes.
+Respaldos, núcleo y permisos conservan su implementación. No se activará un
+adaptador hasta comprobar equivalencia y medir su coste de proceso y arranque.
+Ver [reparto propuesto y primer ensayo](docs/architecture/REPARTO_NODE_PYTHON.md).
+
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
 mediante la migración a Dioxus antes de retomar Ubuntu. El grafo y el inspector
 de Flujo cognitivo pasan a Rust/Dioxus con los mismos estilos y datos. Las
