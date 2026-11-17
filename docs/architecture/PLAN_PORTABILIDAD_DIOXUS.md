@@ -25,6 +25,11 @@ pantallas conservan su presentación. El cambio visual no sustituye su migració
 de lógica y componentes a Dioxus ni añade dependencias React.
 Ver [dirección y criterios de incorporación](DIRECCION_VISUAL_ALICE.md).
 
+El 17 de noviembre el propietario eligió los iconos de Alice como referencia
+para el diseño de conjunto. El Dashboard abre el programa y se implementa
+directamente en Dioxus. Las otras vistas se adaptarán por etapas, conservando
+el contenido y el funcionamiento de la asistente.
+
 El propietario informó que otras personas ya intentaron ejecutarla en Windows y
 Linux sin éxito. Aún no se conocen sus errores, versiones ni forma de descarga:
 los problemas siguientes son **causas posibles comprobadas en la configuración**,

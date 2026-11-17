@@ -1,7 +1,7 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-15**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-17**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
@@ -13,6 +13,16 @@ contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
 [plan de portabilidad y Dioxus](docs/architecture/PLAN_PORTABILIDAD_DIOXUS.md)
 para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
 siguen pendientes; el plan no da por resuelto R9 ni R10.
+
+**Dashboard de inicio en Dioxus (2026-11-17).** La colección de `Frontend/icons` define
+la dirección visual del proyecto. El Dashboard es su primera aplicación e incluye
+accesos a las herramientas de la asistente y un borrador compartido con
+Conversación. Estado del equipo consulta CPU, RAM, ocupación del disco de datos,
+tráfico de red, energía y tiempo encendido. El indicador circular representa
+la RAM en uso. Las demás pantallas conservan su contenido y sus rutas actuales.
+Rust/Dioxus controla la vista, las acciones y el borrador mientras está abierta.
+El contenedor existente conecta el estado compartido y los comandos Tauri.
+La aplicación del estilo a cada pantalla continuará por etapas.
 
 **Cierre de la migración:** el objetivo es dejar de usar React por completo,
 avanzando por componentes. Se incluyen las pantallas, el estado compartido de

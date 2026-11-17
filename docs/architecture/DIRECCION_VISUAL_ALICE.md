@@ -1,7 +1,24 @@
 # Dirección visual de Alice Continuum
 
-Fecha: 2026-11-15. Estado: **Propuesta 04 incorporada a Conversación; las demás
-pantallas conservan su diseño**.
+Actualización del 17 de noviembre de 2026. Los iconos de `Frontend/icons`
+son la referencia visual acordada para Alice. La primera pantalla de esta
+etapa es el Dashboard, con marcos de consola, planos oscuros, acentos cian y
+los SVG del proyecto. La adopción se hace pantalla por pantalla para preservar
+las rutas, los datos y las funciones de la asistente.
+
+## Dashboard
+
+El inicio sitúa las solicitudes y las herramientas de Alice junto al panel de
+estado del equipo. Conversación sigue siendo el canal de texto y voz. El
+borrador que se prepara en el Dashboard pasa a la revisión habitual.
+La telemetría es local y de sólo lectura. Usa recursos del sistema operativo
+y se consulta mientras el Dashboard está visible. El anillo presenta
+ocupación de RAM con una unidad y una fuente identificables.
+La pantalla se renderiza con Dioxus. El Rust de la vista formatea las lecturas,
+gestiona el formulario y emite las acciones de navegación. `DashboardHost.tsx`
+es el puente con el contenedor actual y el comando Tauri de telemetría.
+
+## Propuesta 04 en Conversación
 
 El propietario eligió su archivo «Alice Continuum · Propuesta 04 — Mejora del
 diseño actual.html» como referencia. La dirección conserva la identidad oscura,

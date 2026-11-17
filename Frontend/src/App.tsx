@@ -9,6 +9,7 @@ import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { Conversacion } from "./pages/conversation/ConversationPage";
+import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
 import { DEFAULT_CONVERSATION_BEHAVIOR, supportsConversationBehavior, updateConversationBehavior } from "./core/conversation/behavior-settings";
 import { Volumen } from "./pages/cognitive/NeuralVolumePage";
@@ -97,6 +98,7 @@ const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
 
 const screenTechnicalTitles: Record<Screen, string> = {
+  dashboard: "DASHBOARD",
   identificacion: "CONVERSATION",
   nucleo: "COGNITIVE VOLUME",
   flujo: "EVIDENCE FLOW",
@@ -155,8 +157,8 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(() => {
     const requested = new URLSearchParams(window.location.search).get("screen");
     const knownScreens = Object.values(workspaceScreens).flat();
-    if (knownScreens.includes(requested as Screen)) return requested as Screen;
-    return avatarDiagnostic ? "avatar" : "identificacion";
+    if (requested === "dashboard" || knownScreens.includes(requested as Screen)) return requested as Screen;
+    return avatarDiagnostic ? "avatar" : "dashboard";
   });
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
@@ -622,12 +624,21 @@ export function App() {
 
   const workspace = workspaceForScreen(screen);
 
+  if (screen === "dashboard") return <DashboardHost
+    desktopApp={desktopApp}
+    draft={conversationDraft}
+    onDraftChange={setConversationDraft}
+    onNavigate={setScreen}
+  />;
+
   return <main className={`shell ${screen === "identificacion" ? "is-conversation" : screen === "nucleo" ? "is-volume" : ""}`}>
     <header className="hero">
       <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA</p></div>
       <h1><span>Una presencia digital,</span> <em>bajo tu control.</em></h1>
       <span className="privacy-badge"><i />Local-first</span>
     </header>
+
+    <button type="button" className="dashboard-entry" onClick={() => setScreen("dashboard")}>← Dashboard</button>
 
     <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
       <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("identificacion")}>

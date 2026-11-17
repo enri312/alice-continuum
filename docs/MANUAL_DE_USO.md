@@ -37,8 +37,8 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 2. Hacé doble clic en **Iniciar Alice Continuum.cmd**.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
-5. Entrá en **Configuración** para comprobar el proveedor de conversación.
-6. Volvé a **Conversación** para conversar.
+5. Usá el **Dashboard** para preparar una solicitud o abrir una herramienta.
+6. Entrá en **Configuración** si necesitás revisar el proveedor de conversación.
 
 Para revisar el entorno sin abrir la aplicación:
 
@@ -51,8 +51,19 @@ el puerto local `5173` e impide duplicados del mismo proyecto.
 
 ## 2. Cómo está organizada Alice
 
-La interfaz se divide en tres núcleos. Pensalos como tres áreas con responsabilidades
-diferentes:
+El **Dashboard** es la pantalla de inicio. Desde **¿En qué te ayudo?** podés
+escribir una solicitud y llevarla a Conversación como borrador para revisarla.
+Las tarjetas abren Conversación, Planificador, Memoria y Capacidades y permisos.
+Usá **← Dashboard** desde cualquier pantalla para volver.
+
+**Estado del equipo** muestra CPU, RAM, espacio ocupado en el volumen donde se
+guardan los datos de Alice, tráfico recibido y enviado, energía y tiempo
+encendido. El anillo muestra uso de RAM. CPU y red tardan unas muestras en
+aparecer. Las lecturas se actualizan cada cinco segundos con el panel visible.
+Un guion indica que la métrica aún no está disponible. La lectura de energía
+está implementada en Windows.
+
+Los tres núcleos reúnen el resto de las herramientas de la asistente.
 
 | Núcleo | Para qué sirve | Qué no hace por sí solo |
 |---|---|---|

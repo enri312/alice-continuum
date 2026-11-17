@@ -12,6 +12,9 @@ pub mod confirmation_model;
 #[cfg(target_arch = "wasm32")]
 mod confirmation_ui;
 pub mod core_activity_model;
+pub mod dashboard_model;
+#[cfg(target_arch = "wasm32")]
+mod dashboard_ui;
 pub mod flow_model;
 pub mod flow_page_model;
 #[cfg(target_arch = "wasm32")]
@@ -107,4 +110,13 @@ mountable_view!(
     mount_activity_page,
     update_activity_page,
     unmount_activity_page
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    dashboard_browser,
+    crate::dashboard_model::Payload,
+    crate::dashboard_ui,
+    mount_dashboard,
+    update_dashboard,
+    unmount_dashboard
 );

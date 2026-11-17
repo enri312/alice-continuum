@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const url = new URL(process.env.ALICE_PREVIEW_URL ?? 'http://127.0.0.1:4173/');
+url.searchParams.delete('screen');
 assert.ok(url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname), 'Preview local');
 assert.ok((await fetch(url)).ok, 'Compila y sirve el proyecto antes de esta prueba');
 const artifactRoot = path.join(root, 'runtime/artifacts/conversation-design');
@@ -92,6 +93,7 @@ try {
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
       __calls.push({cmd,args:structuredClone(args)});
       if(cmd==='cloud_status')return {providers:[{id:'ollama',label:'Motor de prueba local',configured:true,defaultModel:'fixture-model',protocol:'synthetic',retentionMode:'no service'}]};
+      if(cmd==='system_overview')return {cpuPercent:34,memory:{usedBytes:6*1024**3,totalBytes:16*1024**3},disk:{usedBytes:180*1024**3,totalBytes:500*1024**3},network:{receivedBytesPerSecond:150000,transmittedBytesPerSecond:12000},power:{pluggedIn:true,batteryPercent:76},uptimeSeconds:273600};
       if(cmd==='load_memory')return {existed:false,storagePath:'synthetic-only/records.json',sessions:[]};
       if(cmd==='plugin:event|listen')return 1;
       if(cmd==='plugin:event|unlisten')return null;
@@ -103,7 +105,32 @@ try {
     }};
   `});
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
-  await send('Page.navigate',{url:url.href}); await ready(); await evaluate('document.fonts.ready');
+  await send('Page.navigate',{url:url.href});
+  await until(()=>evaluate('document.querySelector(".dashboard-reading-status")?.textContent==="Lecturas locales"'), 'Dashboard de inicio con métricas de prueba');
+  assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'),'dioxus');
+  await evaluate('document.fonts.ready');
+  assert.equal(await evaluate('document.querySelector(".dashboard-primary").disabled'),true);
+  assert.equal(await evaluate('document.querySelector(".dashboard-gauge-value strong").textContent'),'38 %');
+  assert.equal(await evaluate('document.querySelectorAll(".dashboard-shortcut img").length'),4);
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="send_cloud_message").length'),0);
+  await screenshot('dashboard-desktop.png');
+  for (const width of [390,320]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
+    await until(()=>evaluate(`innerWidth===${width}`), 'Dashboard redimensionado a '+width+' px');
+    assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+1'), 'Dashboard sin desborde a '+width+' px');
+  }
+  await screenshot('dashboard-narrow.png');
+  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+  await evaluate('document.querySelector("#dashboard-request").focus()');
+  await send('Input.insertText',{text:'Solicitud de prueba desde el Dashboard.'});
+  await click('.dashboard-primary'); await ready();
+  assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Solicitud de prueba desde el Dashboard.');
+  assert.equal(await evaluate('document.querySelectorAll(".send-review").length'),0);
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="send_cloud_message").length'),0,'Abrir Conversación conserva el borrador sin enviarlo');
+  await click('.dashboard-entry');
+  await until(()=>evaluate('document.querySelector("#dashboard-request")?.value==="Solicitud de prueba desde el Dashboard."'),'Regreso al Dashboard conserva el borrador');
+  const conversationUrl = new URL(url); conversationUrl.searchParams.set('screen','identificacion');
+  await send('Page.navigate',{url:conversationUrl.href}); await ready(); await evaluate('document.fonts.ready');
   await until(()=>evaluate('document.querySelector(".conversation-status").textContent.includes("Motor de prueba local")'),'estado real del adaptador simulado');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),7);
   assert.equal(await evaluate('document.querySelector(".icon-identification svg").dataset.visualStyle'),'proposal04-ai-glass');

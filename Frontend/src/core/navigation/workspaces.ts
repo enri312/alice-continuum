@@ -1,6 +1,7 @@
 export type Workspace = "cognitive" | "body" | "governance";
 
 export type Screen =
+  | "dashboard"
   | "nucleo"
   | "flujo"
   | "estado"

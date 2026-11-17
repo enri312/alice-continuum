@@ -10,7 +10,7 @@
 [![Vite 8.3.5](https://img.shields.io/badge/Vite-8.3.5-646CFF?logo=vite&logoColor=white)](package-lock.json)
 [![Vitest 4.1.12](https://img.shields.io/badge/Vitest-4.1.12-6E9F18?logo=vitest&logoColor=white)](package-lock.json)
 
-**Asistente personal de escritorio con conversación, memoria local y percepción por turnos.**
+**Asistente personal de escritorio para consultar, recordar y realizar acciones autorizadas.**
 El currículo de autoestudio incluye pensamiento crítico y ética, además de las
 materias anteriores, con fuentes y ejercicios.
 Alice es la identidad conversacional; Alice Continuum es la plataforma que la sostiene.
@@ -19,6 +19,16 @@ Alice es la identidad conversacional; Alice Continuum es la plataforma que la so
 La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
+
+**Dashboard de inicio en Dioxus (17 de noviembre de 2026).** Alice abre con un espacio para
+preparar una solicitud y accesos a Conversación, Planificador, Memoria, Permisos,
+Actividad y Configuración. El panel **Estado del equipo** muestra lecturas locales
+de CPU, RAM, disco, red, energía y tiempo encendido. El indicador circular muestra
+uso de RAM. La estética del Dashboard toma como base los iconos propios de Alice.
+Cada pantalla conserva su contenido y sigue accesible desde sus núcleos.
+La interfaz y su formulario se renderizan en Dioxus. El contenedor compartido
+conecta la navegación, el borrador y las lecturas del backend Rust.
+[Uso del Dashboard](docs/MANUAL_DE_USO.md#2-cómo-está-organizada-alice).
 
 **Diseño de Conversación (15 de noviembre de 2026):** se incorporó la Propuesta 04
 elegida por el propietario: superficies translúcidas, bordes redondeados y acentos
@@ -450,8 +460,8 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
-La [dirección visual vigente](docs/architecture/DIRECCION_VISUAL_ALICE.md) es la
-Propuesta 04 proporcionada por el propietario, aplicada primero a Conversación.
+La [dirección visual vigente](docs/architecture/DIRECCION_VISUAL_ALICE.md) parte
+del estilo de los iconos de Alice y comienza con el Dashboard en Dioxus.
 Conserva los iconos originales, identidad, contenido y controles. El resto se
 adaptará por pantalla con comprobaciones de sus funciones; la escena cerebral
 sigue intacta. Observatorio, Cuaderno y la primera evolución CSS quedan como

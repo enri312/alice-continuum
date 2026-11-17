@@ -45,6 +45,7 @@ mod media_windows;
 mod runtime_paths;
 mod skills;
 mod spotify_playlists;
+mod system_overview;
 mod tasks;
 #[cfg(test)]
 mod tauri_acl_tests;
@@ -173,6 +174,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            system_overview::system_overview,
             conversation_vision::start_vision_session,
             conversation_vision::stop_vision_session,
             conversation_vision::preview_vision_desktop,

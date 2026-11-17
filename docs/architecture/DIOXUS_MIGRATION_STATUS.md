@@ -12,6 +12,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
+| Dashboard | Pantalla de inicio, formulario, accesos y panel de estado del equipo renderizados en Dioxus. | Host para montaje, errores de carga, lectura IPC y conexión a la navegación y al borrador compartido de `App.tsx`. |
 | Actividad | Página, encabezado, pestañas, consola inversa, búsqueda y filtro por módulo, estado y línea temporal en un solo montaje. | Host temporal de montaje/reintento y vaciado; el buffer y sus productores siguen en `App.tsx`. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |

@@ -50,7 +50,7 @@ function processes() {
   const parsed = JSON.parse(result.stdout); return Array.isArray(parsed) ? parsed : [parsed];
 }
 assert.equal(processes().length, 0, 'Cierra Alice antes de la prueba para evitar dos instancias del mismo ejecutable.');
-preview.searchParams.set('screen', 'flujo');
+preview.searchParams.delete('screen');
 const config = path.join(artifacts, 'tauri.json');
 await fs.writeFile(config, JSON.stringify({ build: { beforeDevCommand: '', devUrl: preview.href },
   app: { windows: [{ label: 'main', title: 'Alice Continuum — PRUEBA AISLADA DIOXUS', width: 1000, height: 800, resizable: true }] } }));
@@ -100,6 +100,19 @@ try {
   };
   const flowReady = () => until(() => evaluate('document.querySelectorAll(\'[data-flow-page-renderer="dioxus"] .flow-node\').length===11'), 'Flujo nativo Dioxus');
   const clickText = text => evaluate(`Array.from(document.querySelectorAll('.memory-associations button')).find(button=>button.textContent===${JSON.stringify(text)}).click()`);
+  await until(() => evaluate('document.querySelector(".dashboard-reading-status")?.textContent==="Lecturas locales"'), 'Muestras reales de CPU y red en el Dashboard de inicio');
+  assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'), 'dioxus');
+  const nativeReading = await evaluate('__TAURI_INTERNALS__.invoke("system_overview")');
+  assert.ok(nativeReading.memory.totalBytes > 0 && nativeReading.disk.totalBytes > 0);
+  assert.ok(Number.isFinite(nativeReading.cpuPercent) && nativeReading.cpuPercent >= 0 && nativeReading.cpuPercent <= 100);
+  assert.ok(nativeReading.network.receivedBytesPerSecond >= 0 && nativeReading.network.transmittedBytesPerSecond >= 0);
+  assert.equal(await evaluate('document.querySelectorAll(".dashboard-metric dd").length'), 6);
+  await screenshot('dashboard-native.png');
+  await evaluate('document.querySelector("#dashboard-request").focus()');
+  await send('Input.insertText', { text: 'Solicitud de prueba nativa desde Dashboard.' });
+  await evaluate('document.querySelector(".dashboard-primary").click()');
+  await until(() => evaluate('document.querySelector("#alice-message")?.value==="Solicitud de prueba nativa desde Dashboard."'), 'Dashboard conserva el borrador para revisión');
+  await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
   await flowReady();
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Conversación con Alice").click()');
   await until(() => evaluate('Boolean(document.querySelector(".conversation-page #alice-message"))'), 'Conversación nativa abre con su entrada');
@@ -109,7 +122,7 @@ try {
   assert.equal(await evaluate('document.querySelectorAll(".screen-tabs button").length'), 7, 'Sin controles de navegación añadidos');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading"),"::before").content'), 'none', 'Sin aro decorativo');
   assert.equal(await evaluate('document.querySelectorAll(".conversation-secondary-panel[open]").length'), 0, 'Herramientas secundarias plegadas');
-  await evaluate('document.querySelector("#alice-message").focus()');
+  await evaluate('document.querySelector("#alice-message").select()');
   await send('Input.insertText', { text: 'Prueba nativa de diseño sin enviar a un modelo.' });
   await evaluate('document.querySelector(".composer-footer button").click()');
   await until(() => evaluate('Boolean(document.querySelector(".send-review"))'), 'Revisión nativa del mensaje');
@@ -194,13 +207,18 @@ try {
   await clickText('Cancelar');
   assert.equal(await evaluate('document.querySelector(".memory-associations article button").textContent'), 'Retirar relación', 'Cancelar no retira');
   await screenshot('flow-native.png');
-  await send('Page.reload'); await flowReady();
+  await send('Page.reload');
+  await until(() => evaluate('Boolean(document.querySelector(".dashboard-shortcut"))'), 'Dashboard tras recarga');
+  await evaluate('document.querySelector(".dashboard-shortcut").click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'button[aria-label="Flujo cognitivo"]\'))'), 'Flujo disponible tras abrir Conversación');
+  await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
+  await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, dashboardDraftPreserved: true, nodes: 11,
     r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
-  console.log(`Tauri nativo: ventana, Conversación, 11 nodos, R3, navegación, citas, confirmación, cancelación y persistencia tras recarga comprobados con datos aislados. Evidencia: ${artifacts}`);
+  console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try { const shot = await send('Page.captureScreenshot', { format: 'png' }); await fs.writeFile(path.join(artifacts, 'failure.png'), Buffer.from(shot.data, 'base64')); } catch { /* Keep original error. */ }
