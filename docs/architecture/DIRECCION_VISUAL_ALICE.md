@@ -35,14 +35,13 @@ es el puente con el contenedor actual y el comando Tauri de telemetría.
   anchos pequeños y respeto de `prefers-reduced-motion`.
 
 La marca, el lema y el indicador Local-first permanecen en una línea compacta.
-Los tres sistemas y todos los destinos siguen accesibles. No se renombraron
-funciones ni se reemplazaron iconos por los glifos genéricos del HTML.
-Después de aprobar la alineación, el propietario pidió adaptar el icono de
-Conversación al estilo de IA con más detalle. Su composición conserva mensajes,
-micrófono, filtro, onda vocal y lente opcional, con capas de cristal y circuitos
-violeta/azul/cian. Es un SVG estático con identificadores propios. Los otros 21
-recursos, incluido el emblema de Alice, conservan sus contenidos originales.
-[Fuente reproducible y validación](../testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
+Los 21 iconos funcionales se dibujan como instrumentos de metal con óptica,
+cableado y piezas específicas. Conversación combina dos turnos con una señal
+de audio, el Volumen muestra hemisferios conectados, Memoria un archivo y
+Auditoría una lente sobre un registro. El emblema `app-alice.svg` conserva su
+trazado. Las escenas editables están en `scripts/icons/scenes/`. El comando
+`npm run icons:generate` reproduce la colección de `Frontend/icons/`.
+
 Tras la revisión del propietario se quitaron el aro decorativo y las dos flechas
 añadidas. El encabezado técnico vuelve al tratamiento compacto previo, sin
 repetirse visualmente sobre Conversación. No se añaden emblemas a los originales.

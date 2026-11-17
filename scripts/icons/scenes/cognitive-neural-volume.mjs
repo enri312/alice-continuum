@@ -1,19 +1,23 @@
-// Bilateral memory volume: observed growth, lifecycle rings and a folded guide.
-// A navigation illustration, never a live biological activity indicator.
-export function volumeObservatoryScene(a,b,{plinth,fastener,socket}) {
-  const colors=['#22d3ee','#a78bfa','#fbbf24','#f472b6','#34d399','#64748b'];
-  const nodes=[[49,63,0],[76,52,1],[43,91,3],[70,81,4],[54,119,0],[80,110,1],[112,51,2],[134,69,4],[108,85,1],[137,101,0],[117,122,4],[94,132,5]];
-  return `${plinth(a,b,160)}
-  <g data-detail="volume-orientation-cradle" filter="url(#shadow)"><path d="M29 118Q17 70 47 43M147 42q24 25 10 75M34 126q49 31 110 0" fill="none" stroke="url(#metal)" stroke-width="4"/>${fastener(29,115,a,1.2)}${fastener(154,115,b,1.2)}<path d="M34 128q50 25 108 0" fill="none" stroke="${a}" stroke-width=".7"/></g>
-  <g data-detail="organic-cortex-projection" data-representation="illustrative-not-live" fill="url(#glass)" stroke-width="1.5" stroke-linejoin="round"><path d="M86 36C74 30 60 36 58 46C43 40 32 53 36 65C23 73 27 89 33 94C25 109 34 122 43 123C45 139 64 143 74 135C85 146 94 136 91 123L91 52Q93 40 86 36Z" stroke="${a}"/><path d="M102 36C116 30 128 37 129 47C144 43 156 55 150 70C161 78 157 92 150 97C159 111 147 123 139 123C137 139 121 143 111 136C100 145 94 135 97 122L97 52Q95 40 102 36Z" stroke="${b}"/></g>
-  <g data-detail="cortical-folds" fill="none" stroke="#8babc0" stroke-width=".8" opacity=".6" stroke-linecap="round"><path d="M58 46q-5 13 7 20M36 65q14-5 18 6M33 94q13-10 24 0M43 123q-2-18 12-20M74 135q13-10 7-22M129 47q7 12-5 22M150 70q-16-6-20 6M150 97q-12-8-22 1M139 123q0-17-13-19M111 136q-12-11-6-23"/></g>
-  <g data-detail="evidenced-memory-links" stroke="${b}" stroke-width=".9" opacity=".75" fill="none"><path d="M49 63Q42 78 43 91T54 119M76 52Q86 73 70 81T80 110M112 51Q138 50 134 69T108 85Q105 109 117 122M137 101Q133 125 117 122T94 132"/></g>
-  <g data-detail="persistent-memory-anchors">${nodes.map(([x,y,c],i)=>`<g data-node-kind="memory" data-anchor-index="${i}"><path data-detail="branching-dendrites" d="M${x-6} ${y-5}q4 2 6 5m-4-7 4 7m7-3-7 3m6 5-6-5m-3 7 3-7m-8 1 8-1" fill="none" stroke="${colors[c]}" stroke-width=".85"/><path d="M${x-3} ${y-1}q0-4 4-4t4 5q-1 5-5 4t-3-5Z" fill="${colors[c]}" stroke="#dcecf7" stroke-width=".4"/><circle cx="${x}" cy="${y}" r=".8" fill="#fff"/></g>`).join('')}</g>
-  <g data-detail="memory-lifecycle-rings" fill="none"><circle data-state="review" cx="76" cy="52" r="8" stroke="#fbbf24" stroke-width="1.3" stroke-dasharray="2 2"/><circle data-state="retrieved" cx="54" cy="119" r="8" stroke="#f8fafc" stroke-width="1.2"/></g>
-  <g data-detail="observed-growth-halo" data-representation="illustrative-not-live" fill="none" stroke="${a}"><circle cx="137" cy="101" r="8" stroke-width="1.2"/><path d="M127 90a15 15 0 0 1 22 20" stroke-width=".8" opacity=".6"/><path d="m145 82 0 6m-3-3h6" stroke-width="1.6"/></g>
-  <g data-detail="r3-temporal-pulse-cluster" data-persistence="transient">${[[39,125],[139,124],[95,149]].map(([x,y])=>`<path data-node-kind="process" d="m${x} ${y-2} 2 2-2 2-2-2Z" fill="${a}" stroke="#cbd5e1" stroke-width=".4"/>`).join('')}</g>
-  <g data-detail="volume-provenance-inspector"><path d="M151 65h18l9 9v58l-8 8h-19l-5-5V70Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".65"/><circle cx="161" cy="81" r="4" fill="none" stroke="${a}" stroke-width=".6"/>${['source','version','lifecycle','accessibility'].map((field,i)=>`<g data-field="${field}"><circle cx="154" cy="${98+i*8}" r=".8" fill="${i%2?b:a}"/><path d="M158 ${96+i*8}h12m-12 3h8" stroke="#94a3b8" stroke-width=".4"/></g>`).join('')}${fastener(173,73,b,.6)}${fastener(173,131,a,.6)}</g>
-  <g data-detail="folded-colour-guide"><path d="M35 142h13l4 4v13H35Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".7"/><path d="M48 142v4h4M39 149h8m-8 4h5" fill="none" stroke="${a}" stroke-width=".9"/></g>
-  <g data-detail="volume-navigation-deck"><path d="M49 150h82l5 5-5 6H49l-5-6Z" fill="url(#dark-metal)" stroke="#64748b" stroke-width=".6"/><path d="M60 152a3 3 0 1 0 3 3m0-3v3h-3M73 155h7m-3.5-3v6M95 155h5m-2.5-2v4m15-3 4-3 4 3v4h-8Z" fill="none" stroke="${a}" stroke-width=".6"/></g>
-  <g data-detail="neural-volume-interface">${socket(22,112,a,b,4.2)}<path d="M28 112h2" stroke="#64748b" stroke-width=".5"/></g>`;
+import { plate, line, pin, bolt, coupling } from "../shared/instrument.mjs";
+
+export default function neuralVolume(accent, secondary) {
+  return `<g data-component="tomography-cradle">
+    ${plate("M12 52 15 48 20 52 25 70 42 79 62 79 78 68 84 48 90 51 85 73 68 87 40 90 19 76Z","metal")}
+    ${line("M18 57l6 16 17 11 23-1 17-13",accent,1.5)}
+    ${coupling(50,86,-5,secondary)}${bolt(17,55)}${bolt(85,55)}
+  </g>
+  <g data-part="cerebral-hemispheres">
+    ${plate("M46 17C43 9 32 10 28 18 18 17 12 25 14 33 5 37 7 49 13 54 9 64 17 71 25 72 27 81 39 84 46 76Z","glass",accent)}
+    ${plate("M53 16C59 9 69 11 72 19 82 18 88 25 86 34 94 40 91 50 87 55 91 65 80 73 75 73 71 83 60 84 53 75Z","dark-metal",secondary)}
+    ${line("M18 34Q27 34 25 26M15 52Q22 46 29 51M28 72Q26 62 35 60M45 26Q36 23 35 32M16 60Q24 57 25 61",accent,1.45)}
+    ${line("M56 26Q65 24 67 31M72 21Q70 34 79 34M84 52Q75 49 76 43M72 71Q78 64 70 59M55 67Q62 66 64 59",secondary,1.6)}
+    ${line("M22 40L35 33 41 46 31 56 39 68M41 46L57 44 67 33 79 40M57 44L67 56 79 56M67 56L61 70", "#c5f2ff",1.1)}
+    ${[[22,40],[35,33],[41,46],[31,56],[39,68],[57,44],[67,33],[79,40],[67,56],[79,56],[61,70]].map(([x,y])=>pin(x,y,1.65,x<50?accent:secondary)).join("")}
+    ${line("M47 80Q50 85 48 90L53 88 57 79","#7d9cb7",2)}
+  <g data-component="cortical-fibers">
+    ${line("M19 27q8 4 13-3t10 1m-22 19q6-8 12-4t7-4M17 57q6-6 12-3m1 11q-3-7 5-11M33 73q4-12 9-13M57 18q8 1 8 8m7 9q7-4 10 0m-24 6q9-5 15 1m-5 9q10-1 13 6m-16 6q4 7 11 5", "#a3bcdc",.85)}
+    ${line("M24 49l-7-5m9-6-2-8M37 46l-5-3m6 5-3 5M64 54l-6-3m8 6-3 5M78 54l7-6",secondary,1)}
+    ${[[18,43],[24,30],[32,43],[58,51],[63,62],[85,48]].map(([x,y])=>pin(x,y,1,x<50?accent:secondary)).join("")}
+  </g>
+  </g>`;
 }

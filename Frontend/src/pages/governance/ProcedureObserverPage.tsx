@@ -1,3 +1,4 @@
+import { riskLabel } from "../../core/governance/display-labels";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { parseCapabilityRegistrySnapshot, type CapabilityRegistrySnapshot } from "../../core/governance/capabilities";
@@ -196,7 +197,7 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
 
   return <section className="skills-page procedures-page" aria-labelledby="procedures-title">
     <header className="skills-heading procedures-heading">
-      <div><p className="eyebrow">[R5.5] AUDITED REPETITION · EVIDENCE CLOSEOUT</p><h2 id="procedures-title">Procedimientos observados</h2><p>Clasifica evidencia vigente, obsoleta, descartada, convertida o bloqueada; ninguna conversión aprueba o ejecuta.</p></div>
+      <div><p className="eyebrow">R5 · PATRONES OBSERVADOS</p><h2 id="procedures-title">Procedimientos observados</h2><p>Revisá las repeticiones registradas en Auditoría. Podés descartar un patrón o conservarlo y convertirlo en un borrador para el Taller de habilidades.</p></div>
       <span className="skills-safety"><i />EJECUCIÓN 0 · BORRADORES R5→R4 {conversions?.conversions.length ?? 0}</span>
     </header>
 
@@ -215,14 +216,14 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
         <section>
           {pendingPatterns.length ? pendingPatterns.map((pattern) => <button type="button" key={pattern.fingerprint} className={selectedFingerprint === pattern.fingerprint ? "selected" : ""} onClick={() => selectPattern(pattern.fingerprint)}>
             <strong>{pattern.steps.map((step) => step.operation).join(" → ")}</strong>
-            <small>{pattern.occurrences.length} repeticiones · riesgo {pattern.declaredRisk} · {shortDigest(pattern.fingerprint)}</small>
+            <small>{pattern.occurrences.length} repeticiones · riesgo {riskLabel[pattern.declaredRisk]} · {shortDigest(pattern.fingerprint)}</small>
           </button>) : <p>Sin patrones nuevos en la evidencia R3 vigente. No se crea información ficticia para llenar esta lista.</p>}
         </section>
         <header><span>[02] DECISIONES INMUTABLES</span><strong>{store?.decisions.length ?? 0} REGISTROS</strong></header>
         <section>
           {store?.decisions.length ? store.decisions.map((decision) => <article className={`procedure-decision evidence-${decision.evidenceState}`} key={decision.decisionId}>
             <strong>{decision.action === "retain" ? decision.title : "Patrón descartado"}</strong>
-            <small>{decision.action.toUpperCase()} · {shortDigest(decision.fingerprint)}</small>
+            <small>{decision.action === "retain" ? "CONSERVADO" : "DESCARTADO"} · {shortDigest(decision.fingerprint)}</small>
             {decision.candidateSha256 && <small>CANDIDATO {shortDigest(decision.candidateSha256)}</small>}
             <em>{evidenceStateLabels[decision.evidenceState]}</em>
             {decision.action === "retain" && decision.evidenceState === "current" && !convertedFingerprints.has(decision.fingerprint) && <button type="button" onClick={() => selectConversion(decision.fingerprint)}>Preparar borrador R4</button>}
@@ -234,12 +235,12 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
         {conversionDecision ? <>
           <header className="skills-editor-heading"><div><span>{conversionDecision.suggestedSkillId}</span><strong>PUENTE R5→R4 · {conversionDecision.stepCount} PASOS · {conversionDecision.occurrenceCount} OCURRENCIAS</strong></div><em>SÓLO NUEVO BORRADOR</em></header>
           <div className="skills-contract">
-            <section><span>DECISIÓN R5</span><strong>{shortDigest(conversionDecision.fingerprint)}</strong><small>retain inmutable</small></section>
+            <section><span>DECISIÓN R5</span><strong>{shortDigest(conversionDecision.fingerprint)}</strong><small>decisión de conservación registrada</small></section>
             <section><span>CANDIDATO</span><strong>{shortDigest(conversionDecision.candidateSha256 ?? "")}</strong><small>SHA-256 verificado</small></section>
-            <section><span>RESULTADO</span><strong>DRAFT · V1</strong><small>sin aprobar · sin ejecutar</small></section>
+            <section><span>RESULTADO</span><strong>BORRADOR · V1</strong><small>sin aprobar · sin ejecutar</small></section>
           </div>
           <div className="skills-editor">
-            <label>SKILL ID NUEVO<input value={conversionSkillId} maxLength={128} onChange={(event) => setConversionSkillId(event.target.value)} /></label>
+            <label>IDENTIFICADOR DE LA NUEVA HABILIDAD<input value={conversionSkillId} maxLength={128} onChange={(event) => setConversionSkillId(event.target.value)} /></label>
             <label>TÍTULO CORREGIBLE<input value={conversionTitle} maxLength={120} onChange={(event) => setConversionTitle(event.target.value)} /></label>
             <label>DESCRIPCIÓN<textarea value={conversionDescription} maxLength={600} onChange={(event) => setConversionDescription(event.target.value)} /></label>
             <label>PROPÓSITO<textarea value={conversionPurpose} maxLength={600} onChange={(event) => setConversionPurpose(event.target.value)} /></label>
@@ -251,16 +252,16 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
             <div className="skills-lifecycle-actions"><button type="button" className="is-warning" disabled={!canConvert} onClick={convertToDraft}>Crear borrador R4<small>Conserva procedencia R5; ejecución y aprobación permanecen deshabilitadas.</small></button></div>
           </section>
         </> : !selected ? <div className="skills-empty"><span>R5</span><strong>{pendingPatterns.length ? "Seleccioná un patrón verificable" : store?.decisions.some((decision) => decision.action === "retain" && !convertedFingerprints.has(decision.fingerprint)) ? "Hay un candidato retenido listo para convertir" : "Todavía no hay un procedimiento para decidir"}</strong><p>La detección es pasiva: no inventa actividad. Un borrador convertido seguirá esperando revisión humana en el Taller.</p></div> : <>
-          <header className="skills-editor-heading"><div><span>{shortDigest(selected.fingerprint)}</span><strong>{selected.occurrences.length} OCURRENCIAS · {selected.steps.length} PASOS · RIESGO {selected.declaredRisk.toUpperCase()}</strong></div><em>EVIDENCIA R3 VIGENTE</em></header>
+          <header className="skills-editor-heading"><div><span>{shortDigest(selected.fingerprint)}</span><strong>{selected.occurrences.length} OCURRENCIAS · {selected.steps.length} PASOS · RIESGO {riskLabel[selected.declaredRisk]}</strong></div><em>EVIDENCIA R3 VIGENTE</em></header>
           <div className="procedure-steps">{selected.steps.map((step) => <article key={step.id}><span>{String(step.position).padStart(2, "0")}</span><div><strong>{step.operation}</strong><small>{step.capabilityId}</small></div></article>)}</div>
           <section className="procedure-evidence-summary" aria-label="Resumen de evidencia y diferencias">
-            <header><span>[EVIDENCE] {selected.occurrences.length} EJECUCIONES CORRELACIONADAS</span><strong>{selected.occurrences.length * selected.steps.length} EVENTOS R3</strong></header>
-            <div className="procedure-occurrences">{selected.occurrences.map((occurrence, index) => <article key={occurrence.operationId}><span>RUN {String(index + 1).padStart(2, "0")}</span><strong>{shortDigest(occurrence.operationId)}</strong><small>{occurrence.evidenceEventIds.length} evidencias · orden verificable</small></article>)}</div>
+            <header><span>[EVIDENCIA] {selected.occurrences.length} EJECUCIONES CORRELACIONADAS</span><strong>{selected.occurrences.length * selected.steps.length} EVENTOS R3</strong></header>
+            <div className="procedure-occurrences">{selected.occurrences.map((occurrence, index) => <article key={occurrence.operationId}><span>EJECUCIÓN {String(index + 1).padStart(2, "0")}</span><strong>{shortDigest(occurrence.operationId)}</strong><small>{occurrence.evidenceEventIds.length} evidencias · orden verificable</small></article>)}</div>
             <div className="procedure-variations">{selected.variations.length ? selected.variations.map((variation) => {
               const step = selected.steps.find((candidate) => candidate.id === variation.stepId);
               return <article key={`${variation.stepId}-${variation.dimension}`}><span>{step?.operation ?? variation.stepId}</span><strong>{variationDimensionLabels[variation.dimension]}</strong><small>{variation.distinctValues} valores distintos en {selected.occurrences.length} ejecuciones</small></article>;
             }) : <p>Sin diferencias de duración ni huella entre las ejecuciones observadas.</p>}</div>
-            <footer>Ventana {detection?.evidenceWindow} · mínimo {detection?.minimumOccurrences} repeticiones y {detection?.minimumSteps} pasos · persistencia automática OFF · ejecución OFF</footer>
+            <footer>Ventana {detection?.evidenceWindow} · mínimo {detection?.minimumOccurrences} repeticiones y {detection?.minimumSteps} pasos · persistencia automática y ejecución desactivadas</footer>
           </section>
           <div className="procedure-choice" role="group" aria-label="Decisión sobre el patrón">
             <button type="button" className={action === "retain" ? "selected" : ""} onClick={() => setAction("retain")}><strong>CONSERVAR CANDIDATO</strong><small>Guarda propuesta cerrada y su SHA-256; no la ejecuta.</small></button>
@@ -272,7 +273,7 @@ export function Procedimientos({ desktopApp }: { desktopApp: boolean }) {
             <label>ID SUGERIDO PARA UNA HABILIDAD FUTURA<input value={suggestedSkillId} maxLength={128} onChange={(event) => setSuggestedSkillId(event.target.value)} /></label>
           </div>}
           <section className="skills-governance procedure-confirmation">
-            <header><span>[GOV] CONFIRMACIÓN DEL PROPIETARIO</span><strong>DECISIÓN IRREVERSIBLE PARA ESTE FINGERPRINT</strong></header>
+            <header><span>CONFIRMACIÓN DEL PROPIETARIO</span><strong>DECISIÓN IRREVERSIBLE PARA ESTA HUELLA</strong></header>
             <label className="skills-confirm"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /><span>Confirmo que revisé el patrón, su riesgo y la acción elegida. Esto no habilita ejecución.</span></label>
             <label>MOTIVO (SE CONSERVA SÓLO SU SHA-256)<textarea value={reason} maxLength={600} placeholder="Mínimo 12 caracteres; el texto no queda almacenado." onChange={(event) => setReason(event.target.value)} /></label>
             <div className="skills-lifecycle-actions"><button type="button" className={action === "dismiss" ? "is-danger" : "is-warning"} disabled={!canSubmit} onClick={submitDecision}>Registrar {action === "retain" ? "candidato" : "descarte"}<small>Se vuelve a validar contra la evidencia R3 antes de escribir.</small></button></div>

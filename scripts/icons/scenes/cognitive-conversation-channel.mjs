@@ -1,74 +1,29 @@
-// The original conversation composition, adapted to Proposal 04's AI/glass finish.
-// This is a static illustration of capabilities, never a live device indicator.
-export function renderConversationChannelIcon({ title, semantic }) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="${title}" data-icon="identification" data-semantic="${semantic}" data-visual-style="proposal04-ai-glass" data-detail-scale="navigation-readable" data-motion="static" shape-rendering="geometricPrecision">
-  <title>${title}</title>
-  <desc>Mensajes, micrófono con filtrado local, respuesta de voz y visión opcional. Ilustración estática; no indica que los dispositivos estén activos.</desc>
-  <defs>
-    <linearGradient id="conversation-p04-rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c4b5fd"/><stop offset=".25" stop-color="#8b5cf6"/><stop offset=".6" stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
-    <linearGradient id="conversation-p04-frame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b427e" stop-opacity=".92"/><stop offset=".4" stop-color="#1c2039" stop-opacity=".96"/><stop offset="1" stop-color="#0d2935" stop-opacity=".94"/></linearGradient>
-    <linearGradient id="conversation-p04-face" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c4b5fd" stop-opacity=".16"/><stop offset=".42" stop-color="#111524" stop-opacity=".92"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".12"/></linearGradient>
-    <linearGradient id="conversation-p04-input" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3f4169"/><stop offset=".42" stop-color="#132538"/><stop offset="1" stop-color="#113845"/></linearGradient>
-    <linearGradient id="conversation-p04-reply" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#66518b"/><stop offset=".5" stop-color="#29243f"/><stop offset="1" stop-color="#203b56"/></linearGradient>
-    <linearGradient id="conversation-p04-microphone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfeff"/><stop offset=".2" stop-color="#67e8f9"/><stop offset=".55" stop-color="#248fa9"/><stop offset="1" stop-color="#2563eb"/></linearGradient>
-    <linearGradient id="conversation-p04-highlight" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f3ff" stop-opacity=".85"/><stop offset=".45" stop-color="#c4b5fd" stop-opacity=".26"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
-    <linearGradient id="conversation-p04-base" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#52466f"/><stop offset=".4" stop-color="#25263f"/><stop offset="1" stop-color="#111320"/></linearGradient>
-    <radialGradient id="conversation-p04-lens"><stop stop-color="#a5f3fc"/><stop offset=".2" stop-color="#38bdf8"/><stop offset=".55" stop-color="#3b3481"/><stop offset="1" stop-color="#111827"/></radialGradient>
-    <filter id="conversation-p04-shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#03030c" flood-opacity=".55"/></filter>
-    <clipPath id="conversation-p04-interior"><rect x="33" y="34" width="134" height="112" rx="17"/></clipPath>
-  </defs>
-  <g data-symbol="${semantic}" data-detail="conversation-channel-chassis">
-    <ellipse cx="100" cy="180" rx="73" ry="8" fill="#030511" opacity=".35"/>
-    <g data-detail="glass-supports" fill="url(#conversation-p04-frame)" stroke="url(#conversation-p04-rim)" stroke-width=".9"><path d="M56 147h10v19H53Z"/><path d="M134 147h10l3 19h-13Z"/></g>
-    <g data-detail="glass-console-base"><ellipse cx="100" cy="173" rx="70" ry="9" fill="url(#conversation-p04-base)" stroke="url(#conversation-p04-rim)" stroke-width="1.2"/><path d="M39 171c19-9 101-9 122 0" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".8"/><path d="M69 179h10m5 0h5m22 0h5m5 0h10" fill="none" stroke="#7dd3fc" stroke-width=".8" opacity=".65"/></g>
-    <g filter="url(#conversation-p04-shadow)">
-      <rect x="25" y="26" width="150" height="128" rx="23" fill="url(#conversation-p04-frame)" stroke="url(#conversation-p04-rim)" stroke-width="1.8"/>
-      <rect x="30" y="31" width="140" height="118" rx="19" fill="url(#conversation-p04-face)" stroke="#ddd6fe" stroke-opacity=".22" stroke-width=".8"/>
-      <path d="M45 31h107m-122 19v73" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width="1.1" stroke-linecap="round"/>
-      <path d="M171 54v73q0 20-20 23H47" fill="none" stroke="#22d3ee" stroke-opacity=".35" stroke-width=".8"/>
-      <g data-detail="etched-conversation-circuits" clip-path="url(#conversation-p04-interior)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M36 49h9m-9 9h5m-5 50h8l7 7v11m-15-7h5l4 4v8M138 39v8l8 8h16m-19-16v5l9 9h10M160 85h-9l-7 7v9m16-9h-6l-5 5v4" stroke="#8b5cf6" stroke-width=".8" opacity=".65"/>
-        <path d="M38 120v14l9 8h50m39 0h21l6-6M43 39h11m4 0h5m44 0h12" stroke="#67e8f9" stroke-width=".65" opacity=".5"/>
-        <g fill="#a5f3fc" stroke="none" opacity=".6"><circle cx="45" cy="49" r="1.2"/><circle cx="51" cy="126" r="1.2"/><circle cx="151" cy="85" r="1.2"/><circle cx="97" cy="142" r="1.2"/></g>
-      </g>
-      <g data-detail="glass-bezel-fasteners" fill="#161b30" stroke="#c4b5fd" stroke-width=".55">
-        ${[[37,38],[163,38],[37,142],[163,142]].map(([x,y])=>`<g transform="translate(${x} ${y})"><circle r="2.1"/><path d="M-1 0h2" stroke="#67e8f9" stroke-width=".5"/></g>`).join('')}
-      </g>
-    </g>
-    <g data-detail="optional-visual-context" data-activation="separate-session" data-indicator="illustration-only">
-      <rect x="141" y="25" width="35" height="35" rx="10" fill="url(#conversation-p04-reply)" stroke="url(#conversation-p04-rim)" stroke-width="1.3"/>
-      <path d="M149 29h17m-20 4v11" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".7"/>
-      <g data-detail="camera-context-lens"><circle cx="158.5" cy="42.5" r="10.5" fill="#121528" stroke="#a78bfa" stroke-width="1"/><circle cx="158.5" cy="42.5" r="7.5" fill="url(#conversation-p04-lens)" stroke="#67e8f9" stroke-width=".9"/><circle cx="158.5" cy="42.5" r="2.7" fill="#0b1327"/><path d="m154 37 3-1" stroke="#ecfeff" stroke-width="1.1" stroke-linecap="round"/><path d="M149 48h2m15-11h2" stroke="#c4b5fd" stroke-width=".7"/></g>
-    </g>
-    <g data-detail="conversation-turns" filter="url(#conversation-p04-shadow)">
-      <g data-detail="text-message-input">
-        <path d="M54 45h69q13 0 13 13v39q0 13-13 13H84l-20 15v-15H54q-13 0-13-13V58q0-13 13-13Z" fill="url(#conversation-p04-input)" stroke="url(#conversation-p04-rim)" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M55 49h67m-77 12v31" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width="1" stroke-linecap="round"/>
-        <path d="M101 63h22m-22 10h17m-17 10h21m-21 10h11" fill="none" stroke="#c4e9fa" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M105 99h10m4 0h4" stroke="#38bdf8" stroke-opacity=".6" stroke-width=".7"/>
-      </g>
-      <g data-detail="owner-voice-microphone" data-activation="started-session">
-        <rect x="65" y="58" width="19" height="34" rx="9.5" fill="url(#conversation-p04-microphone)" stroke="#cffafe" stroke-width="1.1"/>
-        <rect x="69" y="63" width="11" height="24" rx="5.5" fill="#143345" stroke="#a5f3fc" stroke-opacity=".6" stroke-width=".6"/>
-        ${[67,71,75,79,83].map(y=>`<path d="M72 ${y}h5" stroke="#a5f3fc" stroke-width=".85" stroke-linecap="round"/>`).join('')}
-        <path d="M58 80v8a16.5 16.5 0 0 0 33 0v-8M74.5 105v8m-8 0h16" fill="none" stroke="#a5f3fc" stroke-width="2.4" stroke-linecap="round"/>
-        <path d="M62 93q2 8 10 9" fill="none" stroke="#22d3ee" stroke-width=".7" opacity=".6"/>
-      </g>
-      <g data-detail="conversational-voice-output" data-transmission="session-or-manual">
-        <path d="M115 101h46q13 0 13 13v21q0 12-12 12h-11v12l-17-12h-19q-12 0-12-12v-21q0-13 12-13Z" fill="url(#conversation-p04-reply)" stroke="url(#conversation-p04-rim)" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M117 105h42m-52 12v14" fill="none" stroke="url(#conversation-p04-highlight)" stroke-width=".9" stroke-linecap="round"/>
-        <g data-detail="speech-waveform" stroke-linecap="round"><path d="M116 122v6m8-12v18m8-15v12m8-20v28m8-20v12m8-16v20m8-13v6" fill="none" stroke="#e9e3ff" stroke-width="2.4"/><path d="M140 116v18m16-14v10" stroke="#67e8f9" stroke-width="1.1"/></g>
-        <path d="M115 141h13m25 0h7" stroke="#c4b5fd" stroke-opacity=".6" stroke-width=".6"/>
-      </g>
-    </g>
-    <g data-detail="local-noise-filter" data-processing="local-before-transcription">
-      <rect x="38" y="130" width="55" height="21" rx="6" fill="url(#conversation-p04-input)" stroke="#a5b4fc" stroke-opacity=".65" stroke-width="1"/>
-      <path d="M44 133h36" stroke="url(#conversation-p04-highlight)" stroke-width=".65"/>
-      <path data-detail="background-noise-input" d="m43 141 2-3 3 7 3-5 3 1" fill="none" stroke="#8d91ae" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-      <g data-detail="noise-filter-fins" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"><path d="M60 135v12m5-9v6m5-9v12"/></g>
-      <path data-detail="filtered-voice-signal" d="M76 141h3l2-4 3 8 2-4h3" fill="none" stroke="#a5f3fc" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
+import { plate, line, pin, dial, bolt, coupling, conduit } from "../shared/instrument.mjs";
+
+export default function conversation(accent, secondary) {
+  return `<g data-component="audio-circuit">
+    ${conduit("M26 61v12l9 6h13",accent)}
+    ${coupling(37,79,0,accent)}
+    ${plate("M43 70l19-2 8 6-2 9-20 2-7-5Z","dark-metal")}
+    ${[0,1,2,3,4].map(i=>line(`M${48+i*3} 74l-2 6`,secondary,1.1)).join("")}
   </g>
-</svg>
-`;
+  <g data-part="reply">
+    ${plate("M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z","glass",secondary)}
+    ${line("M57 58H80M61 63H74",secondary,1.8)}
+  </g>
+  <g data-part="dialogue">
+    ${plate("M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z")}
+    ${plate("M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z","dark-metal")}
+    ${line("M24 39H28L32 33 36 46 41 29 46 48 51 36 55 40H59",accent,2.7)}
+    ${line("M22 27H43","#effaff",.9)}
+    ${pin(61,21,1,accent)}
+  <g data-component="acoustic-transducer">
+    ${plate("M13 23l7-6h24l5 3H27l-3 4Z","dark-metal")}
+    ${line("M23 49h9m2 0h3m19-17h4","#83acc2",.8)}
+    ${[0,1,2,3,4].map(i=>line(`M${25+i*5} 52v-2`,"#52738e",.65)).join("")}
+    ${plate("M71 47 82 44 88 48V62L76 67 71 63Z","dark-metal")}
+    ${dial(80,55,6)}${pin(80,55,2.5,secondary)}
+    ${bolt(16,24,1.1)}${bolt(66,54,1.1)}
+  </g>
+  </g>`;
 }

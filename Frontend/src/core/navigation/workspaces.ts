@@ -21,7 +21,7 @@ export type Screen =
 export const workspaceScreens: Record<Workspace, readonly Screen[]> = {
   cognitive: ["identificacion", "nucleo", "flujo", "estado", "planificador", "memoria", "actividad"],
   body: ["rostro", "cuerpo", "avatar"],
-  governance: ["puentes", "auditoria", "habilidades", "procedimientos", "configuracion"],
+  governance: ["puentes", "auditoria", "procedimientos", "habilidades", "configuracion"],
 };
 
 export function workspaceForScreen(screen: Screen): Workspace {

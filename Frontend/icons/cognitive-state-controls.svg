@@ -1,145 +1,82 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Estado y controles" data-icon="state" data-semantic="observable-internal-state technical-signals session-controls retrieved-memory" data-line-treatment="refined" data-component-refinement="precision-components-v15" data-material-finish="micro-etched-v15" data-mounting-grammar="equipment-mounted-controls-independent" data-screw-style="layered-hex-socket" shape-rendering="geometricPrecision">
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Estado y controles" data-icon="state" data-semantic="observable-internal-state technical-signals session-controls retrieved-memory" data-visual-style="titanio-optico" data-motion="static">
   <title>Estado y controles</title>
-  <style>.alive{transform-box:fill-box;transform-origin:center;animation:state-alive 4.8s ease-in-out infinite}.pulse{animation:state-pulse 2.1s ease-in-out infinite}.blink{animation:state-blink 2.7s ease-in-out infinite}.orbit,.mechanical{transform-box:fill-box;transform-origin:center;animation:state-orbit 14s linear infinite}.mechanical{animation-duration:18s}.orbit.reverse{animation-direction:reverse}.flow{animation:state-flow 3s linear infinite}.scan{animation:state-scan 3.8s ease-in-out infinite}.breath{transform-box:fill-box;transform-origin:center;animation:state-breath 4.2s ease-in-out infinite}@keyframes state-alive{50%{transform:translateY(-1px)}}@keyframes state-pulse{50%{opacity:.38}}@keyframes state-blink{50%{opacity:.58}}@keyframes state-orbit{to{transform:rotate(360deg)}}@keyframes state-flow{to{stroke-dashoffset:-39}}@keyframes state-scan{0%,100%{transform:translateY(-15px);opacity:.25}50%{transform:translateY(15px);opacity:1}}@keyframes state-breath{50%{transform:scale(1.018)}}@media(prefers-reduced-motion:reduce){.alive,.pulse,.blink,.orbit,.mechanical,.flow,.scan,.breath{animation:none}}</style>
+
   <defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1220"/><stop offset=".055" stop-color="#334155"/><stop offset=".095" stop-color="#94a3b8"/><stop offset=".125" stop-color="#e2e8f0"/><stop offset=".15" stop-color="#f8fafc"/><stop offset=".19" stop-color="#94a3b8"/><stop offset=".31" stop-color="#475569"/><stop offset=".45" stop-color="#172033"/><stop offset=".57" stop-color="#0f172a"/><stop offset=".68" stop-color="#334155"/><stop offset=".77" stop-color="#64748b"/><stop offset=".825" stop-color="#cbd5e1"/><stop offset=".85" stop-color="#f8fafc"/><stop offset=".89" stop-color="#64748b"/><stop offset=".955" stop-color="#1e293b"/><stop offset="1" stop-color="#080d18"/></linearGradient>
-    <linearGradient id="dark-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#64748b"/><stop offset=".04" stop-color="#a8b5c7"/><stop offset=".07" stop-color="#475569"/><stop offset=".15" stop-color="#1e293b"/><stop offset=".31" stop-color="#0b1424"/><stop offset=".47" stop-color="#050b16"/><stop offset=".59" stop-color="#111827"/><stop offset=".7" stop-color="#253248"/><stop offset=".79" stop-color="#475569"/><stop offset=".815" stop-color="#718198"/><stop offset=".84" stop-color="#334155"/><stop offset=".92" stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient>
-    <linearGradient id="screw-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2e8f0"/><stop offset=".28" stop-color="#cbd5e1"/><stop offset=".58" stop-color="#94a3b8"/><stop offset=".82" stop-color="#64748b"/><stop offset="1" stop-color="#475569"/></linearGradient>
-    <linearGradient id="screw-socket" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1e293b"/><stop offset="1" stop-color="#000"/></linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10b981"/><stop offset=".56" stop-color="#f59e0b"/><stop offset="1" stop-color="#f8fafc"/></linearGradient>
-    <radialGradient id="glass"><stop stop-color="#f8fafc" stop-opacity=".18"/><stop offset=".12" stop-color="#10b981" stop-opacity=".32"/><stop offset=".46" stop-color="#101827"/><stop offset=".78" stop-color="#07101d"/><stop offset="1" stop-color="#020409"/></radialGradient>
-    <filter id="shadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="2.6" stdDeviation="1.45" flood-color="#000" flood-opacity=".54"/></filter>
-    <filter id="soft-glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation=".42" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <pattern id="alice-state-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
+    <linearGradient id="alice-state-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
+    <linearGradient id="alice-state-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
+    <linearGradient id="alice-state-dark-metal" x1="0" y1="0" x2=".85" y2="1"><stop stop-color="#506b80"/><stop offset=".23" stop-color="#2a4257"/><stop offset=".58" stop-color="#15293d"/><stop offset="1" stop-color="#081728"/></linearGradient>
+    <linearGradient id="alice-state-glass" x1=".06" y1="0" x2=".84" y2="1"><stop stop-color="#10b981"/><stop offset=".23" stop-color="#10b981" stop-opacity=".65"/><stop offset=".48" stop-color="#214260"/><stop offset=".8" stop-color="#0b2035"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="alice-state-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#10b981"/><stop offset=".7" stop-color="#10b981"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="alice-state-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g data-detail-scale="navigation-readable" data-detail-pass="precision-finish-v15" data-symbol="observable-internal-state technical-signals session-controls retrieved-memory" transform="translate(100 100) scale(1.025) translate(-100 -100)"><g class="alive" data-motion="semantic-micro-motion"><g data-detail="micro-surface-finish"><g data-detail="chassis-to-plinth-mounts" data-mounting-system="dual-load-bearing"><path d="M54 139 45 150v10M146 139l9 11v10" fill="none" stroke="#020409" stroke-width="2.21" stroke-linecap="round"/><path d="M54 140 47 151v8M146 140l7 11v8" fill="none" stroke="url(#metal)" stroke-width="1.2" stroke-linecap="round"/><path d="M49 149h10m82 0h10" stroke="#cbd5e1" stroke-width=".38"/><g data-detail="load-bearing-foot" transform="translate(55 0)"><path d="M-6 137h12l4 5v14l-4 5H-6l-4-5v-14Z" fill="#020409" stroke="#334155" stroke-width=".72"/><path d="M-3 138h6l2.8 4v14L3 159h-6l-2.8-3v-14Z" fill="url(#metal)" stroke="#cbd5e1" stroke-width=".52"/><path d="M0 140v16" stroke="#10b981" stroke-width=".62" filter="url(#soft-glow)"/><path d="M-4 143h8m-8 10h8" stroke="#0f172a" stroke-width=".44"/><path d="M-8 157h16l5 5H-13Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".52"/><path d="M-5 159h10" stroke="#f8fafc" stroke-width=".3" opacity=".72"/><g transform="translate(0 144)" data-detail="hex-socket-screw"><circle r="2.9699999999999998" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.27" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.67" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0699999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3399999999999999" stroke-dasharray=".8 1.6"/><path d="M0 -1.97v.75M0 1.97v-.75M-1.97 0h.75M1.97 0h-.75"/></g><circle r="0.57" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.48 0.42,-0.24 0.42,0.24 0.00,0.48 -0.42,0.24 -0.42,-0.24" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.9199999999999999 -0.9199999999999999 0 -1.47" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.5184 0.5184A0.72 0.72 0 0 0 0.5184 0.5184" fill="none" stroke="#10b981" stroke-width=".38" opacity=".62"/><circle cx="0.36" cy="-0.36" r=".35" fill="#fff" opacity=".6"/></g></g><g data-detail="load-bearing-foot" transform="translate(145 0) scale(-1 1)"><path d="M-6 137h12l4 5v14l-4 5H-6l-4-5v-14Z" fill="#020409" stroke="#334155" stroke-width=".72"/><path d="M-3 138h6l2.8 4v14L3 159h-6l-2.8-3v-14Z" fill="url(#metal)" stroke="#cbd5e1" stroke-width=".52"/><path d="M0 140v16" stroke="#f59e0b" stroke-width=".62" filter="url(#soft-glow)"/><path d="M-4 143h8m-8 10h8" stroke="#0f172a" stroke-width=".44"/><path d="M-8 157h16l5 5H-13Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".52"/><path d="M-5 159h10" stroke="#f8fafc" stroke-width=".3" opacity=".72"/><g transform="translate(0 144)" data-detail="hex-socket-screw"><circle r="2.9699999999999998" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.27" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.67" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.0699999999999998" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.3399999999999999" stroke-dasharray=".8 1.6"/><path d="M0 -1.97v.75M0 1.97v-.75M-1.97 0h.75M1.97 0h-.75"/></g><circle r="0.57" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.48 0.42,-0.24 0.42,0.24 0.00,0.48 -0.42,0.24 -0.42,-0.24" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.48" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.42" cy="-0.24" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-0.9199999999999999 -0.9199999999999999 0 -1.47" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.5184 0.5184A0.72 0.72 0 0 0 0.5184 0.5184" fill="none" stroke="#f59e0b" stroke-width=".38" opacity=".62"/><circle cx="0.36" cy="-0.36" r=".35" fill="#fff" opacity=".6"/></g></g><g data-detail="mounting-load-path-index" stroke="#94a3b8" stroke-width=".3" opacity=".72"><path d="M50 135h10m80 0h10M46 163h18m72 0h18"/></g></g><g data-detail="precision-equipment-plinth" data-base="machined-service-chassis">
-    <ellipse cx="100" cy="175" rx="86.35000000000001" ry="6" fill="#000" opacity=".42"/>
-    <path d="M21.5 158h157l10 8-10 10H21.5l-10-10Z" fill="url(#dark-metal)" stroke="#94abc2" stroke-width=".9"/>
-    <path d="M25.5 161h149l6 5-6 7H25.5l-6-7Z" fill="#071221" stroke="#4f657f" stroke-width=".45"/>
-    <g data-detail="plinth-machined-joints" fill="none" stroke="#c7d7e4" stroke-width=".4">
-      <path d="M28.5 159.5h143M28.5 174h143"/>
-      <path d="m22.5 161-5 5 5 6m155 -11 5 5-5 6" opacity=".6"/>
-    </g>
-    <g data-detail="base-service-panels"><g data-detail="base-recessed-service-panel">
-      <path d="M41.5 163h39.5v9h-39.5Z" fill="url(#metal)" stroke="#94abc2" stroke-width=".4"/>
-      <path d="M44.5 165h21.5v5h-21.5Z" fill="#030b16" stroke="#536b84" stroke-width=".35"/>
-      <g data-detail="base-service-contacts" stroke="#b5c8d9" stroke-width=".45"><path d="M46.5 166v3"/><path d="M52.333333333333336 166v3"/><path d="M58.166666666666664 166v3"/><path d="M64 166v3"/></g>
-      <path d="M70 165h7v5h-7Z" fill="#091321" stroke="#10b981" stroke-width=".45"/>
-      <path d="M72 167.5h3" stroke="#dce8f1" stroke-width=".45"/>
-      <path d="M43.5 163.7h35.5" stroke="#eff6ff" stroke-width=".25" opacity=".7"/>
-    </g><g data-detail="base-recessed-service-panel">
-      <path d="M119 163h39.5v9h-39.5Z" fill="url(#metal)" stroke="#94abc2" stroke-width=".4"/>
-      <path d="M122 165h21.5v5h-21.5Z" fill="#030b16" stroke="#536b84" stroke-width=".35"/>
-      <g data-detail="base-service-contacts" stroke="#b5c8d9" stroke-width=".45"><path d="M124 166v3"/><path d="M129.83333333333334 166v3"/><path d="M135.66666666666666 166v3"/><path d="M141.5 166v3"/></g>
-      <path d="M147.5 165h7v5h-7Z" fill="#091321" stroke="#f59e0b" stroke-width=".45"/>
-      <path d="M149.5 167.5h3" stroke="#dce8f1" stroke-width=".45"/>
-      <path d="M121 163.7h35.5" stroke="#eff6ff" stroke-width=".25" opacity=".7"/>
-    </g></g>
-    <g data-detail="base-central-coupler">
-      <path d="m100 162 7 4v5l-7 4-7-4v-5Z" fill="url(#metal)" stroke="#afc4d6" stroke-width=".45"/>
-      <path d="M97 165h6v6h-6Z" fill="#040c18" stroke="#6c849a" stroke-width=".35"/>
-      <path d="M98.5 167h3m-3 2h3" stroke="#f59e0b" stroke-width=".5"/>
-    </g>
-    <g data-detail="base-load-isolators" fill="#040911" stroke="#6d8197" stroke-width=".3">
-      <path d="M37.5 176h18v2h-18ZM144.5 176h18v2h-18Z"/>
-    </g>
-    <g data-detail="base-bezel-illumination" data-motion-purpose="decorative-only" fill="none" stroke-width=".65">
-      <path d="M44.5 161h33.5" stroke="#10b981"/>
-      <path d="M122 161h33.5" stroke="#f59e0b"/>
-    </g>
-    <g transform="translate(28.5 166)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#10b981" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(171.5 166)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#f59e0b" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g>
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-component="signal-input">
+    <g><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#050c16" stroke-width="3.8"/><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#637f96" stroke-width="2.4"/>
+    <path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#10b981" stroke-width="1.1"/><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#e0f8ff" stroke-width=".6" stroke-dasharray="2 5"/></g>
+    <g transform="translate(12 58) rotate(90)">
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-state-dark-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
+    <path d="M-6-2v4m12-4v4" fill="none" stroke="#f59e0b" stroke-width="1.3"/></g>
   </g>
-  <g data-detail="session-state-console" filter="url(#shadow)">
-    <path d="M23 142V51l20-17h114l20 17v91l-17 17H40Z" fill="url(#dark-metal)" stroke="#cbd5e1" stroke-width="1.25"/>
-    <path d="M32 139V57l16-14h104l16 14v82l-12 11H44Z" fill="#030a13" stroke="#526779" stroke-width=".65"/>
-    <path d="M49 38h102M27 69v25m146-25v25M47 147h106" stroke="#94a3b8" stroke-width=".5"/>
-    <g transform="translate(34 53)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#10b981" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(166 53)" data-detail="hex-socket-screw"><circle r="3.25" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.55" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.95" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.35" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.62" stroke-dasharray=".8 1.6"/><path d="M0 -2.25v.75M0 2.25v-.75M-2.25 0h.75M2.25 0h-.75"/></g><circle r="0.85" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.67 0.58,-0.33 0.58,0.33 0.00,0.67 -0.58,0.33 -0.58,-0.34" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="-0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.67" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="0.33" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.58" cy="-0.34" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.2 -1.2 0 -1.75" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.72 0.72A1 1 0 0 0 0.72 0.72" fill="none" stroke="#f59e0b" stroke-width=".38" opacity=".62"/><circle cx="0.5" cy="-0.5" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(35 144)" data-detail="hex-socket-screw"><circle r="3.1" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.4" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7999999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.2" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.47" stroke-dasharray=".8 1.6"/><path d="M0 -2.1v.75M0 2.1v-.75M-2.1 0h.75M2.1 0h-.75"/></g><circle r="0.7" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.57 0.49,-0.28 0.49,0.28 0.00,0.57 -0.49,0.28 -0.49,-0.28" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.05 -1.05 0 -1.6" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.612 0.612A0.85 0.85 0 0 0 0.612 0.612" fill="none" stroke="#f59e0b" stroke-width=".38" opacity=".62"/><circle cx="0.425" cy="-0.425" r=".35" fill="#fff" opacity=".6"/></g><g transform="translate(165 144)" data-detail="hex-socket-screw"><circle r="3.1" fill="#020617" stroke="#1e293b" stroke-width=".68"/><circle r="2.4" fill="#0f172a" stroke="#334155" stroke-width=".5"/><circle r="1.7999999999999998" fill="url(#screw-metal)" stroke="#64748b" stroke-width=".62"/><circle r="1.2" fill="none" stroke="#334155" stroke-width=".4" opacity=".65"/><g data-detail="screw-machining-index" fill="none" stroke="#94a3b8" stroke-width=".28" opacity=".72"><circle r="1.47" stroke-dasharray=".8 1.6"/><path d="M0 -2.1v.75M0 2.1v-.75M-2.1 0h.75M2.1 0h-.75"/></g><circle r="0.7" fill="none" stroke="#1e293b" stroke-width=".5"/><polygon points="0.00,-0.57 0.49,-0.28 0.49,0.28 0.00,0.57 -0.49,0.28 -0.49,-0.28" fill="url(#screw-socket)" stroke="#0f172a" stroke-width=".58"/><circle cx="0.00" cy="-0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="0.00" cy="0.57" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle cx="-0.49" cy="-0.28" r=".28" fill="#94a3b8" opacity=".72"/><circle r="0.48" fill="#000" opacity=".92"/><path d="M-1.05 -1.05 0 -1.6" fill="none" stroke="#fff" stroke-width=".48" stroke-linecap="round" opacity=".46"/><path d="M-0.612 0.612A0.85 0.85 0 0 0 0.612 0.612" fill="none" stroke="#10b981" stroke-width=".38" opacity=".62"/><circle cx="0.425" cy="-0.425" r=".35" fill="#fff" opacity=".6"/></g>
-  </g>
-  <g data-detail="selected-state-inspector">
-    <path d="M43 52h114l5 5v39H38V57Z" fill="url(#dark-metal)" stroke="#64748b" stroke-width=".65"/><g data-detail="precision-panel-bevel" data-panel="selected-state-inspector" pointer-events="none">
-      <defs>
-        <clipPath id="panel-state-0" clipPathUnits="userSpaceOnUse"><path d="M43 52h114l5 5v39H38V57Z"/></clipPath>
-        <linearGradient id="panel-state-0-finish" x1="0" y1="0" x2=".35" y2="1">
-          <stop stop-color="#dcebf5" stop-opacity=".16"/>
-          <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
-          <stop offset=".6" stop-color="#020610" stop-opacity=".08"/>
-          <stop offset="1" stop-color="#010409" stop-opacity=".28"/>
-        </linearGradient>
-      </defs>
-      <g clip-path="url(#panel-state-0)" fill="none">
-        <path data-detail="panel-satin-face" d="M43 52h114l5 5v39H38V57Z" fill="url(#panel-state-0-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M43 52h114l5 5v39H38V57Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M43 52h114l5 5v39H38V57Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M43 52h114l5 5v39H38V57Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M43 52h114l5 5v39H38V57Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M43 52h114l5 5v39H38V57Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        
-      </g>
+  <g data-part="session-faders">
+    <path d="M18 19 67 13 84 23V76L77 83 25 89 16 81V26Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M18 19 67 13 84 23V76L77 83 25 89 16 81V26Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M18 19 67 13 84 23V76L77 83 25 89 16 81V26Z" fill="url(#alice-state-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M18 19 67 13 84 23V76L77 83 25 89 16 81V26Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M22 25 72 19 78 24V75L72 78 22 84Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M22 25 72 19 78 24V75L72 78 22 84Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M22 25 72 19 78 24V75L72 78 22 84Z" fill="url(#alice-state-dark-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M22 25 72 19 78 24V75L72 78 22 84Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <g transform="translate(32 0)">
+      <path d="M0 32V72" fill="none" stroke="#07121d" stroke-width="5"/><path d="M0 33V71" fill="none" stroke="#829eaf" stroke-width="1"/>
+      <path d="M-7 34v34" fill="none" stroke="#647c90" stroke-width="0.7"/><path d="M-7 34v33" fill="none" stroke="#bdcfda" stroke-width="2.6" stroke-dasharray="1 5"/>
+      <path d="M-6 46l12-1 1 2v5l-13 1Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M-6 46l12-1 1 2v5l-13 1Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M-6 46l12-1 1 2v5l-13 1Z" fill="url(#alice-state-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M-6 46l12-1 1 2v5l-13 1Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+      <path d="M-4 50l8-.6" fill="none" stroke="#10b981" stroke-width="2"/>
+    </g><g transform="translate(49 0)">
+      <path d="M0 32V72" fill="none" stroke="#07121d" stroke-width="5"/><path d="M0 33V71" fill="none" stroke="#829eaf" stroke-width="1"/>
+      <path d="M-7 34v34" fill="none" stroke="#647c90" stroke-width="0.7"/><path d="M-7 34v33" fill="none" stroke="#bdcfda" stroke-width="2.6" stroke-dasharray="1 5"/>
+      <path d="M-6 57l12-1 1 2v5l-13 1Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M-6 57l12-1 1 2v5l-13 1Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M-6 57l12-1 1 2v5l-13 1Z" fill="url(#alice-state-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M-6 57l12-1 1 2v5l-13 1Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+      <path d="M-4 61l8-.6" fill="none" stroke="#f59e0b" stroke-width="2"/>
+    </g><g transform="translate(66 0)">
+      <path d="M0 32V72" fill="none" stroke="#07121d" stroke-width="5"/><path d="M0 33V71" fill="none" stroke="#829eaf" stroke-width="1"/>
+      <path d="M-7 34v34" fill="none" stroke="#647c90" stroke-width="0.7"/><path d="M-7 34v33" fill="none" stroke="#bdcfda" stroke-width="2.6" stroke-dasharray="1 5"/>
+      <path d="M-6 36l12-1 1 2v5l-13 1Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M-6 36l12-1 1 2v5l-13 1Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M-6 36l12-1 1 2v5l-13 1Z" fill="url(#alice-state-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M-6 36l12-1 1 2v5l-13 1Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+      <path d="M-4 40l8-.6" fill="none" stroke="#10b981" stroke-width="2"/>
     </g>
-    <path d="M43 57h66v32H43Z" fill="#020a11" stroke="#10b981" stroke-width=".65"/>
-    <path d="M47 65h58m-58 8h58m-58 8h58" stroke="#193040" stroke-width=".4"/>
-    <path d="M52 60v26m13-26v26m13-26v26m13-26v26m11-26v26" stroke="#193040" stroke-width=".4"/>
-    <path d="m47 78 9-3 7 4 8-13 7 12 7-6 9 3 10-12" fill="none" stroke="#10b981" stroke-width="1.2"/>
-    <circle cx="104" cy="63" r="1.8" fill="#c9fff0"/>
-    <g data-detail="technical-signal-bank" data-evidence="heuristic">
-      <g data-metric="curiosity" data-availability="ready"><path d="M117 59h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M119 66v-3" stroke="#f59e0b" stroke-width="1.4"/></g><g data-metric="social" data-availability="ready"><path d="M127 59h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M129 66v-4" stroke="#10b981" stroke-width="1.4"/></g><g data-metric="frustration" data-availability="ready"><path d="M137 59h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M139 66v-5" stroke="#10b981" stroke-width="1.4"/></g><g data-metric="inhibition" data-availability="ready"><path d="M147 59h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M149 66v-6" stroke="#f59e0b" stroke-width="1.4"/></g><g data-metric="trust" data-availability="ready"><path d="M117 74h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M119 81v-3" stroke="#10b981" stroke-width="1.4"/></g><g data-metric="fatigue" data-availability="ready"><path d="M127 74h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M129 81v-4" stroke="#10b981" stroke-width="1.4"/></g><g data-metric="surprise" data-availability="ready"><path d="M137 74h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M139 81v-5" stroke="#f59e0b" stroke-width="1.4"/></g><g data-metric="memory" data-availability="ready"><path d="M147 74h6v10h-6Z" fill="#06131d" stroke="#536b7f" stroke-width=".4"/><path d="M149 81v-6" stroke="#10b981" stroke-width="1.4"/></g>
-    </g>
+    <circle cx="22" cy="22" r="2" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+    <circle cx="22" cy="22" r="1" fill="#10b981"/><circle cx="21.72" cy="21.68" r="0.28" fill="#fff"/><circle cx="77" cy="78" r="2" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+    <circle cx="77" cy="78" r="1" fill="#10b981"/><circle cx="76.72" cy="77.68" r="0.28" fill="#fff"/>
+  <g data-component="meter-bank">
+    <path d="M24 24 65 19 70 20V26L24 32Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M24 24 65 19 70 20V26L24 32Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M24 24 65 19 70 20V26L24 32Z" fill="url(#alice-state-glass)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M24 24 65 19 70 20V26L24 32Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M27 28l7-1 2-2 3 2 3-4 2 2 5-1 4-2 2 2 9-2" fill="none" stroke="#10b981" stroke-width="1.15"/>
+    <path d="M28 77 69 72V76L28 82Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M28 77 69 72V76L28 82Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M28 77 69 72V76L28 82Z" fill="url(#alice-state-dark-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M28 77 69 72V76L28 82Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M32 76.48l3-.5" fill="none" stroke="#10b981" stroke-width="1.3"/><path d="M40 75.6l3-.5" fill="none" stroke="#10b981" stroke-width="1.3"/><path d="M48 74.72l3-.5" fill="none" stroke="#10b981" stroke-width="1.3"/><path d="M56 73.84l3-.5" fill="none" stroke="#8e9fae" stroke-width="1.3"/><path d="M64 72.96l3-.5" fill="none" stroke="#8e9fae" stroke-width="1.3"/>
+    <path d="M79 32v33m2-30v22" fill="none" stroke="#102535" stroke-width="1.1"/>
+    <g transform="translate(74 21) scale(1.4)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-state-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g><g transform="translate(23 81) scale(1.4)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-state-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g>
   </g>
-  <g data-detail="retrieved-memory-cartridge">
-    <path d="M42 93h116l4 4-4 9H42l-4-9Z" fill="url(#dark-metal)" stroke="#94a3b8" stroke-width=".65"/><g data-detail="precision-panel-bevel" data-panel="retrieved-memory-cartridge" pointer-events="none">
-      <defs>
-        <clipPath id="panel-state-1" clipPathUnits="userSpaceOnUse"><path d="M42 93h116l4 4-4 9H42l-4-9Z"/></clipPath>
-        <linearGradient id="panel-state-1-finish" x1="0" y1="0" x2=".35" y2="1">
-          <stop stop-color="#dcebf5" stop-opacity=".16"/>
-          <stop offset=".22" stop-color="#90abc4" stop-opacity=".045"/>
-          <stop offset=".6" stop-color="#020610" stop-opacity=".08"/>
-          <stop offset="1" stop-color="#010409" stop-opacity=".28"/>
-        </linearGradient>
-      </defs>
-      <g clip-path="url(#panel-state-1)" fill="none">
-        <path data-detail="panel-satin-face" d="M42 93h116l4 4-4 9H42l-4-9Z" fill="url(#panel-state-1-finish)"/>
-        <path data-detail="panel-recess-gasket" d="M42 93h116l4 4-4 9H42l-4-9Z" stroke="#010610" stroke-width="1.86" opacity=".8"/>
-        <path data-detail="panel-machined-lip" d="M42 93h116l4 4-4 9H42l-4-9Z" transform="translate(1.1 1.1)" stroke="#a8c0d3" stroke-width="0.5" opacity=".82"/>
-        <path d="M42 93h116l4 4-4 9H42l-4-9Z" transform="translate(-1.1 -1.1)" stroke="#040812" stroke-width="0.85" opacity=".9"/>
-        <path d="M42 93h116l4 4-4 9H42l-4-9Z" stroke="#c5d9e8" stroke-width=".5" opacity=".75"/>
-        <path data-detail="panel-edge-joints" d="M42 93h116l4 4-4 9H42l-4-9Z" transform="translate(.45 .45)" stroke="#e2eef6" stroke-width=".35" stroke-dasharray="2 19" opacity=".55"/>
-        <g data-detail="fitted-component-hardware" data-component="retrieved-memory-cartridge" pointer-events="none"><g data-detail="captive-panel-latch" transform="translate(64 123)">
-  <path d="M0 0h2.8v7H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
-  <path d="M.5 .5h1.8v6H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
-  <path d="M1.4 1.5v4" stroke="#091421" stroke-width=".6"/>
-  <path d="M.7 2h1.4m-1.4 3h1.4" stroke="#e1eaf0" stroke-width=".3"/>
-</g><g data-detail="captive-panel-latch" transform="translate(137 123)">
-  <path d="M0 0h2.8v7H0Z" fill="#020711" stroke="#607c96" stroke-width=".3"/>
-  <path d="M.5 .5h1.8v6H.5Z" fill="url(#screw-metal)" stroke="#c4d3df" stroke-width=".25"/>
-  <path d="M1.4 1.5v4" stroke="#091421" stroke-width=".6"/>
-  <path d="M.7 2h1.4m-1.4 3h1.4" stroke="#e1eaf0" stroke-width=".3"/>
-</g></g>
-      </g>
-    </g>
-    <path d="M47 97h12v5H47Z" fill="none" stroke="#10b981" stroke-width=".5"/>
-    <path d="M65 97h66m-66 4h47" stroke="#b5c8d6" stroke-width=".65"/>
-    <path d="M140 97h12v5h-12Z" fill="#08121e" stroke="#f59e0b" stroke-width=".5"/>
-    <path d="M143 99h6" stroke="#b5c8d6" stroke-width=".7"/>
-  </g>
-  <g data-detail="session-behavior-control-deck" data-control-count="8" data-editable-count="2">
-    <g data-control="creativity" data-state="adjustable-session">
-    <path d="M45 109h110l5 5v11l-5 5H45l-5-5v-11Z" fill="url(#dark-metal)" stroke="#10b981" stroke-width=".65"/>
-    <path d="M51 118h97" stroke="#152c3a" stroke-width="2.67" stroke-linecap="round"/>
-    <path d="M51 118h32" stroke="#10b981" stroke-width="1.78" stroke-linecap="round"/>
-    <path d="M79 112h8v12h-8Z" fill="#baffea" stroke="#e2fff5" stroke-width=".5"/>
-    <path d="M81 115h4m-4 3h4m-4 3h4" stroke="#318270" stroke-width=".45"/>
-    <path d="M53 111h13m66 0h13" stroke="#94a3b8" stroke-width=".6"/>
-  </g><g data-control="empathy" data-state="adjustable-session">
-    <path d="M45 129h110l5 5v11l-5 5H45l-5-5v-11Z" fill="url(#dark-metal)" stroke="#10b981" stroke-width=".65"/>
-    <path d="M51 138h97" stroke="#152c3a" stroke-width="2.67" stroke-linecap="round"/>
-    <path d="M51 138h72" stroke="#10b981" stroke-width="1.78" stroke-linecap="round"/>
-    <path d="M119 132h8v12h-8Z" fill="#baffea" stroke="#e2fff5" stroke-width=".5"/>
-    <path d="M121 135h4m-4 3h4m-4 3h4" stroke="#318270" stroke-width=".45"/>
-    <path d="M53 131h13m66 0h13" stroke="#94a3b8" stroke-width=".6"/>
-  </g>
-    <g data-detail="permission-locked-control-bank">
-      <g data-control="autonomy" data-state="locked"><path d="M45 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M49 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="50.5" cy="157" r=".8" fill="#f59e0b"/></g><g data-control="inhibition" data-state="locked"><path d="M63 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M67 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="68.5" cy="157" r=".8" fill="#f59e0b"/></g><g data-control="stability" data-state="locked"><path d="M81 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M85 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="86.5" cy="157" r=".8" fill="#f59e0b"/></g><g data-control="memory" data-state="locked"><path d="M99 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M103 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="104.5" cy="157" r=".8" fill="#f59e0b"/></g><g data-control="anticipation" data-state="locked"><path d="M117 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M121 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="122.5" cy="157" r=".8" fill="#f59e0b"/></g><g data-control="speed" data-state="locked"><path d="M135 153h11v8h-11Z" fill="url(#dark-metal)" stroke="#718291" stroke-width=".4"/><path d="M139 153v-2a1.5 1.5 0 0 1 3 0v2" fill="none" stroke="#f59e0b" stroke-width=".65"/><circle cx="140.5" cy="157" r=".8" fill="#f59e0b"/></g>
-    </g>
-    <g data-detail="read-only-interlock"><path d="M164 119h8v12h-8Zm1-1v-2a3 3 0 0 1 6 0v2" fill="#030a13" stroke="#f59e0b" stroke-width=".65"/><circle cx="168" cy="124" r="1" fill="#cbd5e1"/></g>
-  </g>
-  <g data-detail="state-observation-port"><g data-detail="keyed-interface-socket"><circle cx="20" cy="98" r="8" fill="#020409" stroke="#475569" stroke-width="1.18"/><circle cx="20" cy="98" r="6.2" fill="none" stroke="#cbd5e1" stroke-width=".58" stroke-dasharray="3 1.7"/><g data-detail="interface-lock-tabs" stroke="#94a3b8" stroke-width=".42"><path d="M20 90.9v1.5M20 105.1v-1.5M12.9 98h1.5M27.1 98h-1.5"/></g><circle cx="20" cy="98" r="5" fill="url(#metal)" stroke="#f8fafc" stroke-width=".68"/><circle cx="20" cy="98" r="3.65" fill="none" stroke="#f59e0b" stroke-width=".34" stroke-dasharray="1.4 2.1"/><circle cx="20" cy="98" r="2" fill="#040a13" stroke="#10b981" stroke-width="1.12"/><circle cx="21.41" cy="96.59" r="0.6" fill="url(#screw-metal)" stroke="#e2e8f0" stroke-width=".24"/><circle cx="21.41" cy="99.41" r="0.6" fill="url(#screw-metal)" stroke="#e2e8f0" stroke-width=".24"/><circle cx="18.59" cy="99.41" r="0.6" fill="url(#screw-metal)" stroke="#e2e8f0" stroke-width=".24"/><circle cx="18.59" cy="96.59" r="0.6" fill="url(#screw-metal)" stroke="#e2e8f0" stroke-width=".24"/><path d="M17.5 93h5" stroke="#020617" stroke-width=".92"/><circle cx="20" cy="98" r="2.3" fill="#f59e0b"/><circle cx="19.3" cy="97.3" r=".65" fill="#fff" opacity=".8"/></g><path d="M28 98h8" stroke="#94a3b8" stroke-width=".55"/></g></g></g></g>
+  </g></g>
 </svg>

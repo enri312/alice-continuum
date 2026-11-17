@@ -25,6 +25,11 @@ navegador la navegación y alineación de las 15 pantallas y en Tauri el arranqu
 las lecturas reales, el borrador de Conversación y la persistencia de relaciones.
 [Dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md).
 
+**Iconografía y Núcleo de gobernanza (2026-11-17).** Los 21 SVG funcionales
+tienen ilustraciones propias, con materiales y piezas comunes. El inventario y
+los permisos tienen vistas diferenciadas. El historial de operaciones se consulta
+en Auditoría. Procedimientos conserva patrones y el Taller recibe sus borradores.
+
 **Cierre de la migración:** el objetivo es dejar de usar React por completo,
 avanzando por componentes. Se incluyen las pantallas, el estado compartido de
 `App.tsx`, la navegación, el arranque y las recuperaciones. Los hosts y respaldos

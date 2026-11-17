@@ -198,3 +198,32 @@ main.shell::before { display: none; }
   .shell .core-system-frame > .screen-tabs.grouped { padding: 8px; }
   .shell.is-conversation .core-system-content { padding: 4px 9px 10px; }
 }
+
+.governance-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.governance-sections button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 6px;
+  border: 1px solid #485b71;
+  border-radius: 8px;
+  background: #142230;
+  color: #dae6ef;
+  font: inherit;
+  cursor: pointer;
+}
+.governance-sections button[aria-pressed="true"] {
+  border-color: #b9a2f7;
+  background: #292b42;
+  color: #fff;
+}
+.governance-sections button:focus-visible {
+  outline: 2px solid #c9c0ff;
+  outline-offset: 2px;
+}
+.governance-audit-link { margin-top: 12px; }

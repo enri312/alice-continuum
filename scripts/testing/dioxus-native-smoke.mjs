@@ -170,7 +170,13 @@ try {
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
   await evaluate('document.querySelector(".core-system-selector .governance").click()');
   await until(()=>evaluate('Boolean(document.querySelector(\'button[aria-label="Auditoría y diagnóstico"]\'))'),'gobierno para aislar teclado');
-  await evaluate('document.querySelector(\'button[aria-label="Auditoría y diagnóstico"]\').click()');
+  await until(()=>evaluate('document.querySelectorAll("#registry-panel .capability-domain button").length > 0'), 'inventario de capacidades nativo');
+  await evaluate('document.querySelector(\'[aria-controls="permissions-panel"]\').click()');
+  await until(()=>evaluate('document.querySelector("#permission-gateway-title").checkVisibility() && document.querySelector(".permission-status")?.textContent.includes("Permisos locales actualizados")'), 'permisos nativos de solo consulta');
+  await screenshot('gobernanza-permisos.png');
+  await evaluate('document.querySelector(\'[aria-controls="registry-panel"]\').click()');
+  await screenshot('gobernanza-inventario.png');
+  await evaluate('document.querySelector(".governance-audit-link").click()');
   await until(()=>evaluate('Boolean(document.querySelector(".native-audit"))&&!document.querySelector("[data-activity-renderer]")'),'auditoría separada');
   const timelineRuntimeFile=(await fs.readdir(path.join(root,'Frontend/dist/assets'))).find(name=>/^runtime-.*\.js$/.test(name));
   assert.ok(timelineRuntimeFile);
@@ -219,7 +225,7 @@ try {
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
   const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, nodes: 11,
-    r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
+    governanceRegistryAndPermissions: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {

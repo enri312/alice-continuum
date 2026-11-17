@@ -7,9 +7,7 @@ proyecto; no se acepta marcado del usuario.
 - `NavigationIcon.tsx`: iconos de las pestañas principales de `App.tsx`.
 - `InlineSvgIcon.tsx`: envoltorio común utilizado también por los controles de
   cámara del Volumen cognitivo.
-- `BridgeViewIcon.tsx`: iconos de la variante con pestañas del registro de
-  capacidades; se conserva para esa variante aunque la navegación actual use
-  vistas fijadas.
+- `BridgeViewIcon.tsx` muestra el icono del inventario y el de permisos en el selector del Núcleo de gobernanza.
 
 El selector antiguo `NucleusViewIcon.tsx` se retiró al no tener importadores;
 su contenido sigue en el historial Git y en la copia local de recuperación.

@@ -70,7 +70,7 @@ Los tres núcleos reúnen el resto de las herramientas de la asistente.
 |---|---|---|
 | **Cognitive Core** | Conversación, memoria, estado y actividad cognitiva observable. | No mueve el avatar ni cambia permisos. |
 | **Embodiment Core** | Rostro, cuerpo y avatar. | No decide qué recordar ni autoriza capacidades. |
-| **Governance Core** | Permisos, auditoría, diagnóstico, habilidades, procedimientos y configuración. | No forma parte de la personalidad o memoria de Alice. Es control del propietario. |
+| **Núcleo de gobernanza** | Permisos, auditoría, diagnóstico, habilidades, procedimientos y configuración. | No forma parte de la personalidad o memoria de Alice. Es control del propietario. |
 
 No es necesario visitar todas las páginas en cada sesión. Para un uso normal basta
 con **Configuración**, **Conversación**, **Memoria** cuando haya algo que
@@ -475,13 +475,15 @@ Carga el VRM privado de Alice y permite comprobar animaciones y mando.
 
 El archivo del avatar es privado y está excluido de Git.
 
-## 8. Governance Core
+## 8. Núcleo de gobernanza
 
 ### Capacidades y permisos
 
-Es el registro de lo que Alice puede, no puede o todavía planea hacer. También separa
-los puentes de cara y cuerpo. Que una capacidad aparezca en la lista no significa
-que esté habilitada.
+**Inventario de capacidades** muestra el estado de cada adaptador, su madurez y
+el permiso que requiere. Seleccioná una capacidad para inspeccionarla. En
+**Permisos** podés revisar una solicitud, autorizarla o revocarla. Para consultar
+qué ocurrió, elegí **Ver el historial en Auditoría**. Los controles de rostro y
+cuerpo están en sus propias pantallas del núcleo corporal.
 
 ### Auditoría y diagnóstico
 
@@ -489,16 +491,16 @@ Permite comprobar operaciones sensibles y problemas técnicos. La auditoría gua
 metadatos y huellas, no el contenido de las conversaciones ni claves secretas. El
 diagnóstico es de solo lectura.
 
-### Taller
-
-Prepara borradores de habilidades bajo el contrato R4. Un borrador puede simularse,
-revisarse y aprobarse, pero **aprobar no equivale a ejecutar**.
-
 ### Procedimientos
 
 Reúne patrones observados bajo el contrato R5. Podés conservarlos o descartarlos y
 convertir evidencia retenida en un borrador de habilidad. Nunca ejecuta el patrón
 automáticamente.
+
+### Taller de habilidades
+
+Prepara borradores de habilidades bajo el contrato R4. Un borrador puede simularse,
+revisarse y aprobarse, pero **aprobar no equivale a ejecutar**.
 
 ### Configuración
 
@@ -512,7 +514,7 @@ existen, no están autorizados o no se están usando.
 
 1. Esperá unos segundos si Ollama está procesando.
 2. Leé el mensaje situado debajo o junto al botón.
-3. Entrá en **Actividad** y revisá Timeline, Event Stream y Diagnóstico.
+3. Para los eventos de la sesión, abrí **Actividad**. Para revisar operaciones registradas o la salud técnica, abrí **Auditoría y diagnóstico**.
 4. Confirmá que usás la aplicación de escritorio. Algunas funciones nativas no
    existen en una pestaña de navegador aislada.
 5. Si el problema continúa, anotá la página, el botón y el texto exacto del error.

@@ -82,8 +82,8 @@ export function Configuracion({ desktopApp, status, provider, model, onProviderC
       </section>
 
       <section className="settings-card" aria-labelledby="hardware-settings-title">
-        <header><span>03</span><div><p className="eyebrow">BODY SOLVER · HARDWARE</p><h3 id="hardware-settings-title">Dispositivos externos</h3></div></header>
-        <div className="settings-device"><i /><div><strong>SIN DISPOSITIVO CONFIGURADO</strong><small>El cuerpo y el rostro permanecen en SAFE OFF.</small></div></div>
+        <header><span>03</span><div><p className="eyebrow">CUERPO Y ROSTRO</p><h3 id="hardware-settings-title">Dispositivos externos</h3></div></header>
+        <div className="settings-device"><i /><div><strong>SIN DISPOSITIVO CONFIGURADO</strong><small>Las salidas físicas del cuerpo y el rostro están desactivadas.</small></div></div>
         <p>Los visores y controladores VR se incorporarán mediante adaptadores independientes cuando exista el hardware. La lógica cognitiva no dependerá de una marca concreta.</p>
       </section>
     </div>

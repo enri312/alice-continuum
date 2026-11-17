@@ -1,3 +1,4 @@
+import { riskLabel } from "../../core/governance/display-labels";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { parseCapabilityRegistrySnapshot } from "../../core/governance/capabilities";
@@ -27,6 +28,10 @@ const statusLabels: Record<SkillManifest["status"], string> = {
   approved: "APROBADA",
   disabled: "DESACTIVADA",
   retired: "RETIRADA",
+};
+
+const readinessLabel: Record<SkillSimulationResult["steps"][number]["readiness"], string> = {
+  available: "Disponible", manualReview: "Revisión manual", blocked: "Bloqueado",
 };
 
 function shortDigest(value: string) {
@@ -240,7 +245,7 @@ export function Habilidades({ desktopApp }: { desktopApp: boolean }) {
 
   return <section className="skills-page" aria-labelledby="skills-title">
     <header className="skills-heading">
-      <div><p className="eyebrow">[R4.5] LOCAL SKILL WORKSHOP · EXECUTION SAFE OFF</p><h2 id="skills-title">Taller de habilidades</h2><p>Diseñá, verificá y goberná capacidades compuestas sin entregar control oculto a Alice.</p></div>
+      <div><p className="eyebrow">R4 · EDICIÓN Y SIMULACIÓN</p><h2 id="skills-title">Taller de habilidades</h2><p>Editá borradores, simulá sus pasos y revisá las versiones antes de aprobarlas. Aquí también aparecen los borradores creados desde Procedimientos.</p></div>
       <span className="skills-safety"><i />EJECUCIÓN BLOQUEADA</span>
     </header>
 
@@ -267,7 +272,7 @@ export function Habilidades({ desktopApp }: { desktopApp: boolean }) {
 
       <div className="skills-workbench">
         {!manifest ? <div className="skills-empty"><span>R4</span><strong>Prepará la primera habilidad real</strong><p>La plantilla se mantiene en memoria hasta que pulses “Guardar borrador”.</p></div> : <>
-          <header className="skills-editor-heading"><div><span>{manifest.skillId}</span><strong>{statusLabels[manifest.status]} · RIESGO {manifest.declaredRisk.toUpperCase()}</strong></div><em>{dirty ? "CAMBIOS SIN GUARDAR" : currentSha ? shortDigest(currentSha) : "NO GUARDADA"}</em></header>
+          <header className="skills-editor-heading"><div><span>{manifest.skillId}</span><strong>{statusLabels[manifest.status]} · RIESGO {riskLabel[manifest.declaredRisk]}</strong></div><em>{dirty ? "CAMBIOS SIN GUARDAR" : currentSha ? shortDigest(currentSha) : "NO GUARDADA"}</em></header>
           <div className="skills-editor">
             <label>TÍTULO<input value={manifest.title} maxLength={120} disabled={manifest.status !== "draft"} onChange={(event) => edit("title", event.target.value)} /></label>
             <label>DESCRIPCIÓN<textarea value={manifest.description} maxLength={600} disabled={manifest.status !== "draft"} onChange={(event) => edit("description", event.target.value)} /></label>
@@ -285,13 +290,13 @@ export function Habilidades({ desktopApp }: { desktopApp: boolean }) {
 
           {simulation && <section className="skills-simulation">
             <header><span>[SIM] PLAN ESTÁTICO VERIFICADO</span><strong>{simulation.steps.length} PASO · {simulation.blocks.length} BLOQUEOS</strong></header>
-            <div className="skills-simulation-grid"><div><span>MANIFEST SHA</span><strong>{shortDigest(simulation.manifestSha256)}</strong></div><div><span>PLAN SHA</span><strong>{shortDigest(simulation.planSha256)}</strong></div><div><span>ADAPTADORES</span><strong>{simulation.adapterInvocationCount}</strong></div><div><span>EFECTOS</span><strong>{simulation.sideEffectsApplied ? "SÍ" : "NINGUNO"}</strong></div></div>
-            {simulation.steps.map((step) => <article key={step.stepId}><span>{String(step.position).padStart(2, "0")}</span><div><strong>{step.title}</strong><small>{step.capabilityId} / {step.operation}</small></div><em>{step.readiness.toUpperCase()}</em></article>)}
+            <div className="skills-simulation-grid"><div><span>HUELLA DEL MANIFIESTO</span><strong>{shortDigest(simulation.manifestSha256)}</strong></div><div><span>HUELLA DEL PLAN</span><strong>{shortDigest(simulation.planSha256)}</strong></div><div><span>ADAPTADORES</span><strong>{simulation.adapterInvocationCount}</strong></div><div><span>EFECTOS</span><strong>{simulation.sideEffectsApplied ? "SÍ" : "NINGUNO"}</strong></div></div>
+            {simulation.steps.map((step) => <article key={step.stepId}><span>{String(step.position).padStart(2, "0")}</span><div><strong>{step.title}</strong><small>{step.capabilityId} / {step.operation}</small></div><em>{readinessLabel[step.readiness]}</em></article>)}
             <ul>{simulation.blocks.map((block, index) => <li key={`${block.code}-${index}`}><strong>{block.code}</strong> · {block.summary}</li>)}</ul>
           </section>}
 
           {currentSha && <section className="skills-governance">
-            <header><span>[GOV] CONFIRMACIÓN DEL PROPIETARIO</span><strong>{actions.length ? "DECISIÓN REQUERIDA" : "CICLO CERRADO"}</strong></header>
+            <header><span>CONFIRMACIÓN DEL PROPIETARIO</span><strong>{actions.length ? "DECISIÓN REQUERIDA" : "CICLO CERRADO"}</strong></header>
             {actions.length ? <>
               <label className="skills-confirm"><input type="checkbox" checked={confirmationChecked} onChange={(event) => setConfirmationChecked(event.target.checked)} /><span>Confirmo que revisé la identidad, el SHA-256 y el efecto de esta transición.</span></label>
               <label>MOTIVO VISIBLE<textarea value={confirmationReason} maxLength={600} placeholder="Explicá por qué corresponde este cambio (mínimo 12 caracteres)." onChange={(event) => setConfirmationReason(event.target.value)} /></label>

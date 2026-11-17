@@ -31,7 +31,8 @@ el texto y la voz y conserva el borrador al regresar desde el Dashboard.
 **Diseño de consola para toda la aplicación.** El Dashboard y las 15 pantallas
 usan un fondo común, superficies de metal oscuro y acentos tomados de los iconos
 de Alice. Las pestañas centran sus iconos y separan las etiquetas de los contadores.
-Se conservan el catálogo de SVG, el contenido y los controles de cada pantalla.
+Los 21 iconos funcionales ilustran la herramienta que abren. El emblema principal conserva su diseño.
+En el **Núcleo de gobernanza**, el inventario muestra qué capacidades existen, Permisos gestiona las autorizaciones y Auditoría reúne el historial de operaciones.
 Sora y JetBrains Mono se sirven localmente.
 [Dirección visual y validación](docs/architecture/DIRECCION_VISUAL_ALICE.md).
 

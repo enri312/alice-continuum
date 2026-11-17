@@ -19,7 +19,9 @@ import { Planificador } from "./pages/cognitive/ActionPlannerPage";
 import { Memoria } from "./pages/memory/MemoryVaultPage";
 import { Actividad } from "./pages/cognitive/ActivityHost";
 import { AuditoriaDiagnostico } from "./pages/cognitive/GovernancePage";
-import { Puentes } from "./pages/governance/CapabilityRegistryPage";
+import { FaceTrackingPanel } from "./components/embodiment/FaceTrackingPanel";
+import { BodySolverPanel } from "./components/embodiment/BodySolverPanel";
+import { CapacidadesYPermisos } from "./pages/governance/CapabilityRegistryPage";
 import { Identificacion } from "./pages/cognitive/InputIdentificationPage";
 import { Configuracion } from "./pages/governance/SystemSettingsPage";
 import { Habilidades } from "./pages/governance/SkillWorkshopPage";
@@ -109,11 +111,11 @@ const screenTechnicalTitles: Record<Screen, string> = {
   rostro: "FACE CALIBRATION",
   cuerpo: "BODY SOLVER",
   avatar: "AVATAR VRM",
-  puentes: "CAPABILITY REGISTRY",
-  auditoria: "AUDIT & DIAGNOSTICS",
-  habilidades: "SKILL WORKSHOP",
-  procedimientos: "PROCEDURE OBSERVER",
-  configuracion: "SYSTEM SETTINGS",
+  puentes: "CAPACIDADES Y PERMISOS",
+  auditoria: "AUDITORÍA Y DIAGNÓSTICO",
+  habilidades: "TALLER DE HABILIDADES",
+  procedimientos: "PROCEDIMIENTOS OBSERVADOS",
+  configuracion: "CONFIGURACIÓN",
 };
 
 function loadCloudSelection() {
@@ -155,7 +157,10 @@ export function App() {
   const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [screen, setScreen] = useState<Screen>(() => {
-    const requested = new URLSearchParams(window.location.search).get("screen");
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("screen");
+    if (requested === "puentes" && params.get("bridgeView") === "face") return "rostro";
+    if (requested === "puentes" && params.get("bridgeView") === "body") return "cuerpo";
     const knownScreens = Object.values(workspaceScreens).flat();
     if (requested === "dashboard" || knownScreens.includes(requested as Screen)) return requested as Screen;
     return avatarDiagnostic ? "avatar" : "dashboard";
@@ -651,14 +656,14 @@ export function App() {
         <span>SYS 02 · PRESENCIA FÍSICA</span><strong>EMBODIMENT CORE</strong><small>rostro · cuerpo · avatar · entorno futuro</small>
       </button>
       <button type="button" role="tab" aria-selected={workspace === "governance"} className={workspace === "governance" ? "selected governance" : "governance"} onClick={() => setScreen("puentes")}>
-        <span>SYS 00 · CONTROL DEL PROPIETARIO</span><strong>GOVERNANCE CORE</strong><small>capacidades · auditoría · habilidades · procedimientos</small>
+        <span>SIS. 00 · CONTROL DEL PROPIETARIO</span><strong>NÚCLEO DE GOBERNANZA</strong><small>permisos · auditoría · habilidades · ajustes</small>
       </button>
     </nav>
 
     <section className={`core-system-frame system-${workspace}`} aria-labelledby="active-system-title">
       <header className="core-system-heading">
-        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SYS.00] OWNER GOVERNANCE"}</span><h2 id="active-system-title">{workspace === "governance" ? "ALICE_LOCAL_CONTROL" : "ALICE_NEURAL_CORE"} <em>// {screenTechnicalTitles[screen]}</em></h2></div>
-        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "OWNER CONTROL · LOCAL ONLY"}</p>
+        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SIS.00] GOBERNANZA"}</span><h2 id="active-system-title">{workspace === "governance" ? "CONTROL LOCAL DE ALICE" : "ALICE_NEURAL_CORE"} <em>// {screenTechnicalTitles[screen]}</em></h2></div>
+        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "CONTROL LOCAL DEL PROPIETARIO"}</p>
       </header>
 
     <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas del núcleo cognitivo" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
@@ -677,10 +682,10 @@ export function App() {
       <button className={screen === "avatar" ? "selected" : ""} aria-label="Avatar local" data-tooltip="Avatar" aria-current={screen === "avatar" ? "page" : undefined} onClick={() => setScreen("avatar")}><NavigationIcon kind="avatar" active={screen === "avatar"} /><span className="screen-tab-label">Avatar</span></button>
       </>}
       {workspace === "governance" && <>
-      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y permisos" data-tooltip="Capacidades y permisos" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y permisos</span><span className="screen-count">R1/R2</span></button>
-      <button className={screen === "auditoria" ? "selected" : ""} aria-label="Auditoría y diagnóstico" data-tooltip="Auditoría y diagnóstico" aria-current={screen === "auditoria" ? "page" : undefined} onClick={() => setScreen("auditoria")}><NavigationIcon kind="audit" active={screen === "auditoria"} /><span className="screen-tab-label">Auditoría y diagnóstico</span><span className="screen-count">R3</span></button>
-      <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller</span><span className="screen-count">R4</span></button>
-      <button className={screen === "procedimientos" ? "selected" : ""} aria-label="Procedimientos observados" data-tooltip="Procedimientos" aria-current={screen === "procedimientos" ? "page" : undefined} onClick={() => setScreen("procedimientos")}><NavigationIcon kind="procedures" active={screen === "procedimientos"} /><span className="screen-tab-label">Procedimientos</span><span className="screen-count">R5</span></button>
+      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y permisos" data-tooltip="Capacidades y permisos" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y permisos</span></button>
+      <button className={screen === "auditoria" ? "selected" : ""} aria-label="Auditoría y diagnóstico" data-tooltip="Auditoría y diagnóstico" aria-current={screen === "auditoria" ? "page" : undefined} onClick={() => setScreen("auditoria")}><NavigationIcon kind="audit" active={screen === "auditoria"} /><span className="screen-tab-label">Auditoría y diagnóstico</span></button>
+      <button className={screen === "procedimientos" ? "selected" : ""} aria-label="Procedimientos observados" data-tooltip="Procedimientos" aria-current={screen === "procedimientos" ? "page" : undefined} onClick={() => setScreen("procedimientos")}><NavigationIcon kind="procedures" active={screen === "procedimientos"} /><span className="screen-tab-label">Procedimientos</span></button>
+      <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller de habilidades" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller de habilidades</span></button>
       <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
       </>}
     </nav>
@@ -702,9 +707,9 @@ export function App() {
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setShowFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
-    {screen === "puentes" && <Puentes fixedView="overview" onObservationStateChange={setObservationEnabled} />}
-    {screen === "rostro" && <Puentes fixedView="face" onObservationStateChange={setObservationEnabled} />}
-    {screen === "cuerpo" && <Puentes fixedView="body" onObservationStateChange={setObservationEnabled} />}
+    {screen === "puentes" && <CapacidadesYPermisos onObservationStateChange={setObservationEnabled} onOpenAudit={() => setScreen("auditoria")} />}
+    {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
+    {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
     </div>
     </section>
