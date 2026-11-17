@@ -14,15 +14,16 @@ contenido y backend, con pruebas aisladas antes de cada incorporación. Ver el
 para fases, criterios y estado por plataforma. La aceptación de voz y el núcleo
 siguen pendientes; el plan no da por resuelto R9 ni R10.
 
-**Dashboard de inicio en Dioxus (2026-11-17).** La colección de `Frontend/icons` define
-la dirección visual del proyecto. El Dashboard es su primera aplicación e incluye
-accesos a las herramientas de la asistente y un borrador compartido con
-Conversación. Estado del equipo consulta CPU, RAM, ocupación del disco de datos,
-tráfico de red, energía y tiempo encendido. El indicador circular representa
-la RAM en uso. Las demás pantallas conservan su contenido y sus rutas actuales.
-Rust/Dioxus controla la vista, las acciones y el borrador mientras está abierta.
-El contenedor existente conecta el estado compartido y los comandos Tauri.
-La aplicación del estilo a cada pantalla continuará por etapas.
+**Dashboard de inicio en Dioxus y tema de consola (2026-11-17).** El inicio
+reúne estado de Alice, accesos a herramientas y lecturas del equipo. Texto, voz
+y revisión de mensajes se concentran en Conversación. El tema inspirado en
+`Frontend/icons` se aplica al Dashboard y a las 15 pantallas existentes, con
+marcos comunes y acentos por núcleo. Se conservan sus rutas, iconos y contenido.
+El Dashboard muestra CPU, RAM, volumen de datos, red, energía y tiempo
+encendido. El indicador circular representa RAM en uso. Se comprobó en
+navegador la navegación y alineación de las 15 pantallas y en Tauri el arranque,
+las lecturas reales, el borrador de Conversación y la persistencia de relaciones.
+[Dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md).
 
 **Cierre de la migración:** el objetivo es dejar de usar React por completo,
 avanzando por componentes. Se incluyen las pantallas, el estado compartido de

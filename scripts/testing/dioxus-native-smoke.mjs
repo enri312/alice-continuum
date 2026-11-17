@@ -108,16 +108,15 @@ try {
   assert.ok(nativeReading.network.receivedBytesPerSecond >= 0 && nativeReading.network.transmittedBytesPerSecond >= 0);
   assert.equal(await evaluate('document.querySelectorAll(".dashboard-metric dd").length'), 6);
   await screenshot('dashboard-native.png');
-  await evaluate('document.querySelector("#dashboard-request").focus()');
-  await send('Input.insertText', { text: 'Solicitud de prueba nativa desde Dashboard.' });
-  await evaluate('document.querySelector(".dashboard-primary").click()');
-  await until(() => evaluate('document.querySelector("#alice-message")?.value==="Solicitud de prueba nativa desde Dashboard."'), 'Dashboard conserva el borrador para revisión');
+  assert.equal(await evaluate('document.querySelectorAll(".alice-dashboard textarea,.alice-dashboard form").length'), 0);
+  await evaluate('document.querySelector(".dashboard-shortcut").click()');
+  await until(() => evaluate('Boolean(document.querySelector("#alice-message"))'), 'Dashboard abre la pestaña de Conversación');
   await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
   await flowReady();
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Conversación con Alice").click()');
   await until(() => evaluate('Boolean(document.querySelector(".conversation-page #alice-message"))'), 'Conversación nativa abre con su entrada');
   await evaluate('document.fonts.ready');
-  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'), '24px', 'Propuesta 04 cargada en Tauri');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'), '14px', 'Tema de consola cargado en Tauri');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'), 7, 'Iconos originales presentes');
   assert.equal(await evaluate('document.querySelectorAll(".screen-tabs button").length'), 7, 'Sin controles de navegación añadidos');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading"),"::before").content'), 'none', 'Sin aro decorativo');
@@ -130,7 +129,11 @@ try {
   await evaluate('document.querySelector(".review-actions .secondary").click()');
   assert.equal(await evaluate('Boolean(document.querySelector(".send-review"))'), false, 'Cancelar conserva el borrador sin enviar');
   await evaluate('window.scrollTo(0,0)');
-  await screenshot('conversation-proposal04-native.png');
+  await screenshot('conversation-console-native.png');
+  await evaluate('document.querySelector(".dashboard-entry").click()');
+  await until(() => evaluate('Boolean(document.querySelector(".dashboard-shortcut"))'), 'Vuelve al Dashboard');
+  await evaluate('document.querySelector(".dashboard-shortcut").click()');
+  await until(() => evaluate('document.querySelector("#alice-message")?.value==="Prueba nativa de diseño sin enviar a un modelo."'), 'El borrador queda en Conversación al volver del Dashboard');
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Flujo cognitivo").click()');
   await flowReady();
   assert.equal(await evaluate('Boolean(globalThis.__TAURI_INTERNALS__?.invoke)'), true, 'Puente nativo real presente');
@@ -215,7 +218,7 @@ try {
   await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, dashboardDraftPreserved: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, nodes: 11,
     r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);

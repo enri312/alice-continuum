@@ -1,28 +1,15 @@
-/* Surfaces and light reflect the original console artwork in Frontend/icons. */
-html:has(.alice-dashboard) { background: #040b14; }
-
-body:has(.alice-dashboard) {
-  min-width: 0;
-  background:
-    radial-gradient(ellipse at 50% 1%, #173b53 0%, transparent 48%),
-    linear-gradient(#7dd3fc0a 1px, transparent 1px),
-    linear-gradient(90deg, #7dd3fc0a 1px, transparent 1px),
-    #07111d;
-  background-size: auto, 36px 36px, 36px 36px, auto;
-}
-
 .alice-dashboard {
-  --dash-edge: #2b536b;
-  --dash-cyan: #77e1ff;
-  --dash-text: #eff8ff;
-  --dash-secondary: #a9c1d3;
-  --dash-mono: "JetBrains Mono", Consolas, monospace;
+  --dash-edge: var(--alice-border);
+  --dash-cyan: var(--alice-primary);
+  --dash-text: var(--alice-text);
+  --dash-secondary: var(--alice-muted);
+  --dash-mono: var(--alice-mono);
   max-width: 1240px;
   min-height: calc(100dvh - 1px);
   margin-inline: auto;
   padding: clamp(18px, 4vw, 50px) clamp(14px, 3vw, 30px) 48px;
   color: var(--dash-text);
-  font: 400 14px/1.6 "Sora", "Segoe UI", sans-serif;
+  font: 400 14px/1.6 var(--alice-font);
 }
 
 .dashboard-brand {
@@ -60,10 +47,10 @@ body:has(.alice-dashboard) {
   position: relative;
   min-width: 0;
   border: 1px solid var(--dash-edge);
-  border-radius: 14px;
+  border-radius: var(--alice-radius);
   color: var(--dash-text);
-  background: linear-gradient(145deg, #193044 0%, #0c1929 43%, #0a1724 100%);
-  box-shadow: inset 0 1px #c8ecff35, inset 0 -3px #02061085, 0 10px 30px #03071270;
+  background: var(--alice-metal);
+  box-shadow: var(--alice-bevel);
 }
 
 .dashboard-panel::before {
@@ -75,29 +62,26 @@ body:has(.alice-dashboard) {
   pointer-events: none;
 }
 
-.dashboard-request, .dashboard-system { padding: clamp(17px, 2.7vw, 27px); }
+.dashboard-assistant, .dashboard-system { padding: clamp(17px, 2.7vw, 27px); }
 .alice-dashboard h2 { margin: 0; color: var(--dash-text); font-weight: 650; letter-spacing: -.025em; }
-.dashboard-request h2 { font-size: clamp(25px, 3.1vw, 36px); line-height: 1.18; }
-.dashboard-request p { margin: 12px 0 17px; color: var(--dash-secondary); max-width: 42ch; }
-.dashboard-request form { display: grid; gap: 8px; }
-.dashboard-field-label { color: #b2d8ea; font: 500 12px/1.4 var(--dash-mono); }
-
-.dashboard-request textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 11px 13px;
-  border: 1px solid #376478;
-  border-radius: 9px;
-  resize: vertical;
-  background: #06111c;
-  color: var(--dash-text);
-  font: inherit;
-  box-shadow: inset 0 2px 8px #0008;
+.dashboard-assistant h2 { font-size: 19px; }
+.dashboard-assistant p { margin: 16px 0 0; color: var(--dash-secondary); }
+.dashboard-assistant-summary { display: grid; gap: 8px; margin: 16px 0 0; }
+.dashboard-assistant-summary > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 9px 11px;
+  border: 1px solid var(--dash-edge);
+  border-radius: 8px;
+  background: var(--alice-darkest);
 }
+.dashboard-assistant-summary dt { color: var(--dash-secondary); font-size: 12px; }
+.dashboard-assistant-summary dd { margin: 0; color: var(--dash-cyan); overflow-wrap: anywhere; font: 500 12px/1.45 var(--dash-mono); }
 
-.dashboard-request textarea::placeholder { color: #90aabb; }
-
-.dashboard-primary, .dashboard-link, .dashboard-entry {
+.dashboard-link, .dashboard-entry {
   min-height: 36px;
   padding: 8px 12px;
   border: 1px solid #42687e;
@@ -108,19 +92,8 @@ body:has(.alice-dashboard) {
   font-weight: 600;
 }
 
-.dashboard-primary {
-  justify-self: start;
-  margin-top: 5px;
-  border-color: #80dfff;
-  background: linear-gradient(115deg, #9beaff, #49b6e1);
-  color: #071522;
-  box-shadow: inset 0 1px #ecfcff, 0 0 16px #38bdf833;
-}
-
-.dashboard-primary:disabled { opacity: .62; cursor: not-allowed; box-shadow: none; }
 .dashboard-link:hover, .dashboard-entry:hover { border-color: #82dfff; background: #1a3348; }
-.dashboard-primary:hover:enabled { background: #acf0ff; }
-.alice-dashboard :is(button, textarea):focus-visible, .dashboard-entry:focus-visible { outline: 2px solid #89e5ff; outline-offset: 4px; }
+.alice-dashboard button:focus-visible, .dashboard-entry:focus-visible { outline: 2px solid #89e5ff; outline-offset: 4px; }
 .dashboard-entry { margin: 0 0 10px; }
 
 .dashboard-system {

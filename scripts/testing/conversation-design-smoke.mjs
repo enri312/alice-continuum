@@ -70,9 +70,9 @@ try {
       labelOffset:(caption.left+caption.width/2)-(card.left+card.width/2),
       gap:caption.top-picture.bottom,labelFits:label.scrollHeight<=label.clientHeight+1&&label.scrollWidth<=label.clientWidth+1};
   })`);
-  const checkNavigation=async width=>{
+  const checkNavigation=async (width, expectedCount=7)=>{
     const layout=await navigationLayout();
-    assert.equal(layout.length,7);
+    assert.equal(layout.length,expectedCount);
     for(const item of layout){
       assert.ok(Math.abs(item.iconOffset)<1,'Icono centrado a '+width+' px: '+JSON.stringify(item));
       assert.ok(Math.abs(item.labelOffset)<1,'Etiqueta centrada: '+item.text);
@@ -109,7 +109,8 @@ try {
   await until(()=>evaluate('document.querySelector(".dashboard-reading-status")?.textContent==="Lecturas locales"'), 'Dashboard de inicio con métricas de prueba');
   assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'),'dioxus');
   await evaluate('document.fonts.ready');
-  assert.equal(await evaluate('document.querySelector(".dashboard-primary").disabled'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".alice-dashboard textarea,.alice-dashboard form").length'),0,'La escritura vive en Conversación');
+  assert.equal(await evaluate('document.querySelectorAll(".dashboard-assistant-summary dd").length'),3);
   assert.equal(await evaluate('document.querySelector(".dashboard-gauge-value strong").textContent'),'38 %');
   assert.equal(await evaluate('document.querySelectorAll(".dashboard-shortcut img").length'),4);
   assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="send_cloud_message").length'),0);
@@ -121,14 +122,14 @@ try {
   }
   await screenshot('dashboard-narrow.png');
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
-  await evaluate('document.querySelector("#dashboard-request").focus()');
-  await send('Input.insertText',{text:'Solicitud de prueba desde el Dashboard.'});
-  await click('.dashboard-primary'); await ready();
-  assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Solicitud de prueba desde el Dashboard.');
+  await click('.dashboard-shortcut'); await ready();
   assert.equal(await evaluate('document.querySelectorAll(".send-review").length'),0);
-  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="send_cloud_message").length'),0,'Abrir Conversación conserva el borrador sin enviarlo');
+  await input('Borrador en Conversación');
   await click('.dashboard-entry');
-  await until(()=>evaluate('document.querySelector("#dashboard-request")?.value==="Solicitud de prueba desde el Dashboard."'),'Regreso al Dashboard conserva el borrador');
+  await until(()=>evaluate('Boolean(document.querySelector(".dashboard-assistant"))'),'Regreso al Dashboard');
+  await click('.dashboard-shortcut'); await ready();
+  assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Borrador en Conversación');
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="send_cloud_message").length'),0,'Navegar conserva el borrador sin enviarlo');
   const conversationUrl = new URL(url); conversationUrl.searchParams.set('screen','identificacion');
   await send('Page.navigate',{url:conversationUrl.href}); await ready(); await evaluate('document.fonts.ready');
   await until(()=>evaluate('document.querySelector(".conversation-status").textContent.includes("Motor de prueba local")'),'estado real del adaptador simulado');
@@ -146,12 +147,12 @@ try {
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-heading")).clipPath'),'inset(50%)','Encabezado técnico compacto como antes');
   assert.equal(await evaluate('document.querySelectorAll(".conversation-secondary-panel[open],.conversation-context-drawer[open]").length'),0);
   assert.ok(await evaluate('document.fonts.check(\'500 14px "Sora"\')&&document.fonts.check(\'500 14px "JetBrains Mono"\')'));
-  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'24px');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'14px');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".composer")).display'),'flex');
   await checkNavigation(1280);
   assert.equal(await evaluate('document.querySelector(".composer-footer button").disabled'),true);
   await input('Prueba visual: empatía y álgebra.');
-  assert.ok(await evaluate('getComputedStyle(document.querySelector(".composer-footer .primary")).backgroundImage.includes("139, 92, 246")'),'Acción principal con el degradado de la propuesta');
+  assert.ok(await evaluate('getComputedStyle(document.querySelector(".composer-footer .primary")).backgroundImage.includes("73, 182, 225")'),'Acción principal con el acabado de consola');
   await click('.composer-footer button');
   await until(()=>evaluate('Boolean(document.querySelector(".send-review"))'),'revisión previa');
   assert.equal(await evaluate('__calls.filter(c=>c.cmd==="send_cloud_message").length'),0,'Revisar no envía');
@@ -191,18 +192,40 @@ try {
   await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
   await until(()=>evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .internal-state\'))'),'teclado abre Estado Dioxus');
   assert.equal(await evaluate('document.querySelector(".shell").classList.contains("is-conversation")'),false);
-  assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'24px','El tema queda limitado a Conversación');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'14px','Estado comparte el marco de consola');
   await click('.screen-tabs button[aria-label="Conversación con Alice"]'); await ready();
   assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Prueba del estado de error.','Navegar conserva el borrador');
   assert.equal(await evaluate('document.querySelectorAll(".chat-message").length'),2,'Navegar conserva el chat');
   assert.equal(await evaluate('__devices'),0);
+  const themedScreens = [];
+  const screenCounts = {
+    identificacion:7, nucleo:7, flujo:7, estado:7, planificador:7, memoria:7, actividad:7,
+    rostro:3, cuerpo:3, avatar:3, puentes:5, auditoria:5, habilidades:5, procedimientos:5, configuracion:5,
+  };
+  for (const [screen, tabCount] of Object.entries(screenCounts)) {
+    const target = new URL(url); target.searchParams.set('screen', screen);
+    await send('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
+    await send('Page.navigate',{url:target.href});
+    await until(()=>evaluate(`Boolean(document.querySelector('main[data-screen="${screen}"] .core-system-content > *'))`), 'Página '+screen);
+    await evaluate('document.fonts.ready');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'14px','Marco de consola en '+screen);
+    assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),tabCount,'SVG presentes en '+screen);
+    assert.equal(await evaluate('document.querySelectorAll(".screen-tabs [aria-current=page]").length'),1,'Selección original en '+screen);
+    await checkNavigation(1280, tabCount);
+    if (['memoria','estado','avatar','puentes','configuracion'].includes(screen)) {
+      await screenshot('console-'+screen+'.png');
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:1,mobile:false});
+    await checkNavigation(390, tabCount);
+    themedScreens.push(screen);
+  }
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,keyboardAndCarousel:true,routeScope:true},null,2));
-  console.log('Conversación Propuesta 04: diseño, fuentes locales, revisión/cancelación/edición/envío/error, tamaños, teclado y alcance verificados. IPC sintético. Evidencia: '+artifacts);
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,keyboardAndCarousel:true},null,2));
+  console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {
   if(send&&socket?.readyState===WebSocket.OPEN){try{const r=await send('Page.captureScreenshot',{format:'png'});await fs.writeFile(path.join(artifacts,'failure.png'),Buffer.from(r.data,'base64'));}catch{}}

@@ -7,6 +7,7 @@ import "./styles/memory-records.css";
 import "./styles/interaction-affordance.css";
 import "./components/cognitive/NeuralVolume.css";
 import "./styles/conversation-proposal04.css";
+import "./styles/console-theme.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -3,11 +3,19 @@ use serde::Deserialize;
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Payload {
-    pub draft: String,
     pub desktop_app: bool,
     pub failed: bool,
     pub snapshot: Option<Overview>,
     pub assets: Assets,
+    pub assistant: AssistantSummary,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AssistantSummary {
+    pub provider: String,
+    pub memory_count: usize,
+    pub event_count: usize,
 }
 
 #[derive(Clone, Deserialize)]

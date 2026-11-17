@@ -626,12 +626,15 @@ export function App() {
 
   if (screen === "dashboard") return <DashboardHost
     desktopApp={desktopApp}
-    draft={conversationDraft}
-    onDraftChange={setConversationDraft}
+    assistant={{
+      provider: cloudStatus.providers.find(provider => provider.id === cloudSelection.provider)?.label ?? "Sin motor seleccionado",
+      memoryCount: conversationalMemories.length,
+      eventCount: cognitiveEvents.length,
+    }}
     onNavigate={setScreen}
   />;
 
-  return <main className={`shell ${screen === "identificacion" ? "is-conversation" : screen === "nucleo" ? "is-volume" : ""}`}>
+  return <main data-screen={screen} className={`shell ${screen === "identificacion" ? "is-conversation" : screen === "nucleo" ? "is-volume" : ""}`}>
     <header className="hero">
       <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA</p></div>
       <h1><span>Una presencia digital,</span> <em>bajo tu control.</em></h1>

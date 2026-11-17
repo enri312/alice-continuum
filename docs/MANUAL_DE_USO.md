@@ -37,7 +37,7 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 2. Hacé doble clic en **Iniciar Alice Continuum.cmd**.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
-5. Usá el **Dashboard** para preparar una solicitud o abrir una herramienta.
+5. Usá el **Dashboard** para revisar el estado de Alice o abrir una herramienta.
 6. Entrá en **Configuración** si necesitás revisar el proveedor de conversación.
 
 Para revisar el entorno sin abrir la aplicación:
@@ -51,10 +51,11 @@ el puerto local `5173` e impide duplicados del mismo proyecto.
 
 ## 2. Cómo está organizada Alice
 
-El **Dashboard** es la pantalla de inicio. Desde **¿En qué te ayudo?** podés
-escribir una solicitud y llevarla a Conversación como borrador para revisarla.
+El **Dashboard** es la pantalla de inicio. **Estado de Alice** muestra el
+motor seleccionado, los recuerdos disponibles y los eventos de la sesión.
 Las tarjetas abren Conversación, Planificador, Memoria y Capacidades y permisos.
-Usá **← Dashboard** desde cualquier pantalla para volver.
+Para escribir o hablar con Alice, abrí **Conversación**. Usá **← Dashboard**
+desde cualquier pantalla para volver. El borrador se conserva en Conversación.
 
 **Estado del equipo** muestra CPU, RAM, espacio ocupado en el volumen donde se
 guardan los datos de Alice, tráfico recibido y enviado, energía y tiempo

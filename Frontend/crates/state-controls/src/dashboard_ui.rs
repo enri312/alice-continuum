@@ -20,20 +20,15 @@ impl PartialEq for PageProps {
     }
 }
 
-fn emit(callback: &js_sys::Function, kind: &str, value: &str) {
-    let action = json!({ "type": kind, "value": value }).to_string();
-    let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&action));
-}
-
 fn navigation(callback: js_sys::Function, screen: &'static str) -> impl FnMut(MouseEvent) {
-    move |_| emit(&callback, "navigate", screen)
+    move |_| {
+        let action = json!({ "type": "navigate", "value": screen }).to_string();
+        let _ = callback.call1(&JsValue::NULL, &JsValue::from_str(&action));
+    }
 }
 
 pub fn page(props: PageProps) -> Element {
     let mut payload = use_signal(|| props.initial.clone());
-    // The mounted page owns the field. Updates from IPC refresh the metrics
-    // without overwriting what the owner is currently typing.
-    let mut draft = use_signal(|| props.initial.draft.clone());
     let receiver = props.rx.clone();
     use_future(move || {
         let receiver = receiver.borrow_mut().take();
@@ -53,8 +48,6 @@ pub fn page(props: PageProps) -> Element {
     let view = payload.read();
     let metrics = view.metrics();
     let ram_style = format!("--ram-use: {}%", view.ram_percent().unwrap_or(0.0));
-    let submit = props.on_action.clone();
-    let edit = props.on_action.clone();
     let shortcuts = [
         (
             "identificacion",
@@ -92,30 +85,14 @@ pub fn page(props: PageProps) -> Element {
                 }
             }
             div { class: "dashboard-overview",
-                section { class: "dashboard-panel dashboard-request", "aria-labelledby": "dashboard-request-title",
-                    h2 { id: "dashboard-request-title", "¿En qué te ayudo?" }
-                    p { "Escribe lo que necesitas. Puedes continuar en Conversación y revisar tu solicitud antes de enviarla." }
-                    form {
-                        onsubmit: move |event| {
-                            event.prevent_default();
-                            if !draft.read().trim().is_empty() {
-                                emit(&submit, "navigate", "identificacion");
-                            }
-                        },
-                        label { r#for: "dashboard-request", class: "dashboard-field-label", "Tu solicitud" }
-                        textarea {
-                            id: "dashboard-request", rows: "3", value: "{draft}",
-                            placeholder: "Explícame un tema o ayúdame a organizar una tarea…",
-                            oninput: move |event| {
-                                let value = event.value();
-                                emit(&edit, "draft", &value);
-                                draft.set(value);
-                            }
-                        }
-                        button { r#type: "submit", class: "dashboard-primary", disabled: draft.read().trim().is_empty(),
-                            "Continuar en Conversación " span { "aria-hidden": "true", "→" }
-                        }
+                section { class: "dashboard-panel dashboard-assistant", "aria-labelledby": "dashboard-assistant-title",
+                    h2 { id: "dashboard-assistant-title", "Estado de Alice" }
+                    dl { class: "dashboard-assistant-summary",
+                        div { dt { "Motor seleccionado" } dd { "{view.assistant.provider}" } }
+                        div { dt { "Recuerdos disponibles" } dd { "{view.assistant.memory_count}" } }
+                        div { dt { "Eventos de esta sesión" } dd { "{view.assistant.event_count}" } }
                     }
+                    p { "Usa las herramientas de abajo para pedir ayuda, consultar recuerdos y revisar acciones." }
                 }
                 section { class: "dashboard-panel dashboard-system", "aria-labelledby": "dashboard-system-title",
                     header { class: "dashboard-panel-heading",

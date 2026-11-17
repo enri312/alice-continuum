@@ -1,43 +1,34 @@
 # Dirección visual de Alice Continuum
 
 Actualización del 17 de noviembre de 2026. Los iconos de `Frontend/icons`
-son la referencia visual acordada para Alice. La primera pantalla de esta
-etapa es el Dashboard, con marcos de consola, planos oscuros, acentos cian y
-los SVG del proyecto. La adopción se hace pantalla por pantalla para preservar
-las rutas, los datos y las funciones de la asistente.
+son la referencia visual de Alice. El Dashboard y las 15 pantallas existentes
+comparten el marco de consola, las superficies oscuras y los SVG del proyecto.
+Los acentos cian, ámbar y violeta identifican los tres núcleos.
 
 ## Dashboard
 
-El inicio sitúa las solicitudes y las herramientas de Alice junto al panel de
-estado del equipo. Conversación sigue siendo el canal de texto y voz. El
-borrador que se prepara en el Dashboard pasa a la revisión habitual.
+El inicio presenta el estado de Alice, los accesos a sus herramientas y la
+telemetría. Conversación reúne el texto, la voz y la revisión del mensaje.
+El borrador queda en Conversación al pasar por el Dashboard.
 La telemetría es local y de sólo lectura. Usa recursos del sistema operativo
 y se consulta mientras el Dashboard está visible. El anillo presenta
 ocupación de RAM con una unidad y una fuente identificables.
-La pantalla se renderiza con Dioxus. El Rust de la vista formatea las lecturas,
-gestiona el formulario y emite las acciones de navegación. `DashboardHost.tsx`
+La pantalla se renderiza con Dioxus. El Rust de la vista formatea las lecturas
+y emite las acciones de navegación. `DashboardHost.tsx`
 es el puente con el contenedor actual y el comando Tauri de telemetría.
-
-## Propuesta 04 en Conversación
-
-El propietario eligió su archivo «Alice Continuum · Propuesta 04 — Mejora del
-diseño actual.html» como referencia. La dirección conserva la identidad oscura,
-los iconos elaborados y todo el contenido del producto, con superficies más
-tranquilas, tipografía legible y una jerarquía clara. Esta incorporación es
-visual: Conversación y el contenedor raíz todavía usan React y su migración a
-Dioxus continúa pendiente.
 
 ## Lenguaje visual adoptado
 
-- Fondo oscuro `#07080f`, luz ambiental estática violeta y cian, paneles
-  translúcidos y bordes blancos suaves. Sin animaciones ambientales continuas.
-- Acento principal violeta → azul → cian. Los estados de error, grabación,
-  actividad y disponibilidad conservan sus significados y sus textos reales.
+- Fondo oscuro `#07111d`, retícula tenue, luz ambiental azul y paneles con
+  bordes biselados inspirados en los iconos.
+- Acento cian para acciones y lecturas. Los estados de error, grabación,
+  actividad y disponibilidad conservan sus colores, significados y textos.
 - Sora para lectura y controles; JetBrains Mono para identificadores y datos
   técnicos. Archivos WOFF2 locales, con licencias SIL OFL 1.1 incluidas, sin
   solicitudes a Google Fonts durante el uso.
-- Sistemas en tarjetas redondeadas, área de trabajo con radio de 24 px y pestañas
-  con los SVG propios. Desplazamiento horizontal nativo y acceso por teclado.
+- Sistemas y accesos con superficies de metal oscuro. Los SVG y sus etiquetas
+  se alinean en filas separadas de sus contadores. El desplazamiento horizontal
+  nativo permite recorrer todas las pestañas en ventanas estrechas.
 - Mensajes en un área de lectura diferenciada; controles de voz junto al
   compositor, acción principal con degradado y revisión explícita antes de enviar.
 - Contexto, documentos y diagnóstico bajo demanda. Foco visible, adaptación a
@@ -56,12 +47,11 @@ Tras la revisión del propietario se quitaron el aro decorativo y las dos flecha
 añadidas. El encabezado técnico vuelve al tratamiento compacto previo, sin
 repetirse visualmente sobre Conversación. No se añaden emblemas a los originales.
 
-## Del HTML de referencia al producto
+## Contenido de Conversación
 
-La referencia contiene conversación, alarmas, recuerdos, proveedores y respuestas
-de demostración. Se tomó su presentación; sus manejadores JavaScript y datos
-ficticios no se incorporaron. La interfaz conserva los contratos, permisos y
-acciones reales de Alice:
+La composición de Conversación parte del HTML «Propuesta 04». El tema de
+consola aporta su marco y paleta. Los contratos, permisos y funciones de
+Conversación se conservan.
 
 | Contenido | Tratamiento |
 |---|---|
@@ -73,39 +63,24 @@ acciones reales de Alice:
 | Contexto | Historial, recuerdos y ventana seleccionables; información real del motor y límites actuales. |
 | Herramientas secundarias | Diagnóstico de entrada y documentos locales conservados, cerrados inicialmente. |
 
-`Frontend/src/styles/conversation-proposal04.css` acota sus reglas a
-`.shell.is-conversation`, incluidos los fondos del documento mientras esa ruta
-está activa. No cambia los tokens globales. Se retiró el controlador de carrusel
-añadido inicialmente: la navegación conserva su desplazamiento nativo.
+`Frontend/src/styles/console-theme.css` define el fondo, la paleta, el marco
+común y la navegación. `conversation-proposal04.css` conserva la disposición
+propia del chat, el compositor y la revisión. Dashboard y las vistas en Rust
+reutilizan la misma base de estilos.
 
 ## Validación y límites
 
-Se comprobaron compilación, pruebas existentes y el flujo de revisión, edición,
-cancelación, autorización y error en un navegador aislado con IPC y respuesta
-sintéticos. Se revisaron tamaños de 320, 390, 1024 y 1280 px, carga local de las
-fuentes, ausencia de solicitudes externas, navegación por teclado y regreso a
-Conversación conservando su borrador y chat.
+- El ensayo de navegador comprueba el marco y las etiquetas en las 15 rutas a
+  390 y 1280 px. Dashboard y Conversación también se prueban a 320 px.
+  El envío, la cancelación y los errores de Conversación usan IPC sintético.
+- La aceptación Tauri abre Dashboard en Dioxus y consulta métricas del equipo.
+  Comprueba el acceso a Conversación, la conservación de su borrador, Estado,
+  Flujo, Actividad y la persistencia de relaciones con registros aislados.
+- Las pruebas de voz, cámara y proveedores reales tienen su propio alcance.
+- [Informe de la incorporación inicial de Conversación](../testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
-La aceptación nativa abre una ventana Tauri con datos sintéticos separados y
-puente real. Comprueba el tema, los iconos, la revisión/cancelación sin enviar y
-la continuidad de Estado, Flujo y Actividad en Dioxus. No abre cámara ni
-micrófono y no llama a modelos, Fish o Spotify.
-[Resultados y evidencia](../testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
-
-## Siguientes incorporaciones
-
-1. Revisar con el propietario Conversación funcionando en Alice.
-2. Adaptar una sola pantalla por incremento, partiendo del mismo lenguaje visual.
-   Conservar su contenido completo, iconos, subpestañas, permisos y acciones.
-3. Comparar estados de carga, vacío, datos, error y recuperación, además de teclado
-   y anchos. Volumen conserva su escena 3D; las señales observadas no se confunden
-   con actividad simulada ni se añaden datos para rellenar una composición.
-4. Comprobar compilación y apertura nativa, actualizar README/Roadmap y cerrar con
-   un commit revisado antes de avanzar a otra pantalla.
-
-El trabajo visual y la sustitución de framework se coordinan, pero se verifican
-por separado. No se añade una segunda implementación de las funciones de
-Conversación para reproducir la maqueta.
+La adaptación visual y la migración a Dioxus se registran por separado.
+[Inventario de migración](DIOXUS_MIGRATION_STATUS.md).
 
 ## Exploraciones anteriores
 

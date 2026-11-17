@@ -1,0 +1,200 @@
+@import "./proposal04-fonts.css";
+
+/* Shared design language for the React shell and the Dioxus workspaces. */
+:root {
+  color-scheme: dark;
+  --alice-darkest: #06111c;
+  --alice-bg: #07111d;
+  --alice-panel: #13273a;
+  --alice-panel-soft: #0c1929;
+  --alice-border: #2b536b;
+  --alice-border-strong: #42687e;
+  --alice-text: #eff8ff;
+  --alice-muted: #a9c1d3;
+  --alice-primary: #77e1ff;
+  --alice-primary-deep: #49b6e1;
+  --alice-signal: var(--alice-primary);
+  --alice-font: "Sora", "Segoe UI", sans-serif;
+  --alice-mono: "JetBrains Mono", Consolas, monospace;
+  --alice-metal: linear-gradient(145deg, #193044 0%, #0c1929 43%, #0a1724 100%);
+  --alice-metal-soft: linear-gradient(155deg, #172b3e, #0a1725 72%);
+  --alice-bevel: inset 0 1px #c8ecff35, inset 0 -3px #02061085, 0 10px 30px #03071270;
+  --alice-action: linear-gradient(115deg, #9beaff, #49b6e1);
+  --alice-radius: 14px;
+  background: #040b14;
+}
+
+body {
+  min-width: 0;
+  background:
+    radial-gradient(ellipse at 50% 1%, #173b53 0%, transparent 48%),
+    linear-gradient(#7dd3fc0a 1px, transparent 1px),
+    linear-gradient(90deg, #7dd3fc0a 1px, transparent 1px),
+    var(--alice-bg);
+  background-size: auto, 36px 36px, 36px 36px, auto;
+}
+
+main.shell {
+  width: min(1440px, calc(100% - 36px));
+  padding: 16px 0 44px;
+  color: var(--alice-text);
+  font-family: var(--alice-font);
+}
+
+main.shell::before { display: none; }
+
+.shell .hero {
+  padding: 12px 14px;
+  border: 1px solid var(--alice-border);
+  border-radius: var(--alice-radius);
+  background: var(--alice-metal);
+  box-shadow: var(--alice-bevel);
+}
+
+.shell .hero .monogram { border-radius: 7px; }
+.shell .hero .eyebrow { color: var(--alice-muted); font-family: var(--alice-mono); }
+.shell .hero h1 { color: var(--alice-muted); font-family: var(--alice-font); }
+.shell .hero > .privacy-badge { border-radius: 99px; font-family: var(--alice-mono); }
+
+.shell .dashboard-entry { margin: 8px 0 12px; }
+.shell .core-system-selector { gap: 9px; margin-bottom: 12px; }
+.shell .core-system-selector button.body, .shell .system-body { --alice-signal: #f6be76; }
+.shell .core-system-selector button.governance, .shell .system-governance { --alice-signal: #b8a6fb; }
+
+.shell .core-system-selector button {
+  min-height: 62px;
+  border: 1px solid var(--alice-border);
+  border-radius: 10px;
+  background: var(--alice-metal-soft);
+  box-shadow: var(--alice-bevel);
+}
+
+.shell .core-system-selector button > span { color: var(--alice-muted); font: 500 .58rem/1.4 var(--alice-mono); }
+.shell .core-system-selector button > strong { color: var(--alice-text); font: 650 .82rem/1.4 var(--alice-font); }
+.shell .core-system-selector button > small { color: var(--alice-muted); font: 400 .64rem/1.45 var(--alice-font); }
+.shell .core-system-selector button::before { border-radius: 5px; color: var(--alice-muted); font-family: var(--alice-mono); }
+.shell .core-system-selector button.selected::before { color: var(--alice-signal); border-color: var(--alice-signal); }
+.shell .core-system-selector button.selected::after { background: var(--alice-signal); }
+.shell .core-system-selector button:is(.cognitive,.body,.governance).selected,
+.shell .core-system-frame > .screen-tabs.grouped button.selected {
+  border-color: color-mix(in srgb, var(--alice-signal) 70%, var(--alice-border));
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--alice-signal) 17%, #182635), #0b1928 76%);
+  box-shadow: inset 0 1px #ffffff2b, 0 0 14px color-mix(in srgb, var(--alice-signal) 20%, transparent);
+}
+
+.shell section.core-system-frame {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--alice-signal) 32%, var(--alice-border));
+  border-radius: var(--alice-radius);
+  background: var(--alice-metal-soft);
+  box-shadow: var(--alice-bevel);
+}
+
+.shell .core-system-heading {
+  background: linear-gradient(110deg, color-mix(in srgb, var(--alice-signal) 9%, #13283a), #081724);
+  border-color: var(--alice-border);
+}
+.shell .core-system-heading h2, .shell .core-system-heading > p { font-family: var(--alice-mono); }
+.shell .core-system-heading > div > span { color: var(--alice-muted); font: 500 .59rem/1.4 var(--alice-mono); }
+.shell .core-system-heading h2 em { color: var(--alice-signal); }
+.shell .core-system-heading > p { border-radius: 6px; }
+.shell.is-conversation .core-system-content { padding: 4px 16px 16px; }
+
+.shell .core-system-frame > .screen-tabs.grouped {
+  padding: 10px 12px;
+  gap: 8px;
+  margin: 0;
+  border-bottom: 1px solid var(--alice-border);
+  scrollbar-color: #42687e transparent;
+}
+
+.shell .core-system-frame > .screen-tabs.grouped button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 66px 34px;
+  align-content: start;
+  justify-items: center;
+  flex: 0 0 124px;
+  width: 124px;
+  height: 124px;
+  min-height: 124px;
+  padding: 7px 5px;
+  gap: 7px;
+  border: 1px solid var(--alice-border);
+  border-radius: 10px;
+  background: var(--alice-metal);
+  box-shadow: inset 0 1px #c8ecff24, inset 0 -2px #02061085;
+}
+
+.shell .core-system-frame > .screen-tabs.grouped button:hover { border-color: var(--alice-signal); }
+.shell .core-system-frame > .screen-tabs.grouped button.selected::after {
+  inset: auto 26px 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--alice-signal);
+  box-shadow: 0 0 9px var(--alice-signal);
+}
+
+.shell .core-system-frame > .screen-tabs.grouped .screen-tab-icon {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  justify-self: center;
+  width: 66px;
+  height: 66px;
+  margin: 0;
+  line-height: 0;
+  transform: none;
+}
+.shell .core-system-frame > .screen-tabs.grouped .screen-tab-icon svg { display: block; width: 100%; height: 100%; }
+.shell .core-system-frame > .screen-tabs.grouped button .screen-tab-label {
+  display: block;
+  position: static;
+  align-self: start;
+  justify-self: stretch;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  text-align: center;
+  white-space: normal;
+  color: var(--alice-muted);
+  font: 590 .69rem/1.25 var(--alice-font);
+}
+.shell .core-system-frame > .screen-tabs.grouped button.selected .screen-tab-label { color: var(--alice-text); }
+.shell .core-system-frame > .screen-tabs.grouped .screen-count {
+  position: absolute;
+  inset: 6px 6px auto auto;
+  border: 1px solid var(--alice-border);
+  border-radius: 5px;
+  background: #06111c;
+  color: var(--alice-signal);
+  font: 500 .58rem/1 var(--alice-mono);
+}
+
+/* Page surfaces only. Keep semantic colors, graphics and individual controls. */
+.shell .core-system-content :is(.neuro-panel.nucleus-page,.memory-page,.activity-page,.bridge-page,.settings-page,.skills-page,.avatar-page) {
+  border-color: var(--alice-border);
+  border-radius: 11px;
+  background: var(--alice-metal);
+  box-shadow: inset 0 1px #c8ecff1c;
+}
+.shell .core-system-content :is(.nucleus-page-header,.memory-heading,.activity-heading,.bridge-heading,.settings-heading,.skills-heading,.avatar-heading) h2 {
+  color: var(--alice-text);
+  font-family: var(--alice-font);
+  font-weight: 650;
+}
+.shell .core-system-content :is(.eyebrow,.nucleus-page-code) { font-family: var(--alice-mono); }
+.shell :is(button,summary,input,select,textarea):focus-visible { outline-color: var(--alice-signal); }
+
+@media (max-width: 720px) {
+  main.shell { width: calc(100% - 24px); padding-top: 12px; }
+  .shell .hero { gap: 7px 11px; padding: 8px; }
+  .shell .hero .eyebrow { white-space: normal; }
+  .shell .hero h1 { white-space: normal; }
+  .shell .core-system-frame > .screen-tabs.grouped button { flex-basis: 116px; width: 116px; }
+  .shell .core-system-frame > .screen-tabs.grouped { padding: 8px; }
+  .shell.is-conversation .core-system-content { padding: 4px 9px 10px; }
+}

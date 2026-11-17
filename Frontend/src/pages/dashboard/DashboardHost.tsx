@@ -17,12 +17,11 @@ const destinations: readonly Screen[] = [
 
 type Props = {
   desktopApp: boolean;
-  draft: string;
-  onDraftChange: (draft: string) => void;
+  assistant: { provider: string; memoryCount: number; eventCount: number };
   onNavigate: (screen: Screen) => void;
 };
 
-// Root-shell adapter. Dashboard layout, editing and actions are owned by Dioxus.
+// Root-shell adapter. Dashboard layout and actions are owned by Dioxus.
 export function DashboardHost(props: Props) {
   const root = `alice-dashboard-${useId().replace(/[^a-z0-9_-]/gi, "")}`;
   const callbacks = useRef(props);
@@ -31,7 +30,7 @@ export function DashboardHost(props: Props) {
   const [attempt, setAttempt] = useState(0);
   const [reading, setReading] = useState<{ snapshot: unknown; failed: boolean }>({ snapshot: null, failed: false });
   const controller = useRef<ReturnType<typeof startStateControlsView> | null>(null);
-  const payload = JSON.stringify({ draft: props.draft, desktopApp: props.desktopApp, assets, ...reading });
+  const payload = JSON.stringify({ assistant: props.assistant, desktopApp: props.desktopApp, assets, ...reading });
   const latest = useRef(payload);
   latest.current = payload;
 
@@ -45,7 +44,6 @@ export function DashboardHost(props: Props) {
         let action: { type?: unknown; value?: unknown } | null;
         try { action = JSON.parse(raw); } catch { return; }
         if (!action || typeof action.value !== "string") return;
-        if (action.type === "draft") callbacks.current.onDraftChange(action.value);
         if (action.type === "navigate" && destinations.includes(action.value as Screen)) {
           callbacks.current.onNavigate(action.value as Screen);
         }

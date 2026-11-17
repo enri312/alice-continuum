@@ -20,28 +20,20 @@ La versión del producto es **0.1.0** y el documento maestro **0.65**.
 El repositorio se llama **`enri312/alice-continuum`** y conserva el historial del
 proyecto anterior Alice Cognitive Core.
 
-**Dashboard de inicio en Dioxus (17 de noviembre de 2026).** Alice abre con un espacio para
-preparar una solicitud y accesos a Conversación, Planificador, Memoria, Permisos,
-Actividad y Configuración. El panel **Estado del equipo** muestra lecturas locales
-de CPU, RAM, disco, red, energía y tiempo encendido. El indicador circular muestra
-uso de RAM. La estética del Dashboard toma como base los iconos propios de Alice.
-Cada pantalla conserva su contenido y sigue accesible desde sus núcleos.
-La interfaz y su formulario se renderizan en Dioxus. El contenedor compartido
-conecta la navegación, el borrador y las lecturas del backend Rust.
+**Dashboard de inicio en Dioxus (17 de noviembre de 2026).** Alice abre con un
+resumen del motor seleccionado, recuerdos y actividad de la sesión. Los accesos
+abren Conversación, Planificador, Memoria, Permisos, Actividad y Configuración.
+El panel **Estado del equipo** muestra CPU, RAM, disco, red, energía y tiempo
+encendido. El indicador circular muestra uso de RAM. Conversación concentra
+el texto y la voz y conserva el borrador al regresar desde el Dashboard.
 [Uso del Dashboard](docs/MANUAL_DE_USO.md#2-cómo-está-organizada-alice).
 
-**Diseño de Conversación (15 de noviembre de 2026):** se incorporó la Propuesta 04
-elegida por el propietario: superficies translúcidas, bordes redondeados y acentos
-violeta, azul y cian. Conserva el catálogo de iconos y las funciones reales de texto,
-voz, visión, recuerdos y revisión del mensaje. Las fuentes Sora y JetBrains Mono
-se sirven localmente. Las otras páginas conservan su presentación; el cambio no
-declara migrada Conversación a Dioxus.
-Tras comparar con la interfaz anterior, se retiraron el aro decorativo, las dos
-flechas añadidas y la repetición visible del encabezado técnico. La navegación
-original se conserva; el cambio sigue siendo de presentación.
-Las pestañas usan dos filas uniformes para centrar cada icono con su etiqueta,
-con espacio para nombres de dos líneas y contadores separados del contenido.
-[Alcance y validación](docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+**Diseño de consola para toda la aplicación.** El Dashboard y las 15 pantallas
+usan un fondo común, superficies de metal oscuro y acentos tomados de los iconos
+de Alice. Las pestañas centran sus iconos y separan las etiquetas de los contadores.
+Se conservan el catálogo de SVG, el contenido y los controles de cada pantalla.
+Sora y JetBrains Mono se sirven localmente.
+[Dirección visual y validación](docs/architecture/DIRECCION_VISUAL_ALICE.md).
 
 **Icono de Conversación:** por solicitud del propietario se adaptó su composición
 al acabado de IA con cristal, circuitos finos y paleta violeta/azul/cian. Mantiene
@@ -460,12 +452,10 @@ ordena la reproducción de fallos, la instalación y las pruebas en Windows,
 Linux y macOS. Es una planificación; no declara compatibilidad ya terminada.
 
 La prioridad actual es Windows y la migración progresiva de la interfaz a Dioxus.
-La [dirección visual vigente](docs/architecture/DIRECCION_VISUAL_ALICE.md) parte
-del estilo de los iconos de Alice y comienza con el Dashboard en Dioxus.
-Conserva los iconos originales, identidad, contenido y controles. El resto se
-adaptará por pantalla con comprobaciones de sus funciones; la escena cerebral
-sigue intacta. Observatorio, Cuaderno y la primera evolución CSS quedan como
-exploraciones anteriores privadas en `experiments/`, excluidas de Git.
+El estilo de los iconos de Alice guía el Dashboard y el marco común de los tres
+núcleos. Los paneles mantienen su contenido, controles y visualizaciones.
+Observatorio, Cuaderno y las primeras evoluciones CSS conservan su lugar como
+estudios anteriores privados en `experiments/`, excluidos de Git.
 
 El objetivo final es **retirar React por completo**, incluidos el estado global,
 la navegación, el arranque y las vistas de recuperación. Los hosts actuales son
