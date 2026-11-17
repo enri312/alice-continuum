@@ -12,17 +12,17 @@ export default function procedures(accent, secondary) {
     ${plate("M18 25 62 15 80 23V65L33 79 17 70Z","dark-metal")}
     ${plate("M17 34 62 23 78 30V72L32 86 17 78Z")}
     ${plate("M23 39 69 28V69L23 81Z","dark-metal")}
-    ${[0,12,24].map((dy,i)=>`<g transform="translate(0 ${dy})">${line("M29 44l13-3 5 2 12-3",i===1?secondary:accent,1.9)}
+    ${[0,12,24].map((dy,i)=>`<g transform="translate(0 ${dy})">${line("M29 44l13-3 5 2 12-3",i===1?secondary:accent,1.15)}
       ${pin(29,44,1.6,accent)}${pin(57,40,1.5,secondary)}</g>`).join("")}
-    ${line("M74 38q13 1 12 14-1 8-9 12m0-5-1 6 6 1",secondary,2.6)}
+    ${line("M74 38q13 1 12 14-1 8-9 12m0-5-1 6 6 1",secondary,1.35)}
   <g data-component="trace-banks">
     ${[0,12,24].map(y=>line(`M27 ${48+y}l31-7m1 0 6-2`,"#6c8f9f",.8)).join("")}
-    ${line("M31 32l12-3m5-2 9-2",accent,1.4)}
+    ${line("M31 32l12-3m5-2 9-2",accent,1)}
     ${bolt(20,37,1.4)}${bolt(70,70,1.35)}${bolt(24,77,1)}
   </g>
   </g></g>
   <g data-component="loop-transport">
   ${plate("M13 72l12-7 37 9 9-3 9 4-7 12-15 3-36-9Z","metal")}
-  ${line("M24 75l31 8 14-4","#182438",4.5)}
+  ${line("M24 75l31 8 14-4","#182438",2.05)}
   ${reel(26,75,7,accent)}${reel(65,81,6.7,secondary)}${contactRail(33,80,5,12,accent)}</g>`;
 }

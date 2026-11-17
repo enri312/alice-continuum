@@ -5,14 +5,14 @@ export default function capabilities(accent, secondary) {
   return `${tube("M69 14 84 20l6 8v40l-9 8",accent)}
   <g transform="translate(-2 -6) scale(.98)"><g data-component="bus-connectors">
     ${plate("M10 29 21 22V71L10 76 7 71Z","dark-metal")}
-    ${[32,43,54,65].map(y=>line(`M10 ${y}l7-4`,secondary,1.6)).join("")}
+    ${[32,43,54,65].map(y=>line(`M10 ${y}l7-4`,secondary,1)).join("")}
     ${conduit("M77 29h8l4 5v23l-6 7h-6",accent)}
     ${coupling(87,44,90,accent)}
   </g>
   <g data-part="domain-backplane">
     ${plate("M16 25 62 14 83 25V74L38 86 15 74Z")}
     ${plate("M21 29 62 20 78 28V69L38 79 21 70Z","dark-metal")}
-    ${line("M29 58l18-4V36l16-4M47 54l18-4M47 54v10l16-4","#7392aa",1.5)}
+    ${line("M29 58l18-4V36l16-4M47 54l18-4M47 54v10l16-4","#7392aa",1)}
     ${[[30,39],[46,35],[63,31],[30,52],[63,45],[30,65],[63,59]].map(([x,y],i)=>`<g transform="translate(${x} ${y})">
       ${plate("M-5-4l9-2 3 2v7l-10 2-2-2Z","glass")}${line("M-2 0l5-1",i%3===0?secondary:accent,1.7)}</g>`).join("")}
     ${pin(75,70,1.4,accent)}
@@ -24,5 +24,5 @@ export default function capabilities(accent, secondary) {
   <g data-component="removable-adapter">
   ${plate("M21 77 52 68 75 73V80L46 90 20 85Z","metal")}
   ${plate("M31 77l20-6 13 3-19 7Z","glass")}
-  ${contactRail(23,81,7,9,accent)}${line("M49 85l20-7",secondary,1.6)}</g>`;
+  ${contactRail(23,81,7,9,accent)}${line("M49 85l20-7",secondary,1)}</g>`;
 }

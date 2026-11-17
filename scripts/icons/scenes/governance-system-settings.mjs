@@ -12,9 +12,9 @@ export default function settings(accent, secondary) {
   <g data-part="configuration-rotor">
     <g transform="translate(3 1)">${gearToothCrown(42,43,25)}</g>
     ${dial(45,44,21)}${pin(45,44,6,secondary)}
-    ${line("M34 53q-8-12 5-21",accent,2.6)}
+    ${line("M34 53q-8-12 5-21",accent,1.35)}
     ${plate("M39 59 72 51 85 57V75L49 86 38 80Z","dark-metal")}
-    ${line("M45 65l31-8M45 73l31-8","#7996ab",2)}
+    ${line("M45 65l31-8M45 73l31-8","#7996ab",1.15)}
     ${pin(54,63,2.6,accent)}${pin(67,67,2.6,secondary)}
   <g data-component="shaft-encoder">
     ${[0,60,120,180,240,300].map(a=>`<g transform="rotate(${a} 45 44)">${plate("M42 23h6l-1 8h-4Z","dark-metal")}${bolt(45,27,.9)}</g>`).join("")}

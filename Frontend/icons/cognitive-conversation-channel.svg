@@ -12,61 +12,61 @@
     <linearGradient id="alice-identification-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#22d3ee"/><stop offset=".7" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
     <linearGradient id="alice-identification-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="#07101c" stroke-width="4.4"/><path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="url(#alice-identification-contact)" stroke-width="2.8"/>
-    <path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="#8b5cf6" stroke-width="1.1"/><path d="M12 69Q2 83 15 86L42 91 58 82" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="#07101c" stroke-width="2.05"/><path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="url(#alice-identification-contact)" stroke-width="1.35"/>
+    <path d="M12 69Q2 83 15 86L42 91 58 82" fill="none" stroke="#8b5cf6" stroke-width="0.8"/><path d="M12 69Q2 83 15 86L42 91 58 82" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
   <g transform="translate(2 -5) scale(.95)"><g data-component="audio-circuit">
-    <g><path d="M26 61v12l9 6h13" fill="none" stroke="#050c16" stroke-width="3.8"/><path d="M26 61v12l9 6h13" fill="none" stroke="#637f96" stroke-width="2.4"/>
-    <path d="M26 61v12l9 6h13" fill="none" stroke="#22d3ee" stroke-width="1.1"/><path d="M26 61v12l9 6h13" fill="none" stroke="#e0f8ff" stroke-width=".6" stroke-dasharray="2 5"/></g>
+    <g><path d="M26 61v12l9 6h13" fill="none" stroke="#050c16" stroke-width="2.1"/><path d="M26 61v12l9 6h13" fill="none" stroke="#637f96" stroke-width="1.3"/>
+    <path d="M26 61v12l9 6h13" fill="none" stroke="#22d3ee" stroke-width="0.8"/><path d="M26 61v12l9 6h13" fill="none" stroke="#e0f8ff" stroke-width=".4" stroke-dasharray="2 5"/></g>
     <g transform="translate(37 79) rotate(0)">
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#22d3ee" stroke-width="1.3"/></g>
-    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M48 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="1.1"/><path d="M51 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="1.1"/><path d="M54 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="1.1"/><path d="M57 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="1.1"/><path d="M60 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="1.1"/>
+    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M43 70l19-2 8 6-2 9-20 2-7-5Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M48 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="0.8"/><path d="M51 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="0.8"/><path d="M54 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="0.8"/><path d="M57 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="0.8"/><path d="M60 74l-2 6" fill="none" stroke="#8b5cf6" stroke-width="0.8"/>
   </g>
   <g data-part="reply">
-    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" fill="url(#alice-identification-glass)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" fill="url(#alice-identification-brushing)" stroke="#8b5cf6" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M57 58H80M61 63H74" fill="none" stroke="#8b5cf6" stroke-width="1.8"/>
+    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" fill="url(#alice-identification-glass)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M45 41H79Q88 41 88 49V67Q88 74 80 74H76L77 84 62 74H45Q39 74 39 67V49Q39 41 45 41Z" fill="url(#alice-identification-brushing)" stroke="#8b5cf6" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M57 58H80M61 63H74" fill="none" stroke="#8b5cf6" stroke-width="1.15"/>
   </g>
   <g data-part="dialogue">
-    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" fill="url(#alice-identification-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M24 39H28L32 33 36 46 41 29 46 48 51 36 55 40H59" fill="none" stroke="#22d3ee" stroke-width="2.7"/>
+    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" fill="url(#alice-identification-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M19 19H61Q70 19 70 28V52Q70 60 61 60H41L23 72 25 60H19Q12 60 12 52V28Q12 19 19 19Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M21 24H60Q65 24 65 30V50Q65 55 59 55H37L29 61 30 55H21Q17 55 17 50V30Q17 24 21 24Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M24 39H28L32 33 36 46 41 29 46 48 51 36 55 40H59" fill="none" stroke="#22d3ee" stroke-width="1.35"/>
     <path d="M22 27H43" fill="none" stroke="#effaff" stroke-width="0.9"/>
-    <circle cx="61" cy="21" r="2" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+    <circle cx="61" cy="21" r="1.7" fill="#08131f" stroke="#91aab9" stroke-width=".5"/>
     <circle cx="61" cy="21" r="1" fill="#22d3ee"/><circle cx="60.72" cy="20.68" r="0.28" fill="#fff"/>
   <g data-component="acoustic-transducer">
-    <path d="M13 23l7-6h24l5 3H27l-3 4Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M13 23l7-6h24l5 3H27l-3 4Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M13 23l7-6h24l5 3H27l-3 4Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M13 23l7-6h24l5 3H27l-3 4Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M13 23l7-6h24l5 3H27l-3 4Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M13 23l7-6h24l5 3H27l-3 4Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M13 23l7-6h24l5 3H27l-3 4Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M13 23l7-6h24l5 3H27l-3 4Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M23 49h9m2 0h3m19-17h4" fill="none" stroke="#83acc2" stroke-width="0.8"/>
     <path d="M25 52v-2" fill="none" stroke="#52738e" stroke-width="0.65"/><path d="M30 52v-2" fill="none" stroke="#52738e" stroke-width="0.65"/><path d="M35 52v-2" fill="none" stroke="#52738e" stroke-width="0.65"/><path d="M40 52v-2" fill="none" stroke="#52738e" stroke-width="0.65"/><path d="M45 52v-2" fill="none" stroke="#52738e" stroke-width="0.65"/>
-    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M71 47 82 44 88 48V62L76 67 71 63Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <circle cx="80" cy="56.4" r="7" fill="#050e18"/>
     <circle cx="80" cy="55" r="6" fill="url(#alice-identification-metal)" stroke="#c2d7e0" stroke-width=".8"/>
-    <circle cx="80" cy="55" r="4.68" fill="url(#alice-identification-glass)" stroke="#162c40" stroke-width="1.2"/>
+    <circle cx="80" cy="55" r="4.68" fill="url(#alice-identification-glass)" stroke="#162c40" stroke-width=".75"/>
     <path d="M76.16 53.08Q77.18 50.32 81.08 50.86" fill="none" stroke="#e4f6ff" stroke-opacity=".75" stroke-width="0.28800000000000003"/>
     <path d="M79.22 59.02Q82.52 59.08 83.96 56.2" fill="none" stroke="#86cbe0" stroke-opacity=".65" stroke-width="0.18"/>
-    <circle cx="80" cy="55" r="5.22" fill="none" stroke="#d7e5ea" stroke-width=".65" stroke-dasharray="1 3"/><circle cx="80" cy="55" r="3.5" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+    <circle cx="80" cy="55" r="5.22" fill="none" stroke="#d7e5ea" stroke-width=".65" stroke-dasharray="1 3"/><circle cx="80" cy="55" r="3.2" fill="#08131f" stroke="#91aab9" stroke-width=".5"/>
     <circle cx="80" cy="55" r="2.5" fill="#8b5cf6"/><circle cx="79.3" cy="54.2" r="0.7000000000000001" fill="#fff"/>
     <g transform="translate(16 24) scale(1.1)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
     <circle r="1.13" fill="url(#alice-identification-bevel)" stroke="#cad9e4" stroke-width=".13"/>
@@ -78,35 +78,35 @@
   </g>
   </g></g>
   <g data-component="duplex-console" transform="rotate(-5 48 77)">
-  <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" fill="url(#alice-identification-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" fill="url(#alice-identification-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
   <g transform="translate(19 69) scale(1.0294117647058822 0.8235294117647058)">
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-identification-bevel)" stroke-width="1.45"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width="1.55"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-identification-dark-metal)" stroke="url(#alice-identification-bevel)" stroke-width=".8"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-identification-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M3 3H30V13H3Z" fill="#081a29" stroke="#588793" stroke-width=".65"/>
     <path d="M3 7h27m-27 4h27m-22-8v10m6-10v10m6-10v10m6-10v10" stroke="#2d4d61" stroke-width=".45"/>
-    <path d="M4 9h5l2-4 3 6 4-8 2 7 3-2h5" fill="none" stroke="#22d3ee" stroke-width="1.6"/><path d="M4 3.2h11" fill="none" stroke="#c6f7ff" stroke-width="0.55"/>
+    <path d="M4 9h5l2-4 3 6 4-8 2 7 3-2h5" fill="none" stroke="#22d3ee" stroke-width="1"/><path d="M4 3.2h11" fill="none" stroke="#c6f7ff" stroke-width="0.55"/>
     </g>
   <g transform="translate(62 78) scale(0.74)">
     <circle cy="1.1" r="10.2" fill="#061321" stroke="#617991"/>
     <circle r="9.5" fill="url(#alice-identification-rotor)" stroke="#d4e3ef" stroke-width=".75"/>
     <g transform="rotate(0)">
       <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
-      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="1.05"/></g><g transform="rotate(72)">
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="0.8"/></g><g transform="rotate(72)">
       <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
-      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="1.05"/></g><g transform="rotate(144)">
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="0.8"/></g><g transform="rotate(144)">
       <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
-      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="1.05"/></g><g transform="rotate(216)">
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="0.8"/></g><g transform="rotate(216)">
       <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
-      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="1.05"/></g><g transform="rotate(288)">
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="0.8"/></g><g transform="rotate(288)">
       <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
-      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="1.05"/></g>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#8b5cf6" stroke-width="0.8"/></g>
     <g transform="translate(0 0) scale(1.9)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
     <circle r="1.13" fill="url(#alice-identification-bevel)" stroke="#cad9e4" stroke-width=".13"/>
     <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
-    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g><path d="M18 81l28 4" fill="none" stroke="#22d3ee" stroke-width="1.2"/></g></g>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g><path d="M18 81l28 4" fill="none" stroke="#22d3ee" stroke-width="0.9"/></g></g>
 </svg>

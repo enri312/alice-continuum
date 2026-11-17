@@ -12,73 +12,73 @@
     <linearGradient id="alice-planner-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#f59e0b"/><stop offset=".7" stop-color="#f59e0b"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
     <linearGradient id="alice-planner-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><path d="M16 65 67 53 91 60V78L38 92 13 85Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><path d="M16 65 67 53 91 60V78L38 92 13 85Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M16 65 67 53 91 60V78L38 92 13 85Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
   <g transform="translate(0 -4) scale(.95)"><g data-component="binding">
-    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M13 26 22 23 26 28V78L17 84 10 79Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <g transform="translate(18 32) rotate(-10)">
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#38bdf8" stroke-width="1.3"/></g><g transform="translate(18 45) rotate(-10)">
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#38bdf8" stroke-width="1.3"/></g><g transform="translate(18 58) rotate(-10)">
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#38bdf8" stroke-width="1.3"/></g><g transform="translate(18 71) rotate(-10)">
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#38bdf8" stroke-width="1.3"/></g>
   </g>
   <g data-part="planned-route">
-    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" fill="url(#alice-planner-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M24 23 58 18 69 27V75L24 81Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M24 23 58 18 69 27V75L24 81Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M24 23 58 18 69 27V75L24 81Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M24 23 58 18 69 27V75L24 81Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M32 14 51 11 52 17 32 20Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M32 14 51 11 52 17 32 20Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M32 14 51 11 52 17 32 20Z" fill="url(#alice-planner-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M32 14 51 11 52 17 32 20Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M33 68V53L48 50V37L57 35" fill="none" stroke="#f59e0b" stroke-width="2.7"/>
-    <path d="M33 53V38L40 37" fill="none" stroke="#92a5b9" stroke-width="1.25"/>
-    <circle cx="33" cy="68" r="4" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
-    <circle cx="33" cy="68" r="3" fill="#f59e0b"/><circle cx="32.16" cy="67.04" r="0.8400000000000001" fill="#fff"/><circle cx="48" cy="50" r="3" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" fill="url(#alice-planner-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M21 16 61 11 75 22V81L25 88 17 80V22Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M24 23 58 18 69 27V75L24 81Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M24 23 58 18 69 27V75L24 81Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M24 23 58 18 69 27V75L24 81Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M24 23 58 18 69 27V75L24 81Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M32 14 51 11 52 17 32 20Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M32 14 51 11 52 17 32 20Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M32 14 51 11 52 17 32 20Z" fill="url(#alice-planner-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M32 14 51 11 52 17 32 20Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M33 68V53L48 50V37L57 35" fill="none" stroke="#f59e0b" stroke-width="1.35"/>
+    <path d="M33 53V38L40 37" fill="none" stroke="#92a5b9" stroke-width="0.9"/>
+    <circle cx="33" cy="68" r="3.7" fill="#08131f" stroke="#91aab9" stroke-width=".5"/>
+    <circle cx="33" cy="68" r="3" fill="#f59e0b"/><circle cx="32.16" cy="67.04" r="0.8400000000000001" fill="#fff"/><circle cx="48" cy="50" r="2.7" fill="#08131f" stroke="#91aab9" stroke-width=".5"/>
     <circle cx="48" cy="50" r="2" fill="#f59e0b"/><circle cx="47.44" cy="49.36" r="0.56" fill="#fff"/>
-    <path d="M57 40V28l9 2-9 5" fill="none" stroke="#ffdc91" stroke-width="2"/>
-    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" fill="url(#alice-planner-glass)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" fill="url(#alice-planner-brushing)" stroke="#38bdf8" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M57 40V28l9 2-9 5" fill="none" stroke="#ffdc91" stroke-width="1.15"/>
+    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" fill="url(#alice-planner-glass)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M58 64 73 52 89 61V75L74 87 58 78Z" fill="url(#alice-planner-brushing)" stroke="#38bdf8" stroke-opacity=".78" stroke-width=".32"/>
     <circle cx="74" cy="70.4" r="9" fill="#050e18"/>
     <circle cx="74" cy="69" r="8" fill="url(#alice-planner-metal)" stroke="#c2d7e0" stroke-width=".8"/>
-    <circle cx="74" cy="69" r="6.24" fill="url(#alice-planner-glass)" stroke="#162c40" stroke-width="1.2"/>
+    <circle cx="74" cy="69" r="6.24" fill="url(#alice-planner-glass)" stroke="#162c40" stroke-width=".75"/>
     <path d="M68.88 66.44Q70.24 62.76 75.44 63.480000000000004" fill="none" stroke="#e4f6ff" stroke-opacity=".75" stroke-width="0.384"/>
     <path d="M72.96 74.36Q77.36 74.44 79.28 70.6" fill="none" stroke="#86cbe0" stroke-opacity=".65" stroke-width="0.24"/>
-    <circle cx="74" cy="69" r="6.96" fill="none" stroke="#d7e5ea" stroke-width=".65" stroke-dasharray="1 3"/><path d="M74 64V70L78 71" fill="none" stroke="#e8ffff" stroke-width="1.7"/>
+    <circle cx="74" cy="69" r="6.96" fill="none" stroke="#d7e5ea" stroke-width=".65" stroke-dasharray="1 3"/><path d="M74 64V70L78 71" fill="none" stroke="#e8ffff" stroke-width="1"/>
   <g data-component="planning-grid">
     <path d="M29 30l8-1m4-1 7-1M59 48v7l-5 2v8m-18 5 9-2 4-3" fill="none" stroke="#648599" stroke-width="0.9"/>
-    <path d="M29 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="1.2"/><path d="M36 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="1.2"/><path d="M43 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="1.2"/>
+    <path d="M29 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="0.9"/><path d="M36 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="0.9"/><path d="M43 74l4-.7" fill="none" stroke="#9cb8cd" stroke-width="0.9"/>
     <g transform="translate(64 26) scale(1.3)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
     <circle r="1.13" fill="url(#alice-planner-bevel)" stroke="#cad9e4" stroke-width=".13"/>
     <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
@@ -86,24 +86,24 @@
     <circle r="1.13" fill="url(#alice-planner-bevel)" stroke="#cad9e4" stroke-width=".13"/>
     <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
     <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g>
-    <path d="M65 74l4 3m11-14 3 3" fill="none" stroke="#38bdf8" stroke-width="1.1"/>
+    <path d="M65 74l4 3m11-14 3 3" fill="none" stroke="#38bdf8" stroke-width="0.8"/>
   </g>
   </g></g>
   <g data-component="route-selector" transform="rotate(-10 65 78)">
   <g transform="translate(48 70) scale(1.1470588235294117 1.1176470588235294)">
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
     <path d="M3 3H30V13H3Z" fill="#081a29" stroke="#588793" stroke-width=".65"/>
     <path d="M3 7h27m-27 4h27m-22-8v10m6-10v10m6-10v10m6-10v10" stroke="#2d4d61" stroke-width=".45"/>
-    <path d="M4 11h6l4-6h5l4 5h6" fill="none" stroke="#f59e0b" stroke-width="1.6"/><path d="M4 3.2h11" fill="none" stroke="#c6f7ff" stroke-width="0.55"/>
+    <path d="M4 11h6l4-6h5l4 5h6" fill="none" stroke="#f59e0b" stroke-width="1"/><path d="M4 3.2h11" fill="none" stroke="#c6f7ff" stroke-width="0.55"/>
     </g>
   <g transform="translate(18 80) rotate(3)">
-    <path d="M0 1 2-1H25V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="M0 1 2-1H25V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-planner-bevel)" stroke-width="1.45"/>
-    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width="1.55"/>
-    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
-    <path d="M3 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-planner-contact)" stroke-width="1.7"/>
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-planner-dark-metal)" stroke="url(#alice-planner-bevel)" stroke-width=".8"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-planner-brushing)" stroke="#a8c3d1" stroke-opacity=".78" stroke-width=".32"/>
+    <path d="M3 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M6 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M9 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M12 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M15 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M18 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/><path d="M21 0v4" stroke="url(#alice-planner-contact)" stroke-width="1"/>
     <path d="M2 6h21" fill="none" stroke="#38bdf8" stroke-width="0.85"/></g></g></g>
 </svg>

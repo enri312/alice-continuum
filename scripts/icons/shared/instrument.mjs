@@ -1,22 +1,22 @@
 // Las escenas se dibujan sobre una mesa de 100 unidades. Las superficies comparten
 // la luz superior izquierda y el espesor inferior, aunque cada silueta es propia.
 export function plate(d, material = "metal", edge = "#a8c3d1") {
-  return `<path d="${d}" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
-    <path d="${d}" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#bevel)" stroke-width="1.45"/>
-    <path d="${d}" fill="url(#${material})" stroke="url(#bevel)" stroke-width="1.55"/>
-    <path d="${d}" fill="url(#brushing)" stroke="${edge}" stroke-opacity=".66" stroke-width=".45"/>`;
+  return `<path d="${d}" transform="translate(.55 1.9)" fill="#0a1424"/>
+    <path d="${d}" transform="translate(.25 .95)" fill="#2f4154" stroke="#587087" stroke-width=".5"/>
+    <path d="${d}" fill="url(#${material})" stroke="url(#bevel)" stroke-width=".8"/>
+    <path d="${d}" fill="url(#brushing)" stroke="${edge}" stroke-opacity=".78" stroke-width=".32"/>`;
 }
-export function line(d, ink = "#d3e7f3", width = 1.3) {
+export function line(d, ink = "#d3e7f3", width = .9) {
   return `<path d="${d}" fill="none" stroke="${ink}" stroke-width="${width}"/>`;
 }
 export function pin(x, y, r = 2, ink = "#b9eaff") {
-  return `<circle cx="${x}" cy="${y}" r="${r + 1}" fill="#08131f" stroke="#718ba0" stroke-width=".75"/>
+  return `<circle cx="${x}" cy="${y}" r="${r + .7}" fill="#08131f" stroke="#91aab9" stroke-width=".5"/>
     <circle cx="${x}" cy="${y}" r="${r}" fill="${ink}"/><circle cx="${x - r * .28}" cy="${y - r * .32}" r="${r * .28}" fill="#fff"/>`;
 }
 export function dial(x, y, r) {
   return `<circle cx="${x}" cy="${y + 1.4}" r="${r + 1}" fill="#050e18"/>
     <circle cx="${x}" cy="${y}" r="${r}" fill="url(#metal)" stroke="#c2d7e0" stroke-width=".8"/>
-    <circle cx="${x}" cy="${y}" r="${r * .78}" fill="url(#glass)" stroke="#162c40" stroke-width="1.2"/>
+    <circle cx="${x}" cy="${y}" r="${r * .78}" fill="url(#glass)" stroke="#162c40" stroke-width=".75"/>
     <path d="M${x-r*.64} ${y-r*.32}Q${x-r*.47} ${y-r*.78} ${x+r*.18} ${y-r*.69}" fill="none" stroke="#e4f6ff" stroke-opacity=".75" stroke-width="${r*.048}"/>
     <path d="M${x-r*.13} ${y+r*.67}Q${x+r*.42} ${y+r*.68} ${x+r*.66} ${y+r*.2}" fill="none" stroke="#86cbe0" stroke-opacity=".65" stroke-width="${r*.03}"/>
     <circle cx="${x}" cy="${y}" r="${r * .87}" fill="none" stroke="#d7e5ea" stroke-width=".65" stroke-dasharray="1 3"/>`;
@@ -38,8 +38,8 @@ export function coupling(x, y, angle, accent) {
 }
 
 export function conduit(d, accent) {
-  return `<g>${line(d,"#050c16",3.8)}${line(d,"#637f96",2.4)}
-    ${line(d,accent,1.1)}<path d="${d}" fill="none" stroke="#e0f8ff" stroke-width=".6" stroke-dasharray="2 5"/></g>`;
+  return `<g>${line(d,"#050c16",2.1)}${line(d,"#637f96",1.3)}
+    ${line(d,accent,.8)}<path d="${d}" fill="none" stroke="#e0f8ff" stroke-width=".4" stroke-dasharray="2 5"/></g>`;
 }
 
 export function instrument({ id, title, semantic, accent, secondary, art }) {
