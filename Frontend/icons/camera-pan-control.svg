@@ -2,6 +2,8 @@
   <title>Desplazar vista</title>
 
   <defs>
+    <linearGradient id="alice-pan-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-pan-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-pan-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-pan-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-pan-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -11,6 +13,11 @@
     <linearGradient id="alice-pan-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
   <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-part="four-directions">
+      <path d="M10 39 19 33 31 37 35 25 42 13 53 11 65 23 69 33 82 30 90 42V58L77 66 66 66 59 85 44 90 34 77 31 67 15 67 9 57Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M10 39 19 33 31 37 35 25 42 13 53 11 65 23 69 33 82 30 90 42V58L77 66 66 66 59 85 44 90 34 77 31 67 15 67 9 57Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-pan-bevel)" stroke-width="1.45"/>
+    <path d="M10 39 19 33 31 37 35 25 42 13 53 11 65 23 69 33 82 30 90 42V58L77 66 66 66 59 85 44 90 34 77 31 67 15 67 9 57Z" fill="url(#alice-pan-dark-metal)" stroke="url(#alice-pan-bevel)" stroke-width="1.55"/>
+    <path d="M10 39 19 33 31 37 35 25 42 13 53 11 65 23 69 33 82 30 90 42V58L77 66 66 66 59 85 44 90 34 77 31 67 15 67 9 57Z" fill="url(#alice-pan-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+      <path d="M12 46v10l10 6m56-26 8 7v10" fill="none" stroke="#38bdf8" stroke-width="2"/>
       <g transform="translate(50 50) rotate(45)">
     <path d="M-6 -29v-5l2-2h8l2 2v5Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
     <path d="M-6 -29v-5l2-2h8l2 2v5Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-pan-bevel)" stroke-width="1.45"/>

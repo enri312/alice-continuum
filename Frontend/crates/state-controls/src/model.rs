@@ -92,8 +92,9 @@ impl Activity {
             ActivityStatus::Loading => "LEYENDO AUDITORÍA LOCAL…".into(),
             ActivityStatus::Unavailable => "SNAPSHOT NATIVO NO DISPONIBLE".into(),
             ActivityStatus::Ready => format!(
-                "{} EVENTOS / {} MIN · SEÑAL {:.3} · {}",
+                "{} {} / {} MIN · SEÑAL {:.3} · {}",
                 self.window_event_count,
+                if self.window_event_count == 1 { "EVENTO" } else { "EVENTOS" },
                 ((self.window_ms as f64) / 60_000.0).round() as u64,
                 self.overall_signal,
                 if self.audit_healthy == Some(true) {

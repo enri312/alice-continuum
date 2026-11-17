@@ -37,8 +37,10 @@ es el puente con el contenedor actual y el comando Tauri de telemetría.
 La marca, el lema y el indicador Local-first permanecen en una línea compacta.
 Los 21 iconos funcionales se dibujan como instrumentos de metal con óptica,
 cableado y piezas específicas. Conversación combina dos turnos con una señal
-de audio, el Volumen muestra hemisferios conectados, Memoria un archivo y
-Auditoría una lente sobre un registro. El emblema `app-alice.svg` conserva su
+de audio y una consola dúplex. El Volumen muestra los hemisferios en un escáner,
+Memoria presenta un cartucho extraíble y Actividad tiene un alimentador de papel.
+Las lupas de cámara llevan hojas de diafragma alrededor del signo de aumento o
+reducción. El emblema `app-alice.svg` conserva su
 trazado. Las escenas editables están en `scripts/icons/scenes/`. El comando
 `npm run icons:generate` reproduce la colección de `Frontend/icons/`.
 

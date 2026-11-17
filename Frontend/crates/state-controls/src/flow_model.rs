@@ -101,6 +101,9 @@ impl Payload {
             .unwrap_or(&self.nodes[0])
     }
     pub fn signal(&self, evidence: Option<&str>) -> f64 {
+        if !matches!(self.activity.status, crate::model::ActivityStatus::Ready) {
+            return 0.0;
+        }
         evidence
             .and_then(|id| self.links.iter().find(|link| link.id == id))
             .map_or(0.0, |link| link.signal)
@@ -119,7 +122,11 @@ mod tests {
     }
     #[test]
     fn selection_and_evidence_never_invent_signals() {
-        let payload = Payload::parse(&fixture().to_string()).unwrap();
+        let mut raw = fixture();
+        let unavailable = Payload::parse(&raw.to_string()).unwrap();
+        assert_eq!(unavailable.signal(Some("permission-perception")), 0.0);
+        raw["activity"]["status"] = "ready".into();
+        let payload = Payload::parse(&raw.to_string()).unwrap();
         assert_eq!(payload.selected("removed-node").id, "flow-input");
         assert_eq!(payload.signal(None), 0.0);
         assert_eq!(payload.signal(Some("missing")), 0.0);

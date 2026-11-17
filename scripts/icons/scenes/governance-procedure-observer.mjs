@@ -1,7 +1,9 @@
+import { reel, contactRail } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt, coupling, conduit } from "../shared/instrument.mjs";
 
 export default function procedures(accent, secondary) {
-  return `<g data-component="read-head">
+  return `${plate("M10 58 21 54 86 62 91 74 78 85 18 79Z","dark-metal")}
+  <g transform="translate(1 -5) scale(.94)"><g data-component="read-head">
     ${plate("M12 34l6-5 6 2v44l-8 5-5-4Z","dark-metal")}
     ${conduit("M74 28h8l5 6v8",secondary)}
     ${coupling(16,48,90,accent)}
@@ -18,5 +20,9 @@ export default function procedures(accent, secondary) {
     ${line("M31 32l12-3m5-2 9-2",accent,1.4)}
     ${bolt(20,37,1.4)}${bolt(70,70,1.35)}${bolt(24,77,1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="loop-transport">
+  ${plate("M13 72l12-7 37 9 9-3 9 4-7 12-15 3-36-9Z","metal")}
+  ${line("M24 75l31 8 14-4","#182438",4.5)}
+  ${reel(26,75,7,accent)}${reel(65,81,6.7,secondary)}${contactRail(33,80,5,12,accent)}</g>`;
 }

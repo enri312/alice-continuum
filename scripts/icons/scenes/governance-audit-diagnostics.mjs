@@ -1,7 +1,9 @@
+import { readout, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, dial, bolt, coupling } from "../shared/instrument.mjs";
 
 export default function audit(accent, secondary) {
-  return `<g data-component="evidence-binding">
+  return `${tube("M15 26 9 36v31l11 9 22 6",accent)}
+  <g transform="translate(3 -4) scale(.94)"><g data-component="evidence-binding">
     ${plate("M10 25 19 21 23 26V76L15 83 9 77Z","dark-metal")}
     ${[35,48,61].map(y=>coupling(16,y,-10,secondary)).join("")}
   </g>
@@ -19,5 +21,9 @@ export default function audit(accent, secondary) {
     ${line("M57 39l4 1m-9 27 6-1m-13-8 2 3", "#c3d6e2",.85)}
     ${bolt(23,21,1.1)}${bolt(22,73,1.1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="evidence-scanner">
+  ${plate("M9 71l12-6 27 7 5 8-12 9-28-7Z","metal")}
+  ${readout(15,70,29,14,"M4 11h5V6h3v5h4V4h3v6h9",secondary)}
+  ${line("M49 80l9-5",accent,2)}</g>`;
 }

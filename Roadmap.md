@@ -29,6 +29,15 @@ las lecturas reales, el borrador de Conversación y la persistencia de relacione
 tienen ilustraciones propias, con materiales y piezas comunes. El inventario y
 los permisos tienen vistas diferenciadas. El historial de operaciones se consulta
 en Auditoría. Procedimientos conserva patrones y el Taller recibe sus borradores.
+Cada instrumento incorpora mecanismos relacionados con su función. En Flujo
+cognitivo el encabezado y la leyenda ocupan espacio fuera del mapa. Cinco de
+las trece rutas pueden mostrar señal derivada de la auditoría local. Las otras
+ocho están identificadas como previstas. El inspector de capacidades abre su
+historial filtrado y Permisos consulta la vigencia mientras su panel está abierto.
+En Tauri para Windows se comprobó con dos episodios de prueba que una asociación
+confirmada en Flujo sigue visible en Volumen cognitivo tras recargar la ventana.
+El próximo paso del cerebro es seguir un aprendizaje desde su registro hasta su
+aparición en Volumen cognitivo y comprobar qué persiste al reiniciar Alice.
 
 **Cierre de la migración:** el objetivo es dejar de usar React por completo,
 avanzando por componentes. Se incluyen las pantallas, el estado compartido de

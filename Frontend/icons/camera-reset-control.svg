@@ -2,6 +2,8 @@
   <title>Restablecer vista</title>
 
   <defs>
+    <linearGradient id="alice-reset-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-reset-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-reset-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-reset-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-reset-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -11,6 +13,17 @@
     <linearGradient id="alice-reset-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
   <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-part="return-home">
+      <path d="M11 59 21 51 30 54 31 69 68 68 76 53 86 53 91 64 82 82 60 89 32 88 15 80Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M11 59 21 51 30 54 31 69 68 68 76 53 86 53 91 64 82 82 60 89 32 88 15 80Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-reset-bevel)" stroke-width="1.45"/>
+    <path d="M11 59 21 51 30 54 31 69 68 68 76 53 86 53 91 64 82 82 60 89 32 88 15 80Z" fill="url(#alice-reset-dark-metal)" stroke="url(#alice-reset-bevel)" stroke-width="1.55"/>
+    <path d="M11 59 21 51 30 54 31 69 68 68 76 53 86 53 91 64 82 82 60 89 32 88 15 80Z" fill="url(#alice-reset-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+      <g transform="translate(36 82) rotate(-2)">
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-reset-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-reset-dark-metal)" stroke="url(#alice-reset-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-reset-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/><path d="M24 0v4" stroke="url(#alice-reset-contact)" stroke-width="1.7"/>
+    <path d="M2 6h24" fill="none" stroke="#f472b6" stroke-width="0.85"/></g>
       <g transform="translate(50 50) rotate(45)">
     <path d="M-6 -30v-5l2-2h8l2 2v5Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
     <path d="M-6 -30v-5l2-2h8l2 2v5Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-reset-bevel)" stroke-width="1.45"/>

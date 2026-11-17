@@ -1,5 +1,6 @@
 import { bolt, coupling, dial, line, pin, plate } from "../shared/instrument.mjs";
 import { precisionControlRim } from "../shared/component-panel-finish.mjs";
+import { contactRail, reel, tube } from "../shared/workshop-parts.mjs";
 
 function bearing(id, accent, secondary) {
   return `<g transform="scale(.5)">${precisionControlRim(id, accent, secondary)}</g>`;
@@ -17,10 +18,14 @@ function lens(closer, accent, secondary) {
     ${plate("M55 61 62 55 85 75Q89 80 83 85 79 89 75 85Z")}
     ${line("M69 67l-3 4m7 0-3 4m7 0-3 4","#4e697c",1.7)}
     ${lensMount(41,41,27,accent)}${dial(41,41,27)}${bearing(closer ? "zoom-in" : "zoom-out", accent, secondary)}
+    <g data-component="iris-blades" transform="translate(41 41)">
+      ${[0,60,120,180,240,300].map(angle => `<path transform="rotate(${angle})" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#rotor)" stroke="#7ca2b2" stroke-width=".55"/>`).join("")}
+    </g>
     ${line("M29 41H53", "#0b1723",6)}${line("M29 41H53","#e5fbff",3.7)}
     ${closer ? line("M41 29V53","#e5fbff",3.7) : ""}
     ${line("M25 32q5-9 16-10",accent,1.4)}
     ${coupling(74,74,44,secondary)}
+    ${contactRail(64,61,4,44,accent)}
   </g>`;
 }
 export const cameraScenes = {
@@ -28,6 +33,8 @@ export const cameraScenes = {
   "zoom-out": (accent, secondary) => lens(false, accent, secondary),
   pan(accent, secondary) {
     return `<g data-part="four-directions">
+      ${plate("M10 39 19 33 31 37 35 25 42 13 53 11 65 23 69 33 82 30 90 42V58L77 66 66 66 59 85 44 90 34 77 31 67 15 67 9 57Z","dark-metal")}
+      ${line("M12 46v10l10 6m56-26 8 7v10",accent,2)}
       ${lensMount(50,50,31,secondary)}${dial(50,50,31)}${bearing("pan",accent,secondary)}
       ${[0,90,180,270].map(angle=>`<g transform="rotate(${angle} 50 50)">
         ${plate("M47 40V28H42L50 18 58 28H53V40Z","enamel")}
@@ -36,6 +43,9 @@ export const cameraScenes = {
   },
   rotate(accent, secondary) {
     return `<g data-part="orbit-pivot">
+      ${tube("M18 64Q6 45 28 25 52 5 74 19 93 32 83 49",secondary)}
+      ${plate("M20 68 35 65 69 67 79 76 68 86 37 91 21 82Z","dark-metal")}
+      ${reel(49,82,7,secondary)}
       ${dial(50,50,31)}${bearing("rotate",accent,secondary)}
       ${plate("M38 43 50 36 62 43V56L50 63 38 56Z","glass")}
       ${line("M39 43l11 6 11-6m-11 6v13","#e5f7fd",1.4)}
@@ -46,6 +56,8 @@ export const cameraScenes = {
   },
   reset(accent, secondary) {
     return `<g data-part="return-home">
+      ${plate("M11 59 21 51 30 54 31 69 68 68 76 53 86 53 91 64 82 82 60 89 32 88 15 80Z","dark-metal")}
+      ${contactRail(36,82,8,-2,secondary)}
       ${lensMount(50,50,32,secondary)}${dial(50,50,32)}${bearing("reset",accent,secondary)}
       ${line("M69 52a20 20 0 1 1-11-20",accent,3.2)}
       ${plate("M54 24l10 9-11 4Z","enamel")}

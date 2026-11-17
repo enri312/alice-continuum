@@ -152,8 +152,12 @@ impl State {
             let mut node = node.clone(); node.activation = 0.0;
             if let Some(evidence) = self.snapshot.as_ref().and_then(|s| s.region_for_node(&node.id)) {
                 node.activation = evidence.signal;
-                node.value = if evidence.event_count > 0 { format!("{} eventos R3", evidence.event_count) } else { "sin señal reciente".into() };
-                node.detail = if evidence.event_count > 0 { format!("{}: {} eventos técnicos dentro de la ventana. Intensidad heurística {:.3}.", evidence.label, evidence.event_count, evidence.signal) }
+                node.value = match evidence.event_count {
+                    0 => "sin señal reciente".into(),
+                    1 => "1 evento R3".into(),
+                    count => format!("{count} eventos R3"),
+                };
+                node.detail = if evidence.event_count > 0 { format!("{}: {} {} dentro de la ventana. Intensidad heurística {:.3}.", evidence.label, evidence.event_count, if evidence.event_count == 1 { "evento técnico" } else { "eventos técnicos" }, evidence.signal) }
                     else { format!("{}: no hay eventos R3 dentro de la ventana temporal.", evidence.label) };
             }
             node
@@ -215,7 +219,7 @@ mod tests {
         assert_eq!(state.view().nodes[0].activation, 0.3);
         assert_eq!(state.view().nodes[1].activation, 0.0);
         assert_eq!(state.view().nodes[2].activation, 0.3);
-        assert_eq!(state.view().nodes[0].value, "1 eventos R3");
+        assert_eq!(state.view().nodes[0].value, "1 evento R3");
         assert_eq!(state.view().nodes[1].detail, "original");
         let next = state.begin_read().unwrap();
         state.complete(next, Some(serde_json::json!({"overallSignal":0.9})));

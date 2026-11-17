@@ -1,7 +1,9 @@
+import { contactRail, reel, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt } from "../shared/instrument.mjs";
 
 export default function memory(accent, secondary) {
-  return `<g data-component="retrieval-bus">
+  return `${tube("M12 61 7 71 12 79 36 86 49 82",secondary)}
+  <g transform="translate(-1 -7) scale(.96)"><g data-component="retrieval-bus">
     ${plate("M10 61 18 56 90 45 93 51V70L57 91 11 77Z","dark-metal")}
     ${line("M58 86l30-17",secondary,1.4)}${bolt(89,53)}
   </g>
@@ -22,5 +24,10 @@ export default function memory(accent, secondary) {
     ${line("M27 46l13 5 17-7m-24-2 9 3 14-6", "#c8e0f1",.95)}
     ${bolt(48,64,1.1)}${bolt(80,65,1.2)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="withdrawn-cartridge">
+  ${plate("M33 73 54 63 84 70 88 76 68 91 36 85Z","metal")}
+  ${plate("M39 74 55 67 78 72 63 82Z","dark-metal")}
+  ${reel(57,74,5.8,secondary)}${contactRail(40,80,8,10,accent)}
+  ${line("M69 84l12-8",accent,1.7)}${bolt(81,73,1.1)}</g>`;
 }

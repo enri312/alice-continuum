@@ -2,6 +2,8 @@
   <title>Actividad</title>
   <style>@media(prefers-reduced-motion:no-preference){[data-icon="activity"] .instrument-light{animation:alice-activity-glint 7s ease-in-out infinite}}@keyframes alice-activity-glint{0%,45%,100%{opacity:1}70%{opacity:.55}}</style>
   <defs>
+    <linearGradient id="alice-activity-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-activity-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-activity-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-activity-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-activity-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -10,7 +12,9 @@
     <linearGradient id="alice-activity-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#84cc16"/><stop offset=".7" stop-color="#84cc16"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
     <linearGradient id="alice-activity-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-component="chart-recorder">
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M12 50 9 64 18 79 32 85 70 81" fill="none" stroke="#07101c" stroke-width="4.4"/><path d="M12 50 9 64 18 79 32 85 70 81" fill="none" stroke="url(#alice-activity-contact)" stroke-width="2.8"/>
+    <path d="M12 50 9 64 18 79 32 85 70 81" fill="none" stroke="#84cc16" stroke-width="1.1"/><path d="M12 50 9 64 18 79 32 85 70 81" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
+  <g transform="translate(3 -5) scale(.95)"><g data-component="chart-recorder">
     <path d="M9 36 17 22 72 12 80 18 83 39 74 48 25 60 11 52Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
     <path d="M9 36 17 22 72 12 80 18 83 39 74 48 25 60 11 52Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-activity-bevel)" stroke-width="1.45"/>
     <path d="M9 36 17 22 72 12 80 18 83 39 74 48 25 60 11 52Z" fill="url(#alice-activity-dark-metal)" stroke="url(#alice-activity-bevel)" stroke-width="1.55"/>
@@ -58,4 +62,29 @@
     <path d="M37 73l6 6 33-9" fill="none" stroke="#e0eaf1" stroke-width="0.8"/>
   </g>
   </g></g>
+  <g data-component="paper-feed">
+  <path d="M17 72 38 68 70 74 79 69 81 80 69 89 35 84 21 88Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M17 72 38 68 70 74 79 69 81 80 69 89 35 84 21 88Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-activity-bevel)" stroke-width="1.45"/>
+    <path d="M17 72 38 68 70 74 79 69 81 80 69 89 35 84 21 88Z" fill="url(#alice-activity-metal)" stroke="url(#alice-activity-bevel)" stroke-width="1.55"/>
+    <path d="M17 72 38 68 70 74 79 69 81 80 69 89 35 84 21 88Z" fill="url(#alice-activity-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <path d="M23 76q8-7 17-4l25 6q6 1 11-3l-5 8q-4 4-11 2l-23-6q-6-2-13 2Z" fill="#c9dcd6"/>
+  <path d="M28 77l7-2 4 2 3-2 3 4 4-1 2 3 7-1 5 2" fill="none" stroke="#12565b" stroke-width="1.15"/>
+  <g transform="translate(21 77) scale(0.6799999999999999)">
+    <circle cy="1.1" r="10.2" fill="#061321" stroke="#617991"/>
+    <circle r="9.5" fill="url(#alice-activity-rotor)" stroke="#d4e3ef" stroke-width=".75"/>
+    <g transform="rotate(0)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#22d3ee" stroke-width="1.05"/></g><g transform="rotate(72)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#22d3ee" stroke-width="1.05"/></g><g transform="rotate(144)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#22d3ee" stroke-width="1.05"/></g><g transform="rotate(216)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#22d3ee" stroke-width="1.05"/></g><g transform="rotate(288)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#22d3ee" stroke-width="1.05"/></g>
+    <g transform="translate(0 0) scale(1.9)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-activity-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g></g></g>
 </svg>

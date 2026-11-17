@@ -1,3 +1,4 @@
+import type { NucleusActivityStatus } from "../../pages/shared/nucleus-shared";
 import type { CSSProperties } from "react";
 import type { BrainFlowNode, BrainSnapshot } from "../../core/cognitive/brain";
 import type { CoreActivityLinkId, CoreActivitySnapshot } from "../../core/cognitive/core-activity";
@@ -5,6 +6,7 @@ import type { CoreActivityLinkId, CoreActivitySnapshot } from "../../core/cognit
 type CognitiveFlowProps = {
   snapshot: BrainSnapshot;
   activity: CoreActivitySnapshot | null;
+  activityStatus: NucleusActivityStatus;
   selectedId: string;
   onSelect: (id: string) => void;
 };
@@ -36,24 +38,25 @@ function curve(from: BrainFlowNode, to: BrainFlowNode) {
   return `M ${start.x} ${start.y} C ${middle} ${start.y}, ${middle} ${end.y}, ${end.x} ${end.y}`;
 }
 
-export function CognitiveFlow({ snapshot, activity, selectedId, onSelect }: CognitiveFlowProps) {
+export function CognitiveFlow({ snapshot, activity, activityStatus, selectedId, onSelect }: CognitiveFlowProps) {
   const byId = new Map(snapshot.flowNodes.map((node) => [node.id, node]));
   const byLink = new Map(activity?.links.map((link) => [link.id, link]));
 
-  return <div className={`cognitive-flow ${snapshot.hasActivity ? "has-activity" : "is-empty"}`}>
-    <div className="nucleus-panel-label"><span>[02]</span><strong>COGNITIVE GRAPH / GLOBAL WORKSPACE</strong><small>FUNCTIONAL FLOW</small></div>
-    <div className="flow-state">
-      <span>{activity?.windowEventCount ? "SEÑAL R3 DERIVADA" : "SIN EVENTOS R3 RECIENTES"}</span>
-      <strong>{activity ? `${activity.windowEventCount} eventos · heurística ${activity.method}` : "snapshot no disponible"}</strong>
-    </div>
-    <svg viewBox="0 0 1000 430" role="img" aria-label="Flujo funcional verificable de Alice">
+  const activeRoutes = activity?.links.filter(link => link.signal > 0).length ?? 0;
+  const summary = activityStatus === "loading" ? "Leyendo auditoría…" : !activity
+    ? "Lectura no disponible" : activeRoutes === 1 ? "1 ruta con señal" : `${activeRoutes} rutas con señal`;
+
+  return <div className="cognitive-flow">
+    <header className="flow-heading"><h3>Rutas del espacio de trabajo</h3><span>{summary}</span></header>
+    <div className="flow-viewport" role="region" tabIndex={0} aria-label="Mapa de conexiones">
+    <svg viewBox="0 0 1000 430" role="group" aria-label="Flujo funcional verificable de Alice">
       <g className="flow-connections">
         {connections.map(({ from: fromId, to: toId, evidence }) => {
           const from = byId.get(fromId);
           const to = byId.get(toId);
           if (!from || !to) return null;
           const activation = evidence ? byLink.get(evidence)?.signal ?? 0 : 0;
-          return <path key={`${fromId}-${toId}`} d={curve(from, to)} style={{ "--signal": activation } as CSSProperties} />;
+          return <path key={`${fromId}-${toId}`} d={curve(from, to)} data-route={activation > 0 ? "signal" : evidence ? "idle" : "planned"} style={{ "--signal": activation } as CSSProperties} />;
         })}
       </g>
       <g className="flow-nodes">
@@ -66,10 +69,11 @@ export function CognitiveFlow({ snapshot, activity, selectedId, onSelect }: Cogn
             style={{ "--signal": node.activation } as CSSProperties}
             transform={`translate(${position.x} ${position.y})`}
             role="button"
+            aria-pressed={selected}
             tabIndex={0}
             aria-label={`${node.label}: ${node.value}, activación ${node.activation.toFixed(3)}`}
             onClick={() => onSelect(node.id)}
-            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(node.id); }}
+            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(node.id); } }}
           >
             <circle className="flow-node-halo" r="28" />
             <circle className="flow-node-core" r="11" />
@@ -80,6 +84,7 @@ export function CognitiveFlow({ snapshot, activity, selectedId, onSelect }: Cogn
         })}
       </g>
     </svg>
-    <div className="flow-legend"><span className="ready">evidencia R3</span><span className="planned">fase futura</span><span>valor = intensidad heurística</span></div>
+    </div>
+    <div className="flow-legend"><span className="ready">Señal reciente</span><span>Sin señal</span><span className="planned">Ruta prevista</span></div>
   </div>;
 }

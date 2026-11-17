@@ -58,7 +58,7 @@ const enforcerLabel: Record<CapabilityDescriptor["permission"]["enforcedBy"], st
 
 export function CapacidadesYPermisos({ onObservationStateChange, onOpenAudit }: {
   onObservationStateChange: (enabled: boolean) => void;
-  onOpenAudit: () => void;
+  onOpenAudit: (capability?: string) => void;
 }) {
   const [section, setSection] = useState<"registry" | "permissions">("registry");
   const [registry, setRegistry] = useState<CapabilityRegistryResult>(() => createWebDevelopmentCapabilityRegistry());
@@ -100,7 +100,7 @@ export function CapacidadesYPermisos({ onObservationStateChange, onOpenAudit }: 
       <button type="button" aria-controls="permissions-panel" aria-pressed={section === "permissions"} onClick={() => setSection("permissions")}><BridgeViewIcon kind="permissions" />Permisos</button>
     </div>
     <div id="permissions-panel" hidden={section !== "permissions"}>
-      <PermissionGatewayPanel onObservationStateChange={onObservationStateChange} />
+      <PermissionGatewayPanel visible={section === "permissions"} onObservationStateChange={onObservationStateChange} />
     </div>
     <div id="registry-panel" hidden={section !== "registry"}>
       <div className="bridge-metrics" aria-label="Resumen del registro">
@@ -143,12 +143,13 @@ export function CapacidadesYPermisos({ onObservationStateChange, onOpenAudit }: 
               <div><dt>Efectos</dt><dd>{selected.effects.map(effect => effectLabel[effect]).join(", ")}</dd></div>
               <div><dt>Salud</dt><dd>{healthLabel[selected.health.status]}</dd></div>
             </dl>
+            <button type="button" className="console-button" onClick={() => onOpenAudit(selected.id)}>Ver operaciones de esta capacidad</button>
             <small>{selected.health.summary}<br />{selected.permission.summary}</small>
           </> : <RegistryNotice code="000" title="SIN CAPACIDAD SELECCIONABLE" detail="No se muestran datos inventados mientras el registro nativo no esté disponible." />}
         </aside>
       </div>
 
-      <button type="button" className="console-button governance-audit-link" onClick={onOpenAudit}>Ver el historial en Auditoría →</button>
+      <button type="button" className="console-button governance-audit-link" onClick={() => onOpenAudit()}>Ver el historial en Auditoría →</button>
     </div>
   </section>;
 }

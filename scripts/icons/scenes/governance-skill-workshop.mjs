@@ -1,7 +1,9 @@
+import { fork, contactRail } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt, coupling, conduit } from "../shared/instrument.mjs";
 
 export default function skills(accent, secondary) {
-  return `<g data-component="workbench-vise">
+  return `${plate("M10 68 23 60 85 63 91 77 69 90 18 84Z","dark-metal")}
+  <g transform="translate(1 -6) scale(.94)"><g data-component="workbench-vise">
     ${plate("M11 57l8-4 11 3v11l-7 4-12-4Z","metal")}
     ${conduit("M78 66h9l5-6v-5",secondary)}
     ${coupling(82,64,-17,secondary)}
@@ -21,5 +23,9 @@ export default function skills(accent, secondary) {
     ${line("M26 43l7-3m-6 10 5 2m15-4 8-4m-8 8 5-2",secondary,1.05)}
     ${bolt(17,69,1.3)}${bolt(50,81,1.5)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="skill-test-socket">
+  ${plate("M15 76l21-8 23 5v8L38 91 15 84Z","metal")}
+  ${contactRail(20,78,6,12,accent)}${fork(60,65,-32,secondary)}
+  ${line("M32 74l7-2 10 3",accent,1.5)}</g>`;
 }

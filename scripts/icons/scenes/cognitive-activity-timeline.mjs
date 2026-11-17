@@ -1,7 +1,9 @@
+import { reel, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, dial, bolt } from "../shared/instrument.mjs";
 
 export default function activity(accent, secondary) {
-  return `<g data-component="chart-recorder">
+  return `${tube("M12 50 9 64 18 79 32 85 70 81",accent)}
+  <g transform="translate(3 -5) scale(.95)"><g data-component="chart-recorder">
     ${plate("M9 36 17 22 72 12 80 18 83 39 74 48 25 60 11 52Z","dark-metal")}
     ${line("M15 49l7 5 49-11",secondary,1.45)}
     ${bolt(16,45)}${bolt(76,20)}
@@ -21,5 +23,10 @@ export default function activity(accent, secondary) {
     ${line("M39 37l24-6m-26 12 24-6m-26 13 25-6m-22 25 30-8","#6c8d9e",.7)}
     ${line("M37 73l6 6 33-9", "#e0eaf1",.8)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="paper-feed">
+  ${plate("M17 72 38 68 70 74 79 69 81 80 69 89 35 84 21 88Z","metal")}
+  <path d="M23 76q8-7 17-4l25 6q6 1 11-3l-5 8q-4 4-11 2l-23-6q-6-2-13 2Z" fill="#c9dcd6"/>
+  ${line("M28 77l7-2 4 2 3-2 3 4 4-1 2 3 7-1 5 2","#12565b",1.15)}
+  ${reel(21,77,6.8,secondary)}</g>`;
 }

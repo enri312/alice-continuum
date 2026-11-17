@@ -2,6 +2,8 @@
   <title>Estado y controles</title>
 
   <defs>
+    <linearGradient id="alice-state-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-state-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-state-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-state-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-state-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -10,7 +12,9 @@
     <linearGradient id="alice-state-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#10b981"/><stop offset=".7" stop-color="#10b981"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
     <linearGradient id="alice-state-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-component="signal-input">
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M13 35 8 40v29l8 9 14 2" fill="none" stroke="#07101c" stroke-width="4.4"/><path d="M13 35 8 40v29l8 9 14 2" fill="none" stroke="url(#alice-state-contact)" stroke-width="2.8"/>
+    <path d="M13 35 8 40v29l8 9 14 2" fill="none" stroke="#10b981" stroke-width="1.1"/><path d="M13 35 8 40v29l8 9 14 2" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
+  <g transform="translate(5 0) scale(.92)"><g data-component="signal-input">
     <g><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#050c16" stroke-width="3.8"/><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#637f96" stroke-width="2.4"/>
     <path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#10b981" stroke-width="1.1"/><path d="M18 48h-5l-4 5v15l6 5h11" fill="none" stroke="#e0f8ff" stroke-width=".6" stroke-dasharray="2 5"/></g>
     <g transform="translate(12 58) rotate(90)">
@@ -79,4 +83,28 @@
     <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g>
   </g>
   </g></g>
+  <g data-component="mixing-desk">
+  <path d="M13 76 28 71 51 79 78 69 89 73V82L53 95 18 87Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M13 76 28 71 51 79 78 69 89 73V82L53 95 18 87Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M13 76 28 71 51 79 78 69 89 73V82L53 95 18 87Z" fill="url(#alice-state-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M13 76 28 71 51 79 78 69 89 73V82L53 95 18 87Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <g transform="translate(19 77) scale(0.7941176470588235 0.5882352941176471)">
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-state-dark-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M2 0H31L34 3V14L31 17H2L0 15V2Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 3H30V13H3Z" fill="#081a29" stroke="#588793" stroke-width=".65"/>
+    <path d="M3 7h27m-27 4h27m-22-8v10m6-10v10m6-10v10m6-10v10" stroke="#2d4d61" stroke-width=".45"/>
+    <path d="M4 10l6-4 3 3 4-5 4 5 7-3" fill="none" stroke="#f59e0b" stroke-width="1.6"/><path d="M4 3.2h11" fill="none" stroke="#c6f7ff" stroke-width="0.55"/>
+    </g>
+  <g transform="translate(57 84) rotate(-18)">
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-state-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-state-dark-metal)" stroke="url(#alice-state-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-state-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/><path d="M24 0v4" stroke="url(#alice-state-contact)" stroke-width="1.7"/>
+    <path d="M2 6h24" fill="none" stroke="#10b981" stroke-width="0.85"/></g><g transform="translate(82 76) scale(1.25)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-state-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g></g>
 </svg>

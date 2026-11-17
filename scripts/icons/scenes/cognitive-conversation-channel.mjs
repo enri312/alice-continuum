@@ -1,7 +1,9 @@
+import { reel, readout, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, dial, bolt, coupling, conduit } from "../shared/instrument.mjs";
 
 export default function conversation(accent, secondary) {
-  return `<g data-component="audio-circuit">
+  return `${tube("M12 69Q2 83 15 86L42 91 58 82",secondary)}
+  <g transform="translate(2 -5) scale(.95)"><g data-component="audio-circuit">
     ${conduit("M26 61v12l9 6h13",accent)}
     ${coupling(37,79,0,accent)}
     ${plate("M43 70l19-2 8 6-2 9-20 2-7-5Z","dark-metal")}
@@ -25,5 +27,9 @@ export default function conversation(accent, secondary) {
     ${dial(80,55,6)}${pin(80,55,2.5,secondary)}
     ${bolt(16,24,1.1)}${bolt(66,54,1.1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="duplex-console" transform="rotate(-5 48 77)">
+  ${plate("M12 69 21 64 62 69 74 74 70 86 56 91 18 85 12 80Z","metal")}
+  ${readout(19,69,35,14,"M4 9h5l2-4 3 6 4-8 2 7 3-2h5",accent)}
+  ${reel(62,78,7.4,secondary)}${line("M18 81l28 4",accent,1.2)}</g>`;
 }

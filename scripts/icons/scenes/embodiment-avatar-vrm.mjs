@@ -1,7 +1,9 @@
+import { reel, contactRail } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, dial, bolt, conduit } from "../shared/instrument.mjs";
 
 export default function avatar(accent, secondary) {
-  return `<defs>
+  return `${plate("M12 72 21 63 71 56 87 62V77L62 90 26 88Z","dark-metal")}
+  <g transform="translate(4 -6) scale(.93)"><defs>
     <linearGradient id="alice-hair" x1="0" y1="0" x2="1" y2=".8"><stop stop-color="#665e59"/><stop offset=".28" stop-color="#b3a594"/><stop offset=".48" stop-color="#d8c7b2"/><stop offset=".65" stop-color="#9c9185"/><stop offset="1" stop-color="#635e59"/></linearGradient>
     <linearGradient id="alice-fringe" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#918579"/><stop offset=".38" stop-color="#baab98"/><stop offset=".54" stop-color="#e0ceb8"/><stop offset=".65" stop-color="#bdad99"/><stop offset="1" stop-color="#958b80"/></linearGradient>
     <radialGradient id="alice-skin" cx=".48" cy=".36" r=".75"><stop stop-color="#fff0e4"/><stop offset=".65" stop-color="#f2dbce"/><stop offset="1" stop-color="#c89f96"/></radialGradient>
@@ -73,5 +75,9 @@ export default function avatar(accent, secondary) {
     ${line("M61 78l5-2m-3-1v4","#223950",1.5)}${pin(74,75,1.3,accent)}
     ${line("M19 70l13 4m-12-1 7 2","#99acbd",1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="turntable-azimuth-ring">
+  <ellipse cx="50" cy="77" rx="37" ry="12" fill="none" stroke="#829dac" stroke-width="2"/>
+  <path d="M15 79q13 13 46 7l15-6" fill="none" stroke="url(#contact)" stroke-width="3"/>
+  ${reel(18,77,6,secondary)}${contactRail(58,86,7,-15,accent)}</g>`;
 }

@@ -2,6 +2,8 @@
   <title>Registro de capacidades</title>
 
   <defs>
+    <linearGradient id="alice-capabilities-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-capabilities-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-capabilities-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-capabilities-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-capabilities-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -10,7 +12,9 @@
     <linearGradient id="alice-capabilities-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#22d3ee"/><stop offset=".7" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient>
     <linearGradient id="alice-capabilities-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-component="bus-connectors">
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M69 14 84 20l6 8v40l-9 8" fill="none" stroke="#07101c" stroke-width="4.4"/><path d="M69 14 84 20l6 8v40l-9 8" fill="none" stroke="url(#alice-capabilities-contact)" stroke-width="2.8"/>
+    <path d="M69 14 84 20l6 8v40l-9 8" fill="none" stroke="#22d3ee" stroke-width="1.1"/><path d="M69 14 84 20l6 8v40l-9 8" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
+  <g transform="translate(-2 -6) scale(.98)"><g data-component="bus-connectors">
     <path d="M10 29 21 22V71L10 76 7 71Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
     <path d="M10 29 21 22V71L10 76 7 71Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-capabilities-bevel)" stroke-width="1.45"/>
     <path d="M10 29 21 22V71L10 76 7 71Z" fill="url(#alice-capabilities-dark-metal)" stroke="url(#alice-capabilities-bevel)" stroke-width="1.55"/>
@@ -81,4 +85,20 @@
     <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g>
   </g>
   </g></g>
+  <g data-component="removable-adapter">
+  <path d="M21 77 52 68 75 73V80L46 90 20 85Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M21 77 52 68 75 73V80L46 90 20 85Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-capabilities-bevel)" stroke-width="1.45"/>
+    <path d="M21 77 52 68 75 73V80L46 90 20 85Z" fill="url(#alice-capabilities-metal)" stroke="url(#alice-capabilities-bevel)" stroke-width="1.55"/>
+    <path d="M21 77 52 68 75 73V80L46 90 20 85Z" fill="url(#alice-capabilities-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <path d="M31 77l20-6 13 3-19 7Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M31 77l20-6 13 3-19 7Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-capabilities-bevel)" stroke-width="1.45"/>
+    <path d="M31 77l20-6 13 3-19 7Z" fill="url(#alice-capabilities-glass)" stroke="url(#alice-capabilities-bevel)" stroke-width="1.55"/>
+    <path d="M31 77l20-6 13 3-19 7Z" fill="url(#alice-capabilities-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <g transform="translate(23 81) rotate(9)">
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-capabilities-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-capabilities-dark-metal)" stroke="url(#alice-capabilities-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-capabilities-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-capabilities-contact)" stroke-width="1.7"/>
+    <path d="M2 6h21" fill="none" stroke="#22d3ee" stroke-width="0.85"/></g><path d="M49 85l20-7" fill="none" stroke="#34d399" stroke-width="1.6"/></g></g>
 </svg>

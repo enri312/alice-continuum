@@ -1,7 +1,9 @@
+import { contactRail, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt, coupling, conduit } from "../shared/instrument.mjs";
 
 export default function capabilities(accent, secondary) {
-  return `<g data-component="bus-connectors">
+  return `${tube("M69 14 84 20l6 8v40l-9 8",accent)}
+  <g transform="translate(-2 -6) scale(.98)"><g data-component="bus-connectors">
     ${plate("M10 29 21 22V71L10 76 7 71Z","dark-metal")}
     ${[32,43,54,65].map(y=>line(`M10 ${y}l7-4`,secondary,1.6)).join("")}
     ${conduit("M77 29h8l4 5v23l-6 7h-6",accent)}
@@ -18,5 +20,9 @@ export default function capabilities(accent, secondary) {
     ${line("M24 32l9-2 4-5 22-5m-34 42 13 4 5-3m6-17 9-2 3-4m-16 24 2 4 10-3","#7ca4b3",.9)}
     ${bolt(19,27)}${bolt(38,79)}${bolt(77,26)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="removable-adapter">
+  ${plate("M21 77 52 68 75 73V80L46 90 20 85Z","metal")}
+  ${plate("M31 77l20-6 13 3-19 7Z","glass")}
+  ${contactRail(23,81,7,9,accent)}${line("M49 85l20-7",secondary,1.6)}</g>`;
 }

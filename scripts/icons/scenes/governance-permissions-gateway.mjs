@@ -1,7 +1,9 @@
+import { fork, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, dial, bolt, coupling } from "../shared/instrument.mjs";
 
 export default function permissions(accent, secondary) {
-  return `<g data-component="locking-yoke">
+  return `${tube("M18 61 12 71 18 82l17 4",secondary)}
+  <g transform="translate(4 -6) scale(.95)"><g data-component="locking-yoke">
     ${plate("M13 24 17 19 23 21V52L29 63 26 72 18 67 12 53Z","dark-metal")}
     ${plate("M75 20l8-3 5 6v29l-7 12-7-5 6-15Z","dark-metal")}
     ${coupling(17,41,90,secondary)}${coupling(82,34,90,secondary)}
@@ -22,5 +24,9 @@ export default function permissions(accent, secondary) {
     ${bolt(29,29,1.35)}${bolt(68,29,1.35)}${bolt(48,67,1.2)}
     ${line("M40 40q3-6 9-6", "#edfaff",.9)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="revocation-interlock">
+  ${plate("M14 75 29 68 63 77 71 83 62 91 28 86 14 82Z","dark-metal")}
+  ${fork(18,68,-56,secondary)}${line("M35 76l19 6", "#09202d",4)}
+  ${line("M36 75l19 6",accent,1.3)}${bolt(61,84,1.6)}</g>`;
 }

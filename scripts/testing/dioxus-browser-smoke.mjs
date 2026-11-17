@@ -85,6 +85,7 @@ try {
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await until(async () => (await inspector()) === 'Lenguaje', 'selección por teclado');
+  assert.equal(await evaluate('document.querySelector(".flow-node.selected")?.getAttribute("aria-pressed")'), 'true');
   await clickTab('Estado y controles');
   await until(() => evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .internal-state\'))'), 'Estado y controles');
   assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'), 1);
@@ -102,6 +103,17 @@ try {
   assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, 'Sin desbordamiento horizontal a 1000 px');
   const narrowShot = await send('Page.captureScreenshot', { format: 'png' });
   await fs.writeFile(path.join(artifacts, 'flow-1000.png'), Buffer.from(narrowShot.data, 'base64'));
+  for (const width of [390, 1280]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+    assert.ok(await evaluate(`(() => {
+      const rect = selector => document.querySelector(selector).getBoundingClientRect();
+      const viewport = document.querySelector('.flow-viewport');
+      return rect('.flow-heading').bottom <= rect('.flow-viewport svg').top + 1
+        && rect('.flow-legend').top + 1 >= rect('.flow-viewport svg').bottom
+        && (innerWidth > 400 || (viewport.clientWidth < viewport.scrollWidth && rect('.flow-viewport').right <= innerWidth));
+    })()`), 'Encabezado y leyenda fuera de las rutas a ' + width + ' px');
+  }
+  await send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 900, deviceScaleFactor: 1, mobile: false });
 
   // Exercise real WASM updates independently of Tauri, using synthetic signals.
   const runtimeFile = (await fs.readdir(path.join(root, 'Frontend/dist/assets'))).find(name => /^runtime-.*\.js$/.test(name));
@@ -121,7 +133,7 @@ try {
   await evaluate("Object.assign(__aliceSmoke.payload.activity,{signalPresent:true,auditHealthy:false,windowEventCount:1,overallSignal:0.4,method:'r3-recency-motor-v2'}); __aliceSmoke.runtime.update(__aliceSmoke.id,JSON.stringify(__aliceSmoke.payload))");
   await until(async () => await signalState() === 'ready', 'R3 con señal');
   assert.equal(await evaluate('document.querySelector("#dioxus-smoke-signal .core-activity-provenance")?.dataset.auditState'), 'degraded');
-  assert.equal(await evaluate('document.querySelector("#dioxus-smoke-signal .core-activity-provenance")?.textContent.includes("1 EVENTOS / 1 MIN · SEÑAL 0.400")'), true);
+  assert.equal(await evaluate('document.querySelector("#dioxus-smoke-signal .core-activity-provenance")?.textContent.includes("1 EVENTO / 1 MIN · SEÑAL 0.400")'), true);
   assert.equal(await evaluate(`(() => { const invalid=structuredClone(__aliceSmoke.payload); invalid.activity.overallSignal=2; try { __aliceSmoke.runtime.update(__aliceSmoke.id,JSON.stringify(invalid)); return false; } catch { return true; } })()`), true, 'Rechaza señales inválidas');
   await evaluate("__aliceSmoke.runtime.unmount(__aliceSmoke.id); document.getElementById('dioxus-smoke-signal').remove(); delete globalThis.__aliceSmoke");
 
@@ -425,6 +437,8 @@ try {
   // Real Rust/browser timer with fictitious IPC: a slow read spans two ticks.
   const activityState = () => evaluate('document.querySelector(".neuro-live")?.dataset.activityState');
   await until(async () => await activityState()==='idle','R3 de procedimientos sin señal');
+  assert.equal(await evaluate('document.querySelectorAll(".flow-connections [data-route=signal]").length'), 0);
+  assert.equal(await evaluate('document.querySelectorAll(".flow-connections [data-route=planned]").length'), 8);
   await evaluate("__coreMode='hold'; delete globalThis.__releaseCore");
   await until(() => evaluate('typeof __releaseCore === "function"'),'lectura R3 suspendida');
   const heldCalls=await evaluate('__coreActivityCalls');
@@ -440,6 +454,13 @@ try {
   assert.equal(await nodeSignal('Rostro'),'0');
   assert.equal(await nodeSignal('Social'),'0');
   assert.equal(await evaluate('document.querySelector(".flow-connections path")?.style.getPropertyValue("--signal")'),'0.3');
+  const signalCount = await evaluate('document.querySelectorAll(".flow-connections [data-route=signal]").length');
+  assert.ok(signalCount > 0 && signalCount <= 5);
+  assert.equal(await evaluate('document.querySelector(".flow-heading span").textContent'), signalCount === 1 ? '1 ruta con señal' : signalCount + ' rutas con señal');
+  assert.ok(await evaluate('Array.from(document.querySelectorAll(".flow-connections path:not([data-route=signal])")).every(p=>getComputedStyle(p).animationName==="none")'));
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  assert.ok(await evaluate('Array.from(document.querySelectorAll(".flow-connections path")).every(p=>getComputedStyle(p).animationName==="none")'));
+  await send('Emulation.setEmulatedMedia', { features: [] });
   const activityShot=await send('Page.captureScreenshot',{format:'png'});
   await fs.writeFile(path.join(artifacts,'flow-page-r3.png'),Buffer.from(activityShot.data,'base64'));
   await evaluate("__coreMode='invalid'");

@@ -20,7 +20,8 @@ const artifacts = await fs.mkdtemp(path.join(artifactRoot, 'dioxus-native-'));
 const data = path.join(artifacts, 'data');
 await fs.mkdir(path.join(data, 'memory'), { recursive: true });
 const records = ['a', 'b'].map(id => ({ id, kind: 'Conversación', intention: `Experiencia nativa ${id.toUpperCase()}: aprender Rust`,
-  startedAt: '2026-11-15T12:00:00Z', memoryType: 'episodic', memoryStatus: 'confirmed', source: 'owner' }));
+  startedAt: '2026-11-15T12:00:00Z', finishedAt: '2026-11-15T12:05:00Z',
+  memoryType: 'episodic', memoryStatus: 'confirmed', source: 'owner' }));
 const sourcePath = path.join(data, 'memory/records.json');
 await fs.writeFile(sourcePath, JSON.stringify(records));
 await fs.writeFile(path.join(data, 'memory/automatic-v1.json'), JSON.stringify({ schemaVersion: 1, enabled: false, records: [], decisions: [] }));
@@ -141,6 +142,9 @@ try {
   assert.equal(await evaluate('document.querySelectorAll(".nucleus-page-header").length'), 1);
   await evaluate('document.querySelector(\'.flow-node[aria-label^="Memoria:"]\').dispatchEvent(new MouseEvent("click",{bubbles:true}))');
   await until(() => evaluate('document.querySelector(".neuro-inspector h3")?.textContent==="Memoria"'), 'inspector nativo');
+  assert.equal(await evaluate('document.querySelector(".flow-node.selected")?.getAttribute("aria-pressed")'), 'true');
+  await evaluate('document.querySelector(".flow-heading").scrollIntoView({block:"start"})');
+  await screenshot('flujo-conexiones.png');
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Estado y controles").click()');
   await until(() => evaluate('Boolean(document.querySelector(\'.state-controls-host[data-renderer="dioxus"] .internal-state\'))'), 'Estado Dioxus nativo');
   await until(() => evaluate('["ready","idle"].includes(document.querySelector(".neuro-live")?.dataset.activityState)'), 'R3 nativo de Estado validado en Rust');
@@ -172,12 +176,30 @@ try {
   await until(()=>evaluate('Boolean(document.querySelector(\'button[aria-label="Auditoría y diagnóstico"]\'))'),'gobierno para aislar teclado');
   await until(()=>evaluate('document.querySelectorAll("#registry-panel .capability-domain button").length > 0'), 'inventario de capacidades nativo');
   await evaluate('document.querySelector(\'[aria-controls="permissions-panel"]\').click()');
-  await until(()=>evaluate('document.querySelector("#permission-gateway-title").checkVisibility() && document.querySelector(".permission-status")?.textContent.includes("Permisos locales actualizados")'), 'permisos nativos de solo consulta');
+  await until(()=>evaluate('document.querySelector("#permission-gateway-title").checkVisibility() && document.querySelector(".permission-status")?.textContent.includes("Permisos locales actualizados")'), 'lectura de permisos nativos');
+  async function permissionButton(label) {
+    const selector = `Array.from(document.querySelectorAll('#permissions-panel button')).find(b => b.textContent === ${JSON.stringify(label)} && b.checkVisibility() && !b.disabled)`;
+    await until(() => evaluate(`Boolean(${selector})`), label);
+    await evaluate(`${selector}.click()`);
+  }
+  await permissionButton('PREPARAR OBSERVACIÓN');
+  await permissionButton('RECHAZAR');
+  await until(()=>evaluate('document.querySelector(".permission-ledger")?.textContent.includes("RECHAZADA")'), 'rechazo registrado');
+  await permissionButton('PREPARAR OBSERVACIÓN');
+  await permissionButton('APROBAR PERMISO');
+  await permissionButton('REVOCAR');
+  await until(()=>evaluate('document.querySelector(".permission-ledger")?.textContent.includes("Revocado")'), 'permiso revocado antes de ejecución');
   await screenshot('gobernanza-permisos.png');
   await evaluate('document.querySelector(\'[aria-controls="registry-panel"]\').click()');
+  await evaluate('Array.from(document.querySelectorAll("#registry-panel .bridge-grid button")).find(b=>b.querySelector("strong")?.textContent==="Controlar observación de ventana").click()');
   await screenshot('gobernanza-inventario.png');
-  await evaluate('document.querySelector(".governance-audit-link").click()');
+  await evaluate('document.querySelector(".bridge-inspector button").click()');
   await until(()=>evaluate('Boolean(document.querySelector(".native-audit"))&&!document.querySelector("[data-activity-renderer]")'),'auditoría separada');
+  await until(()=>evaluate('document.querySelector(".native-audit")?.textContent.includes("Revocación")'), 'revocación visible en auditoría de la capacidad');
+  assert.ok(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).every(row=>row.children[3].title.startsWith("context.foreground.control /"))'));
+  assert.equal(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).some(row=>row.children[2].textContent==="Ejecución")'), false);
+  await evaluate('Array.from(document.querySelectorAll(".native-audit button")).find(b=>b.textContent==="Mostrar todas las operaciones").click()');
+  await until(()=>evaluate('!document.querySelector(".native-audit")?.textContent.includes("Capacidad seleccionada")'), 'auditoría completa');
   const timelineRuntimeFile=(await fs.readdir(path.join(root,'Frontend/dist/assets'))).find(name=>/^runtime-.*\.js$/.test(name));
   assert.ok(timelineRuntimeFile);
   const timelineRuntimeUrl=new URL(`/assets/${timelineRuntimeFile}`,preview).href;
@@ -223,9 +245,12 @@ try {
   await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
   await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
+  await evaluate('document.querySelector(\'button[aria-label="Volumen cognitivo"]\').click()');
+  await until(() => evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt => dt.textContent === "Otros recuerdos" && dt.nextElementSibling?.textContent === "2")'), 'Volumen reconoce las dos fuentes episódicas después de recargar');
+  await until(() => evaluate('document.querySelector(".volume-stats-growth")?.textContent.endsWith(" · 1 ASOCIACIÓN CONFIRMADA")'), 'Volumen proyecta la relación confirmada en Flujo');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
   const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, nodes: 11,
-    governanceRegistryAndPermissions: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, sourceUnchanged: true, isolatedData: true };
+    governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {

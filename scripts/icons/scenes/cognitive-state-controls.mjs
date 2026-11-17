@@ -1,7 +1,9 @@
+import { readout, contactRail, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt, coupling, conduit } from "../shared/instrument.mjs";
 
 export default function stateControls(accent, secondary) {
-  return `<g data-component="signal-input">
+  return `${tube("M13 35 8 40v29l8 9 14 2",accent)}
+  <g transform="translate(5 0) scale(.92)"><g data-component="signal-input">
     ${conduit("M18 48h-5l-4 5v15l6 5h11",accent)}
     ${coupling(12,58,90,secondary)}
   </g>
@@ -23,5 +25,9 @@ export default function stateControls(accent, secondary) {
     ${line("M79 32v33m2-30v22","#102535",1.1)}
     ${bolt(74,21,1.4)}${bolt(23,81,1.4)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="mixing-desk">
+  ${plate("M13 76 28 71 51 79 78 69 89 73V82L53 95 18 87Z","metal")}
+  ${readout(19,77,27,10,"M4 10l6-4 3 3 4-5 4 5 7-3",secondary)}
+  ${contactRail(57,84,8,-18,accent)}${bolt(82,76,1.25)}</g>`;
 }

@@ -2,6 +2,8 @@
   <title>Memoria</title>
 
   <defs>
+    <linearGradient id="alice-memory-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-memory-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-memory-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-memory-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-memory-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -10,7 +12,9 @@
     <linearGradient id="alice-memory-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#60a5fa"/><stop offset=".7" stop-color="#60a5fa"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
     <linearGradient id="alice-memory-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g data-component="retrieval-bus">
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><g fill="none"><path d="M12 61 7 71 12 79 36 86 49 82" fill="none" stroke="#07101c" stroke-width="4.4"/><path d="M12 61 7 71 12 79 36 86 49 82" fill="none" stroke="url(#alice-memory-contact)" stroke-width="2.8"/>
+    <path d="M12 61 7 71 12 79 36 86 49 82" fill="none" stroke="#a78bfa" stroke-width="1.1"/><path d="M12 61 7 71 12 79 36 86 49 82" stroke="#f7fbff" stroke-width=".65" stroke-dasharray="1.8 4"/></g>
+  <g transform="translate(-1 -7) scale(.96)"><g data-component="retrieval-bus">
     <path d="M10 61 18 56 90 45 93 51V70L57 91 11 77Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
     <path d="M10 61 18 56 90 45 93 51V70L57 91 11 77Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-memory-bevel)" stroke-width="1.45"/>
     <path d="M10 61 18 56 90 45 93 51V70L57 91 11 77Z" fill="url(#alice-memory-dark-metal)" stroke="url(#alice-memory-bevel)" stroke-width="1.55"/>
@@ -73,4 +77,41 @@
     <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g>
   </g>
   </g></g>
+  <g data-component="withdrawn-cartridge">
+  <path d="M33 73 54 63 84 70 88 76 68 91 36 85Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M33 73 54 63 84 70 88 76 68 91 36 85Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-memory-bevel)" stroke-width="1.45"/>
+    <path d="M33 73 54 63 84 70 88 76 68 91 36 85Z" fill="url(#alice-memory-metal)" stroke="url(#alice-memory-bevel)" stroke-width="1.55"/>
+    <path d="M33 73 54 63 84 70 88 76 68 91 36 85Z" fill="url(#alice-memory-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <path d="M39 74 55 67 78 72 63 82Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M39 74 55 67 78 72 63 82Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-memory-bevel)" stroke-width="1.45"/>
+    <path d="M39 74 55 67 78 72 63 82Z" fill="url(#alice-memory-dark-metal)" stroke="url(#alice-memory-bevel)" stroke-width="1.55"/>
+    <path d="M39 74 55 67 78 72 63 82Z" fill="url(#alice-memory-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <g transform="translate(57 74) scale(0.58)">
+    <circle cy="1.1" r="10.2" fill="#061321" stroke="#617991"/>
+    <circle r="9.5" fill="url(#alice-memory-rotor)" stroke="#d4e3ef" stroke-width=".75"/>
+    <g transform="rotate(0)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#a78bfa" stroke-width="1.05"/></g><g transform="rotate(72)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#a78bfa" stroke-width="1.05"/></g><g transform="rotate(144)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#a78bfa" stroke-width="1.05"/></g><g transform="rotate(216)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#a78bfa" stroke-width="1.05"/></g><g transform="rotate(288)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#a78bfa" stroke-width="1.05"/></g>
+    <g transform="translate(0 0) scale(1.9)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-memory-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g><g transform="translate(40 80) rotate(10)">
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H28V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-memory-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-memory-dark-metal)" stroke="url(#alice-memory-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H28V6H0Z" fill="url(#alice-memory-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/><path d="M24 0v4" stroke="url(#alice-memory-contact)" stroke-width="1.7"/>
+    <path d="M2 6h24" fill="none" stroke="#60a5fa" stroke-width="0.85"/></g>
+  <path d="M69 84l12-8" fill="none" stroke="#60a5fa" stroke-width="1.7"/><g transform="translate(81 73) scale(1.1)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-memory-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g></g>
 </svg>

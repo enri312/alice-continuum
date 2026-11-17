@@ -1,7 +1,9 @@
+import { fork, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt } from "../shared/instrument.mjs";
 
 export default function body(accent, secondary) {
-  return `<g data-component="kinematic-bench">
+  return `${tube("M15 39 10 53l1 16 9 8",secondary)}${tube("M78 34 87 27l4 3v23l-10 12",accent)}
+  <g transform="translate(1 -3) scale(.97)"><g data-component="kinematic-bench">
     ${plate("M13 77l26-10 42 7 7 6-32 13-42-8Z","dark-metal")}
     ${line("M18 82l36 7 25-10",accent,1.2)}
     ${plate("M13 70V26l12-8 4 3-9 9v39Z","metal")}
@@ -25,5 +27,7 @@ export default function body(accent, secondary) {
     ${line("M42 33l8 3 8-5m-10 6-3 7m8-7 2 5",secondary,1.2)}
     ${bolt(46,46,1.1)}${bolt(56,46,1.1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="force-feedback-joints">${fork(20,70,-24,accent)}${fork(64,71,-17,secondary)}
+  ${line("M27 76l8-9m35 9-6-9","#e3eff8",2.1)}</g>`;
 }

@@ -166,9 +166,9 @@ export function applyCoreActivitySnapshot(base: BrainSnapshot, activity: CoreAct
     return {
       ...node,
       activation: evidence.signal,
-      value: evidence.eventCount ? `${evidence.eventCount} eventos R3` : "sin señal reciente",
+      value: evidence.eventCount ? `${evidence.eventCount} ${evidence.eventCount === 1 ? "evento" : "eventos"} R3` : "sin señal reciente",
       detail: evidence.eventCount
-        ? `${evidence.label}: ${evidence.eventCount} eventos técnicos dentro de la ventana. Intensidad heurística ${evidence.signal.toFixed(3)}.`
+        ? `${evidence.label}: ${evidence.eventCount} ${evidence.eventCount === 1 ? "evento técnico" : "eventos técnicos"} dentro de la ventana. Intensidad heurística ${evidence.signal.toFixed(3)}.`
         : `${evidence.label}: no hay eventos R3 dentro de la ventana temporal.`,
     };
   });

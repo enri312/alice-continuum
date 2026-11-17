@@ -51,43 +51,36 @@ pub fn Graph(payload: Payload, on_select: EventHandler<String>) -> Element {
     let snap = &payload;
     let selected_id = snap.selected_id.clone();
     let inspector = snap.selected(&selected_id);
-    let activity_class = if snap.has_activity {
-        "has-activity"
-    } else {
-        "is-empty"
-    };
-    let signal_label = if snap.activity.window_event_count > 0 {
-        "SEÑAL R3 DERIVADA"
-    } else {
-        "SIN EVENTOS R3 RECIENTES"
-    };
-    let summary = if snap.activity.status == ActivityStatus::Ready {
-        format!(
-            "{} eventos · heurística {}",
-            snap.activity.window_event_count,
-            snap.activity.method.as_deref().unwrap_or("")
-        )
-    } else {
-        "snapshot no disponible".into()
+    let active_routes = CONNECTIONS.iter().filter(|(_, _, evidence)| snap.signal(*evidence) > 0.0).count();
+    let summary = match snap.activity.status {
+        ActivityStatus::Loading => "Leyendo auditoría…".into(),
+        ActivityStatus::Unavailable => "Lectura no disponible".into(),
+        ActivityStatus::Ready if active_routes == 1 => "1 ruta con señal".into(),
+        ActivityStatus::Ready => format!("{active_routes} rutas con señal"),
     };
     rsx! {
         ActivityIntro { activity: snap.activity.clone(), code: "[02]", title: "Flujo cognitivo", description: "Relaciones funcionales entre percepción, memoria, espacio de trabajo y salida." }
         div { class: "neuro-layout",
-        div { class: "neuro-stage", div { class: "cognitive-flow {activity_class}",
-            div { class:"nucleus-panel-label", span {"[02]"} strong {"COGNITIVE GRAPH / GLOBAL WORKSPACE"} small {"FUNCTIONAL FLOW"} }
-            div { class:"flow-state", span {"{signal_label}"} strong {"{summary}"} }
-            svg { view_box:"0 0 1000 430", role:"img", "aria-label":"Flujo funcional verificable de Alice",
+        div { class: "neuro-stage", div { class: "cognitive-flow",
+            header { class: "flow-heading", h3 { "Rutas del espacio de trabajo" } span { "{summary}" } }
+            div { class: "flow-viewport", role: "region", tabindex: "0", "aria-label": "Mapa de conexiones",
+            svg { view_box:"0 0 1000 430", role:"group", "aria-label":"Flujo funcional verificable de Alice",
                 g { class:"flow-connections",
                     for (from_id,to_id,evidence) in CONNECTIONS {
                         if let (Some(from),Some(to))=(snap.nodes.iter().find(|n|n.id==from_id),snap.nodes.iter().find(|n|n.id==to_id)) {
-                            path { key:"{from_id}-{to_id}", d:curve(from,to), style:format!("--signal: {}",snap.signal(evidence)) }
+                            {
+                                let signal = snap.signal(evidence);
+                                rsx! { path { key:"{from_id}-{to_id}", d:curve(from,to),
+                                    "data-route": if signal > 0.0 { "signal" } else if evidence.is_some() { "idle" } else { "planned" },
+                                    style:format!("--signal: {signal}") } }
+                            }
                         }
                     }
                 }
                 g { class:"flow-nodes",
                     for node in &snap.nodes {
                         g { key:"{node.id}", class:format!("flow-node {} {} {}",node.group,node.availability,if inspector.id==node.id {"selected"} else {""}),
-                            style:format!("--signal: {}",node.activation), transform:format!("translate({} {})",node.x*10.0,node.y*4.3), role:"button", tabindex:"0",
+                            style:format!("--signal: {}",node.activation), transform:format!("translate({} {})",node.x*10.0,node.y*4.3), role:"button", tabindex:"0", "aria-pressed": inspector.id == node.id,
                             "aria-label":format!("{}: {}, activación {:.3}",node.label,node.value,node.activation),
                             onclick:{ let id=node.id.clone(); move |_| on_select.call(id.clone()) },
                             onkeydown:{ let id=node.id.clone(); move |event: KeyboardEvent| { if event.key()==Key::Enter || event.key()==Key::Character(" ".into()) { event.prevent_default(); on_select.call(id.clone()); } } },
@@ -99,7 +92,8 @@ pub fn Graph(payload: Payload, on_select: EventHandler<String>) -> Element {
                     }
                 }
             }
-            div { class:"flow-legend", span { class:"ready", "evidencia R3" } span { class:"planned", "fase futura" } span {"valor = intensidad heurística"} }
+            }
+            div { class:"flow-legend", span { class:"ready", "Señal reciente" } span { "Sin señal" } span { class:"planned", "Ruta prevista" } }
         } }
         aside { class:"neuro-inspector", p { class:"eyebrow", "INSPECTOR" } h3 {"{inspector.label}"} span { class:"inspector-value", "{inspector.value}" } p {"{inspector.detail}"} small {"La activación es una señal técnica derivada, no una experiencia interna."} }
     } }

@@ -101,7 +101,7 @@ export function NucleusProvenanceBand({ activity, activityStatus }: NucleusProve
     aria-busy={viewState === "loading"}
   >
     <strong>R3 · ACTIVIDAD DERIVADA</strong>
-    <span>{activityStatus === "loading" ? "LEYENDO AUDITORÍA LOCAL…" : activityStatus === "unavailable" ? "SNAPSHOT NATIVO NO DISPONIBLE" : `${activity?.windowEventCount ?? 0} EVENTOS / ${Math.round((activity?.windowMs ?? 0) / 60_000)} MIN · SEÑAL ${(activity?.overallSignal ?? 0).toFixed(3)} · ${activity?.auditHealthy ? "AUDITORÍA ÍNTEGRA" : "AUDITORÍA CON LÍNEAS INVÁLIDAS"}`}</span>
+    <span>{activityStatus === "loading" ? "LEYENDO AUDITORÍA LOCAL…" : activityStatus === "unavailable" ? "SNAPSHOT NATIVO NO DISPONIBLE" : `${activity?.windowEventCount ?? 0} ${activity?.windowEventCount === 1 ? "EVENTO" : "EVENTOS"} / ${Math.round((activity?.windowMs ?? 0) / 60_000)} MIN · SEÑAL ${(activity?.overallSignal ?? 0).toFixed(3)} · ${activity?.auditHealthy ? "AUDITORÍA ÍNTEGRA" : "AUDITORÍA CON LÍNEAS INVÁLIDAS"}`}</span>
     <small>HEURÍSTICA {activity?.method?.toUpperCase() ?? "R3-RECENCY-MOTOR-V2"} · NO ES EMOCIÓN NI CONCIENCIA</small>
   </div>;
 }

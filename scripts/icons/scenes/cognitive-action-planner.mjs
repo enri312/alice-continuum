@@ -1,7 +1,9 @@
+import { contactRail, readout } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, dial, bolt, coupling } from "../shared/instrument.mjs";
 
 export default function planner(accent, secondary) {
-  return `<g data-component="binding">
+  return `${plate("M16 65 67 53 91 60V78L38 92 13 85Z","dark-metal")}
+  <g transform="translate(0 -4) scale(.95)"><g data-component="binding">
     ${plate("M13 26 22 23 26 28V78L17 84 10 79Z","dark-metal")}
     ${[32,45,58,71].map(y=>coupling(18,y,-10,secondary)).join("")}
   </g>
@@ -21,5 +23,8 @@ export default function planner(accent, secondary) {
     ${bolt(64,26,1.3)}${bolt(26,77,1.3)}
     ${line("M65 74l4 3m11-14 3 3",secondary,1.1)}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="route-selector" transform="rotate(-10 65 78)">
+  ${readout(48,70,39,19,"M4 11h6l4-6h5l4 5h6",accent)}
+  ${contactRail(18,80,7,3,secondary)}</g>`;
 }

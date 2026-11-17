@@ -1,3 +1,4 @@
+import { startSerializedPolling } from "../../core/shared/polling";
 import { effectLabel, grantStateLabel, permissionModeLabel, resourceKindLabel, riskLabel } from "../../core/governance/display-labels";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -38,40 +39,45 @@ function shortDigest(value: string) {
   return `${value.slice(0, 15)}…${value.slice(-8)}`;
 }
 
-export function PermissionGatewayPanel({ onObservationStateChange }: { onObservationStateChange: (enabled: boolean) => void }) {
+export function PermissionGatewayPanel({ visible, onObservationStateChange }: { visible: boolean; onObservationStateChange: (enabled: boolean) => void }) {
   const nativeRuntime = isTauri();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [gateway, setGateway] = useState<PermissionGatewayResult>(() => createWebDevelopmentPermissionGateway());
   const [pending, setPending] = useState<PreparedPermissionRequest | null>(null);
   const [busy, setBusy] = useState<GatewayAction | null>(null);
-  const [message, setMessage] = useState(nativeRuntime ? "Consultando los permisos locales…" : "El navegador no expone comandos nativos de permisos.");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  const refresh = useCallback(async () => {
-    if (!nativeRuntime) return;
-    const snapshot = parsePermissionGatewayStatus(await invoke<unknown>("permission_gateway_status"));
-    setGateway({ source: "native", snapshot });
-    onObservationStateChange(snapshot.grants.some((grant) => grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active"));
-  }, [nativeRuntime, onObservationStateChange]);
+  const [reading, setReading] = useState<"loading" | "ready" | "failed">("loading");
+  const [readError, setReadError] = useState("");
 
   useEffect(() => {
-    let active = true;
-    refresh()
-      .then(() => { if (active && nativeRuntime) setMessage("Permisos locales actualizados."); })
-      .catch((reason) => {
-        if (!active) return;
-        setError(String(reason));
-        setMessage("No se pudo consultar el control de permisos.");
-      });
-    return () => { active = false; };
-  }, [refresh, nativeRuntime]);
+    if (!nativeRuntime || !visible || busy !== null) return;
+    setReading("loading");
+    return startSerializedPolling({
+      intervalMs: 5_000,
+      read: async () => parsePermissionGatewayStatus(await invoke<unknown>("permission_gateway_status")),
+      onValue: snapshot => {
+        setReading("ready");
+        setReadError("");
+        setGateway({ source: "native", snapshot });
+        onObservationStateChange(snapshot.grants.some(grant =>
+          grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active"));
+        setPending(current => current && snapshot.requests.some(request =>
+          request.requestId === current.requestId && request.state === "awaitingDecision") ? current : null);
+      },
+      onError: reason => {
+        setReading("failed");
+        setReadError(String(reason));
+      },
+    });
+  }, [visible, nativeRuntime, busy, onObservationStateChange]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (pending && !dialog.open) dialog.showModal();
-    if (!pending && dialog.open) dialog.close();
-  }, [pending]);
+    if (visible && pending && !dialog.open) dialog.showModal();
+    if ((!visible || !pending) && dialog.open) dialog.close();
+  }, [visible, pending]);
 
   const run = useCallback(async (action: GatewayAction, operation: () => Promise<void>) => {
     setBusy(action);
@@ -81,11 +87,10 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     } catch (reason) {
       setError(String(reason));
       if (action === "approve" || action === "deny" || action === "cancel") setPending(null);
-      try { await refresh(); } catch { /* Se conserva el error original de la acción. */ }
     } finally {
       setBusy(null);
     }
-  }, [refresh, nativeRuntime]);
+  }, []);
 
   const prepare = (enabled: boolean) => run(enabled ? "prepare-start" : "prepare-stop", async () => {
     const purpose = enabled
@@ -98,7 +103,6 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     const request = parsePreparedPermissionRequest(result);
     setPending(request);
     setMessage("Solicitud preparada; todavía no se ejecutó ninguna capacidad.");
-    await refresh();
   });
 
   const decide = (decision: "approve" | "deny") => {
@@ -112,7 +116,6 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
       setMessage(decision === "approve"
         ? "Permiso aprobado. Podés ejecutar la operación cuando estés listo."
         : "Solicitud rechazada. No se concedió el permiso.");
-      await refresh();
     });
   };
 
@@ -124,7 +127,6 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
       }));
       setPending(null);
       setMessage("Solicitud cancelada.");
-      await refresh();
     });
   };
 
@@ -134,7 +136,6 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     }));
     if (grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active") onObservationStateChange(false);
     setMessage(grant.state === "active" ? "Permiso revocado y su sesión detenida." : "Permiso revocado antes de su ejecución.");
-    await refresh();
   });
 
   const execute = (grant: PermissionGrant) => run("execute", async () => {
@@ -145,12 +146,16 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     setMessage(result.enabled
       ? "Observación de ventana activa durante la sesión autorizada."
       : "Observación detenida y contexto descartado.");
-    await refresh();
   });
 
   const requests = gateway.snapshot.requests;
   const grants = gateway.snapshot.grants;
-  const commandsAvailable = nativeRuntime && gateway.snapshot.policy.r2DecisionCommandsExposed;
+  const hasSnapshot = gateway.source === "native";
+  const commandsAvailable = nativeRuntime && reading === "ready" && gateway.snapshot.policy.r2DecisionCommandsExposed;
+
+  const statusText = !nativeRuntime ? "Los permisos se consultan en la aplicación de escritorio."
+    : reading === "failed" ? `No se pudo actualizar el estado de los permisos. ${readError}`
+    : reading === "loading" ? "Consultando los permisos locales…" : message || "Permisos locales actualizados.";
 
   return <section className="permission-gateway" aria-labelledby="permission-gateway-title">
     <header>
@@ -159,10 +164,10 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
     </header>
 
     <div className="permission-policy" aria-label="Política de permisos">
-      <div><span>DENEGACIÓN POR DEFECTO</span><strong>{gateway.snapshot.policy.denyByDefault ? "SÍ" : "NO"}</strong></div>
-      <div><span>PERMISOS PERSISTENTES</span><strong>{gateway.snapshot.policy.persistentGrants ? "SÍ" : "NO"}</strong></div>
-      <div><span>DECISIÓN R2</span><strong>{gateway.snapshot.policy.r2DecisionCommandsExposed ? "EXPUESTA" : "BLOQUEADA"}</strong></div>
-      <div><span>EJECUCIÓN R2</span><strong>{gateway.snapshot.policy.r2ExecutionCommandsExposed ? "PROTEGIDA" : "BLOQUEADA"}</strong></div>
+      <div><span>DENEGACIÓN POR DEFECTO</span><strong>{!hasSnapshot ? "—" : gateway.snapshot.policy.denyByDefault ? "SÍ" : "NO"}</strong></div>
+      <div><span>PERMISOS PERSISTENTES</span><strong>{!hasSnapshot ? "—" : gateway.snapshot.policy.persistentGrants ? "SÍ" : "NO"}</strong></div>
+      <div><span>DECISIÓN R2</span><strong>{!hasSnapshot ? "—" : gateway.snapshot.policy.r2DecisionCommandsExposed ? "EXPUESTA" : "BLOQUEADA"}</strong></div>
+      <div><span>EJECUCIÓN R2</span><strong>{!hasSnapshot ? "—" : gateway.snapshot.policy.r2ExecutionCommandsExposed ? "PROTEGIDA" : "BLOQUEADA"}</strong></div>
     </div>
 
     <div className="permission-actions">
@@ -171,24 +176,27 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
       <button type="button" disabled={!commandsAvailable || busy !== null} onClick={() => prepare(false)}>{busy === "prepare-stop" ? "PREPARANDO…" : "PREPARAR DETENCIÓN"}</button>
     </div>
 
-    <div className="permission-status" aria-live="polite">
-      <span>{error ? "ERR" : "R2"}</span><div><strong>{error || message}</strong><small>{requests.length} solicitudes · {grants.length} permisos · lectura del {formatTimestamp(gateway.snapshot.generatedAt)}</small></div>
+    <div className="permission-status">
+      <span>{error || reading === "failed" ? "ERR" : "R2"}</span>
+      <div><strong role="status">{error || statusText}</strong>
+        {hasSnapshot && <small>{requests.length} solicitudes · {grants.length} permisos · lectura del {formatTimestamp(gateway.snapshot.generatedAt)}</small>}
+      </div>
     </div>
 
     <div className="permission-ledger">
       <section aria-labelledby="permission-requests-title">
-        <header><strong id="permission-requests-title">SOLICITUDES</strong><span>{requests.length}</span></header>
-        {requests.length === 0 ? <p>SIN SOLICITUDES REALES</p> : requests.map((request) => <article key={request.requestId}>
+        <header><strong id="permission-requests-title">SOLICITUDES</strong><span>{hasSnapshot ? requests.length : "—"}</span></header>
+        {requests.length === 0 ? <p>{hasSnapshot ? "SIN SOLICITUDES REALES" : "Sin lectura local"}</p> : requests.map((request) => <article key={request.requestId}>
           <div><strong>{request.capabilityId}</strong><small>{requestStateLabels[request.state]} · {formatTimestamp(request.createdAt)}</small></div>
-          {request.state === "awaitingDecision" ? <button type="button" disabled={busy !== null} onClick={() => setPending(request)}>REVISAR</button> : <span>{riskLabel[request.risk]}</span>}
+          {request.state === "awaitingDecision" ? <button type="button" disabled={!commandsAvailable || busy !== null} onClick={() => setPending(request)}>REVISAR</button> : <span>{riskLabel[request.risk]}</span>}
         </article>)}
       </section>
       <section aria-labelledby="permission-grants-title">
-        <header><strong id="permission-grants-title">PERMISOS TEMPORALES</strong><span>{grants.length}</span></header>
-        {grants.length === 0 ? <p>SIN PERMISOS TEMPORALES</p> : grants.map((grant) => <article key={grant.grantId}>
+        <header><strong id="permission-grants-title">PERMISOS TEMPORALES</strong><span>{hasSnapshot ? grants.length : "—"}</span></header>
+        {grants.length === 0 ? <p>{hasSnapshot ? "SIN PERMISOS TEMPORALES" : "Sin lectura local"}</p> : grants.map((grant) => <article key={grant.grantId}>
           <div><strong>{grant.capabilityId}</strong><small>{grantStateLabel[grant.state]} · vence {formatTimestamp(grant.expiresAt)}</small></div>
           <div className="permission-grant-actions">
-            {grant.state === "approved" && grant.capabilityId === "context.foreground.control" ? <button type="button" disabled={busy !== null} onClick={() => execute(grant)}>{grant.mode === "session" ? "ACTIVAR" : "DETENER"}</button> : null}
+            {grant.state === "approved" && grant.capabilityId === "context.foreground.control" ? <button type="button" disabled={!commandsAvailable || busy !== null || !gateway.snapshot.policy.r2ExecutionCommandsExposed} onClick={() => execute(grant)}>{grant.mode === "session" ? "ACTIVAR" : "DETENER"}</button> : null}
             {grant.state === "approved" && grant.capabilityId.startsWith("perception.") ? <span>GESTIONAR EN APRENDIZAJE</span> : null}
             {grant.state === "approved" || grant.state === "active" ? <button type="button" disabled={busy !== null} onClick={() => revoke(grant)}>REVOCAR</button> : <span>{permissionModeLabel[grant.mode]}</span>}
           </div>
@@ -217,7 +225,7 @@ export function PermissionGatewayPanel({ onObservationStateChange }: { onObserva
         <footer>
           <button type="button" disabled={busy !== null} onClick={() => void cancel()}>CANCELAR</button>
           <button type="button" className="is-deny" autoFocus disabled={busy !== null} onClick={() => void decide("deny")}>RECHAZAR</button>
-          <button type="button" className="is-approve" disabled={busy !== null} onClick={() => void decide("approve")}>APROBAR PERMISO</button>
+          <button type="button" className="is-approve" disabled={!commandsAvailable || busy !== null} onClick={() => void decide("approve")}>APROBAR PERMISO</button>
         </footer>
       </div> : null}
     </dialog>

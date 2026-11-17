@@ -31,16 +31,19 @@ el texto y la voz y conserva el borrador al regresar desde el Dashboard.
 **Diseño de consola para toda la aplicación.** El Dashboard y las 15 pantallas
 usan un fondo común, superficies de metal oscuro y acentos tomados de los iconos
 de Alice. Las pestañas centran sus iconos y separan las etiquetas de los contadores.
-Los 21 iconos funcionales ilustran la herramienta que abren. El emblema principal conserva su diseño.
-En el **Núcleo de gobernanza**, el inventario muestra qué capacidades existen, Permisos gestiona las autorizaciones y Auditoría reúne el historial de operaciones.
+Los 21 iconos funcionales llevan piezas propias de cada herramienta, como el
+cartucho extraíble de Memoria, la cinta de Actividad y el escáner de Volumen cognitivo.
+El emblema principal conserva su diseño.
+En **Flujo cognitivo**, el mapa distingue las rutas con señal reciente de las
+rutas en reposo o previstas. Seleccioná un nodo para consultar la evidencia.
+En el **Núcleo de gobernanza**, elegí una capacidad para consultar sus operaciones
+en Auditoría. La vista Permisos actualiza las solicitudes y concesiones mientras está abierta.
 Sora y JetBrains Mono se sirven localmente.
 [Dirección visual y validación](docs/architecture/DIRECCION_VISUAL_ALICE.md).
 
-**Icono de Conversación:** por solicitud del propietario se adaptó su composición
-al acabado de IA con cristal, circuitos finos y paleta violeta/azul/cian. Mantiene
-mensajes, micrófono con filtro local, respuesta de voz y visión opcional; es una
-ilustración estática. Los otros 21 SVG, incluido el emblema, permanecen intactos.
-[Generación y pruebas](docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
+El icono de Conversación combina dos turnos de diálogo con un monitor de audio
+estático. La colección se reproduce con `npm run icons:generate`.
+[Pruebas de la propuesta de Conversación del 15 de noviembre](docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Documento maestro HTML](docs/especificacion_alice_continuum.html) · [Roadmap](Roadmap.md) · [Documentación](docs/README.md)
 

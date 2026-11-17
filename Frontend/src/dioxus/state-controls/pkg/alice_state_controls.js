@@ -619,12 +619,12 @@ export function mount_state_controls(root, raw, on_action, on_ready) {
     return ret[0] >>> 0;
 }
 
-function wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______(arg0, arg1) {
-    wasm.wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______(arg0, arg1);
-}
-
 function wasm_bindgen_dce4ae8b940e967c___convert__closures________invoke___web_sys_fa9d3aca4c911a8___features__gen_Event__Event_____(arg0, arg1, arg2) {
     wasm.wasm_bindgen_dce4ae8b940e967c___convert__closures________invoke___web_sys_fa9d3aca4c911a8___features__gen_Event__Event_____(arg0, arg1, arg2);
+}
+
+function wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______(arg0, arg1) {
+    wasm.wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______(arg0, arg1);
 }
 
 function wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke___wasm_bindgen_dce4ae8b940e967c___JsValue_____(arg0, arg1, arg2) {

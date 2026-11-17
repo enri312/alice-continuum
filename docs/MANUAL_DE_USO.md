@@ -257,9 +257,14 @@ inspeccionables; no son una medición biológica ni una prueba de conciencia.
 
 ### Flujo cognitivo
 
-Muestra cómo una señal pasa por entrada, lenguaje, memoria, estado, inhibición,
-espacio de trabajo y posibles salidas. Sirve para responder: **¿por dónde pasó esta
-información?**
+El mapa muestra once módulos. Las líneas con señal reciente se iluminan según
+los eventos de la auditoría local. Las líneas tenues indican rutas en reposo y
+las punteadas señalan rutas previstas. La cifra de la cabecera cuenta rutas con
+señal. La banda R3 indica cuántos eventos se leyeron y en qué intervalo.
+
+Seleccioná un nodo con el ratón o con Tab y Enter para ver su última lectura.
+En ventanas estrechas podés desplazar el mapa horizontalmente. Si tenés el
+movimiento reducido activado, el color sigue distinguiendo la señal.
 
 ### Estado y controles
 
@@ -480,10 +485,13 @@ El archivo del avatar es privado y está excluido de Git.
 ### Capacidades y permisos
 
 **Inventario de capacidades** muestra el estado de cada adaptador, su madurez y
-el permiso que requiere. Seleccioná una capacidad para inspeccionarla. En
-**Permisos** podés revisar una solicitud, autorizarla o revocarla. Para consultar
-qué ocurrió, elegí **Ver el historial en Auditoría**. Los controles de rostro y
-cuerpo están en sus propias pantallas del núcleo corporal.
+el permiso que requiere. Seleccioná una capacidad y pulsá **Ver operaciones de
+esta capacidad** para consultar sus eventos recientes. **Mostrar todas las
+operaciones** quita el filtro. En **Permisos** podés preparar una solicitud de
+observación, rechazarla o aprobarla por tiempo limitado. Desde el permiso
+aprobado podés activar la observación o revocar el permiso. El panel consulta su
+vigencia cada cinco segundos mientras permanece abierto. Los controles de rostro
+y cuerpo están en sus propias pantallas del núcleo corporal.
 
 ### Auditoría y diagnóstico
 

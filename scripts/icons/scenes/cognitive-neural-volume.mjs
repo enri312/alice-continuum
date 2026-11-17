@@ -1,7 +1,10 @@
+import { reel, tube } from "../shared/workshop-parts.mjs";
 import { plate, line, pin, bolt, coupling } from "../shared/instrument.mjs";
 
 export default function neuralVolume(accent, secondary) {
-  return `<g data-component="tomography-cradle">
+  return `${tube("M18 58Q-2 36 18 20Q41 2 69 11Q92 18 92 42",secondary)}
+  ${line("M12 42Q10 21 32 14m47 4q11 7 11 19","#a4d5ee",1)}
+  <g transform="translate(6 -1) scale(.89)"><g data-component="tomography-cradle">
     ${plate("M12 52 15 48 20 52 25 70 42 79 62 79 78 68 84 48 90 51 85 73 68 87 40 90 19 76Z","metal")}
     ${line("M18 57l6 16 17 11 23-1 17-13",accent,1.5)}
     ${coupling(50,86,-5,secondary)}${bolt(17,55)}${bolt(85,55)}
@@ -19,5 +22,9 @@ export default function neuralVolume(accent, secondary) {
     ${line("M24 49l-7-5m9-6-2-8M37 46l-5-3m6 5-3 5M64 54l-6-3m8 6-3 5M78 54l7-6",secondary,1)}
     ${[[18,43],[24,30],[32,43],[58,51],[63,62],[85,48]].map(([x,y])=>pin(x,y,1,x<50?accent:secondary)).join("")}
   </g>
-  </g>`;
+  </g></g>
+  <g data-component="tomography-gantry">
+  ${plate("M8 65 14 59 20 63 24 77 40 84 60 84 78 73 83 58 90 57 93 63 85 82 65 93H35L14 83Z","dark-metal")}
+  ${tube("M14 70 19 80 38 89 60 89 80 78 87 63",accent)}${reel(15,68,6.2,accent)}${reel(86,62,6,secondary)}
+  ${line("M37 85h8m8 0h7",secondary,1.4)}</g>`;
 }

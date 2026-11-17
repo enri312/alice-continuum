@@ -2,6 +2,8 @@
   <title>Acercar vista</title>
 
   <defs>
+    <linearGradient id="alice-zoom-in-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-zoom-in-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-zoom-in-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-zoom-in-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-zoom-in-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -71,6 +73,9 @@
     <path d="M46.650000000000006 47.66A49.5 49.5 0 0 1 66.85 34.53" stroke="#edf7ff" stroke-width=".5" opacity=".6"/>
     <g data-detail="optical-handle-grip"><path d="m124 124 28 28" stroke="#0a192b" stroke-width="1.2"/><path d="m125 124 28 28" stroke="#22d3ee" stroke-width=".4"/><path d="m129 127 -2 2" stroke="#a8c2d7" stroke-width=".35"/><path d="m134 132 -2 2" stroke="#a8c2d7" stroke-width=".35"/><path d="m139 137 -2 2" stroke="#a8c2d7" stroke-width=".35"/><path d="m144 142 -2 2" stroke="#a8c2d7" stroke-width=".35"/></g>
   </g></g>
+    <g data-component="iris-blades" transform="translate(41 41)">
+      <path transform="rotate(0)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/><path transform="rotate(60)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/><path transform="rotate(120)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/><path transform="rotate(180)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/><path transform="rotate(240)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/><path transform="rotate(300)" d="M-19-6Q-15-19-4-20L7-14-3-13-12-5Z" fill="url(#alice-zoom-in-rotor)" stroke="#7ca2b2" stroke-width=".55"/>
+    </g>
     <path d="M29 41H53" fill="none" stroke="#0b1723" stroke-width="6"/><path d="M29 41H53" fill="none" stroke="#e5fbff" stroke-width="3.7"/>
     <path d="M41 29V53" fill="none" stroke="#e5fbff" stroke-width="3.7"/>
     <path d="M25 32q5-9 16-10" fill="none" stroke="#34d399" stroke-width="1.4"/>
@@ -81,5 +86,12 @@
     <path d="M-6-3h12l2 2v3l-2 2H-6l-2-2v-3Z" fill="url(#alice-zoom-in-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
     <path d="M-4-3v6m2-6v6m2-6v6m2-6v6m2-6v6" fill="none" stroke="#bcced9" stroke-width="0.75"/>
     <path d="M-6-2v4m12-4v4" fill="none" stroke="#22d3ee" stroke-width="1.3"/></g>
+    <g transform="translate(64 61) rotate(44)">
+    <path d="M0 1 2-1H16V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H16V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-zoom-in-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H16V6H0Z" fill="url(#alice-zoom-in-dark-metal)" stroke="url(#alice-zoom-in-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H16V6H0Z" fill="url(#alice-zoom-in-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-zoom-in-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-zoom-in-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-zoom-in-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-zoom-in-contact)" stroke-width="1.7"/>
+    <path d="M2 6h12" fill="none" stroke="#34d399" stroke-width="0.85"/></g>
   </g></g>
 </svg>

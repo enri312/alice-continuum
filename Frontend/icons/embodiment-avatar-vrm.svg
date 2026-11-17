@@ -2,6 +2,8 @@
   <title>Avatar</title>
 
   <defs>
+    <linearGradient id="alice-avatar-rotor" x2=".86" y2="1"><stop stop-color="#edf8ff"/><stop offset=".21" stop-color="#6f8a9d"/><stop offset=".43" stop-color="#25374c"/><stop offset=".48" stop-color="#aec6d1"/><stop offset=".7" stop-color="#536d82"/><stop offset="1" stop-color="#1d3043"/></linearGradient>
+    <linearGradient id="alice-avatar-contact" x2=".15" y2="1"><stop stop-color="#ffe2aa"/><stop offset=".26" stop-color="#cf955c"/><stop offset=".59" stop-color="#875838"/><stop offset=".81" stop-color="#eeb377"/><stop offset="1" stop-color="#603e2e"/></linearGradient>
     <pattern id="alice-avatar-brushing" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)"><path d="M0 .4h3" stroke="#d1e6fa" opacity=".10" stroke-width=".32"/><path d="M0 2h3" stroke="#020913" opacity=".20" stroke-width=".38"/></pattern>
     <linearGradient id="alice-avatar-bevel" x1="0" y1="0" x2=".68" y2="1"><stop stop-color="#e9f8ff"/><stop offset=".27" stop-color="#7d98b0"/><stop offset=".48" stop-color="#192c48"/><stop offset=".53" stop-color="#d0e7fa"/><stop offset=".73" stop-color="#53758b"/><stop offset="1" stop-color="#23384b"/></linearGradient>
     <linearGradient id="alice-avatar-metal" x1="0" y1="0" x2=".62" y2="1"><stop stop-color="#d9e5f0"/><stop offset=".19" stop-color="#7895ac"/><stop offset=".44" stop-color="#39536b"/><stop offset=".48" stop-color="#172c43"/><stop offset=".84" stop-color="#516b84"/><stop offset="1" stop-color="#263d50"/></linearGradient>
@@ -10,7 +12,11 @@
     <linearGradient id="alice-avatar-enamel" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#eeffff"/><stop offset=".2" stop-color="#f472b6"/><stop offset=".7" stop-color="#f472b6"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
     <linearGradient id="alice-avatar-screw-metal"><stop stop-color="#4a6277"/><stop offset=".43" stop-color="#d7e5eb"/><stop offset="1" stop-color="#42556b"/></linearGradient>
   </defs>
-  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><defs>
+  <g transform="scale(2)" stroke-linecap="round" stroke-linejoin="round"><path d="M12 72 21 63 71 56 87 62V77L62 90 26 88Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M12 72 21 63 71 56 87 62V77L62 90 26 88Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-avatar-bevel)" stroke-width="1.45"/>
+    <path d="M12 72 21 63 71 56 87 62V77L62 90 26 88Z" fill="url(#alice-avatar-dark-metal)" stroke="url(#alice-avatar-bevel)" stroke-width="1.55"/>
+    <path d="M12 72 21 63 71 56 87 62V77L62 90 26 88Z" fill="url(#alice-avatar-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+  <g transform="translate(4 -6) scale(.93)"><defs>
     <linearGradient id="alice-avatar-alice-hair" x1="0" y1="0" x2="1" y2=".8"><stop stop-color="#665e59"/><stop offset=".28" stop-color="#b3a594"/><stop offset=".48" stop-color="#d8c7b2"/><stop offset=".65" stop-color="#9c9185"/><stop offset="1" stop-color="#635e59"/></linearGradient>
     <linearGradient id="alice-avatar-alice-fringe" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#918579"/><stop offset=".38" stop-color="#baab98"/><stop offset=".54" stop-color="#e0ceb8"/><stop offset=".65" stop-color="#bdad99"/><stop offset="1" stop-color="#958b80"/></linearGradient>
     <radialGradient id="alice-avatar-alice-skin" cx=".48" cy=".36" r=".75"><stop stop-color="#fff0e4"/><stop offset=".65" stop-color="#f2dbce"/><stop offset="1" stop-color="#c89f96"/></radialGradient>
@@ -115,4 +121,31 @@
     <path d="M19 70l13 4m-12-1 7 2" fill="none" stroke="#99acbd" stroke-width="1"/>
   </g>
   </g></g>
+  <g data-component="turntable-azimuth-ring">
+  <ellipse cx="50" cy="77" rx="37" ry="12" fill="none" stroke="#829dac" stroke-width="2"/>
+  <path d="M15 79q13 13 46 7l15-6" fill="none" stroke="url(#alice-avatar-contact)" stroke-width="3"/>
+  <g transform="translate(18 77) scale(0.6)">
+    <circle cy="1.1" r="10.2" fill="#061321" stroke="#617991"/>
+    <circle r="9.5" fill="url(#alice-avatar-rotor)" stroke="#d4e3ef" stroke-width=".75"/>
+    <g transform="rotate(0)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#38bdf8" stroke-width="1.05"/></g><g transform="rotate(72)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#38bdf8" stroke-width="1.05"/></g><g transform="rotate(144)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#38bdf8" stroke-width="1.05"/></g><g transform="rotate(216)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#38bdf8" stroke-width="1.05"/></g><g transform="rotate(288)">
+      <path d="M-3-6.2Q-.5-8.6 2.8-6.4L1-3.8Q-.8-3.1-2.2-4.1Z" fill="#0a1625" stroke="#7f99a7" stroke-width=".45"/>
+      <path d="M-1.6-8.1L1.5-8.2" fill="none" stroke="#38bdf8" stroke-width="1.05"/></g>
+    <g transform="translate(0 0) scale(1.9)"><circle r="1.55" fill="#06101b" stroke="#8198a9" stroke-width=".28"/>
+    <circle r="1.13" fill="url(#alice-avatar-bevel)" stroke="#cad9e4" stroke-width=".13"/>
+    <path d="M-.62-.38 0-.72 .62-.38 .62.38 0 .72-.62.38Z" fill="#101d2b"/>
+    <path d="M-.78-.53Q-.3-1 .4-.92" stroke="white" stroke-width=".16" fill="none"/></g></g><g transform="translate(58 86) rotate(-15)">
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.8 3)" fill="#0a1424" stroke="#173044" stroke-width="1.8"/>
+    <path d="M0 1 2-1H25V6H0Z" transform="translate(.4 1.65)" fill="#25364b" stroke="url(#alice-avatar-bevel)" stroke-width="1.45"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-avatar-dark-metal)" stroke="url(#alice-avatar-bevel)" stroke-width="1.55"/>
+    <path d="M0 1 2-1H25V6H0Z" fill="url(#alice-avatar-brushing)" stroke="#a8c3d1" stroke-opacity=".66" stroke-width=".45"/>
+    <path d="M3 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M6 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M9 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M12 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M15 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M18 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/><path d="M21 0v4" stroke="url(#alice-avatar-contact)" stroke-width="1.7"/>
+    <path d="M2 6h21" fill="none" stroke="#f472b6" stroke-width="0.85"/></g></g></g>
 </svg>
