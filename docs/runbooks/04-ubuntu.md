@@ -21,7 +21,7 @@ en **Alice Continuum** y ejecuta `Iniciar Alice Continuum.cmd`. La letra que
 Windows asigne al volumen puede variar; el lanzador obtiene su propia ubicación.
 
 La recuperación conservó Git, los cambios locales, los datos y los recursos
-privados. Consulta el [informe de recuperación](../testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
+privados. Consulta el [informe de recuperación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
 
 ## Preparar el sistema
 
@@ -240,7 +240,7 @@ reproducción confirmada. La lista privada y su vuelta al primer video se
 verificaron con esa sesión iniciada. Estos adaptadores son de Ubuntu;
 al volver a Windows habrá que comprobar también esta preferencia allí.
 
-Ver [mediciones y aceptación de música](../testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+Ver [mediciones y aceptación de música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 ## Alcance y comprobación
 
@@ -248,7 +248,7 @@ Linux conecta el permiso de micrófono WebKitGTK con la sesión iniciada mediant
 «Iniciar escucha de Alice». Una captura manual o de cámara muestra un diálogo
 nativo «Alice · Permiso de captura»; pulsa Permitir para esa captura. Cancelar no
 abre dispositivos. Si se rechaza el micrófono, Alice muestra el motivo en español.
-Ver [corrección y prueba reproducible](../testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md).
+Ver [corrección y prueba reproducible](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md).
 
 Si Alice se queda en espera sin llegar a transcribir, revisa primero la entrada
 real de audio. En esta Nitro, Ubuntu exponía **Stereo Microphone** (entrada

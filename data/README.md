@@ -43,7 +43,7 @@ propietario. Procedimiento y personalidad:
 La carpeta `obsidian/` es una bóveda privada para organizar identidad, recuerdos,
 conocimiento y diseño del cerebro de Alice en notas Markdown enlazadas.
 En Obsidian, elegir **Abrir carpeta como bóveda** y seleccionar `data/obsidian`.
-La entrada es [Inicio](obsidian/Inicio.md).
+Después de la primera sincronización, abrí la nota `Inicio.md` dentro de esa bóveda local.
 
 El origen es `data/memory/`: en la instalación principal,
 `D:\Alice Continuum\data\memory`. `Alice (sincronizado)/` contiene la proyección

@@ -93,7 +93,7 @@ en revisiones inmutables bajo `memory/associations-v1/`. Retirar/restaurar exige
 confirmación y revisión esperada; restaurar exige además evidencia vigente.
 `knowledge_graph_associations` muestra el estado actual. El snapshot sólo
 incluye aristas confirmadas y aún recuperables, con `ownerConfirmed=true` (no prueba
-semántica). Ver [contrato y pruebas del historial](../testing/R8_2_ASSOCIATIONS_REPORT_2026-09-05.md).
+semántica). Ver [contrato y pruebas del historial](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R8_2_ASSOCIATIONS_REPORT_2026-09-05.md).
 Otras clases de relaciones y su generación automática siguen fuera del alcance de R8.
 
 ### Motores opcionales
@@ -105,4 +105,4 @@ el prototipo local no conecta estas funciones con los estados de R6.
 
 Referencia primaria consultada: [HKUDS/LightRAG](https://github.com/HKUDS/LightRAG).
 La evaluación del prototipo concreto está en
-[la auditoría de adaptadores](../research/ADAPTER_STATIC_AUDIT_2026-09-04.md).
+[la auditoría de adaptadores](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/ADAPTER_STATIC_AUDIT_2026-09-04.md).

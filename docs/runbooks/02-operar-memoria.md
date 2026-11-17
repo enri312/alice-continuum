@@ -31,7 +31,7 @@ retiran el archivo creado. El respaldo del guardado está en
 `memory/backups/records.backup.json`. Si el error informa que también falló la
 recuperación, cerrar Alice y seguir la recuperación manual antes de reintentar.
 Estos controles no equivalen a una transacción completa frente a cortes de energía.
-Véase [ADR-P-111](../decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+Véase [ADR-P-111](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-111-persistencia-y-control-del-motor.md).
 
 ## Recuperación manual
 

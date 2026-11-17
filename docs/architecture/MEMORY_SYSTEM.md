@@ -7,7 +7,7 @@ Fecha: 2026-08-24
 
 La memoria de Alice conserva experiencias, conocimiento confirmado, procedimientos y contexto local para recuperarlos cuando corresponda. No es una carpeta de textos ni un entrenamiento oculto del modelo: implementa un ciclo explícito de codificación, candidatura, consolidación, recuperación, revisión y olvido funcional. No modifica los pesos del proveedor y no convierte automáticamente una salida de un modelo en conocimiento propio.
 
-El fundamento funcional y sus límites científicos están documentados en [Modelo funcional de memoria humana aplicable a Alice](../research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md). La decisión de arquitectura vigente es [ADR-P-084](../decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md).
+El fundamento funcional y sus límites científicos están documentados en [Modelo funcional de memoria humana aplicable a Alice](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md). La decisión de arquitectura vigente es [ADR-P-084](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md).
 
 ## Aprendizaje automático vigente — 2026-11-03
 
@@ -17,7 +17,7 @@ con respaldo anterior, procedencia y estado reversible. Conversación y volumen 
 ese almacén con los recuerdos confirmados, distinguiendo la selección automática.
 **Memoria → Lo que Alice decide conservar** permite pausar, corregir y retirar.
 Los contratos R6 siguientes siguen aplicándose a los archivos confirmados originales.
-Ver [ADR-P-101](../decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+Ver [ADR-P-101](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 
 ## Directorio de datos
 
@@ -87,7 +87,7 @@ La fuerza de almacenamiento no es una certeza científica ni una probabilidad de
 
 R6.6-A no modifica el `layer-index-v2.json` activo: crea una vista v3 paralela y sólo escribe `layer-index-v3.json` después de confirmar su SHA-256. Rust relee la fuente; si cambió, rechaza la operación. El índice conserva revisiones inmutables y no copia títulos, resúmenes, fuentes o conversaciones. Un procedimiento `pendingR5` tiene capa, pero no se presenta como habilidad ni puede ejecutarse.
 
-El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la decisión en [ADR-P-066](../decisions/ADR-P-066-proyeccion-memoria-por-capas.md).
+El contrato detallado está en [LAYERED_MEMORY_R6.md](LAYERED_MEMORY_R6.md) y la decisión en [ADR-P-066](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-066-proyeccion-memoria-por-capas.md).
 
 ## Vista previa del ciclo R6.5-B
 

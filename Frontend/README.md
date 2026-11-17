@@ -40,4 +40,4 @@ cuando las dependencias npm se comparten con la raíz.
 Actividad se presenta en un solo montaje Dioxus; `src/pages/cognitive/ActivityHost.tsx`
 sólo conecta su ciclo de vida y el buffer temporal de `App.tsx`. Auditoría y
 diagnóstico conserva su contenido React en `GovernancePage.tsx`. Ver
-[alcance y aceptación](../docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
+[alcance y aceptación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).

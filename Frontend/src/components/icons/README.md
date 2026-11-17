@@ -11,5 +11,5 @@ proyecto; no se acepta marcado del usuario.
 
 El selector antiguo `NucleusViewIcon.tsx` se retiró al no tener importadores;
 su contenido sigue en el historial Git y en la copia local de recuperación.
-La [revisión de organización](../../../../docs/architecture/REORGANIZACION_2026-11-14.md)
+La [revisión de organización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md)
 documenta los cambios y límites de limpieza.

@@ -228,4 +228,4 @@ Si una de estas funciones comienza a observar datos nuevos, persistir informaci�
 
 R1 añadió el módulo Rust `capabilities.rs` y el comando Tauri `capability_registry_status`. Capacidades y Puentes consume su snapshot en escritorio y muestra un estado explícito de desarrollo en navegador. Ningún comando anterior cambió de nombre o comportamiento durante esta fase.
 
-El plan de implementación y migración está en `docs/plans/R1-capability-registry.md` y la decisión adoptada en `docs/decisions/ADR-P-041-registro-de-capacidades.md`.
+El plan de implementación y migración está en [R1-capability-registry.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/plans/R1-capability-registry.md) y la decisión adoptada en [ADR-P-041-registro-de-capacidades.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-041-registro-de-capacidades.md).

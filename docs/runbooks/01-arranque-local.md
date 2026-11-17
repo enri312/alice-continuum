@@ -1,70 +1,29 @@
-# Arrancar Alice localmente
+# Abrir Alice en Windows
 
-Ubicación actual en Windows: `D:\Alice Continuum`. El lanzador obtiene su propia
-carpeta y utiliza `D:\Alice Continuum\data`; no hay que copiar datos desde la
-ubicación anterior para iniciar. Tras el traslado se validó el entorno con
-`--check`. Véase la [validación de recuperación](../testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
+## Primera instalación
 
-Entorno validado desde 2026-11-03: **Node 26.13.0 LTS y npm 11.20.0**.
-La versión del proyecto está en `.node-version` y el lanzador verifica la rama 26.
-La instalación del equipo se actualizó mediante el MSI oficial firmado de OpenJS.
-
-Actualización 2026-11-04: Vite **8.3.5**, Vitest **4.1.12** y filtro local RNNoise
-**2025.1.5** fijados en el lockfile. Ejecutar `npm ci` al sincronizar estos cambios.
-El filtro y sus avisos de licencia se incluyen con Alice; no necesitan un CDN.
-
-React y React DOM se actualizaron a **19.3.1**, con tipos **19.3.0**. El lockfile
-conserva la combinación probada; usar `npm ci` al sincronizar el repositorio.
-La memoria nativa ahora se organiza en `Backend/src-tauri/src/memory/`; sus 28 comandos
-mantienen nombres y formatos. Ver [ADR-P-108](../decisions/ADR-P-108-memoria-modular-react-19-3.md).
-
-La transcripción local prefiere **Whisper small CPU** cuando está instalado;
-conserva base como alternativa. Para instalar small:
-`scripts/testing/install-whisper-local.ps1 -Model small`; descarga oficial con
-Node y hashes fijados, sin modificar PATH ni servicios. `ALICE_WHISPER_MODEL`
-permite elegir explícitamente una ruta absoluta. No se descarga al abrir Alice.
-Gemma 4 sigue como modelo de diálogo y como ASR de respaldo si falta Whisper.
-Ver [sesión oral](../decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md).
-
-Rust/Cargo se actualizó a **1.99.1 estable** mediante rustup. El proyecto fija esa
-versión en `rust-toolchain.toml`, con `clippy` y `rustfmt`. Un cambio de compilador
-puede hacer que el primer arranque tarde más al recompilar las dependencias.
-
-1. Ejecutar `Iniciar Alice Continuum.cmd` desde la raíz del proyecto.
-2. Esperar a que Tauri abra la ventana de Alice.
-3. Verificar en Conversación que al menos un proveedor aparezca como `LISTO`.
-4. Verificar en Memoria que el estado indique `ARCHIVO LOCAL`.
-
-El servidor del lanzador mantiene actualizada la bóveda `data/obsidian` con los
-recuerdos y el mapa del almacenamiento de `data/memory/`. Abrir esa carpeta desde Obsidian;
-ver [sincronización y límites](05-memoria-obsidian.md).
-
-Ambos lanzadores hacen un [respaldo integral](07-respaldo-integral.md) al iniciar,
-cada 15 minutos y al cerrar normalmente. El destino de esta instalación es
-`D:\Alice Backups\Alice Continuum`; C: no se usa para estas copias. `--check` no
-crea respaldos. Una carpeta con restauración incompleta se rechaza al arrancar.
-
-Cuando el autoestudio está habilitado, el backend programa una sesión al
-arrancar y puede iniciar Gemma local. Consultar el progreso y la pausa en
-Memoria; ver [materias, funcionamiento y límites](06-autoestudio-al-arrancar.md).
-
-El lanzador detiene el inicio con un mensaje claro si Alice ya está abierta, si el puerto fijo 5173 está ocupado, si faltan dependencias o si las versiones de Node y Cargo no son utilizables. Usa `.cargo-target` como único caché Rust del proyecto y sólo acepta Ollama cuando responde en loopback.
-
-En Windows, el `.cmd` delega las comprobaciones en `scripts/setup/launch-windows.ps1`
-dentro de una sola sesión de PowerShell. Un bloqueo por carpeta evita arranques
-simultáneos durante la compilación y se libera al terminar. La espera de Ollama
-tras iniciarlo tiene un límite de 10 segundos. Alice comprueba Gemma local y sus
-demás proveedores al abrirse.
-
-Para comprobar el entorno sin abrir Alice ni iniciar Ollama:
+1. Instalá Node.js y npm en las versiones del proyecto, Rust mediante rustup, las herramientas de C++ de Visual Studio y el runtime WebView2. [Versiones del proyecto](../../README.md).
+2. Abrí PowerShell en la carpeta que contiene `Iniciar Alice Continuum.cmd` y ejecutá `npm ci`.
+3. Comprobá el entorno y abrí Alice.
 
 ```powershell
 & '.\Iniciar Alice Continuum.cmd' --check
+& '.\Iniciar Alice Continuum.cmd'
 ```
 
-Si el proyecto todavía no tiene dependencias instaladas, ejecutar `npm install` una vez desde la raíz.
+El primer inicio compila la aplicación. En las siguientes sesiones basta con abrir el archivo `.cmd`. Cuando veas el Dashboard, entrá en **Conversación** y comprobá que haya un proveedor listo. [Configurar un modelo, la voz y el primer mensaje](03-conversacion-y-voz.md).
 
-Las variables de entorno se leen al iniciar. Después de añadir o cambiar una clave, cerrar y volver a abrir Alice.
+## Si el arranque se detiene
 
-Para comprobar la conversación, configurar el historial visible y probar la voz,
-continuar con [Conversación y voz](03-conversacion-y-voz.md).
+| Qué ves | Qué comprobar |
+|---|---|
+| Falta una dependencia | Revisá el nombre que indica el lanzador. Usá `npm ci` en la raíz para instalar las dependencias JavaScript del archivo de bloqueo. |
+| Alice ya está abierta o el puerto 5173 está ocupado | Buscá la ventana o la consola de una sesión anterior. Si la compilación sigue en curso, esperá a que abra la ventana. |
+| Alice abre, pero el proveedor local no está listo | Instalá el motor y el modelo adecuados para tu equipo. En una instalación nueva se buscan en `runtime/inference/`. Podés elegir otra ubicación mediante una ruta absoluta en `ALICE_INFERENCE_HOME`. Los cambios de entorno se aplican al volver a abrir Alice. |
+| Necesitás transcripción local | En PowerShell, ejecutá `& '.\scripts\testing\install-whisper-local.ps1' -Model small`. El instalador comprueba las descargas. Para usar un modelo ya instalado, indicá su ruta absoluta en `ALICE_WHISPER_MODEL`. [Configuración de voz](03-conversacion-y-voz.md). |
+
+## Datos de la instalación
+
+El lanzador resuelve la carpeta del proyecto y utiliza `data/` como almacén predeterminado. En **Memoria** podés comprobar el estado del archivo local y consultar o pausar el autoestudio. La bóveda está en `data/obsidian/`. [Autoestudio](06-autoestudio-al-arrancar.md) · [Obsidian](05-memoria-obsidian.md).
+
+El lanzador programa respaldos al abrir Alice, cada 15 minutos y al cerrar normalmente. Comprobá el destino configurado antes de depender de esas copias. [Respaldo integral y restauración](07-respaldo-integral.md).

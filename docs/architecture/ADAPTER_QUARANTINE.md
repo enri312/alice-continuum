@@ -28,7 +28,7 @@ activo; no se importó ni ejecutó ningún adaptador. La carpeta completa está 
 de Git para impedir su incorporación accidental.
 
 La evaluación detallada, hashes y orden de rescate están en
-[`ADAPTER_STATIC_AUDIT_2026-09-04.md`](../research/ADAPTER_STATIC_AUDIT_2026-09-04.md).
+[`ADAPTER_STATIC_AUDIT_2026-09-04.md`](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/ADAPTER_STATIC_AUDIT_2026-09-04.md).
 Ningún prototipo se convierte en capacidad por aparecer en esa lista: antes debe
 reescribirse dentro de un contrato R1, pasar por R2/R3 cuando corresponda, limitar
 red/rutas/procesos y superar pruebas propias con datos reales deliberadamente elegidos.

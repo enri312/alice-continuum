@@ -8,7 +8,7 @@ objetivo; el resto de transferencias descritas aquí permanece como propuesta.
 la validación y escritura Node. La vigilancia de dos segundos y el arranque
 habitual mantienen Node. El ensayo produjo notas idénticas, pero el coste de
 iniciar Python fue mayor: se incorpora bajo demanda, sin activar un proceso
-por revisión automática. [Pruebas y mediciones](../testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
+por revisión automática. [Pruebas y mediciones](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
 La intención es transferir una parte del trabajo auxiliar de Node.js a Python.
 El reparto se decide por responsabilidad, equivalencia funcional y coste medido;
@@ -61,7 +61,7 @@ La paridad se comprobó con 25 lotes ficticios y con la función anterior extra�
 de Git. Se rechazaron entradas inválidas y se probaron ausencia, fallo y tiempo
 límite de Python. El arranque del intérprete añade coste; no se promete una mejora
 de rendimiento. Los pilotos antiguos con rutas personales no se migraron ni se
-eliminaron. Ver [auditoría, uso y resultados](../testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+eliminaron. Ver [auditoría, uso y resultados](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 
 ## Primer ensayo y posterior incorporación
 

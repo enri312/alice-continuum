@@ -10,7 +10,7 @@ revisar sus consumidores y probarlos antes de cambiarla.
 | `Frontend/` | Workspace de interfaz: `src/`, estilos, iconos, recursos públicos, entrada/configuración Vite/TypeScript y `crates/state-controls/` con Rust/Dioxus. Su `dist/` es regenerable. |
 | `Backend/` | `src-tauri/` contiene la aplicación nativa, memoria y configuración Tauri; `adapters/` contiene adaptadores Python. |
 | `scripts/` | Generación de iconos, compilación Dioxus, respaldos, proyección Obsidian, instalación y pruebas. Algunos pilotos requieren servicios o modelos instalados y no forman parte del arranque. |
-| `docs/` | Manuales, arquitectura, decisiones y resultados de pruebas. Los informes con fecha describen su momento; no todos son instrucciones vigentes. |
+| `docs/` | Manuales, guías operativas y contratos técnicos vigentes. El [índice](../README.md) incluye el acceso al archivo histórico. |
 | `data/` | Memoria, conversación, auditorías y bóveda Obsidian privadas. El contenido no se publica en Git. `ALICE_DATA_DIR` permite usar una raíz de datos diferente. |
 | `runtime/` | Configuración y recursos instalados; `artifacts/` para pruebas, `cache/` para cachés, `archives/` para recuperaciones, `drafts/` para originales de trabajo y `maintenance/` para intervenciones puntuales. Algunas guías están versionadas. |
 | `experiments/` | Ensayos privados separados del producto principal. Se excluyen de Git; el respaldo recupera sus fuentes aplicando las exclusiones documentadas. |
@@ -29,7 +29,7 @@ No debe borrarse una carpeta generada durante una ejecución. Antes de limpiar
 archivos privados o mover código, comprobar sus referencias y el respaldo.
 
 Las guías de [`runtime/`](../../runtime/README.md) y [`data/`](../../data/README.md)
-explican sus ubicaciones y límites. La [revisión del 15 de noviembre](../testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+explican sus ubicaciones y límites. La [revisión del 15 de noviembre](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
 reubicó evidencias y auxiliares; mantuvo los datos operativos, modelos, entornos
 y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
 `runtime/artifacts/dioxus/{browser,native}/`. Los scripts privados de
@@ -45,7 +45,7 @@ y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
   vistas; la navegación actual abre vistas fijas y no muestra ese selector.
 
 La guía [Componentes de iconos](../../Frontend/src/components/icons/README.md) y la
-[revisión de reorganización](REORGANIZACION_2026-11-14.md) contienen más detalle.
+[revisión de reorganización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md) contienen más detalle.
 
 ## Verificación de rutas
 

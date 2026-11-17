@@ -46,7 +46,7 @@ un archivo elegido explícitamente. Sólo imprime JSON: no guarda informes ni
 modifica la entrada. Usa el mismo Python seleccionable que Obsidian y sólo
 biblioteca estándar. Límite de 10.000 filas, 1 MiB de entrada, 16 KiB de salida
 y diez segundos; un fallo no recurre a otra implementación ni imprime los datos.
-No interviene en el arranque. Ver [formato y alcance](../../docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+No interviene en el arranque. Ver [formato y alcance](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 
 ## Lector documental
 

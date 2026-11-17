@@ -76,7 +76,7 @@ El buffer de hasta 200 eventos, su secuencia y productores siguen en `App.tsx`;
 la línea sólo proyecta los últimos 24. Limpiar se limita a `onClear`: no hay IPC,
 escritura persistente ni modificación de R3 en esta página. La retirada del host
 y de React global requiere migrar la aplicación raíz, como las demás pantallas.
-Ver [pruebas y evidencia](../testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
+Ver [pruebas y evidencia](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 ## Sesión de Estado: estado vigente (2026-11-15)
 
@@ -97,7 +97,7 @@ el sondeo React anterior y los mismos contenidos; se desmonta antes de recuperar
 Dioxus. La aplicación general y ese camino aún requieren React. La migración de
 esta sesión no elimina sus dependencias globales ni las de otras páginas.
 Build, 28 pruebas Rust, Clippy WASM, 898 frontend, Obsidian, respaldos, privacidad,
-Edge y Tauri/WebView2 aprobados. Ver [alcance y evidencia](../testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
+Edge y Tauri/WebView2 aprobados. Ver [alcance y evidencia](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
 
 ## Página y sondeo de Flujo: estado vigente (2026-11-15)
 
@@ -226,7 +226,7 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
   de relaciones sintéticas. La relación guardada sobrevive a recargar la ventana
   y las fuentes no cambian. Detectó el prefijo nativo `sha256:`, corregido en
   modelo, transporte y fixtures con regresión. Ver el
-  [informe de la página](../testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
+  [informe de la página](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 La prueba nativa usa datos sintéticos y no certifica voz, proveedores ni datos
 personales. No se utilizaron recuerdos personales. Los ensayos están documentados en la

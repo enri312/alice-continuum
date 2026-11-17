@@ -1,180 +1,20 @@
-# Centro de documentación de Alice Continuum
+# Guías de Alice Continuum
 
-Alice es el personaje; Alice Continuum es la plataforma local de memoria,
-cognición y presencia. Consulta la [identidad vigente y su compatibilidad](architecture/CONTINUUM_IDENTITY.md)
-y la [estructura actual del proyecto](architecture/PROJECT_STRUCTURE.md).
+Para la primera instalación, seguí la guía de tu sistema. Cuando abra el Dashboard, entrá en **Conversación** para enviar el primer mensaje.
 
-Este índice es la entrada principal para comprender, ejecutar y mantener el proyecto. El documento visual consolidado es [especificacion_alice_continuum.html](especificacion_alice_continuum.html).
-
-[Primera página Dioxus: Estado y controles](testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md):
-diseño conservado, puentes funcionales, vista de respaldo y privacidad de Obsidian y experiments.
-
-[Revisión de la exportación Dioxus de AI Studio](testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md):
-análisis previo que identificó las partes que debían pulirse antes de incorporar una página.
-
-[Estado y controles en la aplicación principal](testing/STATE_CONTROLS_REPORT_2026-11-13.md):
-deslizadores de sesión, ajustes conversacionales locales y procedencia real de la
-memoria recuperada en el incremento React inicial, previo a la primera página Dioxus.
-
-[Pilotos aislados de ASR y Dioxus](testing/ISOLATED_PILOTS_REPORT_2026-11-13.md):
-pruebas separadas del runtime y criterios de adopción. La persistencia y los
-grafos R6/R8 quedan aplazados para una revisión profunda posterior.
-
-[Respaldos integrales y recuperación](runbooks/07-respaldo-integral.md): versiones
-automáticas desde el lanzador, integridad SHA-256 y restauración en una carpeta
-nueva; datos privados separados de GitHub. Destino actual en D:.
-
-[Memoria guardada en Obsidian](runbooks/05-memoria-obsidian.md): bóveda privada actualizada desde `data/memory/`, con notas manuales separadas.
-
-[Autoestudio al arrancar](runbooks/06-autoestudio-al-arrancar.md): currículo cerrado de las materias autorizadas, con enfoque bíblico católico, ejercicios comprobados y memoria recuperable.
-
-[Playlist privada de Spotify](runbooks/08-spotify-playlist-privada.md): selección
-por nombre y comprobación de contexto en Windows, con configuración fuera de Git.
-
-[Prueba de playlist con micrófono](testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md):
-orden real y audio confirmados por el propietario; fallo posterior del filtro y recuperación acotada.
-
-[Revisión del reconocimiento de órdenes cortas](testing/VOICE_ASR_REVIEW_2026-11-12.md):
-transcripción sin texto inicial fijo y aclaración local de una acción ausente.
-
-[Perfil de voz baja y pausada](testing/SOFT_VOICE_REPORT_2026-11-12.md):
-ganancia local de entrada y mayor tiempo entre palabras, con Normal disponible.
-
-[Estructura del núcleo cognitivo](testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md):
-base de autoestudio/Obsidian conservada y primera separación de reglas,
-persistencia y adaptación a Gemma para revisión con colaboradores.
-
-Última mejora de fiabilidad: [recuperación de memoria y control de Gemma](testing/RELIABILITY_REPORT_2026-11-05.md), conservando Rust/Tauri y el alcance de conversación R9 sin cuerpo.
-
-Continuación R9: [espera dirigida y apagado del micrófono](testing/VOICE_STANDBY_REPORT_2026-11-06.md) y [contraste del informe de frameworks](research/FRAMEWORKS_REVIEW_2026-11-06.md).
-
-Trabajo en ambos sistemas: [preparación y validación local de Ubuntu para R9](testing/UBUNTU_R9_SETUP_REPORT_2026-11-06.md), con motores Linux y entornos separados de Windows.
-
-Aceptación R9 en Ubuntu: [corrección del permiso de micrófono WebKitGTK](testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md), reproducida y comprobada con captura simulada.
-
-Inicio Ubuntu: [acceso directo, icono y cierre del motor durante reinicios](testing/UBUNTU_LAUNCHER_LIFECYCLE_REPORT_2026-11-06.md).
-
-R9 Ubuntu: [mediciones de latencia, Spotify y playlist privada de YouTube](testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
-
-Ubicación actual: **Datos → Alice Continuum**. [Recuperación y traslado al volumen Datos](testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
-
-Windows: **D:\Alice Continuum**. [Respaldo remoto, copia privada y validación posterior a la recuperación](testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
-
-Para retomar el desarrollo tras la pérdida de chats, consultar el [contexto recuperado del 3 de noviembre de 2026](CONTEXTO_RECUPERADO_2026-11-03.md): última decisión, trabajo pendiente y verificaciones actuales.
-
-## Lectura recomendada
-
-1. [Documento maestro](especificacion_alice_continuum.html)
-2. [Sistema de memoria](architecture/MEMORY_SYSTEM.md)
-3. [Cómo iniciar Alice](runbooks/01-arranque-local.md)
-4. [Respaldar y restaurar memoria](runbooks/02-operar-memoria.md)
-5. [Decisiones técnicas](decisions/README.md)
-6. [Último informe de prueba funcional](testing/TEST_REPORT_2026-08-07.md)
-7. [Informe funcional del visor VRM](testing/AVATAR_REPORT_2026-08-07.md)
-8. [Informe de consolidación y repaso v1](testing/CONSOLIDATION_REPORT_2026-08-07.md)
-9. [Informe de refuerzo por recuperación autorizada](testing/RECALL_REINFORCEMENT_REPORT_2026-08-08.md)
-10. [Informe de enseñanza guiada y emblema](testing/GUIDED_TEACHING_ICON_REPORT_2026-08-08.md)
-11. [Plan de modularización del backend](plans/backend-modularization.md)
-12. [Informe de modularización del backend](testing/BACKEND_MODULARIZATION_REPORT_2026-08-08.md)
-13. [Informe del documento maestro v0.16](testing/MASTER_DOCUMENT_REPORT_2026-08-08.md)
-14. [Contrato e inventario del Registro de Capacidades R1](architecture/CAPABILITY_REGISTRY_R1.md)
-15. [Plan de implementación R1](plans/R1-capability-registry.md)
-16. [Identidad histórica anterior](decisions/ADR-P-042-identidad-alice-cognitive-core.md) y [adopción de Alice Continuum](decisions/ADR-P-095-identidad-alice-continuum.md)
-17. [Plan de migración de identidad](plans/identity-migration.md)
-18. [Informe de migración Alice Continuum](testing/IDENTITY_MIGRATION_REPORT_2026-08-08.md)
-19. [Informe de validación R1](testing/R1_CAPABILITY_REGISTRY_REPORT_2026-08-09.md)
-20. [Decisión de aprendizaje sensorial gobernado](decisions/ADR-P-043-aprendizaje-sensorial-gobernado.md)
-21. [Informe real de cámara y micrófono](testing/HARDWARE_INPUT_READINESS_REPORT_2026-08-09.md)
-22. [Contrato del Gateway de permisos R2](architecture/PERMISSION_GATEWAY_R2.md)
-23. [ADR-P-044: Gateway nativo de permisos](decisions/ADR-P-044-gateway-permisos-nativo.md)
-24. [Plan de implementación R2](plans/R2-permission-gateway.md)
-25. [Contrato de auditoría unificada R3](architecture/UNIFIED_AUDIT_R3.md)
-26. [ADR-P-045: auditoría unificada local](decisions/ADR-P-045-auditoria-unificada-local.md)
-27. [Plan de implementación R3](plans/R3-unified-audit.md)
-28. [Informe de la base de auditoría R3](testing/R3_AUDIT_FOUNDATION_REPORT_2026-08-09.md)
-29. [Diseño de simulación afectiva explicable](architecture/AFFECTIVE_SIMULATION_DESIGN.md)
-30. [ADR-P-046: paleta afectiva y volumen cognitivo](decisions/ADR-P-046-paleta-afectiva-y-volumen-cognitivo.md)
-31. [Informe visual de la matriz cognitivo-afectiva](testing/AFFECTIVE_VOLUME_VISUAL_REPORT_2026-08-09.md)
-32. [Informe R3 del Gateway correlacionado](testing/R3_PERMISSION_AUDIT_REPORT_2026-08-09.md)
-33. [ADR-P-047: actividad efímera del Núcleo](decisions/ADR-P-047-actividad-efimera-del-nucleo-desde-r3.md)
-34. [Informe de cierre R3 y actividad del Núcleo](testing/R3_CORE_ACTIVITY_REPORT_2026-08-09.md)
-35. [Contrato del manifiesto de habilidades R4](architecture/SKILL_MANIFEST_R4.md)
-36. [ADR-P-048: manifiesto local sin código ejecutable](decisions/ADR-P-048-manifiesto-local-de-habilidades.md)
-37. [Plan incremental R4](plans/R4-skill-workshop.md)
-38. [Informe R4.1 del contrato de habilidades](testing/R4_SKILL_MANIFEST_REPORT_2026-08-09.md)
-39. [ADR-P-049: almacén local verificable de borradores](decisions/ADR-P-049-almacen-local-borradores.md)
-40. [Informe R4.2 del almacén de borradores](testing/R4_SKILL_DRAFT_STORE_REPORT_2026-08-09.md)
-41. [ADR-P-050: simulación estática de habilidades](decisions/ADR-P-050-simulacion-estatica-de-habilidades.md)
-42. [Informe R4.3 del simulador de planes](testing/R4_SKILL_SIMULATION_REPORT_2026-08-10.md)
-43. [ADR-P-051: ciclo de vida inmutable de habilidades](decisions/ADR-P-051-ciclo-de-vida-inmutable-de-habilidades.md)
-44. [Informe R4.4 de ciclo de vida y auditoría](testing/R4_LIFECYCLE_AUDIT_REPORT_2026-08-10.md)
-45. [Revisión técnica de OpenClaw y TencentDB Agent Memory](research/REVIEW_OPENCLAW_TENCENT_2026-08-10.md)
-46. [ADR-P-070: volumen neural compacto y evolutivo](decisions/ADR-P-070-volumen-neural-compacto-evolutivo.md)
-47. [Informe visual del volumen neural compacto](testing/NEURAL_VOLUME_COMPACT_REPORT_2026-08-15.md)
-48. [ADR-P-071: sonda facial local mediante webcam](decisions/ADR-P-071-sonda-facial-webcam-local.md)
-49. [Informe real de preparación facial](testing/FACE_LANDMARKER_READINESS_REPORT_2026-08-15.md)
-50. [Informe R1/R2 del contrato facial](testing/R1_FACE_CAPABILITY_CONTRACT_REPORT_2026-08-16.md)
-51. [Informe del diagnóstico pasivo de Rostro](testing/FACE_READINESS_PANEL_REPORT_2026-08-16.md)
-52. [ADR-P-072: permiso facial R2 separado](decisions/ADR-P-072-permiso-facial-r2-separado.md)
-53. [Informe del contrato de permiso facial R2](testing/R2_FACE_PERMISSION_CONTRACT_REPORT_2026-08-16.md)
-54. [ADR-P-073: catálogo VRM facial de solo lectura](decisions/ADR-P-073-catalogo-expresiones-vrm-solo-lectura.md)
-55. [Informe real del catálogo de expresiones VRM](testing/AVATAR_EXPRESSION_CATALOG_REPORT_2026-08-16.md)
-56. [ADR-P-079: inferencia Ollama limitada a loopback](decisions/ADR-P-079-inferencia-ollama-loopback.md)
-57. [Inventario de modelos locales y propietarios](research/LOCAL_MODEL_INVENTORY_2026-08-20.md)
-58. [Informe real del adaptador local Ollama](testing/LOCAL_OLLAMA_ADAPTER_REPORT_2026-08-20.md)
-59. [ADR-P-080: contexto ampliado y RAG local](decisions/ADR-P-080-contexto-rag-local.md)
-60. [ADR-P-081: observación visual local revisable](decisions/ADR-P-081-observacion-visual-local-revisable.md)
-61. [Informe real de RAG y aprendizaje visual](testing/LOCAL_RAG_VISUAL_LEARNING_REPORT_2026-08-20.md)
-62. [Investigación funcional sobre memoria humana](research/HUMAN_MEMORY_FUNCTIONAL_MODEL_2026-08-21.md)
-63. [ADR-P-084: memoria funcional y volumen cognitivo trazable](decisions/ADR-P-084-memoria-funcional-y-volumen-trazable.md)
-64. [Cierre R8.4 del volumen cognitivo](testing/R8_4_VOLUME_CLOSEOUT_2026-09-11.md)
-65. [Plan R9: presencia, voz y cuerpo](plans/R9-presence-voice-body.md)
-66. [ADR-P-094: puentes de presencia, voz y cuerpo](decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md)
-67. [Prechequeo de Fish Audio para R9.2](research/FISH_AUDIO_R9_PRECHECK_2026-09-12.md)
-68. [Identidad de voz de Alice para R9](architecture/ALICE_VOICE_IDENTITY_R9.md)
-69. [Terna inicial de voces Fish para Alice](research/ALICE_FISH_VOICE_SHORTLIST_2026-09-12.md)
-70. [Diseño de voz original para Alice](architecture/ALICE_ORIGINAL_VOICE_DESIGN_R9.md)
-71. [Sesión automática de voz y Node 26 LTS](decisions/ADR-P-099-sesion-de-voz-y-node-26.md)
-72. [Pruebas de sesión de voz y actualización del entorno](testing/R9_HANDS_FREE_NODE26_REPORT_2026-11-03.md)
-73. [Referentes, parada por voz y Rust 1.99.1](decisions/ADR-P-100-referentes-parada-de-voz-rust.md)
-74. [Evaluación de referentes y orden de parada](testing/R9_REFERENCES_VOICE_STOP_RUST_REPORT_2026-11-03.md)
-
-75. [Aprendizaje automático y volumen orgánico](decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
-76. [Pruebas de memoria automática y visualización](testing/AUTOMATIC_MEMORY_VOLUME_REPORT_2026-11-03.md)
-
-## Secciones
-
-| Carpeta | Contenido |
+| Quiero… | Dónde empezar |
 |---|---|
-| `architecture/` | Arquitectura, datos y límites del sistema |
-| `decisions/` | Decisiones que deben conservarse durante el desarrollo |
-| `plans/` | Planes de ingeniería aprobados y contratos de migración |
-| `research/` | Revisiones de fuentes externas; inspiran decisiones pero no son contratos |
-| `runbooks/` | Procedimientos repetibles de ejecución y recuperación |
-| `testing/` | Informes verificables de pruebas funcionales y regresión |
+| Instalar y abrir Alice | [Windows](../README.md#instalar-y-arrancar) · [Ubuntu](runbooks/04-ubuntu.md) |
+| Entender las pantallas o resolver un problema | [Manual de uso](MANUAL_DE_USO.md) · [Problemas frecuentes](MANUAL_DE_USO.md#9-problemas-frecuentes) |
+| Configurar conversación, micrófono o música | [Conversación y voz](runbooks/03-conversacion-y-voz.md) · [Playlist de Spotify](runbooks/08-spotify-playlist-privada.md) |
+| Ver y revisar lo que aprende Alice | [Autoestudio](runbooks/06-autoestudio-al-arrancar.md) · [Operar la memoria](runbooks/02-operar-memoria.md) · [Ver los recuerdos en Obsidian](runbooks/05-memoria-obsidian.md) |
+| Hacer una copia o recuperar mi instalación | [Respaldo integral y restauración](runbooks/07-respaldo-integral.md) |
 
-Los recuerdos reales, auditorías y respaldos viven en `data/`, fuera de `docs/`, y están excluidos de Git. Las claves continúan únicamente en variables de entorno y nunca se escriben en esa carpeta.
+## Desarrollo
 
-76. [Cámara y escritorio en conversación](decisions/ADR-P-102-vision-conversacional-local.md)
-77. [Validación de visión conversacional](testing/CONVERSATION_VISION_REPORT_2026-11-03.md)
+Para localizar código, datos y recursos, consultá el [mapa del proyecto](architecture/MAPA_CARPETAS_RAIZ.md).
+El alcance funcional está en la [especificación ilustrada](especificacion_alice_continuum.html).
+Los cambios en curso se siguen en el [roadmap](../Roadmap.md) y en el [inventario de migración a Dioxus](architecture/DIOXUS_MIGRATION_STATUS.md).
 
-78. [Actividad y herramientas delegadas](decisions/ADR-P-103-actividad-y-herramientas-delegadas.md)
-79. [Validación de actividad, aperturas y tool calling](testing/ACTIVITY_DESKTOP_TOOLS_REPORT_2026-11-03.md)
-80. [Música en Spotify y YouTube en Chrome](decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
-81. [Pruebas de reproducción musical](testing/MEDIA_PLAYBACK_REPORT_2026-11-03.md)
-82. [Corrección de órdenes habladas y reproducción](testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md)
-83. [Portada e historial del documento maestro](testing/DOCUMENT_PRESENTATION_REPORT_2026-11-04.md)
-84. [Reducción de ruido y Vite 8.3.5](decisions/ADR-P-105-supresion-local-ruido-vite.md)
-85. [Validación de audio filtrado y entorno](testing/VOICE_NOISE_VITE_REPORT_2026-11-04.md)
-86. [Icono de Conversación actualizado](testing/CONVERSATION_ICON_REPORT_2026-11-04.md)
-87. [Transcripción Whisper y estabilidad oral](decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md)
-88. [Prueba nativa de sesión y cancelación](testing/CONVERSATION_SESSION_REPORT_2026-11-04.md)
-89. [Contratos de conversación y sondeos serializados](decisions/ADR-P-107-contratos-conversacion-y-sondeos.md)
-90. [Memoria modular y React 19.3.1](decisions/ADR-P-108-memoria-modular-react-19-3.md)
-91. [Verificación de memoria y actualización React](testing/MEMORY_MODULAR_REACT_REPORT_2026-11-04.md)
-
-[Instalación Ubuntu](runbooks/04-ubuntu.md) · [Organización y pruebas](testing/ORGANIZATION_UBUNTU_REPORT_2026-11-04.md) · [ADR-P-109](decisions/ADR-P-109-organizacion-local-y-ubuntu.md)
-
-[Conversación: referencias explícitas, 5 de noviembre](testing/CONVERSATION_REFERENCES_REPORT_2026-11-05.md).
-
-[Revisión de arquitectura y código, 5 de noviembre](architecture/CODE_REVIEW_2026-11-05.md) · [Inventario y alcance de lectura](architecture/CODE_REVIEW_INVENTORY_2026-11-05.md).
+Las decisiones anteriores, los informes de pruebas y los planes terminados están disponibles en el [archivo histórico de la documentación](https://github.com/enri312/alice-continuum/tree/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs).
+Con el historial Git descargado también podés leerlos sin conexión. Por ejemplo, `git show 99e67bf:docs/decisions/README.md` abre el catálogo de decisiones.

@@ -36,7 +36,9 @@ es el puente con el contenedor actual y el comando Tauri de telemetría.
 
 La marca, el lema y el indicador Local-first permanecen en una línea compacta.
 Los 21 iconos funcionales se dibujan como instrumentos de metal con óptica,
-cableado y piezas específicas. Conversación combina dos turnos con una señal
+cableado y piezas específicas. El relleno y la sombra dan profundidad al metal.
+Los biseles y las pistas tienen trazo fino para distinguirlos en las pestañas
+de 66 píxeles. Conversación combina dos turnos con una señal
 de audio y una consola dúplex. El Volumen muestra los hemisferios en un escáner,
 Memoria presenta un cartucho extraíble y Actividad tiene un alimentador de papel.
 Las lupas de cámara llevan hojas de diafragma alrededor del signo de aumento o
@@ -78,7 +80,7 @@ reutilizan la misma base de estilos.
   Comprueba el acceso a Conversación, la conservación de su borrador, Estado,
   Flujo, Actividad y la persistencia de relaciones con registros aislados.
 - Las pruebas de voz, cámara y proveedores reales tienen su propio alcance.
-- [Informe de la incorporación inicial de Conversación](../testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+- [Informe de la incorporación inicial de Conversación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
 La adaptación visual y la migración a Dioxus se registran por separado.
 [Inventario de migración](DIOXUS_MIGRATION_STATUS.md).
