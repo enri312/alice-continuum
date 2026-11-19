@@ -1,25 +1,21 @@
 import { ConversationHost } from "./pages/conversation/ConversationHost";
-import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
-import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
 import { buildMemoryCatalog } from "./core/memory/memory-catalog";
 import {
-  learningSnapshot, refreshLearningSources, reviewAutomaticLearning,
-  startLearningSession, subscribeToLearning, toggleAutomaticMemory, toggleSelfStudy,
+  learningSnapshot, refreshLearningSources, startLearningSession, subscribeToLearning,
 } from "./core/memory/learning-session";
-import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import { supportsConversationBehavior } from "./core/conversation/behavior-settings";
 import {
-  changeConversationBehavior, conversationSnapshot, resetConversationRetrieval,
+  changeConversationBehavior, conversationSnapshot,
   setConversationDraft, subscribeToConversation,
 } from "./core/conversation/conversation-session";
 import { Volumen } from "./pages/cognitive/VolumeHost";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { StateControlsHost } from "./components/cognitive/state-controls/StateControlsHost";
 import { Planificador } from "./pages/cognitive/ActionPlannerHost";
-import { Memoria } from "./pages/memory/MemoryVaultPage";
+import { Memoria } from "./pages/memory/MemoryHost";
 import { Actividad } from "./pages/cognitive/ActivityHost";
 import { AuditPageHost } from "./pages/cognitive/AuditPageHost";
 import { FaceTrackingPanel } from "./components/embodiment/FaceTrackingPanel";
@@ -31,9 +27,7 @@ import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
 import { recordCognitiveEvent as recordEvent } from "./core/cognitive/activity-session";
 import {
-  clearWorkingMemory, discardMemory,
-  exportMemory, memorySessionSnapshot, openMemoryDirectory, refreshOwnerProfile, reloadMemoryFromDisk, restoreMemory,
-  reviewMemory, startMemorySession, subscribeToMemory, updateMemory,
+  memorySessionSnapshot, refreshOwnerProfile, reloadMemoryFromDisk, startMemorySession, subscribeToMemory,
 } from "./core/memory/memory-session";
 import { observationSnapshot, subscribeToObservation } from "./core/governance/observation-session";
 import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
@@ -44,19 +38,13 @@ const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) 
 export function App() {
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
-  const { sessions, finishedIndices, workingMemory, memoryStatus, memoryPath, ownerProfile, ownerProfileError } =
+  const { sessions, finishedIndices, memoryStatus, ownerProfile, ownerProfileError } =
     useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
   useEffect(startMemorySession, []);
   useEffect(startLearningSession, []);
   const {
-    automaticMemory, automaticPhase, automaticError, automaticSource,
-    selfStudy, selfStudyError, selfStudySource, approvedStudyIndices,
+    automaticMemory, automaticPhase, automaticSource, selfStudy, selfStudySource, approvedStudyIndices,
   } = useSyncExternalStore(subscribeToLearning, learningSnapshot);
-
-  async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
-    await reviewAutomaticLearning(input);
-    resetConversationRetrieval();
-  }
 
   const {
     cloudStatus, cloudSelection, draft: conversationDraft, showFullHistory,
@@ -142,7 +130,7 @@ export function App() {
       automaticLearning={automaticMemory ? {enabled: automaticMemory.enabled, count: automaticMemory.activeCount, phase: automaticPhase, onOpen: () => navigate("memoria")} : undefined}
       onDraftChange={setConversationDraft} onToggleObservation={toggleObservation} onOpenSettings={() => navigate("configuracion")}
     />}
-    {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={updateMemory} onDelete={discardMemory} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
+    {screen === "memoria" && <Memoria desktopApp={desktopApp} />}
     {screen === "actividad" && <Actividad />}
     {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

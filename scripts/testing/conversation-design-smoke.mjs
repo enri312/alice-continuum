@@ -395,6 +395,7 @@ try {
     ['configuracion','settings','.settings-page'],
     ['planificador','planner','.task-registry'],
     ['nucleo','volume','.volume-workbench'],
+    ['memoria','memory','.memory-page'],
   ]) {
     await send('Network.setBlockedURLs',{urls:['*.wasm']});
     const target = new URL(url); target.searchParams.set('screen',screen);
@@ -462,9 +463,16 @@ try {
   memoryUrl.searchParams.set('screen','memoria');
   await send('Page.navigate',{url:memoryUrl.href});
   await until(()=>evaluate('Boolean(document.querySelector(".memory-storage.storage-native"))'),'memoria persistida al arrancar');
+  assert.equal(await evaluate('document.querySelector("[data-memory-renderer]")?.dataset.memoryRenderer'),'dioxus');
   const memorySection = title => evaluate(`Array.from(document.querySelectorAll('.memory-section-nav button')).find(button=>button.querySelector('strong').textContent===${JSON.stringify(title)}).click()`);
   await memorySection('Recuerdos');
   await until(()=>evaluate('document.querySelector(".memory-record h3")?.textContent==="Recuerdo anterior"'),'registro heredado');
+  await evaluate('document.querySelector(".memory-search input").focus()');
+  await send('Input.insertText',{text:'consulta sin coincidencias'});
+  await until(()=>evaluate('document.querySelector(".memory-empty h3")?.textContent.includes("esa búsqueda")'),'filtro de recuerdos en Dioxus');
+  await evaluate('document.querySelector(".memory-search input").select()');
+  await send('Input.insertText',{text:'recuerdo anterior'});
+  await until(()=>evaluate('Boolean(document.querySelector(".memory-record .memory-actions button"))'),'encontrar el registro por su título');
   await click('.memory-record .memory-actions button');
   await evaluate('document.querySelector(".memory-editor textarea").select()');
   await send('Input.insertText',{text:'Texto revisado'});

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { AutomaticMemoryReview, AutomaticMemorySnapshot, AutomaticLearningPhase } from "../../core/memory/automatic-memory";
-import "../../styles/automatic-memory.css";
+import type { AutomaticMemoryReview, AutomaticMemorySnapshot, AutomaticLearningPhase } from "../../../core/memory/automatic-memory";
+import "../../../styles/automatic-memory.css";
 
 type Props = {
   snapshot: AutomaticMemorySnapshot | null;

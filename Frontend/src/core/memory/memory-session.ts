@@ -4,6 +4,7 @@ import { parseOwnerProfileSnapshot, type OwnerProfileSnapshot } from "../convers
 import { startSerializedPolling } from "../shared/polling";
 import { loadCompatibleArray } from "../shared/storage-migration";
 import { applyMemoryRetrievalOutcome, applyMemoryReview, type RetrievalOutcome, type ReviewOutcome } from "./memory-consolidation";
+import { isLegacyMemoryDiscardable } from "./memory-discard";
 import type { MemoryRecordChanges, MemorySession } from "./memory-record";
 import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot, type WorkingMemorySnapshot } from "./working-memory";
 
@@ -187,16 +188,21 @@ function changeRecord(id: string, change: (record: MemorySession) => MemorySessi
 }
 
 export async function updateMemory(id: string, changes: MemoryRecordChanges) {
-  await changeRecord(id, record => ({
-    ...record,
-    ...changes,
-    ...(record.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}),
-  }));
+  await changeRecord(id, record => {
+    if (!record.finishedAt || record.archiveStatus === "archived" || record.memoryStatus === "archived"
+      || record.memoryStatus === "confirmed" || record.memoryStatus === "conflict") {
+      throw new Error("El estado del recuerdo cambió. Revisalo antes de editar; los recuerdos evaluados requieren una versión nueva.");
+    }
+    return { ...record, ...changes };
+  });
   recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`);
 }
 
 export async function discardMemory(id: string) {
-  const count = await changeRecord(id, () => null);
+  const count = await changeRecord(id, record => {
+    if (!isLegacyMemoryDiscardable(record)) throw new Error("El registro ya no admite descarte directo.");
+    return null;
+  });
   recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN");
   return count;
 }

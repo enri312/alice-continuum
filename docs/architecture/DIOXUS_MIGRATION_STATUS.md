@@ -17,9 +17,9 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
 | Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y evidencia de recuperación del turno. | El host temporal inicia el controlador de la página. Un adaptador TypeScript independiente de `App.tsx` enlaza Tauri y las API de archivos, audio y vídeo del WebView. |
-| Memoria | Sesión compartida para la proyección de recuerdos persistidos, estado del archivo y generación de memoria de trabajo. | La pantalla y sus flujos de revisión siguen en React. El adaptador TypeScript coordina las operaciones IPC existentes. |
-| Aprendizaje | Sesión compartida del autoestudio y la memoria automática conversacional, con la última lectura válida, su estado y la fase recibida. Volumen muestra las fuentes y cambios en Dioxus. | Los paneles de Memoria aún se montan en React. El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
-| Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. El perfil en Memoria aún se monta en React. |
+| Memoria | Navegación, registros, edición versionada, perfil, memoria de trabajo, capas y respaldo. | Revisión y ciclo y Consolidación se cargan desde Legacy. El host transitorio monta la página y el adaptador usa los contratos de Tauri. |
+| Aprendizaje | Memoria muestra autoestudio y aprendizaje conversacional, con corrección, retiro y restauración de recuerdos automáticos. Volumen muestra las fuentes y cambios en Dioxus. | El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
+| Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. |
 | Volumen cognitivo | Escena, ficha de recuerdos y procesos, evidencias R8, leyendas, consola de señales y seguimiento de cambios. | Host de montaje. El adaptador Canvas independiente dibuja la escena, traduce los eventos de puntero y teclado y consulta Tauri. |
 | Observación de ventana | Sesión compartida que liga el contexto visible al identificador y vencimiento del permiso R2 confirmado. | El panel aún muestra solicitudes y decisiones en React. El adaptador consulta Tauri y traslada las transiciones de permisos validadas. |
 | Configuración | Vista de proveedores, modelo, historial, motor local, política y dispositivos. | El host monta Dioxus. El adaptador usa la sesión de Conversación y ordena las respuestas de inicio y apagado de Gemma. |
@@ -37,7 +37,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Bloque pendiente | Trabajo que falta |
 |---|---|
 | Conexión de Actividad con la aplicación | Retirar los hosts de proyección al sustituir el montaje raíz. Mover los productores al trasladar cada operación de `App.tsx`. |
-| Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
+| Memoria | Revisión y ciclo, archivo y retención, y decisiones y recuperación de Consolidación. Se conservan los almacenes Rust y sus contratos. |
 | Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
 | Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
 | Aplicación y recuperación | Estado compartido de `App.tsx`, entrada, hosts y vistas anteriores de respaldo. |
@@ -94,19 +94,30 @@ con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
 
-### Estimación después de la novena etapa
+### Estimación después de la décima etapa
 
 Se prevén entre cuatro y seis incrementos adicionales en Windows. Estos
 son los cuatro bloques pendientes, con revisión después de probar cada uno.
 
-1. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
+1. Revisión y ciclo y Consolidación de Memoria.
 2. Gobernanza, habilidades, procedimientos y puentes de permisos.
 3. Vistas de rostro, cuerpo y avatar.
 4. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
 
-Memoria o el avatar pueden requerir incrementos propios por sus
+El ciclo y el avatar pueden requerir incrementos propios por sus
 dependencias de datos y dispositivos. El arranque final requiere que las rutas
 y las vistas de recuperación estén probadas en Dioxus.
+
+## Memoria y edición versionada (2026-11-19)
+
+Dioxus administra las secciones, la búsqueda, los formularios de recuerdos y
+aprendizaje y la vista de respaldo. El adaptador conserva el plan de versión
+devuelto por Tauri y, después de la segunda confirmación, envía la misma
+entrada verificada. Un cambio en el borrador invalida la vista previa.
+Capas consulta la huella vigente y ofrece activar o revertir la revisión por
+los comandos existentes. En sesión vincula el vaciado a la generación visible.
+Revisión y ciclo y Consolidación se montan bajo demanda desde `Legacy`
+mientras se trasladan sus confirmaciones y su recuperación.
 
 ## Volumen cognitivo (2026-11-19)
 

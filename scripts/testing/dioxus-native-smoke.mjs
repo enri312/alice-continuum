@@ -103,7 +103,7 @@ try {
   });
   const evaluate = async expression => {
     const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
-    if (result.exceptionDetails) throw Error(result.exceptionDetails.text); return result.result.value;
+    if (result.exceptionDetails) throw Error(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text); return result.result.value;
   };
   const screenshot = async name => {
     const shot = await send('Page.captureScreenshot', { format: 'png' }); await fs.writeFile(path.join(artifacts, name), Buffer.from(shot.data, 'base64'));
@@ -146,7 +146,7 @@ try {
   await evaluate('document.querySelector(".dashboard-shortcut").click()');
   await until(() => evaluate('document.querySelector("#alice-message")?.value==="Prueba nativa de diseño sin enviar a un modelo."'), 'El borrador queda en Conversación al volver del Dashboard');
   await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Memoria"]\').click()');
-  await until(() => evaluate('Boolean(document.querySelector(".memory-storage.storage-native"))'), 'Lectura de recuerdos locales a través de la sesión Dioxus');
+  await until(() => evaluate('Boolean(document.querySelector("[data-memory-renderer=dioxus] .memory-storage.storage-native"))'), 'Lectura de recuerdos locales en el panel Dioxus');
   const selectMemorySection = title => evaluate(`Array.from(document.querySelectorAll('.memory-section-nav button')).find(button=>button.querySelector('strong').textContent===${JSON.stringify(title)}).click()`);
   await selectMemorySection('Aprendizaje');
   const studyToggle = 'section[aria-labelledby="self-study-title"] input';
@@ -349,12 +349,87 @@ try {
   await evaluate('document.querySelector(".volume-learning-refresh button").click()');
   await until(() => profileCount(1), 'La fuente válida permite recuperar el perfil');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Memoria"]\').click()');
+  await until(() => evaluate('Boolean(document.querySelector("[data-memory-renderer=dioxus] .memory-section-nav"))'), 'Memoria vuelve a montar en Dioxus');
+  const selectMaintenance = title => until(() => evaluate(`(()=>{
+    const button=Array.from(document.querySelectorAll('.memory-subsection-nav button:enabled')).find(button=>button.textContent.startsWith(${JSON.stringify(title)}));
+    if(!button) return false;
+    button.click();
+    return true;
+  })()`), 'abrir '+title);
+  const clickMemory = async title => {
+    const button = `Array.from(document.querySelectorAll('.memory-page button:enabled')).find(button=>button.textContent.trim()===${JSON.stringify(title)})`;
+    await until(() => evaluate(`Boolean(${button})`), title);
+    await evaluate(`${button}.click()`);
+  };
+  await selectMemorySection('Mantenimiento');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-review-panel .memory-lifecycle-grid"))'), 'Revisión y ciclo conserva su operación local');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-subsection-nav button:enabled"))'), 'subnavegación disponible');
+  await selectMaintenance('Consolidación');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-recovery-status.state-idle"))'), 'permanece accesible la recuperación de Consolidación');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-subsection-nav button:enabled"))'), 'consolidación consultada');
+  await selectMaintenance('Capas');
+  await until(() => evaluate('Boolean(document.querySelector("[data-memory-renderer=dioxus] .memory-layer-evidence code"))'), 'huella de Capas visible en Dioxus');
+  await evaluate('window.confirm=()=>false');
+  await clickMemory('Revisé la huella · activar');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-layer-panel .primary:enabled"))'), 'cancelar activación vuelve a habilitar el plan');
+  assert.equal(await evaluate('Boolean(document.querySelector(".memory-layer-panel.state-active"))'), false);
+  await evaluate('window.confirm=()=>true');
+  await clickMemory('Revisé la huella · activar');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-layer-panel.state-active button.danger:enabled"))'), 'activación R6.1 confirmada y almacenada');
+  await clickMemory('Desactivar proyección');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-layer-panel.state-rolledBack .primary:enabled"))'), 'desactivación reversible de Capas');
+  assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Capas no cambia los recuerdos');
+  await evaluate('document.querySelector(".memory-layer-panel").scrollIntoView({block:"center"})');
+  await screenshot('memoria-capas-dioxus.png');
+  await selectMemorySection('Recuerdos');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-record .memory-actions button:enabled"))'), 'registro nativo habilitado para revisión');
+  await evaluate('document.querySelector(".memory-record .memory-actions button").click()');
+  const enterMemoryText = async (selector, text) => {
+    await evaluate(`document.querySelector(${JSON.stringify(selector)}).select()`);
+    await send('Input.insertText', { text });
+    await until(() => evaluate(`document.querySelector(${JSON.stringify(selector)})?.value===${JSON.stringify(text)}`), 'borrador de versión escrito');
+  };
+  await enterMemoryText('.memory-editor textarea', 'Recuerdo actualizado en el ensayo nativo aislado.');
+  await enterMemoryText('.reconsolidation-controls textarea', 'Corrección de prueba para verificar control de versiones.');
+  await clickMemory('Preparar versión');
+  await until(() => evaluate('Boolean(document.querySelector(".reconsolidation-preview"))'), 'reconsolidación presenta el plan antes de escribir');
+  assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'preparar una versión no escribe la fuente');
+  await evaluate('window.confirm=()=>false');
+  await clickMemory('Confirmar nueva versión');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-editor .primary:enabled"))'), 'cancelar confirmación conserva el plan');
+  assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'cancelar conserva la versión previa');
+  await enterMemoryText('.reconsolidation-controls textarea', 'Nota cambiada después de la revisión inicial.');
+  await until(() => evaluate('!document.querySelector(".reconsolidation-preview")'), 'editar el borrador invalida el plan anterior');
+  await clickMemory('Preparar versión');
+  await until(() => evaluate('Boolean(document.querySelector(".reconsolidation-preview"))'), 'nuevo plan después de editar');
+  await evaluate('window.confirm=()=>true');
+  await clickMemory('Confirmar nueva versión');
+  await until(() => evaluate('document.querySelector(".memory-record .version")?.textContent==="V2"'), 'confirmar escribe una versión sucesora real');
+  const versioned = JSON.parse(await fs.readFile(sourcePath, 'utf8'));
+  assert.equal(versioned.find(record=>record.id==='a').memoryVersion,2);
+  assert.equal(versioned.find(record=>record.id==='a').summary,'Recuerdo actualizado en el ensayo nativo aislado.');
+  await selectMemorySection('Mantenimiento');
+  await until(() => evaluate('Boolean(Array.from(document.querySelectorAll(".memory-subsection-nav button")).find(button=>button.textContent==="Respaldo" && !button.disabled))'), 'respaldo disponible');
+  await selectMaintenance('Respaldo');
+  await clickMemory('Exportar memoria');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Exportación creada en:")'), 'exportación nativa confirmada');
+  const exportPath = await evaluate('document.querySelector(".memory-operation-message").textContent.split("Exportación creada en: ")[1]');
+  assert.ok(path.resolve(exportPath).startsWith(data+path.sep), 'exportación dentro de la instalación aislada');
+  assert.deepEqual(JSON.parse(await fs.readFile(exportPath,'utf8')),versioned);
+  const backups = path.join(data,'memory','backups');
+  await fs.mkdir(backups,{recursive:true});
+  await fs.writeFile(path.join(backups,'records.backup.json'),JSON.stringify(records));
+  await clickMemory('Restaurar respaldo');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Respaldo restaurado correctamente")'), 'restauración nativa confirmada');
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(backups,'records.pre-restore.json'),'utf8')),versioned);
+  assert.equal(JSON.parse(await fs.readFile(sourcePath,'utf8')).find(record=>record.id==='a').memoryVersion,undefined);
   await evaluate('document.querySelector(".core-system-selector .governance").click()');
   await until(() => evaluate('Boolean(document.querySelector(\'button[aria-label="Configuración"]\'))'), 'Configuración disponible');
   await evaluate('document.querySelector(\'button[aria-label="Configuración"]\').click()');
   await until(() => evaluate('Boolean(document.querySelector("[data-settings-renderer=dioxus] .settings-runtime"))'), 'Configuración nativa en Dioxus');
   await screenshot('configuracion-dioxus.png');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, memoryLayersReversible: true, versionedMemoryEdited: true, memoryExportAndRestore: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
     governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeCanvasDrawn: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: navegación, Conversación, Planificador, Flujo y Volumen con su escena y citas R8 comprobados con datos aislados. Evidencia: ${artifacts}`);

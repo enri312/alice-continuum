@@ -38,6 +38,11 @@ mod flow_page_ui;
 mod flow_ui;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod learning_session;
+pub mod memory_page_model;
+#[cfg(target_arch = "wasm32")]
+mod memory_page_ui;
+#[cfg(target_arch = "wasm32")]
+mod memory_panels_ui;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod memory_session;
 pub mod model;
@@ -213,4 +218,14 @@ mountable_view!(
     mount_volume_page,
     update_volume_page,
     unmount_volume_page
+);
+
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    memory_page_browser,
+    crate::memory_page_model::Payload,
+    crate::memory_page_ui,
+    mount_memory_page,
+    update_memory_page,
+    unmount_memory_page
 );

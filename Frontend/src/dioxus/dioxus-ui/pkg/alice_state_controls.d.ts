@@ -18,6 +18,9 @@ export function mount_audit_page(root: string, raw: string, on_action: Function,
 export function unmount_navigation(id: number): void;
 export function update_navigation(id: number, raw: string): void;
 export function mount_navigation(root: string, raw: string, on_action: Function, on_ready: Function): number;
+export function unmount_memory_page(id: number): void;
+export function update_memory_page(id: number, raw: string): void;
+export function mount_memory_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_source_form(id: number): void;
 export function update_source_form(id: number, raw: string): void;
 export function mount_source_form(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -65,6 +68,7 @@ export interface InitOutput {
   readonly mount_dashboard: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_flow_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly mount_memory_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_navigation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_planner_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_relation_confirmation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -80,6 +84,7 @@ export interface InitOutput {
   readonly unmount_dashboard: (a: number) => void;
   readonly unmount_flow_page: (a: number) => void;
   readonly unmount_memory_associations: (a: number) => void;
+  readonly unmount_memory_page: (a: number) => void;
   readonly unmount_navigation: (a: number) => void;
   readonly unmount_planner_page: (a: number) => void;
   readonly unmount_relation_confirmation: (a: number) => void;
@@ -97,6 +102,7 @@ export interface InitOutput {
   readonly update_flow_page: (a: number, b: number, c: number) => [number, number];
   readonly update_learning_session: (a: number, b: number) => [number, number, number, number];
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];
+  readonly update_memory_page: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_session: (a: number, b: number) => [number, number, number, number];
   readonly update_navigation: (a: number, b: number, c: number) => [number, number];
   readonly update_observation_session: (a: number, b: number) => [number, number, number, number];

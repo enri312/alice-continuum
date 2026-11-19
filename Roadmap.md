@@ -74,16 +74,18 @@ Conversación. Antes de enviar, el adaptador comprueba de nuevo la revisión
 y, cuando se incluyó la ventana, su permiso R2. El código anterior queda en
 `Legacy`.
 
+**Décima etapa de App.tsx (2026-11-19).** Memoria monta en Dioxus la navegación,
+Aprendizaje, Registros, Perfil, En sesión, Capas y Respaldo. La edición de un
+recuerdo evaluado conserva la vista previa y la confirmación de la versión.
+Revisión y ciclo y Consolidación se abren con las vistas anteriores. Su
+migración es el siguiente incremento de Memoria.
+[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-décima-etapa).
+
 **Novena etapa de App.tsx (2026-11-19).** Volumen cognitivo monta en Dioxus
 la escena, el inspector, las leyendas, el estado del aprendizaje y los cambios
 de recuerdos observados desde la apertura. El lienzo conserva la cámara, la
 geometría y la proyección de relaciones R8. La demostración mantiene separados
 sus pulsos de los conteos de auditoría. Las vistas React pasan a `Legacy`.
-El siguiente bloque es la pantalla de Memoria y sus flujos de revisión.
-
-Se estiman **4 a 6 etapas adicionales** para migrar las pantallas pendientes,
-la raíz `app.rs` y la recuperación de errores.
-[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-novena-etapa).
 
 **Octava etapa de App.tsx (2026-11-19).** Configuración y Planificador montan
 sus pantallas en Dioxus. Configuración comparte el proveedor, el modelo y la

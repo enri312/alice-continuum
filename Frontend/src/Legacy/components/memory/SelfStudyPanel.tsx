@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { selfStudyTrackLabels, type SelfStudyPhase, type SelfStudySnapshot } from "../../core/memory/self-study";
-import "../../styles/automatic-memory.css";
+import { selfStudyTrackLabels, type SelfStudyPhase, type SelfStudySnapshot } from "../../../core/memory/self-study";
+import "../../../styles/automatic-memory.css";
 
 type Props = { snapshot: SelfStudySnapshot | null; error?: string; onToggle: (enabled: boolean) => Promise<void> };
 const phaseLabels: Record<SelfStudyPhase, string> = {

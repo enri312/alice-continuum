@@ -1,21 +1,21 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { buildReviewQueue } from "../../core/memory/memory-consolidation";
-import type { ReviewOutcome } from "../../core/memory/memory-consolidation";
-import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStatusSnapshot, type ConsolidationRecoveryStep } from "../../core/memory/memory-consolidation-preview";
-import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../../core/memory/layered-memory";
-import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, retainLifecycleEntriesForKnownRecords, type MemoryAccessibilityAssessmentAction, type MemoryLifecyclePreviewSnapshot, type MemorySuppressionAction, type MemorySuppressionReason, type MemoryValidityAssessmentAction } from "../../core/memory/memory-lifecycle";
-import { parseMemoryArchivePreview, parseMemoryArchiveResult, type MemoryArchiveAction, type MemoryArchivePreview, type MemoryArchiveReason } from "../../core/memory/memory-archive";
-import { parseMemoryDeletionPreview, parseMemoryDeletionResult, parseMemoryDeletionSchedulePreview, parseMemoryDeletionScheduleResult, type MemoryDeletionPreview, type MemoryDeletionReason, type MemoryDeletionScheduleAction, type MemoryDeletionSchedulePreview } from "../../core/memory/memory-deletion";
-import { parseMemoryReconsolidationPreview, parseMemoryReconsolidationResult, type MemoryReconsolidationPreview, type MemoryReconsolidationReason } from "../../core/memory/memory-reconsolidation";
-import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../../core/memory/working-memory";
-import type { MemoryRecordChanges, MemorySession as StoredMemorySession } from "../../core/memory/memory-record";
-import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../../core/memory/working-memory";
-import type { OwnerProfileSnapshot } from "../../core/conversation/owner-profile";
-import { isLegacyMemoryDiscardable } from "../../core/memory/memory-discard";
-import { memoryOrigin, memoryOriginLabel, memoryReviewProposal } from "../../core/memory/memory-review-proposals";
-import "../../styles/memory-navigation.css";
+import { buildReviewQueue } from "../../../core/memory/memory-consolidation";
+import type { ReviewOutcome } from "../../../core/memory/memory-consolidation";
+import { parseConsolidationMergePreview, parseConsolidationPreview, parseConsolidationRecoveryStatus, parseConsolidationResolutionResult, parseConsolidationRestorationResult, type ConsolidationCandidate, type ConsolidationMergeDifferenceField, type ConsolidationMergePreview, type ConsolidationPreviewSnapshot, type ConsolidationRecoveryStatusSnapshot, type ConsolidationRecoveryStep } from "../../../core/memory/memory-consolidation-preview";
+import { parseLayeredMemorySnapshot, type LayeredMemorySnapshot } from "../../../core/memory/layered-memory";
+import { parseMemoryAccessibilityAssessmentResult, parseMemoryLifecyclePreview, parseMemorySuppressionAssessmentResult, parseMemoryValidityAssessmentResult, retainLifecycleEntriesForKnownRecords, type MemoryAccessibilityAssessmentAction, type MemoryLifecyclePreviewSnapshot, type MemorySuppressionAction, type MemorySuppressionReason, type MemoryValidityAssessmentAction } from "../../../core/memory/memory-lifecycle";
+import { parseMemoryArchivePreview, parseMemoryArchiveResult, type MemoryArchiveAction, type MemoryArchivePreview, type MemoryArchiveReason } from "../../../core/memory/memory-archive";
+import { parseMemoryDeletionPreview, parseMemoryDeletionResult, parseMemoryDeletionSchedulePreview, parseMemoryDeletionScheduleResult, type MemoryDeletionPreview, type MemoryDeletionReason, type MemoryDeletionScheduleAction, type MemoryDeletionSchedulePreview } from "../../../core/memory/memory-deletion";
+import { parseMemoryReconsolidationPreview, parseMemoryReconsolidationResult, type MemoryReconsolidationPreview, type MemoryReconsolidationReason } from "../../../core/memory/memory-reconsolidation";
+import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../../../core/memory/working-memory";
+import type { MemoryRecordChanges, MemorySession as StoredMemorySession } from "../../../core/memory/memory-record";
+import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../../../core/memory/working-memory";
+import type { OwnerProfileSnapshot } from "../../../core/conversation/owner-profile";
+import { isLegacyMemoryDiscardable } from "../../../core/memory/memory-discard";
+import { memoryOrigin, memoryOriginLabel, memoryReviewProposal } from "../../../core/memory/memory-review-proposals";
+import "../../../styles/memory-navigation.css";
 
 type MemoryType = "semantic" | "procedural" | "preference" | "episodic";
 type MemoryView = "learning" | "records" | "working" | "profile" | "layers" | "review" | "consolidate" | "safety";
@@ -46,6 +46,9 @@ const memorySubsections: Partial<Record<MemorySection, { view: MemoryView; title
 type MemorySession = Omit<StoredMemorySession, "startedAt">;
 
 type MemoriaProps = {
+  maintenanceView?: "review" | "consolidate";
+  onOpenRecordEditor?: (id: string) => void;
+  onMaintenanceStatus?: (count: number | null, busy: boolean) => void;
   automaticMemoryPanel?: ReactNode;
   sessions: MemorySession[];
   ownerProfile: OwnerProfileSnapshot | null;
@@ -120,10 +123,11 @@ const recoveryStepLabels: Record<ConsolidationRecoveryStep, string> = {
   verifyRestoredSource: "VERIFICAR RESTAURACIÓN",
 };
 
-export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
+export function Memoria({ maintenanceView, onOpenRecordEditor, onMaintenanceStatus, automaticMemoryPanel, sessions, ownerProfile, workingMemory, onClearWorkingMemory, onUpdate, onDelete, onReview, onExport, onRestore, onReloadMemory, onOpenDirectory, storageStatus, storagePath }: MemoriaProps) {
   const requestedView = new URLSearchParams(window.location.search).get("memoryView");
   const initialView: MemoryView = requestedView === "records" || requestedView === "working" || requestedView === "profile" || requestedView === "layers" || requestedView === "review" || requestedView === "consolidate" || requestedView === "safety" ? requestedView : "learning";
-  const [view, setView] = useState<MemoryView>(initialView);
+  const [localView, setView] = useState<MemoryView>(initialView);
+  const view = maintenanceView ?? localView;
   const section = memoryViewSections[view];
   const subsections = memorySubsections[section] ?? [];
   const [query, setQuery] = useState("");
@@ -153,6 +157,8 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
   const [reconsolidationNote, setReconsolidationNote] = useState("");
   const [reconsolidationPreview, setReconsolidationPreview] = useState<MemoryReconsolidationPreview | null>(null);
   const [validitySources, setValiditySources] = useState<Record<string, string>>({});
+  const candidateCount = consolidationPreview?.pendingCandidateCount ?? null;
+  useEffect(() => { onMaintenanceStatus?.(candidateCount, operationRunning); }, [candidateCount, onMaintenanceStatus, operationRunning]);
   const remembered = sessions.filter((session) => session.finishedAt);
   const profileCount = ownerProfile?.records.length ?? 0;
   const episodicConversationCount = remembered.filter((session) => memoryOrigin(session) === "conversation").length;
@@ -614,7 +620,8 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
         return;
       }
       setOperationMessage(`?${session.intention}? qued? marcado para correcci?n. Guard? los cambios para resolver el conflicto.`);
-      edit(session);
+      if (onOpenRecordEditor) onOpenRecordEditor(session.id);
+      else edit(session);
     } catch (error) {
       setOperationMessage(`No se pudo guardar el repaso: ${String(error)}`);
     } finally {
@@ -660,7 +667,7 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
     }
   }
 
-  return <section className="memory-page" aria-labelledby="memory-title">
+  const heading = <>
     <div className="memory-heading"><div><p className="eyebrow">ALMACÉN COGNITIVO · LOCAL</p><h2 id="memory-title">Memoria de Alice</h2><p>Consultá lo que Alice estudia, los recuerdos que conserva y el contexto de esta sesión. Las herramientas de revisión y respaldo están en Mantenimiento.</p></div><div className="memory-side"><div className={`memory-storage storage-${storageStatus}`} title={storagePath || "Almacenamiento aún no disponible"}><i />{storageStatus === "native" ? "ARCHIVO LOCAL" : storageStatus === "loading" ? "CARGANDO" : storageStatus === "error" ? "ERROR DE MEMORIA" : "NAVEGADOR DEV"}</div><div className="memory-count memory-count-breakdown" aria-label={`${consultableCount} elementos consultables: ${remembered.length} recuerdos y ${profileCount} hechos de perfil`}><strong>{consultableCount}</strong><span>elementos<br />consultables</span><small><b>{remembered.length}</b> recuerdos · <b>{profileCount}</b> perfil</small></div></div></div>
     <nav className="memory-section-nav" aria-label="Secciones de memoria">
       {memorySections.map(item => (
@@ -696,7 +703,8 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
         })}
       </nav>
     )}
-    <div id="memory-current-view" className="memory-current-view">
+  </>;
+  const content = <>
     {view === "learning" && <section className="memory-learning-view" aria-label="Aprendizaje de Alice">{automaticMemoryPanel ?? <p className="memory-learning-unavailable">El estado del aprendizaje no está disponible en esta vista.</p>}</section>}
     {view === "working" && <section className={`working-memory-panel memory-view-panel state-${workingMemory?.state ?? "unavailable"}`} aria-labelledby="working-memory-title">
       <header><div><p className="eyebrow">R6.2-B · CONTEXTO EFÍMERO NATIVO</p><h3 id="working-memory-title">Memoria de trabajo de la sesión</h3><p>Contexto conversacional reciente dentro del proceso. No es un recuerdo, aprendizaje ni archivo local.</p></div><span>{workingMemory ? workingMemory.state === "active" ? "ACTIVA" : workingMemory.state === "expired" ? "EXPIRADA" : "VACÍA" : "SIN BACKEND"}</span></header>
@@ -828,6 +836,10 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
         <div className="action-row"><button className="secondary" onClick={() => { setEditingId(null); setReconsolidationPreview(null); }}>Cancelar</button>{reconsolidationPreview ? <button className="primary" disabled={operationRunning} onClick={() => void confirmReconsolidation()}>Confirmar nueva versión</button> : <button className="primary" disabled={operationRunning} onClick={() => void saveOrPreview()}>{session.memoryStatus === "confirmed" || session.memoryStatus === "conflict" ? "Preparar versión" : "Guardar cambios"}</button>}</div>
       </div> : <><p>{session.summary || "Sin resumen todavía."}</p><div className="memory-evidence">{session.source && <span>ORIGEN · {session.source}</span>}<span>VIGENCIA · {session.memoryStatus === "confirmed" ? "REGISTRADA" : session.memoryStatus === "conflict" ? "EN CONFLICTO" : session.memoryStatus === "archived" ? "ARCHIVADA" : "NO EVALUADA"}</span><span>IMPORTANCIA · {session.importance ?? 3}/5</span><span>ESTABILIDAD · {Math.round((session.storageStrength ?? .08) * 100)}%</span><span>RECUPERACIONES · {session.successfulRecalls ?? 0}</span><span>REVISIONES · {session.successfulReviews ?? 0}</span><span>VERSIÓN · {session.memoryVersion ?? 1}</span>{session.archiveStatus === "archived" && <span>ARCHIVO · REVERSIBLE</span>}{session.deletionStatus === "scheduled" && <span>ELIMINACIÓN · EN ESPERA HASTA {session.deletionEligibleAt ? formatDate(session.deletionEligibleAt) : "FECHA NO DISPONIBLE"}</span>}</div>{memoryReviewProposal(session) && <div className={`memory-review-proposal state-${memoryReviewProposal(session)!.state}`}><strong>{memoryReviewProposal(session)!.label}</strong><span>{memoryReviewProposal(session)!.reason}</span>{memoryReviewProposal(session)!.state === "review" && <button type="button" onClick={() => setView("review")}>Abrir ciclo de revisión</button>}</div>}{session.nextStep && <p className="next"><strong>Sigue:</strong> {session.nextStep}</p>}<div className="memory-actions"><button disabled={session.archiveStatus === "archived"} title={session.archiveStatus === "archived" ? "Restaurá el recuerdo antes de editarlo" : "Crear una versión sucesora"} onClick={() => edit(session)}>Editar con versión</button><button className="danger" disabled={operationRunning || !isLegacyMemoryDiscardable(session)} title={isLegacyMemoryDiscardable(session) ? "Descartar registro heredado no evaluado" : "Los recuerdos durables se retiran desde Ciclo con archivo, espera y resguardo"} onClick={() => void remove(session)}>Descartar</button></div></>}</div>
     </article>)}</div>}</div>}
-    </div>
+  </>;
+  if (maintenanceView) return content;
+  return <section className="memory-page" aria-labelledby="memory-title">
+    {heading}
+    <div id="memory-current-view" className="memory-current-view">{content}</div>
   </section>;
 }
