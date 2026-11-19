@@ -53,14 +53,18 @@ renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
 diagnóstico. Rust mantiene las sesiones de Actividad, Conversación, Memoria,
 Aprendizaje y Observación de ventana.
 Conversación comparte el borrador, el historial visible, el proveedor, el modelo
-y los ajustes de comportamiento. Memoria proyecta los recuerdos guardados y el
-estado de RAM usando los datos de Tauri. Aprendizaje comparte entre Memoria y
+y los ajustes de comportamiento. La sesión registra los recuerdos revisados
+y el modo de contexto aplicado a la respuesta. El adaptador de Conversación
+gestiona la comunicación con Tauri y los recursos de voz y visión. Memoria
+proyecta los recuerdos guardados y el estado de RAM usando los datos de Tauri.
+Aprendizaje comparte entre Memoria y
 Volumen cognitivo la última lectura válida del autoestudio y de los recuerdos
 aprendidos al conversar. Memoria también carga el perfil confirmado por Tauri.
 Conversación recupera lecciones activas con el último ejercicio aprobado y
 Volumen permite inspeccionar también las pendientes de repaso o retiradas.
 La observación de ventana solo presenta metadatos mientras R2 confirma el
 permiso de sesión. El vencimiento o la revocación los retira de la interfaz.
+Si un mensaje incluye esos metadatos, el permiso se comprueba otra vez antes del envío.
 React aún arranca la aplicación y monta las pantallas pendientes. `Backend/`
 contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.

@@ -1,6 +1,7 @@
 import type { WorkingMemorySnapshot } from "../memory/working-memory";
 import type { ConversationHistorySnapshot } from "./conversation-history";
 import type { ConversationBehaviorSettings } from "./behavior-settings";
+import type { PayloadWindow } from "./cloud-payload";
 
 export type ConversationMessage = {
   id: string;
@@ -26,6 +27,12 @@ export type CloudRequest = {
   model: string;
   historyCount: number;
   memoryCount: number;
+};
+
+// Keep this proof in the WebView. Only the reviewed request goes to Tauri.
+export type SendAuthorization = {
+  window?: PayloadWindow;
+  verifyReview: () => void;
 };
 
 export type CloudResponse = {

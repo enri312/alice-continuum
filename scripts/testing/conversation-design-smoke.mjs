@@ -158,11 +158,18 @@ try {
         return {snapshot:{...workingMemoryBase,state:'empty',generation:42,exchanges:[],exchangeCount:0,messageCount:0,
           characterCount:0,expiresInSeconds:null,lastActivityAt:null},auditHealthy:true,warning:null};
       }
-      if(cmd==='permission_gateway_status' && globalThis.__observationFixture)return {
-        schemaVersion:1,generatedAt:new Date().toISOString(),requests:[],grants:[foregroundGrant],
-        policy:{denyByDefault:true,persistentGrants:false,r2DecisionCommandsExposed:true,r2ExecutionCommandsExposed:true},
-        limits:{highRiskDecisionTtlSeconds:60,standardDecisionTtlSeconds:300,maximumSessionDurationSeconds:300},
-      };
+      if(cmd==='permission_gateway_status' && globalThis.__observationFixture){
+        const snapshot = {
+          schemaVersion:1,generatedAt:new Date().toISOString(),requests:[],grants:[foregroundGrant],
+          policy:{denyByDefault:true,persistentGrants:false,r2DecisionCommandsExposed:true,r2ExecutionCommandsExposed:true},
+          limits:{highRiskDecisionTtlSeconds:60,standardDecisionTtlSeconds:300,maximumSessionDurationSeconds:300},
+        };
+        if(globalThis.__holdReviewPermission){
+          globalThis.__holdReviewPermission=false;
+          await new Promise(resolve=>{globalThis.__releaseReviewPermission=resolve;});
+        }
+        return snapshot;
+      }
       if(cmd==='execute_context_observation_grant' && globalThis.__observationFixture && args.input.grantId===foregroundGrant.grantId){
         foregroundGrant = {...foregroundGrant,state:'active'};
         return {grant:foregroundGrant,enabled:true};
@@ -496,21 +503,31 @@ try {
   await goToConversationContext();
   await until(()=>evaluate('Boolean(document.querySelector(".conversation-observer-state.active")) && document.querySelector(".conversation-context-drawer").textContent.includes("editor-aislado.exe")'),'muestra sólo la ventana autorizada');
   await until(()=>evaluate('typeof __releaseWindow==="function"'),'segunda lectura permanece pendiente');
+  await input('Consulta de prueba con contexto autorizado.');
+  await evaluate('Array.from(document.querySelectorAll(".conversation-context-drawer .context-toggle")).find(label=>label.querySelector("strong")?.textContent==="Ventana actual").querySelector("input").click()');
+  await click('.composer-footer button');
+  await until(()=>evaluate('document.querySelector(".payload-detail pre")?.textContent.includes("editor-aislado.exe")'),'permiso y ventana incluidos en la revisión');
+  await evaluate('globalThis.__holdReviewPermission=true');
+  await click('.review-actions .primary');
+  await until(()=>evaluate('typeof __releaseReviewPermission==="function"'),'se comprueba R2 de nuevo antes de enviar');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="send_cloud_message").length'),0,'Envío bloqueado mientras se valida el permiso');
   await showPermissions('Administrar observador en Gateway');
   await clickNamed('REVOCAR');
   await until(()=>evaluate('document.querySelector(".permission-ledger").textContent.includes("Revocado")'),'revocación confirmada');
-  await evaluate('__releaseWindow()');
+  await evaluate('__releaseWindow(); __releaseReviewPermission();');
   await goToConversationContext();
   await until(()=>evaluate('document.querySelector(".conversation-observer-state")?.textContent.includes("INACTIVO")'),'observador inactivo al volver');
   assert.equal(await evaluate('document.querySelector(".conversation-context-drawer").textContent.includes(".exe")'),false,'Una lectura tardía no restaura contexto');
   assert.equal(await evaluate('__calls.filter(call=>call.cmd==="get_foreground_context").length'),2,'Revocar detiene las consultas');
+  await until(()=>evaluate('document.querySelector(".composer-footer button")?.matches(":enabled")'),'el turno cancelado libera el compositor');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="send_cloud_message").length'),0,'El permiso anterior no autoriza el envío');
 
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true,observationRevokesPendingRead:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true,observationRevokesPendingRead:true,revocationBlocksReviewedSend:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

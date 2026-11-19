@@ -1,29 +1,25 @@
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { startStateControlsView, type ViewStatus } from "../../components/cognitive/state-controls/lifecycle";
 import { createConversationPage, type ConversationPageInputs } from "../../core/conversation/conversation-page-controller";
 import { createConversationVision, createDocumentReader } from "../../core/conversation/conversation-tools";
-import type { VisionInput } from "../../core/conversation/vision-session";
-import type { VoiceTurnTranscript } from "../../core/voice/voice-input";
-import type { VoiceOutputPreview, VoiceOutputResult } from "../../core/voice/voice-output";
+import { observeConversationRetrieval } from "../../core/conversation/conversation-session";
+import {
+  cancelVoiceOutput, confirmConversationLearning, confirmVoiceOutput, prepareVoiceTurn,
+  previewConversationLearning, previewHybridMemoryRetrieval, previewVoiceOutput,
+  sendConversationTurn, speakVoiceSession, startVoiceSession, stopVoiceSession, transcribeVoiceTurn,
+} from "../../core/conversation/conversation-transport";
+import { assessRetrievalOutcome } from "../../core/memory/memory-session";
 import { createConversationVoice, measureInputDiagnostics } from "./conversation-voice-controller";
 import "../../components/documents/DocumentPreview.css";
 import "../../styles/conversation-home.css";
 import "../../styles/conversation-context.css";
 import "../../styles/conversation-vision.css";
 
-export type ConversationVisionPort = { capture: () => Promise<VisionInput | undefined> };
-type Props = Omit<ConversationPageInputs, "voice" | "onPreviewSpokenResponse"> & {
-  visionRef: RefObject<ConversationVisionPort | null>;
+type Props = Omit<ConversationPageInputs,
+  "voice" | "onPreviewSpokenResponse" | "onSend" | "onHybridRetrieve" | "onMemoryRetrieval" |
+  "onPreviewConversationLearning" | "onConfirmConversationLearning" | "onRetrievalOutcome"> & {
   cloudPending: boolean;
   retrievedMemoryCount: number;
-  onPrepareVoiceTurn: () => Promise<void>;
-  onStartVoiceSession: () => Promise<string>;
-  onStopVoiceSession: (sessionId: string) => Promise<void>;
-  onTranscribeVoiceTurn: (audioBase64: string, mimeType: string, sessionId?: string) => Promise<VoiceTurnTranscript>;
-  onSpeakVoiceSession: (exchangeId: string, sessionId: string) => Promise<VoiceOutputResult>;
-  onPreviewVoiceOutput: (exchangeId: string) => Promise<VoiceOutputPreview>;
-  onConfirmVoiceOutput: (requestId: string) => Promise<VoiceOutputResult>;
-  onCancelVoiceOutput: (requestId: string) => Promise<void>;
 };
 
 export function ConversationHost(props: Props) {
@@ -58,35 +54,39 @@ export function ConversationHost(props: Props) {
         view.update(next);
       });
     };
+    const vision = createConversationVision(element, publish);
     const voice = createConversationVoice({
       desktopApp: () => source.current.desktopApp,
       isDisabled: () => source.current.cloudPending || isPageSending(),
       getDraft: () => source.current.draft,
       setDraft: value => page.setVoiceDraft(value),
       invalidateReview: () => page.invalidateReview(),
-      prepare: () => source.current.onPrepareVoiceTurn(),
+      prepare: prepareVoiceTurn,
       start: () => {
         page.startVoiceSession();
-        return source.current.onStartVoiceSession();
+        return startVoiceSession();
       },
-      stop: id => source.current.onStopVoiceSession(id),
-      transcribe: (audio, mime, id) => source.current.onTranscribeVoiceTurn(audio, mime, id),
+      stop: stopVoiceSession,
+      transcribe: transcribeVoiceTurn,
       respond: (text, id) => page.processSpokenTurn(text, id),
-      speak: (exchange, id) => source.current.onSpeakVoiceSession(exchange, id),
-      preview: exchange => source.current.onPreviewVoiceOutput(exchange),
-      confirm: request => source.current.onConfirmVoiceOutput(request),
-      cancel: request => source.current.onCancelVoiceOutput(request),
+      speak: speakVoiceSession,
+      preview: previewVoiceOutput,
+      confirm: confirmVoiceOutput,
+      cancel: cancelVoiceOutput,
     }, publish);
     const page: ReturnType<typeof createConversationPage> = createConversationPage(() => ({
       ...source.current,
       voice: voice.snapshot(),
+      onSend: (request, ids, retrieval, authorization) => sendConversationTurn(request, ids, retrieval, vision.capture, authorization),
+      onMemoryRetrieval: observeConversationRetrieval,
+      onHybridRetrieve: previewHybridMemoryRetrieval,
+      onPreviewConversationLearning: previewConversationLearning,
+      onConfirmConversationLearning: confirmConversationLearning,
+      onRetrievalOutcome: assessRetrievalOutcome,
       onPreviewSpokenResponse: id => voice.previewSpokenResponse(id),
     }), publish);
     isPageSending = page.isSending;
-    const vision = createConversationVision(element, publish);
     const document = createDocumentReader(element, publish);
-    const visionRef = source.current.visionRef;
-    visionRef.current = vision;
 
     function snapshot() {
       const { draft, messages, memories, retrievedMemoryCount, observationEnabled, foregroundContext, cloudPending, desktopApp } = source.current;
@@ -113,7 +113,6 @@ export function ConversationHost(props: Props) {
     function release() {
       if (!active) return;
       active = false;
-      if (visionRef.current === vision) visionRef.current = null;
       synchronize.current = null;
       voice.dispose();
       vision.dispose();

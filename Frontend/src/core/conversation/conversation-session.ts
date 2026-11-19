@@ -1,5 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { recordCognitiveEvent as recordEvent } from "../cognitive/activity-session";
+import { emptyMemoryRetrieval, type MemoryContextMode, type MemoryRetrievalObservation } from "../memory/retrieval-observation";
 import { DEFAULT_CONVERSATION_BEHAVIOR, type ConversationBehaviorKey } from "./behavior-settings";
 import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage } from "./conversation-contracts";
 import { messagesFromConversationHistory, parseConversationHistorySnapshot } from "./conversation-history";
@@ -36,17 +37,22 @@ let current = {
   showFullHistory: false,
   behavior: DEFAULT_CONVERSATION_BEHAVIOR,
   pending: false,
+  retrieval: emptyMemoryRetrieval(),
   messages: [] as ConversationMessage[],
 };
 type Snapshot = typeof current;
-type Projection = Omit<Snapshot, "cloudStatus" | "messages"> & {
+type Projection = Omit<Snapshot, "cloudStatus" | "messages" | "retrieval"> & {
   cloudStatus: CloudStatus | null;
   messages: ConversationMessage[] | null;
+  retrieval: MemoryRetrievalObservation | null;
   persistSelection: boolean;
 };
 type Action =
   | { type: "status"; status: CloudStatus }
-  | { type: "resolveSelection" | "beginTurn" | "endTurn" }
+  | { type: "resolveSelection" | "endTurn" | "resetRetrieval" }
+  | { type: "beginTurn"; prepared?: MemoryRetrievalObservation; query: string; includeMemories: boolean }
+  | { type: "observeRetrieval"; observation: MemoryRetrievalObservation }
+  | { type: "completeRetrieval"; responseId: string; mode?: MemoryContextMode }
   | { type: "selectProvider"; provider: string }
   | { type: "selectModel"; model: string }
   | { type: "draft"; draft: string }
@@ -58,8 +64,9 @@ let initialized = false;
 let transport: ((input: string) => string) | undefined;
 let savedSelection = JSON.stringify(current.cloudSelection);
 
-function project(raw: string) {
+function project(raw: string, retrievalOnly = false) {
   const next: Projection = JSON.parse(raw);
+  if (retrievalOnly && !next.retrieval) return;
   current = {
     cloudStatus: next.cloudStatus ?? current.cloudStatus,
     cloudSelection: next.cloudSelection,
@@ -67,6 +74,7 @@ function project(raw: string) {
     showFullHistory: next.showFullHistory,
     behavior: next.behavior,
     pending: next.pending,
+    retrieval: next.retrieval ?? current.retrieval,
     messages: next.messages ?? current.messages,
   };
   const selection = JSON.stringify(next.cloudSelection);
@@ -82,7 +90,7 @@ function project(raw: string) {
 }
 
 function send(action: Action) {
-  if (transport) project(transport(JSON.stringify(action)));
+  if (transport) project(transport(JSON.stringify(action)), action.type === "observeRetrieval");
 }
 
 function readHistory() {
@@ -133,9 +141,16 @@ export function selectCloudProvider(provider: string) {
   recordEvent("SYSTEM", "INFERENCE_ROUTE_SELECTED", `${selected.label} · ${selected.defaultModel || "sin modelo"}`);
 }
 
-export function beginConversationTurn() {
+export const observeConversationRetrieval = (observation: MemoryRetrievalObservation) => send({ type: "observeRetrieval", observation });
+export const resetConversationRetrieval = () => send({ type: "resetRetrieval" });
+export function completeConversationRetrieval(responseId: string, mode?: MemoryContextMode) {
+  const verifiedMode = mode === "full" || mode === "limited" || mode === "none" ? mode : undefined;
+  send({ type: "completeRetrieval", responseId, mode: verifiedMode });
+}
+
+export function beginConversationTurn(query: string, includeMemories: boolean, prepared?: MemoryRetrievalObservation) {
   if (!transport) throw new Error("La sesión de Conversación todavía no está disponible.");
-  send({ type: "beginTurn" });
+  send({ type: "beginTurn", query, prepared, includeMemories });
   return current.behavior;
 }
 

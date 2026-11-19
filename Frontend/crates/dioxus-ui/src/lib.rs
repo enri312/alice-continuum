@@ -52,6 +52,8 @@ mod ui;
 pub mod relations_model;
 #[cfg(target_arch = "wasm32")]
 mod relations_ui;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod retrieval_session;
 pub mod source_form_model;
 #[cfg(target_arch = "wasm32")]
 mod source_form_ui;

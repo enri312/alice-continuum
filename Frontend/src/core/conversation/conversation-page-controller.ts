@@ -1,4 +1,4 @@
-import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./conversation-contracts";
+import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest, SendAuthorization } from "./conversation-contracts";
 import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "./conversation-learning";
 import { buildCloudPayloadReview } from "./cloud-payload";
 import { affectPalette } from "../cognitive/affect";
@@ -39,7 +39,7 @@ export type ConversationPageInputs = {
   onHybridRetrieve: (request: HybridRetrievalRequest) => Promise<HybridRetrievalPreview>;
   onPreviewConversationLearning: (exchangeId: string) => Promise<ConversationLearningPreview>;
   onConfirmConversationLearning: (preview: ConversationLearningPreview, candidate: ConversationLearningCandidate, approval: ConversationLearningApproval) => Promise<{ recordId: string; recordCount: number; alreadyConfirmed: boolean }>;
-  onSend: (request: CloudRequest, recalledMemoryIds: string[], retrieval?: MemoryRetrievalObservation) => Promise<CloudResponse>;
+  onSend: (request: CloudRequest, recalledMemoryIds: string[], retrieval?: MemoryRetrievalObservation, authorization?: SendAuthorization) => Promise<CloudResponse>;
   onRetrievalOutcome: (recordId: string, outcome: RetrievalOutcome) => Promise<void>;
   onOpenSettings: () => void;
   onPreviewSpokenResponse: (exchangeId: string) => void;
@@ -271,13 +271,17 @@ export function createConversationPage(getInputs: () => ConversationPageInputs, 
     if (!review || isSending(input.cloudPending) || input.voice.active || input.voice.busy || !input.desktopApp
         || !input.status.providers.find(item => item.id === input.provider)?.configured || !review.request.model.trim()) return;
     const prepared = review;
-    const current = prepare(input);
     // Toggling a source or changing the engine invalidates the reviewed text.
-    if (prepared.request.provider !== input.provider || prepared.request.model !== input.model
-        || prepared.request.message !== current.request.message || prepared.request.payload !== current.request.payload
-        || JSON.stringify(prepared.memoryIds) !== JSON.stringify(current.memoryIds)) {
+    function stillMatches(inputs: ConversationPageInputs) {
+      const current = prepare(inputs);
+      return prepared.request.provider === inputs.provider && prepared.request.model === inputs.model
+        && prepared.request.message === current.request.message && prepared.request.payload === current.request.payload
+        && JSON.stringify(prepared.memoryIds) === JSON.stringify(current.memoryIds);
+    }
+    const reviewChanged = "Cambió el motor o el contexto. Revisá nuevamente el mensaje antes de procesarlo.";
+    if (!stillMatches(input)) {
       review = null;
-      error = "Cambió el motor o el contexto. Revisá nuevamente el mensaje antes de procesarlo.";
+      error = reviewChanged;
       changed();
       return;
     }
@@ -285,7 +289,17 @@ export function createConversationPage(getInputs: () => ConversationPageInputs, 
     error = "";
     changed();
     try {
-      const response = await input.onSend(prepared.request, prepared.memoryIds, prepared.retrieval);
+      const includesWindow = prepared.fragments.fragments.some(fragment => fragment.id === "window" && fragment.included);
+      const response = await input.onSend(prepared.request, prepared.memoryIds, prepared.retrieval, {
+        window: includesWindow ? input.foregroundContext ?? undefined : undefined,
+        verifyReview: () => {
+          const latest = read();
+          if (disposed || review !== prepared || !stillMatches(latest)) {
+            review = null;
+            throw new Error(reviewChanged);
+          }
+        },
+      });
       if (prepared.memoryIds.length && response.memoryContextMode === "full") {
         retrievals.push(...prepared.memoryIds.map(recordId => ({ key: `${response.responseId}:${recordId}:${crypto.randomUUID()}`, recordId })));
       }

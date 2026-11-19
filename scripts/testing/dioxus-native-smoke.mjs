@@ -221,8 +221,7 @@ try {
   await until(()=>evaluate('document.querySelector("#permission-gateway-title").checkVisibility() && document.querySelector(".permission-status")?.textContent.includes("Permisos locales actualizados")'), 'lectura de permisos nativos');
   async function permissionButton(label) {
     const selector = `Array.from(document.querySelectorAll('#permissions-panel button')).find(b => b.textContent === ${JSON.stringify(label)} && b.checkVisibility() && !b.disabled)`;
-    await until(() => evaluate(`Boolean(${selector})`), label);
-    await evaluate(`${selector}.click()`);
+    await until(() => evaluate(`(()=>{const button=${selector};if(!button)return false;button.click();return true;})()`), label);
   }
   await permissionButton('PREPARAR OBSERVACIÓN');
   await permissionButton('RECHAZAR');

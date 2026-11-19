@@ -1,3 +1,4 @@
+use crate::retrieval_session::{ContextMode, Retrieval};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, PartialEq, Deserialize, Serialize)]
@@ -64,20 +65,58 @@ struct Initial {
 }
 
 #[derive(Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(
+    tag = "type",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 enum Action {
-    Status { status: Status },
+    Status {
+        status: Status,
+    },
     ResolveSelection,
-    SelectProvider { provider: String },
-    SelectModel { model: String },
-    Draft { draft: String },
-    ShowFullHistory { enabled: bool },
-    Behavior { key: Control, value: f64 },
-    BeginTurn,
+    SelectProvider {
+        provider: String,
+    },
+    SelectModel {
+        model: String,
+    },
+    Draft {
+        draft: String,
+    },
+    ShowFullHistory {
+        enabled: bool,
+    },
+    Behavior {
+        key: Control,
+        value: f64,
+    },
+    BeginTurn {
+        #[serde(default)]
+        prepared: Option<Retrieval>,
+        #[serde(default)]
+        query: String,
+        #[serde(default)]
+        include_memories: bool,
+    },
+    ObserveRetrieval {
+        observation: Retrieval,
+    },
+    CompleteRetrieval {
+        response_id: String,
+        mode: Option<ContextMode>,
+    },
+    ResetRetrieval,
     EndTurn,
-    InitialHistory { messages: Vec<Message> },
-    ReplaceHistory { messages: Vec<Message> },
-    AppendTurn { messages: [Message; 2] },
+    InitialHistory {
+        messages: Vec<Message>,
+    },
+    ReplaceHistory {
+        messages: Vec<Message>,
+    },
+    AppendTurn {
+        messages: [Message; 2],
+    },
 }
 
 struct Session {
@@ -88,6 +127,7 @@ struct Session {
     full_history: bool,
     behavior: Behavior,
     pending: bool,
+    retrieval: Retrieval,
     messages: Vec<Message>,
     initial_history_settled: bool,
 }
@@ -102,6 +142,7 @@ struct Projection<'a> {
     show_full_history: bool,
     behavior: Behavior,
     pending: bool,
+    retrieval: Option<&'a Retrieval>,
     messages: Option<&'a [Message]>,
 }
 
@@ -118,6 +159,7 @@ impl Session {
                 empathy: 0.5,
             },
             pending: false,
+            retrieval: Retrieval::default(),
             messages: Vec::new(),
             initial_history_settled: false,
         };
@@ -153,7 +195,12 @@ impl Session {
         }
     }
 
-    fn project(&self, include_status: bool, include_messages: bool) -> Projection<'_> {
+    fn project(
+        &self,
+        include_status: bool,
+        include_messages: bool,
+        include_retrieval: bool,
+    ) -> Projection<'_> {
         Projection {
             cloud_status: include_status.then_some(&self.status),
             cloud_selection: &self.selection,
@@ -162,6 +209,7 @@ impl Session {
             show_full_history: self.full_history,
             behavior: self.behavior,
             pending: self.pending,
+            retrieval: include_retrieval.then_some(&self.retrieval),
             messages: include_messages.then_some(&self.messages),
         }
     }
@@ -169,6 +217,7 @@ impl Session {
     fn apply(&mut self, action: Action) -> Result<Projection<'_>, &'static str> {
         let mut changed_status = false;
         let mut changed_messages = false;
+        let mut changed_retrieval = false;
         match action {
             Action::Status { status } => {
                 self.status = status;
@@ -217,9 +266,34 @@ impl Session {
                 }
             }
             Action::Behavior { .. } => {}
-            Action::BeginTurn if self.pending => return Err("Ya hay una respuesta en curso."),
-            Action::BeginTurn => self.pending = true,
-            Action::EndTurn => self.pending = false,
+            Action::BeginTurn { .. } if self.pending => {
+                return Err("Ya hay una respuesta en curso.")
+            }
+            Action::BeginTurn {
+                prepared,
+                query,
+                include_memories,
+            } => {
+                self.pending = true;
+                self.retrieval =
+                    Retrieval::sending(prepared.unwrap_or_default(), query, include_memories);
+                changed_retrieval = true;
+            }
+            Action::ObserveRetrieval { observation } if !self.pending => {
+                changed_retrieval = self.retrieval.observe(observation);
+            }
+            Action::ObserveRetrieval { .. } => {}
+            Action::CompleteRetrieval { response_id, mode } => {
+                changed_retrieval = self.retrieval.complete(response_id, mode);
+            }
+            Action::ResetRetrieval => {
+                self.retrieval = Retrieval::default();
+                changed_retrieval = true;
+            }
+            Action::EndTurn => {
+                self.pending = false;
+                changed_retrieval = self.retrieval.fail();
+            }
             Action::InitialHistory { mut messages } if !self.initial_history_settled => {
                 // Earlier responses without a persistent snapshot are part of this session.
                 messages.append(&mut self.messages);
@@ -238,7 +312,7 @@ impl Session {
                 changed_messages = true;
             }
         }
-        Ok(self.project(changed_status, changed_messages))
+        Ok(self.project(changed_status, changed_messages, changed_retrieval))
     }
 }
 
@@ -259,7 +333,7 @@ mod browser {
         SESSION.with(|cell| {
             let mut state = cell.borrow_mut();
             let session = state.get_or_insert_with(|| Session::new(initial));
-            serde_json::to_string(&session.project(true, true))
+            serde_json::to_string(&session.project(true, true, true))
                 .map_err(|error| JsValue::from_str(&error.to_string()))
         })
     }
@@ -310,7 +384,7 @@ mod tests {
     #[test]
     fn keeps_the_saved_model_until_the_real_providers_arrive() {
         let mut session = session("otro", "guardado");
-        let initial = serde_json::to_value(session.project(true, true)).unwrap();
+        let initial = serde_json::to_value(session.project(true, true, true)).unwrap();
         assert_eq!(initial["cloudSelection"]["model"], "guardado");
         assert_eq!(initial["persistSelection"], false);
         let resolved = apply(
@@ -347,7 +421,8 @@ mod tests {
             json!({"type":"behavior","key":"empathy","value":0.877}),
         );
         apply(&mut session, json!({"type":"beginTurn"}));
-        assert!(session.apply(Action::BeginTurn).is_err());
+        let another = serde_json::from_value(json!({"type":"beginTurn"})).unwrap();
+        assert!(session.apply(another).is_err());
         let busy = apply(
             &mut session,
             json!({"type":"behavior","key":"empathy","value":0.1}),
@@ -358,6 +433,55 @@ mod tests {
         assert_eq!(settled["showFullHistory"], true);
         assert_eq!(settled["pending"], false);
         assert!(settled["messages"].is_null());
+    }
+
+    #[test]
+    fn publishes_only_the_authorized_retrieval_and_preserves_its_receipt() {
+        let mut session = session("ollama", "fixture");
+        let observation = json!({"phase":"prepared","queryPresent":true,"queryKey":"ejemplo",
+            "count":1,"top":"Prueba","ids":["record"],
+            "references":[{"id":"record","contentKey":"fixture","score":2,"scoreKind":"lexical"}],
+            "contextMode":null,"responseId":null});
+        let sending = apply(
+            &mut session,
+            json!({"type":"beginTurn","prepared":observation,
+            "query":"ejemplo","includeMemories":true}),
+        );
+        assert_eq!(sending["retrieval"]["phase"], "sending");
+        let ignored = apply(
+            &mut session,
+            json!({"type":"observeRetrieval","observation":observation}),
+        );
+        assert!(ignored["retrieval"].is_null());
+
+        let completed = apply(
+            &mut session,
+            json!({"type":"completeRetrieval","responseId":"test-response","mode":"full"}),
+        );
+        assert_eq!(completed["retrieval"]["ids"], json!(["record"]));
+        apply(&mut session, json!({"type":"endTurn"}));
+        let receipt = apply(
+            &mut session,
+            json!({"type":"observeRetrieval","observation":observation}),
+        );
+        assert!(receipt["retrieval"].is_null());
+
+        let no_memory = apply(
+            &mut session,
+            json!({"type":"beginTurn","prepared":observation,
+            "query":"ejemplo","includeMemories":false}),
+        );
+        assert_eq!(no_memory["retrieval"]["count"], 0);
+        let failed = apply(&mut session, json!({"type":"endTurn"}));
+        assert_eq!(failed["retrieval"]["phase"], "failed");
+
+        apply(&mut session, json!({"type":"beginTurn","query":"otro"}));
+        apply(&mut session, json!({"type":"resetRetrieval"}));
+        let late = apply(
+            &mut session,
+            json!({"type":"completeRetrieval","responseId":"old","mode":"full"}),
+        );
+        assert!(late["retrieval"].is_null());
     }
 
     #[test]

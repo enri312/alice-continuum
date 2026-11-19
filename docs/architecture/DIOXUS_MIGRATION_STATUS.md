@@ -16,7 +16,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
 | Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
-| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y respuesta en curso. | Host temporal. `App.tsx` conecta envío, visión y recuperación de recuerdos; delega la memoria de trabajo a su sesión. Los controladores TypeScript enlazan Tauri y las API de archivos, audio y vídeo del WebView. |
+| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y evidencia de recuperación del turno. | El host temporal inicia el controlador de la página. Un adaptador TypeScript independiente de `App.tsx` enlaza Tauri y las API de archivos, audio y vídeo del WebView. |
 | Memoria | Sesión compartida para la proyección de recuerdos persistidos, estado del archivo y generación de memoria de trabajo. | La pantalla y sus flujos de revisión siguen en React. El adaptador TypeScript coordina las operaciones IPC existentes. |
 | Aprendizaje | Sesión compartida del autoestudio y la memoria automática conversacional, con la última lectura válida, su estado y la fase recibida. | Los paneles aún se montan en React. El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
 | Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. El perfil en Memoria y la escena de Volumen aún se montan en React. |
@@ -66,8 +66,9 @@ mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
 1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
    Actividad, Conversación, Memoria, Aprendizaje y Observación ya tienen
    sesiones Rust. El perfil confirmado y el catálogo pasan por ese estado
-   compartido. A continuación, trasladar la coordinación del envío y de
-   los canales de Conversación. Reutilizar las
+   compartido. El turno y la evidencia de recuperación también pasan por
+   la sesión de Conversación. A continuación, migrar Configuración y
+   Planificador. Reutilizar las
    operaciones Tauri y los controladores que ya existen en `core/`.
 2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
    cola de guardado de recuerdos, las generaciones de memoria de trabajo,
@@ -93,22 +94,21 @@ con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
 
-### Estimación después de la sexta etapa
+### Estimación después de la séptima etapa
 
-Se prevén entre siete y nueve incrementos adicionales en Windows. Estos
-son los siete bloques pendientes, con revisión después de probar cada uno.
+Se prevén entre seis y ocho incrementos adicionales en Windows. Estos
+son los seis bloques pendientes, con revisión después de probar cada uno.
 
-1. Coordinación del envío, recuperación de recuerdos, voz y visión.
-2. Pantallas Configuración y Planificador.
-3. Pantalla y escena de Volumen cognitivo.
-4. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
-5. Gobernanza, habilidades, procedimientos y puentes de permisos.
-6. Vistas de rostro, cuerpo y avatar.
-7. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
+1. Pantallas Configuración y Planificador.
+2. Pantalla y escena de Volumen cognitivo.
+3. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
+4. Gobernanza, habilidades, procedimientos y puentes de permisos.
+5. Vistas de rostro, cuerpo y avatar.
+6. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
 
-Voz y visión o el avatar pueden requerir incrementos propios por sus
-dependencias de dispositivos. El arranque final requiere que las rutas y las
-vistas de recuperación estén probadas en Dioxus.
+Memoria o el avatar pueden requerir incrementos propios por sus
+dependencias de datos y dispositivos. El arranque final requiere que las rutas
+y las vistas de recuperación estén probadas en Dioxus.
 
 ## Sesión de Conversación (2026-11-19)
 
@@ -118,8 +118,20 @@ el bloqueo de respuestas simultáneas. `conversation-session.ts` carga y guarda
 la selección con su clave existente y transporta el historial validado de Tauri.
 Una lectura inicial tardía respeta los turnos que ya finalizaron. Borrador,
 vista de historial y controles de comportamiento duran lo que dura la aplicación.
-`App.tsx` consume el estado y coordina el envío autorizado y sus efectos. La
-implementación React anterior de la sesión está en `Frontend/src/Legacy/`.
+`App.tsx` consume el estado compartido. La implementación React anterior
+de la sesión está en `Frontend/src/Legacy/`.
+
+## Envío y recuperación de Conversación (2026-11-19)
+
+`retrieval_session.rs` conserva la evidencia efímera del turno en la sesión
+Rust. La preparación sigue usando los datos locales y la respuesta confirma si
+se usaron recuerdos completos, un contexto limitado o ninguno. Cambiar el
+borrador durante el envío conserva la evidencia del turno vigente. El
+adaptador `conversation-transport.ts` consulta Tauri, integra historial y
+memoria de trabajo y conecta los comandos nativos de voz. La captura de visión
+se toma desde el montaje de Conversación. Antes de invocar el envío se
+comprueba nuevamente la revisión y el permiso R2 cuando se incluyó la ventana.
+La coordinación React anterior permanece desactivada en `Legacy`.
 
 ## Sesión de Memoria (2026-11-19)
 
