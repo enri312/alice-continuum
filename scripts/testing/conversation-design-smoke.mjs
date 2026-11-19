@@ -118,7 +118,15 @@ try {
     for(const method of ['getUserMedia','getDisplayMedia']) if(navigator.mediaDevices) navigator.mediaDevices[method]=async()=>{__devices++;throw Error('No physical devices in design acceptance');};
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
       __calls.push({cmd,args:structuredClone(args)});
-      if(cmd==='cloud_status')return {providers:[{id:'ollama',label:'Motor de prueba local',configured:true,defaultModel:'fixture-model',protocol:'synthetic',retentionMode:'no service'}]};
+      if(cmd==='cloud_status')return {providers:[
+        {id:'ollama',label:'Motor de prueba local',configured:true,defaultModel:'fixture-model',protocol:'synthetic',retentionMode:'no service'},
+        {id:'llamacpp',label:'Gemma de prueba',configured:false,defaultModel:'gemma-4-E2B-it-Q4_K_M',protocol:'synthetic',retentionMode:'no service'},
+      ]};
+      if(cmd==='local_runtime_status' || cmd==='stop_local_runtime')return {running:false};
+      if(cmd==='start_local_runtime'){
+        if(globalThis.__holdGemmaStart) await new Promise(resolve=>{globalThis.__releaseGemmaStart=resolve;});
+        return {running:true};
+      }
       if(cmd==='conversation_history_status'){
         const stored = sessionStorage.getItem('alice-fixture-history') === 'ready';
         const exchanges = stored ? Array.from({length:7}, (_, index) => ({
@@ -367,6 +375,8 @@ try {
   for (const [screen, renderer, component] of [
     ['identificacion','conversation','#alice-message'],
     ['auditoria','audit','.native-audit'],
+    ['configuracion','settings','.settings-page'],
+    ['planificador','planner','.task-registry'],
   ]) {
     await send('Network.setBlockedURLs',{urls:['*.wasm']});
     const target = new URL(url); target.searchParams.set('screen',screen);
@@ -397,6 +407,8 @@ try {
     localStorage.setItem(${JSON.stringify(selectionKey)}, JSON.stringify({provider:'ollama',model:'modelo-previo'}));`);
   await send('Page.navigate',{url:settingsUrl.href});
   await awaitSavedModel('modelo-previo');
+  assert.equal(await evaluate('document.querySelector("[data-settings-renderer]")?.dataset.settingsRenderer'),'dioxus');
+  assert.ok(await evaluate('(() => { const help = document.querySelector(".settings-page .context-toggle small"); return help && getComputedStyle(help).whiteSpace === "normal" && help.scrollWidth <= help.clientWidth; })()'), 'la ayuda del historial se lee completa');
   await evaluate(`const field = document.querySelector(${JSON.stringify(modelInput)}); field.focus(); field.select();`);
   await send('Input.insertText',{text:'modelo-actualizado'});
   await until(()=>evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(selectionKey)})).model === 'modelo-actualizado'`),'guardar el modelo con la clave existente');
@@ -408,6 +420,20 @@ try {
   await send('Page.reload');
   await awaitSavedModel('modelo-actualizado');
   assert.equal(await evaluate(`document.querySelector(${JSON.stringify(historyToggle)}).checked`),false,'La vista completa se aplica durante la sesión');
+  await evaluate('globalThis.__holdGemmaStart=true');
+  await click('.runtime-start');
+  await until(()=>evaluate('typeof __releaseGemmaStart==="function" && document.querySelector(".runtime-stop")?.textContent==="Cancelar inicio / apagar"'),'Gemma permite cancelar un inicio pendiente');
+  await click('.runtime-stop');
+  await until(()=>evaluate('document.querySelector(".settings-runtime [role=status]")?.textContent.includes("Gemma apagado")'),'apagado confirmado');
+  await evaluate('globalThis.__holdGemmaStart=false; __releaseGemmaStart()');
+  await until(()=>evaluate('document.querySelector(".runtime-start")?.matches(":enabled")'),'inicio anterior liberado');
+  await awaitSavedModel('modelo-actualizado');
+  await click('.runtime-start');
+  await until(()=>evaluate('document.querySelector(".settings-provider-list [aria-checked=true]")?.textContent.includes("Gemma de prueba") && document.querySelector(".settings-model-field input").readOnly'),'Gemma queda seleccionado con modelo fijo');
+  assert.ok(await evaluate('Array.from(document.querySelectorAll(".settings-provider-list [role=radio]")).find(button=>button.textContent.includes("Motor de prueba local")).disabled'));
+  await click('.runtime-stop');
+  await awaitSavedModel('fixture-model');
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="start_voice_session").length'),0,'Iniciar Gemma no enciende la voz');
   await click('.core-system-selector .cognitive');
   await ready();
   await until(()=>evaluate('document.querySelectorAll(".chat-message").length===12'),'historial guardado al reabrir');

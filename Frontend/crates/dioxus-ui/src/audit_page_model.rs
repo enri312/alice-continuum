@@ -79,6 +79,7 @@ pub enum AuditSource {
     Skill,
     Avatar,
     Procedure,
+    Task,
 }
 impl AuditSource {
     pub fn label(self) -> &'static str {
@@ -91,6 +92,7 @@ impl AuditSource {
             Self::Skill => "Habilidad",
             Self::Avatar => "Avatar",
             Self::Procedure => "Procedimiento",
+            Self::Task => "Tarea",
         }
     }
 }

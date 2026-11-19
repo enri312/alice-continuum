@@ -13,20 +13,19 @@ import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import { supportsConversationBehavior } from "./core/conversation/behavior-settings";
 import {
   changeConversationBehavior, conversationSnapshot, resetConversationRetrieval,
-  selectCloudProvider, selectConversationModel, setConversationDraft,
-  setFullConversationHistory, subscribeToConversation,
+  setConversationDraft, subscribeToConversation,
 } from "./core/conversation/conversation-session";
 import { Volumen } from "./pages/cognitive/NeuralVolumePage";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { StateControlsHost } from "./components/cognitive/state-controls/StateControlsHost";
-import { Planificador } from "./pages/cognitive/ActionPlannerPage";
+import { Planificador } from "./pages/cognitive/ActionPlannerHost";
 import { Memoria } from "./pages/memory/MemoryVaultPage";
 import { Actividad } from "./pages/cognitive/ActivityHost";
 import { AuditPageHost } from "./pages/cognitive/AuditPageHost";
 import { FaceTrackingPanel } from "./components/embodiment/FaceTrackingPanel";
 import { BodySolverPanel } from "./components/embodiment/BodySolverPanel";
 import { CapacidadesYPermisos } from "./pages/governance/CapabilityRegistryPage";
-import { Configuracion } from "./pages/governance/SystemSettingsPage";
+import { Configuracion } from "./pages/governance/SystemSettingsHost";
 import { Habilidades } from "./pages/governance/SkillWorkshopPage";
 import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
@@ -148,7 +147,7 @@ export function App() {
     {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
-    {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setFullConversationHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={selectConversationModel} />}
+    {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} />}
     {screen === "puentes" && <CapacidadesYPermisos onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
     {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
     {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}

@@ -46,6 +46,12 @@ pub mod navigation_model;
 mod navigation_ui;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod observation_session;
+pub mod planner_page_model;
+#[cfg(target_arch = "wasm32")]
+mod planner_page_ui;
+pub mod settings_page_model;
+#[cfg(target_arch = "wasm32")]
+mod settings_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod ui;
 
@@ -172,4 +178,24 @@ mountable_view!(
     mount_navigation,
     update_navigation,
     unmount_navigation
+);
+
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    settings_page_browser,
+    crate::settings_page_model::Payload,
+    crate::settings_page_ui,
+    mount_settings_page,
+    update_settings_page,
+    unmount_settings_page
+);
+
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    planner_page_browser,
+    crate::planner_page_model::Payload,
+    crate::planner_page_ui,
+    mount_planner_page,
+    update_planner_page,
+    unmount_planner_page
 );

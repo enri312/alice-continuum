@@ -131,6 +131,17 @@ describe("parseAuditSnapshot", () => {
     expect(() => parseAuditEvent({ ...event, durationMs: 86_400_001 })).toThrow();
   });
 
+  it("acepta la programación y cancelación R7 y exige el contrato nativo", () => {
+    const reminder = {
+      ...event, source: "task", capabilityId: "tasks.registry.write", operation: "tasks.reminder.schedule",
+      reasonCode: "TASK_REMINDER_CONFIRMED", subjectDigest: `sha256:${"a".repeat(64)}`,
+    };
+    expect(parseAuditEvent(reminder).source).toBe("task");
+    expect(parseAuditEvent({ ...reminder, operation: "tasks.registry.cancel", reasonCode: "TASK_CANCELLED" }).source).toBe("task");
+    expect(() => parseAuditEvent({ ...reminder, reasonCode: "TASK_CANCELLED" })).toThrow(/R7/);
+    expect(() => parseAuditEvent({ ...reminder, subjectDigest: null })).toThrow(/R7/);
+  });
+
   it("formatea límites sin ocultar la unidad", () => {
     expect(auditSizeLabel(512)).toBe("512 B");
     expect(auditSizeLabel(1536)).toBe("1.5 KiB");

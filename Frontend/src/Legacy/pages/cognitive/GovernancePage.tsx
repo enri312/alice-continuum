@@ -10,7 +10,7 @@ type GovernanceProps = { desktopApp: boolean; capability: string | null; onClear
 
 const sourceLabel: Record<AuditSource, string> = {
   system: "Sistema", permission: "Permiso", capability: "Capacidad", memory: "Memoria",
-  cloud: "Nube", skill: "Habilidad", avatar: "Avatar", procedure: "Procedimiento",
+  cloud: "Nube", skill: "Habilidad", avatar: "Avatar", procedure: "Procedimiento", task: "Tarea",
 };
 const stageLabel: Record<AuditStage, string> = {
   request: "Solicitud", authorization: "Autorización", execution: "Ejecución", stop: "Detención",

@@ -72,11 +72,18 @@ El adaptador de Conversación gestiona el envío, las consultas de memoria y
 los comandos nativos de voz. La captura de visión pertenece al montaje de
 Conversación. Antes de enviar, el adaptador comprueba de nuevo la revisión
 y, cuando se incluyó la ventana, su permiso R2. El código anterior queda en
-`Legacy`. Siguen Configuración y Planificador.
+`Legacy`.
 
-La estimación es de **6 a 8 etapas adicionales** para retirar React por
+**Octava etapa de App.tsx (2026-11-19).** Configuración y Planificador montan
+sus pantallas en Dioxus. Configuración comparte el proveedor, el modelo y la
+vista de historial con Conversación. El Planificador conserva el inspector
+R3 y el registro R7, con vista previa, revisión, confirmación y despacho
+manual. Las pantallas React anteriores quedan en `Legacy`. Sigue Volumen
+cognitivo, incluida su escena y sus paneles.
+
+La estimación es de **5 a 7 etapas adicionales** para retirar React por
 completo. Incluye las pantallas pendientes, la raíz `app.rs` y la recuperación
-de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-séptima-etapa).
+de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-octava-etapa).
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

@@ -19,10 +19,10 @@ import {
   type TaskNotificationReceipt,
   type ReadOnlyCapabilityCheckReceipt,
   type TaskRegistrySnapshot,
-} from "../../core/governance/tasks";
-import { parseCapabilityRegistrySnapshot, type CapabilityDescriptor } from "../../core/governance/capabilities";
-import "../../styles/task-registry.css";
-import "../../styles/task-engine.css";
+} from "../../../core/governance/tasks";
+import { parseCapabilityRegistrySnapshot, type CapabilityDescriptor } from "../../../core/governance/capabilities";
+import "../../../styles/task-registry.css";
+import "../../../styles/task-engine.css";
 
 type TaskRegistryPanelProps = { desktopApp: boolean };
 

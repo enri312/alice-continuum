@@ -49,8 +49,11 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 ## Desarrollo y verificación
 
 La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
-renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
-diagnóstico. Rust mantiene las sesiones de Actividad, Conversación, Memoria,
+renderiza las pantallas migradas, entre ellas Conversación, Auditoría y
+diagnóstico, Configuración y Planificador. Configuración comparte el proveedor
+y el historial con Conversación. El registro R7 del Planificador revisa los
+recordatorios con Tauri antes de programarlos o cancelarlos. Rust mantiene
+las sesiones de Actividad, Conversación, Memoria,
 Aprendizaje y Observación de ventana.
 Conversación comparte el borrador, el historial visible, el proveedor, el modelo
 y los ajustes de comportamiento. La sesión registra los recuerdos revisados

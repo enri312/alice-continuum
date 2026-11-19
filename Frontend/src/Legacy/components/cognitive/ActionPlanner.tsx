@@ -1,4 +1,4 @@
-import type { BrainSnapshot } from "../../core/cognitive/brain";
+import type { BrainSnapshot } from "../../../core/cognitive/brain";
 
 export type PlannerItemId = "planner-response" | "planner-intention" | "planner-utility" | "planner-risk" | "planner-novelty" | "planner-trace";
 

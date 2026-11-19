@@ -1,7 +1,7 @@
-import type { CloudStatus } from "../../core/conversation/conversation-contracts";
+import type { CloudStatus } from "../../../core/conversation/conversation-contracts";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "../../styles/settings-runtime.css";
+import "../../../styles/settings-runtime.css";
 
 type ConfiguracionProps = {
   desktopApp: boolean;

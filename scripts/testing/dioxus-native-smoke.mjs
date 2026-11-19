@@ -171,6 +171,36 @@ try {
   await until(() => evaluate('Boolean(document.querySelector(".working-memory-panel.state-empty"))'), 'La memoria de trabajo nativa empieza vacía');
   assert.ok(await evaluate('document.querySelector(".working-memory-panel button.danger").disabled'));
   await screenshot('memory-session-native.png');
+  await evaluate('document.querySelector(\'button[aria-label="Planificador de acción"]\').click()');
+  await until(() => evaluate('Boolean(document.querySelector("[data-planner-renderer=dioxus] .task-composer input"))'), 'Planificador completo en Dioxus');
+  await evaluate('document.querySelectorAll(".planner-metrics button")[2].click()');
+  await until(() => evaluate('document.querySelector(".neuro-inspector h3")?.textContent==="Riesgo"'), 'inspector del Planificador');
+  const taskStatus = () => evaluate('__TAURI_INTERNALS__.invoke("task_registry_status")');
+  assert.equal((await taskStatus()).taskCount, 0);
+  const reminderTime = new Date(Date.now() + 86_400_000);
+  const localTime = new Date(reminderTime.getTime() - reminderTime.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  await evaluate('document.querySelector(".task-composer input:not([type])").focus()');
+  await send('Input.insertText', { text: 'Recordatorio aislado de Dioxus' });
+  await evaluate(`(()=>{const field=document.querySelector('.task-composer input[type=datetime-local]');field.value=${JSON.stringify(localTime)};field.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const clickTaskButton = async selector => {
+    await until(() => evaluate(`(()=>{const button=document.querySelector(${JSON.stringify(selector)});if(!button?.matches(':enabled'))return false;button.click();return true;})()`), selector);
+  };
+  await clickTaskButton('.task-composer .task-primary');
+  await until(() => evaluate('Boolean(document.querySelector(".task-preview.ready .task-confirm"))'), 'vista previa de recordatorio validada por Tauri');
+  assert.equal(await evaluate('document.querySelector(".task-preview .task-confirm").disabled'), true, 'Segunda confirmación bloqueada hasta revisar');
+  assert.equal((await taskStatus()).taskCount, 0, 'La vista previa no escribe');
+  await clickTaskButton('.task-preview .task-review-check input');
+  await clickTaskButton('.task-preview .task-confirm');
+  await until(() => evaluate('document.querySelector(".task-list-items")?.textContent.includes("Recordatorio aislado de Dioxus")'), 'registro durable confirmado');
+  assert.equal((await taskStatus()).scheduledCount, 1);
+  await screenshot('planificador-dioxus.png');
+  await clickTaskButton('.task-list-items article button');
+  await until(() => evaluate('Boolean(document.querySelector(".task-preview.ready .task-danger"))'), 'vista previa de cancelación');
+  assert.equal((await taskStatus()).cancelledCount, 0);
+  await clickTaskButton('.task-preview .task-review-check input');
+  await clickTaskButton('.task-preview .task-danger');
+  await until(() => evaluate('document.querySelector(".task-list-items .task-status")?.textContent==="CANCELADO"'), 'cancelación auditada y visible');
+  assert.equal((await taskStatus()).cancelledCount, 1);
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Flujo cognitivo").click()');
   await flowReady();
   assert.equal(await evaluate('Boolean(globalThis.__TAURI_INTERNALS__?.invoke)'), true, 'Puente nativo real presente');
@@ -243,6 +273,7 @@ try {
   assert.equal(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).some(row=>row.children[2].textContent==="Ejecución")'), false);
   await evaluate('document.querySelector(\'.screen-tabs button[aria-label="Auditoría y diagnóstico"]\').click()');
   await until(()=>evaluate('!document.querySelector(".native-audit")?.textContent.includes("Capacidad seleccionada")'), 'la pestaña vuelve a la auditoría completa');
+  await until(()=>evaluate('["TASK_REMINDER_CONFIRMED", "TASK_CANCELLED"].every(reason => document.querySelector(".native-audit")?.textContent.includes(reason))'), 'auditoría de la programación y cancelación reales del planificador');
   await evaluate('document.querySelector("#diagnostic-tab").click()');
   await until(()=>evaluate('document.querySelectorAll(".diagnostic-check").length>0'), 'lecturas nativas de diagnóstico');
   assert.equal(await evaluate('document.querySelectorAll(".diagnostic-groups>section").length'),5);
@@ -308,7 +339,12 @@ try {
   await evaluate('document.querySelector(".volume-learning-refresh button").click()');
   await until(() => profileCount(1), 'La fuente válida permite recuperar el perfil');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, nodes: 11,
+  await evaluate('document.querySelector(".core-system-selector .governance").click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'button[aria-label="Configuración"]\'))'), 'Configuración disponible');
+  await evaluate('document.querySelector(\'button[aria-label="Configuración"]\').click()');
+  await until(() => evaluate('Boolean(document.querySelector("[data-settings-renderer=dioxus] .settings-runtime"))'), 'Configuración nativa en Dioxus');
+  await screenshot('configuracion-dioxus.png');
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
     governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);

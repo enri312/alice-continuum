@@ -21,6 +21,8 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Aprendizaje | Sesión compartida del autoestudio y la memoria automática conversacional, con la última lectura válida, su estado y la fase recibida. | Los paneles aún se montan en React. El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
 | Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. El perfil en Memoria y la escena de Volumen aún se montan en React. |
 | Observación de ventana | Sesión compartida que liga el contexto visible al identificador y vencimiento del permiso R2 confirmado. | El panel aún muestra solicitudes y decisiones en React. El adaptador consulta Tauri y traslada las transiciones de permisos validadas. |
+| Configuración | Vista de proveedores, modelo, historial, motor local, política y dispositivos. | El host monta Dioxus. El adaptador usa la sesión de Conversación y ordena las respuestas de inicio y apagado de Gemma. |
+| Planificador | Inspector, actividad R3, formulario y revisión R7, reloj, listas, comprobaciones y recibos. | El puente valida los resultados de Tauri y convierte horas locales. Presenta la confirmación del WebView para reservar o entregar un aviso. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
@@ -34,11 +36,9 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Bloque pendiente | Trabajo que falta |
 |---|---|
 | Conexión de Actividad con la aplicación | Retirar los hosts de proyección al sustituir el montaje raíz. Mover los productores al trasladar cada operación de `App.tsx`. |
-| Planificador | Presentación e inspector; después el registro R7 con sus revisiones y confirmaciones. |
 | Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
 | Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
 | Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
-| Configuración | Migrar la pantalla. El proveedor, el modelo y la vista del historial ya usan la sesión Rust; Tauri conserva el almacenamiento seguro. |
 | Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
 | Aplicación y recuperación | Estado compartido de `App.tsx`, entrada, hosts y vistas anteriores de respaldo. |
 
@@ -67,8 +67,8 @@ mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
    Actividad, Conversación, Memoria, Aprendizaje y Observación ya tienen
    sesiones Rust. El perfil confirmado y el catálogo pasan por ese estado
    compartido. El turno y la evidencia de recuperación también pasan por
-   la sesión de Conversación. A continuación, migrar Configuración y
-   Planificador. Reutilizar las
+   la sesión de Conversación. Configuración y Planificador montan sus vistas
+   Dioxus; sigue la escena de Volumen cognitivo. Reutilizar las
    operaciones Tauri y los controladores que ya existen en `core/`.
 2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
    cola de guardado de recuerdos, las generaciones de memoria de trabajo,
@@ -77,8 +77,8 @@ mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
    sobrevivan al cambio de pantalla y al arranque.
 3. Cuando el estado compartido tenga ese contrato, montar la raíz desde el
    componente `App` de Dioxus en `app.rs` y conectar cada pantalla. Para retirar `createRoot`
-   también deben quedar migrados Planificador, Volumen, Memoria,
-   Configuración, permisos, habilidades, procedimientos y las vistas
+   también deben quedar migrados Volumen, Memoria,
+   permisos, habilidades, procedimientos y las vistas
    corporales, además de las recuperaciones que siguen activas.
 
 La salida de React exige cero importaciones productivas de `react`, `react-dom`
@@ -94,21 +94,32 @@ con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
 
-### Estimación después de la séptima etapa
+### Estimación después de la octava etapa
 
-Se prevén entre seis y ocho incrementos adicionales en Windows. Estos
-son los seis bloques pendientes, con revisión después de probar cada uno.
+Se prevén entre cinco y siete incrementos adicionales en Windows. Estos
+son los cinco bloques pendientes, con revisión después de probar cada uno.
 
-1. Pantallas Configuración y Planificador.
-2. Pantalla y escena de Volumen cognitivo.
-3. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
-4. Gobernanza, habilidades, procedimientos y puentes de permisos.
-5. Vistas de rostro, cuerpo y avatar.
-6. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
+1. Pantalla y escena de Volumen cognitivo.
+2. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
+3. Gobernanza, habilidades, procedimientos y puentes de permisos.
+4. Vistas de rostro, cuerpo y avatar.
+5. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
 
 Memoria o el avatar pueden requerir incrementos propios por sus
 dependencias de datos y dispositivos. El arranque final requiere que las rutas
 y las vistas de recuperación estén probadas en Dioxus.
+
+## Configuración y Planificador (2026-11-19)
+
+Configuración usa la selección y las preferencias de Conversación. El
+adaptador de Gemma descarta una respuesta de inicio anterior a un apagado.
+En Planificador, Dioxus mantiene la selección del inspector y la revisión
+R7. Editar descarta la vista previa y confirmar exige marcar la revisión. El
+puente conserva el plan validado por Tauri y envía ese mismo plan al confirmar.
+El registro, las reservas y la entrega manual siguen a cargo de Tauri.
+Auditoría muestra los eventos de tareas R7 con su operación y motivo. Las
+vistas React anteriores se conservan en `Legacy` y la opción de reintento
+recupera el montaje Dioxus ante un error de carga.
 
 ## Sesión de Conversación (2026-11-19)
 

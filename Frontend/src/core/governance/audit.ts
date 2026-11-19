@@ -1,4 +1,4 @@
-export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill" | "avatar" | "procedure";
+export type AuditSource = "system" | "permission" | "capability" | "memory" | "cloud" | "skill" | "avatar" | "procedure" | "task";
 export type AuditStage = "request" | "authorization" | "execution" | "stop" | "revocation" | "block" | "error";
 export type AuditDecision = "allow" | "deny" | "cancel";
 export type AuditOutcome = "pending" | "success" | "blocked" | "error";
@@ -31,7 +31,7 @@ export type AuditSnapshot = {
   events: AuditEvent[];
 };
 
-const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill", "avatar", "procedure"];
+const sources: AuditSource[] = ["system", "permission", "capability", "memory", "cloud", "skill", "avatar", "procedure", "task"];
 const stages: AuditStage[] = ["request", "authorization", "execution", "stop", "revocation", "block", "error"];
 const decisions: AuditDecision[] = ["allow", "deny", "cancel"];
 const outcomes: AuditOutcome[] = ["pending", "success", "blocked", "error"];
@@ -47,6 +47,14 @@ const avatarMotorOperations = new Set([
 ]);
 const avatarMotorReasons = new Set(["HUMAN_GAMEPAD_TRANSITION", "LOCAL_DIAGNOSTIC_TRANSITION", "HUMAN_POSTURE_TRANSITION"]);
 const procedureOperations = new Set(["procedure.candidate.retain", "procedure.candidate.dismiss", "procedure.candidate.convert"]);
+const taskEvents = [
+  ["tasks.reminder.schedule", "tasks.registry.write", "TASK_REMINDER_CONFIRMED", "execution", "success", null],
+  ["tasks.registry.cancel", "tasks.registry.write", "TASK_CANCELLED", "execution", "success", null],
+  ["tasks.dispatch.reserve", "tasks.dispatch.reserve", "TASK_DISPATCH_RESERVED", "authorization", "pending", "allow"],
+  ["tasks.notification.deliver", "tasks.notification.deliver", "TASK_NOTIFICATION_STARTED", "execution", "pending", null],
+  ["tasks.notification.deliver", "tasks.notification.deliver", "TASK_NOTIFICATION_ACCEPTED", "execution", "success", null],
+  ["tasks.notification.deliver", "tasks.notification.deliver", "TASK_NOTIFICATION_FAILED", "execution", "error", null],
+] as const;
 const eventKeys = ["schemaVersion", "eventId", "operationId", "timestampMs", "source", "capabilityId", "operation", "stage", "decision", "outcome", "durationMs", "subjectDigest", "reasonCode"];
 const snapshotKeys = ["schemaVersion", "healthy", "storagePath", "currentBytes", "rotatedBytes", "maximumCurrentBytes", "totalValidEvents", "invalidLines", "events"];
 
@@ -112,6 +120,13 @@ export function parseAuditEvent(value: unknown): AuditEvent {
       : ((value.stage === "request" && value.outcome === "pending" && value.reasonCode === "PROCEDURE_DECISION_ACCEPTED")
         || (value.stage === "execution" && value.outcome === "success" && value.reasonCode === "PROCEDURE_DECISION_RECORDED")))
   )) throw new Error("Evento de decisión R5 inválido");
+  if (value.source === "task" && (
+    value.durationMs !== null
+    || value.subjectDigest === null
+    || !taskEvents.some(([operation, capability, reason, stage, outcome, decision]) =>
+      value.operation === operation && value.capabilityId === capability && value.reasonCode === reason
+      && value.stage === stage && value.outcome === outcome && value.decision === decision)
+  )) throw new Error("Evento de tareas R7 inválido");
   return value as AuditEvent;
 }
 
