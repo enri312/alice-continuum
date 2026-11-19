@@ -163,6 +163,7 @@ try {
   assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),1,'Un solo contenedor de Actividad');
   const activityCount=await evaluate('document.querySelectorAll(".event-row:not(.event-header)").length');
   assert.ok(activityCount>0);
+  assert.equal(await evaluate('Number(document.querySelector(\'[data-tooltip="Actividad"] .screen-count\').textContent)'),activityCount);
   await evaluate('(()=>{const input=document.querySelector(\'[aria-label="Buscar eventos"]\');input.value="NO_MATCH_NATIVE_ACTIVITY";input.dispatchEvent(new Event("input",{bubbles:true}));})()');
   await until(() => evaluate('Boolean(document.querySelector(".event-empty"))'), 'filtro de eventos en Rust');
   await evaluate('(()=>{const input=document.querySelector(\'[aria-label="Buscar eventos"]\');input.value="";input.dispatchEvent(new Event("input",{bubbles:true}));})()');
@@ -171,6 +172,11 @@ try {
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Limpiar vista").click()');
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("COGNITIVE TIMELINE")).click()');
   await until(() => evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .timeline-empty\'))'), 'vaciado temporal reflejado sin escribir datos');
+  await until(() => evaluate('document.querySelector(\'[data-tooltip="Actividad"] .screen-count\')?.textContent==="0"'), 'contador de pestaña sincronizado');
+  await evaluate('document.querySelector(".dashboard-entry").click()');
+  await until(() => evaluate('Array.from(document.querySelectorAll(".dashboard-assistant-summary dt")).some(dt=>dt.textContent==="Eventos de esta sesión"&&dt.nextElementSibling?.textContent==="0")'), 'Dashboard comparte la sesión vaciada');
+  await evaluate('Array.from(document.querySelectorAll(".dashboard-link")).find(button=>button.textContent.includes("Ver actividad")).click()');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .timeline-empty\'))'), 'vaciado conservado al volver a Actividad');
   // A controlled pair ensures keyboard selection actually changes the inspector.
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
   await evaluate('document.querySelector(".core-system-selector .governance").click()');

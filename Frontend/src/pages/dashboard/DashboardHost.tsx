@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Screen } from "../../core/navigation/workspaces";
 import { startSerializedPolling } from "../../core/shared/polling";
+import { activityCount, subscribeToActivity } from "../../core/cognitive/activity-session";
 import { startStateControlsView, type ViewStatus } from "../../components/cognitive/state-controls/lifecycle";
 import emblem from "../../../icons/app-alice.svg?url";
 import conversation from "../../../icons/cognitive-conversation-channel.svg?url";
@@ -17,7 +18,7 @@ const destinations: readonly Screen[] = [
 
 type Props = {
   desktopApp: boolean;
-  assistant: { provider: string; memoryCount: number; eventCount: number };
+  assistant: { provider: string; memoryCount: number };
   onNavigate: (screen: Screen) => void;
 };
 
@@ -30,7 +31,8 @@ export function DashboardHost(props: Props) {
   const [attempt, setAttempt] = useState(0);
   const [reading, setReading] = useState<{ snapshot: unknown; failed: boolean }>({ snapshot: null, failed: false });
   const controller = useRef<ReturnType<typeof startStateControlsView> | null>(null);
-  const payload = JSON.stringify({ assistant: props.assistant, desktopApp: props.desktopApp, assets, ...reading });
+  const eventCount = useSyncExternalStore(subscribeToActivity, activityCount);
+  const payload = JSON.stringify({ assistant: { ...props.assistant, eventCount }, desktopApp: props.desktopApp, assets, ...reading });
   const latest = useRef(payload);
   latest.current = payload;
 

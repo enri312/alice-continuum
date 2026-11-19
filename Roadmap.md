@@ -28,6 +28,12 @@ Las implementaciones desactivadas y sus pruebas se organizan en
 estado compartido por bloques antes de sustituir el arranque React.
 [Evaluación del contenedor](docs/architecture/DIOXUS_MIGRATION_STATUS.md#evaluación-de-apptsx).
 
+**Primera etapa de App.tsx (2026-11-19).** El buffer temporal de Actividad y la
+secuencia de eventos pasan a la sesión Rust del crate Dioxus. La consola, el
+contador de pestaña y el Dashboard leen esa sesión. El buffer anterior queda
+desactivado en `Legacy`. El siguiente bloque comprende el proveedor y las
+preferencias de Conversación, el borrador y el historial.
+
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.
 Conversación conserva el borrador, la revisión previa y sus herramientas

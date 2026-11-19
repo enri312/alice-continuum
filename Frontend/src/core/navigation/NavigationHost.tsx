@@ -1,7 +1,8 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { startStateControlsView, type ViewStatus } from "../../components/cognitive/state-controls/lifecycle";
 import { workspaceScreens, type Screen } from "./workspaces";
+import { activityCount, subscribeToActivity } from "../cognitive/activity-session";
 
 export type NavigationRequest = { id: number; screen: Screen };
 
@@ -25,14 +26,13 @@ type Props = {
   screen: Screen;
   request: NavigationRequest | null;
   memories: number;
-  events: number;
   onRoute: (screen: Screen, clearAudit: boolean) => void;
   children: ReactNode;
 };
 
 // Dioxus owns the selected route and the DOM of the frame. The root app renders
 // its pages into the outlet while their remaining state is migrated separately.
-export function NavigationHost({ screen, request, memories, events, onRoute, children }: Props) {
+export function NavigationHost({ screen, request, memories, onRoute, children }: Props) {
   const id = `alice-navigation-${useId().replace(/[^a-z0-9_-]/gi, "")}`;
   const container = useRef<HTMLDivElement>(null);
   const callbacks = useRef(onRoute);
@@ -41,6 +41,7 @@ export function NavigationHost({ screen, request, memories, events, onRoute, chi
   const [status, setStatus] = useState<ViewStatus>("loading");
   const [attempt, setAttempt] = useState(0);
   const [outlet, setOutlet] = useState<HTMLElement | null>(null);
+  const events = useSyncExternalStore(subscribeToActivity, activityCount);
   const payload = JSON.stringify({ initialScreen: screen, request, memories, events });
   const latest = useRef(payload);
   latest.current = payload;

@@ -2,14 +2,14 @@ import type { CognitiveEvent, CognitiveModule } from "../../core/cognitive/cogni
 import { buildTimelinePayload } from "./timeline-bridge";
 
 export type ActivityRecovery = { view: "timeline" | "events"; module: CognitiveModule | "ALL"; query: string; selectedId: string };
-export function buildActivityPagePayload(events: CognitiveEvent[], requestedView: string, recovery: ActivityRecovery | null) {
+export function buildActivityPagePayload(events: readonly CognitiveEvent[], requestedView: string, recovery: ActivityRecovery | null) {
   const clock = new Intl.DateTimeFormat("es-PY", { hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 });
   return { timeline: buildTimelinePayload(events, recovery?.selectedId ?? ""), requestedView,
     settings: recovery ? { view: recovery.view, module: recovery.module, query: recovery.query } : null,
     streamTimes: events.map(event => { const ms = Date.parse(event.createdAt); return Number.isFinite(ms) ? clock.format(new Date(ms)) : "Fecha inválida"; }),
   };
 }
-export function parseActivityAction(raw: string, events: CognitiveEvent[]): ActivityRecovery | "clear" | null {
+export function parseActivityAction(raw: string, events: readonly CognitiveEvent[]): ActivityRecovery | "clear" | null {
   try {
     const value: unknown = JSON.parse(raw);
     if (!value || typeof value !== "object" || Array.isArray(value)) return null;

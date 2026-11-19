@@ -14,7 +14,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 |---|---|---|
 | Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. | El puente monta Dioxus y proyecta la ruta elegida a `App.tsx`, que coloca el contenido en el marco con un portal. |
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
-| Actividad | Página, encabezado, pestañas, consola inversa, búsqueda y filtro por módulo, estado y línea temporal en un solo montaje. | Host temporal de montaje/reintento y vaciado; el buffer y sus productores siguen en `App.tsx`. |
+| Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
 | Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. | Host temporal y estado compartido de `App.tsx`. Los controladores TypeScript se comunican con Tauri y las API de archivos, audio y vídeo del WebView. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
@@ -29,7 +29,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Bloque pendiente | Trabajo que falta |
 |---|---|
-| Conexión de Actividad con la aplicación | Retirar el host al sustituir el estado raíz, productores y buffer compartido de `App.tsx`. La presentación y los filtros de la página ya están en Dioxus. |
+| Conexión de Actividad con la aplicación | Retirar los hosts de proyección al sustituir el montaje raíz. Mover los productores al trasladar cada operación de `App.tsx`. |
 | Planificador | Presentación e inspector; después el registro R7 con sus revisiones y confirmaciones. |
 | Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
 | Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
@@ -60,7 +60,7 @@ en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
 mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
 
 1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
-   Empezar por el buffer de Actividad y sus contadores. Después trasladar
+   El buffer de Actividad y sus contadores ya comparten la sesión Rust. Después trasladar
    proveedores, borrador e historial, memoria confirmada y de trabajo, y
    aprendizaje. Reutilizar las operaciones Tauri y los controladores que ya
    existen en `core/`.
@@ -88,7 +88,7 @@ con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
 
-## Página de Actividad: estado vigente (2026-11-15)
+## Página y sesión de Actividad (2026-11-19)
 
 `activity_page_model.rs` mantiene vista, filtros y línea temporal sobre la misma
 fuente temporal. `activity_page_ui.rs` presenta el encabezado, pestañas y consola
@@ -106,10 +106,12 @@ el montaje y ofrece reintento; la fuente sigue en la sesión. Se retiraron
 y las funciones WASM independientes de Timeline. Auditoría y diagnóstico se
 separó en `GovernancePage.tsx`, con su contenido y lecturas anteriores en React.
 
-El buffer de hasta 200 eventos, su secuencia y productores siguen en `App.tsx`;
-la línea sólo proyecta los últimos 24. Limpiar se limita a `onClear`: no hay IPC,
-escritura persistente ni modificación de R3 en esta página. La retirada del host
-y de React global requiere migrar la aplicación raíz, como las demás pantallas.
+El módulo `activity_session.rs` conserva y numera hasta 200 eventos en memoria
+durante la sesión. El Dashboard y las pestañas usan el total de ese mismo
+almacén. La línea proyecta los últimos 24. **Limpiar vista** vacía ese almacén
+temporal y conserva la numeración para los eventos siguientes. El puente
+entrega en orden los eventos que lleguen mientras se carga WebAssembly.
+El buffer React de referencia quedó en `Frontend/src/Legacy/`.
 Ver [pruebas y evidencia](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 ## Sesión de Estado: estado vigente (2026-11-15)

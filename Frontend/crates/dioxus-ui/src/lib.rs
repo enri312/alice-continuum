@@ -1,6 +1,8 @@
 pub mod activity_page_model;
 #[cfg(target_arch = "wasm32")]
 mod activity_page_ui;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod activity_session;
 #[cfg(target_arch = "wasm32")]
 mod activity_ui;
 pub mod associations_model;

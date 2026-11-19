@@ -25,8 +25,7 @@ import { Configuracion } from "./pages/governance/SystemSettingsPage";
 import { Habilidades } from "./pages/governance/SkillWorkshopPage";
 import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
-import { createCognitiveEvent } from "./core/cognitive/cognitive-events";
-import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive/cognitive-events";
+import { recordCognitiveEvent as recordEvent } from "./core/cognitive/activity-session";
 import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
 import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
 import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
@@ -167,7 +166,6 @@ export function App() {
     { id: "compatible", label: "Compatible", configured: false, defaultModel: "", protocol: "Chat Completions", retentionMode: "definida por el servicio" },
   ] });
   const [cloudSelection, setCloudSelection] = useState(loadCloudSelection);
-  const [cognitiveEvents, setCognitiveEvents] = useState<CognitiveEvent[]>([]);
   const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
   const [memoryPath, setMemoryPath] = useState("");
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
@@ -197,10 +195,6 @@ export function App() {
     cloudConfigured: cloudStatus.providers.some((provider) => provider.configured),
     cloudPending,
   }), [cloudPending, cloudStatus.providers, cognitiveMemories, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
-
-  function recordEvent(module: CognitiveModule, node: string, payload: string, level: CognitiveLevel = "INFO") {
-    setCognitiveEvents((current) => [...current.slice(-199), createCognitiveEvent(module, node, payload, level)]);
-  }
 
   useEffect(() => {
     if (!desktopApp || !observationEnabled) return;
@@ -612,14 +606,13 @@ export function App() {
 
   return <NavigationHost
     screen={screen} request={navigationRequest} onRoute={acceptRoute}
-    memories={conversationalMemories.length} events={cognitiveEvents.length}
+    memories={conversationalMemories.length}
   >
     {screen === "dashboard" && <DashboardHost
       desktopApp={desktopApp}
       assistant={{
         provider: cloudStatus.providers.find(provider => provider.id === cloudSelection.provider)?.label ?? "Sin motor seleccionado",
         memoryCount: conversationalMemories.length,
-        eventCount: cognitiveEvents.length,
       }}
       onNavigate={navigate}
     />}
@@ -648,7 +641,7 @@ export function App() {
       onToggleObservation={toggleObservation} onOpenSettings={() => navigate("configuracion")} onSend={sendCloudMessage}
     />}
     {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
-    {screen === "actividad" && <Actividad events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
+    {screen === "actividad" && <Actividad />}
     {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
