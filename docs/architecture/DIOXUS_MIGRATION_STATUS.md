@@ -12,6 +12,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
+| Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. | El puente monta Dioxus y proyecta la ruta elegida a `App.tsx`, que coloca el contenido en el marco con un portal. |
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
 | Actividad | Página, encabezado, pestañas, consola inversa, búsqueda y filtro por módulo, estado y línea temporal en un solo montaje. | Host temporal de montaje/reintento y vaciado; el buffer y sus productores siguen en `App.tsx`. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
@@ -35,7 +36,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
 | Configuración | Proveedores y preferencias compartidas; se conserva el almacenamiento seguro. |
 | Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
-| Aplicación y recuperación | Estado compartido de `App.tsx`, navegación, entrada, hosts y todas las vistas anteriores de respaldo. |
+| Aplicación y recuperación | Estado compartido de `App.tsx`, entrada, hosts y vistas anteriores de respaldo. |
 
 Después de migrar las pantallas se sustituirá el contenedor raíz y el arranque.
 Los errores de carga deben permitir reintentar y recuperar datos sin necesitar
@@ -44,8 +45,10 @@ la interfaz React anterior. Los archivos retirados seguirán disponibles en Git.
 Las rutas de Conversación y Auditoría y diagnóstico montan Dioxus desde el
 19 de noviembre. Cuando falla la carga ofrecen reintentar el mismo renderer.
 `ConversationPage.tsx`, `InputIdentificationPage.tsx`, `GovernancePage.tsx` y sus
-componentes React quedaron fuera de las rutas de producción. Su eliminación
-queda para la revisión posterior. Las pruebas con dispositivos físicos y
+componentes React quedaron fuera de las rutas de producción. El marco anterior
+queda en `LegacyNavigation.tsx` sin una ruta activa. El código React inactivo se
+conserva hasta completar la migración de las pantallas y de la lógica que las
+sostiene, incluido el estado compartido. Las pruebas con dispositivos físicos y
 proveedores reales se registran por separado de las pruebas con datos simulados.
 
 La salida de React exige cero importaciones productivas de `react`, `react-dom`
@@ -249,7 +252,7 @@ personales. No se utilizaron recuerdos personales. Los ensayos están documentad
 - `SavedRelationsFallback` mantiene la lista durante carga, fallo y reintento.
 - `SourceFormFallback` mantiene los selectores y citas durante carga o fallo.
 - `ConfirmationFallback` conserva las pantallas de confirmación durante carga o fallo.
-- Los adaptadores de montaje y la navegación principal conectan React con Dioxus.
+- Los adaptadores de montaje conectan las pantallas con el estado de `App.tsx`.
 
 La retirada de esos elementos queda condicionada a migrar y comprobar sus usos.
 Antes de borrar: buscar importadores, actualizar las rutas y pruebas afectadas,

@@ -33,6 +33,9 @@ mod flow_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;
 pub mod model;
+pub mod navigation_model;
+#[cfg(target_arch = "wasm32")]
+mod navigation_ui;
 #[cfg(target_arch = "wasm32")]
 mod ui;
 
@@ -148,4 +151,13 @@ mountable_view!(
     mount_conversation_page,
     update_conversation_page,
     unmount_conversation_page
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    navigation_browser,
+    crate::navigation_model::Payload,
+    crate::navigation_ui,
+    mount_navigation,
+    update_navigation,
+    unmount_navigation
 );

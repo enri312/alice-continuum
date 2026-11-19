@@ -102,6 +102,7 @@ try {
   const flowReady = () => until(() => evaluate('document.querySelectorAll(\'[data-flow-page-renderer="dioxus"] .flow-node\').length===11'), 'Flujo nativo Dioxus');
   const clickText = text => evaluate(`Array.from(document.querySelectorAll('.memory-associations button')).find(button=>button.textContent===${JSON.stringify(text)}).click()`);
   await until(() => evaluate('document.querySelector(".dashboard-reading-status")?.textContent==="Lecturas locales"'), 'Muestras reales de CPU y red en el Dashboard de inicio');
+  assert.equal(await evaluate('document.querySelector("[data-navigation-renderer]")?.dataset.navigationRenderer'), 'dioxus');
   assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'), 'dioxus');
   const nativeReading = await evaluate('__TAURI_INTERNALS__.invoke("system_overview")');
   assert.ok(nativeReading.memory.totalBytes > 0 && nativeReading.disk.totalBytes > 0);
@@ -198,8 +199,8 @@ try {
   await until(()=>evaluate('document.querySelector(".native-audit")?.textContent.includes("Revocación")'), 'revocación visible en auditoría de la capacidad');
   assert.ok(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).every(row=>row.children[3].title.startsWith("context.foreground.control /"))'));
   assert.equal(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).some(row=>row.children[2].textContent==="Ejecución")'), false);
-  await evaluate('Array.from(document.querySelectorAll(".native-audit button")).find(b=>b.textContent==="Mostrar todas las operaciones").click()');
-  await until(()=>evaluate('!document.querySelector(".native-audit")?.textContent.includes("Capacidad seleccionada")'), 'auditoría completa');
+  await evaluate('document.querySelector(\'.screen-tabs button[aria-label="Auditoría y diagnóstico"]\').click()');
+  await until(()=>evaluate('!document.querySelector(".native-audit")?.textContent.includes("Capacidad seleccionada")'), 'la pestaña vuelve a la auditoría completa');
   await evaluate('document.querySelector("#diagnostic-tab").click()');
   await until(()=>evaluate('document.querySelectorAll(".diagnostic-check").length>0'), 'lecturas nativas de diagnóstico');
   assert.equal(await evaluate('document.querySelectorAll(".diagnostic-groups>section").length'),5);

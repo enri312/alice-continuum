@@ -48,7 +48,12 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 
 ## Desarrollo y verificación
 
-La interfaz vive en `Frontend/`. Conversación y Auditoría y diagnóstico abren sus pantallas en Dioxus. El contenedor, la navegación y otras pantallas todavía usan React. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores. Los iconos funcionales son SVG locales con biseles finos y piezas específicas de cada herramienta. Se regeneran con `npm run icons:generate`. [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).
+La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
+renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
+diagnóstico. React mantiene el estado compartido y monta las pantallas en la
+ruta activa. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
+Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
+[Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).
 
 ```sh
 npm test

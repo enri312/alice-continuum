@@ -61,7 +61,7 @@ la validación de evidencia y toda persistencia siguen en el backend.
   `StateControlsPage.tsx` ya no es necesaria.
 
 El WASM y sus bindings generados se incluyen en
-`Frontend/src/dioxus/state-controls/pkg/`, junto con sus hashes y el hash de las fuentes.
+`Frontend/src/dioxus/dioxus-ui/pkg/`, junto con sus hashes y el hash de las fuentes.
 `npm run dioxus:check` comprueba su correspondencia sin compilar Rust.
 `npm run dev` y `npm run build` realizan esta comprobación. El módulo se carga
 al abrir Estado y controles o Flujo. Una carga, montaje o actualización fallida conserva

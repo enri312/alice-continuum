@@ -110,6 +110,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:url.href});
   await until(()=>evaluate('document.querySelector(".dashboard-reading-status")?.textContent==="Lecturas locales"'), 'Dashboard de inicio con métricas de prueba');
+  assert.ok(await evaluate('document.querySelector(\'[data-navigation-renderer="dioxus"] #alice-page-outlet[data-route=dashboard]\')'),'Dashboard montado en la navegación Dioxus');
   assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'),'dioxus');
   await evaluate('document.fonts.ready');
   assert.equal(await evaluate('document.querySelectorAll(".alice-dashboard textarea,.alice-dashboard form").length'),0,'La escritura vive en Conversación');
@@ -242,6 +243,7 @@ try {
     await send('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
     await send('Page.navigate',{url:target.href});
     await until(()=>evaluate(`Boolean(document.querySelector('main[data-screen="${screen}"] .core-system-content > *'))`), 'Página '+screen);
+    assert.equal(await evaluate('document.querySelector("[data-navigation-renderer]")?.dataset.navigationRenderer'),'dioxus');
     await evaluate('document.fonts.ready');
     assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'14px','Marco de consola en '+screen);
     assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),tabCount,'SVG presentes en '+screen);
@@ -268,6 +270,13 @@ try {
     await checkNavigation(390, tabCount);
     themedScreens.push(screen);
   }
+  for (const [legacy, screen] of [['face','rostro'], ['body','cuerpo']]) {
+    const target = new URL(url);
+    target.searchParams.set('screen', 'puentes');
+    target.searchParams.set('bridgeView', legacy);
+    await send('Page.navigate',{url:target.href});
+    await until(()=>evaluate(`Boolean(document.querySelector('[data-navigation-renderer=dioxus] main[data-screen="${screen}"] .core-system-content > *'))`), 'acceso anterior '+legacy);
+  }
   await send('Network.setCacheDisabled',{cacheDisabled:true});
   for (const [screen, renderer, component] of [
     ['identificacion','conversation','#alice-message'],
@@ -278,10 +287,13 @@ try {
     await send('Page.navigate',{url:target.href});
     const unavailable = `[data-${renderer}-renderer=error]`;
     await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(unavailable)}))`), 'el fallo WASM ofrece reintento para '+screen);
+    assert.equal(await evaluate('document.querySelector("[data-navigation-renderer]")?.dataset.navigationRenderer'),'error');
     assert.equal(await evaluate(`Boolean(document.querySelector(${JSON.stringify(component)}))`),false,'La ruta React queda inactiva');
     await send('Network.setBlockedURLs',{urls:[]});
     await click(unavailable+' button');
     await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(`[data-${renderer}-renderer=dioxus] ${component}`)}))`),'recuperar Dioxus en '+screen);
+    await click('[data-navigation-renderer="error"] > .shell > [role=alert] button');
+    await until(()=>evaluate(`Boolean(document.querySelector('[data-navigation-renderer=dioxus] main[data-screen="${screen}"] ${component}'))`),'recuperar la navegación en '+screen);
   }
   const voicePage = new URL(url); voicePage.searchParams.set('screen', 'identificacion');
   await send('Page.navigate',{url:voicePage.href});

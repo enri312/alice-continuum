@@ -515,6 +515,10 @@ try {
   await relationsReady();
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.equal((await writes()).length, 0, 'Reintentar no escribe');
+  await evaluate('document.querySelector(\'[data-navigation-renderer="error"] > .shell > [role=alert] button\').click()');
+  await until(() => evaluate('Boolean(document.querySelector("[data-navigation-renderer=dioxus] .screen-tabs"))'), 'marco Dioxus recuperado');
+  await ready();
+  await relationsReady();
   // State page: Rust owns its timer and metric projection as well as the renderer.
   await until(() => evaluate('__corePending===0'), 'lecturas previas terminadas');
   await evaluate("__coreMode='hold'; __coreMaxPending=0; delete globalThis.__releaseCore");

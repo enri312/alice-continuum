@@ -27,14 +27,13 @@ import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
 import { createCognitiveEvent } from "./core/cognitive/cognitive-events";
 import type { CognitiveEvent, CognitiveLevel, CognitiveModule } from "./core/cognitive/cognitive-events";
-import { NavigationIcon } from "./components/icons/NavigationIcon";
 import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
 import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
 import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
 import { loadCompatibleArray } from "./core/shared/storage-migration";
 import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
-import { workspaceForScreen, workspaceScreens } from "./core/navigation/workspaces";
+import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
 import type { Screen } from "./core/navigation/workspaces";
 import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/memory/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/memory/working-memory";
@@ -97,25 +96,6 @@ const legacyStorageKeys = ["proyecto-p-sessions-v1"];
 const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
 
-const screenTechnicalTitles: Record<Screen, string> = {
-  dashboard: "DASHBOARD",
-  identificacion: "CONVERSATION",
-  nucleo: "COGNITIVE VOLUME",
-  flujo: "EVIDENCE FLOW",
-  estado: "STATE & CONTROLS",
-  planificador: "ACTION PLANNER",
-  memoria: "MEMORY VAULT",
-  actividad: "COGNITIVE ACTIVITY",
-  rostro: "FACE CALIBRATION",
-  cuerpo: "BODY SOLVER",
-  avatar: "AVATAR VRM",
-  puentes: "CAPACIDADES Y PERMISOS",
-  auditoria: "AUDITORÍA Y DIAGNÓSTICO",
-  habilidades: "TALLER DE HABILIDADES",
-  procedimientos: "PROCEDIMIENTOS OBSERVADOS",
-  configuracion: "CONFIGURACIÓN",
-};
-
 function loadCloudSelection() {
   try {
     const parsed = JSON.parse(localStorage.getItem(cloudSelectionKey) ?? "null") as { provider?: unknown; model?: unknown } | null;
@@ -155,15 +135,19 @@ export function App() {
   const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [auditCapability, setAuditCapability] = useState<string | null>(null);
-  const [screen, setScreen] = useState<Screen>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requested = params.get("screen");
-    if (requested === "puentes" && params.get("bridgeView") === "face") return "rostro";
-    if (requested === "puentes" && params.get("bridgeView") === "body") return "cuerpo";
-    const knownScreens = Object.values(workspaceScreens).flat();
-    if (requested === "dashboard" || knownScreens.includes(requested as Screen)) return requested as Screen;
-    return avatarDiagnostic ? "avatar" : "dashboard";
-  });
+  const [screen, setActiveScreen] = useState(() =>
+    initialScreen(new URLSearchParams(window.location.search), avatarDiagnostic));
+  const [navigationRequest, setNavigationRequest] = useState<NavigationRequest | null>(null);
+  const navigationSequence = useRef(0);
+  const navigate = useCallback((destination: Screen) => {
+    navigationSequence.current = (navigationSequence.current + 1) >>> 0;
+    setNavigationRequest({ id: navigationSequence.current, screen: destination });
+  }, []);
+  const acceptRoute = useCallback((destination: Screen, clearAudit: boolean) => {
+    if (clearAudit) setAuditCapability(null);
+    setActiveScreen(destination);
+    setNavigationRequest(current => current?.screen === destination ? null : current);
+  }, []);
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
   const [cloudPending, setCloudPending] = useState(false);
@@ -400,7 +384,7 @@ export function App() {
 
   async function toggleObservation() {
     if (!desktopApp) return;
-    setScreen("puentes");
+    navigate("puentes");
     recordEvent("SECURITY", "PERMISSION_REQUIRED", observationEnabled
       ? "La detención requiere un grant oneShot en el Gateway R2"
       : "La activación requiere un grant de sesión en el Gateway R2");
@@ -626,70 +610,19 @@ export function App() {
     recordEvent("MEMORY", outcome === "confirmed" ? "MEMORY_REVIEW_CONFIRMED" : "MEMORY_REVIEW_CONFLICT", `${outcome === "confirmed" ? "Vigencia confirmada" : "Corrección solicitada"}: ${memory.intention}`, outcome === "confirmed" ? "INFO" : "WARN");
   }
 
-  const workspace = workspaceForScreen(screen);
-
-  if (screen === "dashboard") return <DashboardHost
-    desktopApp={desktopApp}
-    assistant={{
-      provider: cloudStatus.providers.find(provider => provider.id === cloudSelection.provider)?.label ?? "Sin motor seleccionado",
-      memoryCount: conversationalMemories.length,
-      eventCount: cognitiveEvents.length,
-    }}
-    onNavigate={setScreen}
-  />;
-
-  return <main data-screen={screen} className={`shell ${screen === "identificacion" ? "is-conversation" : screen === "nucleo" ? "is-volume" : ""}`}>
-    <header className="hero">
-      <div className="brand-line"><div className="monogram" aria-hidden="true">A</div><p className="eyebrow">ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA</p></div>
-      <h1><span>Una presencia digital,</span> <em>bajo tu control.</em></h1>
-      <span className="privacy-badge"><i />Local-first</span>
-    </header>
-
-    <button type="button" className="dashboard-entry" onClick={() => setScreen("dashboard")}>← Dashboard</button>
-
-    <nav className="core-system-selector" aria-label="Sistemas de Alice" role="tablist">
-      <button type="button" role="tab" aria-selected={workspace === "cognitive"} className={workspace === "cognitive" ? "selected cognitive" : "cognitive"} onClick={() => setScreen("identificacion")}>
-        <span>SYS 01 · MENTE Y CONDUCTA</span><strong>COGNITIVE CORE</strong><small>percepción · memoria · estado · actividad</small>
-      </button>
-      <button type="button" role="tab" aria-selected={workspace === "body"} className={workspace === "body" ? "selected body" : "body"} onClick={() => setScreen("rostro")}>
-        <span>SYS 02 · PRESENCIA FÍSICA</span><strong>EMBODIMENT CORE</strong><small>rostro · cuerpo · avatar · entorno futuro</small>
-      </button>
-      <button type="button" role="tab" aria-selected={workspace === "governance"} className={workspace === "governance" ? "selected governance" : "governance"} onClick={() => setScreen("puentes")}>
-        <span>SIS. 00 · CONTROL DEL PROPIETARIO</span><strong>NÚCLEO DE GOBERNANZA</strong><small>permisos · auditoría · habilidades · ajustes</small>
-      </button>
-    </nav>
-
-    <section className={`core-system-frame system-${workspace}`} aria-labelledby="active-system-title">
-      <header className="core-system-heading">
-        <div><span>{workspace === "cognitive" ? "[SYS.01] COGNITIVE WORKSPACE" : workspace === "body" ? "[SYS.02] EMBODIMENT WORKSPACE" : "[SIS.00] GOBERNANZA"}</span><h2 id="active-system-title">{workspace === "governance" ? "CONTROL LOCAL DE ALICE" : "ALICE_NEURAL_CORE"} <em>// {screenTechnicalTitles[screen]}</em></h2></div>
-        <p><i />{workspace === "cognitive" ? "LOCAL COGNITIVE CORE" : workspace === "body" ? "PHYSICAL OUTPUT · SAFE OFF" : "CONTROL LOCAL DEL PROPIETARIO"}</p>
-      </header>
-
-    <nav className="screen-tabs grouped" aria-label={workspace === "cognitive" ? "Pantallas del núcleo cognitivo" : workspace === "body" ? "Pantallas de Body Solver" : "Herramientas de gobierno local"}>
-      {workspace === "cognitive" && <>
-      <button className={screen === "identificacion" ? "selected" : ""} aria-label="Conversación con Alice" data-tooltip="Conversación" aria-current={screen === "identificacion" ? "page" : undefined} onClick={() => setScreen("identificacion")}><NavigationIcon kind="identification" active={screen === "identificacion"} /><span className="screen-tab-label">Conversación</span></button>
-      <button className={screen === "nucleo" ? "selected" : ""} aria-label="Volumen cognitivo" data-tooltip="Volumen cognitivo" aria-current={screen === "nucleo" ? "page" : undefined} onClick={() => setScreen("nucleo")}><NavigationIcon kind="volume" active={screen === "nucleo"} /><span className="screen-tab-label">Volumen cognitivo</span></button>
-      <button className={screen === "flujo" ? "selected" : ""} aria-label="Flujo cognitivo" data-tooltip="Flujo cognitivo" aria-current={screen === "flujo" ? "page" : undefined} onClick={() => setScreen("flujo")}><NavigationIcon kind="flow" active={screen === "flujo"} /><span className="screen-tab-label">Flujo cognitivo</span></button>
-      <button className={screen === "estado" ? "selected" : ""} aria-label="Estado y controles" data-tooltip="Estado y controles" aria-current={screen === "estado" ? "page" : undefined} onClick={() => setScreen("estado")}><NavigationIcon kind="state" active={screen === "estado"} /><span className="screen-tab-label">Estado y controles</span></button>
-      <button className={screen === "planificador" ? "selected" : ""} aria-label="Planificador de acción" data-tooltip="Planificador" aria-current={screen === "planificador" ? "page" : undefined} onClick={() => setScreen("planificador")}><NavigationIcon kind="planner" active={screen === "planificador"} /><span className="screen-tab-label">Planificador</span></button>
-      <button className={screen === "memoria" ? "selected" : ""} aria-label={`Memoria, ${conversationalMemories.length} recuerdos`} data-tooltip="Memoria" aria-current={screen === "memoria" ? "page" : undefined} onClick={() => setScreen("memoria")}><NavigationIcon kind="memory" active={screen === "memoria"} /><span className="screen-tab-label">Memoria</span><span className="screen-count">{conversationalMemories.length}</span></button>
-      <button className={screen === "actividad" ? "selected" : ""} aria-label={`Actividad, ${cognitiveEvents.length} eventos`} data-tooltip="Actividad" aria-current={screen === "actividad" ? "page" : undefined} onClick={() => setScreen("actividad")}><NavigationIcon kind="activity" active={screen === "actividad"} /><span className="screen-tab-label">Actividad</span><span className="screen-count">{cognitiveEvents.length}</span></button>
-      </>}
-      {workspace === "body" && <>
-      <button className={screen === "rostro" ? "selected" : ""} aria-label="Control facial" data-tooltip="Rostro" aria-current={screen === "rostro" ? "page" : undefined} onClick={() => setScreen("rostro")}><NavigationIcon kind="face" active={screen === "rostro"} /><span className="screen-tab-label">Rostro</span></button>
-      <button className={screen === "cuerpo" ? "selected" : ""} aria-label="Solucionador corporal" data-tooltip="Cuerpo" aria-current={screen === "cuerpo" ? "page" : undefined} onClick={() => setScreen("cuerpo")}><NavigationIcon kind="body" active={screen === "cuerpo"} /><span className="screen-tab-label">Cuerpo</span></button>
-      <button className={screen === "avatar" ? "selected" : ""} aria-label="Avatar local" data-tooltip="Avatar" aria-current={screen === "avatar" ? "page" : undefined} onClick={() => setScreen("avatar")}><NavigationIcon kind="avatar" active={screen === "avatar"} /><span className="screen-tab-label">Avatar</span></button>
-      </>}
-      {workspace === "governance" && <>
-      <button className={screen === "puentes" ? "selected" : ""} aria-label="Capacidades y permisos" data-tooltip="Capacidades y permisos" aria-current={screen === "puentes" ? "page" : undefined} onClick={() => setScreen("puentes")}><NavigationIcon kind="bridges" active={screen === "puentes"} /><span className="screen-tab-label">Capacidades y permisos</span></button>
-      <button className={screen === "auditoria" ? "selected" : ""} aria-label="Auditoría y diagnóstico" data-tooltip="Auditoría y diagnóstico" aria-current={screen === "auditoria" ? "page" : undefined} onClick={() => { setAuditCapability(null); setScreen("auditoria"); }}><NavigationIcon kind="audit" active={screen === "auditoria"} /><span className="screen-tab-label">Auditoría y diagnóstico</span></button>
-      <button className={screen === "procedimientos" ? "selected" : ""} aria-label="Procedimientos observados" data-tooltip="Procedimientos" aria-current={screen === "procedimientos" ? "page" : undefined} onClick={() => setScreen("procedimientos")}><NavigationIcon kind="procedures" active={screen === "procedimientos"} /><span className="screen-tab-label">Procedimientos</span></button>
-      <button className={screen === "habilidades" ? "selected" : ""} aria-label="Taller de habilidades" data-tooltip="Taller de habilidades" aria-current={screen === "habilidades" ? "page" : undefined} onClick={() => setScreen("habilidades")}><NavigationIcon kind="skills" active={screen === "habilidades"} /><span className="screen-tab-label">Taller de habilidades</span></button>
-      <button className={screen === "configuracion" ? "selected" : ""} aria-label="Configuración" data-tooltip="Configuración" aria-current={screen === "configuracion" ? "page" : undefined} onClick={() => setScreen("configuracion")}><NavigationIcon kind="settings" active={screen === "configuracion"} /><span className="screen-tab-label">Configuración</span></button>
-      </>}
-    </nav>
-
-    <div className="core-system-content">
+  return <NavigationHost
+    screen={screen} request={navigationRequest} onRoute={acceptRoute}
+    memories={conversationalMemories.length} events={cognitiveEvents.length}
+  >
+    {screen === "dashboard" && <DashboardHost
+      desktopApp={desktopApp}
+      assistant={{
+        provider: cloudStatus.providers.find(provider => provider.id === cloudSelection.provider)?.label ?? "Sin motor seleccionado",
+        memoryCount: conversationalMemories.length,
+        eventCount: cognitiveEvents.length,
+      }}
+      onNavigate={navigate}
+    />}
     {screen === "nucleo" && <Volumen snapshot={brainSnapshot} desktopApp={desktopApp} learningReady={!desktopApp || (memoryStatus === "native" && ownerProfile !== null && automaticMemory !== null && selfStudy !== null)} selfStudy={selfStudy} learningActivity={{
       native: desktopApp, selfStudyPhase: selfStudy?.phase ?? null, selfStudyLastError: selfStudy?.lastError ?? null,
       automaticPhase, automaticEnabled: automaticMemory?.enabled ?? null, selfStudySource, automaticSource,
@@ -705,14 +638,14 @@ export function App() {
       messages={messages} memories={conversationalMemories} cloudPending={cloudPending}
       observationEnabled={observationEnabled} foregroundContext={foregroundContext}
       retrievedMemoryCount={brainSnapshot.retrievedMemoryCount}
-      automaticLearning={automaticMemory ? {enabled: automaticMemory.enabled, count: automaticMemory.activeCount, phase: automaticPhase, onOpen: () => setScreen("memoria")} : undefined}
+      automaticLearning={automaticMemory ? {enabled: automaticMemory.enabled, count: automaticMemory.activeCount, phase: automaticPhase, onOpen: () => navigate("memoria")} : undefined}
       onDraftChange={setConversationDraft} onMemoryRetrieval={observeMemoryRetrieval}
       onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning}
       onConfirmConversationLearning={confirmConversationLearning} onRetrievalOutcome={assessRetrievalOutcome}
       onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput}
       onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession}
       onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn}
-      onToggleObservation={toggleObservation} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage}
+      onToggleObservation={toggleObservation} onOpenSettings={() => navigate("configuracion")} onSend={sendCloudMessage}
     />}
     {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
@@ -720,11 +653,9 @@ export function App() {
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setShowFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
-    {screen === "puentes" && <CapacidadesYPermisos onObservationStateChange={setObservationEnabled} onOpenAudit={capability => { setAuditCapability(capability ?? null); setScreen("auditoria"); }} />}
+    {screen === "puentes" && <CapacidadesYPermisos onObservationStateChange={setObservationEnabled} onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
     {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
     {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
-    </div>
-    </section>
-  </main>;
+  </NavigationHost>;
 }

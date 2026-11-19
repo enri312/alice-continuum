@@ -16,6 +16,14 @@ siguen pendientes; el plan no da por resuelto R9 ni R10.
 
 La [guía por tareas](docs/README.md) reúne instalación, uso, aprendizaje y recuperación.
 
+**Navegación general en Dioxus (2026-11-19).** El crate `dioxus-ui` administra
+la ruta activa, el regreso al Dashboard, los tres núcleos y sus 15 pestañas.
+El marco conserva los iconos SVG y los contadores. `App.tsx` monta el contenido
+en la ruta seleccionada y conserva el estado compartido. Si falla WebAssembly,
+la página solicitada conserva su recuperación y el marco permite reintentar.
+El marco React anterior queda desactivado hasta completar la migración de
+la interfaz y la lógica de la aplicación.
+
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.
 Conversación conserva el borrador, la revisión previa y sus herramientas

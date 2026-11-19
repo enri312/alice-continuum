@@ -53,7 +53,7 @@ describe("Alice Continuum identity", () => {
   });
 
   it("brands the UI and documentation without renaming the character asset", () => {
-    expect(read("Frontend/src/App.tsx")).toContain("ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA");
+    expect(read("Frontend/crates/dioxus-ui/src/navigation_ui.rs")).toContain("ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA");
     expect(read("Frontend/index.html")).toContain("<title>Alice Continuum</title>");
     expect(read("README.md")).toMatch(/^# Alice Continuum/);
     expect(read("docs/especificacion_alice_continuum.html")).toContain("<title>Alice Continuum — Documento maestro</title>");

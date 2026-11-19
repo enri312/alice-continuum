@@ -6,13 +6,16 @@ import { fileURLToPath } from "node:url";
 
 const project = fileURLToPath(new URL("../../", import.meta.url));
 const crate = path.join(project, "Frontend/crates/dioxus-ui");
-const output = path.join(project, "Frontend/src/dioxus/state-controls/pkg");
+const output = path.join(project, "Frontend/src/dioxus/dioxus-ui/pkg");
 const args = process.argv.slice(2);
 const check = args.includes("--check");
 function option(name) { const index = args.indexOf(name); return index < 0 ? undefined : args[index + 1]; }
 const digest = value => createHash("sha256").update(value).digest("hex");
 function sourceDigest() {
-  return digest(["Cargo.toml", "Cargo.lock", ...readdirSync(path.join(crate, "src")).filter(name => name.endsWith(".rs")).sort().map(name => `src/${name}`)]
+  const navigation = readFileSync(path.join(crate, "src/navigation_ui.rs"), "utf8");
+  const icons = [...navigation.matchAll(/include_str!\("\.\.\/\.\.\/\.\.\/icons\/([a-z0-9-]+\.svg)"\)/g)]
+    .map(([, name]) => `../../icons/${name}`).sort();
+  return digest(["Cargo.toml", "Cargo.lock", ...readdirSync(path.join(crate, "src")).filter(name => name.endsWith(".rs")).sort().map(name => `src/${name}`), ...icons]
     .map(name => `${name}\0${readFileSync(path.join(crate, name), "utf8").replace(/\r\n/g, "\n")}`).join("\0"));
 }
 function artifactDigests() {
