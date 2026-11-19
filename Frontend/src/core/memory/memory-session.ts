@@ -1,5 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { recordCognitiveEvent as recordEvent } from "../cognitive/activity-session";
+import { parseOwnerProfileSnapshot, type OwnerProfileSnapshot } from "../conversation/owner-profile";
 import { startSerializedPolling } from "../shared/polling";
 import { loadCompatibleArray } from "../shared/storage-migration";
 import { applyMemoryRetrievalOutcome, applyMemoryReview, type RetrievalOutcome, type ReviewOutcome } from "./memory-consolidation";
@@ -12,24 +13,38 @@ type StoredRecords = {
   memoryStatus: "browser" | "loading" | "native" | "error";
   memoryPath: string;
 };
-type Snapshot = StoredRecords & { workingMemory: WorkingMemorySnapshot | null };
+type Snapshot = StoredRecords & {
+  finishedIndices: number[];
+  workingMemory: WorkingMemorySnapshot | null;
+  ownerProfile: OwnerProfileSnapshot | null;
+  ownerProfileError: string;
+};
 type Action =
   | ({ type: "stored" } & StoredRecords)
   | { type: "storageError" }
+  | { type: "profileLoaded"; profile: OwnerProfileSnapshot }
+  | { type: "profileFailed"; error: string }
   | { type: "workingMemory"; snapshot: WorkingMemorySnapshot };
 
 const storageKey = "alice-cognitive-core-sessions-v1";
 const desktopApp = isTauri();
 const loadBrowserRecords = () => loadCompatibleArray<MemorySession>(localStorage, storageKey, ["proyecto-p-sessions-v1"]);
+const finishedRecordIndices = (records: MemorySession[]) => records.flatMap((record, index) =>
+  typeof record?.finishedAt === "string" && record.finishedAt.length ? [index] : []);
+const initialRecords = desktopApp ? [] : loadBrowserRecords();
 const listeners = new Set<() => void>();
 let current: Snapshot = {
-  sessions: desktopApp ? [] : loadBrowserRecords(),
+  sessions: initialRecords,
+  finishedIndices: finishedRecordIndices(initialRecords),
   memoryStatus: desktopApp ? "loading" : "browser",
   memoryPath: "",
   workingMemory: null,
+  ownerProfile: null,
+  ownerProfileError: "",
 };
 let apply: ((raw: string) => string) | undefined;
 let started = false;
+let profileRead: Promise<void> | undefined;
 let queue = Promise.resolve();
 
 function publish(projection: Partial<Snapshot>) {
@@ -46,10 +61,19 @@ function dispatch(action: Action) {
   // The temporary view also works while WASM is loading or being retried.
   switch (action.type) {
     case "stored":
-      publish({ sessions: action.sessions, memoryPath: action.memoryPath, memoryStatus: action.memoryStatus });
+      publish({
+        sessions: action.sessions, finishedIndices: finishedRecordIndices(action.sessions),
+        memoryPath: action.memoryPath, memoryStatus: action.memoryStatus,
+      });
       break;
     case "storageError":
       publish({ memoryStatus: "error" });
+      break;
+    case "profileLoaded":
+      publish({ ownerProfile: action.profile, ownerProfileError: "" });
+      break;
+    case "profileFailed":
+      publish({ ownerProfile: null, ownerProfileError: action.error });
       break;
     case "workingMemory": {
       if ((current.workingMemory?.generation ?? -1) <= action.snapshot.generation) {
@@ -73,6 +97,20 @@ export function subscribeToMemory(listener: () => void) {
 }
 
 export const memorySessionSnapshot = () => current;
+
+export function refreshOwnerProfile() {
+  if (!desktopApp) return;
+  profileRead ??= invoke<unknown>("owner_profile_status").then(raw => {
+    const profile = parseOwnerProfileSnapshot(raw);
+    dispatch({ type: "profileLoaded", profile });
+    if (profile.state === "available") recordEvent("MEMORY", "OWNER_PROFILE_LOAD", `${profile.records.length} recuerdos de perfil confirmados · ${profile.sourceFiles.length} fuentes con SHA-256`);
+  }).catch(cause => {
+    const error = String(cause);
+    dispatch({ type: "profileFailed", error });
+    recordEvent("SECURITY", "OWNER_PROFILE_LOAD_ERROR", error, "WARN");
+  }).finally(() => { profileRead = undefined; });
+  return profileRead;
+}
 
 function enqueue<T>(operation: () => Promise<T>): Promise<T> {
   const result = queue.then(operation);
@@ -103,6 +141,7 @@ async function persistRecords(sessions: MemorySession[]) {
 export function startMemorySession() {
   if (started || !desktopApp) return;
   started = true;
+  void refreshOwnerProfile();
   void enqueue(async () => {
     const snapshot = await readRecords();
     const legacy = snapshot.existed ? [] : loadBrowserRecords();

@@ -19,6 +19,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y respuesta en curso. | Host temporal. `App.tsx` conecta envío, visión y recuperación de recuerdos; delega la memoria de trabajo a su sesión. Los controladores TypeScript enlazan Tauri y las API de archivos, audio y vídeo del WebView. |
 | Memoria | Sesión compartida para la proyección de recuerdos persistidos, estado del archivo y generación de memoria de trabajo. | La pantalla y sus flujos de revisión siguen en React. El adaptador TypeScript coordina las operaciones IPC existentes. |
 | Aprendizaje | Sesión compartida del autoestudio y la memoria automática conversacional, con la última lectura válida, su estado y la fase recibida. | Los paneles aún se montan en React. El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
+| Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. El perfil en Memoria y la escena de Volumen aún se montan en React. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
@@ -62,9 +63,10 @@ en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
 mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
 
 1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
-   Actividad, Conversación, Memoria y Aprendizaje ya tienen sesiones Rust.
-   A continuación, trasladar el perfil confirmado y la proyección de recuerdos
-   hacia Conversación y Volumen cognitivo. Reutilizar las
+   Actividad, Conversación, Memoria y Aprendizaje ya tienen sesiones Rust. El
+   perfil confirmado y el catálogo pasan por ese estado compartido. A
+   continuación, trasladar la vigencia del permiso de observación y la
+   ventana activa. Reutilizar las
    operaciones Tauri y los controladores que ya existen en `core/`.
 2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
    cola de guardado de recuerdos, las generaciones de memoria de trabajo,
@@ -89,6 +91,24 @@ Cada incremento conserva diseño, datos, permisos, teclado y navegación; termin
 con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
+
+### Estimación después de la quinta etapa
+
+Se prevén entre ocho y diez incrementos adicionales en Windows. Estos
+son los ocho bloques base, con revisión después de probar cada uno.
+
+1. Permisos de observación y contexto de la ventana activa.
+2. Coordinación del envío, recuperación de recuerdos, voz y visión.
+3. Pantallas Configuración y Planificador.
+4. Pantalla y escena de Volumen cognitivo.
+5. Pantalla de Memoria, herramientas de mantenimiento y confirmaciones.
+6. Gobernanza, habilidades, procedimientos y puentes de permisos.
+7. Vistas de rostro, cuerpo y avatar.
+8. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
+
+Voz y visión o el avatar pueden requerir incrementos propios por sus
+dependencias de dispositivos. El arranque final requiere que las rutas y las
+vistas de recuperación estén probadas en Dioxus.
 
 ## Sesión de Conversación (2026-11-19)
 
@@ -121,6 +141,16 @@ de lecturas desplazadas y las escrituras en orden. Si tarda el WASM, el
 adaptador ofrece las lecturas provisionales y las traspasa al conectar. El
 hook anterior está desactivado en `Legacy`. Los comandos y las decisiones
 de estudio, pausa y revisión siguen bajo el backend de Tauri.
+
+## Perfil y catálogo de recuerdos (2026-11-19)
+
+La sesión de Memoria guarda el perfil que Tauri valida con las huellas de sus
+fuentes. Si una comprobación posterior falla, se retiran sus hechos de las
+vistas y de la recuperación conversacional. La lectura manual se inicia desde
+Volumen cognitivo. El WASM devuelve índices de registros finalizados y de
+lecciones elegibles. El adaptador usa los formateadores existentes y conserva
+las lecciones pendientes de repaso y retiradas en la proyección de Volumen.
+La recuperación en Conversación sigue bajo la revisión de contexto habitual.
 
 ## Página y sesión de Actividad (2026-11-19)
 

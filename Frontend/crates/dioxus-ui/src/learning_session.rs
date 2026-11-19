@@ -92,6 +92,8 @@ struct Projection<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     study: Option<SourceProjection<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    approved_study_indices: Option<Vec<usize>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     automatic: Option<SourceProjection<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     automatic_phase: Option<Phase>,
@@ -116,6 +118,26 @@ impl Source {
 }
 
 impl LearningSession {
+    fn approved_study_indices(&self) -> Vec<usize> {
+        let records = self
+            .study
+            .snapshot
+            .as_ref()
+            .and_then(|snapshot| snapshot.get("records"))
+            .and_then(Value::as_array);
+        records
+            .into_iter()
+            .flatten()
+            .enumerate()
+            .filter_map(|(index, record)| {
+                let active = record.get("active")?.as_bool()?;
+                let last_passed = record.get("lastPassed")?.as_bool()?;
+                let passes = record.get("passes")?.as_u64()?;
+                (active && last_passed && passes > 0).then_some(index)
+            })
+            .collect()
+    }
+
     fn source(&mut self, id: &SourceId) -> &mut Source {
         match id {
             SourceId::Study => &mut self.study,
@@ -127,6 +149,7 @@ impl LearningSession {
         match id {
             SourceId::Study => Projection {
                 study: Some(self.study.project(include_snapshot)),
+                approved_study_indices: include_snapshot.then(|| self.approved_study_indices()),
                 ..Projection::default()
             },
             SourceId::Automatic => Projection {
@@ -142,6 +165,7 @@ impl LearningSession {
                 *self = session;
                 Projection {
                     study: Some(self.study.project(true)),
+                    approved_study_indices: Some(self.approved_study_indices()),
                     automatic: Some(self.automatic.project(true)),
                     automatic_phase: Some(self.automatic_phase),
                     automatic_process_error: Some(&self.automatic_process_error),
@@ -281,6 +305,30 @@ mod tests {
         assert_eq!(
             interrupted,
             json!({"automaticPhase":"error","automaticProcessError":"Interrumpido"})
+        );
+    }
+
+    #[test]
+    fn selects_only_active_lessons_with_a_passed_latest_exercise() {
+        let mut session = LearningSession::default();
+        let projection = apply(
+            &mut session,
+            json!({
+                "type": "received", "source": "study", "updatedAt": 1500, "snapshot": {"records": [
+                    {"active":true,"lastPassed":false,"passes":1},
+                    {"active":true,"lastPassed":true,"passes":2},
+                    {"active":false,"lastPassed":true,"passes":2},
+                    {"active":true,"lastPassed":true,"passes":0}
+                ]}
+            }),
+        );
+        assert_eq!(projection["approvedStudyIndices"], json!([1]));
+        assert_eq!(
+            projection["study"]["snapshot"]["records"]
+                .as_array()
+                .unwrap()
+                .len(),
+            4
         );
     }
 }

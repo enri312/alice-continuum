@@ -92,11 +92,21 @@ try {
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
     globalThis.isTauri=true; globalThis.__calls=[]; globalThis.__devices=0; globalThis.__rejectSend=false;
     const memoryFixture = sessionStorage.getItem('alice-fixture-memory') === 'ready';
+    const studyLessons = memoryFixture ? [
+      { lessonId:'prueba-disponible', title:'proyectocomun disponible', passes:1, lastPassed:true, active:true },
+      { lessonId:'prueba-repaso', title:'proyectocomun pendiente', passes:0, lastPassed:false, active:true },
+      { lessonId:'prueba-retirada', title:'proyectocomun retirada', passes:1, lastPassed:true, active:false },
+    ].map(lesson => ({...lesson,id:'study:'+lesson.lessonId,track:'logic',domain:'mathematics',
+      content:lesson.title,sourceUrl:'https://example.invalid/fixture',sourceTitle:'Fuente ficticia',
+      lessonSha256:'sha256:'+'b'.repeat(64),studiedAt:'2026-11-19T12:00:00Z',attempts:1})) : [];
     let selfStudy = {schemaVersion:1,enabled:false,biblicalTradition:'catholic',phase:'disabled',
-      lastStartedAt:null,lastCompletedAt:null,lastError:null,records:[]};
+      lastStartedAt:null,lastCompletedAt:null,lastError:null,records:studyLessons};
     const automaticMemory = {schemaVersion:1,enabled:false,records:[],activeCount:0,lastOutcome:null};
-    let records = memoryFixture ? [{id:'legacy',kind:'Conversación',intention:'Recuerdo anterior',summary:'Texto inicial',
-      startedAt:'2026-11-19T12:00:00.000Z',finishedAt:'2026-11-19T12:00:01.000Z'}] : [];
+    let records = memoryFixture ? [
+      {id:'legacy',kind:'Conversación',intention:'Recuerdo anterior',summary:'Texto inicial',
+        startedAt:'2026-11-19T12:00:00.000Z',finishedAt:'2026-11-19T12:00:01.000Z'},
+      {id:'open',kind:'Conversación',intention:'proyectocomun sesión abierta',startedAt:'2026-11-19T12:00:10.000Z'},
+    ] : [];
     const workingMemoryBase = {schemaVersion:1,maximumMessages:12,maximumCharacters:72000,ttlSeconds:7200,persisted:false};
     for(const method of ['getUserMedia','getDisplayMedia']) if(navigator.mediaDevices) navigator.mediaDevices[method]=async()=>{__devices++;throw Error('No physical devices in design acceptance');};
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
@@ -428,12 +438,22 @@ try {
   await click('.volume-learning-refresh button');
   await until(()=>evaluate('document.querySelector(".volume-learning-source-states > div")?.dataset.state==="ready"'),'recuperar la fuente sin reiniciar');
 
+  await until(()=>evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt=>dt.textContent==="Autoestudio registrado" && dt.nextElementSibling?.textContent==="3")'),'Volumen presenta también las lecciones pendientes y retiradas');
+  await click('.screen-tabs button[data-tooltip="Conversación"]');
+  await ready();
+  await input('proyectocomun');
+  await click('.conversation-context-drawer>summary');
+  const matches = '.memory-retrieval-preview article';
+  await until(()=>evaluate(`document.querySelector(${JSON.stringify(matches)})?.textContent.includes("proyectocomun disponible")`),'Conversación recupera la lección aprobada');
+  assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(matches)}).length`),1,'Se excluyen la sesión abierta y las lecciones inaplicables');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="send_cloud_message").length'),0,'Consultar el catálogo no envía datos');
+
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

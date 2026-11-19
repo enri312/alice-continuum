@@ -51,9 +51,19 @@ Se fijó Dioxus **0.7.10** y se regeneró el WASM.
 comparte el estado del autoestudio y del aprendizaje conversacional. Cada
 fuente conserva su última lectura válida durante un fallo. El adaptador de
 Tauri sigue escuchando los eventos, sondea cada cinco segundos y ordena las
-escrituras del propietario. El hook React anterior queda en `Legacy`. El
-próximo bloque es la carga del perfil confirmado y la proyección de recuerdos
-hacia Conversación y Volumen cognitivo.
+escrituras del propietario. El hook React anterior queda en `Legacy`.
+
+**Quinta etapa de App.tsx (2026-11-19).** La sesión de Memoria carga el perfil
+confirmado y retira sus hechos del catálogo cuando Tauri invalida una fuente.
+Rust selecciona registros finalizados y lecciones elegibles para Conversación.
+Volumen cognitivo conserva también las lecciones pendientes o retiradas.
+El puente TypeScript reúne las proyecciones con sus etiquetas y procedencia.
+La lógica React anterior queda en `Legacy`. El siguiente bloque es el permiso
+de observación y el estado de la ventana activa.
+
+La estimación es de **8 a 10 etapas adicionales** para retirar React por
+completo. Incluye permisos y Conversación, las pantallas pendientes, la raíz
+`app.rs` y la recuperación de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-quinta-etapa).
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

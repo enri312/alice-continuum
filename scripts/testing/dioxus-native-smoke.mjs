@@ -24,6 +24,15 @@ const records = ['a', 'b'].map(id => ({ id, kind: 'Conversación', intention: `E
   memoryType: 'episodic', memoryStatus: 'confirmed', source: 'owner' }));
 const sourcePath = path.join(data, 'memory/records.json');
 await fs.writeFile(sourcePath, JSON.stringify(records));
+const profileSource = 'Fuente ficticia aprobada para probar el perfil aislado.';
+const profileSourcePath = path.join(data, 'memory', 'profile-fixture.txt');
+await fs.writeFile(profileSourcePath, profileSource);
+await fs.writeFile(path.join(data, 'memory', 'owner-profile.json'), JSON.stringify({
+  schemaVersion: 1, ownerName: 'Propietario de prueba', confirmedBy: 'Propietario de prueba', confirmedAt: '2026-11-19T12:00:00Z',
+  sourceFiles: [{ file: 'profile-fixture.txt', sha256: 'sha256:' + createHash('sha256').update(profileSource).digest('hex') }],
+  records: [{ id: 'profile-fixture', kind: 'Perfil', intention: 'Perfil cartográfico', summary: profileSource,
+    source: 'profile-fixture.txt', memoryStatus: 'confirmed' }],
+}));
 await fs.writeFile(path.join(data, 'memory/automatic-v1.json'), JSON.stringify({ schemaVersion: 1, enabled: false, records: [], decisions: [] }));
 await fs.writeFile(path.join(data, 'memory/self-study-v1.json'), JSON.stringify({ schemaVersion: 1, enabled: false, biblicalTradition: 'catholic', phase: 'idle',
   lastStartedAt: null, lastCompletedAt: null, lastError: null, records: [] }));
@@ -156,6 +165,8 @@ try {
   await selectMemorySection('Recuerdos');
   await until(() => evaluate('document.querySelectorAll(".memory-record").length===2'), 'Dos recuerdos conservados en el archivo aislado');
   assert.ok(await evaluate('document.querySelector(".memory-list").textContent.includes("Experiencia nativa A")'));
+  await evaluate('document.querySelector(\'.memory-subsection-nav button[aria-label^="Perfil, 1"]\').click()');
+  await until(() => evaluate('document.querySelector(".owner-profile-panel .memory-record h3")?.textContent==="Perfil cartográfico"'), 'perfil confirmado de una fuente con SHA-256');
   await selectMemorySection('En sesión');
   await until(() => evaluate('Boolean(document.querySelector(".working-memory-panel.state-empty"))'), 'La memoria de trabajo nativa empieza vacía');
   assert.ok(await evaluate('document.querySelector(".working-memory-panel button.danger").disabled'));
@@ -283,8 +294,20 @@ try {
   await evaluate('document.querySelector(\'button[aria-label="Volumen cognitivo"]\').click()');
   await until(() => evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt => dt.textContent === "Otros recuerdos" && dt.nextElementSibling?.textContent === "2")'), 'Volumen reconoce las dos fuentes episódicas después de recargar');
   await until(() => evaluate('document.querySelector(".volume-stats-growth")?.textContent.endsWith(" · 1 ASOCIACIÓN CONFIRMADA")'), 'Volumen proyecta la relación confirmada en Flujo');
+  const profileCount = count => evaluate(`Array.from(document.querySelectorAll('.volume-learning-metrics dt')).some(dt => dt.textContent === 'Perfil del propietario' && dt.nextElementSibling?.textContent === '${count}')`);
+  await until(() => profileCount(1), 'Volumen muestra el perfil confirmado');
+  await fs.writeFile(profileSourcePath, profileSource + ' Cambio de prueba.');
+  try {
+    await evaluate('document.querySelector(".volume-learning-refresh button").click()');
+    await until(() => profileCount(0), 'La fuente con SHA-256 distinto excluye el perfil de la proyección');
+    assert.ok(await evaluate('document.querySelector(".volume-learning-source-states").textContent.includes("La fuente privada cambió")'));
+  } finally {
+    await fs.writeFile(profileSourcePath, profileSource);
+  }
+  await evaluate('document.querySelector(".volume-learning-refresh button").click()');
+  await until(() => profileCount(1), 'La fuente válida permite recuperar el perfil');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, nodes: 11,
     governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);

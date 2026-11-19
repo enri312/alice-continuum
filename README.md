@@ -56,8 +56,11 @@ Conversación comparte el borrador, el historial visible, el proveedor, el model
 y los ajustes de comportamiento. Memoria proyecta los recuerdos guardados y el
 estado de RAM usando los datos de Tauri. Aprendizaje comparte entre Memoria y
 Volumen cognitivo la última lectura válida del autoestudio y de los recuerdos
-aprendidos al conversar. React aún arranca la aplicación y monta las pantallas
-pendientes. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
+aprendidos al conversar. Memoria también carga el perfil confirmado por Tauri.
+Conversación recupera lecciones activas con el último ejercicio aprobado y
+Volumen permite inspeccionar también las pendientes de repaso o retiradas.
+React aún arranca la aplicación y monta las pantallas pendientes. `Backend/`
+contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
 Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.
 [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).

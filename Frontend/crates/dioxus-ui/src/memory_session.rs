@@ -27,6 +27,8 @@ struct Session {
     memory_status: StorageStatus,
     memory_path: String,
     working_memory: Option<WorkingMemory>,
+    owner_profile: Option<Value>,
+    owner_profile_error: String,
 }
 
 #[derive(Deserialize)]
@@ -45,6 +47,12 @@ enum Action {
         memory_path: String,
     },
     StorageError,
+    ProfileLoaded {
+        profile: Value,
+    },
+    ProfileFailed {
+        error: String,
+    },
     WorkingMemory {
         snapshot: WorkingMemory,
     },
@@ -56,19 +64,45 @@ struct Projection<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     sessions: Option<&'a [Value]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    finished_indices: Option<Vec<usize>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     memory_status: Option<StorageStatus>,
     #[serde(skip_serializing_if = "Option::is_none")]
     memory_path: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     working_memory: Option<&'a WorkingMemory>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    owner_profile: Option<Option<&'a Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    owner_profile_error: Option<&'a str>,
 }
 
 impl Session {
     fn records(&self) -> Projection<'_> {
+        let finished = self
+            .sessions
+            .iter()
+            .enumerate()
+            .filter_map(|(index, record)| {
+                record
+                    .get("finishedAt")?
+                    .as_str()
+                    .filter(|date| !date.is_empty())?;
+                Some(index)
+            });
         Projection {
             sessions: Some(&self.sessions),
+            finished_indices: Some(finished.collect()),
             memory_status: Some(self.memory_status),
             memory_path: Some(&self.memory_path),
+            ..Projection::default()
+        }
+    }
+
+    fn profile(&self) -> Projection<'_> {
+        Projection {
+            owner_profile: Some(self.owner_profile.as_ref()),
+            owner_profile_error: Some(&self.owner_profile_error),
             ..Projection::default()
         }
     }
@@ -79,6 +113,8 @@ impl Session {
                 *self = snapshot;
                 Projection {
                     working_memory: self.working_memory.as_ref(),
+                    owner_profile: Some(self.owner_profile.as_ref()),
+                    owner_profile_error: Some(&self.owner_profile_error),
                     ..self.records()
                 }
             }
@@ -98,6 +134,16 @@ impl Session {
                     memory_status: Some(self.memory_status),
                     ..Projection::default()
                 }
+            }
+            Action::ProfileLoaded { profile } => {
+                self.owner_profile = Some(profile);
+                self.owner_profile_error.clear();
+                self.profile()
+            }
+            Action::ProfileFailed { error } => {
+                self.owner_profile = None;
+                self.owner_profile_error = error;
+                self.profile()
             }
             Action::WorkingMemory { snapshot } => {
                 if let Some(current) = &self.working_memory {
@@ -151,7 +197,11 @@ mod tests {
 
     #[test]
     fn projects_storage_failures_without_replacing_records_or_losing_fields() {
-        let records = json!([{"id": "relato", "importance": 2.5, "oldField": ["valor"]}]);
+        let records = json!([
+            {"id": "abierto"},
+            {"id": "relato", "finishedAt": "2026-11-19T12:00:00Z", "importance": 2.5, "oldField": ["valor"]},
+            {"id": "vacio", "finishedAt": ""}
+        ]);
         let mut session = Session::default();
         let stored = apply(
             &mut session,
@@ -160,6 +210,7 @@ mod tests {
             }),
         );
         assert_eq!(stored["sessions"], records);
+        assert_eq!(stored["finishedIndices"], json!([1]));
         assert_eq!(
             apply(&mut session, json!({"type": "storageError"})),
             json!({"memoryStatus": "error"})
@@ -168,6 +219,27 @@ mod tests {
             session.sessions.as_slice(),
             records.as_array().unwrap().as_slice()
         );
+    }
+
+    #[test]
+    fn invalidated_profile_is_removed_without_changing_record_membership() {
+        let mut session = Session::default();
+        let profile = json!({"state": "available", "records": [{"id": "confirmado"}]});
+        let loaded = apply(
+            &mut session,
+            json!({"type":"profileLoaded","profile":profile}),
+        );
+        assert_eq!(loaded["ownerProfile"], profile);
+        assert_eq!(loaded["ownerProfileError"], "");
+        let failed = apply(
+            &mut session,
+            json!({"type":"profileFailed","error":"Fuente alterada"}),
+        );
+        assert_eq!(
+            failed,
+            json!({"ownerProfile":null,"ownerProfileError":"Fuente alterada"})
+        );
+        assert!(session.owner_profile.is_none());
     }
 
     #[test]

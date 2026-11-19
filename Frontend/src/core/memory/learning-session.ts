@@ -4,7 +4,7 @@ import {
   parseAutomaticMemorySnapshot, type AutomaticLearningPhase, type AutomaticMemoryReview, type AutomaticMemorySnapshot,
 } from "./automatic-memory";
 import { createLearningSource, type LearningSourceController, type LearningSourceState, type LearningSourceStatus } from "./learning-source";
-import { parseSelfStudySnapshot, type SelfStudySnapshot } from "./self-study";
+import { parseSelfStudySnapshot, studyIsAvailable, type SelfStudySnapshot } from "./self-study";
 
 export type LearningSourceViewState = {
   status: LearningSourceStatus | "unavailable";
@@ -16,6 +16,7 @@ export type LearningSourceViewState = {
 type SourceState<T> = LearningSourceState<T> & { eventError: string };
 type Snapshot = {
   study: SourceState<SelfStudySnapshot>;
+  approvedStudyIndices: number[];
   automatic: SourceState<AutomaticMemorySnapshot>;
   automaticPhase: AutomaticLearningPhase;
   automaticProcessError: string;
@@ -23,6 +24,7 @@ type Snapshot = {
 type Source = "study" | "automatic";
 type Projection = {
   study?: Partial<Snapshot["study"]>;
+  approvedStudyIndices?: number[];
   automatic?: Partial<Snapshot["automatic"]>;
   automaticPhase?: AutomaticLearningPhase;
   automaticProcessError?: string;
@@ -37,7 +39,7 @@ const errorText = (error: unknown) => error instanceof Error ? error.message : S
 const desktopApp = isTauri();
 const listeners = new Set<() => void>();
 let current: Snapshot = {
-  study: emptySource(), automatic: emptySource(), automaticPhase: "idle", automaticProcessError: "",
+  study: emptySource(), approvedStudyIndices: [], automatic: emptySource(), automaticPhase: "idle", automaticProcessError: "",
 };
 let exposed = view(current);
 let update: ((raw: string) => string) | undefined;
@@ -54,6 +56,7 @@ function view(state: Snapshot) {
   });
   return {
     selfStudy: state.study.snapshot,
+    approvedStudyIndices: state.approvedStudyIndices,
     selfStudyError: state.study.error ?? state.study.eventError,
     selfStudySource: metadata(state.study),
     automaticMemory: state.automatic.snapshot,
@@ -63,9 +66,9 @@ function view(state: Snapshot) {
   };
 }
 
-function publish({ study, automatic, ...signal }: Projection) {
+function publish({ study, automatic, ...fields }: Projection) {
   current = {
-    ...current, ...signal,
+    ...current, ...fields,
     study: study ? { ...current.study, ...study } : current.study,
     automatic: automatic ? { ...current.automatic, ...automatic } : current.automatic,
   };
@@ -92,9 +95,10 @@ export function subscribeToLearning(listener: () => void) {
 
 export const learningSnapshot = () => exposed;
 
-function receive<Id extends Source>(source: Id, state: LearningSourceState<NonNullable<Snapshot[Id]["snapshot"]>>) {
+function receive<Id extends Source>(source: Id, state: LearningSourceState<NonNullable<Snapshot[Id]["snapshot"]>>, fallback?: () => Projection) {
   if (state.status === "ready" && state.snapshot && state.updatedAt !== null) {
-    dispatch({ type: "received", source, snapshot: state.snapshot, updatedAt: state.updatedAt }, { [source]: state });
+    dispatch({ type: "received", source, snapshot: state.snapshot, updatedAt: state.updatedAt },
+      { [source]: state, ...(!update && fallback?.()) });
   } else if (state.status === "error" && state.error !== null) {
     dispatch({ type: "readFailed", source, error: state.error }, { [source]: { status: "error", error: state.error } });
   }
@@ -111,7 +115,9 @@ function subscribeToSources() {
   const unlisten: UnlistenFn[] = [];
   const study = createLearningSource({
     read: async () => parseSelfStudySnapshot(await invoke("self_study_status")),
-    onChange: state => receive("study", state),
+    onChange: state => receive("study", state, () => ({
+      approvedStudyIndices: state.snapshot?.records.flatMap((record, index) => studyIsAvailable(record) ? [index] : []) ?? [],
+    })),
   });
   const automatic = createLearningSource({
     read: async () => parseAutomaticMemorySnapshot(await invoke("automatic_memory_status")),

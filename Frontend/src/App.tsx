@@ -1,8 +1,7 @@
 import { ConversationHost, type ConversationVisionPort } from "./pages/conversation/ConversationHost";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
 import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
-import { selfStudyForConversation, selfStudyForCognitiveVolume } from "./core/memory/self-study";
-import { automaticMemoryForConversation } from "./core/memory/automatic-memory";
+import { buildMemoryCatalog } from "./core/memory/memory-catalog";
 import {
   learningSnapshot, refreshLearningSources, reviewAutomaticLearning,
   startLearningSession, subscribeToLearning, toggleAutomaticMemory, toggleSelfStudy,
@@ -35,7 +34,7 @@ import { buildBrainSnapshot } from "./core/cognitive/brain";
 import { recordCognitiveEvent as recordEvent } from "./core/cognitive/activity-session";
 import {
   acceptWorkingMemoryResponse, assessRetrievalOutcome, clearWorkingMemory, discardMemory,
-  exportMemory, memorySessionSnapshot, openMemoryDirectory, reloadMemoryFromDisk, restoreMemory,
+  exportMemory, memorySessionSnapshot, openMemoryDirectory, refreshOwnerProfile, reloadMemoryFromDisk, restoreMemory,
   reviewMemory, startMemorySession, subscribeToMemory, updateMemory,
 } from "./core/memory/memory-session";
 import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
@@ -43,8 +42,6 @@ import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
 import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
 import type { Screen } from "./core/navigation/workspaces";
-import { parseOwnerProfileSnapshot } from "./core/conversation/owner-profile";
-import type { OwnerProfileSnapshot } from "./core/conversation/owner-profile";
 import { parseConversationLearningConfirmation, parseConversationLearningPreview } from "./core/conversation/conversation-learning";
 import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "./core/conversation/conversation-learning";
 import { parseVoiceOutputPreview, parseVoiceOutputResult } from "./core/voice/voice-output";
@@ -59,12 +56,13 @@ export function App() {
   const visionRef = useRef<ConversationVisionPort>(null);
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
-  const { sessions, workingMemory, memoryStatus, memoryPath } = useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
+  const { sessions, finishedIndices, workingMemory, memoryStatus, memoryPath, ownerProfile, ownerProfileError } =
+    useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
   useEffect(startMemorySession, []);
   useEffect(startLearningSession, []);
   const {
     automaticMemory, automaticPhase, automaticError, automaticSource,
-    selfStudy, selfStudyError, selfStudySource,
+    selfStudy, selfStudyError, selfStudySource, approvedStudyIndices,
   } = useSyncExternalStore(subscribeToLearning, learningSnapshot);
 
   async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
@@ -97,12 +95,9 @@ export function App() {
   const observeMemoryRetrieval = useCallback((prepared: MemoryRetrievalObservation) => {
     setMemoryRetrieval(previous => observePreparedMemory(previous, prepared));
   }, []);
-  const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
-  const [ownerProfileError, setOwnerProfileError] = useState("");
-  const [ownerProfileReloadKey, setOwnerProfileReloadKey] = useState(0);
-  const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
-  const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForConversation(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
-  const cognitiveMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForCognitiveVolume(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
+  const { conversationalMemories, cognitiveMemories } = useMemo(() => buildMemoryCatalog({
+    ownerProfile, sessions, finishedIndices, automaticMemory, selfStudy, approvedStudyIndices,
+  }), [ownerProfile, sessions, finishedIndices, automaticMemory, selfStudy, approvedStudyIndices]);
   const ollamaProvider = cloudStatus.providers.find((provider) => provider.id === "ollama");
   const ollamaModel = cloudSelection.provider === "ollama" && cloudSelection.model.trim() ? cloudSelection.model : ollamaProvider?.defaultModel ?? "qwen3.5:4b";
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.text;
@@ -143,23 +138,6 @@ export function App() {
       },
     });
   }, [desktopApp, observationEnabled]);
-
-  useEffect(() => {
-    if (!desktopApp) return;
-    let active = true;
-    invoke<unknown>("owner_profile_status").then((raw) => {
-      if (!active) return;
-      const snapshot = parseOwnerProfileSnapshot(raw);
-      setOwnerProfile(snapshot);
-      setOwnerProfileError("");
-      if (snapshot.state === "available") recordEvent("MEMORY", "OWNER_PROFILE_LOAD", `${snapshot.records.length} recuerdos de perfil confirmados · ${snapshot.sourceFiles.length} fuentes con SHA-256`);
-    }).catch((error) => {
-      if (!active) return;
-      setOwnerProfileError(String(error));
-      recordEvent("SECURITY", "OWNER_PROFILE_LOAD_ERROR", String(error), "WARN");
-    });
-    return () => { active = false; };
-  }, [desktopApp, ownerProfileReloadKey]);
 
   async function toggleObservation() {
     if (!desktopApp) return;
@@ -289,7 +267,7 @@ export function App() {
 
   function refreshVolumeLearning() {
     refreshLearningSources();
-    if (!ownerProfile || ownerProfileError) setOwnerProfileReloadKey(value => value + 1);
+    void refreshOwnerProfile();
     if (memoryStatus === "error") void reloadMemoryFromDisk().catch(() => undefined);
   }
 

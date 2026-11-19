@@ -73,9 +73,11 @@ export function parseSelfStudySnapshot(value: unknown): SelfStudySnapshot {
   return value as SelfStudySnapshot;
 }
 
+export const studyIsAvailable = (record: SelfStudyRecord) => record.active && record.lastPassed && record.passes > 0;
+
 /** Only lessons with a passed latest exercise enter conversation retrieval. */
-export function selfStudyForConversation(snapshot: SelfStudySnapshot | null) {
-  return (snapshot?.records ?? []).filter(record => record.active && record.lastPassed && record.passes > 0).map(record => ({
+export function selfStudyForConversation(snapshot: Pick<SelfStudySnapshot, "records"> | null) {
+  return (snapshot?.records ?? []).filter(studyIsAvailable).map(record => ({
     id: record.id, kind: "Autoestudio" as const, studyLearning: true,
     intention: `${selfStudyTrackLabels[record.track]} · ${record.title}`, summary: record.content,
     memoryType: "semantic" as const, startedAt: record.studiedAt, finishedAt: record.studiedAt,
@@ -93,7 +95,7 @@ export function selfStudyForCognitiveVolume(snapshot: SelfStudySnapshot | null) 
     id: record.id, kind: "Autoestudio" as const, studyLearning: true,
     studyPasses: record.passes,
     studyState: !record.active ? "withdrawn" as const
-      : record.lastPassed && record.passes > 0 ? "available" as const : "review" as const,
+      : studyIsAvailable(record) ? "available" as const : "review" as const,
     intention: `${selfStudyTrackLabels[record.track]} · ${record.title}`, summary: record.content,
     memoryType: "semantic" as const, finishedAt: record.studiedAt,
     source: `${record.sourceTitle} · ${record.sourceUrl} · ${record.lessonSha256} · estudiado ${record.studiedAt}`,
