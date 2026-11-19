@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { parseFaceReadinessStatus } from "../../core/embodiment/face-readiness";
-import type { FaceReadinessStatus } from "../../core/embodiment/face-readiness";
+import { parseFaceReadinessStatus } from "../../../core/embodiment/face-readiness";
+import type { FaceReadinessStatus } from "../../../core/embodiment/face-readiness";
 import {
   createCancelPermissionInput,
   createFaceLandmarkPreparation,
@@ -10,8 +10,8 @@ import {
   parsePermissionGatewayStatus,
   parsePermissionGrant,
   parsePreparedPermissionRequest,
-} from "../../core/governance/permissions";
-import type { PermissionGrant, PreparedPermissionRequest } from "../../core/governance/permissions";
+} from "../../../core/governance/permissions";
+import type { PermissionGrant, PreparedPermissionRequest } from "../../../core/governance/permissions";
 
 const channels = ["eyeBlinkLeft", "eyeBlinkRight", "jawOpen", "mouthSmileLeft", "mouthSmileRight", "browInnerUp", "gazeX", "gazeY"];
 type LoadState = "loading" | "ready" | "error" | "web";

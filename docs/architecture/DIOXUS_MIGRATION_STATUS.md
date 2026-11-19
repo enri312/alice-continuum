@@ -23,6 +23,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Volumen cognitivo | Escena, ficha de recuerdos y procesos, evidencias R8, leyendas, consola de señales y seguimiento de cambios. | Host de montaje. El adaptador Canvas independiente dibuja la escena, traduce los eventos de puntero y teclado y consulta Tauri. |
 | Observación de ventana | Sesión compartida que liga el contexto visible al identificador y vencimiento del permiso R2 confirmado. | El panel aún muestra solicitudes y decisiones en React. El adaptador consulta Tauri y traslada las transiciones de permisos validadas. |
 | Configuración | Vista de proveedores, modelo, historial, motor local, política y dispositivos. | El host monta Dioxus. El adaptador usa la sesión de Conversación y ordena las respuestas de inicio y apagado de Gemma. |
+| Rostro, Cuerpo y Avatar | Diagnóstico facial pasivo y permisos R2, esquemas corporales y controles, cámara virtual y telemetría del visor VRM. | Host de montaje. El adaptador consulta Tauri y monta el motor Three.js independiente. |
 | Planificador | Inspector, actividad R3, formulario y revisión R7, reloj, listas, comprobaciones y recibos. | El puente valida los resultados de Tauri y convierte horas locales. Presenta la confirmación del WebView para reservar o entregar un aviso. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
@@ -98,12 +99,10 @@ Se prevén entre tres y cinco incrementos adicionales en Windows. Estos
 son los tres bloques pendientes, con revisión después de probar cada uno.
 
 1. Gobernanza, habilidades, procedimientos y puentes de permisos.
-2. Vistas de rostro, cuerpo y avatar.
-3. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
+2. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
 
-Gobernanza y el avatar pueden requerir incrementos propios por sus
-dependencias de datos y dispositivos. El arranque final requiere que las rutas
-y las vistas de recuperación estén probadas en Dioxus.
+El arranque final requiere que las rutas y las vistas de recuperación estén
+probadas en Dioxus.
 
 ## Memoria y edición versionada (2026-11-19)
 

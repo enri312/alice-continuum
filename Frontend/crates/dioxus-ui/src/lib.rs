@@ -234,3 +234,20 @@ mountable_view!(
     update_memory_page,
     unmount_memory_page
 );
+#[cfg(target_arch = "wasm32")]
+mod embodiment_body_ui;
+pub mod embodiment_model;
+#[cfg(target_arch = "wasm32")]
+mod embodiment_ui;
+#[cfg(target_arch = "wasm32")]
+mod face_mesh;
+
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    embodiment_browser,
+    crate::embodiment_model::Payload,
+    crate::embodiment_ui,
+    mount_embodiment,
+    update_embodiment,
+    unmount_embodiment
+);

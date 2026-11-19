@@ -179,7 +179,7 @@ try {
   assert.equal((await taskStatus()).taskCount, 0);
   const reminderTime = new Date(Date.now() + 86_400_000);
   const localTime = new Date(reminderTime.getTime() - reminderTime.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-  await evaluate('document.querySelector(".task-composer input:not([type])").focus()');
+  await evaluate('document.querySelector(".task-composer input:not([type=datetime-local])").focus()');
   await send('Input.insertText', { text: 'Recordatorio aislado de Dioxus' });
   await evaluate(`(()=>{const field=document.querySelector('.task-composer input[type=datetime-local]');field.value=${JSON.stringify(localTime)};field.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const clickTaskButton = async selector => {
@@ -223,6 +223,18 @@ try {
   await until(() => evaluate('document.querySelectorAll(\'[data-activity-renderer="dioxus"] .timeline-node\').length>0'), 'página de Actividad nativa Dioxus');
   await evaluate('document.querySelector(".cognitive-timeline").scrollIntoView({block:"start"})');
   await screenshot('timeline-native.png');
+  await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
+  await evaluate('document.querySelector(".core-system-selector .body").click()');
+  await until(()=>evaluate('Boolean(document.querySelector("[data-face-renderer=dioxus] .face-canvas svg")) && document.querySelector(".face-permission-gate strong").textContent.includes("R2 disponible")'), 'Rostro y R2 montados en Dioxus');
+  await until(()=>evaluate('Array.from(document.querySelectorAll(".face-telemetry dl div")).some(row=>row.firstElementChild.textContent==="Sensor abierto" && row.lastElementChild.textContent==="FALSE") && !document.querySelector(".face-retarget-status small").textContent.includes("pendiente.")'), 'diagnóstico facial con cámara cerrada');
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Cuerpo"]\').click()');
+  await until(()=>evaluate('document.querySelectorAll("[data-body-renderer=dioxus] svg").length >= 2'), 'Cuerpo en Dioxus');
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Avatar"]\').click()');
+  await until(()=>evaluate('Boolean(document.querySelector("[data-avatar-renderer=dioxus] .avatar-page"))'), 'Avatar en Dioxus');
+  await evaluate('document.querySelector(".core-system-selector .cognitive").click()');
+  await until(()=>evaluate('Boolean(document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\'))'), 'Regreso al núcleo cognitivo');
+  await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
+  await until(()=>evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).some(button=>button.textContent.includes("EVENT STREAM"))'), 'Pestañas de actividad');
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
   await until(() => evaluate('Boolean(document.querySelector(".event-console"))'), 'flujo de eventos de sesión');
   assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),1,'Un solo contenedor de Actividad');

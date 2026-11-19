@@ -50,7 +50,10 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 
 La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
 renderiza las pantallas migradas, entre ellas Conversación, Auditoría y
-diagnóstico, Configuración, Planificador, Volumen cognitivo y Memoria.
+diagnóstico, Configuración, Planificador, Volumen cognitivo, Memoria, Rostro,
+Cuerpo y Avatar. Rostro consulta el diagnóstico local y R2 con la cámara cerrada.
+Cuerpo conserva el esquema de referencia. Avatar integra el visor Three.js para
+el modelo VRM local y carga el motor 3D al necesitarlo.
 Configuración comparte el proveedor
 y el historial con Conversación. El registro R7 del Planificador revisa los
 recordatorios con Tauri antes de programarlos o cancelarlos. Rust mantiene

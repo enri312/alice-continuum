@@ -83,6 +83,11 @@ interrumpidas con recibos verificados por Tauri. La página React se conserva
 desactivada en `Legacy`. Sigue Gobernanza.
 [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-undécima-etapa).
 
+**Duodécima etapa de App.tsx (2026-11-19).** Rostro, Cuerpo y Avatar pasan a
+Dioxus. Rostro conserva la lectura pasiva y las decisiones R2. Cuerpo conserva
+los esquemas de referencia. Avatar controla el visor VRM, sus poses y su
+telemetría desde Dioxus con el motor Three.js desacoplado de React.
+
 **Décima etapa de App.tsx (2026-11-19).** Memoria incorporó en Dioxus la navegación,
 Aprendizaje, Registros, Perfil, En sesión, Capas y Respaldo. La edición de un
 recuerdo evaluado conservó la vista previa y la confirmación de la versión.

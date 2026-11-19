@@ -3,7 +3,7 @@ import { buildMemoryCatalog } from "./core/memory/memory-catalog";
 import {
   learningSnapshot, refreshLearningSources, startLearningSession, subscribeToLearning,
 } from "./core/memory/learning-session";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import { supportsConversationBehavior } from "./core/conversation/behavior-settings";
@@ -18,8 +18,7 @@ import { Planificador } from "./pages/cognitive/ActionPlannerHost";
 import { Memoria } from "./pages/memory/MemoryHost";
 import { Actividad } from "./pages/cognitive/ActivityHost";
 import { AuditPageHost } from "./pages/cognitive/AuditPageHost";
-import { FaceTrackingPanel } from "./components/embodiment/FaceTrackingPanel";
-import { BodySolverPanel } from "./components/embodiment/BodySolverPanel";
+import { EmbodimentHost } from "./pages/embodiment/EmbodimentHost";
 import { CapacidadesYPermisos } from "./pages/governance/CapabilityRegistryPage";
 import { Configuracion } from "./pages/governance/SystemSettingsHost";
 import { Habilidades } from "./pages/governance/SkillWorkshopPage";
@@ -32,8 +31,6 @@ import {
 import { observationSnapshot, subscribeToObservation } from "./core/governance/observation-session";
 import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
 import type { Screen } from "./core/navigation/workspaces";
-
-const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
 
 export function App() {
   const desktopApp = isTauri();
@@ -137,8 +134,8 @@ export function App() {
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} />}
     {screen === "puentes" && <CapacidadesYPermisos onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
-    {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
-    {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}
-    {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}
+    {screen === "rostro" && <EmbodimentHost key="face" view="face" desktopApp={desktopApp} />}
+    {screen === "cuerpo" && <EmbodimentHost key="body" view="body" desktopApp={desktopApp} />}
+    {screen === "avatar" && <EmbodimentHost key="avatar" view="avatar" desktopApp={desktopApp} />}
   </NavigationHost>;
 }

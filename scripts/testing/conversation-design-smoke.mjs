@@ -360,6 +360,18 @@ try {
     assert.equal(await evaluate('document.querySelectorAll(".screen-tab-icon svg").length'),tabCount,'SVG presentes en '+screen);
     assert.equal(await evaluate('document.querySelectorAll(".screen-tabs [aria-current=page]").length'),1,'Selección original en '+screen);
     await checkNavigation(1280, tabCount);
+    if (screen === 'rostro') {
+      await until(()=>evaluate('Boolean(document.querySelector("[data-face-renderer=dioxus] .face-canvas svg"))'),'malla facial en Dioxus');
+      assert.ok(await evaluate('document.querySelector(".face-channel-console").textContent.includes("8 RESERVADOS")'));
+      assert.equal(await evaluate('__devices'),0,'Rostro no abre la cámara');
+    }
+    if (screen === 'cuerpo') {
+      await until(()=>evaluate('document.querySelectorAll("[data-body-renderer=dioxus] svg").length >= 2'),'esquemas corporales en Dioxus');
+    }
+    if (screen === 'avatar') {
+      await until(()=>evaluate('Boolean(document.querySelector("[data-avatar-renderer=dioxus] .avatar-page"))'),'Avatar en Dioxus');
+      assert.equal(await evaluate('document.querySelectorAll(".avatar-page canvas").length'),0,'El navegador no carga un VRM local');
+    }
     if (screen === 'puentes') {
       assert.equal(await evaluate('document.querySelector(".core-system-selector .governance strong").textContent'), 'NÚCLEO DE GOBERNANZA');
       assert.equal(await evaluate('document.querySelectorAll(".bridge-console").length'), 0);

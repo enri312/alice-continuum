@@ -3,7 +3,7 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { AvatarViewer } from "../../components/embodiment/AvatarViewer";
 import type { AvatarTelemetry } from "../../components/embodiment/AvatarViewer";
 import type { AvatarMotorTransition } from "../../components/embodiment/AvatarViewer";
-import type { AvatarAnimationId, AvatarAnimationUrls } from "../../core/embodiment/avatar-animation";
+import type { AvatarAnimationId, AvatarAnimationUrls } from "../../../core/embodiment/avatar-animation";
 
 type AvatarStatus = {
   available: boolean;

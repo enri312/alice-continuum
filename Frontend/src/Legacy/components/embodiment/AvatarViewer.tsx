@@ -14,7 +14,7 @@ import {
   type AvatarAnimationId,
   type AvatarAnimationUrls,
   type LocomotionAnimationId,
-} from "../../core/embodiment/avatar-animation";
+} from "../../../core/embodiment/avatar-animation";
 import {
   AVATAR_DIAGNOSTIC_DURATION_SECONDS,
   advanceManualAvatarMotion,
@@ -26,22 +26,22 @@ import {
   type GamepadSnapshot,
   type ManualAvatarInput,
   type ManualAvatarMotion,
-} from "../../core/embodiment/manual-avatar-control";
-import { applyAvatarClothingSurfaceDetail, avatarClothingFinish } from "../../core/embodiment/avatar-appearance";
-import { createAvatarClothingDetail } from "../../core/embodiment/avatar-clothing-detail";
+} from "../../../core/embodiment/manual-avatar-control";
+import { applyAvatarClothingSurfaceDetail, avatarClothingFinish } from "../../../core/embodiment/avatar-appearance";
+import { createAvatarClothingDetail } from "../../../core/embodiment/avatar-clothing-detail";
 import {
   AVATAR_HEIGHT_METRES,
   createAvatarScale,
   offsetAvatarJointWorldY,
-} from "../../core/embodiment/avatar-scale";
-import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../../core/embodiment/avatar-foot-ik";
-import { catalogAvatarExpressions } from "../../core/embodiment/avatar-expression-catalog";
+} from "../../../core/embodiment/avatar-scale";
+import { footIKTargetNeedsReanchor, solveTwoBoneFootIK } from "../../../core/embodiment/avatar-foot-ik";
+import { catalogAvatarExpressions } from "../../../core/embodiment/avatar-expression-catalog";
 import {
   advanceAvatarBodyState,
   bodyStateAnimation,
   isBodyTransition,
   type AvatarBodyState,
-} from "../../core/embodiment/avatar-body-state";
+} from "../../../core/embodiment/avatar-body-state";
 
 const locomotionAnimationIds = ["idle", "forward", "backward", "left", "right", "run", "turn-left", "turn-right"] as const;
 

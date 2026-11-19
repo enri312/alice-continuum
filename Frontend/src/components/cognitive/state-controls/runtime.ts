@@ -20,6 +20,7 @@ import initialize, {
   mount_planner_page, update_planner_page, unmount_planner_page,
   mount_volume_page, update_volume_page, unmount_volume_page,
   mount_memory_page, update_memory_page, unmount_memory_page,
+  mount_embodiment, update_embodiment, unmount_embodiment,
 } from "../../../dioxus/dioxus-ui/pkg/alice_state_controls";
 import wasmUrl from "../../../dioxus/dioxus-ui/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
@@ -113,4 +114,9 @@ export async function loadVolumePageRuntime(): Promise<StateControlsRuntime> {
 export async function loadMemoryPageRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return { mount: mount_memory_page, update: update_memory_page, unmount: unmount_memory_page };
+}
+
+export async function loadEmbodimentRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_embodiment, update: update_embodiment, unmount: unmount_embodiment };
 }
