@@ -229,8 +229,10 @@ try {
   await until(()=>evaluate('document.querySelector(".permission-ledger")?.textContent.includes("RECHAZADA")'), 'rechazo registrado');
   await permissionButton('PREPARAR OBSERVACIÓN');
   await permissionButton('APROBAR PERMISO');
+  assert.equal(await evaluate('__TAURI_INTERNALS__.invoke("get_foreground_context")'), null, 'La aprobación por sí sola no habilita metadatos');
   await permissionButton('REVOCAR');
   await until(()=>evaluate('document.querySelector(".permission-ledger")?.textContent.includes("Revocado")'), 'permiso revocado antes de ejecución');
+  assert.equal(await evaluate('__TAURI_INTERNALS__.invoke("get_foreground_context")'), null, 'Con el permiso revocado no hay metadatos');
   await screenshot('gobernanza-permisos.png');
   await evaluate('document.querySelector(\'[aria-controls="registry-panel"]\').click()');
   await evaluate('Array.from(document.querySelectorAll("#registry-panel .bridge-grid button")).find(b=>b.querySelector("strong")?.textContent==="Controlar observación de ventana").click()');
@@ -308,7 +310,7 @@ try {
   await until(() => profileCount(1), 'La fuente válida permite recuperar el perfil');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
   const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, nodes: 11,
-    governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
+    governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {

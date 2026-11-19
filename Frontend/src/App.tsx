@@ -38,8 +38,7 @@ import {
   reviewMemory, startMemorySession, subscribeToMemory, updateMemory,
 } from "./core/memory/memory-session";
 import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
-import { startSerializedPolling } from "./core/shared/polling";
-import { parsePermissionGatewayStatus } from "./core/governance/permissions";
+import { observationSnapshot, subscribeToObservation } from "./core/governance/observation-session";
 import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
 import type { Screen } from "./core/navigation/workspaces";
 import { parseConversationLearningConfirmation, parseConversationLearningPreview } from "./core/conversation/conversation-learning";
@@ -49,7 +48,6 @@ import type { VoiceOutputPreview, VoiceOutputResult } from "./core/voice/voice-o
 import { parseVoiceTurnTranscript } from "./core/voice/voice-input";
 import type { VoiceTurnTranscript } from "./core/voice/voice-input";
 
-type ForegroundContext = { windowTitle: string; processName: string };
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
 
 export function App() {
@@ -88,8 +86,8 @@ export function App() {
     setActiveScreen(destination);
     setNavigationRequest(current => current?.screen === destination ? null : current);
   }, []);
-  const [observationEnabled, setObservationEnabled] = useState(false);
-  const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
+  const { grant: observationGrant, foregroundContext } = useSyncExternalStore(subscribeToObservation, observationSnapshot);
+  const observationEnabled = observationGrant !== null;
   const [memoryRetrieval, setMemoryRetrieval] = useState<MemoryRetrievalObservation>(emptyMemoryRetrieval);
   const memoryRetrievalGeneration = useRef(0);
   const observeMemoryRetrieval = useCallback((prepared: MemoryRetrievalObservation) => {
@@ -115,31 +113,7 @@ export function App() {
     cloudPending,
   }), [cloudPending, cloudStatus.providers, cognitiveMemories, foregroundContext, lastUserMessage, memoryRetrieval, messages.length, observationEnabled]);
 
-  useEffect(() => {
-    if (!desktopApp || !observationEnabled) return;
-    return startSerializedPolling({
-      intervalMs: 2_000,
-      read: async () => {
-        const [context, rawGateway] = await Promise.all([
-          invoke<ForegroundContext | null>("get_foreground_context"),
-          invoke<unknown>("permission_gateway_status"),
-        ]);
-        const gateway = parsePermissionGatewayStatus(rawGateway);
-        const active = gateway.grants.some((grant) => grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active");
-        return { context, active };
-      },
-      onValue: ({ context, active }) => {
-        setObservationEnabled(active);
-        setForegroundContext(active ? context : null);
-      },
-      onError: () => {
-        setObservationEnabled(false);
-        setForegroundContext(null);
-      },
-    });
-  }, [desktopApp, observationEnabled]);
-
-  async function toggleObservation() {
+  function toggleObservation() {
     if (!desktopApp) return;
     navigate("puentes");
     recordEvent("SECURITY", "PERMISSION_REQUIRED", observationEnabled
@@ -313,7 +287,7 @@ export function App() {
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setFullConversationHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={selectConversationModel} />}
-    {screen === "puentes" && <CapacidadesYPermisos onObservationStateChange={setObservationEnabled} onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
+    {screen === "puentes" && <CapacidadesYPermisos onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
     {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
     {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}
     {screen === "avatar" && <Suspense fallback={<section className="avatar-page"><div className="avatar-unavailable"><span>VRM</span><strong>Preparando el visor local…</strong><p>Los componentes 3D se cargan solamente al abrir esta pantalla.</p></div></section>}><Avatar desktopApp={desktopApp} /></Suspense>}

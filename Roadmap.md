@@ -58,12 +58,18 @@ confirmado y retira sus hechos del catálogo cuando Tauri invalida una fuente.
 Rust selecciona registros finalizados y lecciones elegibles para Conversación.
 Volumen cognitivo conserva también las lecciones pendientes o retiradas.
 El puente TypeScript reúne las proyecciones con sus etiquetas y procedencia.
-La lógica React anterior queda en `Legacy`. El siguiente bloque es el permiso
-de observación y el estado de la ventana activa.
+La lógica React anterior queda en `Legacy`.
 
-La estimación es de **8 a 10 etapas adicionales** para retirar React por
-completo. Incluye permisos y Conversación, las pantallas pendientes, la raíz
-`app.rs` y la recuperación de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-quinta-etapa).
+**Sexta etapa de App.tsx (2026-11-19).** La sesión Rust asocia los
+metadatos de la ventana activa a un permiso de sesión vigente. Confirma el
+permiso con R2 antes de mostrar cada lectura. Al detener, revocar o vencer el
+permiso, se borra la proyección y se descartan respuestas pendientes.
+La sesión React anterior quedó en `Legacy`. Sigue la coordinación del
+envío y de los canales de Conversación.
+
+La estimación es de **7 a 9 etapas adicionales** para retirar React por
+completo. Incluye Conversación, las pantallas pendientes, la raíz `app.rs` y
+la recuperación de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-sexta-etapa).
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

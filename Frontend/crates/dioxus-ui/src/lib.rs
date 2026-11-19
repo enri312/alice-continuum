@@ -44,6 +44,8 @@ pub mod model;
 pub mod navigation_model;
 #[cfg(target_arch = "wasm32")]
 mod navigation_ui;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod observation_session;
 #[cfg(target_arch = "wasm32")]
 mod ui;
 

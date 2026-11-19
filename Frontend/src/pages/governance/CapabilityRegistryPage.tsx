@@ -56,8 +56,7 @@ const enforcerLabel: Record<CapabilityDescriptor["permission"]["enforcedBy"], st
   native: "aplicación nativa", currentUi: "interfaz", operatingSystem: "sistema operativo", none: "ninguno",
 };
 
-export function CapacidadesYPermisos({ onObservationStateChange, onOpenAudit }: {
-  onObservationStateChange: (enabled: boolean) => void;
+export function CapacidadesYPermisos({ onOpenAudit }: {
   onOpenAudit: (capability?: string) => void;
 }) {
   const [section, setSection] = useState<"registry" | "permissions">("registry");
@@ -100,7 +99,7 @@ export function CapacidadesYPermisos({ onObservationStateChange, onOpenAudit }: 
       <button type="button" aria-controls="permissions-panel" aria-pressed={section === "permissions"} onClick={() => setSection("permissions")}><BridgeViewIcon kind="permissions" />Permisos</button>
     </div>
     <div id="permissions-panel" hidden={section !== "permissions"}>
-      <PermissionGatewayPanel visible={section === "permissions"} onObservationStateChange={onObservationStateChange} />
+      <PermissionGatewayPanel visible={section === "permissions"} />
     </div>
     <div id="registry-panel" hidden={section !== "registry"}>
       <div className="bridge-metrics" aria-label="Resumen del registro">

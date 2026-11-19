@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "sourceSHA256": "efcf34a3ae4cadd579315cafa7d85b354e45e2f2a13b51b34b67f05a5ea40d20",
+  "sourceSHA256": "ced6c9e85be3085edefce66907ea97dbe615c7a6180a96e8cf15eb649e1bebe1",
   "rustVersion": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
   "bindgenVersion": "wasm-bindgen 0.2.105",
   "artifacts": {
-    "alice_state_controls.d.ts": "d1d1e64ae1b2678edc3aa5e56e567ae1c75440a1f6ff8e8654107498d8d83792",
-    "alice_state_controls.js": "a2501dd759d329102d9e529f052272dda6e7bb2fa19a4939becdd3f4fcc6b8b5",
-    "alice_state_controls_bg.wasm": "2eb056c9aef968403311c4c2c68ef6dada5f4f20eef6d022d90b66f29f0a23e2",
-    "alice_state_controls_bg.wasm.d.ts": "8a9cd761165612b71a92a86e3a1dc6bbdcc337295998b83e2f3cfca7970efa3b",
+    "alice_state_controls.d.ts": "10089fd33e0bcda52a409d5d9756911f738bc29d4f33de27106e7a1b8f062e59",
+    "alice_state_controls.js": "558afda8e1105c64c2d643bbe58ca593b55722738328fa401f01a96b8352238d",
+    "alice_state_controls_bg.wasm": "db5e8d168463b3ef23836ed83bed741877b95170aee5cb0236a4c3c4501fb4b3",
+    "alice_state_controls_bg.wasm.d.ts": "c7ca1b1afe444a401e5a93d3ca427300518ce60dd82ab37d27874b5bb50c7590",
     "snippets/dioxus-interpreter-js-20451f6aefec841d/inline0.js": "cd533b7b9f2192fa535f92f4f266d03d47c23105cf500498d0bc8d6cc90dc6cf",
     "snippets/dioxus-interpreter-js-20451f6aefec841d/src/js/hydrate.js": "0659b58e105fbc8e7e97feb8aa123f455520333ae10c326fa37ec0eb4b08e833",
     "snippets/dioxus-interpreter-js-20451f6aefec841d/src/js/patch_console.js": "9ef1d21e8c05e91f5dd9e46c8f47ae574185a64497527b687f8fdb9b98045f83",

@@ -108,6 +108,13 @@ try {
       {id:'open',kind:'Conversación',intention:'proyectocomun sesión abierta',startedAt:'2026-11-19T12:00:10.000Z'},
     ] : [];
     const workingMemoryBase = {schemaVersion:1,maximumMessages:12,maximumCharacters:72000,ttlSeconds:7200,persisted:false};
+    let foregroundGrant = {
+      schemaVersion:1,grantId:'foreground_grant_fixture',requestId:'foreground_request_fixture',
+      previewDigest:'sha256:'+'c'.repeat(64),capabilityId:'context.foreground.control',operation:'setContextObservationEnabled',
+      mode:'session',issuedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+240000).toISOString(),
+      remainingUses:null,state:'approved',
+    };
+    let windowReads = 0;
     for(const method of ['getUserMedia','getDisplayMedia']) if(navigator.mediaDevices) navigator.mediaDevices[method]=async()=>{__devices++;throw Error('No physical devices in design acceptance');};
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
       __calls.push({cmd,args:structuredClone(args)});
@@ -150,6 +157,24 @@ try {
         if(args.input.expectedGeneration!==41 || args.input.confirmed!==true) throw Error('Vaciado de RAM sin revisión');
         return {snapshot:{...workingMemoryBase,state:'empty',generation:42,exchanges:[],exchangeCount:0,messageCount:0,
           characterCount:0,expiresInSeconds:null,lastActivityAt:null},auditHealthy:true,warning:null};
+      }
+      if(cmd==='permission_gateway_status' && globalThis.__observationFixture)return {
+        schemaVersion:1,generatedAt:new Date().toISOString(),requests:[],grants:[foregroundGrant],
+        policy:{denyByDefault:true,persistentGrants:false,r2DecisionCommandsExposed:true,r2ExecutionCommandsExposed:true},
+        limits:{highRiskDecisionTtlSeconds:60,standardDecisionTtlSeconds:300,maximumSessionDurationSeconds:300},
+      };
+      if(cmd==='execute_context_observation_grant' && globalThis.__observationFixture && args.input.grantId===foregroundGrant.grantId){
+        foregroundGrant = {...foregroundGrant,state:'active'};
+        return {grant:foregroundGrant,enabled:true};
+      }
+      if(cmd==='revoke_permission_grant' && globalThis.__observationFixture && args.input.grantId===foregroundGrant.grantId){
+        foregroundGrant = {...foregroundGrant,state:'revoked'};
+        return foregroundGrant;
+      }
+      if(cmd==='get_foreground_context' && globalThis.__observationFixture){
+        if(++windowReads===1)return {processName:'editor-aislado.exe',windowTitle:'Ejemplo autorizado'};
+        await new Promise(resolve=>{globalThis.__releaseWindow=resolve;});
+        return {processName:'lectura-antigua.exe',windowTitle:'Respuesta tardía de prueba'};
       }
       if(cmd==='plugin:event|listen')return 1;
       if(cmd==='plugin:event|unlisten')return null;
@@ -448,12 +473,44 @@ try {
   assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(matches)}).length`),1,'Se excluyen la sesión abierta y las lecciones inaplicables');
   assert.equal(await evaluate('__calls.filter(call=>call.cmd==="send_cloud_message").length'),0,'Consultar el catálogo no envía datos');
 
+  await evaluate('globalThis.__observationFixture=true');
+  const buttonNamed = label => `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(label)} && !button.disabled && button.checkVisibility())`;
+  const clickNamed = async label => {
+    await until(()=>evaluate(`Boolean(${buttonNamed(label)})`),label);
+    await evaluate(`${buttonNamed(label)}.click()`);
+  };
+  const showPermissions = async label => {
+    await clickNamed(label);
+    await until(()=>evaluate('Boolean(document.querySelector(\'[aria-controls="permissions-panel"]\'))'),'ruta de permisos');
+    await click('[aria-controls="permissions-panel"]');
+  };
+  const goToConversationContext = async () => {
+    await click('.core-system-selector .cognitive');
+    await ready();
+    await click('.conversation-context-drawer>summary');
+  };
+  await showPermissions('Configurar observador en Gateway');
+  await until(()=>evaluate(`Boolean(${buttonNamed('ACTIVAR')})`),'permiso aprobado espera la activación');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="get_foreground_context").length'),0,'Aprobar no lee la ventana');
+  await clickNamed('ACTIVAR');
+  await goToConversationContext();
+  await until(()=>evaluate('Boolean(document.querySelector(".conversation-observer-state.active")) && document.querySelector(".conversation-context-drawer").textContent.includes("editor-aislado.exe")'),'muestra sólo la ventana autorizada');
+  await until(()=>evaluate('typeof __releaseWindow==="function"'),'segunda lectura permanece pendiente');
+  await showPermissions('Administrar observador en Gateway');
+  await clickNamed('REVOCAR');
+  await until(()=>evaluate('document.querySelector(".permission-ledger").textContent.includes("Revocado")'),'revocación confirmada');
+  await evaluate('__releaseWindow()');
+  await goToConversationContext();
+  await until(()=>evaluate('document.querySelector(".conversation-observer-state")?.textContent.includes("INACTIVO")'),'observador inactivo al volver');
+  assert.equal(await evaluate('document.querySelector(".conversation-context-drawer").textContent.includes(".exe")'),false,'Una lectura tardía no restaura contexto');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="get_foreground_context").length'),2,'Revocar detiene las consultas');
+
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true,observationRevokesPendingRead:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

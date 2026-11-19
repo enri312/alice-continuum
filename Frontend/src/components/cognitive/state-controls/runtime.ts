@@ -3,6 +3,7 @@ import initialize, {
   init_conversation_session, update_conversation_session,
   update_memory_session,
   update_learning_session,
+  update_observation_session,
   mount_state_controls, update_state_controls, unmount_state_controls,
   mount_cognitive_flow, update_cognitive_flow, unmount_cognitive_flow,
   mount_saved_relations, update_saved_relations, unmount_saved_relations,
@@ -22,6 +23,7 @@ import { connectActivitySession } from "../../../core/cognitive/activity-session
 import { connectConversationSession } from "../../../core/conversation/conversation-session";
 import { connectMemorySession } from "../../../core/memory/memory-session";
 import { connectLearningSession } from "../../../core/memory/learning-session";
+import { connectObservationSession } from "../../../core/governance/observation-session";
 
 let initialization: Promise<unknown> | undefined;
 export async function loadRuntime(): Promise<StateControlsRuntime> {
@@ -31,6 +33,7 @@ export async function loadRuntime(): Promise<StateControlsRuntime> {
   connectConversationSession(init_conversation_session, update_conversation_session);
   connectMemorySession(update_memory_session);
   connectLearningSession(update_learning_session);
+  connectObservationSession(update_observation_session);
   return { mount: mount_state_controls, update: update_state_controls, unmount: unmount_state_controls };
 }
 

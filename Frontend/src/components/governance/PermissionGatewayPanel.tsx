@@ -11,9 +11,9 @@ import {
   createWebDevelopmentPermissionGateway,
   parsePermissionGrant,
   parseContextObservationExecutionResult,
-  parsePermissionGatewayStatus,
   parsePreparedPermissionRequest,
 } from "../../core/governance/permissions";
+import { acceptObservationExecution, acceptObservationRevocation, readObservationGateway } from "../../core/governance/observation-session";
 import type {
   PermissionGatewayResult,
   PermissionGrant,
@@ -39,7 +39,7 @@ function shortDigest(value: string) {
   return `${value.slice(0, 15)}…${value.slice(-8)}`;
 }
 
-export function PermissionGatewayPanel({ visible, onObservationStateChange }: { visible: boolean; onObservationStateChange: (enabled: boolean) => void }) {
+export function PermissionGatewayPanel({ visible }: { visible: boolean }) {
   const nativeRuntime = isTauri();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [gateway, setGateway] = useState<PermissionGatewayResult>(() => createWebDevelopmentPermissionGateway());
@@ -55,13 +55,11 @@ export function PermissionGatewayPanel({ visible, onObservationStateChange }: { 
     setReading("loading");
     return startSerializedPolling({
       intervalMs: 5_000,
-      read: async () => parsePermissionGatewayStatus(await invoke<unknown>("permission_gateway_status")),
+      read: readObservationGateway,
       onValue: snapshot => {
         setReading("ready");
         setReadError("");
         setGateway({ source: "native", snapshot });
-        onObservationStateChange(snapshot.grants.some(grant =>
-          grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active"));
         setPending(current => current && snapshot.requests.some(request =>
           request.requestId === current.requestId && request.state === "awaitingDecision") ? current : null);
       },
@@ -70,7 +68,7 @@ export function PermissionGatewayPanel({ visible, onObservationStateChange }: { 
         setReadError(String(reason));
       },
     });
-  }, [visible, nativeRuntime, busy, onObservationStateChange]);
+  }, [visible, nativeRuntime, busy]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -131,10 +129,10 @@ export function PermissionGatewayPanel({ visible, onObservationStateChange }: { 
   };
 
   const revoke = (grant: PermissionGrant) => run("revoke", async () => {
-    parsePermissionGrant(await invoke<unknown>("revoke_permission_grant", {
+    const revoked = parsePermissionGrant(await invoke<unknown>("revoke_permission_grant", {
       input: createRevokePermissionInput(grant.grantId),
     }));
-    if (grant.capabilityId === "context.foreground.control" && grant.mode === "session" && grant.state === "active") onObservationStateChange(false);
+    acceptObservationRevocation(revoked);
     setMessage(grant.state === "active" ? "Permiso revocado y su sesión detenida." : "Permiso revocado antes de su ejecución.");
   });
 
@@ -142,7 +140,7 @@ export function PermissionGatewayPanel({ visible, onObservationStateChange }: { 
     const result = parseContextObservationExecutionResult(await invoke<unknown>("execute_context_observation_grant", {
       input: createExecutePermissionInput(grant.grantId),
     }));
-    onObservationStateChange(result.enabled);
+    acceptObservationExecution(result);
     setMessage(result.enabled
       ? "Observación de ventana activa durante la sesión autorizada."
       : "Observación detenida y contexto descartado.");
