@@ -45,8 +45,15 @@ recibe los recuerdos guardados y el estado de la memoria de trabajo. Las
 operaciones de archivo se coordinan en una cola y la vista muestra los cambios
 después de que Tauri confirma el guardado. La sesión descarta lecturas antiguas
 de RAM después de vaciarla. El código React anterior queda en `Legacy`.
-Se fijó Dioxus **0.7.10** y se regeneró el WASM. El próximo bloque abarca
-la coordinación de aprendizaje y sus fuentes.
+Se fijó Dioxus **0.7.10** y se regeneró el WASM.
+
+**Cuarta etapa de App.tsx (2026-11-19).** La sesión de aprendizaje en Rust
+comparte el estado del autoestudio y del aprendizaje conversacional. Cada
+fuente conserva su última lectura válida durante un fallo. El adaptador de
+Tauri sigue escuchando los eventos, sondea cada cinco segundos y ordena las
+escrituras del propietario. El hook React anterior queda en `Legacy`. El
+próximo bloque es la carga del perfil confirmado y la proyección de recuerdos
+hacia Conversación y Volumen cognitivo.
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

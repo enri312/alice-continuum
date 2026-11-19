@@ -4,12 +4,12 @@ import { listen } from "@tauri-apps/api/event";
 import {
   parseAutomaticMemorySnapshot, type AutomaticMemorySnapshot, type AutomaticMemoryReview,
   type AutomaticLearningPhase,
-} from "../core/memory/automatic-memory";
-import { parseSelfStudySnapshot, type SelfStudySnapshot } from "../core/memory/self-study";
+} from "../../core/memory/automatic-memory";
+import { parseSelfStudySnapshot, type SelfStudySnapshot } from "../../core/memory/self-study";
 import {
   createLearningSource, type LearningSourceState, type LearningSourceController,
   type LearningSourceStatus,
-} from "../core/memory/learning-source";
+} from "../../core/memory/learning-source";
 
 export type LearningSourceViewState = {
   status: LearningSourceStatus | "unavailable";
@@ -22,7 +22,7 @@ const emptyState = <T,>(): LearningSourceState<T> => ({ snapshot: null, status: 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 
 /** Read-only status synchronisation and existing owner mutations; no study starts here. */
-export function useLearningSources(desktopApp: boolean) {
+export function useLegacyLearningSources(desktopApp: boolean) {
   const [studyState, setStudyState] = useState<LearningSourceState<SelfStudySnapshot>>(emptyState);
   const [automaticState, setAutomaticState] = useState<LearningSourceState<AutomaticMemorySnapshot>>(emptyState);
   const [studyEventError, setStudyEventError] = useState("");

@@ -1,10 +1,12 @@
 import { ConversationHost, type ConversationVisionPort } from "./pages/conversation/ConversationHost";
-import { listen } from "@tauri-apps/api/event";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
 import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
 import { selfStudyForConversation, selfStudyForCognitiveVolume } from "./core/memory/self-study";
 import { automaticMemoryForConversation } from "./core/memory/automatic-memory";
-import { useLearningSources } from "./hooks/useLearningSources";
+import {
+  learningSnapshot, refreshLearningSources, reviewAutomaticLearning,
+  startLearningSession, subscribeToLearning, toggleAutomaticMemory, toggleSelfStudy,
+} from "./core/memory/learning-session";
 import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -59,15 +61,14 @@ export function App() {
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const { sessions, workingMemory, memoryStatus, memoryPath } = useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
   useEffect(startMemorySession, []);
+  useEffect(startLearningSession, []);
   const {
     automaticMemory, automaticPhase, automaticError, automaticSource,
     selfStudy, selfStudyError, selfStudySource,
-    toggleSelfStudy, toggleAutomaticMemory, refreshLearningSources,
-    reviewAutomaticMemory: reviewLearningMemory,
-  } = useLearningSources(desktopApp);
+  } = useSyncExternalStore(subscribeToLearning, learningSnapshot);
 
   async function reviewAutomaticMemory(input: AutomaticMemoryReview) {
-    await reviewLearningMemory(input);
+    await reviewAutomaticLearning(input);
     setMemoryRetrieval(emptyMemoryRetrieval());
   }
 

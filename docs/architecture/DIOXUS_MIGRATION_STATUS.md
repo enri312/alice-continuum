@@ -18,6 +18,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
 | Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y respuesta en curso. | Host temporal. `App.tsx` conecta envío, visión y recuperación de recuerdos; delega la memoria de trabajo a su sesión. Los controladores TypeScript enlazan Tauri y las API de archivos, audio y vídeo del WebView. |
 | Memoria | Sesión compartida para la proyección de recuerdos persistidos, estado del archivo y generación de memoria de trabajo. | La pantalla y sus flujos de revisión siguen en React. El adaptador TypeScript coordina las operaciones IPC existentes. |
+| Aprendizaje | Sesión compartida del autoestudio y la memoria automática conversacional, con la última lectura válida, su estado y la fase recibida. | Los paneles aún se montan en React. El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
@@ -61,12 +62,13 @@ en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
 mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
 
 1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
-   Actividad, Conversación y Memoria ya tienen sesiones Rust. A continuación,
-   trasladar la coordinación del aprendizaje y sus fuentes. Reutilizar las
+   Actividad, Conversación, Memoria y Aprendizaje ya tienen sesiones Rust.
+   A continuación, trasladar el perfil confirmado y la proyección de recuerdos
+   hacia Conversación y Volumen cognitivo. Reutilizar las
    operaciones Tauri y los controladores que ya existen en `core/`.
 2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
    cola de guardado de recuerdos, las generaciones de memoria de trabajo,
-   la suscripción a aprendizaje y la vigencia del permiso de observación.
+   las suscripciones a fuentes de aprendizaje y la vigencia del permiso de observación.
    Comprobar que el borrador, el historial y las claves de preferencias
    sobrevivan al cambio de pantalla y al arranque.
 3. Cuando el estado compartido tenga ese contrato, montar la raíz desde el
@@ -108,6 +110,17 @@ escrituras del archivo, publica las ediciones tras el guardado confirmado y
 mantiene accesible la memoria si el WASM aún se está cargando. Tauri sigue
 validando y guardando los datos en los mismos almacenes. La coordinación React
 anterior está en `Frontend/src/Legacy/`. Esta etapa usa Dioxus 0.7.10.
+
+## Sesión de Aprendizaje (2026-11-19)
+
+`learning_session.rs` conserva la última lectura validada de cada fuente, la
+fecha de recepción, los avisos de conexión y la fase del aprendizaje
+conversacional. `learning-session.ts` publica el estado para los paneles y
+reutiliza `learning-source.ts` para el sondeo, las notificaciones, el descarte
+de lecturas desplazadas y las escrituras en orden. Si tarda el WASM, el
+adaptador ofrece las lecturas provisionales y las traspasa al conectar. El
+hook anterior está desactivado en `Legacy`. Los comandos y las decisiones
+de estudio, pausa y revisión siguen bajo el backend de Tauri.
 
 ## Página y sesión de Actividad (2026-11-19)
 

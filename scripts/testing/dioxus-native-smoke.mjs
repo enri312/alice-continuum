@@ -138,10 +138,25 @@ try {
   await until(() => evaluate('document.querySelector("#alice-message")?.value==="Prueba nativa de diseño sin enviar a un modelo."'), 'El borrador queda en Conversación al volver del Dashboard');
   await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Memoria"]\').click()');
   await until(() => evaluate('Boolean(document.querySelector(".memory-storage.storage-native"))'), 'Lectura de recuerdos locales a través de la sesión Dioxus');
-  await evaluate('Array.from(document.querySelectorAll(".memory-section-nav button")).find(button=>button.querySelector("strong").textContent==="Recuerdos").click()');
+  const selectMemorySection = title => evaluate(`Array.from(document.querySelectorAll('.memory-section-nav button')).find(button=>button.querySelector('strong').textContent===${JSON.stringify(title)}).click()`);
+  await selectMemorySection('Aprendizaje');
+  const studyToggle = 'section[aria-labelledby="self-study-title"] input';
+  const automaticToggle = 'section[aria-labelledby="automatic-memory-title"] input';
+  const controlState = (selector, enabled) => evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)})?.matches('input:enabled:${enabled ? 'checked' : 'not(:checked)'}'))`);
+  await until(() => controlState(studyToggle, false), 'Autoestudio local consultado y pausado');
+  await until(() => controlState(automaticToggle, false), 'Aprendizaje automático local consultado y pausado');
+  for (const enabled of [true, false]) {
+    await evaluate(`document.querySelector(${JSON.stringify(automaticToggle)}).click()`);
+    await until(() => controlState(automaticToggle, enabled), 'Configuración nativa de aprendizaje confirmada');
+    const automaticStore = JSON.parse(await fs.readFile(path.join(data, 'memory', 'automatic-v1.json'), 'utf8'));
+    assert.equal(automaticStore.enabled, enabled);
+    assert.deepEqual(automaticStore.records, []);
+  }
+  await screenshot('learning-session-native.png');
+  await selectMemorySection('Recuerdos');
   await until(() => evaluate('document.querySelectorAll(".memory-record").length===2'), 'Dos recuerdos conservados en el archivo aislado');
   assert.ok(await evaluate('document.querySelector(".memory-list").textContent.includes("Experiencia nativa A")'));
-  await evaluate('Array.from(document.querySelectorAll(".memory-section-nav button")).find(button=>button.querySelector("strong").textContent==="En sesión").click()');
+  await selectMemorySection('En sesión');
   await until(() => evaluate('Boolean(document.querySelector(".working-memory-panel.state-empty"))'), 'La memoria de trabajo nativa empieza vacía');
   assert.ok(await evaluate('document.querySelector(".working-memory-panel button.danger").disabled'));
   await screenshot('memory-session-native.png');
@@ -269,7 +284,7 @@ try {
   await until(() => evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt => dt.textContent === "Otros recuerdos" && dt.nextElementSibling?.textContent === "2")'), 'Volumen reconoce las dos fuentes episódicas después de recargar');
   await until(() => evaluate('document.querySelector(".volume-stats-growth")?.textContent.endsWith(" · 1 ASOCIACIÓN CONFIRMADA")'), 'Volumen proyecta la relación confirmada en Flujo');
   assert.equal(createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex'), sourceHash, 'Las fuentes sintéticas no se modifican');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, nodes: 11,
     governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);

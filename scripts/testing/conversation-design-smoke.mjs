@@ -92,6 +92,9 @@ try {
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
     globalThis.isTauri=true; globalThis.__calls=[]; globalThis.__devices=0; globalThis.__rejectSend=false;
     const memoryFixture = sessionStorage.getItem('alice-fixture-memory') === 'ready';
+    let selfStudy = {schemaVersion:1,enabled:false,biblicalTradition:'catholic',phase:'disabled',
+      lastStartedAt:null,lastCompletedAt:null,lastError:null,records:[]};
+    const automaticMemory = {schemaVersion:1,enabled:false,records:[],activeCount:0,lastOutcome:null};
     let records = memoryFixture ? [{id:'legacy',kind:'Conversación',intention:'Recuerdo anterior',summary:'Texto inicial',
       startedAt:'2026-11-19T12:00:00.000Z',finishedAt:'2026-11-19T12:00:01.000Z'}] : [];
     const workingMemoryBase = {schemaVersion:1,maximumMessages:12,maximumCharacters:72000,ttlSeconds:7200,persisted:false};
@@ -115,6 +118,15 @@ try {
       }
       if(cmd==='system_overview')return {cpuPercent:34,memory:{usedBytes:6*1024**3,totalBytes:16*1024**3},disk:{usedBytes:180*1024**3,totalBytes:500*1024**3},network:{receivedBytesPerSecond:150000,transmittedBytesPerSecond:12000},power:{pluggedIn:true,batteryPercent:76},uptimeSeconds:273600};
       if(cmd==='load_memory')return {existed:memoryFixture,storagePath:'synthetic-only/records.json',sessions:structuredClone(records)};
+      if(cmd==='self_study_status'){
+        if(globalThis.__failStudyRead) throw Error('Lectura de autoestudio interrumpida');
+        return selfStudy;
+      }
+      if(cmd==='automatic_memory_status')return automaticMemory;
+      if(cmd==='set_self_study_enabled' && memoryFixture){
+        selfStudy = {...selfStudy,enabled:args.input.enabled,phase:args.input.enabled?'idle':'disabled'};
+        return selfStudy;
+      }
       if(cmd==='save_memory' && memoryFixture){
         if(globalThis.__rejectSave) throw Error('Escritura de prueba rechazada');
         records = structuredClone(args.sessions);
@@ -389,12 +401,39 @@ try {
   await memorySection('Recuerdos');
   assert.equal(await evaluate('document.querySelector(".memory-record .memory-body > p").textContent'),'Texto revisado');
 
+  await memorySection('Aprendizaje');
+  const studySwitch = 'section[aria-labelledby=self-study-title] input[type=checkbox]';
+  const automaticSwitch = 'section[aria-labelledby=automatic-memory-title] input[type=checkbox]';
+  const studyControl = prop => evaluate(`document.querySelector(${JSON.stringify(studySwitch)})?.${prop}`);
+  await until(()=>evaluate(`Array.from(document.querySelectorAll(${JSON.stringify(studySwitch + ',' + automaticSwitch)})).filter(control=>!control.disabled).length===2`),'dos fuentes nativas simuladas disponibles');
+  assert.equal(await studyControl('checked'),false);
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd.startsWith("set_")).length'),0,'Consultar las fuentes no cambia su configuración');
+  assert.equal(await evaluate('__calls.filter(({cmd,args})=>cmd==="plugin:event|listen" && args.event==="self-study-updated").length'),1,'Una suscripción al autoestudio');
+  await click(studySwitch);
+  await until(async()=>await studyControl('checked') && !await studyControl('disabled'),'preferencia aceptada por autoestudio');
+  assert.equal(await evaluate('__calls.filter(({cmd})=>cmd==="set_self_study_enabled").length'),1);
+  await evaluate('globalThis.__failStudyRead=true');
+  await click('.screen-tabs button[data-tooltip="Volumen cognitivo"]');
+  await until(()=>evaluate('Boolean(document.querySelector(".volume-learning-refresh button"))'),'acceso a estado de aprendizaje en Volumen');
+  await click('.volume-learning-refresh button');
+  await until(()=>evaluate('document.querySelector(".volume-learning-source-states > div")?.dataset.state==="error"'),'aviso de lectura fallida');
+  await click('.screen-tabs button[data-tooltip="Memoria"]');
+  await until(()=>evaluate('Boolean(document.querySelector(".memory-section-nav"))'),'volver a Memoria');
+  await memorySection('Aprendizaje');
+  await until(()=>studyControl('checked'),'se conserva la última preferencia confirmada');
+  assert.ok(await evaluate('document.querySelector(\'section[aria-labelledby=self-study-title] [role=alert]\').textContent.includes("Lectura de autoestudio interrumpida")'));
+  await evaluate('globalThis.__failStudyRead=false');
+  await click('.screen-tabs button[data-tooltip="Volumen cognitivo"]');
+  await until(()=>evaluate('Boolean(document.querySelector(".volume-learning-refresh button"))'),'reintentar lectura');
+  await click('.volume-learning-refresh button');
+  await until(()=>evaluate('document.querySelector(".volume-learning-source-states > div")?.dataset.state==="ready"'),'recuperar la fuente sin reiniciar');
+
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

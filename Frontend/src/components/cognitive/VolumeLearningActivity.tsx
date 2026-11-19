@@ -1,6 +1,6 @@
 import type { SelfStudyPhase } from "../../core/memory/self-study";
 import type { AutomaticLearningPhase } from "../../core/memory/automatic-memory";
-import type { LearningSourceViewState } from "../../hooks/useLearningSources";
+import type { LearningSourceViewState } from "../../core/memory/learning-session";
 
 export type VolumeLearningActivityState = {
   native: boolean;
