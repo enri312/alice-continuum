@@ -2,6 +2,7 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const apply_activity_batch: (a: number, b: number) => [number, number, number, number];
+export const init_conversation_session: (a: number, b: number) => [number, number, number, number];
 export const mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_audit_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
 export const mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -30,6 +31,7 @@ export const update_activity_page: (a: number, b: number, c: number) => [number,
 export const update_audit_page: (a: number, b: number, c: number) => [number, number];
 export const update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
 export const update_conversation_page: (a: number, b: number, c: number) => [number, number];
+export const update_conversation_session: (a: number, b: number) => [number, number, number, number];
 export const update_dashboard: (a: number, b: number, c: number) => [number, number];
 export const update_flow_page: (a: number, b: number, c: number) => [number, number];
 export const update_memory_associations: (a: number, b: number, c: number) => [number, number];

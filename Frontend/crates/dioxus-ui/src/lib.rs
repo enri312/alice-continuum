@@ -17,6 +17,8 @@ pub mod confirmation_model;
 #[cfg(target_arch = "wasm32")]
 mod confirmation_ui;
 pub mod conversation_model;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod conversation_session;
 pub mod conversation_tools_model;
 #[cfg(target_arch = "wasm32")]
 mod conversation_tools_ui;

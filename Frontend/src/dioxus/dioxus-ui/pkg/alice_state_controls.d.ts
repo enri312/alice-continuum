@@ -37,12 +37,15 @@ export function unmount_state_controls(id: number): void;
 export function update_state_controls(id: number, raw: string): void;
 export function mount_state_controls(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function apply_activity_batch(raw: string): string;
+export function init_conversation_session(raw: string): string;
+export function update_conversation_session(raw: string): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly apply_activity_batch: (a: number, b: number) => [number, number, number, number];
+  readonly init_conversation_session: (a: number, b: number) => [number, number, number, number];
   readonly mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_audit_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -71,6 +74,7 @@ export interface InitOutput {
   readonly update_audit_page: (a: number, b: number, c: number) => [number, number];
   readonly update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
   readonly update_conversation_page: (a: number, b: number, c: number) => [number, number];
+  readonly update_conversation_session: (a: number, b: number) => [number, number, number, number];
   readonly update_dashboard: (a: number, b: number, c: number) => [number, number];
   readonly update_flow_page: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];

@@ -16,7 +16,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
 | Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
-| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. | Host temporal y estado compartido de `App.tsx`. Los controladores TypeScript se comunican con Tauri y las API de archivos, audio y vídeo del WebView. |
+| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y respuesta en curso. | Host temporal. `App.tsx` conecta envío, visión, recuperación de recuerdos y memoria de trabajo. Los controladores TypeScript enlazan Tauri y las API de archivos, audio y vídeo del WebView. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
@@ -34,7 +34,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
 | Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
 | Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
-| Configuración | Proveedores y preferencias compartidas; se conserva el almacenamiento seguro. |
+| Configuración | Migrar la pantalla. El proveedor, el modelo y la vista del historial ya usan la sesión Rust; Tauri conserva el almacenamiento seguro. |
 | Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
 | Aplicación y recuperación | Estado compartido de `App.tsx`, entrada, hosts y vistas anteriores de respaldo. |
 
@@ -60,17 +60,16 @@ en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
 mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
 
 1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
-   El buffer de Actividad y sus contadores ya comparten la sesión Rust. Después trasladar
-   proveedores, borrador e historial, memoria confirmada y de trabajo, y
-   aprendizaje. Reutilizar las operaciones Tauri y los controladores que ya
-   existen en `core/`.
+   Actividad y Conversación ya tienen sesiones Rust. A continuación, trasladar
+   la memoria confirmada y de trabajo y el aprendizaje. Reutilizar las
+   operaciones Tauri y los controladores que ya existen en `core/`.
 2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
    cola de guardado de recuerdos, las generaciones de memoria de trabajo,
    la suscripción a aprendizaje y la vigencia del permiso de observación.
    Comprobar que el borrador, el historial y las claves de preferencias
    sobrevivan al cambio de pantalla y al arranque.
-3. Cuando el estado compartido tenga ese contrato, montar la raíz desde
-   Dioxus y conectar cada pantalla al nuevo estado. Para retirar `createRoot`
+3. Cuando el estado compartido tenga ese contrato, montar la raíz desde el
+   componente `App` de Dioxus en `app.rs` y conectar cada pantalla. Para retirar `createRoot`
    también deben quedar migrados Planificador, Volumen, Memoria,
    Configuración, permisos, habilidades, procedimientos y las vistas
    corporales, además de las recuperaciones que siguen activas.
@@ -87,6 +86,17 @@ Cada incremento conserva diseño, datos, permisos, teclado y navegación; termin
 con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
+
+## Sesión de Conversación (2026-11-19)
+
+`conversation_session.rs` administra la selección de proveedor y modelo, el
+borrador, el historial mostrado, los dos controles de comportamiento local y
+el bloqueo de respuestas simultáneas. `conversation-session.ts` carga y guarda
+la selección con su clave existente y transporta el historial validado de Tauri.
+Una lectura inicial tardía respeta los turnos que ya finalizaron. Borrador,
+vista de historial y controles de comportamiento duran lo que dura la aplicación.
+`App.tsx` consume el estado y coordina el envío autorizado y sus efectos. La
+implementación React anterior de la sesión está en `Frontend/src/Legacy/`.
 
 ## Página y sesión de Actividad (2026-11-19)
 

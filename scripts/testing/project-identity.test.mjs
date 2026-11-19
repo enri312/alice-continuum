@@ -48,7 +48,7 @@ describe("Alice Continuum identity", () => {
     expect(JSON.parse(read("Backend/src-tauri/tauri.conf.json")).identifier).toBe("com.carlosnunez.alicecognitivecore");
     const app = read("Frontend/src/App.tsx");
     expect(app).toContain('const storageKey = "alice-cognitive-core-sessions-v1"');
-    expect(app).toContain('const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1"');
+    expect(read("Frontend/src/core/conversation/conversation-session.ts")).toContain('const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1"');
     expect(app).toContain('"proyecto-p-sessions-v1"');
   });
 

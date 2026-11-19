@@ -50,9 +50,12 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 
 La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
 renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
-diagnóstico. Rust mantiene la sesión de Actividad y alimenta sus contadores.
-React mantiene otros estados compartidos y monta las pantallas en la
-ruta activa. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
+diagnóstico. Rust mantiene las sesiones de Actividad y Conversación. La
+segunda comparte el borrador, el historial mostrado, el proveedor, el modelo
+y los ajustes de comportamiento entre Conversación, Configuración y Estado y
+controles. Tauri guarda el historial local y el WebView guarda el proveedor
+y el modelo. React aún arranca la aplicación, monta las pantallas y coordina
+otros estados compartidos. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
 Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.
 [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).

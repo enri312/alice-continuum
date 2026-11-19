@@ -6,11 +6,16 @@ import { selfStudyForConversation, selfStudyForCognitiveVolume } from "./core/me
 import { automaticMemoryForConversation } from "./core/memory/automatic-memory";
 import { useLearningSources } from "./hooks/useLearningSources";
 import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { DashboardHost } from "./pages/dashboard/DashboardHost";
-import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
-import { DEFAULT_CONVERSATION_BEHAVIOR, supportsConversationBehavior, updateConversationBehavior } from "./core/conversation/behavior-settings";
+import type { CloudRequest, CloudResponse, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
+import { supportsConversationBehavior } from "./core/conversation/behavior-settings";
+import {
+  beginConversationTurn, changeConversationBehavior, conversationSnapshot, endConversationTurn,
+  recordConversationResponse, selectCloudProvider, selectConversationModel, setConversationDraft,
+  setFullConversationHistory, subscribeToConversation,
+} from "./core/conversation/conversation-session";
 import { Volumen } from "./pages/cognitive/NeuralVolumePage";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { StateControlsHost } from "./components/cognitive/state-controls/StateControlsHost";
@@ -36,7 +41,6 @@ import { initialScreen, NavigationHost, type NavigationRequest } from "./core/na
 import type { Screen } from "./core/navigation/workspaces";
 import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/memory/working-memory";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/memory/working-memory";
-import { messagesFromConversationHistory, parseConversationHistorySnapshot } from "./core/conversation/conversation-history";
 import { parseOwnerProfileSnapshot } from "./core/conversation/owner-profile";
 import type { OwnerProfileSnapshot } from "./core/conversation/owner-profile";
 import { parseConversationLearningConfirmation, parseConversationLearningPreview } from "./core/conversation/conversation-learning";
@@ -92,17 +96,7 @@ type ForegroundContext = { windowTitle: string; processName: string };
 type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boolean };
 const storageKey = "alice-cognitive-core-sessions-v1";
 const legacyStorageKeys = ["proyecto-p-sessions-v1"];
-const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1";
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
-
-function loadCloudSelection() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(cloudSelectionKey) ?? "null") as { provider?: unknown; model?: unknown } | null;
-    return { provider: typeof parsed?.provider === "string" ? parsed.provider : "", model: typeof parsed?.model === "string" ? parsed.model : "" };
-  } catch {
-    return { provider: "", model: "" };
-  }
-}
 
 function loadSessions(): Session[] {
   return loadCompatibleArray<Session>(localStorage, storageKey, legacyStorageKeys);
@@ -129,10 +123,11 @@ export function App() {
     setMemoryRetrieval(emptyMemoryRetrieval());
   }
 
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [showFullHistory, setShowFullHistory] = useState(false);
+  const {
+    cloudStatus, cloudSelection, draft: conversationDraft, showFullHistory,
+    behavior: conversationBehavior, pending: cloudPending, messages,
+  } = useSyncExternalStore(subscribeToConversation, conversationSnapshot);
   const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
-  const [conversationDraft, setConversationDraft] = useState("");
   const [auditCapability, setAuditCapability] = useState<string | null>(null);
   const [screen, setActiveScreen] = useState(() =>
     initialScreen(new URLSearchParams(window.location.search), avatarDiagnostic));
@@ -149,23 +144,11 @@ export function App() {
   }, []);
   const [observationEnabled, setObservationEnabled] = useState(false);
   const [foregroundContext, setForegroundContext] = useState<ForegroundContext | null>(null);
-  const [cloudPending, setCloudPending] = useState(false);
-  const [conversationBehavior, setConversationBehavior] = useState(() => ({ ...DEFAULT_CONVERSATION_BEHAVIOR }));
   const [memoryRetrieval, setMemoryRetrieval] = useState<MemoryRetrievalObservation>(emptyMemoryRetrieval);
   const memoryRetrievalGeneration = useRef(0);
   const observeMemoryRetrieval = useCallback((prepared: MemoryRetrievalObservation) => {
     setMemoryRetrieval(previous => observePreparedMemory(previous, prepared));
   }, []);
-  const [cloudStatus, setCloudStatus] = useState<CloudStatus>({ providers: [
-    { id: "llamacpp", label: "Gemma local · llama.cpp", configured: false, defaultModel: "gemma-4-E2B-it-Q4_K_M", protocol: "Local · inicio por autoestudio o desde Configuración", retentionMode: "Sin nube" },
-    { id: "ollama", label: "Ollama local", configured: false, defaultModel: "qwen3.5:4b", protocol: "Chat local · loopback", retentionMode: "inferencia local; sin salida a Internet" },
-    { id: "openai", label: "OpenAI", configured: false, defaultModel: "gpt-5.6-terra", protocol: "Responses API", retentionMode: "store: false" },
-    { id: "anthropic", label: "Anthropic", configured: false, defaultModel: "", protocol: "Messages API", retentionMode: "solicitud sin estado local" },
-    { id: "google", label: "Google", configured: false, defaultModel: "gemini-3.5-flash", protocol: "GenerateContent", retentionMode: "retención según Google" },
-    { id: "xai", label: "xAI", configured: false, defaultModel: "grok-4.5", protocol: "Responses API", retentionMode: "store: false" },
-    { id: "compatible", label: "Compatible", configured: false, defaultModel: "", protocol: "Chat Completions", retentionMode: "definida por el servicio" },
-  ] });
-  const [cloudSelection, setCloudSelection] = useState(loadCloudSelection);
   const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
   const [memoryPath, setMemoryPath] = useState("");
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
@@ -222,11 +205,6 @@ export function App() {
 
   useEffect(() => {
     if (!desktopApp) return;
-    invoke<CloudStatus>("cloud_status").then(setCloudStatus).catch((error) => recordEvent("SECURITY", "CLOUD_STATUS_ERROR", String(error), "WARN"));
-  }, [desktopApp]);
-
-  useEffect(() => {
-    if (!desktopApp) return;
     let active = true;
     invoke<unknown>("owner_profile_status").then((raw) => {
       if (!active) return;
@@ -261,41 +239,6 @@ export function App() {
       },
     });
   }, [desktopApp]);
-
-  useEffect(() => {
-    if (!desktopApp) return;
-    invoke<unknown>("conversation_history_status").then((raw) => {
-      const snapshot = parseConversationHistorySnapshot(raw);
-      if (snapshot.state === "invalid") {
-        recordEvent("SECURITY", "CONVERSATION_HISTORY_INVALID", snapshot.error ?? "Historial bloqueado", "WARN");
-        return;
-      }
-      setMessages(messagesFromConversationHistory(snapshot));
-      if (snapshot.state === "ready") recordEvent("MEMORY", "CONVERSATION_HISTORY_LOADED", `${snapshot.messageCount} mensajes locales recuperados · sin promoción automática a recuerdo`);
-    }).catch((error) => recordEvent("SECURITY", "CONVERSATION_HISTORY_LOAD_ERROR", String(error), "WARN"));
-  }, [desktopApp]);
-
-  useEffect(() => {
-    const selected = cloudStatus.providers.find((provider) => provider.id === cloudSelection.provider);
-    if (!selected) {
-      const fallback = cloudStatus.providers.find((provider) => provider.id === "ollama") ?? cloudStatus.providers.find((provider) => provider.configured) ?? cloudStatus.providers[0];
-      if (fallback) setCloudSelection({ provider: fallback.id, model: fallback.defaultModel });
-      return;
-    }
-    if (!cloudSelection.model.trim() && selected.defaultModel) setCloudSelection((current) => ({ ...current, model: selected.defaultModel }));
-  }, [cloudSelection.model, cloudSelection.provider, cloudStatus.providers]);
-
-  useEffect(() => {
-    if (!cloudSelection.provider) return;
-    localStorage.setItem(cloudSelectionKey, JSON.stringify(cloudSelection));
-  }, [cloudSelection]);
-
-  function selectCloudProvider(providerId: string) {
-    const selected = cloudStatus.providers.find((provider) => provider.id === providerId);
-    if (!selected) return;
-    setCloudSelection({ provider: selected.id, model: selected.defaultModel });
-    recordEvent("SYSTEM", "INFERENCE_ROUTE_SELECTED", `${selected.label} · ${selected.defaultModel || "sin modelo"}`);
-  }
 
   useEffect(() => {
     if (!desktopApp || memoryLoadStarted.current) return;
@@ -385,13 +328,13 @@ export function App() {
   }
 
   async function sendCloudMessage(request: CloudRequest, recalledMemoryIds: string[], retrieval?: MemoryRetrievalObservation) {
-    const authorizedRequest = { ...request, behavior: supportsConversationBehavior(request.provider) ? { ...conversationBehavior } : undefined };
-    const retrievalGeneration = ++memoryRetrievalGeneration.current;
     const sentRetrieval = beginMemoryRetrieval(retrieval ?? emptyMemoryRetrieval(), request.message.trim(), request.memoryCount > 0);
-    setMemoryRetrieval(sentRetrieval);
-    setCloudPending(true);
-    recordEvent("PERCEPTION", "INFERENCE_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · RAG ${request.memoryCount}`);
+    const behavior = beginConversationTurn();
+    const retrievalGeneration = ++memoryRetrievalGeneration.current;
     try {
+      const authorizedRequest = { ...request, behavior: supportsConversationBehavior(request.provider) ? { ...behavior } : undefined };
+      setMemoryRetrieval(sentRetrieval);
+      recordEvent("PERCEPTION", "INFERENCE_PREFLIGHT_APPROVED", `${request.provider}/${request.model} · historial ${request.historyCount} · RAG ${request.memoryCount}`);
       const vision = await visionRef.current?.capture();
       const response = await invoke<CloudResponse>("send_cloud_message", { request: {...authorizedRequest, ...(vision ? {vision} : {})} });
       if (memoryRetrievalGeneration.current === retrievalGeneration) {
@@ -408,24 +351,7 @@ export function App() {
           recordEvent("SECURITY", "WORKING_MEMORY_CONTRACT_ERROR", String(error), "WARN");
         }
       }
-      if (response.conversationHistory) {
-        try {
-          const history = parseConversationHistorySnapshot(response.conversationHistory);
-          setMessages(messagesFromConversationHistory(history));
-          recordEvent("MEMORY", "CONVERSATION_HISTORY_APPENDED", `${history.messageCount} mensajes persistentes · aprendizaje automático se evalúa aparte`);
-        } catch (error) {
-          setMessages((current) => [...current,
-            { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
-            { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
-          ]);
-          recordEvent("SECURITY", "CONVERSATION_HISTORY_CONTRACT_ERROR", String(error), "WARN");
-        }
-      } else {
-        setMessages((current) => [...current,
-          { id: crypto.randomUUID(), role: "user", text: request.message, createdAt: now },
-          { id: crypto.randomUUID(), role: "assistant", text: response.text, createdAt: new Date().toISOString(), model: `${response.provider} · ${response.model}` },
-        ]);
-      }
+      recordConversationResponse(request, response, now);
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
       if (response.conversationHistoryError) recordEvent("SECURITY", "CONVERSATION_HISTORY_RECORD_ERROR", response.conversationHistoryError, "WARN");
       if (recalledMemoryIds.length && response.memoryContextMode === "full") recordEvent("MEMORY", "MEMORY_RETRIEVAL_AWAITING_FEEDBACK", `${recalledMemoryIds.length} recuerdo${recalledMemoryIds.length === 1 ? "" : "s"} incluido${recalledMemoryIds.length === 1 ? "" : "s"} en el contexto · utilidad aún no confirmada`);
@@ -436,7 +362,7 @@ export function App() {
       recordEvent("SECURITY", "CLOUD_REQUEST_ERROR", String(error), "WARN");
       throw error;
     } finally {
-      setCloudPending(false);
+      endConversationTurn();
     }
   }
 
@@ -623,7 +549,7 @@ export function App() {
       recordsError: ownerProfileError || (memoryStatus === "error" ? "No se pudieron leer los recuerdos guardados. Puedes reintentar la lectura." : ""),
     }} onRefreshLearning={refreshVolumeLearning} />}
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "estado" && <StateControlsHost snapshot={brainSnapshot} desktopApp={desktopApp} behavior={{ settings: conversationBehavior, supported: desktopApp && supportsConversationBehavior(cloudSelection.provider), busy: cloudPending, onChange: (key, value) => { if (!cloudPending) setConversationBehavior(current => updateConversationBehavior(current, key, value)); } }} />}
+    {screen === "estado" && <StateControlsHost snapshot={brainSnapshot} desktopApp={desktopApp} behavior={{ settings: conversationBehavior, supported: desktopApp && supportsConversationBehavior(cloudSelection.provider), busy: cloudPending, onChange: changeConversationBehavior }} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "identificacion" && <ConversationHost
       visionRef={visionRef} desktopApp={desktopApp} draft={conversationDraft} showFullHistory={showFullHistory}
@@ -645,7 +571,7 @@ export function App() {
     {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
-    {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setShowFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}
+    {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setFullConversationHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={selectConversationModel} />}
     {screen === "puentes" && <CapacidadesYPermisos onObservationStateChange={setObservationEnabled} onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
     {screen === "rostro" && <section className="bridge-page" aria-label="Control facial de Alice"><FaceTrackingPanel /></section>}
     {screen === "cuerpo" && <section className="bridge-page" aria-label="Solucionador corporal de Alice"><BodySolverPanel /></section>}

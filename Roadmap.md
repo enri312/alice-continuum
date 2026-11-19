@@ -31,8 +31,15 @@ estado compartido por bloques antes de sustituir el arranque React.
 **Primera etapa de App.tsx (2026-11-19).** El buffer temporal de Actividad y la
 secuencia de eventos pasan a la sesión Rust del crate Dioxus. La consola, el
 contador de pestaña y el Dashboard leen esa sesión. El buffer anterior queda
-desactivado en `Legacy`. El siguiente bloque comprende el proveedor y las
-preferencias de Conversación, el borrador y el historial.
+desactivado en `Legacy`.
+
+**Segunda etapa de App.tsx (2026-11-19).** Rust administra la sesión de
+Conversación. Conserva el borrador al cambiar de pantalla, admite una sola
+respuesta en curso y comparte el proveedor, el modelo, la vista de historial y
+los controles de comportamiento. El historial sigue en el almacén local de
+Tauri y el proveedor y el modelo conservan la clave del WebView. El estado React
+anterior quedó en `Legacy`. El siguiente bloque es la coordinación de memoria
+confirmada y de trabajo.
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

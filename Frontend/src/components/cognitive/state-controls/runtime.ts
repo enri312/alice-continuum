@@ -1,5 +1,6 @@
 import initialize, {
   apply_activity_batch,
+  init_conversation_session, update_conversation_session,
   mount_state_controls, update_state_controls, unmount_state_controls,
   mount_cognitive_flow, update_cognitive_flow, unmount_cognitive_flow,
   mount_saved_relations, update_saved_relations, unmount_saved_relations,
@@ -16,12 +17,14 @@ import initialize, {
 import wasmUrl from "../../../dioxus/dioxus-ui/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
 import { connectActivitySession } from "../../../core/cognitive/activity-session";
+import { connectConversationSession } from "../../../core/conversation/conversation-session";
 
 let initialization: Promise<unknown> | undefined;
 export async function loadRuntime(): Promise<StateControlsRuntime> {
   initialization ??= initialize({ module_or_path: wasmUrl }).catch(error => { initialization = undefined; throw error; });
   await initialization;
   connectActivitySession(apply_activity_batch);
+  connectConversationSession(init_conversation_session, update_conversation_session);
   return { mount: mount_state_controls, update: update_state_controls, unmount: unmount_state_controls };
 }
 

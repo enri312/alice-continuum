@@ -95,6 +95,20 @@ try {
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
       __calls.push({cmd,args:structuredClone(args)});
       if(cmd==='cloud_status')return {providers:[{id:'ollama',label:'Motor de prueba local',configured:true,defaultModel:'fixture-model',protocol:'synthetic',retentionMode:'no service'}]};
+      if(cmd==='conversation_history_status'){
+        const stored = sessionStorage.getItem('alice-fixture-history') === 'ready';
+        const exchanges = stored ? Array.from({length:7}, (_, index) => ({
+          exchangeId:'00000000-0000-4000-8000-'+String(index+1).padStart(12,'0'),
+          responseId:'fixture-saved-'+index,userText:'Mensaje guardado '+index,assistantText:'Respuesta guardada '+index,
+          createdAt:'2026-11-19T12:00:00.000Z',provider:'ollama',model:'fixture-model',source:'assistantConversation',
+        })) : [];
+        return {
+          schemaVersion:1,state:stored?'ready':'missing',storageExists:stored,
+          revisionId:stored?'00000000-0000-4000-8000-000000000099':null,updatedAt:stored?'2026-11-19T12:00:01.000Z':null,
+          exchanges,exchangeCount:exchanges.length,messageCount:exchanges.length*2,maximumExchanges:1000,
+          persisted:true,automaticMemoryPromotion:false,error:null,
+        };
+      }
       if(cmd==='system_overview')return {cpuPercent:34,memory:{usedBytes:6*1024**3,totalBytes:16*1024**3},disk:{usedBytes:180*1024**3,totalBytes:500*1024**3},network:{receivedBytesPerSecond:150000,transmittedBytesPerSecond:12000},power:{pluggedIn:true,batteryPercent:76},uptimeSeconds:273600};
       if(cmd==='load_memory')return {existed:false,storagePath:'synthetic-only/records.json',sessions:[]};
       if(cmd==='plugin:event|listen')return 1;
@@ -299,12 +313,40 @@ try {
   await send('Page.navigate',{url:voicePage.href});
   await ready();
   await assertDioxusVoice({ evaluate, click, until });
+
+  const settingsUrl = new URL(url);
+  settingsUrl.searchParams.set('screen','configuracion');
+  const selectionKey = 'alice-cognitive-core-cloud-selection-v1';
+  const modelInput = '.settings-model-field input';
+  const historyToggle = '.settings-card[aria-labelledby=conversation-display-title] input';
+  const awaitSavedModel = model => until(() => evaluate(`document.querySelector('.settings-provider-list [aria-checked=true]')?.textContent.includes('Motor de prueba local')
+    && document.querySelector(${JSON.stringify(modelInput)})?.value === ${JSON.stringify(model)}`), 'preferencia de modelo ' + model);
+  await evaluate(`sessionStorage.setItem('alice-fixture-history','ready');
+    localStorage.setItem(${JSON.stringify(selectionKey)}, JSON.stringify({provider:'ollama',model:'modelo-previo'}));`);
+  await send('Page.navigate',{url:settingsUrl.href});
+  await awaitSavedModel('modelo-previo');
+  await evaluate(`const field = document.querySelector(${JSON.stringify(modelInput)}); field.focus(); field.select();`);
+  await send('Input.insertText',{text:'modelo-actualizado'});
+  await until(()=>evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(selectionKey)})).model === 'modelo-actualizado'`),'guardar el modelo con la clave existente');
+  await click(historyToggle);
+  await click('.core-system-selector .cognitive');
+  await ready();
+  await until(()=>evaluate('document.querySelectorAll(".chat-message").length===14'),'historial completo desde Configuración');
+  assert.ok(await evaluate('document.querySelector(".chat-message").textContent.includes("Mensaje guardado 0")'));
+  await send('Page.reload');
+  await awaitSavedModel('modelo-actualizado');
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(historyToggle)}).checked`),false,'La vista completa se aplica durante la sesión');
+  await click('.core-system-selector .cognitive');
+  await ready();
+  await until(()=>evaluate('document.querySelectorAll(".chat-message").length===12'),'historial guardado al reabrir');
+  assert.ok(await evaluate('document.querySelector(".chat-message").textContent.includes("Mensaje guardado 1")'));
+
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {
