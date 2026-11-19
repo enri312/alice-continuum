@@ -7,7 +7,7 @@ revisar sus consumidores y probarlos antes de cambiarla.
 
 | Carpeta | Función y tratamiento |
 |---|---|
-| `Frontend/` | Workspace de interfaz: `src/`, estilos, iconos, recursos públicos, entrada/configuración Vite/TypeScript y `crates/state-controls/` con Rust/Dioxus. Su `dist/` es regenerable. |
+| `Frontend/` | Workspace de interfaz: `src/`, estilos, iconos, recursos públicos, entrada/configuración Vite/TypeScript y `crates/dioxus-ui/` con Rust/Dioxus. Su `dist/` es regenerable. |
 | `Backend/` | `src-tauri/` contiene la aplicación nativa, memoria y configuración Tauri; `adapters/` contiene adaptadores Python. |
 | `scripts/` | Generación de iconos, compilación Dioxus, respaldos, proyección Obsidian, instalación y pruebas. Algunos pilotos requieren servicios o modelos instalados y no forman parte del arranque. |
 | `docs/` | Manuales, guías operativas y contratos técnicos vigentes. El [índice](../README.md) incluye el acceso al archivo histórico. |

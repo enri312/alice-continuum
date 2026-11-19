@@ -12,7 +12,7 @@
 
 Los datos privados no están aquí: se mantienen en `data/`, y los modelos, entornos
 y recursos locales en `runtime/` o en las rutas configuradas por el propietario.
-La interfaz Dioxus de Estado y controles sigue en `Frontend/crates/state-controls/`, porque
+La interfaz Dioxus está en `Frontend/crates/dioxus-ui/`, porque
 es una vista de la aplicación, no un servicio del backend.
 El resto de la interfaz y sus recursos están en [Frontend](../Frontend/README.md).
 

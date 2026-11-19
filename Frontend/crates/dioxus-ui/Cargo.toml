@@ -1,9 +1,9 @@
 [package]
-name = "alice-state-controls"
+name = "alice-dioxus-ui"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Dioxus renderer for the existing Alice state and controls page"
+description = "Dioxus UI for Alice Continuum"
 
 [workspace]
 

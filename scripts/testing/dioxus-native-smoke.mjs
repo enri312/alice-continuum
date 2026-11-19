@@ -111,7 +111,7 @@ try {
   await screenshot('dashboard-native.png');
   assert.equal(await evaluate('document.querySelectorAll(".alice-dashboard textarea,.alice-dashboard form").length'), 0);
   await evaluate('document.querySelector(".dashboard-shortcut").click()');
-  await until(() => evaluate('Boolean(document.querySelector("#alice-message"))'), 'Dashboard abre la pestaña de Conversación');
+  await until(() => evaluate('Boolean(document.querySelector(\'[data-conversation-renderer="dioxus"] #alice-message\'))'), 'Dashboard abre Conversación en Dioxus');
   await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
   await flowReady();
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Conversación con Alice").click()');
@@ -128,7 +128,7 @@ try {
   await until(() => evaluate('Boolean(document.querySelector(".send-review"))'), 'Revisión nativa del mensaje');
   assert.ok(await evaluate('document.querySelector(".payload-detail pre").textContent.includes("Prueba nativa de diseño")'));
   await evaluate('document.querySelector(".review-actions .secondary").click()');
-  assert.equal(await evaluate('Boolean(document.querySelector(".send-review"))'), false, 'Cancelar conserva el borrador sin enviar');
+  await until(() => evaluate('!document.querySelector(".send-review")'), 'Cancelar conserva el borrador sin enviar');
   await evaluate('window.scrollTo(0,0)');
   await screenshot('conversation-console-native.png');
   await evaluate('document.querySelector(".dashboard-entry").click()');
@@ -194,12 +194,16 @@ try {
   await evaluate('Array.from(document.querySelectorAll("#registry-panel .bridge-grid button")).find(b=>b.querySelector("strong")?.textContent==="Controlar observación de ventana").click()');
   await screenshot('gobernanza-inventario.png');
   await evaluate('document.querySelector(".bridge-inspector button").click()');
-  await until(()=>evaluate('Boolean(document.querySelector(".native-audit"))&&!document.querySelector("[data-activity-renderer]")'),'auditoría separada');
+  await until(()=>evaluate('Boolean(document.querySelector(\'[data-audit-renderer="dioxus"] .native-audit\'))&&!document.querySelector("[data-activity-renderer]")'),'auditoría en Dioxus');
   await until(()=>evaluate('document.querySelector(".native-audit")?.textContent.includes("Revocación")'), 'revocación visible en auditoría de la capacidad');
   assert.ok(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).every(row=>row.children[3].title.startsWith("context.foreground.control /"))'));
   assert.equal(await evaluate('Array.from(document.querySelectorAll(".native-event-row:not(.event-header)")).some(row=>row.children[2].textContent==="Ejecución")'), false);
   await evaluate('Array.from(document.querySelectorAll(".native-audit button")).find(b=>b.textContent==="Mostrar todas las operaciones").click()');
   await until(()=>evaluate('!document.querySelector(".native-audit")?.textContent.includes("Capacidad seleccionada")'), 'auditoría completa');
+  await evaluate('document.querySelector("#diagnostic-tab").click()');
+  await until(()=>evaluate('document.querySelectorAll(".diagnostic-check").length>0'), 'lecturas nativas de diagnóstico');
+  assert.equal(await evaluate('document.querySelectorAll(".diagnostic-groups>section").length'),5);
+  await screenshot('diagnostico-dioxus.png');
   const timelineRuntimeFile=(await fs.readdir(path.join(root,'Frontend/dist/assets'))).find(name=>/^runtime-.*\.js$/.test(name));
   assert.ok(timelineRuntimeFile);
   const timelineRuntimeUrl=new URL(`/assets/${timelineRuntimeFile}`,preview).href;

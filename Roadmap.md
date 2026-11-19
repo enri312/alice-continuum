@@ -1,7 +1,7 @@
 # Roadmap de Alice Continuum
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-17**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-19**. Identidad adoptada: 2026-09-16.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
@@ -15,6 +15,14 @@ para fases, criterios y estado por plataforma. La aceptación de voz y el núcle
 siguen pendientes; el plan no da por resuelto R9 ni R10.
 
 La [guía por tareas](docs/README.md) reúne instalación, uso, aprendizaje y recuperación.
+
+**Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
+pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.
+Conversación conserva el borrador, la revisión previa y sus herramientas
+de voz, visión, diagnóstico de entrada y documentos. Auditoría conserva
+el filtro por capacidad y el diagnóstico pasivo. Las implementaciones
+React anteriores quedan desactivadas hasta la revisión para eliminarlas.
+El crate `Frontend/crates/dioxus-ui` reúne las pantallas ya migradas.
 
 **Dashboard de inicio en Dioxus y tema de consola (2026-11-17).** El inicio
 reúne estado de Alice, accesos a herramientas y lecturas del equipo. Texto, voz
@@ -58,8 +66,8 @@ contexto, voz, visión y herramientas plegadas siguen conectados al producto;
 no se copiaron respuestas, recuerdos ni alarmas simuladas del HTML. Se probaron
 cancelación, edición, confirmación y error con IPC sintético, teclado, carrusel
 y anchos 320–1280 px. La aceptación Tauri usa IPC real y datos aislados, sin
-enviar una consulta a un modelo ni abrir dispositivos. Las otras pantallas
-conservan su diseño; Conversación sigue pendiente de migrar a Dioxus.
+enviar una consulta a un modelo ni abrir dispositivos. Esa primera versión de
+Conversación todavía usaba React.
 Ver [dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md) e
 [informe y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 

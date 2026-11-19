@@ -51,7 +51,10 @@ pub fn Graph(payload: Payload, on_select: EventHandler<String>) -> Element {
     let snap = &payload;
     let selected_id = snap.selected_id.clone();
     let inspector = snap.selected(&selected_id);
-    let active_routes = CONNECTIONS.iter().filter(|(_, _, evidence)| snap.signal(*evidence) > 0.0).count();
+    let active_routes = CONNECTIONS
+        .iter()
+        .filter(|(_, _, evidence)| snap.signal(*evidence) > 0.0)
+        .count();
     let summary = match snap.activity.status {
         ActivityStatus::Loading => "Leyendo auditoría…".into(),
         ActivityStatus::Unavailable => "Lectura no disponible".into(),

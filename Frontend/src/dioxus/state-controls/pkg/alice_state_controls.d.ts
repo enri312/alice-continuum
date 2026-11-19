@@ -12,6 +12,9 @@ export function mount_flow_page(root: string, raw: string, on_action: Function, 
 export function unmount_saved_relations(id: number): void;
 export function update_saved_relations(id: number, raw: string): void;
 export function mount_saved_relations(root: string, raw: string, on_action: Function, on_ready: Function): number;
+export function unmount_audit_page(id: number): void;
+export function update_audit_page(id: number, raw: string): void;
+export function mount_audit_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_source_form(id: number): void;
 export function update_source_form(id: number, raw: string): void;
 export function mount_source_form(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -24,6 +27,9 @@ export function mount_relation_confirmation(root: string, raw: string, on_action
 export function unmount_activity_page(id: number): void;
 export function update_activity_page(id: number, raw: string): void;
 export function mount_activity_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
+export function unmount_conversation_page(id: number): void;
+export function update_conversation_page(id: number, raw: string): void;
+export function mount_conversation_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_state_controls(id: number): void;
 export function update_state_controls(id: number, raw: string): void;
 export function mount_state_controls(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -33,7 +39,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly mount_audit_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly mount_conversation_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_dashboard: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_flow_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -42,7 +50,9 @@ export interface InitOutput {
   readonly mount_source_form: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_state_controls: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly unmount_activity_page: (a: number) => void;
+  readonly unmount_audit_page: (a: number) => void;
   readonly unmount_cognitive_flow: (a: number) => void;
+  readonly unmount_conversation_page: (a: number) => void;
   readonly unmount_dashboard: (a: number) => void;
   readonly unmount_flow_page: (a: number) => void;
   readonly unmount_memory_associations: (a: number) => void;
@@ -51,7 +61,9 @@ export interface InitOutput {
   readonly unmount_source_form: (a: number) => void;
   readonly unmount_state_controls: (a: number) => void;
   readonly update_activity_page: (a: number, b: number, c: number) => [number, number];
+  readonly update_audit_page: (a: number, b: number, c: number) => [number, number];
   readonly update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
+  readonly update_conversation_page: (a: number, b: number, c: number) => [number, number];
   readonly update_dashboard: (a: number, b: number, c: number) => [number, number];
   readonly update_flow_page: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];
@@ -61,9 +73,9 @@ export interface InitOutput {
   readonly update_state_controls: (a: number, b: number, c: number) => [number, number];
   readonly wasm_bindgen_dce4ae8b940e967c___convert__closures________invoke___web_sys_fa9d3aca4c911a8___features__gen_Event__Event_____: (a: number, b: number, c: any) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___closure__destroy___dyn_for__a__core_37ee0ce0c4cd57d5___ops__function__Fn____a_web_sys_fa9d3aca4c911a8___features__gen_Event__Event____Output_______: (a: number, b: number) => void;
-  readonly wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______: (a: number, b: number) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke___wasm_bindgen_dce4ae8b940e967c___JsValue_____: (a: number, b: number, c: any) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___closure__destroy___dyn_core_37ee0ce0c4cd57d5___ops__function__FnMut__wasm_bindgen_dce4ae8b940e967c___JsValue____Output_______: (a: number, b: number) => void;
+  readonly wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______: (a: number, b: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;

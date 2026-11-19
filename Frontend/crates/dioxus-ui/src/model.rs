@@ -94,7 +94,11 @@ impl Activity {
             ActivityStatus::Ready => format!(
                 "{} {} / {} MIN · SEÑAL {:.3} · {}",
                 self.window_event_count,
-                if self.window_event_count == 1 { "EVENTO" } else { "EVENTOS" },
+                if self.window_event_count == 1 {
+                    "EVENTO"
+                } else {
+                    "EVENTOS"
+                },
                 ((self.window_ms as f64) / 60_000.0).round() as u64,
                 self.overall_signal,
                 if self.audit_healthy == Some(true) {

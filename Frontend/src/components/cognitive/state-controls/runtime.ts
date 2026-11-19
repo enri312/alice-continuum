@@ -8,6 +8,8 @@ import initialize, {
   mount_flow_page, update_flow_page, unmount_flow_page,
   mount_activity_page, update_activity_page, unmount_activity_page,
   mount_dashboard, update_dashboard, unmount_dashboard,
+  mount_audit_page, update_audit_page, unmount_audit_page,
+  mount_conversation_page, update_conversation_page, unmount_conversation_page,
 } from "../../../dioxus/state-controls/pkg/alice_state_controls";
 import wasmUrl from "../../../dioxus/state-controls/pkg/alice_state_controls_bg.wasm?url";
 import type { StateControlsRuntime } from "./lifecycle";
@@ -56,4 +58,14 @@ export async function loadActivityPageRuntime(): Promise<StateControlsRuntime> {
 export async function loadDashboardRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return { mount: mount_dashboard, update: update_dashboard, unmount: unmount_dashboard };
+}
+
+export async function loadAuditPageRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_audit_page, update: update_audit_page, unmount: unmount_audit_page };
+}
+
+export async function loadConversationPageRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_conversation_page, update: update_conversation_page, unmount: unmount_conversation_page };
 }

@@ -14,6 +14,8 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 |---|---|---|
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
 | Actividad | Página, encabezado, pestañas, consola inversa, búsqueda y filtro por módulo, estado y línea temporal en un solo montaje. | Host temporal de montaje/reintento y vaciado; el buffer y sus productores siguen en `App.tsx`. |
+| Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
+| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. | Host temporal y estado compartido de `App.tsx`. Los controladores TypeScript se comunican con Tauri y las API de archivos, audio y vídeo del WebView. |
 | Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
 | Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
@@ -27,19 +29,24 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Bloque pendiente | Trabajo que falta |
 |---|---|
 | Conexión de Actividad con la aplicación | Retirar el host al sustituir el estado raíz, productores y buffer compartido de `App.tsx`. La presentación y los filtros de la página ya están en Dioxus. |
-| Auditoría y diagnóstico | Presentación, lecturas, validación y estados de error de sus vistas. Los servicios Rust existentes se conservan. |
 | Planificador | Presentación e inspector; después el registro R7 con sus revisiones y confirmaciones. |
 | Volumen cognitivo | Página, escena, selección, inspector y paneles de aprendizaje. |
 | Memoria | Navegación, registros, perfil, autoestudio, memoria automática, sesión y mantenimiento. Se conservan los almacenes Rust y sus contratos. |
 | Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
 | Configuración | Proveedores y preferencias compartidas; se conserva el almacenamiento seguro. |
-| Conversación | Texto, historial, contexto, captura, escucha y voz; exige aceptación de dispositivos y servicios reales. |
 | Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
 | Aplicación y recuperación | Estado compartido de `App.tsx`, navegación, entrada, hosts y todas las vistas anteriores de respaldo. |
 
 Después de migrar las pantallas se sustituirá el contenedor raíz y el arranque.
 Los errores de carga deben permitir reintentar y recuperar datos sin necesitar
 la interfaz React anterior. Los archivos retirados seguirán disponibles en Git.
+
+Las rutas de Conversación y Auditoría y diagnóstico montan Dioxus desde el
+19 de noviembre. Cuando falla la carga ofrecen reintentar el mismo renderer.
+`ConversationPage.tsx`, `InputIdentificationPage.tsx`, `GovernancePage.tsx` y sus
+componentes React quedaron fuera de las rutas de producción. Su eliminación
+queda para la revisión posterior. Las pruebas con dispositivos físicos y
+proveedores reales se registran por separado de las pruebas con datos simulados.
 
 La salida de React exige cero importaciones productivas de `react`, `react-dom`
 y `react/jsx-runtime`; retirar las pruebas que requieran esas vistas después de
@@ -230,7 +237,7 @@ una vista React de respaldo permite recuperar la pantalla si falla WASM.
 
 La prueba nativa usa datos sintéticos y no certifica voz, proveedores ni datos
 personales. No se utilizaron recuerdos personales. Los ensayos están documentados en la
-[guía del módulo](../../Frontend/crates/state-controls/README.md).
+[guía del módulo](../../Frontend/crates/dioxus-ui/README.md).
 
 ## Código que todavía tiene uso
 

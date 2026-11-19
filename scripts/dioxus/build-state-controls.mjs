@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const project = fileURLToPath(new URL("../../", import.meta.url));
-const crate = path.join(project, "Frontend/crates/state-controls");
+const crate = path.join(project, "Frontend/crates/dioxus-ui");
 const output = path.join(project, "Frontend/src/dioxus/state-controls/pkg");
 const args = process.argv.slice(2);
 const check = args.includes("--check");
@@ -27,9 +27,9 @@ function artifactDigests() {
 if (check) {
   const manifest = JSON.parse(readFileSync(path.join(output, "build-manifest.json"), "utf8"));
   if (manifest.schemaVersion !== 1 || manifest.sourceSHA256 !== sourceDigest() || JSON.stringify(manifest.artifacts) !== JSON.stringify(artifactDigests())) {
-    throw Error("El módulo de Estado y controles no corresponde a las fuentes. Ejecuta npm run dioxus:build.");
+    throw Error("El módulo de interfaz Dioxus no corresponde a las fuentes. Ejecuta npm run dioxus:build.");
   }
-  console.log("Estado y controles: fuentes y artefactos Dioxus verificados.");
+  console.log("Interfaz Dioxus: fuentes y artefactos Dioxus verificados.");
 } else {
   const rustRoot = option("--rust-root");
   const executable = name => rustRoot ? path.join(rustRoot, "bin", `${name}${process.platform === "win32" ? ".exe" : ""}`) : name;
@@ -45,7 +45,7 @@ if (check) {
   function run(binary, parameters, capture = false) {
     const result = spawnSync(binary, parameters, { cwd: project, env, encoding: "utf8", stdio: capture ? "pipe" : "inherit", windowsHide: true });
     if (result.error) throw result.error;
-    if (result.status !== 0) throw Error(`No se pudo generar Estado y controles: ${path.basename(binary)} (${result.status}).`);
+    if (result.status !== 0) throw Error(`No se pudo generar Interfaz Dioxus: ${path.basename(binary)} (${result.status}).`);
     return result.stdout?.trim();
   }
   const bindgenVersion = run(bindgen, ["--version"], true);
@@ -55,7 +55,7 @@ if (check) {
   if (!args.includes("--online")) buildArgs.push("--offline");
   if (!existsSync(path.join(crate, "Cargo.lock"))) throw Error("Falta Cargo.lock; generar y revisar antes de compilar.");
   run(executable("cargo"), buildArgs);
-  run(bindgen, [path.join(env.CARGO_TARGET_DIR, "wasm32-unknown-unknown/release/alice_state_controls.wasm"), "--target", "web", "--out-dir", output]);
+  run(bindgen, [path.join(env.CARGO_TARGET_DIR, "wasm32-unknown-unknown/release/alice_dioxus_ui.wasm"), "--target", "web", "--out-name", "alice_state_controls", "--out-dir", output]);
   writeFileSync(path.join(output, "build-manifest.json"), `${JSON.stringify({ schemaVersion: 1, sourceSHA256: sourceDigest(), rustVersion, bindgenVersion, artifacts: artifactDigests() }, null, 2)}\n`);
-  console.log("Estado y controles: WASM generado desde las fuentes del principal.");
+  console.log("Interfaz Dioxus: WASM generado desde las fuentes del principal.");
 }

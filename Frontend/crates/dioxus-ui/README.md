@@ -1,8 +1,13 @@
-# Estado y controles en Dioxus
+# Interfaz Dioxus de Alice Continuum
+
+Conversación y Auditoría y diagnóstico también se montan desde este crate.
+Rust renderiza las pantallas. Los adaptadores llaman a los comandos de Tauri
+y controlan los recursos de audio, vídeo y archivos del navegador.
+El flujo de reintento vuelve a montar Dioxus si falla el WASM.
 
 Este paquete también incorpora el grafo y el inspector de Flujo cognitivo:
 `flow_model.rs` valida nodos, geometría, selección y señales R3; `flow_ui.rs`
-los dibuja con las clases CSS existentes. Los ocho renderers comparten un único
+los dibuja con las clases CSS existentes. Las vistas comparten un único
 WASM y tienen ciclos de montaje independientes. La página completa de Flujo
 integra el grafo y las asociaciones en un solo montaje y mantiene en Rust su
 selección, validación/proyección R3 y sondeo serializado de cinco segundos.
@@ -85,7 +90,7 @@ dependencias fijadas; no instala toolchains. Las salidas de compilación y los
 temporales están en `runtime/dioxus-build/`, fuera de Git.
 La compilación normal del frontend utiliza los artefactos incluidos y no necesita
 esas herramientas. Las pruebas del contrato pueden ejecutarse con
-`cargo test --locked --manifest-path Frontend/crates/state-controls/Cargo.toml`.
+`cargo test --locked --manifest-path Frontend/crates/dioxus-ui/Cargo.toml`.
 
 ## Ensayo opcional en Edge/Chromium
 

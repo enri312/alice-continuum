@@ -6,6 +6,7 @@ import { once } from 'node:events';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertDioxusVoice } from './dioxus-voice-smoke.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const url = new URL(process.env.ALICE_PREVIEW_URL ?? 'http://127.0.0.1:4173/');
@@ -17,6 +18,7 @@ await fs.mkdir(artifactRoot, { recursive:true });
 const artifacts = await fs.mkdtemp(path.join(artifactRoot, 'proposal04-'));
 const browser = spawn(process.env.ALICE_BROWSER_PATH ?? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', [
   '--headless', '--disable-gpu', '--no-first-run', '--disable-extensions', '--disable-background-networking',
+  '--autoplay-policy=no-user-gesture-required', '--mute-audio',
   `--user-data-dir=${path.join(artifacts, 'profile')}`, '--remote-debugging-port=0', 'about:blank',
 ], { windowsHide:true, stdio:'ignore' });
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -34,7 +36,7 @@ try {
   socket.addEventListener('message', event=>{
     const message=JSON.parse(event.data);
     if (message.method==='Network.requestWillBeSent') network.push(message.params.request.url);
-    if (message.method==='Runtime.exceptionThrown') failures.push(message.params.exceptionDetails.text);
+    if (message.method==='Runtime.exceptionThrown') failures.push(message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text);
     const request=pending.get(message.id); if(!request)return;
     pending.delete(message.id); clearTimeout(request.timer);
     message.error?request.reject(Error(message.error.message)):request.resolve(message.result);
@@ -45,7 +47,7 @@ try {
   });
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description??r.exceptionDetails.text);return r.result.value;};
   const click=selector=>evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
-  const ready=()=>until(()=>evaluate('Boolean(document.querySelector("#alice-message"))'),'Conversación');
+  const ready=()=>until(()=>evaluate('Boolean(document.querySelector(\'[data-conversation-renderer="dioxus"] #alice-message\'))'),'Conversación en Dioxus');
   const input=async text=>{
     // Review deliberately moves focus after rendering; finish that before typing.
     await pause(150);
@@ -97,6 +99,7 @@ try {
       if(cmd==='load_memory')return {existed:false,storagePath:'synthetic-only/records.json',sessions:[]};
       if(cmd==='plugin:event|listen')return 1;
       if(cmd==='plugin:event|unlisten')return null;
+      if(cmd==='preview_document')return {status:'ok',sourceSha256:'a'.repeat(64),totalPages:1,chunks:[{page:1,startChar:0,endChar:45,text:'<img src=x onerror="globalThis.__injected=true">'}]};
       if(cmd==='send_cloud_message'){
         if(__rejectSend)throw Error('Fallo sintético de aceptación');
         return {text:'Respuesta sintética: interfaz comprobada.',provider:'ollama',model:'fixture-model',responseId:'fixture-response',inputTokens:0,outputTokens:0,workingMemory:null,workingMemoryError:null,conversationHistory:null,conversationHistoryError:null};
@@ -158,22 +161,54 @@ try {
   assert.equal(await evaluate('__calls.filter(c=>c.cmd==="send_cloud_message").length'),0,'Revisar no envía');
   assert.ok(await evaluate('document.querySelector(".payload-detail pre").textContent.includes("Prueba visual: empatía y álgebra.")'));
   await click('.review-actions .secondary');
-  assert.equal(await evaluate('Boolean(document.querySelector(".send-review"))'),false);
+  await until(()=>evaluate('!document.querySelector(".send-review")'),'cancelar la revisión');
   await click('.composer-footer button');
   await input('Mensaje editado: escuchar con atención.');
   await until(()=>evaluate('!document.querySelector(".send-review")'),'editar invalida la autorización anterior');
-  await click('.composer-footer button'); await click('.review-actions .primary');
+  await click('.composer-footer button');
+  await until(()=>evaluate('Boolean(document.querySelector(".review-actions .primary"))'),'confirmar revisión actual');
+  await click('.review-actions .primary');
   await until(()=>evaluate('document.querySelectorAll(".chat-message").length===2'),'respuesta sintética');
   assert.equal(await evaluate('__calls.filter(c=>c.cmd==="send_cloud_message").length'),1);
   assert.equal(await evaluate('__calls.find(c=>c.cmd==="send_cloud_message").args.request.message'),'Mensaje editado: escuchar con atención.');
-  assert.equal(await evaluate('document.querySelector("#alice-message").value'),'');
+  await until(()=>evaluate('document.querySelector("#alice-message").value===""'),'limpiar el borrador después de enviar');
   await screenshot('conversation-desktop.png');
   await click('.conversation-context-drawer>summary');
   await input('Prueba del estado de error.');
   await evaluate('__rejectSend=true');
-  await click('.composer-footer button'); await click('.review-actions .primary');
+  await click('.composer-footer button');
+  await until(()=>evaluate('Boolean(document.querySelector(".review-actions .primary"))'),'confirmar mensaje de prueba');
+  await click('.review-actions .primary');
   await until(()=>evaluate('document.querySelector(".cloud-error")?.textContent.includes("Fallo sintético")'),'error visible sin perder el borrador');
   assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Prueba del estado de error.');
+  await click('.conversation-secondary-panel:nth-of-type(2)>summary');
+  await until(()=>evaluate('Boolean(document.querySelector(".document-preview input"))'),'lector local');
+  await evaluate(`(() => {
+    const file = new File(['texto de prueba'], 'prueba.txt', { type: 'text/plain' });
+    const data = new DataTransfer();
+    data.items.add(file);
+    const input = document.querySelector('.document-preview input');
+    input.files = data.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`);
+  await until(()=>evaluate('!document.querySelector(".document-preview button").disabled'),'archivo listo para revisión');
+  assert.equal(await evaluate('__calls.filter(c=>c.cmd==="preview_document").length'),0,'Seleccionar el archivo no autoriza leerlo');
+  await click('.document-preview button');
+  await until(()=>evaluate('document.querySelector(".document-preview pre")?.textContent.includes("<img")'),'documento mostrado como texto');
+  assert.equal(await evaluate('Boolean(document.querySelector(".document-preview img") || globalThis.__injected)'),false);
+  await click('.document-preview button:nth-of-type(2)');
+  await until(()=>evaluate('!document.querySelector(".document-preview pre")'),'descartar vista previa');
+  await click('.conversation-secondary-panel:nth-of-type(2)>summary');
+  await click('.conversation-secondary-panel:first-of-type>summary');
+  await until(()=>evaluate('document.querySelector(".identification-received strong")?.textContent==="Prueba del estado de error."'),'analizar entrada local');
+  const diagnosticButton = label => evaluate(`Array.from(document.querySelectorAll(".identification-controls button")).find(b=>b.textContent===${JSON.stringify(label)}).click()`);
+  await diagnosticButton('Congelar diagnóstico');
+  await input('Texto para segunda lectura.');
+  assert.equal(await evaluate('document.querySelector(".identification-received strong")?.textContent'),'Prueba del estado de error.');
+  await diagnosticButton('Actualizar en vivo');
+  await until(()=>evaluate('document.querySelector(".identification-received strong")?.textContent==="Texto para segunda lectura."'),'reanudar el diagnóstico');
+  await input('Prueba del estado de error.');
+  await click('.conversation-secondary-panel:first-of-type>summary');
   const sizes=[];
   for(const width of [1280,1024,390,320]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});await pause(150);
@@ -181,7 +216,7 @@ try {
     assert.ok(size.scroll<=size.width+1,'Sin desborde: '+JSON.stringify(size));
     size.navigation=await checkNavigation(width);sizes.push(size);
   }
-  await click('.review-actions .secondary'); await click('.conversation-context-drawer>summary');
+  await click('.conversation-context-drawer>summary');
   await screenshot('conversation-mobile.png');
   const scrollBefore=await evaluate('document.querySelector(".screen-tabs").scrollLeft');
   await evaluate('document.querySelector(".screen-tabs").scrollBy({left:200,behavior:"instant"})');
@@ -220,9 +255,9 @@ try {
       await click('[aria-controls="registry-panel"]');
       assert.ok(await evaluate('document.querySelector("#permissions-panel").hidden && document.querySelector(".bridge-layout").checkVisibility()'));
       await click('.governance-audit-link');
-      await until(()=>evaluate('Boolean(document.querySelector("main[data-screen=auditoria] .native-audit"))'), 'El enlace abre el historial real de auditoría');
+      await until(()=>evaluate('Boolean(document.querySelector(\'[data-audit-renderer="dioxus"] .native-audit\'))'), 'El enlace abre Auditoría en Dioxus');
       await click('.activity-view-tabs button:nth-of-type(2)');
-      assert.ok(await evaluate('document.querySelector(".passive-diagnostic").checkVisibility()'));
+      await until(()=>evaluate('document.querySelector(".passive-diagnostic")?.checkVisibility()'),'diagnóstico pasivo visible');
       await click('.screen-tabs button[aria-label="Capacidades y permisos"]');
       await until(()=>evaluate('Boolean(document.querySelector("#registry-panel"))'),'Regreso al inventario');
     }
@@ -233,15 +268,35 @@ try {
     await checkNavigation(390, tabCount);
     themedScreens.push(screen);
   }
+  await send('Network.setCacheDisabled',{cacheDisabled:true});
+  for (const [screen, renderer, component] of [
+    ['identificacion','conversation','#alice-message'],
+    ['auditoria','audit','.native-audit'],
+  ]) {
+    await send('Network.setBlockedURLs',{urls:['*.wasm']});
+    const target = new URL(url); target.searchParams.set('screen',screen);
+    await send('Page.navigate',{url:target.href});
+    const unavailable = `[data-${renderer}-renderer=error]`;
+    await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(unavailable)}))`), 'el fallo WASM ofrece reintento para '+screen);
+    assert.equal(await evaluate(`Boolean(document.querySelector(${JSON.stringify(component)}))`),false,'La ruta React queda inactiva');
+    await send('Network.setBlockedURLs',{urls:[]});
+    await click(unavailable+' button');
+    await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(`[data-${renderer}-renderer=dioxus] ${component}`)}))`),'recuperar Dioxus en '+screen);
+  }
+  const voicePage = new URL(url); voicePage.searchParams.set('screen', 'identificacion');
+  await send('Page.navigate',{url:voicePage.href});
+  await ready();
+  await assertDioxusVoice({ evaluate, click, until });
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,keyboardAndCarousel:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {
   if(send&&socket?.readyState===WebSocket.OPEN){try{const r=await send('Page.captureScreenshot',{format:'png'});await fs.writeFile(path.join(artifacts,'failure.png'),Buffer.from(r.data,'base64'));}catch{}}
+  await fs.writeFile(path.join(artifacts,'failure.json'),JSON.stringify({error:String(error),exceptions:failures},null,2));
   console.error('Evidencia: '+artifacts);throw error;
 } finally { socket?.close(); if(browser.exitCode===null)browser.kill(); }

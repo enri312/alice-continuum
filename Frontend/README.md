@@ -6,7 +6,7 @@ iconos, recursos y comportamiento; no convierte por sí sola más pantallas a Di
 | Ruta | Contenido |
 |---|---|
 | `src/` | Entrada, navegación, pantallas, componentes, estilos, contratos y lógica TypeScript existente. |
-| `crates/state-controls/` | Fuentes Rust/Dioxus de Estado y controles, Flujo, relaciones y Actividad con su línea temporal. |
+| `crates/dioxus-ui/` | Fuentes Rust/Dioxus de Dashboard, Conversación, Auditoría y diagnóstico, Estado y controles, Flujo, relaciones y Actividad. |
 | `src/dioxus/state-controls/pkg/` | WASM y bindings versionados, verificados contra las fuentes. |
 | `icons/` | Catálogo SVG consumido por la interfaz. Los iconos nativos de Tauri siguen en el backend. |
 | `public/` | Recursos estáticos y licencias, publicados en las mismas URL que antes. |

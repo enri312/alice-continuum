@@ -6,11 +6,22 @@ mod activity_ui;
 pub mod associations_model;
 #[cfg(target_arch = "wasm32")]
 mod associations_ui;
+pub mod audit_page_model;
+#[cfg(target_arch = "wasm32")]
+mod audit_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod browser_timer;
 pub mod confirmation_model;
 #[cfg(target_arch = "wasm32")]
 mod confirmation_ui;
+pub mod conversation_model;
+pub mod conversation_tools_model;
+#[cfg(target_arch = "wasm32")]
+mod conversation_tools_ui;
+#[cfg(target_arch = "wasm32")]
+mod conversation_ui;
+#[cfg(target_arch = "wasm32")]
+mod conversation_voice_ui;
 pub mod core_activity_model;
 pub mod dashboard_model;
 #[cfg(target_arch = "wasm32")]
@@ -119,4 +130,22 @@ mountable_view!(
     mount_dashboard,
     update_dashboard,
     unmount_dashboard
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    audit_page_browser,
+    crate::audit_page_model::Payload,
+    crate::audit_page_ui,
+    mount_audit_page,
+    update_audit_page,
+    unmount_audit_page
+);
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    conversation_page_browser,
+    crate::conversation_model::Payload,
+    crate::conversation_ui,
+    mount_conversation_page,
+    update_conversation_page,
+    unmount_conversation_page
 );

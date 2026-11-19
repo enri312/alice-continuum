@@ -1,4 +1,4 @@
-import { ConversationVision, type ConversationVisionHandle } from "./components/conversation/ConversationVision";
+import { ConversationHost, type ConversationVisionPort } from "./pages/conversation/ConversationHost";
 import { listen } from "@tauri-apps/api/event";
 import { AutomaticMemoryPanel } from "./components/memory/AutomaticMemoryPanel";
 import { SelfStudyPanel } from "./components/memory/SelfStudyPanel";
@@ -8,7 +8,6 @@ import { useLearningSources } from "./hooks/useLearningSources";
 import type { AutomaticMemoryReview } from "./core/memory/automatic-memory";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { Conversacion } from "./pages/conversation/ConversationPage";
 import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import type { CloudRequest, CloudResponse, CloudStatus, ConversationMessage, HybridRetrievalPreview, HybridRetrievalRequest } from "./core/conversation/conversation-contracts";
 import { DEFAULT_CONVERSATION_BEHAVIOR, supportsConversationBehavior, updateConversationBehavior } from "./core/conversation/behavior-settings";
@@ -18,11 +17,10 @@ import { StateControlsHost } from "./components/cognitive/state-controls/StateCo
 import { Planificador } from "./pages/cognitive/ActionPlannerPage";
 import { Memoria } from "./pages/memory/MemoryVaultPage";
 import { Actividad } from "./pages/cognitive/ActivityHost";
-import { AuditoriaDiagnostico } from "./pages/cognitive/GovernancePage";
+import { AuditPageHost } from "./pages/cognitive/AuditPageHost";
 import { FaceTrackingPanel } from "./components/embodiment/FaceTrackingPanel";
 import { BodySolverPanel } from "./components/embodiment/BodySolverPanel";
 import { CapacidadesYPermisos } from "./pages/governance/CapabilityRegistryPage";
-import { Identificacion } from "./pages/cognitive/InputIdentificationPage";
 import { Configuracion } from "./pages/governance/SystemSettingsPage";
 import { Habilidades } from "./pages/governance/SkillWorkshopPage";
 import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
@@ -136,7 +134,7 @@ function saveSessions(sessions: Session[]) {
 }
 
 export function App() {
-  const visionRef = useRef<ConversationVisionHandle>(null);
+  const visionRef = useRef<ConversationVisionPort>(null);
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
@@ -701,10 +699,24 @@ export function App() {
     {screen === "flujo" && <Flujo snapshot={brainSnapshot} desktopApp={desktopApp} />}
     {screen === "estado" && <StateControlsHost snapshot={brainSnapshot} desktopApp={desktopApp} behavior={{ settings: conversationBehavior, supported: desktopApp && supportsConversationBehavior(cloudSelection.provider), busy: cloudPending, onChange: (key, value) => { if (!cloudPending) setConversationBehavior(current => updateConversationBehavior(current, key, value)); } }} />}
     {screen === "planificador" && <Planificador snapshot={brainSnapshot} desktopApp={desktopApp} />}
-    {screen === "identificacion" && <Identificacion draft={conversationDraft} lastUserMessage={lastUserMessage} messageCount={messages.length} memoryCount={conversationalMemories.length} retrievedMemoryCount={brainSnapshot.retrievedMemoryCount} observerEnabled={observationEnabled} foregroundContext={foregroundContext} cloudPending={cloudPending} observationAvailable={desktopApp} onToggleObservation={toggleObservation} conversationPanel={<Conversacion visionPanel={<ConversationVision ref={visionRef} desktopApp={desktopApp} provider={cloudSelection.provider} />} automaticLearning={automaticMemory ? {enabled:automaticMemory.enabled, count:automaticMemory.activeCount, phase:automaticPhase, onOpen:() => setScreen("memoria")} : undefined} showFullHistory={showFullHistory} embedded desktopApp={desktopApp} draft={conversationDraft} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} messages={messages} memories={conversationalMemories} observationEnabled={observationEnabled} foregroundContext={foregroundContext} onToggleObservation={toggleObservation} onDraftChange={setConversationDraft} onMemoryRetrieval={observeMemoryRetrieval} onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning} onConfirmConversationLearning={confirmConversationLearning} onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput} onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession} onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage} onRetrievalOutcome={assessRetrievalOutcome} />} />}
+    {screen === "identificacion" && <ConversationHost
+      visionRef={visionRef} desktopApp={desktopApp} draft={conversationDraft} showFullHistory={showFullHistory}
+      status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model}
+      messages={messages} memories={conversationalMemories} cloudPending={cloudPending}
+      observationEnabled={observationEnabled} foregroundContext={foregroundContext}
+      retrievedMemoryCount={brainSnapshot.retrievedMemoryCount}
+      automaticLearning={automaticMemory ? {enabled: automaticMemory.enabled, count: automaticMemory.activeCount, phase: automaticPhase, onOpen: () => setScreen("memoria")} : undefined}
+      onDraftChange={setConversationDraft} onMemoryRetrieval={observeMemoryRetrieval}
+      onHybridRetrieve={previewHybridMemoryRetrieval} onPreviewConversationLearning={previewConversationLearning}
+      onConfirmConversationLearning={confirmConversationLearning} onRetrievalOutcome={assessRetrievalOutcome}
+      onPreviewVoiceOutput={previewVoiceOutput} onConfirmVoiceOutput={confirmVoiceOutput} onCancelVoiceOutput={cancelVoiceOutput}
+      onStartVoiceSession={startVoiceSession} onStopVoiceSession={stopVoiceSession} onSpeakVoiceSession={speakVoiceSession}
+      onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn}
+      onToggleObservation={toggleObservation} onOpenSettings={() => setScreen("configuracion")} onSend={sendCloudMessage}
+    />}
     {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad events={cognitiveEvents} onClear={() => setCognitiveEvents([])} />}
-    {screen === "auditoria" && <AuditoriaDiagnostico desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
+    {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
     {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} onShowFullHistoryChange={setShowFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} onProviderChange={selectCloudProvider} onModelChange={(model) => setCloudSelection((current) => ({ ...current, model }))} />}

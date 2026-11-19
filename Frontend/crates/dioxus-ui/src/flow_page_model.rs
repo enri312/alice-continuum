@@ -148,20 +148,46 @@ impl State {
                 overall_signal: 0.0,
                 method: None,
             });
-        let nodes = self.base.nodes.iter().map(|node| {
-            let mut node = node.clone(); node.activation = 0.0;
-            if let Some(evidence) = self.snapshot.as_ref().and_then(|s| s.region_for_node(&node.id)) {
-                node.activation = evidence.signal;
-                node.value = match evidence.event_count {
-                    0 => "sin señal reciente".into(),
-                    1 => "1 evento R3".into(),
-                    count => format!("{count} eventos R3"),
-                };
-                node.detail = if evidence.event_count > 0 { format!("{}: {} {} dentro de la ventana. Intensidad heurística {:.3}.", evidence.label, evidence.event_count, if evidence.event_count == 1 { "evento técnico" } else { "eventos técnicos" }, evidence.signal) }
-                    else { format!("{}: no hay eventos R3 dentro de la ventana temporal.", evidence.label) };
-            }
-            node
-        }).collect();
+        let nodes = self
+            .base
+            .nodes
+            .iter()
+            .map(|node| {
+                let mut node = node.clone();
+                node.activation = 0.0;
+                if let Some(evidence) = self
+                    .snapshot
+                    .as_ref()
+                    .and_then(|s| s.region_for_node(&node.id))
+                {
+                    node.activation = evidence.signal;
+                    node.value = match evidence.event_count {
+                        0 => "sin señal reciente".into(),
+                        1 => "1 evento R3".into(),
+                        count => format!("{count} eventos R3"),
+                    };
+                    node.detail = if evidence.event_count > 0 {
+                        format!(
+                            "{}: {} {} dentro de la ventana. Intensidad heurística {:.3}.",
+                            evidence.label,
+                            evidence.event_count,
+                            if evidence.event_count == 1 {
+                                "evento técnico"
+                            } else {
+                                "eventos técnicos"
+                            },
+                            evidence.signal
+                        )
+                    } else {
+                        format!(
+                            "{}: no hay eventos R3 dentro de la ventana temporal.",
+                            evidence.label
+                        )
+                    };
+                }
+                node
+            })
+            .collect();
         flow_model::Payload {
             nodes,
             selected_id: self.selected_id.clone(),
