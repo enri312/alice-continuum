@@ -38,6 +38,11 @@ mod flow_page_ui;
 mod flow_ui;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod learning_session;
+#[cfg(target_arch = "wasm32")]
+mod memory_consolidation_ui;
+#[cfg(target_arch = "wasm32")]
+mod memory_lifecycle_ui;
+mod memory_maintenance_model;
 pub mod memory_page_model;
 #[cfg(target_arch = "wasm32")]
 mod memory_page_ui;

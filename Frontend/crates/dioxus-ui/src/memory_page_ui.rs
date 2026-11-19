@@ -1,3 +1,6 @@
+use crate::memory_consolidation_ui::consolidation_panel;
+use crate::memory_lifecycle_ui::{lifecycle_panel, ReviewDraft};
+use crate::memory_maintenance_model::Maintenance;
 use crate::memory_page_model::*;
 use crate::memory_panels_ui::{
     layers_panel, learning_panel, profile_panel, safety_panel, working_panel,
@@ -6,6 +9,7 @@ use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::StreamExt;
 use serde_json::{json, Value};
+use std::collections::BTreeMap;
 use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::JsValue;
 
@@ -40,6 +44,7 @@ enum Command {
     View(View),
     Edit(String),
     Run(Notice, Value),
+    InvalidatePlan(&'static str),
 }
 
 const SECTIONS: [(View, &str, &str); 4] = [
@@ -100,17 +105,20 @@ pub fn page(props: PageProps) -> Element {
     let mut layers = use_signal(|| None::<Layers>);
     let mut layers_loading = use_signal(|| false);
     let mut layer_error = use_signal(String::new);
-    let mut legacy_count = use_signal(|| None::<u32>);
-    let mut legacy_busy = use_signal(|| false);
+    let mut maintenance = use_signal(Maintenance::default);
+    let mut review_draft = use_signal(ReviewDraft::default);
+    let mut selected_survivors = use_signal(BTreeMap::new);
     let query = use_signal(String::new);
     let callback = props.on_action.clone();
     let command = use_callback(move |command: Command| {
-        if pending.peek().is_some() || *legacy_busy.peek() {
+        if pending.peek().is_some() {
             return;
         }
         match command {
             Command::View(next) => {
                 if next != *view.peek() {
+                    maintenance.set(Maintenance::default());
+                    selected_survivors.write().clear();
                     view.set(next);
                     message.set(String::new());
                     emit(&callback, json!({ "type": "view", "view": next }));
@@ -131,6 +139,17 @@ pub fn page(props: PageProps) -> Element {
                 }
                 action["request"] = json!(request);
                 emit(&callback, action);
+            }
+            Command::InvalidatePlan(group) => {
+                match group {
+                    "archive" => maintenance.write().archive_plan = None,
+                    "retention" => maintenance.write().retention_plan = None,
+                    _ => return,
+                }
+                emit(
+                    &callback,
+                    json!({ "type": "invalidateRecordPlan", "group": group }),
+                );
             }
         }
     });
@@ -172,15 +191,11 @@ pub fn page(props: PageProps) -> Element {
                             layers_loading.set(loading);
                             layer_error.set(error);
                         }
-                        Payload::EditRecord { id } => {
-                            editor.set(open_editor(&data.peek(), &id));
-                            plan.set(None);
-                        }
-                        Payload::Maintenance { count, busy } => {
-                            if count.is_some() {
-                                legacy_count.set(count);
+                        Payload::Maintenance { data: next } => {
+                            if next.loading {
+                                selected_survivors.write().clear();
                             }
-                            legacy_busy.set(busy);
+                            maintenance.set(*next);
                         }
                         Payload::Result { request, result } => {
                             let expected = *pending.peek();
@@ -195,6 +210,9 @@ pub fn page(props: PageProps) -> Element {
                                     close_edit,
                                     close_automatic_edit,
                                     plan: next,
+                                    edit_record,
+                                    clear_notes,
+                                    clear_source,
                                 } = result;
                                 match notice {
                                     Notice::Main => {
@@ -209,6 +227,20 @@ pub fn page(props: PageProps) -> Element {
                                 }
                                 if close_automatic_edit {
                                     auto_edit.set(None);
+                                }
+                                if let Some(id) = edit_record {
+                                    editor.set(open_editor(&data.peek(), &id));
+                                    plan.set(None);
+                                }
+                                if let Some(id) = clear_source {
+                                    review_draft.write().sources.remove(&id);
+                                }
+                                match clear_notes.as_deref() {
+                                    Some("archive") => review_draft.write().archive_note.clear(),
+                                    Some("retention") => {
+                                        review_draft.write().retention_note.clear()
+                                    }
+                                    _ => {}
                                 }
                                 if let Some(next) = next {
                                     if editor
@@ -236,9 +268,13 @@ pub fn page(props: PageProps) -> Element {
     let page = data.read();
     let total = page.records.len() + page.profile_count;
     let running = pending().map(|(_, kind)| kind);
-    let busy = running.is_some() || legacy_busy();
+    let busy = running.is_some();
     let note = message.read();
-    let count = legacy_count();
+    let maintenance = maintenance.read();
+    let count = maintenance
+        .consolidation
+        .as_ref()
+        .map(|data| data.pending_candidate_count);
     let storage_label = match page.memory_status.as_str() {
         "native" => "ARCHIVO LOCAL",
         "loading" => "CARGANDO",
@@ -282,7 +318,7 @@ pub fn page(props: PageProps) -> Element {
         _ => Vec::new(),
     };
     let run = use_callback(move |(notice, value)| command.call(Command::Run(notice, value)));
-    let legacy = matches!(current, View::Review | View::Consolidate);
+    let invalidate = use_callback(move |group| command.call(Command::InvalidatePlan(group)));
     rsx! {
         section { class: "memory-page", "aria-labelledby": "memory-title",
             div { class: "memory-heading",
@@ -316,7 +352,6 @@ pub fn page(props: PageProps) -> Element {
                 }
             }
             div { id: "memory-current-view", class: "memory-current-view",
-                div { id: "{setup.slot}", hidden: !legacy }
                 {match current {
                     View::Learning => learning_panel(&page.study, &page.automatic, auto_edit, running, &study_error.read(), &auto_error.read(), run),
                     View::Records => records_panel(&page, query, editor, plan, busy, &note, command, run),
@@ -324,7 +359,8 @@ pub fn page(props: PageProps) -> Element {
                     View::Working => working_panel(page.working.as_ref(), busy, &note, run),
                     View::Layers => layers_panel(layers.read().as_ref(), layers_loading(), setup.desktop, busy, &layer_error.read(), &note, run),
                     View::Safety => safety_panel(&page.memory_path, busy, &note, run),
-                    View::Review | View::Consolidate => rsx! {},
+                    View::Review => lifecycle_panel(&maintenance, review_draft, page.due, setup.desktop, busy, &note, run, invalidate),
+                    View::Consolidate => consolidation_panel(&maintenance, selected_survivors, setup.desktop, busy, &note, run),
                 }}
             }
         }

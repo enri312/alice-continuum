@@ -74,12 +74,18 @@ Conversación. Antes de enviar, el adaptador comprueba de nuevo la revisión
 y, cuando se incluyó la ventana, su permiso R2. El código anterior queda en
 `Legacy`.
 
-**Décima etapa de App.tsx (2026-11-19).** Memoria monta en Dioxus la navegación,
+**Undécima etapa de App.tsx (2026-11-19).** Revisión y ciclo y Consolidación
+completan la migración de Memoria a Dioxus. El ciclo conserva la procedencia, el
+repaso, la vigencia, la accesibilidad, la supresión, el archivo reversible y la
+retención con sus confirmaciones. Consolidación muestra el plan de solo lectura,
+registra la decisión de mantener recuerdos separados y restaura transacciones
+interrumpidas con recibos verificados por Tauri. La página React se conserva
+desactivada en `Legacy`. Sigue Gobernanza.
+[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-undécima-etapa).
+
+**Décima etapa de App.tsx (2026-11-19).** Memoria incorporó en Dioxus la navegación,
 Aprendizaje, Registros, Perfil, En sesión, Capas y Respaldo. La edición de un
-recuerdo evaluado conserva la vista previa y la confirmación de la versión.
-Revisión y ciclo y Consolidación se abren con las vistas anteriores. Su
-migración es el siguiente incremento de Memoria.
-[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-décima-etapa).
+recuerdo evaluado conservó la vista previa y la confirmación de la versión.
 
 **Novena etapa de App.tsx (2026-11-19).** Volumen cognitivo monta en Dioxus
 la escena, el inspector, las leyendas, el estado del aprendizaje y los cambios

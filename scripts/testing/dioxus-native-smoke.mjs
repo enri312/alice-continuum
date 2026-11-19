@@ -357,8 +357,8 @@ try {
     button.click();
     return true;
   })()`), 'abrir '+title);
-  const clickMemory = async title => {
-    const button = `Array.from(document.querySelectorAll('.memory-page button:enabled')).find(button=>button.textContent.trim()===${JSON.stringify(title)})`;
+  const clickMemory = async (title, selector = '.memory-page button') => {
+    const button = `Array.from(document.querySelectorAll(${JSON.stringify(selector + ':enabled')})).find(button=>button.textContent.trim()===${JSON.stringify(title)})`;
     await until(() => evaluate(`Boolean(${button})`), title);
     await evaluate(`${button}.click()`);
   };
@@ -386,6 +386,7 @@ try {
   await until(() => evaluate('Boolean(document.querySelector(".memory-record .memory-actions button:enabled"))'), 'registro nativo habilitado para revisión');
   await evaluate('document.querySelector(".memory-record .memory-actions button").click()');
   const enterMemoryText = async (selector, text) => {
+    await until(() => evaluate(`Boolean(document.querySelector(${JSON.stringify(selector + ':enabled')}))`), 'campo disponible');
     await evaluate(`document.querySelector(${JSON.stringify(selector)}).select()`);
     await send('Input.insertText', { text });
     await until(() => evaluate(`document.querySelector(${JSON.stringify(selector)})?.value===${JSON.stringify(text)}`), 'borrador de versión escrito');
@@ -424,15 +425,135 @@ try {
   await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Respaldo restaurado correctamente")'), 'restauración nativa confirmada');
   assert.deepEqual(JSON.parse(await fs.readFile(path.join(backups,'records.pre-restore.json'),'utf8')),versioned);
   assert.equal(JSON.parse(await fs.readFile(sourcePath,'utf8')).find(record=>record.id==='a').memoryVersion,undefined);
+  const pastRetirement = {
+    ...records[0], id:'d', intention:'Retiro vencido de prueba', startedAt:'2020-01-01T00:00:00Z', finishedAt:'2020-01-01T01:00:00Z',
+    archiveStatus:'archived', archiveReason:'ownerChoice', archiveUpdatedAt:'2020-01-02T01:00:00Z',
+    deletionStatus:'scheduled', deletionReason:'ownerRequest', deletionRequestedAt:'2020-01-03T01:00:00Z', deletionEligibleAt:'2020-01-10T01:00:00Z',
+  };
+  await fs.writeFile(path.join(backups,'records.backup.json'),JSON.stringify([
+    ...records, {...records[0],id:'c'}, pastRetirement,
+    {...records[1],id:'e',intention:'Registro de procedencia pendiente',memoryStatus:undefined,source:undefined},
+  ]));
+  await clickMemory('Restaurar respaldo');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("5 recuerdos")'), 'recuerdos de mantenimiento aislados cargados');
+  await selectMaintenance('Revisión y ciclo');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-review-panel .memory-lifecycle-grid"))'), 'ciclo Dioxus con las huellas actuales');
+  const rowButton = panel => `${panel} article:has(h4) button`;
+  const archive = '.memory-archive-assessment';
+  const retention = '.memory-deletion-assessment';
+  const memoryHash = async () => createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex');
+  const storedRecord = async id => JSON.parse(await fs.readFile(sourcePath,'utf8')).find(record=>record.id===id);
+  await enterMemoryText('.memory-validity-source input','Fuente declarada de prueba');
+  await clickMemory('Confirmar vigente','.memory-validity-list button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Vigencia confirmada")'), 'primera evaluación escribe su procedencia');
+  assert.equal((await storedRecord('e')).source,'Fuente declarada de prueba');
+  await clickMemory('Poner en reposo','section[aria-label="Accesibilidad de recuerdos vigentes"] article button');
+  await until(() => evaluate('Boolean(document.querySelector("section[aria-label=\'Accesibilidad de recuerdos vigentes\'] article.state-dormant"))'),'reposo registrado');
+  assert.equal((await storedRecord('a')).accessibilityStatus,'dormant');
+  await clickMemory('Permitir recuperación','section[aria-label="Accesibilidad de recuerdos vigentes"] article.state-dormant button');
+  await until(() => evaluate('Boolean(document.querySelector("section[aria-label=\'Accesibilidad de recuerdos vigentes\'] article.state-accessible"))'),'accesibilidad restaurada');
+  await clickMemory('Suprimir','.memory-suppression-assessment article button');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-suppression-assessment article.state-suppressed"))'),'supresión voluntaria registrada');
+  assert.equal((await storedRecord('a')).suppressionStatus,'suppressed');
+  await clickMemory('Liberar','.memory-suppression-assessment article.state-suppressed button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Supresión liberada")'),'supresión liberada');
+  await enterMemoryText(archive+' textarea','Archivar durante la prueba aislada.');
+  const beforeArchive = await memoryHash();
+  await clickMemory('Preparar archivo',rowButton(archive));
+  await until(() => evaluate('Boolean(document.querySelector(".memory-archive-assessment .archive-plan"))'), 'vista previa de archivo');
+  assert.equal(await memoryHash(),beforeArchive);
+  await enterMemoryText(archive+' textarea','Nota corregida antes de autorizar el archivo.');
+  await until(() => evaluate('!document.querySelector(".memory-archive-assessment .archive-plan")'),'cambiar nota invalida el primer plan de archivo');
+  await clickMemory('Preparar archivo',rowButton(archive));
+  await evaluate('window.confirm=()=>false');
+  await clickMemory('Segunda confirmación',archive+' .archive-plan button');
+  await until(() => evaluate('Boolean(document.querySelector(".memory-archive-assessment .archive-plan button:enabled"))'), 'cancelar preserva el plan sin escribir');
+  assert.equal(await memoryHash(),beforeArchive);
+  await evaluate('window.confirm=()=>true');
+  await clickMemory('Segunda confirmación',archive+' .archive-plan button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Recuerdo archivado")'),'archivo confirmado');
+  assert.equal((await storedRecord('a')).archiveStatus,'archived');
+
+  await enterMemoryText(retention+' textarea','Programar temporalmente en la prueba aislada.');
+  await clickMemory('Programar espera',rowButton(retention));
+  await clickMemory('Segunda confirmación',retention+' .archive-plan button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Eliminación programada")'),'retención escrita con espera');
+  const scheduled = await storedRecord('a');
+  assert.equal(Date.parse(scheduled.deletionEligibleAt)-Date.parse(scheduled.deletionRequestedAt),7*24*60*60*1000);
+  assert.ok(await evaluate('document.querySelector(".memory-deletion-assessment .memory-accessibility-list article:first-child button.danger").disabled'));
+  await enterMemoryText(retention+' textarea','Cancelar y conservar el registro de prueba.');
+  await clickMemory('Cancelar',rowButton(retention));
+  await clickMemory('Segunda confirmación',retention+' .archive-plan button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Programación cancelada")'),'retención cancelada');
+  assert.equal((await storedRecord('a')).deletionStatus ?? null,null);
+  await enterMemoryText(archive+' textarea','Restaurar el recuerdo archivado de prueba.');
+  await clickMemory('Preparar restauración',rowButton(archive));
+  await clickMemory('Segunda confirmación',archive+' .archive-plan button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Recuerdo restaurado")'),'archivo reversible restaurado');
+  assert.equal((await storedRecord('a')).archiveStatus ?? null,null);
+
+  await enterMemoryText(retention+' textarea','Confirmación de un retiro vencido exclusivamente ficticio.');
+  const beforeRetirement = await memoryHash();
+  await clickMemory('Preparar retiro final',rowButton(retention));
+  await until(() => evaluate('Boolean(document.querySelector(".deletion-final-plan button:enabled"))'),'retiro disponible tras espera vencida');
+  assert.equal(await memoryHash(),beforeRetirement);
+  await clickMemory('Confirmar retiro de records.json',retention+' .archive-plan button');
+  await until(() => evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("lápida verificados")'),'resguardo y lápida emitidos por Tauri');
+  assert.equal(await storedRecord('d'),undefined);
+  assert.ok(await storedRecord('a'));
+  await evaluate('document.querySelector(".memory-review-panel").scrollIntoView({block:"start"})');
+  await screenshot('memoria-ciclo-dioxus.png');
+
+  await selectMaintenance('Consolidación');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-candidates article.exactDuplicate input:enabled"))'),'par duplicado con selección manual');
+  assert.ok(await evaluate('Array.from(document.querySelectorAll(".consolidation-candidate-actions button")).find(button=>button.textContent==="Previsualizar fusión").disabled'));
+  await evaluate('document.querySelector(".consolidation-candidates article.exactDuplicate input").click()');
+  const beforeConsolidation = await memoryHash();
+  await clickMemory('Previsualizar fusión','.consolidation-candidate-actions button');
+  await until(() => evaluate('Boolean(document.querySelector(".merge-preview-plan .merge-recovery-chain li"))'),'plan de solo lectura en Dioxus');
+  assert.equal(await memoryHash(),beforeConsolidation);
+  assert.equal(await evaluate('document.querySelectorAll(".merge-preview-plan button").length'),0,'fusión sin control de ejecución');
+  await screenshot('memoria-consolidacion-dioxus.png');
+  // Sembrar solamente en el almacén aislado el estado durable de una transacción interrumpida.
+  const consolidation = await evaluate('__TAURI_INTERNALS__.invoke("consolidation_preview")');
+  const candidate = consolidation.candidates.find(item=>item.kind==='exactDuplicate');
+  const original = await fs.readFile(sourcePath);
+  const projected = JSON.stringify(JSON.parse(original.toString('utf8')).filter(record=>record.id!==candidate.recordIds[1]));
+  const digest = content => 'sha256:'+createHash('sha256').update(content).digest('hex');
+  const sourceSha256 = digest(original);
+  const projectedSourceSha256 = digest(projected);
+  const sourceBackupFile = 'consolidation-source-'+sourceSha256.slice(7)+'.json';
+  const receiptPath = path.join(data,'memory','consolidation-merge-transactions-v1.json');
+  await fs.writeFile(path.join(backups,sourceBackupFile),original);
+  await fs.writeFile(sourcePath,projected);
+  await fs.writeFile(receiptPath,JSON.stringify({schemaVersion:1,transactions:[{
+    transactionId:digest(`alice-consolidation-transaction:${sourceSha256}:${projectedSourceSha256}:${candidate.candidateId}:${candidate.recordIds[0]}`),
+    candidateId:candidate.candidateId, recordIds:candidate.recordIds, survivorRecordId:candidate.recordIds[0], duplicateRecordId:candidate.recordIds[1],
+    sourceSha256, projectedSourceSha256, sourceBackupFile, state:'projected', createdAt:new Date().toISOString(), restoredAt:null,
+  }]}));
+  await clickMemory('Actualizar vista previa','.consolidation-preview footer button');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-recovery-status.state-recoveryRequired button:enabled"))'),'recibo correlacionado con la fuente proyectada');
+  await evaluate('window.confirm=()=>false');
+  await clickMemory('Confirmar y restaurar original','.consolidation-recovery-status button');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-recovery-status button:enabled"))'),'negar restauración mantiene el recibo pendiente');
+  assert.equal(digest(await fs.readFile(sourcePath)),projectedSourceSha256);
+  await evaluate('window.confirm=()=>true');
+  await clickMemory('Confirmar y restaurar original','.consolidation-recovery-status button');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-recovery-status.state-restored"))'),'restauración real de consolidación cerrada');
+  assert.deepEqual(await fs.readFile(sourcePath),original);
+  assert.equal(JSON.parse(await fs.readFile(receiptPath,'utf8')).transactions[0].state,'restored');
+  await clickMemory('Mantener separados','.consolidation-candidate-actions button');
+  await until(() => evaluate('Boolean(document.querySelector(".consolidation-candidates article.resolved"))'),'decisión humana visible en el par');
+  assert.deepEqual(await fs.readFile(sourcePath),original);
   await evaluate('document.querySelector(".core-system-selector .governance").click()');
   await until(() => evaluate('Boolean(document.querySelector(\'button[aria-label="Configuración"]\'))'), 'Configuración disponible');
   await evaluate('document.querySelector(\'button[aria-label="Configuración"]\').click()');
   await until(() => evaluate('Boolean(document.querySelector("[data-settings-renderer=dioxus] .settings-runtime"))'), 'Configuración nativa en Dioxus');
   await screenshot('configuracion-dioxus.png');
-  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, memoryLayersReversible: true, versionedMemoryEdited: true, memoryExportAndRestore: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
+  const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, memoryLayersReversible: true, versionedMemoryEdited: true, memoryExportAndRestore: true, memoryLifecycleDioxus: true, consolidationRecoveredAndResolved: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
     governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeCanvasDrawn: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
-  console.log(`Tauri nativo: navegación, Conversación, Planificador, Flujo y Volumen con su escena y citas R8 comprobados con datos aislados. Evidencia: ${artifacts}`);
+  console.log(`Tauri nativo: navegación, Memoria, ciclo y recuperación de consolidación comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try { const shot = await send('Page.captureScreenshot', { format: 'png' }); await fs.writeFile(path.join(artifacts, 'failure.png'), Buffer.from(shot.data, 'base64')); } catch { /* Keep original error. */ }

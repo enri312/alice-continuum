@@ -1,3 +1,4 @@
+use crate::memory_maintenance_model::Maintenance;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize)]
@@ -18,12 +19,8 @@ pub enum Payload {
         loading: bool,
         error: String,
     },
-    EditRecord {
-        id: String,
-    },
     Maintenance {
-        count: Option<u32>,
-        busy: bool,
+        data: Box<Maintenance>,
     },
     Result {
         request: u32,
@@ -41,7 +38,6 @@ impl Payload {
 #[serde(rename_all = "camelCase")]
 pub struct Setup {
     pub view: View,
-    pub slot: String,
     pub desktop: bool,
 }
 
@@ -189,6 +185,9 @@ pub struct Plan {
 pub struct OperationResult {
     pub close_edit: bool,
     pub close_automatic_edit: bool,
+    pub edit_record: Option<String>,
+    pub clear_notes: Option<String>,
+    pub clear_source: Option<String>,
     pub message: String,
     pub error: String,
     pub plan: Option<Plan>,

@@ -14,8 +14,7 @@ import {
   restoreMemory, subscribeToMemory, updateMemory,
 } from "./memory-session";
 import { projectMemoryPage } from "./memory-page-projection";
-
-export type MaintenanceView = "review" | "consolidate";
+import { createMemoryMaintenance } from "./memory-maintenance";
 
 type Edit = {
   id: string;
@@ -39,7 +38,7 @@ function readEdit(value: Partial<Edit> | undefined): Edit {
     importance: value.importance, reason: value.reason, note: value.note };
 }
 
-export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView | null) => void) {
+export function createMemoryPageTransport() {
   let reply: ((value: unknown) => void) | undefined;
   let stops: (() => void)[] = [];
   let disposed = false;
@@ -48,8 +47,17 @@ export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView 
   let lastSessions = memorySessionSnapshot().sessions;
   let layerRevision = 0;
   let layersDirty = false;
+  let maintenanceDirty = false;
   let layers: LayeredMemorySnapshot | null = null;
   let version: { plan: MemoryReconsolidationPreview; input: object } | null = null;
+  const maintenance = createMemoryMaintenance(value => reply?.(value));
+
+  function refreshMaintenance() {
+    if (view === "review" || view === "consolidate") {
+      maintenanceDirty = false;
+      void maintenance.refresh(view);
+    }
+  }
 
   const publish = () => reply?.({ type: "page", page: projectMemoryPage() });
   const publishLayers = (loading: boolean, error = "") => reply?.({ type: "layers", layers, loading, error });
@@ -61,10 +69,13 @@ export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView 
       ++layerRevision;
       layersDirty = true;
       layers = null;
+      maintenanceDirty = true;
+      maintenance.invalidate();
       if (view === "layers") {
         if (pending) publishLayers(true);
         else void readLayers();
       }
+      if (!pending) refreshMaintenance();
     }
   };
 
@@ -196,7 +207,7 @@ export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView 
         return { closeEdit: true, message: `Respaldo restaurado correctamente: ${count} recuerdos cargados.` };
       }
     }
-    throw new Error("Operación de Memoria inválida.");
+    return maintenance.execute(action);
   }
 
   return {
@@ -214,10 +225,14 @@ export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView 
       if (action?.type === "view" && typeof action.view === "string") {
         if (view !== action.view) {
           view = action.view;
-          reply?.({ type: "maintenance", count: null, busy: false });
-          onMaintenance(view === "review" || view === "consolidate" ? view : null);
+          maintenance.select(view === "review" || view === "consolidate" ? view : null);
+          refreshMaintenance();
           if (view === "layers") void readLayers();
         }
+        return;
+      }
+      if (action?.type === "invalidateRecordPlan") {
+        if (!pending && view === "review") maintenance.dropPlan(action.group);
         return;
       }
       if (pending || !Number.isInteger(action?.request) || action.request <= 0 || action.request > 0xffff_ffff) return;
@@ -226,16 +241,14 @@ export function createMemoryPageTransport(onMaintenance: (view: MaintenanceView 
         pending = false;
         reply?.({ type: "result", request: action.request, result });
         if (!disposed && view === "layers" && layersDirty) void readLayers();
+        if (!disposed && maintenanceDirty) refreshMaintenance();
       };
       void execute(action).then(complete, error => complete({ error: String(error) }));
-    },
-    openEditor(id: string) { reply?.({ type: "editRecord", id }); },
-    reportMaintenance(section: MaintenanceView, count: number | null, busy: boolean) {
-      if (section === view) reply?.({ type: "maintenance", count, busy });
     },
     dispose() {
       disposed = true;
       reply = undefined;
+      maintenance.select(null);
       for (const stop of stops) stop();
       stops = [];
     },
