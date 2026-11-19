@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import type { AudioSignalSnapshot } from "../../core/voice/noise-types";
+import type { AudioSignalSnapshot } from "../../../core/voice/noise-types";
 
 export function InputSignalMeasurement({ signal }: { signal?: Readonly<AudioSignalSnapshot> | null }) {
   if (!signal || (!signal.inputSamples && !signal.outputSamples)) return <p>Medición de señal: no disponible para esta toma.</p>;

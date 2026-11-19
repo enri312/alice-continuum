@@ -1,24 +1,24 @@
-import type { ConversationMessage, CloudStatus, CloudRequest, CloudResponse, HybridRetrievalCandidate, HybridRetrievalRequest, HybridRetrievalPreview } from "../../core/conversation/conversation-contracts";
+import type { ConversationMessage, CloudStatus, CloudRequest, CloudResponse, HybridRetrievalCandidate, HybridRetrievalRequest, HybridRetrievalPreview } from "../../../core/conversation/conversation-contracts";
 import { HandsFreeVoice } from "../../components/conversation/HandsFreeVoice";
 import { AudioInputSettings } from "../../components/conversation/AudioInputSettings";
 import { FilteredTakePreview, InputSignalMeasurement, LastVoiceTranscript } from "../../components/conversation/InputTakeDiagnostics";
-import type { AudioSignalSnapshot, MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
-import { InputTakePreview } from "../../core/voice/input-take-preview";
+import type { AudioSignalSnapshot, MicrophoneSensitivity, NoiseStatus } from "../../../core/voice/noise-types";
+import { InputTakePreview } from "../../../core/voice/input-take-preview";
 import type { ReactNode } from "react";
-import type { VoiceIgnoredTakeObservation, VoiceLoopState } from "../../core/voice/voice-loop";
+import type { VoiceIgnoredTakeObservation, VoiceLoopState } from "../../../core/voice/voice-loop";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildRetrievalQuery, retrieveMemories } from "../../core/memory/memory-retrieval";
-import { emptyMemoryRetrieval, prepareMemoryRetrieval, type MemoryRetrievalObservation } from "../../core/memory/retrieval-observation";
-import { buildCloudPayloadReview, type CloudPayloadBudget } from "../../core/conversation/cloud-payload";
-import { selectReinforceableMemoryIds } from "../../core/memory/memory-consolidation";
-import type { RetrievalOutcome } from "../../core/memory/memory-consolidation";
-import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "../../core/conversation/conversation-learning";
-import type { VoiceOutputPreview, VoiceOutputResult } from "../../core/voice/voice-output";
-import { bytesToBase64 } from "../../core/voice/voice-input";
-import { VoiceCapture } from "../../core/voice/voice-capture";
-import type { VoiceTurnTranscript } from "../../core/voice/voice-input";
-import { affectPalette } from "../../core/cognitive/affect";
-import "../../styles/conversation-context.css";
+import { buildRetrievalQuery, retrieveMemories } from "../../../core/memory/memory-retrieval";
+import { emptyMemoryRetrieval, prepareMemoryRetrieval, type MemoryRetrievalObservation } from "../../../core/memory/retrieval-observation";
+import { buildCloudPayloadReview, type CloudPayloadBudget } from "../../../core/conversation/cloud-payload";
+import { selectReinforceableMemoryIds } from "../../../core/memory/memory-consolidation";
+import type { RetrievalOutcome } from "../../../core/memory/memory-consolidation";
+import type { ConversationLearningApproval, ConversationLearningCandidate, ConversationLearningPreview } from "../../../core/conversation/conversation-learning";
+import type { VoiceOutputPreview, VoiceOutputResult } from "../../../core/voice/voice-output";
+import { bytesToBase64 } from "../../../core/voice/voice-input";
+import { VoiceCapture } from "../../../core/voice/voice-capture";
+import type { VoiceTurnTranscript } from "../../../core/voice/voice-input";
+import { affectPalette } from "../../../core/cognitive/affect";
+import "../../../styles/conversation-context.css";
 
 const conversationMemoryTypeLabels: Record<ConversationLearningCandidate["memoryType"], string> = {
   semantic: "SEMÁNTICA",

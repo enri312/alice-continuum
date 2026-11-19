@@ -1,7 +1,7 @@
 import { createRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import type { AudioSignalSnapshot } from "../../core/voice/noise-types";
+import type { AudioSignalSnapshot } from "../../../core/voice/noise-types";
 import { FilteredTakePreview, InputSignalMeasurement, LastVoiceTranscript } from "./InputTakeDiagnostics";
 
 const signal: AudioSignalSnapshot = {

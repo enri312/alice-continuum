@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { NavigationIcon } from "../../components/icons/NavigationIcon";
-import { workspaceForScreen, type Screen } from "./workspaces";
+import { workspaceForScreen, type Screen } from "../../../core/navigation/workspaces";
 
 type Props = {
   screen: Screen;

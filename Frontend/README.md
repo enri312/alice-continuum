@@ -8,6 +8,7 @@ iconos, recursos y comportamiento; no convierte por sí sola más pantallas a Di
 | `src/` | Entrada, navegación, pantallas, componentes, estilos, contratos y lógica TypeScript existente. |
 | `crates/dioxus-ui/` | Fuentes Rust/Dioxus de Dashboard, Conversación, Auditoría y diagnóstico, Estado y controles, Flujo, relaciones y Actividad. |
 | `src/dioxus/dioxus-ui/pkg/` | WASM y bindings versionados, verificados contra las fuentes. |
+| `src/Legacy/` | Vistas React desactivadas y sus pruebas. Se conservan hasta completar la migración de interfaz y lógica. |
 | `icons/` | Catálogo SVG consumido por la interfaz. Los iconos nativos de Tauri siguen en el backend. |
 | `public/` | Recursos estáticos y licencias, publicados en las mismas URL que antes. |
 | `dist/` | Build regenerable que Tauri utiliza; excluido de Git. |
@@ -39,5 +40,5 @@ cuando las dependencias npm se comparten con la raíz.
 
 Actividad se presenta en un solo montaje Dioxus; `src/pages/cognitive/ActivityHost.tsx`
 sólo conecta su ciclo de vida y el buffer temporal de `App.tsx`. Auditoría y
-diagnóstico conserva su contenido React en `GovernancePage.tsx`. Ver
+diagnóstico abre en Dioxus. Su vista anterior está en `src/Legacy/`. Ver
 [alcance y aceptación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).

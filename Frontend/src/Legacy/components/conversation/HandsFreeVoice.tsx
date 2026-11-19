@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { VoiceCapture, type CaptureEnvironment } from "../../core/voice/voice-capture";
-import { bytesToBase64, type VoiceTurnTranscript } from "../../core/voice/voice-input";
-import { VoiceLoop, type VoiceIgnoredTakeObservation, type VoiceLoopState, type VoiceTurnObservation } from "../../core/voice/voice-loop";
-import type { VoiceOutputResult } from "../../core/voice/voice-output";
-import type { MicrophoneOptions, NoiseStatus } from "../../core/voice/noise-types";
+import { VoiceCapture, type CaptureEnvironment } from "../../../core/voice/voice-capture";
+import { bytesToBase64, type VoiceTurnTranscript } from "../../../core/voice/voice-input";
+import { VoiceLoop, type VoiceIgnoredTakeObservation, type VoiceLoopState, type VoiceTurnObservation } from "../../../core/voice/voice-loop";
+import type { VoiceOutputResult } from "../../../core/voice/voice-output";
+import type { MicrophoneOptions, NoiseStatus } from "../../../core/voice/noise-types";
 
 type Props = {
   desktopApp: boolean;

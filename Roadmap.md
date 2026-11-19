@@ -23,6 +23,10 @@ en la ruta seleccionada y conserva el estado compartido. Si falla WebAssembly,
 la página solicitada conserva su recuperación y el marco permite reintentar.
 El marco React anterior queda desactivado hasta completar la migración de
 la interfaz y la lógica de la aplicación.
+Las implementaciones desactivadas y sus pruebas se organizan en
+`Frontend/src/Legacy/`. La evaluación de `App.tsx` empieza por trasladar el
+estado compartido por bloques antes de sustituir el arranque React.
+[Evaluación del contenedor](docs/architecture/DIOXUS_MIGRATION_STATUS.md#evaluación-de-apptsx).
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "./DocumentPreview.css";
+import "../../../components/documents/DocumentPreview.css";
 
 type Preview = {
   status: "ok" | "noText";

@@ -37,12 +37,12 @@ y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
 
 ## Iconos: qué se usa
 
-- `Frontend/src/components/icons/NavigationIcon.tsx` carga SVG de `Frontend/icons/`
-  y los dibuja en las pestañas de `Frontend/src/App.tsx`, incluidas Memoria y Estado.
-- `InlineSvgIcon.tsx` los presenta y también dibuja los cinco controles de cámara
+- `Frontend/crates/dioxus-ui/src/navigation_ui.rs` carga los SVG de `Frontend/icons/`
+  para las pestañas principales. El componente React de navegación está en `Frontend/src/Legacy/`.
+- `InlineSvgIcon.tsx` dibuja los cinco controles de cámara
   de Volumen cognitivo. Sólo recibe SVG incluidos en la compilación.
-- `BridgeViewIcon.tsx` está conectado a la variante de Puentes con selector de
-  vistas; la navegación actual abre vistas fijas y no muestra ese selector.
+- `BridgeViewIcon.tsx` presenta los iconos de Inventario y Permisos en el
+  Núcleo de gobernanza.
 
 La guía [Componentes de iconos](../../Frontend/src/components/icons/README.md) y la
 [revisión de reorganización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md) contienen más detalle.

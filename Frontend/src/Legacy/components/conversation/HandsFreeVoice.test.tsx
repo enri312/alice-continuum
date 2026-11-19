@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { VoiceTurnObservation } from "../../core/voice/voice-loop";
+import type { VoiceTurnObservation } from "../../../core/voice/voice-loop";
 import { HandsFreeVoice, VoiceSessionObservation } from "./HandsFreeVoice";
 
 const turn: VoiceTurnObservation = {

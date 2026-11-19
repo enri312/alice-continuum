@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildIdentificationSnapshot } from "../../core/cognitive/identification";
-import type { IdentificationInputs, IdentificationSnapshot } from "../../core/cognitive/identification";
+import { buildIdentificationSnapshot } from "../../../core/cognitive/identification";
+import type { IdentificationInputs, IdentificationSnapshot } from "../../../core/cognitive/identification";
 
 type TimedSnapshot = {
   snapshot: IdentificationSnapshot;

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { invoke } from "@tauri-apps/api/core";
-import { HandsFreeVoice } from "../../../Frontend/src/components/conversation/HandsFreeVoice";
+import { HandsFreeVoice } from "../../../Frontend/src/Legacy/components/conversation/HandsFreeVoice";
 import { buildCloudPayload } from "../../../Frontend/src/core/conversation/cloud-payload";
 import { processMicrophone } from "../../../Frontend/src/core/voice/noise-pipeline";
 import { isVoiceStopCommand } from "../../../Frontend/src/core/voice/voice-commands";

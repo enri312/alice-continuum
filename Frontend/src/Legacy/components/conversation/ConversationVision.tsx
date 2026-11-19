@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { openConversationCamera, VisionSession, type VisionInput, type VisionSources } from "../../core/conversation/vision-session";
-import "../../styles/conversation-vision.css";
+import { openConversationCamera, VisionSession, type VisionInput, type VisionSources } from "../../../core/conversation/vision-session";
+import "../../../styles/conversation-vision.css";
 
 export type ConversationVisionHandle = { capture: () => Promise<VisionInput | undefined> };
 const off: VisionSources = {camera:false,desktop:false};

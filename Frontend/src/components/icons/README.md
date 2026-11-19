@@ -4,7 +4,8 @@ Estos componentes presentan los SVG versionados en la carpeta `Frontend/icons/` 
 proyecto. El contenido SVG se carga durante la compilación desde archivos del
 proyecto; no se acepta marcado del usuario.
 
-- `NavigationIcon.tsx`: iconos de las pestañas principales de `App.tsx`.
+- Las pestañas principales cargan sus SVG desde `navigation_ui.rs`. La
+  implementación anterior está en `src/Legacy/components/icons/NavigationIcon.tsx`.
 - `InlineSvgIcon.tsx`: envoltorio común utilizado también por los controles de
   cámara del Volumen cognitivo.
 - `BridgeViewIcon.tsx` muestra el icono del inventario y el de permisos en el selector del Núcleo de gobernanza.

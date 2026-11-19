@@ -6,7 +6,7 @@ import {
   type LearningCandidate,
   type LearningCandidatePreview,
   type LearningMemoryType,
-} from "../../core/memory/learning-candidates";
+} from "../../../core/memory/learning-candidates";
 
 type CandidateSource = {
   id: string;

@@ -53,6 +53,7 @@ renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
 diagnóstico. React mantiene el estado compartido y monta las pantallas en la
 ruta activa. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
+Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.
 [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).
 
 ```sh

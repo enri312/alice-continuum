@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { DocumentPreview } from "../../components/documents/DocumentPreview";
-import type { IdentificationInputs } from "../../core/cognitive/identification";
+import type { IdentificationInputs } from "../../../core/cognitive/identification";
 import { InputDiagnostics } from "./InputDiagnostics";
-import "../../styles/conversation-home.css";
+import "../../../styles/conversation-home.css";
 
 type IdentificacionProps = IdentificationInputs & {
   observationAvailable: boolean;

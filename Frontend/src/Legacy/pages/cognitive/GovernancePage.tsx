@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { auditSizeLabel, parseAuditSnapshot } from "../../core/governance/audit";
-import type { AuditSnapshot, AuditSource, AuditStage, AuditOutcome } from "../../core/governance/audit";
-import { parseDiagnosticSnapshot } from "../../core/governance/diagnostics";
-import type { DiagnosticCategory, DiagnosticSnapshot, DiagnosticStatus } from "../../core/governance/diagnostics";
+import { auditSizeLabel, parseAuditSnapshot } from "../../../core/governance/audit";
+import type { AuditSnapshot, AuditSource, AuditStage, AuditOutcome } from "../../../core/governance/audit";
+import { parseDiagnosticSnapshot } from "../../../core/governance/diagnostics";
+import type { DiagnosticCategory, DiagnosticSnapshot, DiagnosticStatus } from "../../../core/governance/diagnostics";
 
 type ActivityView = "audit" | "diagnostic";
 type GovernanceProps = { desktopApp: boolean; capability: string | null; onClearCapability: () => void };

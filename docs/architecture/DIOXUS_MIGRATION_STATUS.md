@@ -44,12 +44,36 @@ la interfaz React anterior. Los archivos retirados seguirán disponibles en Git.
 
 Las rutas de Conversación y Auditoría y diagnóstico montan Dioxus desde el
 19 de noviembre. Cuando falla la carga ofrecen reintentar el mismo renderer.
-`ConversationPage.tsx`, `InputIdentificationPage.tsx`, `GovernancePage.tsx` y sus
-componentes React quedaron fuera de las rutas de producción. El marco anterior
-queda en `LegacyNavigation.tsx` sin una ruta activa. El código React inactivo se
-conserva hasta completar la migración de las pantallas y de la lógica que las
-sostiene, incluido el estado compartido. Las pruebas con dispositivos físicos y
-proveedores reales se registran por separado de las pruebas con datos simulados.
+Las implementaciones React desactivadas y sus pruebas se conservan en
+[`Frontend/src/Legacy/`](../../Frontend/src/Legacy/). Allí están Conversación,
+Auditoría y diagnóstico, el marco anterior y sus componentes exclusivos. El
+piloto de sesión conserva su importación desde Legacy. Los componentes de
+recuperación de Flujo, Estado y relaciones siguen accesibles cuando falla su
+renderer. El código React inactivo se conserva hasta migrar las pantallas y
+la lógica compartida. Las pruebas con dispositivos físicos y proveedores
+reales se registran por separado de las pruebas con datos simulados.
+
+## Evaluación de App.tsx
+
+El contenedor puede migrar a Dioxus por etapas. La navegación ya decide la ruta
+en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
+mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
+
+1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
+   Empezar por el buffer de Actividad y sus contadores. Después trasladar
+   proveedores, borrador e historial, memoria confirmada y de trabajo, y
+   aprendizaje. Reutilizar las operaciones Tauri y los controladores que ya
+   existen en `core/`.
+2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
+   cola de guardado de recuerdos, las generaciones de memoria de trabajo,
+   la suscripción a aprendizaje y la vigencia del permiso de observación.
+   Comprobar que el borrador, el historial y las claves de preferencias
+   sobrevivan al cambio de pantalla y al arranque.
+3. Cuando el estado compartido tenga ese contrato, montar la raíz desde
+   Dioxus y conectar cada pantalla al nuevo estado. Para retirar `createRoot`
+   también deben quedar migrados Planificador, Volumen, Memoria,
+   Configuración, permisos, habilidades, procedimientos y las vistas
+   corporales, además de las recuperaciones que siguen activas.
 
 La salida de React exige cero importaciones productivas de `react`, `react-dom`
 y `react/jsx-runtime`; retirar las pruebas que requieran esas vistas después de

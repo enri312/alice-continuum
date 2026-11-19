@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { MicrophoneSensitivity, NoiseStatus } from "../../core/voice/noise-types";
-import type { VoiceIgnoredTakeObservation } from "../../core/voice/voice-loop";
+import type { MicrophoneSensitivity, NoiseStatus } from "../../../core/voice/noise-types";
+import type { VoiceIgnoredTakeObservation } from "../../../core/voice/voice-loop";
 
 type Props = {
   disabled: boolean;

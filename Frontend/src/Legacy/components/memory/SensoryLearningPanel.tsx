@@ -10,8 +10,8 @@ import {
   parsePreparedPermissionRequest,
   parseSensorLeaseExecutionResult,
   parseSensorLeaseStatus,
-} from "../../core/governance/permissions";
-import type { PermissionGrant, PreparedPermissionRequest, SensorKind, SensorLease, SensorLeaseStatus } from "../../core/governance/permissions";
+} from "../../../core/governance/permissions";
+import type { PermissionGrant, PreparedPermissionRequest, SensorKind, SensorLease, SensorLeaseStatus } from "../../../core/governance/permissions";
 
 type VisualMemoryCandidate = { intention: string; summary: string; memoryType: "episodic"; source: string; importance: number };
 type SensoryLearningPanelProps = {
