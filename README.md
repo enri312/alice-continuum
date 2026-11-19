@@ -3,7 +3,7 @@
 [![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
 [![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
-[![Dioxus 0.7.0](https://img.shields.io/badge/Dioxus-0.7.0-25A7D7?logo=rust&logoColor=white)](Frontend/crates/dioxus-ui/Cargo.toml)
+[![Dioxus 0.7.10](https://img.shields.io/badge/Dioxus-0.7.10-25A7D7?logo=rust&logoColor=white)](Frontend/crates/dioxus-ui/Cargo.toml)
 [![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](Backend/src-tauri/Cargo.lock)
 [![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
 [![npm 11.20.0](https://img.shields.io/badge/npm-11.20.0-CB3837?logo=npm&logoColor=white)](package.json)
@@ -50,12 +50,11 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 
 La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
 renderiza las pantallas migradas, entre ellas Conversación y Auditoría y
-diagnóstico. Rust mantiene las sesiones de Actividad y Conversación. La
-segunda comparte el borrador, el historial mostrado, el proveedor, el modelo
-y los ajustes de comportamiento entre Conversación, Configuración y Estado y
-controles. Tauri guarda el historial local y el WebView guarda el proveedor
-y el modelo. React aún arranca la aplicación, monta las pantallas y coordina
-otros estados compartidos. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
+diagnóstico. Rust mantiene las sesiones de Actividad, Conversación y Memoria.
+Conversación comparte el borrador, el historial visible, el proveedor, el modelo
+y los ajustes de comportamiento. Memoria proyecta los recuerdos guardados y el
+estado de RAM usando los datos de Tauri. React aún arranca la aplicación y monta
+las pantallas pendientes. `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
 Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.
 [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).

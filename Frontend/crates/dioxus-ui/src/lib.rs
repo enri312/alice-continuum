@@ -36,6 +36,8 @@ pub mod flow_page_model;
 mod flow_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod memory_session;
 pub mod model;
 pub mod navigation_model;
 #[cfg(target_arch = "wasm32")]

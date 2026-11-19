@@ -10,6 +10,7 @@ import { parseMemoryArchivePreview, parseMemoryArchiveResult, type MemoryArchive
 import { parseMemoryDeletionPreview, parseMemoryDeletionResult, parseMemoryDeletionSchedulePreview, parseMemoryDeletionScheduleResult, type MemoryDeletionPreview, type MemoryDeletionReason, type MemoryDeletionScheduleAction, type MemoryDeletionSchedulePreview } from "../../core/memory/memory-deletion";
 import { parseMemoryReconsolidationPreview, parseMemoryReconsolidationResult, type MemoryReconsolidationPreview, type MemoryReconsolidationReason } from "../../core/memory/memory-reconsolidation";
 import { workingMemoryRemainingLabel, workingMemoryUsagePercent } from "../../core/memory/working-memory";
+import type { MemoryRecordChanges, MemorySession as StoredMemorySession } from "../../core/memory/memory-record";
 import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "../../core/memory/working-memory";
 import type { OwnerProfileSnapshot } from "../../core/conversation/owner-profile";
 import { isLegacyMemoryDiscardable } from "../../core/memory/memory-discard";
@@ -42,42 +43,7 @@ const memorySubsections: Partial<Record<MemorySection, { view: MemoryView; title
   ],
 };
 
-type MemorySession = {
-  id: string;
-  kind: "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
-  intention: string;
-  finishedAt?: string;
-  summary?: string;
-  nextStep?: string;
-  memoryType?: MemoryType;
-  source?: string;
-  importance?: number;
-  storageStrength?: number;
-  memoryStatus?: "confirmed" | "conflict" | "archived";
-  accessibilityStatus?: "accessible" | "dormant";
-  accessibilityUpdatedAt?: string;
-  suppressionStatus?: "suppressed";
-  suppressionReason?: MemorySuppressionReason;
-  suppressionUpdatedAt?: string;
-  archiveStatus?: "archived";
-  archiveReason?: "ownerChoice" | "superseded" | "noLongerRelevant";
-  archiveUpdatedAt?: string;
-  deletionStatus?: "scheduled";
-  deletionReason?: MemoryDeletionReason;
-  deletionRequestedAt?: string;
-  deletionEligibleAt?: string;
-  memoryVersion?: number;
-  reconsolidatedAt?: string;
-  reconsolidationReason?: MemoryReconsolidationReason;
-  previousVersionSha256?: string;
-  successfulRecalls?: number;
-  failedRecalls?: number;
-  lastRecalledAt?: string;
-  retrievalEvidenceVersion?: 1;
-  successfulReviews?: number;
-  correctionCount?: number;
-  lastReviewedAt?: string;
-};
+type MemorySession = Omit<StoredMemorySession, "startedAt">;
 
 type MemoriaProps = {
   automaticMemoryPanel?: ReactNode;
@@ -85,9 +51,9 @@ type MemoriaProps = {
   ownerProfile: OwnerProfileSnapshot | null;
   workingMemory: WorkingMemorySnapshot | null;
   onClearWorkingMemory: (expectedGeneration: number) => Promise<WorkingMemoryOperationResult>;
-  onUpdate: (id: string, changes: { intention?: string; summary: string; nextStep: string; source?: string; importance?: number }) => void;
+  onUpdate: (id: string, changes: MemoryRecordChanges) => Promise<void>;
   onDelete: (id: string) => Promise<number>;
-  onReview: (id: string, outcome: ReviewOutcome) => void;
+  onReview: (id: string, outcome: ReviewOutcome) => Promise<void>;
   onExport: () => Promise<string>;
   onRestore: () => Promise<number>;
   onReloadMemory: () => Promise<number>;
@@ -552,8 +518,16 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
     const memory = sessionsById.get(editingId);
     if (!memory) return;
     if (memory.memoryStatus !== "confirmed" && memory.memoryStatus !== "conflict") {
-      onUpdate(editingId, { intention: editIntention.trim(), summary: summary.trim(), nextStep: nextStep.trim(), source: editSource.trim() || undefined, importance: editImportance });
-      setEditingId(null);
+      setOperationRunning(true);
+      setOperationMessage("");
+      try {
+        await onUpdate(editingId, { intention: editIntention.trim(), summary: summary.trim(), nextStep: nextStep.trim(), source: editSource.trim() || undefined, importance: editImportance });
+        setEditingId(null);
+      } catch (error) {
+        setOperationMessage(`No se pudo guardar el recuerdo: ${String(error)}`);
+      } finally {
+        setOperationRunning(false);
+      }
       return;
     }
     if (!isTauri()) {
@@ -630,14 +604,22 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
       setOperationRunning(false);
     }
   }
-  function review(session: MemorySession, outcome: ReviewOutcome) {
-    onReview(session.id, outcome);
-    if (outcome === "confirmed") {
-      setOperationMessage(`Repaso confirmado: “${session.intention}” sigue vigente.`);
-      return;
+  async function review(session: MemorySession, outcome: ReviewOutcome) {
+    setOperationRunning(true);
+    setOperationMessage("");
+    try {
+      await onReview(session.id, outcome);
+      if (outcome === "confirmed") {
+        setOperationMessage(`Repaso confirmado: ?${session.intention}? sigue vigente.`);
+        return;
+      }
+      setOperationMessage(`?${session.intention}? qued? marcado para correcci?n. Guard? los cambios para resolver el conflicto.`);
+      edit(session);
+    } catch (error) {
+      setOperationMessage(`No se pudo guardar el repaso: ${String(error)}`);
+    } finally {
+      setOperationRunning(false);
     }
-    setOperationMessage(`“${session.intention}” quedó marcado para corrección. Guardá los cambios para resolver el conflicto.`);
-    edit(session);
   }
 
   async function exportRecords() {
@@ -834,6 +816,7 @@ export function Memoria({ automaticMemoryPanel, sessions, ownerProfile, workingM
       <div className="memory-tool-actions"><button className="console-button" onClick={openDirectory} disabled={operationRunning}>Abrir carpeta de memoria</button><button className="console-button" onClick={exportRecords} disabled={operationRunning}>Exportar memoria</button><button className="console-button restore" onClick={restoreBackup} disabled={operationRunning}>Restaurar respaldo</button></div>
     </div>{operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}</div>}
     {view === "records" && <div className="memory-view-panel"><div className="memory-toolbar"><label className="memory-search"><span>BUSCAR</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar una conversación o recuerdo" /></label></div><div className="memory-records-summary" aria-label="Clasificación de los registros de memoria"><article><strong>{episodicConversationCount}</strong><span>EPISODIOS CONVERSACIONALES</span><small>Intercambios conservados; sus respuestas requieren evidencia aparte.</small></article><article><strong>{observationCount}</strong><span>OBSERVACIONES</span><small>Experiencias captadas desde el entorno y su incertidumbre.</small></article><article><strong>{registeredTeachingCount}</strong><span>ENSEÑANZAS REGISTRADAS</span><small>Contenido indicado explícitamente para Alice.</small></article><article><strong>{profileCount}</strong><span>HECHOS DE PERFIL</span><small>Se consultan por separado en Perfil.</small></article></div>
+    {operationMessage && <p className="memory-operation-message" role="status">{operationMessage}</p>}
     {filtered.length === 0 ? <div className="memory-empty"><span>◌</span><h3>{remembered.length ? "No encontramos recuerdos con esa búsqueda." : "La memoria duradera todavía está vacía."}</h3><p>{remembered.length ? "Probá con otras palabras." : "Una conversación u observación autorizada podrá producir candidatos; ninguno se consolidará automáticamente."}</p></div> : <div className="memory-list">{filtered.map((session) => <article className="memory-record" key={session.id}>
       <div className="memory-meta"><div><span className="tag">{memoryOriginLabel(session)}</span>{session.memoryType ? <span className="memory-type">{memoryTypeLabels[session.memoryType]}</span> : <span className="memory-type unclassified">SIN CLASIFICAR</span>}{session.memoryVersion && <span className="memory-type version">V{session.memoryVersion}</span>}</div><small>{session.finishedAt && formatDate(session.finishedAt)}</small></div>
       <div className="memory-body"><h3>{session.intention}</h3>{editingId === session.id ? <div className="memory-editor reconsolidation-editor">

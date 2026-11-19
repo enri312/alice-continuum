@@ -46,10 +46,10 @@ describe("Alice Continuum identity", () => {
 
   it("preserves persistent identity and storage keys during the rebrand", () => {
     expect(JSON.parse(read("Backend/src-tauri/tauri.conf.json")).identifier).toBe("com.carlosnunez.alicecognitivecore");
-    const app = read("Frontend/src/App.tsx");
-    expect(app).toContain('const storageKey = "alice-cognitive-core-sessions-v1"');
+    const memory = read("Frontend/src/core/memory/memory-session.ts");
+    expect(memory).toContain('const storageKey = "alice-cognitive-core-sessions-v1"');
     expect(read("Frontend/src/core/conversation/conversation-session.ts")).toContain('const cloudSelectionKey = "alice-cognitive-core-cloud-selection-v1"');
-    expect(app).toContain('"proyecto-p-sessions-v1"');
+    expect(memory).toContain('"proyecto-p-sessions-v1"');
   });
 
   it("brands the UI and documentation without renaming the character asset", () => {

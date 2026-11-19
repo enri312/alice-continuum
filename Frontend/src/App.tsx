@@ -31,16 +31,16 @@ import { Habilidades } from "./pages/governance/SkillWorkshopPage";
 import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
 import { recordCognitiveEvent as recordEvent } from "./core/cognitive/activity-session";
-import { applyMemoryRetrievalOutcome, applyMemoryReview } from "./core/memory/memory-consolidation";
-import type { RetrievalOutcome, ReviewOutcome } from "./core/memory/memory-consolidation";
+import {
+  acceptWorkingMemoryResponse, assessRetrievalOutcome, clearWorkingMemory, discardMemory,
+  exportMemory, memorySessionSnapshot, openMemoryDirectory, reloadMemoryFromDisk, restoreMemory,
+  reviewMemory, startMemorySession, subscribeToMemory, updateMemory,
+} from "./core/memory/memory-session";
 import { beginMemoryRetrieval, completeMemoryRetrieval, emptyMemoryRetrieval, failMemoryRetrieval, observePreparedMemory, type MemoryRetrievalObservation } from "./core/memory/retrieval-observation";
-import { loadCompatibleArray } from "./core/shared/storage-migration";
 import { startSerializedPolling } from "./core/shared/polling";
 import { parsePermissionGatewayStatus } from "./core/governance/permissions";
 import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
 import type { Screen } from "./core/navigation/workspaces";
-import { parseWorkingMemoryOperationResult, parseWorkingMemorySnapshot } from "./core/memory/working-memory";
-import type { WorkingMemoryOperationResult, WorkingMemorySnapshot } from "./core/memory/working-memory";
 import { parseOwnerProfileSnapshot } from "./core/conversation/owner-profile";
 import type { OwnerProfileSnapshot } from "./core/conversation/owner-profile";
 import { parseConversationLearningConfirmation, parseConversationLearningPreview } from "./core/conversation/conversation-learning";
@@ -50,67 +50,15 @@ import type { VoiceOutputPreview, VoiceOutputResult } from "./core/voice/voice-o
 import { parseVoiceTurnTranscript } from "./core/voice/voice-input";
 import type { VoiceTurnTranscript } from "./core/voice/voice-input";
 
-type SessionKind = "Facultad" | "Proyecto" | "Investigación" | "Juego" | "Conversación" | "Enseñanza";
-
-type Session = {
-  affects?: import("./core/cognitive/affect").MemoryAffect[];
-  id: string;
-  kind: SessionKind;
-  intention: string;
-  startedAt: string;
-  finishedAt?: string;
-  summary?: string;
-  nextStep?: string;
-  memoryType?: "semantic" | "procedural" | "preference" | "episodic";
-  source?: string;
-  importance?: number;
-  storageStrength?: number;
-  memoryStatus?: "confirmed" | "conflict" | "archived";
-  accessibilityStatus?: "accessible" | "dormant";
-  accessibilityUpdatedAt?: string;
-  suppressionStatus?: "suppressed";
-  suppressionReason?: "ownerChoice" | "sensitiveContext" | "temporaryBoundary";
-  suppressionUpdatedAt?: string;
-  archiveStatus?: "archived";
-  archiveReason?: "ownerChoice" | "superseded" | "noLongerRelevant";
-  archiveUpdatedAt?: string;
-  deletionStatus?: "scheduled";
-  deletionReason?: "ownerRequest" | "duplicateAfterMerge" | "privacyRemoval";
-  deletionRequestedAt?: string;
-  deletionEligibleAt?: string;
-  memoryVersion?: number;
-  reconsolidatedAt?: string;
-  reconsolidationReason?: "ownerCorrection" | "newContext" | "clarification";
-  previousVersionSha256?: string;
-  successfulRecalls?: number;
-  failedRecalls?: number;
-  lastRecalledAt?: string;
-  retrievalEvidenceVersion?: 1;
-  successfulReviews?: number;
-  correctionCount?: number;
-  lastReviewedAt?: string;
-  contextEvents?: { type: "screenshot"; recordedAt: string }[];
-};
-
 type ForegroundContext = { windowTitle: string; processName: string };
-type MemorySnapshot = { sessions: Session[]; storagePath: string; existed: boolean };
-const storageKey = "alice-cognitive-core-sessions-v1";
-const legacyStorageKeys = ["proyecto-p-sessions-v1"];
 const Avatar = lazy(() => import("./pages/embodiment/AvatarPage").then((module) => ({ default: module.Avatar })));
-
-function loadSessions(): Session[] {
-  return loadCompatibleArray<Session>(localStorage, storageKey, legacyStorageKeys);
-}
-
-function saveSessions(sessions: Session[]) {
-  localStorage.setItem(storageKey, JSON.stringify(sessions));
-}
 
 export function App() {
   const visionRef = useRef<ConversationVisionPort>(null);
   const desktopApp = isTauri();
   const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
-  const [sessions, setSessions] = useState<Session[]>(loadSessions);
+  const { sessions, workingMemory, memoryStatus, memoryPath } = useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
+  useEffect(startMemorySession, []);
   const {
     automaticMemory, automaticPhase, automaticError, automaticSource,
     selfStudy, selfStudyError, selfStudySource,
@@ -127,7 +75,6 @@ export function App() {
     cloudStatus, cloudSelection, draft: conversationDraft, showFullHistory,
     behavior: conversationBehavior, pending: cloudPending, messages,
   } = useSyncExternalStore(subscribeToConversation, conversationSnapshot);
-  const [workingMemory, setWorkingMemory] = useState<WorkingMemorySnapshot | null>(null);
   const [auditCapability, setAuditCapability] = useState<string | null>(null);
   const [screen, setActiveScreen] = useState(() =>
     initialScreen(new URLSearchParams(window.location.search), avatarDiagnostic));
@@ -149,16 +96,9 @@ export function App() {
   const observeMemoryRetrieval = useCallback((prepared: MemoryRetrievalObservation) => {
     setMemoryRetrieval(previous => observePreparedMemory(previous, prepared));
   }, []);
-  const [memoryStatus, setMemoryStatus] = useState<"browser" | "loading" | "native" | "error">(desktopApp ? "loading" : "browser");
-  const [memoryPath, setMemoryPath] = useState("");
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileSnapshot | null>(null);
   const [ownerProfileError, setOwnerProfileError] = useState("");
   const [ownerProfileReloadKey, setOwnerProfileReloadKey] = useState(0);
-  const memoryLoadStarted = useRef(false);
-  const sessionsRef = useRef(sessions);
-  const memorySaveQueue = useRef<Promise<void>>(Promise.resolve());
-  const workingMemoryGeneration = useRef(-1);
-
   const remembered = useMemo(() => sessions.filter((session) => session.finishedAt), [sessions]);
   const conversationalMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForConversation(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
   const cognitiveMemories = useMemo(() => [...(ownerProfile?.records ?? []), ...remembered, ...automaticMemoryForConversation(automaticMemory), ...selfStudyForCognitiveVolume(selfStudy)], [ownerProfile, remembered, automaticMemory, selfStudy]);
@@ -220,105 +160,6 @@ export function App() {
     return () => { active = false; };
   }, [desktopApp, ownerProfileReloadKey]);
 
-  useEffect(() => {
-    if (!desktopApp) return;
-    return startSerializedPolling({
-      intervalMs: 5_000,
-      read: async () => parseWorkingMemorySnapshot(await invoke<unknown>("working_memory_status")),
-      onValue: snapshot => {
-        // A read started before a confirmed clear/response must not restore its old view.
-        if (snapshot.generation < workingMemoryGeneration.current) return;
-        setWorkingMemory(snapshot);
-        workingMemoryGeneration.current = snapshot.generation;
-      },
-      onError: error => {
-        if (workingMemoryGeneration.current < 0) {
-          workingMemoryGeneration.current = 0;
-          recordEvent("SECURITY", "WORKING_MEMORY_STATUS_ERROR", String(error), "WARN");
-        }
-      },
-    });
-  }, [desktopApp]);
-
-  useEffect(() => {
-    if (!desktopApp || memoryLoadStarted.current) return;
-    memoryLoadStarted.current = true;
-    const legacySessions = loadSessions();
-    invoke<MemorySnapshot>("load_memory").then(async (snapshot) => {
-      setMemoryPath(snapshot.storagePath);
-      if (snapshot.existed) {
-        sessionsRef.current = snapshot.sessions;
-        setSessions(snapshot.sessions);
-        setMemoryStatus("native");
-        recordEvent("MEMORY", "MEMORY_LOAD", `${snapshot.sessions.length} recuerdos cargados desde archivo local`);
-        return;
-      }
-      if (legacySessions.length) {
-        const savedPath = await invoke<string>("save_memory", { sessions: legacySessions });
-        setMemoryPath(savedPath);
-        sessionsRef.current = legacySessions;
-        setSessions(legacySessions);
-        recordEvent("MEMORY", "MEMORY_MIGRATION", `${legacySessions.length} recuerdos migrados desde el navegador`);
-      }
-      setMemoryStatus("native");
-    }).catch((error) => {
-      setMemoryStatus("error");
-      recordEvent("SECURITY", "MEMORY_LOAD_ERROR", String(error), "WARN");
-    });
-  }, [desktopApp]);
-
-  function updateSessions(update: Session[] | ((current: Session[]) => Session[])) {
-    const next = typeof update === "function" ? update(sessionsRef.current) : update;
-    sessionsRef.current = next;
-    setSessions(next);
-    if (!desktopApp) {
-      saveSessions(next);
-      return;
-    }
-    memorySaveQueue.current = memorySaveQueue.current
-      .catch(() => undefined)
-      .then(async () => {
-        const path = await invoke<string>("save_memory", { sessions: next });
-        setMemoryPath(path);
-        setMemoryStatus("native");
-      })
-      .catch((error) => {
-        setMemoryStatus("error");
-        recordEvent("SECURITY", "MEMORY_SAVE_ERROR", String(error), "WARN");
-      });
-  }
-
-  async function updateSessionsVerified(update: (current: Session[]) => Session[]) {
-    const previous = sessionsRef.current;
-    const next = update(previous);
-    sessionsRef.current = next;
-    setSessions(next);
-    if (!desktopApp) {
-      saveSessions(next);
-      return;
-    }
-    const persistence = memorySaveQueue.current
-      .catch(() => undefined)
-      .then(async () => {
-        const path = await invoke<string>("save_memory", { sessions: next });
-        setMemoryPath(path);
-        setMemoryStatus("native");
-      });
-    memorySaveQueue.current = persistence.catch((error) => {
-      setMemoryStatus("error");
-      recordEvent("SECURITY", "MEMORY_SAVE_ERROR", String(error), "WARN");
-    });
-    try {
-      await persistence;
-    } catch (error) {
-      if (sessionsRef.current === next) {
-        sessionsRef.current = previous;
-        setSessions(previous);
-      }
-      throw error;
-    }
-  }
-
   async function toggleObservation() {
     if (!desktopApp) return;
     navigate("puentes");
@@ -341,16 +182,7 @@ export function App() {
         setMemoryRetrieval(completeMemoryRetrieval(sentRetrieval, response.responseId, response.memoryContextMode));
       }
       const now = new Date().toISOString();
-      if (response.workingMemory) {
-        try {
-          const snapshot = parseWorkingMemorySnapshot(response.workingMemory);
-          workingMemoryGeneration.current = snapshot.generation;
-          setWorkingMemory(snapshot);
-          recordEvent("MEMORY", "WORKING_MEMORY_RECORDED", `${snapshot.messageCount}/${snapshot.maximumMessages} mensajes reales en RAM · TTL ${snapshot.ttlSeconds}s`);
-        } catch (error) {
-          recordEvent("SECURITY", "WORKING_MEMORY_CONTRACT_ERROR", String(error), "WARN");
-        }
-      }
+      if (response.workingMemory) acceptWorkingMemoryResponse(response.workingMemory);
       recordConversationResponse(request, response, now);
       if (response.workingMemoryError) recordEvent("SECURITY", "WORKING_MEMORY_RECORD_ERROR", response.workingMemoryError, "WARN");
       if (response.conversationHistoryError) recordEvent("SECURITY", "CONVERSATION_HISTORY_RECORD_ERROR", response.conversationHistoryError, "WARN");
@@ -454,80 +286,10 @@ export function App() {
     return result;
   }
 
-  async function assessRetrievalOutcome(recordId: string, outcome: RetrievalOutcome) {
-    const target = sessionsRef.current.find((session) => session.id === recordId);
-    if (!target || target.kind !== "Enseñanza" || target.memoryStatus !== "confirmed" || target.archiveStatus === "archived") throw new Error("El recuerdo ya no admite una evaluación de recuperación.");
-    await updateSessionsVerified((current) => current.map((session) => session.id === recordId ? applyMemoryRetrievalOutcome(session, outcome) : session));
-    recordEvent("MEMORY", outcome === "helpful" ? "MEMORY_RETRIEVAL_HELPFUL" : "MEMORY_RETRIEVAL_NOT_HELPFUL", `${recordId} · confirmado por el propietario · sin cambio automático de fuerza o accesibilidad`);
-  }
-
-  async function clearWorkingMemory(expectedGeneration: number): Promise<WorkingMemoryOperationResult> {
-    if (!desktopApp) throw new Error("El vaciado de RAM requiere la aplicación de escritorio.");
-    try {
-      const result = parseWorkingMemoryOperationResult(await invoke<unknown>("clear_working_memory", { input: { expectedGeneration, confirmed: true } }));
-      workingMemoryGeneration.current = result.snapshot.generation;
-      setWorkingMemory(result.snapshot);
-      recordEvent("MEMORY", "WORKING_MEMORY_CLEARED", `RAM vaciada en generación ${result.snapshot.generation}`);
-      if (result.warning) recordEvent("SECURITY", "WORKING_MEMORY_CLEAR_AUDIT_WARNING", result.warning, "WARN");
-      return result;
-    } catch (error) {
-      recordEvent("SECURITY", "WORKING_MEMORY_CLEAR_ERROR", String(error), "WARN");
-      throw error;
-    }
-  }
-
-  async function exportMemory() {
-    if (!desktopApp) throw new Error("La exportación está disponible en la aplicación de escritorio.");
-    await memorySaveQueue.current;
-    const path = await invoke<string>("export_memory");
-    recordEvent("MEMORY", "MEMORY_EXPORT", `Memoria exportada: ${path}`);
-    return path;
-  }
-
-  async function restoreMemory() {
-    if (!desktopApp) throw new Error("La restauración está disponible en la aplicación de escritorio.");
-    await memorySaveQueue.current;
-    const snapshot = await invoke<MemorySnapshot>("restore_memory_backup");
-    sessionsRef.current = snapshot.sessions;
-    setSessions(snapshot.sessions);
-    setMemoryPath(snapshot.storagePath);
-    setMemoryStatus("native");
-    recordEvent("MEMORY", "MEMORY_RESTORE", `${snapshot.sessions.length} recuerdos restaurados desde el respaldo`, "WARN");
-    return snapshot.sessions.length;
-  }
-
-  async function reloadMemoryFromDisk() {
-    if (!desktopApp) throw new Error("La recarga de memoria requiere la aplicación de escritorio.");
-    await memorySaveQueue.current;
-    const snapshot = await invoke<MemorySnapshot>("load_memory");
-    sessionsRef.current = snapshot.sessions;
-    setSessions(snapshot.sessions);
-    setMemoryPath(snapshot.storagePath);
-    setMemoryStatus("native");
-    return snapshot.sessions.length;
-  }
-
   function refreshVolumeLearning() {
     refreshLearningSources();
     if (!ownerProfile || ownerProfileError) setOwnerProfileReloadKey(value => value + 1);
-    if (memoryStatus === "error") void reloadMemoryFromDisk().catch(error => {
-      setMemoryStatus("error");
-      recordEvent("MEMORY", "MEMORY_RELOAD_ERROR", String(error), "WARN");
-    });
-  }
-
-  async function openMemoryDirectory() {
-    if (!desktopApp) throw new Error("La carpeta privada está disponible en la aplicación de escritorio.");
-    const path = await invoke<string>("open_memory_directory");
-    recordEvent("MEMORY", "MEMORY_DIRECTORY_OPEN", `Carpeta de memoria abierta: ${path}`);
-    return path;
-  }
-
-  function reviewMemory(id: string, outcome: ReviewOutcome) {
-    const memory = sessionsRef.current.find((session) => session.id === id);
-    if (!memory) return;
-    updateSessions((current) => current.map((session) => session.id === id ? applyMemoryReview(session, outcome) : session));
-    recordEvent("MEMORY", outcome === "confirmed" ? "MEMORY_REVIEW_CONFIRMED" : "MEMORY_REVIEW_CONFLICT", `${outcome === "confirmed" ? "Vigencia confirmada" : "Corrección solicitada"}: ${memory.intention}`, outcome === "confirmed" ? "INFO" : "WARN");
+    if (memoryStatus === "error") void reloadMemoryFromDisk().catch(() => undefined);
   }
 
   return <NavigationHost
@@ -566,7 +328,7 @@ export function App() {
       onPrepareVoiceTurn={prepareVoiceTurn} onTranscribeVoiceTurn={transcribeVoiceTurn}
       onToggleObservation={toggleObservation} onOpenSettings={() => navigate("configuracion")} onSend={sendCloudMessage}
     />}
-    {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={(id, changes) => { updateSessions((current) => current.map((session) => session.id === id ? { ...session, ...changes, ...(session.memoryStatus === "conflict" ? { memoryStatus: "confirmed" as const } : {}) } : session)); recordEvent("MEMORY", "MEMORY_UPDATE", `Recuerdo actualizado: ${id}`); }} onDelete={async (id) => { await updateSessionsVerified((current) => current.filter((session) => session.id !== id)); recordEvent("MEMORY", "MEMORY_DELETE", `Fragmento heredado descartado: ${id}`, "WARN"); return sessionsRef.current.length; }} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
+    {screen === "memoria" && <Memoria automaticMemoryPanel={<><SelfStudyPanel snapshot={selfStudy} error={selfStudyError} onToggle={toggleSelfStudy} /><AutomaticMemoryPanel snapshot={automaticMemory} phase={automaticPhase} error={automaticError} onToggle={toggleAutomaticMemory} onReview={reviewAutomaticMemory} /></>} sessions={sessions} ownerProfile={ownerProfile} workingMemory={workingMemory} onClearWorkingMemory={clearWorkingMemory} onUpdate={updateMemory} onDelete={discardMemory} onReview={reviewMemory} onExport={exportMemory} onRestore={restoreMemory} onReloadMemory={reloadMemoryFromDisk} onOpenDirectory={openMemoryDirectory} storageStatus={memoryStatus} storagePath={memoryPath} />}
     {screen === "actividad" && <Actividad />}
     {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
     {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}

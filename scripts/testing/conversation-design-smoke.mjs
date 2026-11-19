@@ -91,6 +91,10 @@ try {
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
     globalThis.isTauri=true; globalThis.__calls=[]; globalThis.__devices=0; globalThis.__rejectSend=false;
+    const memoryFixture = sessionStorage.getItem('alice-fixture-memory') === 'ready';
+    let records = memoryFixture ? [{id:'legacy',kind:'Conversación',intention:'Recuerdo anterior',summary:'Texto inicial',
+      startedAt:'2026-11-19T12:00:00.000Z',finishedAt:'2026-11-19T12:00:01.000Z'}] : [];
+    const workingMemoryBase = {schemaVersion:1,maximumMessages:12,maximumCharacters:72000,ttlSeconds:7200,persisted:false};
     for(const method of ['getUserMedia','getDisplayMedia']) if(navigator.mediaDevices) navigator.mediaDevices[method]=async()=>{__devices++;throw Error('No physical devices in design acceptance');};
     globalThis.__TAURI_INTERNALS__={transformCallback:()=>0,invoke:async(cmd,args={})=>{
       __calls.push({cmd,args:structuredClone(args)});
@@ -110,7 +114,21 @@ try {
         };
       }
       if(cmd==='system_overview')return {cpuPercent:34,memory:{usedBytes:6*1024**3,totalBytes:16*1024**3},disk:{usedBytes:180*1024**3,totalBytes:500*1024**3},network:{receivedBytesPerSecond:150000,transmittedBytesPerSecond:12000},power:{pluggedIn:true,batteryPercent:76},uptimeSeconds:273600};
-      if(cmd==='load_memory')return {existed:false,storagePath:'synthetic-only/records.json',sessions:[]};
+      if(cmd==='load_memory')return {existed:memoryFixture,storagePath:'synthetic-only/records.json',sessions:structuredClone(records)};
+      if(cmd==='save_memory' && memoryFixture){
+        if(globalThis.__rejectSave) throw Error('Escritura de prueba rechazada');
+        records = structuredClone(args.sessions);
+        return 'synthetic-only/records.json';
+      }
+      if(cmd==='working_memory_status' && memoryFixture)return {...workingMemoryBase,state:'active',generation:41,exchanges:[{
+        exchangeId:'00000000-0000-4000-8000-000000000041',userText:'Hola',assistantText:'Hola',createdAt:'2026-11-19T12:00:01.000Z',
+        provider:'ollama',model:'fixture-model',source:'cloudConversation',
+      }],exchangeCount:1,messageCount:2,characterCount:8,expiresInSeconds:7000,lastActivityAt:'2026-11-19T12:00:01.000Z'};
+      if(cmd==='clear_working_memory' && memoryFixture){
+        if(args.input.expectedGeneration!==41 || args.input.confirmed!==true) throw Error('Vaciado de RAM sin revisión');
+        return {snapshot:{...workingMemoryBase,state:'empty',generation:42,exchanges:[],exchangeCount:0,messageCount:0,
+          characterCount:0,expiresInSeconds:null,lastActivityAt:null},auditHealthy:true,warning:null};
+      }
       if(cmd==='plugin:event|listen')return 1;
       if(cmd==='plugin:event|unlisten')return null;
       if(cmd==='preview_document')return {status:'ok',sourceSha256:'a'.repeat(64),totalPages:1,chunks:[{page:1,startChar:0,endChar:45,text:'<img src=x onerror="globalThis.__injected=true">'}]};
@@ -341,12 +359,42 @@ try {
   await until(()=>evaluate('document.querySelectorAll(".chat-message").length===12'),'historial guardado al reabrir');
   assert.ok(await evaluate('document.querySelector(".chat-message").textContent.includes("Mensaje guardado 1")'));
 
+  await evaluate('sessionStorage.setItem("alice-fixture-memory","ready")');
+  const memoryUrl = new URL(url);
+  memoryUrl.searchParams.set('screen','memoria');
+  await send('Page.navigate',{url:memoryUrl.href});
+  await until(()=>evaluate('Boolean(document.querySelector(".memory-storage.storage-native"))'),'memoria persistida al arrancar');
+  const memorySection = title => evaluate(`Array.from(document.querySelectorAll('.memory-section-nav button')).find(button=>button.querySelector('strong').textContent===${JSON.stringify(title)}).click()`);
+  await memorySection('Recuerdos');
+  await until(()=>evaluate('document.querySelector(".memory-record h3")?.textContent==="Recuerdo anterior"'),'registro heredado');
+  await click('.memory-record .memory-actions button');
+  await evaluate('document.querySelector(".memory-editor textarea").select()');
+  await send('Input.insertText',{text:'Texto revisado'});
+  await evaluate('globalThis.__rejectSave=true');
+  await click('.memory-editor .primary');
+  await until(()=>evaluate('document.querySelector(".memory-operation-message")?.textContent.includes("Escritura de prueba rechazada")'),'error de guardado visible');
+  assert.equal(await evaluate('document.querySelector(".memory-editor textarea").value'),'Texto revisado');
+  await evaluate('globalThis.__rejectSave=false');
+  await click('.memory-editor .primary');
+  await until(()=>evaluate('document.querySelector(".memory-record .memory-body > p")?.textContent==="Texto revisado"'),'registro actualizado tras confirmación nativa simulada');
+  assert.equal(await evaluate('__calls.filter(call=>call.cmd==="save_memory").length'),2);
+  await memorySection('En sesión');
+  await until(()=>evaluate('Boolean(document.querySelector(".working-memory-panel.state-active"))'),'RAM activa');
+  await evaluate('window.confirm=()=>true');
+  await click('.working-memory-panel .danger');
+  await until(()=>evaluate('Boolean(document.querySelector(".working-memory-panel.state-empty"))'),'RAM vaciada');
+  const ramReads = await evaluate('__calls.filter(call=>call.cmd==="working_memory_status").length');
+  await until(()=>evaluate(`__calls.filter(call=>call.cmd==="working_memory_status").length > ${ramReads}`),'sondeo previo al vaciado regresa con generación antigua');
+  assert.ok(await evaluate('document.querySelector(".working-memory-panel.state-empty button.danger").disabled'));
+  await memorySection('Recuerdos');
+  assert.equal(await evaluate('document.querySelector(".memory-record .memory-body > p").textContent'),'Texto revisado');
+
   assert.deepEqual(failures,[],'Sin excepciones de navegador');
   const external=network.filter(raw=>/^https?:/.test(raw)&&new URL(raw).origin!==url.origin);
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

@@ -38,8 +38,15 @@ Conversación. Conserva el borrador al cambiar de pantalla, admite una sola
 respuesta en curso y comparte el proveedor, el modelo, la vista de historial y
 los controles de comportamiento. El historial sigue en el almacén local de
 Tauri y el proveedor y el modelo conservan la clave del WebView. El estado React
-anterior quedó en `Legacy`. El siguiente bloque es la coordinación de memoria
-confirmada y de trabajo.
+anterior quedó en `Legacy`.
+
+**Tercera etapa de App.tsx (2026-11-19).** La sesión Rust del crate Dioxus
+recibe los recuerdos guardados y el estado de la memoria de trabajo. Las
+operaciones de archivo se coordinan en una cola y la vista muestra los cambios
+después de que Tauri confirma el guardado. La sesión descarta lecturas antiguas
+de RAM después de vaciarla. El código React anterior queda en `Legacy`.
+Se fijó Dioxus **0.7.10** y se regeneró el WASM. El próximo bloque abarca
+la coordinación de aprendizaje y sus fuentes.
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.
