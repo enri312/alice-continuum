@@ -50,7 +50,7 @@ El alcance por plataforma y las pruebas pendientes se mantienen en el [roadmap](
 
 La interfaz vive en `Frontend/`. Dioxus controla la navegación general y
 renderiza las pantallas migradas, entre ellas Conversación, Auditoría y
-diagnóstico, Configuración y Planificador. Configuración comparte el proveedor
+diagnóstico, Configuración, Planificador y Volumen cognitivo. Configuración comparte el proveedor
 y el historial con Conversación. El registro R7 del Planificador revisa los
 recordatorios con Tauri antes de programarlos o cancelarlos. Rust mantiene
 las sesiones de Actividad, Conversación, Memoria,
@@ -62,7 +62,10 @@ gestiona la comunicación con Tauri y los recursos de voz y visión. Memoria
 proyecta los recuerdos guardados y el estado de RAM usando los datos de Tauri.
 Aprendizaje comparte entre Memoria y
 Volumen cognitivo la última lectura válida del autoestudio y de los recuerdos
-aprendidos al conversar. Memoria también carga el perfil confirmado por Tauri.
+aprendidos al conversar. Volumen presenta el inspector, las señales y los
+cambios observados desde la apertura en Dioxus. La escena conserva su dibujo
+Canvas 2D y las asociaciones confirmadas por Tauri. Memoria también carga el
+perfil confirmado por Tauri.
 Conversación recupera lecciones activas con el último ejercicio aprobado y
 Volumen permite inspeccionar también las pendientes de repaso o retiradas.
 La observación de ventana solo presenta metadatos mientras R2 confirma el

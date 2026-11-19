@@ -74,16 +74,22 @@ Conversación. Antes de enviar, el adaptador comprueba de nuevo la revisión
 y, cuando se incluyó la ventana, su permiso R2. El código anterior queda en
 `Legacy`.
 
+**Novena etapa de App.tsx (2026-11-19).** Volumen cognitivo monta en Dioxus
+la escena, el inspector, las leyendas, el estado del aprendizaje y los cambios
+de recuerdos observados desde la apertura. El lienzo conserva la cámara, la
+geometría y la proyección de relaciones R8. La demostración mantiene separados
+sus pulsos de los conteos de auditoría. Las vistas React pasan a `Legacy`.
+El siguiente bloque es la pantalla de Memoria y sus flujos de revisión.
+
+Se estiman **4 a 6 etapas adicionales** para migrar las pantallas pendientes,
+la raíz `app.rs` y la recuperación de errores.
+[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-novena-etapa).
+
 **Octava etapa de App.tsx (2026-11-19).** Configuración y Planificador montan
 sus pantallas en Dioxus. Configuración comparte el proveedor, el modelo y la
 vista de historial con Conversación. El Planificador conserva el inspector
 R3 y el registro R7, con vista previa, revisión, confirmación y despacho
-manual. Las pantallas React anteriores quedan en `Legacy`. Sigue Volumen
-cognitivo, incluida su escena y sus paneles.
-
-La estimación es de **5 a 7 etapas adicionales** para retirar React por
-completo. Incluye las pantallas pendientes, la raíz `app.rs` y la recuperación
-de errores. [Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-octava-etapa).
+manual. Las pantallas React anteriores quedan en `Legacy`.
 
 **Conversación y Auditoría y diagnóstico en Dioxus (2026-11-19).** Las dos
 pantallas montan sus vistas Rust y ofrecen reintentar la carga de Dioxus.

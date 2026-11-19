@@ -324,8 +324,18 @@ try {
   await flowReady();
   await until(() => evaluate('document.querySelectorAll(".memory-associations article").length===1'), 'relación conservada al recargar la ventana');
   await evaluate('document.querySelector(\'button[aria-label="Volumen cognitivo"]\').click()');
+  await until(() => evaluate('Boolean(document.querySelector("[data-volume-renderer=dioxus] .volume-workbench"))'), 'Volumen nativo en Dioxus');
+  await until(() => evaluate('(()=>{const canvas=document.querySelector(".traceable-volume canvas");return canvas?.width>300 && canvas.getContext("2d").getImageData(canvas.width/2,canvas.height/2,1,1).data[3]>0;})()'), 'la ventana nativa dibuja el volumen');
   await until(() => evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt => dt.textContent === "Otros recuerdos" && dt.nextElementSibling?.textContent === "2")'), 'Volumen reconoce las dos fuentes episódicas después de recargar');
   await until(() => evaluate('document.querySelector(".volume-stats-growth")?.textContent.endsWith(" · 1 ASOCIACIÓN CONFIRMADA")'), 'Volumen proyecta la relación confirmada en Flujo');
+  await evaluate('document.querySelector(".observatory-search summary").click()');
+  await evaluate(`(()=>{const select=document.querySelector('.observatory-select select'); select.value='memory:a'; select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  await until(() => evaluate('document.querySelector(".observatory-associations")?.textContent.includes("“Rust”")'), 'cita R8 confirmada en el inspector de Volumen');
+  assert.equal(await evaluate('document.querySelector(".volume-memory-appearance")?.dataset.fillColor'), '34,211,238');
+  await evaluate('document.querySelector(".observatory-associations summary").click()');
+  await evaluate('document.querySelector(".volume-workbench-grid").scrollIntoView()');
+  await screenshot('volumen-dioxus.png');
+  await evaluate('document.querySelector(".volume-inspector-heading button").click()');
   const profileCount = count => evaluate(`Array.from(document.querySelectorAll('.volume-learning-metrics dt')).some(dt => dt.textContent === 'Perfil del propietario' && dt.nextElementSibling?.textContent === '${count}')`);
   await until(() => profileCount(1), 'Volumen muestra el perfil confirmado');
   await fs.writeFile(profileSourcePath, profileSource + ' Cambio de prueba.');
@@ -345,9 +355,9 @@ try {
   await until(() => evaluate('Boolean(document.querySelector("[data-settings-renderer=dioxus] .settings-runtime"))'), 'Configuración nativa en Dioxus');
   await screenshot('configuracion-dioxus.png');
   const result = { passed: true, nativeWindow: true, nativePid: native.id, realIpc: true, dashboardHostTelemetry: true, conversationDraftPreserved: true, memorySession: true, learningSession: true, verifiedProfile: true, plannerConfirmedAndCancelled: true, settingsDioxus: true, nodes: 11,
-    governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
+    governanceRegistryAndPermissions: true, permissionDeniedApprovedRevoked: true, noObservationFromApproval: true, capabilityAuditFilter: true, r3Validated: true, timelineDioxusKeyboardAndClear: true, relationPersistedAndReloaded: true, volumeCanvasDrawn: true, volumeReflectsAssociation: true, sourceUnchanged: true, isolatedData: true };
   await fs.writeFile(path.join(artifacts, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
-  console.log(`Tauri nativo: Dashboard, telemetría local, borrador, Conversación, 11 nodos, R3, navegación y persistencia de relaciones comprobados con datos aislados. Evidencia: ${artifacts}`);
+  console.log(`Tauri nativo: navegación, Conversación, Planificador, Flujo y Volumen con su escena y citas R8 comprobados con datos aislados. Evidencia: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {
     try { const shot = await send('Page.captureScreenshot', { format: 'png' }); await fs.writeFile(path.join(artifacts, 'failure.png'), Buffer.from(shot.data, 'base64')); } catch { /* Keep original error. */ }

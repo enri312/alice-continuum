@@ -143,8 +143,25 @@ try {
       }
       if(cmd==='system_overview')return {cpuPercent:34,memory:{usedBytes:6*1024**3,totalBytes:16*1024**3},disk:{usedBytes:180*1024**3,totalBytes:500*1024**3},network:{receivedBytesPerSecond:150000,transmittedBytesPerSecond:12000},power:{pluggedIn:true,batteryPercent:76},uptimeSeconds:273600};
       if(cmd==='load_memory')return {existed:memoryFixture,storagePath:'synthetic-only/records.json',sessions:structuredClone(records)};
+      if(cmd==='owner_profile_status')return {state:'missing',storagePath:'synthetic-only/owner-profile.json',sourceFiles:[],records:[]};
+      if(cmd==='core_activity_snapshot' && globalThis.__volumeSignalMode){
+        const generatedAtMs=Date.now()- (globalThis.__volumeSignalMode==='stale' ? 20_000 : 0);
+        return {schemaVersion:2,generatedAtMs,method:'r3-recency-motor-v2',heuristic:true,windowMs:300000,auditHealthy:true,
+          visibleEventCount:3,windowEventCount:3,latestEventAtMs:generatedAtMs-300,overallSignal:.4,
+          regions:['perception','permission','memory','language','workspace','output','motor'].map(id=>{
+            const active=id==='memory'||id==='workspace';
+            return {id,label:id,eventCount:active ? 1 : 0,signal:active ? .4 : 0,lastEventAtMs:active ? generatedAtMs-300 : null};
+          }),
+          links:[['permission','perception'],['perception','workspace'],['memory','workspace'],['language','workspace'],['workspace','output']]
+            .map(([from,to])=>({id:from+'-'+to,from,to,evidenceCount:from==='memory' ? 1 : 0,signal:from==='memory' ? .4 : 0})),
+        };
+      }
       if(cmd==='self_study_status'){
         if(globalThis.__failStudyRead) throw Error('Lectura de autoestudio interrumpida');
+        if(globalThis.__volumeStudyRecord && studyLessons.length) return {...selfStudy,records:[
+          ...selfStudy.records,{...studyLessons[0],id:'study:volumen-prueba',lessonId:'volumen-prueba',
+            title:'Lección añadida con Volumen abierto',content:'Contenido ficticio de la nueva lección'},
+        ]};
         return selfStudy;
       }
       if(cmd==='automatic_memory_status')return automaticMemory;
@@ -377,6 +394,7 @@ try {
     ['auditoria','audit','.native-audit'],
     ['configuracion','settings','.settings-page'],
     ['planificador','planner','.task-registry'],
+    ['nucleo','volume','.volume-workbench'],
   ]) {
     await send('Network.setBlockedURLs',{urls:['*.wasm']});
     const target = new URL(url); target.searchParams.set('screen',screen);
@@ -490,13 +508,75 @@ try {
   await memorySection('Aprendizaje');
   await until(()=>studyControl('checked'),'se conserva la última preferencia confirmada');
   assert.ok(await evaluate('document.querySelector(\'section[aria-labelledby=self-study-title] [role=alert]\').textContent.includes("Lectura de autoestudio interrumpida")'));
-  await evaluate('globalThis.__failStudyRead=false');
+  await evaluate('globalThis.__failStudyRead=false; globalThis.__volumeSignalMode="live"');
   await click('.screen-tabs button[data-tooltip="Volumen cognitivo"]');
   await until(()=>evaluate('Boolean(document.querySelector(".volume-learning-refresh button"))'),'reintentar lectura');
   await click('.volume-learning-refresh button');
   await until(()=>evaluate('document.querySelector(".volume-learning-source-states > div")?.dataset.state==="ready"'),'recuperar la fuente sin reiniciar');
 
   await until(()=>evaluate('Array.from(document.querySelectorAll(".volume-learning-metrics dt")).some(dt=>dt.textContent==="Autoestudio registrado" && dt.nextElementSibling?.textContent==="3")'),'Volumen presenta también las lecciones pendientes y retiradas');
+  assert.equal(await evaluate('document.querySelector("[data-volume-renderer]")?.dataset.volumeRenderer'),'dioxus');
+  await until(()=>evaluate('document.querySelector(".volume-learning-observed span")?.textContent.includes("Desde esta apertura")'),'punto de partida de cambios');
+  assert.equal(await evaluate('document.querySelector(".volume-learning-observed strong").textContent'),'0 nuevos · 0 actualizados');
+  await evaluate('globalThis.__volumeStudyRecord=true');
+  await click('.volume-learning-refresh button');
+  await until(()=>evaluate('document.querySelector(".volume-learning-burst")?.textContent.includes("Lección añadida con Volumen abierto")'),'cambio registrado mientras la escena sigue abierta');
+  assert.ok(await evaluate('document.querySelector(".volume-learning-changes ul li").textContent.includes("Lección añadida con Volumen abierto")'));
+  await evaluate('globalThis.__volumeStudyRecord=false');
+  await click('.volume-learning-refresh button');
+  await until(()=>evaluate('document.querySelector(".volume-learning-changes ul li").textContent.includes("Fuera de esta vista")'),'el registro sale de la proyección sin contar como nuevo');
+  assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'Volumen sin desborde en pantalla angosta');
+  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:960,deviceScaleFactor:1,mobile:false});
+  await until(()=>evaluate('(()=>{const canvas=document.querySelector(".traceable-volume canvas");return canvas?.width>300 && canvas.getContext("2d").getImageData(canvas.width/2,canvas.height/2,1,1).data[3]>0;})()'),'Canvas 2D dibuja la escena de Volumen');
+  const readRecordedCounters = () => evaluate('Array.from(document.querySelectorAll(".volume-signal-metrics dd")).slice(0,3).map(item=>item.textContent)');
+  await until(()=>evaluate('document.querySelector(".volume-signal-console")?.dataset.state==="live"'),'volumen con evidencia R3 reciente');
+  const recordedCounters = await readRecordedCounters();
+  assert.deepEqual(recordedCounters,['3','1','0.400']);
+  await click('.volume-signal-modes [data-mode=demo]');
+  await until(()=>evaluate('Boolean(document.querySelector(".volume-demo-badge"))'),'demostración señalada en el lienzo');
+  assert.deepEqual(await readRecordedCounters(),recordedCounters);
+  assert.equal(await evaluate('document.querySelectorAll(".volume-signal-route-list [data-demo=true][data-animating=true]").length'),0,'se respeta movimiento reducido');
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+  await until(()=>evaluate('document.querySelectorAll(".volume-signal-route-list [data-demo=true][data-animating=true]").length>0'),'se habilita el movimiento ilustrativo');
+  await click('.volume-signal-tools button');
+  await until(()=>evaluate('document.querySelector(".volume-signal-console").dataset.paused==="true"'),'pausa de la demostración');
+  await click('.volume-signal-modes button:first-of-type');
+  await until(()=>evaluate('!document.querySelector(".volume-demo-badge")'),'volver a las señales registradas');
+  await click('.volume-signal-tools button');
+  await until(()=>evaluate('document.querySelectorAll(".volume-signal-route-list [data-animating=true]").length===1'),'señal registrada respaldada por evidencia');
+  await evaluate('globalThis.__volumeSignalMode="stale"');
+  await until(()=>evaluate('document.querySelector(".volume-signal-console").dataset.state==="stale"'),'una muestra vieja deja de animar');
+  assert.equal(await evaluate('document.querySelectorAll(".volume-signal-route-list [data-animating=true]").length'),0);
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await click('.volume-camera-modes button:last-of-type');
+  await until(()=>evaluate('Boolean(document.querySelector(".traceable-volume.mode-pan canvas:focus"))'),'mover conserva el foco en el lienzo');
+  await click('[aria-label="Acercar volumen"]');
+  await until(()=>evaluate('document.querySelector(".volume-camera-actions output").textContent==="118%"'),'zoom de cámara');
+  await click('[aria-label="Restablecer vista"]');
+  await until(()=>evaluate('document.querySelector(".volume-camera-actions output").textContent==="100%"'),'restablecer cámara');
+  await evaluate('document.querySelector(".traceable-volume canvas").focus()');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'=',code:'Equal'});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'=',code:'Equal'});
+  await until(()=>evaluate('document.querySelector(".volume-camera-actions output").textContent==="115%"'),'zoom con teclado');
+  const sceneSignature = () => evaluate(`(()=>{const canvas=document.querySelector('.traceable-volume canvas');
+    const sample=document.createElement('canvas'); sample.width=sample.height=48;
+    sample.getContext('2d').drawImage(canvas,0,0,48,48); return sample.toDataURL();})()`);
+  const origin = await evaluate(`(()=>{const canvas=document.querySelector('.traceable-volume canvas');
+    canvas.scrollIntoView({block:'center'}); const bounds=canvas.getBoundingClientRect();
+    return {x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2};})()`);
+  const beforeDrag = await sceneSignature();
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',...origin,button:'left',buttons:1,clickCount:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:origin.x+56,y:origin.y+25,button:'left',buttons:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:origin.x+56,y:origin.y+25,button:'left',buttons:0,clickCount:1});
+  assert.notEqual(await sceneSignature(),beforeDrag,'arrastrar con Mover desplaza el dibujo');
+  await click('.observatory-search summary');
+  await evaluate(`(()=>{const select=document.querySelector('.observatory-select select');select.value=[...select.options].find(option=>option.textContent.includes('proyectocomun retirada')).value;select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  await until(()=>evaluate('document.querySelector(".volume-inspector-rail")?.textContent.includes("Retirado del contexto")'),'ficha de una lección retirada');
+  assert.equal(await evaluate('document.querySelector(".volume-memory-appearance")?.dataset.state'),'withdrawn');
+  await click('.volume-inspector-heading button');
+  await until(()=>evaluate('!document.querySelector(".volume-inspector-rail") && Boolean(document.querySelector(".traceable-volume canvas:focus"))'),'cierre accesible de ficha');
+  await screenshot('volumen-dioxus.png');
+  await evaluate('globalThis.__volumeSignalMode=null');
   await click('.screen-tabs button[data-tooltip="Conversación"]');
   await ready();
   await input('proyectocomun');
@@ -553,7 +633,7 @@ try {
   assert.deepEqual(external,[],'Sin dependencias de red externas');
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/sora-latin.woff2')));
   assert.ok(network.some(raw=>raw.includes('/fonts/proposal04/jetbrains-mono-latin.woff2')));
-  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true,observationRevokesPendingRead:true,revocationBlocksReviewedSend:true},null,2));
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,syntheticIpc:true,realModel:false,physicalDevices:false,sizes,themedScreens,externalRequests:external,uncaughtExceptions:failures,reviewCancelEditConfirmError:true,localDocument:true,inputDiagnostic:true,dioxusRetryWithoutReact:true,keyboardAndCarousel:true,conversationSession:true,memorySession:true,learningSession:true,memoryCatalog:true,volumeCanvasAndControls:true,volumeLearningChanges:true,volumeSignalFreshness:true,observationRevokesPendingRead:true,revocationBlocksReviewedSend:true},null,2));
   console.log('Dashboard Dioxus, Conversación y marco de consola en las 15 pantallas comprobados con IPC sintético. Evidencia: '+artifacts);
   await send('Browser.close');
 } catch(error) {

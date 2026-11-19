@@ -1,5 +1,5 @@
-import { memoryLayerLegend, memoryVisualStates } from "../../core/cognitive/cognitive-volume";
-import { affectPalette } from "../../core/cognitive/affect";
+import { memoryLayerLegend, memoryVisualStates } from "../../../core/cognitive/cognitive-volume";
+import { affectPalette } from "../../../core/cognitive/affect";
 
 /** Uses the same palette and state markers as the canvas and the selected record. */
 export function VolumeColourGuide() {

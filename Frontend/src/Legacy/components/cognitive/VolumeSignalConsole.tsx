@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import type { buildVolumeSignalSnapshot } from "../../core/cognitive/volume-signals";
-import { illustrativeSignalRoutes } from "../../core/cognitive/volume-signal-demo";
+import type { buildVolumeSignalSnapshot } from "../../../core/cognitive/volume-signals";
+import { illustrativeSignalRoutes } from "../../../core/cognitive/volume-signal-demo";
 
 export type VolumeSignalMode = "recorded" | "demo";
 type Props = {

@@ -1,5 +1,5 @@
-import type { CognitiveMemoryNode } from "../../core/memory/cognitive-memory";
-import { buildVolumeLearningSnapshot } from "../../core/cognitive/volume-learning";
+import type { CognitiveMemoryNode } from "../../../core/memory/cognitive-memory";
+import { buildVolumeLearningSnapshot } from "../../../core/cognitive/volume-learning";
 
 export type VolumeLearningChange = { id: string; kind: "added" | "changed" | "removed"; label: string; observedAt: number };
 export type VolumeStudyProgress = { studied: number; available: number; attempts: number; passes: number };

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { VolumeLearningActivityState } from "../../components/cognitive/VolumeLearningActivity";
 import { NeuralVolume } from "../../components/cognitive/NeuralVolume";
-import { parseKnowledgeGraphVolumeProjection } from "../../core/memory/knowledge-graph-volume";
-import type { KnowledgeGraphVolumeState } from "../../core/memory/knowledge-graph-volume";
-import type { ConfirmedMemoryAssociation } from "../../core/cognitive/cognitive-volume";
-import type { SelfStudySnapshot } from "../../core/memory/self-study";
-import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../shared/nucleus-shared";
+import { parseKnowledgeGraphVolumeProjection } from "../../../core/memory/knowledge-graph-volume";
+import type { KnowledgeGraphVolumeState } from "../../../core/memory/knowledge-graph-volume";
+import type { ConfirmedMemoryAssociation } from "../../../core/cognitive/cognitive-volume";
+import type { SelfStudySnapshot } from "../../../core/memory/self-study";
+import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../../../pages/shared/nucleus-shared";
 
 type VolumePageProps = NucleusPageProps & { learningReady?: boolean; selfStudy?: SelfStudySnapshot | null; learningActivity?: VolumeLearningActivityState; onRefreshLearning?: () => void };
 

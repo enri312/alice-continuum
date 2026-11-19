@@ -54,6 +54,11 @@ pub mod settings_page_model;
 mod settings_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod ui;
+pub mod volume_page_model;
+#[cfg(target_arch = "wasm32")]
+mod volume_page_ui;
+#[cfg(target_arch = "wasm32")]
+mod volume_panels_ui;
 
 pub mod relations_model;
 #[cfg(target_arch = "wasm32")]
@@ -198,4 +203,14 @@ mountable_view!(
     mount_planner_page,
     update_planner_page,
     unmount_planner_page
+);
+
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    volume_page_browser,
+    crate::volume_page_model::Payload,
+    crate::volume_page_ui,
+    mount_volume_page,
+    update_volume_page,
+    unmount_volume_page
 );

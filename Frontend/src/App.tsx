@@ -15,7 +15,7 @@ import {
   changeConversationBehavior, conversationSnapshot, resetConversationRetrieval,
   setConversationDraft, subscribeToConversation,
 } from "./core/conversation/conversation-session";
-import { Volumen } from "./pages/cognitive/NeuralVolumePage";
+import { Volumen } from "./pages/cognitive/VolumeHost";
 import { Flujo } from "./pages/cognitive/EvidenceFlowPage";
 import { StateControlsHost } from "./components/cognitive/state-controls/StateControlsHost";
 import { Planificador } from "./pages/cognitive/ActionPlannerHost";
