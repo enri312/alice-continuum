@@ -54,6 +54,9 @@ diagnóstico, Configuración, Planificador, Volumen cognitivo, Memoria, Rostro,
 Cuerpo y Avatar. Rostro consulta el diagnóstico local y R2 con la cámara cerrada.
 Cuerpo conserva el esquema de referencia. Avatar integra el visor Three.js para
 el modelo VRM local y carga el motor 3D al necesitarlo.
+Gobernanza renderiza Capacidades y permisos, Procedimientos y Taller de
+habilidades en Dioxus. Tauri sigue verificando las confirmaciones, las huellas
+y el alcance de cada operación.
 Configuración comparte el proveedor
 y el historial con Conversación. El registro R7 del Planificador revisa los
 recordatorios con Tauri antes de programarlos o cancelarlos. Rust mantiene
@@ -78,7 +81,9 @@ Volumen permite inspeccionar también las pendientes de repaso o retiradas.
 La observación de ventana solo presenta metadatos mientras R2 confirma el
 permiso de sesión. El vencimiento o la revocación los retira de la interfaz.
 Si un mensaje incluye esos metadatos, el permiso se comprueba otra vez antes del envío.
-React aún arranca la aplicación y monta las pantallas pendientes. `Backend/`
+La ruta activa, las solicitudes de navegación y el filtro de Auditoría se
+administran en `Frontend/crates/dioxus-ui/src/app.rs`. React aún arranca la
+aplicación, conecta las vistas y ofrece las recuperaciones pendientes. `Backend/`
 contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
 Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.

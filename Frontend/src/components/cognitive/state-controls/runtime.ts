@@ -1,4 +1,5 @@
 import initialize, {
+  update_app,
   apply_activity_batch,
   init_conversation_session, update_conversation_session,
   update_memory_session,
@@ -16,6 +17,7 @@ import initialize, {
   mount_audit_page, update_audit_page, unmount_audit_page,
   mount_conversation_page, update_conversation_page, unmount_conversation_page,
   mount_navigation, update_navigation, unmount_navigation,
+  mount_governance_page, update_governance_page, unmount_governance_page,
   mount_settings_page, update_settings_page, unmount_settings_page,
   mount_planner_page, update_planner_page, unmount_planner_page,
   mount_volume_page, update_volume_page, unmount_volume_page,
@@ -29,11 +31,13 @@ import { connectConversationSession } from "../../../core/conversation/conversat
 import { connectMemorySession } from "../../../core/memory/memory-session";
 import { connectLearningSession } from "../../../core/memory/learning-session";
 import { connectObservationSession } from "../../../core/governance/observation-session";
+import { connectApp } from "../../../core/navigation/app-session";
 
 let initialization: Promise<unknown> | undefined;
 export async function loadRuntime(): Promise<StateControlsRuntime> {
   initialization ??= initialize({ module_or_path: wasmUrl }).catch(error => { initialization = undefined; throw error; });
   await initialization;
+  connectApp(update_app);
   connectActivitySession(apply_activity_batch);
   connectConversationSession(init_conversation_session, update_conversation_session);
   connectMemorySession(update_memory_session);
@@ -94,6 +98,11 @@ export async function loadConversationPageRuntime(): Promise<StateControlsRuntim
 export async function loadNavigationRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
   return { mount: mount_navigation, update: update_navigation, unmount: unmount_navigation };
+}
+
+export async function loadGovernanceRuntime(): Promise<StateControlsRuntime> {
+  await loadRuntime();
+  return { mount: mount_governance_page, update: update_governance_page, unmount: unmount_governance_page };
 }
 
 export async function loadSettingsPageRuntime(): Promise<StateControlsRuntime> {

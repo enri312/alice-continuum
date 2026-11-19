@@ -80,8 +80,15 @@ repaso, la vigencia, la accesibilidad, la supresión, el archivo reversible y la
 retención con sus confirmaciones. Consolidación muestra el plan de solo lectura,
 registra la decisión de mantener recuerdos separados y restaura transacciones
 interrumpidas con recibos verificados por Tauri. La página React se conserva
-desactivada en `Legacy`. Sigue Gobernanza.
-[Orden y criterios de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md#estimación-después-de-la-undécima-etapa).
+desactivada en `Legacy`.
+[Trabajo pendiente en el contenedor general](docs/architecture/DIOXUS_MIGRATION_STATUS.md#trabajo-pendiente-en-el-contenedor-general).
+
+**Decimotercera etapa de App.tsx (2026-11-19).** Capacidades y permisos,
+Procedimientos y Taller de habilidades pasan a Dioxus. El inventario enlaza
+Auditoría por capacidad, R2 conserva la confirmación explícita, y un candidato
+R5 puede convertirse en un borrador R4 con procedencia verificada. El Taller
+conserva la simulación y las decisiones de ciclo de vida. `app.rs` asume
+la ruta, las solicitudes de navegación y el filtro de Auditoría.
 
 **Duodécima etapa de App.tsx (2026-11-19).** Rostro, Cuerpo y Avatar pasan a
 Dioxus. Rostro conserva la lectura pasiva y las decisiones R2. Cuerpo conserva

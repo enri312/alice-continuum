@@ -3,7 +3,7 @@ import { buildMemoryCatalog } from "./core/memory/memory-catalog";
 import {
   learningSnapshot, refreshLearningSources, startLearningSession, subscribeToLearning,
 } from "./core/memory/learning-session";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { DashboardHost } from "./pages/dashboard/DashboardHost";
 import { supportsConversationBehavior } from "./core/conversation/behavior-settings";
@@ -19,22 +19,19 @@ import { Memoria } from "./pages/memory/MemoryHost";
 import { Actividad } from "./pages/cognitive/ActivityHost";
 import { AuditPageHost } from "./pages/cognitive/AuditPageHost";
 import { EmbodimentHost } from "./pages/embodiment/EmbodimentHost";
-import { CapacidadesYPermisos } from "./pages/governance/CapabilityRegistryPage";
+import { GovernanceHost } from "./pages/governance/GovernanceHost";
 import { Configuracion } from "./pages/governance/SystemSettingsHost";
-import { Habilidades } from "./pages/governance/SkillWorkshopPage";
-import { Procedimientos } from "./pages/governance/ProcedureObserverPage";
 import { buildBrainSnapshot } from "./core/cognitive/brain";
 import { recordCognitiveEvent as recordEvent } from "./core/cognitive/activity-session";
 import {
   memorySessionSnapshot, refreshOwnerProfile, reloadMemoryFromDisk, startMemorySession, subscribeToMemory,
 } from "./core/memory/memory-session";
 import { observationSnapshot, subscribeToObservation } from "./core/governance/observation-session";
-import { initialScreen, NavigationHost, type NavigationRequest } from "./core/navigation/NavigationHost";
-import type { Screen } from "./core/navigation/workspaces";
+import { NavigationHost } from "./core/navigation/NavigationHost";
+import { acceptRoute, appSnapshot, clearAudit, navigate, openAudit, subscribeToApp } from "./core/navigation/app-session";
 
 export function App() {
   const desktopApp = isTauri();
-  const avatarDiagnostic = import.meta.env.VITE_ALICE_AVATAR_DIAGNOSTIC === "1";
   const { sessions, finishedIndices, memoryStatus, ownerProfile, ownerProfileError } =
     useSyncExternalStore(subscribeToMemory, memorySessionSnapshot);
   useEffect(startMemorySession, []);
@@ -47,20 +44,7 @@ export function App() {
     cloudStatus, cloudSelection, draft: conversationDraft, showFullHistory,
     behavior: conversationBehavior, pending: cloudPending, messages, retrieval: memoryRetrieval,
   } = useSyncExternalStore(subscribeToConversation, conversationSnapshot);
-  const [auditCapability, setAuditCapability] = useState<string | null>(null);
-  const [screen, setActiveScreen] = useState(() =>
-    initialScreen(new URLSearchParams(window.location.search), avatarDiagnostic));
-  const [navigationRequest, setNavigationRequest] = useState<NavigationRequest | null>(null);
-  const navigationSequence = useRef(0);
-  const navigate = useCallback((destination: Screen) => {
-    navigationSequence.current = (navigationSequence.current + 1) >>> 0;
-    setNavigationRequest({ id: navigationSequence.current, screen: destination });
-  }, []);
-  const acceptRoute = useCallback((destination: Screen, clearAudit: boolean) => {
-    if (clearAudit) setAuditCapability(null);
-    setActiveScreen(destination);
-    setNavigationRequest(current => current?.screen === destination ? null : current);
-  }, []);
+  const { screen, request: navigationRequest, auditCapability } = useSyncExternalStore(subscribeToApp, appSnapshot);
   const { grant: observationGrant, foregroundContext } = useSyncExternalStore(subscribeToObservation, observationSnapshot);
   const observationEnabled = observationGrant !== null;
   const { conversationalMemories, cognitiveMemories } = useMemo(() => buildMemoryCatalog({
@@ -129,11 +113,12 @@ export function App() {
     />}
     {screen === "memoria" && <Memoria desktopApp={desktopApp} />}
     {screen === "actividad" && <Actividad />}
-    {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={() => setAuditCapability(null)} />}
-    {screen === "habilidades" && <Habilidades desktopApp={desktopApp} />}
-    {screen === "procedimientos" && <Procedimientos desktopApp={desktopApp} />}
+    {screen === "auditoria" && <AuditPageHost desktopApp={desktopApp} capability={auditCapability} onClearCapability={clearAudit} />}
+    {screen === "habilidades" && <GovernanceHost key="skills" view="skills" desktopApp={desktopApp} />}
+    {screen === "procedimientos" && <GovernanceHost key="procedures" view="procedures" desktopApp={desktopApp} />}
     {screen === "configuracion" && <Configuracion showFullHistory={showFullHistory} desktopApp={desktopApp} status={cloudStatus} provider={cloudSelection.provider} model={cloudSelection.model} />}
-    {screen === "puentes" && <CapacidadesYPermisos onOpenAudit={capability => { setAuditCapability(capability ?? null); navigate("auditoria"); }} />}
+    {screen === "puentes" && <GovernanceHost key="registry" view="registry" desktopApp={desktopApp}
+      onOpenAudit={openAudit} />}
     {screen === "rostro" && <EmbodimentHost key="face" view="face" desktopApp={desktopApp} />}
     {screen === "cuerpo" && <EmbodimentHost key="body" view="body" desktopApp={desktopApp} />}
     {screen === "avatar" && <EmbodimentHost key="avatar" view="avatar" desktopApp={desktopApp} />}

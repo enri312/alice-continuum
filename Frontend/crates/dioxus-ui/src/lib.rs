@@ -5,6 +5,8 @@ mod activity_page_ui;
 mod activity_session;
 #[cfg(target_arch = "wasm32")]
 mod activity_ui;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod app;
 pub mod associations_model;
 #[cfg(target_arch = "wasm32")]
 mod associations_ui;
@@ -36,6 +38,11 @@ pub mod flow_page_model;
 mod flow_page_ui;
 #[cfg(target_arch = "wasm32")]
 mod flow_ui;
+pub mod governance_model;
+#[cfg(target_arch = "wasm32")]
+mod governance_ui;
+#[cfg(target_arch = "wasm32")]
+mod governance_workflows_ui;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod learning_session;
 #[cfg(target_arch = "wasm32")]
@@ -86,6 +93,15 @@ mod timeline_ui;
 #[macro_use]
 mod browser_runtime;
 
+#[cfg(target_arch = "wasm32")]
+mountable_view!(
+    governance_browser,
+    crate::governance_model::Payload,
+    crate::governance_ui,
+    mount_governance_page,
+    update_governance_page,
+    unmount_governance_page
+);
 #[cfg(target_arch = "wasm32")]
 mountable_view!(
     browser,

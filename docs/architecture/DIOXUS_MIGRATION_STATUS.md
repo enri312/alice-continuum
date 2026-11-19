@@ -12,7 +12,7 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 
 | Área | Dioxus operativo | Dependencias React actuales |
 |---|---|---|
-| Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. | El puente monta Dioxus y proyecta la ruta elegida a `App.tsx`, que coloca el contenido en el marco con un portal. |
+| Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. `app.rs` coordina solicitudes de navegación y selección del filtro de Auditoría. | El puente monta Dioxus y `App.tsx` conecta el contenido al marco por un portal. |
 | Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
 | Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
 | Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
@@ -21,7 +21,9 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Aprendizaje | Memoria muestra autoestudio y aprendizaje conversacional, con corrección, retiro y restauración de recuerdos automáticos. Volumen muestra las fuentes y cambios en Dioxus. | El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
 | Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. |
 | Volumen cognitivo | Escena, ficha de recuerdos y procesos, evidencias R8, leyendas, consola de señales y seguimiento de cambios. | Host de montaje. El adaptador Canvas independiente dibuja la escena, traduce los eventos de puntero y teclado y consulta Tauri. |
-| Observación de ventana | Sesión compartida que liga el contexto visible al identificador y vencimiento del permiso R2 confirmado. | El panel aún muestra solicitudes y decisiones en React. El adaptador consulta Tauri y traslada las transiciones de permisos validadas. |
+| Observación de ventana | Sesión compartida que liga el contexto visible al identificador y vencimiento del permiso R2 confirmado. | El adaptador consulta Tauri y traslada las transiciones validadas a las vistas Dioxus. |
+| Capacidades y permisos | Inventario agrupado, inspector, enlace filtrado a Auditoría, política R2, solicitudes, diálogo de revisión y permisos temporales. | Host de montaje y transporte validado a los comandos nativos existentes. |
+| Procedimientos y Taller de habilidades | Evidencia R3, decisiones R5 y conversión a borrador R4. Edición, simulación estática y revisión por SHA-256 en el Taller. | Host de montaje y transporte hacia los almacenes y validadores nativos. |
 | Configuración | Vista de proveedores, modelo, historial, motor local, política y dispositivos. | El host monta Dioxus. El adaptador usa la sesión de Conversación y ordena las respuestas de inicio y apagado de Gemma. |
 | Rostro, Cuerpo y Avatar | Diagnóstico facial pasivo y permisos R2, esquemas corporales y controles, cámara virtual y telemetría del visor VRM. | Host de montaje. El adaptador consulta Tauri y monta el motor Three.js independiente. |
 | Planificador | Inspector, actividad R3, formulario y revisión R7, reloj, listas, comprobaciones y recibos. | El puente valida los resultados de Tauri y convierte horas locales. Presenta la confirmación del WebView para reservar o entregar un aviso. |
@@ -93,16 +95,12 @@ con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
 retirada completa permanece pendiente mientras cualquiera de estos bloques
 siga dependiendo de React.
 
-### Estimación después de la undécima etapa
+### Trabajo pendiente en el contenedor general
 
-Se prevén entre tres y cinco incrementos adicionales en Windows. Estos
-son los tres bloques pendientes, con revisión después de probar cada uno.
-
-1. Gobernanza, habilidades, procedimientos y puentes de permisos.
-2. Arranque desde `app.rs`, recuperación y retirada de React del frontend activo.
-
-El arranque final requiere que las rutas y las vistas de recuperación estén
-probadas en Dioxus.
+Pasar a `app.rs` el montaje general, la composición de las pantallas y las
+recuperaciones que aún dependen de React. Después se verifica el arranque de
+Windows y se retira `createRoot` cuando las rutas y los flujos de recuperación
+funcionen desde la entrada de Dioxus.
 
 ## Memoria y edición versionada (2026-11-19)
 

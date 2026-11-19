@@ -2,7 +2,7 @@
 // Requires a current build served by a loopback preview. No personal stores/keys.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
@@ -37,6 +37,20 @@ await fs.writeFile(path.join(data, 'memory/automatic-v1.json'), JSON.stringify({
 await fs.writeFile(path.join(data, 'memory/self-study-v1.json'), JSON.stringify({ schemaVersion: 1, enabled: false, biblicalTradition: 'catholic', phase: 'idle',
   lastStartedAt: null, lastCompletedAt: null, lastError: null, records: [] }));
 const sourceHash = createHash('sha256').update(await fs.readFile(sourcePath)).digest('hex');
+const auditSeed = [];
+for (let run = 0; run < 3; run++) {
+  const operationId = randomUUID();
+  const operations = [
+    ['memory', 'memory.records.read', 'load_memory', 'MEMORY_READ_COMPLETED'],
+    ['cloud', 'cloud.providers.inspect', 'cloud_status', 'PROVIDERS_INSPECTED'],
+  ];
+  for (const [position, [source, capabilityId, operation, reasonCode]] of operations.entries()) {
+    auditSeed.push({ schemaVersion: 1, eventId: randomUUID(), operationId, timestampMs: Date.now() - 10_000 + run * 10 + position,
+      source, capabilityId, operation, stage: 'execution', decision: null, outcome: 'success', durationMs: run + 1, subjectDigest: null, reasonCode });
+  }
+}
+await fs.mkdir(path.join(data, 'audit'));
+await fs.writeFile(path.join(data, 'audit/events-v1.jsonl'), auditSeed.map(event => JSON.stringify(event)).join('\n') + '\n');
 const port = await new Promise((resolve, reject) => {
   const server = net.createServer(); server.once('error', reject);
   server.listen(0, '127.0.0.1', () => { const port = server.address().port; server.close(error => error ? reject(error) : resolve(port)); });
@@ -231,6 +245,21 @@ try {
   await until(()=>evaluate('document.querySelectorAll("[data-body-renderer=dioxus] svg").length >= 2'), 'Cuerpo en Dioxus');
   await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Avatar"]\').click()');
   await until(()=>evaluate('Boolean(document.querySelector("[data-avatar-renderer=dioxus] .avatar-page"))'), 'Avatar en Dioxus');
+  const avatarAvailable = await evaluate('__TAURI_INTERNALS__.invoke("avatar_status").then(status=>status.available)');
+  if (avatarAvailable) {
+    await until(()=>evaluate('Boolean(document.querySelector(".avatar-viewer-state.state-ready") && document.querySelector(".avatar-viewer canvas") && document.querySelector(".avatar-version").textContent.includes("VRM 1"))'), 'archivo VRM local renderizado con telemetría', 60000);
+    await clickTaskButton('.avatar-reset');
+    await clickTaskButton('.avatar-pose');
+    await until(()=>evaluate('document.querySelector(".avatar-pose")?.textContent==="Volver a postura de reposo"'), 'pose de referencia en el visor');
+    await clickTaskButton('.avatar-pose');
+    await clickTaskButton('.avatar-gait-test');
+    await until(()=>evaluate('document.querySelector(".avatar-gamepad-status")?.textContent.includes("ENSAYO PROCEDURAL")'), 'ensayo corporal con telemetría activa');
+    await until(()=>evaluate('document.querySelector(".avatar-boundaries")?.textContent.includes("Telemetría manual R3")'), 'transición corporal auditada por Tauri');
+    await clickTaskButton('.avatar-gait-test');
+    await until(()=>evaluate('!document.querySelector(".avatar-gamepad-status")'), 'ensayo corporal detenido');
+  } else {
+    await until(()=>evaluate('document.querySelector(".avatar-unavailable")?.textContent.includes("No se encontró")'), 'estado sin archivo VRM');
+  }
   await evaluate('document.querySelector(".core-system-selector .cognitive").click()');
   await until(()=>evaluate('Boolean(document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\'))'), 'Regreso al núcleo cognitivo');
   await evaluate('document.querySelector(\'.screen-tabs button[data-tooltip="Actividad"]\').click()');
@@ -258,13 +287,18 @@ try {
   await evaluate('Array.from(document.querySelectorAll(\'[role="tab"]\')).find(button=>button.textContent.includes("EVENT STREAM")).click()');
   await evaluate('document.querySelector(".core-system-selector .governance").click()');
   await until(()=>evaluate('Boolean(document.querySelector(\'button[aria-label="Auditoría y diagnóstico"]\'))'),'gobierno para aislar teclado');
-  await until(()=>evaluate('document.querySelectorAll("#registry-panel .capability-domain button").length > 0'), 'inventario de capacidades nativo');
+  await until(()=>evaluate('document.querySelectorAll("[data-registry-renderer=dioxus] #registry-panel .capability-domain button").length > 0'), 'inventario de capacidades nativo en Dioxus');
   await evaluate('document.querySelector(\'[aria-controls="permissions-panel"]\').click()');
   await until(()=>evaluate('document.querySelector("#permission-gateway-title").checkVisibility() && document.querySelector(".permission-status")?.textContent.includes("Permisos locales actualizados")'), 'lectura de permisos nativos');
   async function permissionButton(label) {
     const selector = `Array.from(document.querySelectorAll('#permissions-panel button')).find(b => b.textContent === ${JSON.stringify(label)} && b.checkVisibility() && !b.disabled)`;
     await until(() => evaluate(`(()=>{const button=${selector};if(!button)return false;button.click();return true;})()`), label);
   }
+  await permissionButton('PREPARAR OBSERVACIÓN');
+  await until(()=>evaluate('Boolean(document.querySelector(".permission-dialog:modal"))'),'confirmación modal antes de tomar una decisión');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  await until(()=>evaluate('!document.querySelector(".permission-dialog[open]") && document.querySelector(".permission-ledger")?.textContent.includes("CANCELADA")'), 'Escape cancela la solicitud explícitamente');
   await permissionButton('PREPARAR OBSERVACIÓN');
   await permissionButton('RECHAZAR');
   await until(()=>evaluate('document.querySelector(".permission-ledger")?.textContent.includes("RECHAZADA")'), 'rechazo registrado');
@@ -290,6 +324,41 @@ try {
   await until(()=>evaluate('document.querySelectorAll(".diagnostic-check").length>0'), 'lecturas nativas de diagnóstico');
   assert.equal(await evaluate('document.querySelectorAll(".diagnostic-groups>section").length'),5);
   await screenshot('diagnostico-dioxus.png');
+  await clickTaskButton('.screen-tabs button[data-tooltip="Procedimientos"]');
+  await clickTaskButton('[data-procedures-renderer=dioxus] .skills-library section button');
+  await until(()=>evaluate('document.querySelectorAll(".procedure-occurrences article").length===3'), 'Dioxus muestra tres ocurrencias y su evidencia R3 aislada');
+  const inputField = async (selector, value) => evaluate(`(()=>{const field=document.querySelector(${JSON.stringify(selector)});field.value=${JSON.stringify(value)};field.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const procedureAction = '.procedure-confirmation .skills-lifecycle-actions button';
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(procedureAction)}).disabled`), true);
+  await inputField('.procedure-confirmation textarea', 'La evidencia aislada amerita una revisión manual.');
+  await clickTaskButton('.procedure-confirmation input[type=checkbox]');
+  await clickTaskButton(procedureAction);
+  await until(()=>evaluate('document.querySelector(".procedure-decision")?.textContent.includes("CONSERVADO")'), 'Decisión R5 registrada por Tauri');
+  await clickTaskButton('.procedure-decision button');
+  await until(()=>evaluate('document.querySelector(".skills-editor-heading")?.textContent.includes("PUENTE R5→R4")'), 'Conversión a borrador visible');
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(procedureAction)}).disabled`), true);
+  await inputField('.procedure-confirmation textarea', 'Confirmo la conversión deliberada del candidato de prueba.');
+  await clickTaskButton('.procedure-confirmation input[type=checkbox]');
+  await clickTaskButton(procedureAction);
+  await until(()=>evaluate('document.querySelector(".procedure-decision")?.textContent.includes("BORRADOR R4 CREADO")'), 'Conversión R5→R4 verificada');
+  await screenshot('gobernanza-procedimientos.png');
+  await clickTaskButton('.screen-tabs button[data-tooltip="Taller de habilidades"]');
+  await clickTaskButton('[data-skills-renderer=dioxus] .skills-library section button');
+  await until(()=>evaluate('Boolean(document.querySelector(".skills-editor") && document.querySelector(".skills-governance"))'), 'Taller abre el borrador convertido');
+  await clickTaskButton('.skills-template');
+  await until(()=>evaluate('document.querySelector(".skills-editor-heading em")?.textContent==="CAMBIOS SIN GUARDAR"'), 'Plantilla nativa en edición');
+  await inputField('.skills-editor input', 'Revisión de proveedores de prueba aislada');
+  await clickTaskButton('.skills-primary-actions button:nth-child(2)');
+  await until(()=>evaluate('document.querySelector(".skills-simulation")?.textContent.includes("ADAPTADORES0")'), 'La simulación calcula el plan sin invocar adaptadores');
+  await clickTaskButton('.skills-primary-actions button:first-child');
+  await until(()=>evaluate('document.querySelector(".skills-message")?.textContent.includes("Borrador guardado y verificado")'), 'Escritura versionada del borrador');
+  const skillTransition = '.skills-lifecycle-actions button';
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(skillTransition)}).disabled`), true);
+  await inputField('.skills-governance textarea', 'Confirmo la revisión de esta versión de prueba.');
+  await clickTaskButton('.skills-governance input[type=checkbox]');
+  await clickTaskButton(skillTransition);
+  await until(()=>evaluate('document.querySelector(".skills-editor-heading")?.textContent.includes("EN REVISIÓN")'), 'Transición R4 confirmada con revisión y SHA-256');
+  await screenshot('gobernanza-habilidades.png');
   const timelineRuntimeFile=(await fs.readdir(path.join(root,'Frontend/dist/assets'))).find(name=>/^runtime-.*\.js$/.test(name));
   assert.ok(timelineRuntimeFile);
   const timelineRuntimeUrl=new URL(`/assets/${timelineRuntimeFile}`,preview).href;

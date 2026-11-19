@@ -373,12 +373,13 @@ try {
       assert.equal(await evaluate('document.querySelectorAll(".avatar-page canvas").length'),0,'El navegador no carga un VRM local');
     }
     if (screen === 'puentes') {
+      await until(()=>evaluate('Boolean(document.querySelector("[data-registry-renderer=dioxus] #registry-panel"))'),'registro en Dioxus');
       assert.equal(await evaluate('document.querySelector(".core-system-selector .governance strong").textContent'), 'NÚCLEO DE GOBERNANZA');
       assert.equal(await evaluate('document.querySelectorAll(".bridge-console").length'), 0);
       await click('[aria-controls="permissions-panel"]');
-      assert.ok(await evaluate('document.querySelector("#registry-panel").hidden && document.querySelector("#permission-gateway-title").checkVisibility()'));
+      await until(()=>evaluate('document.querySelector("#registry-panel").hidden && document.querySelector("#permission-gateway-title").checkVisibility()'),'pestaña de permisos visible');
       await click('[aria-controls="registry-panel"]');
-      assert.ok(await evaluate('document.querySelector("#permissions-panel").hidden && document.querySelector(".bridge-layout").checkVisibility()'));
+      await until(()=>evaluate('document.querySelector("#permissions-panel").hidden && document.querySelector(".bridge-layout").checkVisibility()'),'inventario visible');
       await click('.governance-audit-link');
       await until(()=>evaluate('Boolean(document.querySelector(\'[data-audit-renderer="dioxus"] .native-audit\'))'), 'El enlace abre Auditoría en Dioxus');
       await click('.activity-view-tabs button:nth-of-type(2)');

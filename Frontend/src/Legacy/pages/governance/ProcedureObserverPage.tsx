@@ -1,8 +1,8 @@
-import { riskLabel } from "../../core/governance/display-labels";
+import { riskLabel } from "../../../core/governance/display-labels";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { parseCapabilityRegistrySnapshot, type CapabilityRegistrySnapshot } from "../../core/governance/capabilities";
-import { parseProcedureDetectionSnapshot, type ProcedureDetectionSnapshot } from "../../core/governance/procedure-learning";
+import { parseCapabilityRegistrySnapshot, type CapabilityRegistrySnapshot } from "../../../core/governance/capabilities";
+import { parseProcedureDetectionSnapshot, type ProcedureDetectionSnapshot } from "../../../core/governance/procedure-learning";
 import {
   parseProcedureCandidateStoreSnapshot,
   parseProcedureDraftConversionResult,
@@ -11,7 +11,7 @@ import {
   type ProcedureCandidateStoreSnapshot,
   type ProcedureDraftConversionSnapshot,
   type ProcedurePatternDecision,
-} from "../../core/governance/procedure-store";
+} from "../../../core/governance/procedure-store";
 
 function shortDigest(value: string) {
   return `${value.slice(0, 10)}…${value.slice(-8)}`;

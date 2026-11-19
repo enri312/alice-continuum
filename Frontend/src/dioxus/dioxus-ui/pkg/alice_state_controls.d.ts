@@ -18,6 +18,9 @@ export function mount_audit_page(root: string, raw: string, on_action: Function,
 export function unmount_embodiment(id: number): void;
 export function update_embodiment(id: number, raw: string): void;
 export function mount_embodiment(root: string, raw: string, on_action: Function, on_ready: Function): number;
+export function unmount_governance_page(id: number): void;
+export function update_governance_page(id: number, raw: string): void;
+export function mount_governance_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_navigation(id: number): void;
 export function update_navigation(id: number, raw: string): void;
 export function mount_navigation(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -57,6 +60,7 @@ export function update_learning_session(raw: string): string;
 export function update_observation_session(raw: string): string;
 export function init_conversation_session(raw: string): string;
 export function update_conversation_session(raw: string): string;
+export function update_app(raw: string): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -71,6 +75,7 @@ export interface InitOutput {
   readonly mount_dashboard: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_embodiment: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_flow_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly mount_governance_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_navigation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -88,6 +93,7 @@ export interface InitOutput {
   readonly unmount_dashboard: (a: number) => void;
   readonly unmount_embodiment: (a: number) => void;
   readonly unmount_flow_page: (a: number) => void;
+  readonly unmount_governance_page: (a: number) => void;
   readonly unmount_memory_associations: (a: number) => void;
   readonly unmount_memory_page: (a: number) => void;
   readonly unmount_navigation: (a: number) => void;
@@ -99,6 +105,7 @@ export interface InitOutput {
   readonly unmount_state_controls: (a: number) => void;
   readonly unmount_volume_page: (a: number) => void;
   readonly update_activity_page: (a: number, b: number, c: number) => [number, number];
+  readonly update_app: (a: number, b: number) => [number, number, number, number];
   readonly update_audit_page: (a: number, b: number, c: number) => [number, number];
   readonly update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
   readonly update_conversation_page: (a: number, b: number, c: number) => [number, number];
@@ -106,6 +113,7 @@ export interface InitOutput {
   readonly update_dashboard: (a: number, b: number, c: number) => [number, number];
   readonly update_embodiment: (a: number, b: number, c: number) => [number, number];
   readonly update_flow_page: (a: number, b: number, c: number) => [number, number];
+  readonly update_governance_page: (a: number, b: number, c: number) => [number, number];
   readonly update_learning_session: (a: number, b: number) => [number, number, number, number];
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_page: (a: number, b: number, c: number) => [number, number];
@@ -119,11 +127,11 @@ export interface InitOutput {
   readonly update_source_form: (a: number, b: number, c: number) => [number, number];
   readonly update_state_controls: (a: number, b: number, c: number) => [number, number];
   readonly update_volume_page: (a: number, b: number, c: number) => [number, number];
-  readonly wasm_bindgen_dce4ae8b940e967c___convert__closures________invoke___web_sys_207397dbcdc9324f___features__gen_Event__Event_____: (a: number, b: number, c: any) => void;
-  readonly wasm_bindgen_dce4ae8b940e967c___closure__destroy___dyn_for__a__core_37ee0ce0c4cd57d5___ops__function__Fn____a_web_sys_207397dbcdc9324f___features__gen_Event__Event____Output_______: (a: number, b: number) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke___wasm_bindgen_dce4ae8b940e967c___JsValue_____: (a: number, b: number, c: any) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___closure__destroy___dyn_core_37ee0ce0c4cd57d5___ops__function__FnMut__wasm_bindgen_dce4ae8b940e967c___JsValue____Output_______: (a: number, b: number) => void;
   readonly wasm_bindgen_dce4ae8b940e967c___convert__closures_____invoke______: (a: number, b: number) => void;
+  readonly wasm_bindgen_dce4ae8b940e967c___closure__destroy___dyn_for__a__core_37ee0ce0c4cd57d5___ops__function__Fn____a_web_sys_b5275d3c3add2128___features__gen_Event__Event____Output_______: (a: number, b: number) => void;
+  readonly wasm_bindgen_dce4ae8b940e967c___convert__closures________invoke___web_sys_b5275d3c3add2128___features__gen_Event__Event_____: (a: number, b: number, c: any) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;

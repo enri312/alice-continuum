@@ -68,7 +68,7 @@ impl Workspace {
     }
 }
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 pub struct Request {
     pub id: u32,
     pub screen: Screen,

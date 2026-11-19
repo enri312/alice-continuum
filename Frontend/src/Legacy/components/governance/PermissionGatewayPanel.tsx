@@ -1,5 +1,5 @@
-import { startSerializedPolling } from "../../core/shared/polling";
-import { effectLabel, grantStateLabel, permissionModeLabel, resourceKindLabel, riskLabel } from "../../core/governance/display-labels";
+import { startSerializedPolling } from "../../../core/shared/polling";
+import { effectLabel, grantStateLabel, permissionModeLabel, resourceKindLabel, riskLabel } from "../../../core/governance/display-labels";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import {
@@ -12,14 +12,14 @@ import {
   parsePermissionGrant,
   parseContextObservationExecutionResult,
   parsePreparedPermissionRequest,
-} from "../../core/governance/permissions";
-import { acceptObservationExecution, acceptObservationRevocation, readObservationGateway } from "../../core/governance/observation-session";
+} from "../../../core/governance/permissions";
+import { acceptObservationExecution, acceptObservationRevocation, readObservationGateway } from "../../../core/governance/observation-session";
 import type {
   PermissionGatewayResult,
   PermissionGrant,
   PermissionRequestState,
   PreparedPermissionRequest,
-} from "../../core/governance/permissions";
+} from "../../../core/governance/permissions";
 
 type GatewayAction = "prepare-start" | "prepare-stop" | "approve" | "deny" | "cancel" | "revoke" | "execute";
 

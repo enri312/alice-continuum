@@ -8,7 +8,8 @@ proyecto; no se acepta marcado del usuario.
   implementación anterior está en `src/Legacy/components/icons/NavigationIcon.tsx`.
 - `InlineSvgIcon.tsx`: envoltorio común utilizado también por los controles de
   cámara del Volumen cognitivo.
-- `BridgeViewIcon.tsx` muestra el icono del inventario y el de permisos en el selector del Núcleo de gobernanza.
+- `governance_ui.rs` presenta los SVG del inventario y de permisos en el
+  selector del Núcleo de gobernanza.
 
 El selector antiguo `NucleusViewIcon.tsx` se retiró al no tener importadores;
 su contenido sigue en el historial Git y en la copia local de recuperación.

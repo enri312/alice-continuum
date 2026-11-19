@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { effectLabel, permissionModeLabel, riskLabel } from "../../core/governance/display-labels";
+import { effectLabel, permissionModeLabel, riskLabel } from "../../../core/governance/display-labels";
 import { BridgeViewIcon } from "../../components/icons/BridgeViewIcon";
 import { PermissionGatewayPanel } from "../../components/governance/PermissionGatewayPanel";
 import {
   createWebDevelopmentCapabilityRegistry,
   parseCapabilityRegistrySnapshot,
   summarizeCapabilityRegistry,
-} from "../../core/governance/capabilities";
+} from "../../../core/governance/capabilities";
 import type {
   CapabilityDescriptor,
   CapabilityDomain,
   CapabilityRegistryResult,
-} from "../../core/governance/capabilities";
+} from "../../../core/governance/capabilities";
 
 type RegistryLoadState = "loading" | "ready" | "error";
 

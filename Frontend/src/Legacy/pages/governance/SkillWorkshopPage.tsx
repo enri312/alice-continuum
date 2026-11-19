@@ -1,8 +1,8 @@
-import { riskLabel } from "../../core/governance/display-labels";
+import { riskLabel } from "../../../core/governance/display-labels";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { parseCapabilityRegistrySnapshot } from "../../core/governance/capabilities";
-import type { CapabilityRegistrySnapshot } from "../../core/governance/capabilities";
+import { parseCapabilityRegistrySnapshot } from "../../../core/governance/capabilities";
+import type { CapabilityRegistrySnapshot } from "../../../core/governance/capabilities";
 import {
   parseSkillDraftRecord,
   parseSkillDraftStoreSnapshot,
@@ -11,7 +11,7 @@ import {
   parseSkillLifecycleTransitionResult,
   parseSkillManifest,
   parseSkillSimulationResult,
-} from "../../core/governance/skills";
+} from "../../../core/governance/skills";
 import type {
   SkillDraftRecord,
   SkillDraftStoreSnapshot,
@@ -19,8 +19,8 @@ import type {
   SkillLifecycleSnapshot,
   SkillManifest,
   SkillSimulationResult,
-} from "../../core/governance/skills";
-import { lifecycleActionDescription, lifecycleActionsForStatus } from "../../core/governance/skill-workshop";
+} from "../../../core/governance/skills";
+import { lifecycleActionDescription, lifecycleActionsForStatus } from "../../../core/governance/skill-workshop";
 
 const statusLabels: Record<SkillManifest["status"], string> = {
   draft: "BORRADOR",
