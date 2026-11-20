@@ -65,6 +65,8 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
   const active = () => state.loopState !== "idle" && state.loopState !== "error";
   const busy = () => ["requesting", "recording", "transcribing"].includes(state.captureState);
   const locked = () => disposed || !ports.desktopApp() || ports.isDisabled() || busy() || active() || Boolean(state.pending);
+  const canReviewTranscript = () => !disposed && ports.desktopApp() && !ports.isDisabled()
+    && !busy() && !state.pending && (!active() || state.loopState === "standby");
   const update = (values: Partial<typeof state>) => {
     Object.assign(state, values);
     if (!disposed) onChange();
@@ -81,7 +83,8 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
       : playbackStatus ?? (state.outputError ? { label: "Hay un problema que revisar", tone: "error" }
         : state.preview ? { label: "Respuesta lista para autorizar su voz", tone: "idle" } : null);
     return { ...state, desktopApp: ports.desktopApp(), disabled: ports.isDisabled(), busy: busy(), active: active(), modeOpen: state.manualOpen,
-      loopLabel: labels[state.loopState], statusLabel: status?.label ?? "", statusTone: status?.tone ?? "" };
+      loopLabel: labels[state.loopState], statusLabel: status?.label ?? "", statusTone: status?.tone ?? "",
+      canReviewTranscript: canReviewTranscript() };
   }
 
   function clearInputPreview() {
@@ -342,6 +345,17 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
     switch (type) {
       case "listen": if (active()) loop?.stop(); else void startLoop(); break;
       case "finishTurn": if (state.loopState === "standby") loop?.finishTurn(); break;
+      case "reviewTranscript": {
+        if (!canReviewTranscript()) break;
+        const transcript = value === "ignored"
+          ? (state.ignored?.reason === "notAddressed" ? state.ignored.transcript : "")
+          : (value === "attended" ? state.lastTurn?.transcript : "");
+        if (!transcript?.trim()) break;
+        if (active()) loop?.stop();
+        ports.setDraft([ports.getDraft().trimEnd(), transcript.trim()].filter(Boolean).join("\n"));
+        update({ notice: "Transcripción en el borrador. Corregila y pulsá «Revisar mensaje»." });
+        break;
+      }
       case "toggleManual":
         if (ports.desktopApp() && !ports.isDisabled() && !active()) {
           if (state.manualOpen) closeManual();

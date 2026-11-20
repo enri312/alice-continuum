@@ -17,7 +17,7 @@ fn seconds(value: &Value) -> String {
 }
 
 #[component]
-fn TurnObservation(turn: Value) -> Element {
+fn TurnObservation(turn: Value, can_review: bool, on_action: EventHandler<Value>) -> Element {
     let heading = match text(&turn, "outcome") {
         "textOnly" => "respuesta en texto".to_owned(),
         "error" => "interrumpido".to_owned(),
@@ -36,6 +36,11 @@ fn TurnObservation(turn: Value) -> Element {
         details { class: "voice-session-observation",
             summary { "Último mensaje atendido · {heading}" }
             p { strong { "Alice entendió:" } " {transcript}" }
+            if !transcript.is_empty() {
+                button { r#type: "button", class: "secondary", disabled: !can_review,
+                    onclick: move |_| on_action.call(json!({"type":"reviewTranscript","value":"attended"})),
+                    "Corregir en el borrador" }
+            }
             p { strong { "Modelo de transcripción:" } " {model}" }
             dl {
                 for (label, field) in timings {
@@ -48,7 +53,7 @@ fn TurnObservation(turn: Value) -> Element {
 }
 
 #[component]
-fn IgnoredObservation(take: Value) -> Element {
+fn IgnoredObservation(take: Value, can_review: bool, on_action: EventHandler<Value>) -> Element {
     let reason = text(&take, "reason");
     let explanation = match reason {
         "insufficientSpeech" => "El detector no reconoció voz suficiente. La toma se descartó antes de transcribirla.",
@@ -62,6 +67,11 @@ fn IgnoredObservation(take: Value) -> Element {
             p { strong { "Resultado de entrada no atendido:" } " {explanation}" }
             if reason != "insufficientSpeech" {
                 if !transcript.is_empty() { p { strong { "Transcripción descartada:" } " {transcript}" } }
+                if reason == "notAddressed" && !transcript.is_empty() {
+                    button { r#type: "button", class: "secondary", disabled: !can_review,
+                        onclick: move |_| on_action.call(json!({"type":"reviewTranscript","value":"ignored"})),
+                        "Corregir en el borrador" }
+                }
                 p { strong { "Modelo de transcripción:" } " {model}" }
                 dl {
                     div { dt { "Toma de audio" } dd { {seconds(&take["captureMs"])} } }
@@ -74,7 +84,7 @@ fn IgnoredObservation(take: Value) -> Element {
 }
 
 #[component]
-fn Settings(view: Value, on_action: EventHandler<Value>) -> Element {
+fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> Element {
     let disabled = !truth(&view, "desktopApp")
         || truth(&view, "active")
         || truth(&view, "busy")
@@ -126,7 +136,7 @@ fn Settings(view: Value, on_action: EventHandler<Value>) -> Element {
                     "{echo}"
                 }
             }
-            if !view["ignored"].is_null() { IgnoredObservation { take: view["ignored"].clone() } }
+            if !view["ignored"].is_null() { IgnoredObservation { take: view["ignored"].clone(), can_review, on_action } }
             p { "El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende frases dirigidas a Alice. «Detén la conversación, Alice» vuelve a la escucha y «Apaga el micrófono, Alice» termina la sesión." }
         }
     }
@@ -321,6 +331,7 @@ pub fn VoiceControls(view: Value, on_action: EventHandler<Value>) -> Element {
         || (!active
             && (truth(&view, "busy") || truth(&view, "disabled") || !view["pending"].is_null()));
     let loop_state = text(&view, "loopState");
+    let can_review = truth(&view, "canReviewTranscript");
     let label = text(&view, "loopLabel");
     let notice = text(&view, "notice");
     let error = text(&view, "loopError");
@@ -348,9 +359,9 @@ pub fn VoiceControls(view: Value, on_action: EventHandler<Value>) -> Element {
                 if !notice.is_empty() { p { role: "status", "{notice}" } }
                 if !error.is_empty() { p { role: "alert", "{error}" } }
                 if active && !view["ignored"].is_null() { p { "Toma no atendida · detalle en Audio de entrada" } }
-                if !view["lastTurn"].is_null() { TurnObservation { turn: view["lastTurn"].clone() } }
+                if !view["lastTurn"].is_null() { TurnObservation { turn: view["lastTurn"].clone(), can_review, on_action } }
             }
-            Settings { view: view.clone(), on_action }
+            Settings { view: view.clone(), can_review, on_action }
             ManualPanel { view, on_action }
         }
     }

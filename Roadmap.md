@@ -1230,9 +1230,10 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    turno libre y el cierre de escucha al final. El acierto comunicado por el
    propietario no acepta por sí solo estos cinco turnos ni toda R9. Mantener
    sólo lo indispensable en Conversación, con el diagnóstico plegado y los
-   ejemplos en Contexto y permisos. Si falla un turno, contrastar la toma y el
-   ASR mediante los controles existentes, sin añadir funciones. No dar por
-   comprobada una causa relacionada con el ritmo de habla.
+   ejemplos en Contexto y permisos. La orden hablada para reproducir Spotify
+   llegó con palabras distintas y no activó la acción. El diagnóstico permite
+   llevar una transcripción al borrador, corregirla y revisarla antes de enviarla.
+   Repetir la prueba con el micrófono para comprobar la precisión del ASR.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
    pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la
