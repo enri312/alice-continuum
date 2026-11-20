@@ -266,8 +266,8 @@ function makeMutClosure(arg0, arg1, dtor, f) {
 /**
  * @param {number} id
  */
-export function unmount_cognitive_flow(id) {
-    wasm.unmount_cognitive_flow(id);
+export function unmount_app(id) {
+    wasm.unmount_app(id);
 }
 
 function takeFromExternrefTable0(idx) {
@@ -275,6 +275,45 @@ function takeFromExternrefTable0(idx) {
     wasm.__externref_table_dealloc(idx);
     return value;
 }
+/**
+ * @param {number} id
+ * @param {string} raw
+ */
+export function update_app_frame(id, raw) {
+    const ptr0 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.update_app_frame(id, ptr0, len0);
+    if (ret[1]) {
+        throw takeFromExternrefTable0(ret[0]);
+    }
+}
+
+/**
+ * @param {string} root
+ * @param {string} raw
+ * @param {Function} on_action
+ * @param {Function} on_ready
+ * @returns {number}
+ */
+export function mount_app(root, raw, on_action, on_ready) {
+    const ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.mount_app(ptr0, len0, ptr1, len1, on_action, on_ready);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0] >>> 0;
+}
+
+/**
+ * @param {number} id
+ */
+export function unmount_cognitive_flow(id) {
+    wasm.unmount_cognitive_flow(id);
+}
+
 /**
  * @param {number} id
  * @param {string} raw
@@ -535,45 +574,6 @@ export function mount_governance_page(root, raw, on_action, on_ready) {
     const ptr1 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     const ret = wasm.mount_governance_page(ptr0, len0, ptr1, len1, on_action, on_ready);
-    if (ret[2]) {
-        throw takeFromExternrefTable0(ret[1]);
-    }
-    return ret[0] >>> 0;
-}
-
-/**
- * @param {number} id
- */
-export function unmount_navigation(id) {
-    wasm.unmount_navigation(id);
-}
-
-/**
- * @param {number} id
- * @param {string} raw
- */
-export function update_navigation(id, raw) {
-    const ptr0 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.update_navigation(id, ptr0, len0);
-    if (ret[1]) {
-        throw takeFromExternrefTable0(ret[0]);
-    }
-}
-
-/**
- * @param {string} root
- * @param {string} raw
- * @param {Function} on_action
- * @param {Function} on_ready
- * @returns {number}
- */
-export function mount_navigation(root, raw, on_action, on_ready) {
-    const ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.mount_navigation(ptr0, len0, ptr1, len1, on_action, on_ready);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }

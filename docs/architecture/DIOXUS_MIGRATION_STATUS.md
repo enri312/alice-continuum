@@ -1,23 +1,19 @@
-# Migración Dioxus: componentes y retirada de React
+# Migración Dioxus de Alice Continuum
 
-**Objetivo confirmado el 15 de noviembre de 2026:** retirar React por completo
-del producto, avanzando por componentes y pantallas. Los hosts y las vistas de
-recuperación actuales son transitorios. Tener un renderer Dioxus no basta para
-declarar terminada una página ni para dejar React de forma permanente.
+El arranque, las pantallas y la recuperación de la interfaz funcionan sin
+React. La primera entrada es `Frontend/src/main.ts` y la raíz Rust está en
+`Frontend/crates/dioxus-ui/src/app.rs`. La raíz muestra la navegación y
+selecciona el destino. Los adaptadores TypeScript enlazan las pantallas con
+IPC, almacenamiento, audio, vídeo, Canvas y WebGL.
 
-La migración continúa por componentes en Windows. Cada sustitución conserva
-contenido, clases CSS, datos y permisos. Eliminar un archivo requiere comprobar
-sus importadores y cubrir su función con una ruta probada de funcionamiento y
-recuperación. No se deduce que un archivo sobra sólo porque ya haya un renderer Rust.
-
-| Área | Dioxus operativo | Dependencias React actuales |
+| Área | Dioxus operativo | Integración con Tauri y el WebView |
 |---|---|---|
-| Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. `app.rs` coordina solicitudes de navegación y selección del filtro de Auditoría. | El puente monta Dioxus y `App.tsx` conecta el contenido al marco por un portal. |
-| Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Host para montaje, recuperación, consulta IPC y conexión a la navegación y a los contadores de `App.tsx`. |
-| Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Hosts de montaje y proyección de la sesión WASM. `App.tsx` publica eventos al ejecutar operaciones. |
-| Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Host temporal de montaje y puente hacia las lecturas Tauri validadas. |
-| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y evidencia de recuperación del turno. | El host temporal inicia el controlador de la página. Un adaptador TypeScript independiente de `App.tsx` enlaza Tauri y las API de archivos, audio y vídeo del WebView. |
-| Memoria | Navegación, registros, edición versionada, perfil, memoria de trabajo, capas, respaldo, Revisión y ciclo y Consolidación. | El host transitorio monta la página. El adaptador usa los contratos de Tauri y conserva los planes exactos hasta su confirmación. |
+| Navegación general | Ruta activa, encabezado, acceso al Dashboard, selector de núcleos, pestañas, iconos y contadores. `app.rs` coordina solicitudes de navegación y selección del filtro de Auditoría. | Los adaptadores montan y desmontan la vista activa en el destino de la raíz Dioxus. |
+| Dashboard | Pantalla de inicio, estado de Alice, accesos y panel del equipo renderizados en Dioxus. | Sondeo del equipo al abrir el Dashboard y cuando la ventana está visible. |
+| Actividad | Página, filtros, línea temporal y sesión compartida con un máximo de 200 eventos secuenciales. | Proyección de la sesión WASM y recuperación de filtros al reintentar. |
+| Auditoría y diagnóstico | Pestañas, consultas, estado de carga y errores, filtro por capacidad y diagnóstico pasivo. | Puente hacia las lecturas Tauri validadas. |
+| Conversación | Compositor, historial, contexto, revisión del envío, recuerdos, dictado, escucha y reproducción, cámara y escritorio, documentos y diagnóstico de entrada. La sesión Rust comparte proveedor, modelo, borrador, historial visible, comportamiento y evidencia de recuperación del turno. | El controlador enlaza Tauri y las API de archivos, audio y vídeo del WebView. |
+| Memoria | Navegación, registros, edición versionada, perfil, memoria de trabajo, capas, respaldo, Revisión y ciclo y Consolidación. | El adaptador conserva los planes exactos de Tauri hasta su confirmación. |
 | Aprendizaje | Memoria muestra autoestudio y aprendizaje conversacional, con corrección, retiro y restauración de recuerdos automáticos. Volumen muestra las fuentes y cambios en Dioxus. | El adaptador TypeScript abre y cierra las suscripciones, ordena las escrituras y valida las respuestas de Tauri. |
 | Perfil y catálogo de recuerdos | Perfil verificado por Tauri, selección de registros finalizados y de lecciones activas con el último ejercicio aprobado. | El adaptador reúne las fuentes y conserva las etiquetas. |
 | Volumen cognitivo | Escena, ficha de recuerdos y procesos, evidencias R8, leyendas, consola de señales y seguimiento de cambios. | Host de montaje. El adaptador Canvas independiente dibuja la escena, traduce los eventos de puntero y teclado y consulta Tauri. |
@@ -27,80 +23,34 @@ recuperación. No se deduce que un archivo sobra sólo porque ya haya un rendere
 | Configuración | Vista de proveedores, modelo, historial, motor local, política y dispositivos. | El host monta Dioxus. El adaptador usa la sesión de Conversación y ordena las respuestas de inicio y apagado de Gemma. |
 | Rostro, Cuerpo y Avatar | Diagnóstico facial pasivo y permisos R2, esquemas corporales y controles, cámara virtual y telemetría del visor VRM. | Host de montaje. El adaptador consulta Tauri y monta el motor Three.js independiente. |
 | Planificador | Inspector, actividad R3, formulario y revisión R7, reloj, listas, comprobaciones y recibos. | El puente valida los resultados de Tauri y convierte horas locales. Presenta la confirmación del WebView para reservar o entregar un aviso. |
-| Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato Date/Intl sin React en la frontera de datos. Se retiran el host React y el montaje WASM independientes. |
+| Línea temporal cognitiva | Panel reutilizado directamente dentro de Actividad: ventana de 24 eventos, selección, geometría, contadores, duración, inspector y leyenda. | Formato local de fechas mediante Date/Intl. |
 | Estado y controles | Panel, selección, recuerdo, inspector, preparación de controles y sesión R3: sondeo, validación y proyección de métricas. | Montaje, snapshot base, transporte cerrado y conexión a los ajustes compartidos de Conversación; recuperación diferida ante fallo. |
-| Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y página anterior para recuperación. |
+| Flujo cognitivo | Página completa, encabezado R3, grafo, conexiones, selección, inspector, sondeo/proyección R3 y panel/controlador de asociaciones en un solo montaje. | Host de montaje, snapshot base desde la aplicación, transporte IPC y respaldo DOM con selección de nodos. |
 | Lista de relaciones guardadas | Títulos, estado, botones, bloqueos y selección de revisión. | Adaptador y lista sólo para recuperación. |
 | Formulario de fuentes | Selectores, entradas, citas, borrador, evidencia derivada y solicitud de revisión. | Adaptador y formulario sólo para recuperación. |
 | Confirmaciones de relaciones | Revisión pendiente, confirmación de creación, retirada/restauración, cancelación y bloqueo de doble clic. | Adaptador y confirmación sólo para recuperación. |
-| Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Host de montaje y carga diferida del controlador anterior ante fallo; transporte TypeScript limitado a comandos existentes. |
+| Controlador de asociaciones | Sesión, borrador, revisiones, bloqueo de operaciones, actualización, errores y panel completo. | Respaldo DOM diferido y transporte TypeScript limitado a comandos existentes. |
 
-## Camino hasta retirar React por completo
+## Recuperación de la interfaz
 
-| Bloque pendiente | Trabajo que falta |
-|---|---|
-| Conexión de Actividad con la aplicación | Retirar los hosts de proyección al sustituir el montaje raíz. Mover los productores al trasladar cada operación de `App.tsx`. |
-| Habilidades y procedimientos | Registro, taller, formularios, revisiones y controles gobernados. |
-| Puentes, rostro, cuerpo y avatar | Controles, permisos y ciclos de vida; el visor 3D y los dispositivos se prueban por separado. |
-| Aplicación y recuperación | Estado compartido de `App.tsx`, entrada, hosts y vistas anteriores de respaldo. |
+Si falla el marco, la entrada conserva accesible la pantalla solicitada y
+permite reintentar la navegación. Reintentar una pantalla es independiente de
+volver a montar el marco. Flujo y Estado y controles conservan su inspección y
+selección con un respaldo DOM. Relaciones mantiene borradores y revisiones al
+reintentar individualmente la lista, el formulario o la confirmación. Las
+escrituras siguen sujetas a la confirmación local y a la revisión vigente.
 
-Después de migrar las pantallas se sustituirá el contenedor raíz y el arranque.
-Los errores de carga deben permitir reintentar y recuperar datos sin necesitar
-la interfaz React anterior. Los archivos retirados seguirán disponibles en Git.
+`App.tsx`, la entrada React, el portal, los hosts y las vistas de respaldo
+anteriores están en [Legacy](../../Frontend/src/Legacy/), junto con sus
+pruebas históricas. React y React DOM se reservan para esas pruebas. Vite y la
+compilación principal usan la entrada TypeScript y WASM.
 
-Las rutas de Conversación y Auditoría y diagnóstico montan Dioxus desde el
-19 de noviembre. Cuando falla la carga ofrecen reintentar el mismo renderer.
-Las implementaciones React desactivadas y sus pruebas se conservan en
-[`Frontend/src/Legacy/`](../../Frontend/src/Legacy/). Allí están Conversación,
-Auditoría y diagnóstico, el marco anterior y sus componentes exclusivos. El
-piloto de sesión conserva su importación desde Legacy. Los componentes de
-recuperación de Flujo, Estado y relaciones siguen accesibles cuando falla su
-renderer. El código React inactivo se conserva hasta migrar las pantallas y
-la lógica compartida. Las pruebas con dispositivos físicos y proveedores
-reales se registran por separado de las pruebas con datos simulados.
+La compilación, los ensayos de navegador con WebAssembly bloqueado y el
+arranque nativo de Tauri en Windows comprueban esta etapa. La validación con
+proveedores y dispositivos físicos conserva su propio alcance en el
+[Roadmap](../../Roadmap.md).
 
-## Evaluación de App.tsx
-
-El contenedor puede migrar a Dioxus por etapas. La navegación ya decide la ruta
-en Rust. El puente actual entrega esa ruta a `App.tsx`, que monta el contenido
-mediante un portal. `main.tsx` todavía arranca con `createRoot` de React.
-
-1. Extraer la lógica compartida detrás de un contrato de estado y acciones.
-   Actividad, Conversación, Memoria, Aprendizaje y Observación ya tienen
-   sesiones Rust. El perfil confirmado y el catálogo pasan por ese estado
-   compartido. El turno y la evidencia de recuperación también pasan por
-   la sesión de Conversación. Configuración, Planificador y Volumen cognitivo
-   montan sus vistas Dioxus. Reutilizar las
-   operaciones Tauri y los controladores que ya existen en `core/`.
-2. Conservar un solo dueño de cada efecto durante el traslado. Verificar la
-   cola de guardado de recuerdos, las generaciones de memoria de trabajo,
-   las suscripciones a fuentes de aprendizaje y la vigencia del permiso de observación.
-   Comprobar que el borrador, el historial y las claves de preferencias
-   sobrevivan al cambio de pantalla y al arranque.
-3. Cuando el estado compartido tenga ese contrato, montar la raíz desde el
-   componente `App` de Dioxus en `app.rs` y conectar cada pantalla. Para retirar `createRoot`
-   también deben quedar migrados permisos, habilidades, procedimientos y las vistas
-   corporales, además de las recuperaciones que siguen activas.
-
-La salida de React exige cero importaciones productivas de `react`, `react-dom`
-y `react/jsx-runtime`; retirar las pruebas que requieran esas vistas después de
-cubrir sus comportamientos con Rust y aceptación de interfaz. Se eliminan las
-dependencias directas, sus tipos, el plugin Vite React y la configuración JSX
-correspondiente. El bundle final y una instalación limpia deben abrir y funcionar
-sin React. Vite, Node y los adaptadores JavaScript independientes se evalúan por
-su función de construcción o acceso al navegador, separada del framework de UI.
-
-Cada incremento conserva diseño, datos, permisos, teclado y navegación; termina
-con build, pruebas pertinentes, aceptación nativa, README/Roadmap y commit. La
-retirada completa permanece pendiente mientras cualquiera de estos bloques
-siga dependiendo de React.
-
-### Trabajo pendiente en el contenedor general
-
-Pasar a `app.rs` el montaje general, la composición de las pantallas y las
-recuperaciones que aún dependen de React. Después se verifica el arranque de
-Windows y se retira `createRoot` cuando las rutas y los flujos de recuperación
-funcionen desde la entrada de Dioxus.
+## Registro histórico por pantalla
 
 ## Memoria y edición versionada (2026-11-19)
 
@@ -391,20 +341,11 @@ La prueba nativa usa datos sintéticos y no certifica voz, proveedores ni datos
 personales. No se utilizaron recuerdos personales. Los ensayos están documentados en la
 [guía del módulo](../../Frontend/crates/dioxus-ui/README.md).
 
-## Código que todavía tiene uso
+## Código activo de recuperación
 
-- `CognitiveFlow.tsx` y los componentes de encabezado React presentan el respaldo.
-- `EvidenceFlowFallback.tsx` y `CognitiveFlowDioxus.tsx` conservan el camino anterior.
-- `useNucleusSnapshot` permanece para otras pantallas y para ese respaldo.
-- `MemoryAssociations.tsx` mantiene montaje, transporte y selección del respaldo.
-- `MemoryAssociationsFallback.tsx` mantiene la sesión anterior sólo ante fallo.
-- `SavedRelationsFallback` mantiene la lista durante carga, fallo y reintento.
-- `SourceFormFallback` mantiene los selectores y citas durante carga o fallo.
-- `ConfirmationFallback` conserva las pantallas de confirmación durante carga o fallo.
-- Los adaptadores de montaje conectan las pantallas con el estado de `App.tsx`.
+- `core/navigation/app-shell.ts` monta la raíz, conecta el destino y conserva la pantalla si falla el marco.
+- `core/navigation/view-mount.ts` administra el ciclo de vida de cada vista y sus reintentos.
+- `core/navigation/nucleus-recovery.ts` mantiene el sondeo R3 de los respaldos de Flujo y Estado.
+- `components/memory/associations-recovery.ts` conserva la revisión de relaciones cuando falla WebAssembly.
 
-La retirada de esos elementos queda condicionada a migrar y comprobar sus usos.
-Antes de borrar: buscar importadores, actualizar las rutas y pruebas afectadas,
-verificar contenido y teclado, fallos de carga, desmontaje y remontaje, y cerrar
-con un commit revisado. La retirada final de React requiere que todas las rutas
-operativas y de recuperación dejen de depender de él.
+Estas rutas se encuentran en `Frontend/src/`. La retirada futura de las pruebas históricas se gestiona separadamente del producto.

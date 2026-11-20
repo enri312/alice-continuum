@@ -1,9 +1,8 @@
 import type { BrainSnapshot } from "../../../core/cognitive/brain";
 import type { CoreActivitySnapshot } from "../../../core/cognitive/core-activity";
-import { buildActivityPayload } from "../activity-payload";
+import { buildActivityPayload, type NucleusActivityStatus } from "../activity-payload";
 import { behaviorKeyForControl } from "../../../core/conversation/behavior-settings";
 import type { ConversationBehaviorSettings } from "../../../core/conversation/behavior-settings";
-import type { NucleusActivityStatus } from "../../../pages/shared/nucleus-shared";
 
 export type StateControlsBehavior = { settings: ConversationBehaviorSettings; supported: boolean; busy: boolean };
 

@@ -203,12 +203,12 @@ mountable_view!(
 );
 #[cfg(target_arch = "wasm32")]
 mountable_view!(
-    navigation_browser,
+    app_browser,
     crate::navigation_model::Payload,
-    crate::navigation_ui,
-    mount_navigation,
-    update_navigation,
-    unmount_navigation
+    crate::app::browser,
+    mount_app,
+    update_app_frame,
+    unmount_app
 );
 
 #[cfg(target_arch = "wasm32")]

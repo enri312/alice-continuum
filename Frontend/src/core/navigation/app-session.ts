@@ -1,5 +1,4 @@
-import { initialScreen, type NavigationRequest } from "./NavigationHost";
-import type { Screen } from "./workspaces";
+import { initialScreen, type Screen, type NavigationRequest } from "./workspaces";
 
 type AppSnapshot = { screen: Screen; request: NavigationRequest | null; auditCapability: string | null; sequence: number };
 type Action =
@@ -20,16 +19,27 @@ export function subscribeToApp(listener: () => void) {
   return () => { listeners.delete(listener); };
 }
 
-function dispatch(action: Action) {
-  if (!runtime) {
-    queued.push(action);
-    return;
-  }
-  const next = JSON.parse(runtime(JSON.stringify(action))) as AppSnapshot;
+function publish(next: AppSnapshot) {
   if (next.screen === snapshot.screen && next.auditCapability === snapshot.auditCapability &&
       next.request?.id === snapshot.request?.id && next.sequence === snapshot.sequence) return;
   snapshot = next;
   for (const listener of listeners) listener();
+}
+
+function dispatch(action: Action) {
+  if (runtime) {
+    publish(JSON.parse(runtime(JSON.stringify(action))) as AppSnapshot);
+    return;
+  }
+  queued.push(action);
+  // The browser can switch the recovery screen even before WASM is available.
+  if (action.type === "navigate") {
+    const sequence = (snapshot.sequence + 1) >>> 0;
+    publish({ ...snapshot, request: { id: sequence, screen: action.screen }, sequence });
+  } else if (action.type === "route") {
+    publish({ ...snapshot, screen: action.screen, request: null,
+      auditCapability: action.clearAudit ? null : snapshot.auditCapability });
+  }
 }
 
 export function connectApp(update: (raw: string) => string) {

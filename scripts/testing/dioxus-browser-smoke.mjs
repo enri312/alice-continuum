@@ -218,7 +218,7 @@ try {
   await until(()=>evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .event-console\'))'),'reintento conserva vista solicitada por URL');
   assert.equal(await evaluate('document.querySelectorAll(".activity-page").length'),1);
 
-  // A failed WASM download must retain the React view and its selection on retry.
+  // A failed WASM download must retain the fallback and its selection on retry.
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
   await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
@@ -489,8 +489,8 @@ try {
   await send('Network.setBlockedURLs', { urls: ['*.wasm'] });
   await send('Page.navigate', { url: url.href });
   await until(() => evaluate('document.body.textContent.includes("Lista de respaldo activa.")'), 'lista de respaldo');
-  assert.equal(await evaluate('document.querySelector("[data-flow-page-renderer]")?.dataset.flowPageRenderer'),'react','Página anterior sólo como recuperación');
-  assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'react', 'Recuperación con controlador anterior sólo tras fallo de carga');
+  assert.equal(await evaluate('document.querySelector("[data-flow-page-renderer]")?.dataset.flowPageRenderer'),'fallback','Respaldo de Flujo tras fallo de carga');
+  assert.equal(await evaluate('document.querySelector("[data-associations-renderer]")?.dataset.associationsRenderer'), 'fallback', 'Controlador independiente sólo tras fallo de carga');
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations article").length'), 4);
   await until(() => evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'), 'formulario de respaldo');
   await evaluate('document.querySelectorAll(".memory-associations article button")[0].click()');
@@ -515,10 +515,13 @@ try {
   await relationsReady();
   assert.equal(await evaluate('document.querySelectorAll(".memory-associations h4").length'), 1);
   assert.equal((await writes()).length, 0, 'Reintentar no escribe');
+  await evaluate('document.querySelector(\'.flow-node[aria-label^="Memoria:"]\').dispatchEvent(new MouseEvent("click",{bubbles:true}))');
+  await until(async () => await inspector() === 'Memoria', 'selección en respaldo antes de recuperar el marco');
   await evaluate('document.querySelector(\'[data-navigation-renderer="error"] > .shell > [role=alert] button\').click()');
   await until(() => evaluate('Boolean(document.querySelector("[data-navigation-renderer=dioxus] .screen-tabs"))'), 'marco Dioxus recuperado');
   await ready();
   await relationsReady();
+  assert.equal(await inspector(),'Memoria','Recuperar el marco conserva la selección del grafo');
   // State page: Rust owns its timer and metric projection as well as the renderer.
   await until(() => evaluate('__corePending===0'), 'lecturas previas terminadas');
   await evaluate("__coreMode='hold'; __coreMaxPending=0; delete globalThis.__releaseCore");
@@ -590,6 +593,21 @@ try {
   await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.textContent==="Reintentar actividad").click()');
   await until(() => evaluate('Boolean(document.querySelector(\'[data-activity-renderer="dioxus"] .cognitive-timeline\'))'),'Actividad recuperada con eventos de la sesión');
   assert.equal(await evaluate('document.querySelectorAll(".cognitive-timeline").length'),1);
+
+  await send('Network.setBlockedURLs',{urls:['*.wasm']});
+  url.searchParams.set('screen','flujo');
+  await send('Page.navigate',{url:url.href});
+  await until(()=>evaluate('document.body.textContent.includes("Formulario de respaldo activo.")'),'formulario sin WASM para guardar con confirmación');
+  await selectSource(0,'a'); await selectSource(1,'b');
+  await typeQuote(0,'Experiencia A'); await typeQuote(1,'Experiencia B');
+  await until(previewEnabled,'respaldo permite revisar fuentes válidas');
+  await clickText('Revisar relación');
+  await until(()=>evaluate('Boolean(document.querySelector(\'[aria-label="Confirmar relación revisada"]\'))'),'respaldo presenta las citas revisadas');
+  assert.equal((await sourceWrites()).length,0,'Revisar desde el respaldo tampoco escribe');
+  await evaluate('const button=Array.from(document.querySelectorAll(".memory-associations button")).find(button=>button.textContent==="Confirmar y guardar relación"); button.click(); button.click()');
+  await until(()=>evaluate('__relationFixture.associations.length===5 && document.querySelector(".memory-associations")?.textContent.includes("Relación guardada por tu confirmación.")'),'respaldo guarda con confirmación explícita');
+  assert.equal((await sourceWrites()).length,1,'Doble clic en respaldo no duplica la escritura');
+  await send('Network.setBlockedURLs',{urls:[]});
   console.log(`Dioxus: línea temporal, Estado y Flujo; ventanas de eventos, selección, teclado, señales, desmontaje, asociaciones y recuperación comprobados. Capturas: ${artifacts}`);
 } catch (error) {
   if (send && socket?.readyState === WebSocket.OPEN) {

@@ -1,5 +1,4 @@
 import { configDefaults, defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
 import { normalizePath, type Plugin } from "vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +24,7 @@ function obsidianMemoryVault(): Plugin {
 export default defineConfig({
   root: frontendRoot,
   envDir: projectRoot,
-  plugins: [react(), obsidianMemoryVault(), {
+  plugins: [obsidianMemoryVault(), {
     name: "alice-private-development-files",
     config(config) {
       const root = path.resolve(config.root ?? frontendRoot);

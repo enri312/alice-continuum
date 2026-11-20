@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ActionPlanner, plannerInspectorItems, type PlannerItemId } from "../../components/cognitive/ActionPlanner";
 import { TaskRegistryPanel } from "../../components/governance/TaskRegistryPanel";
-import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../../../pages/shared/nucleus-shared";
+import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../shared/nucleus-shared";
 
 export function Planificador(props: NucleusPageProps) {
   const { activity, activityStatus, effectiveSnapshot } = useNucleusSnapshot(props);

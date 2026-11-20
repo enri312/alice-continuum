@@ -1,6 +1,8 @@
 import { hasCoreActivitySignal, type CoreActivitySnapshot } from "../../core/cognitive/core-activity";
 
-export function buildActivityPayload(activity: CoreActivitySnapshot | null, status: "loading" | "ready" | "unavailable") {
+export type NucleusActivityStatus = "loading" | "ready" | "unavailable";
+
+export function buildActivityPayload(activity: CoreActivitySnapshot | null, status: NucleusActivityStatus) {
   return {
     status, signalPresent: hasCoreActivitySignal(activity),
     auditHealthy: activity?.auditHealthy ?? null,

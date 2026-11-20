@@ -2,7 +2,6 @@
 
 [![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
-[![React 19.3.1](https://img.shields.io/badge/React-19.3.1-149ECA?logo=react&logoColor=white)](package-lock.json)
 [![Dioxus 0.7.10](https://img.shields.io/badge/Dioxus-0.7.10-25A7D7?logo=rust&logoColor=white)](Frontend/crates/dioxus-ui/Cargo.toml)
 [![Tauri 2.11.5](https://img.shields.io/badge/Tauri-2.11.5-FFC131?logo=tauri&logoColor=black)](Backend/src-tauri/Cargo.lock)
 [![Node.js 26.13.0](https://img.shields.io/badge/Node.js-26.13.0-339933?logo=nodedotjs&logoColor=white)](.node-version)
@@ -81,12 +80,16 @@ Volumen permite inspeccionar también las pendientes de repaso o retiradas.
 La observación de ventana solo presenta metadatos mientras R2 confirma el
 permiso de sesión. El vencimiento o la revocación los retira de la interfaz.
 Si un mensaje incluye esos metadatos, el permiso se comprueba otra vez antes del envío.
-La ruta activa, las solicitudes de navegación y el filtro de Auditoría se
-administran en `Frontend/crates/dioxus-ui/src/app.rs`. React aún arranca la
-aplicación, conecta las vistas y ofrece las recuperaciones pendientes. `Backend/`
-contiene el núcleo nativo de Tauri y sus adaptadores.
+La entrada `Frontend/src/main.ts` monta la raíz Dioxus de
+`Frontend/crates/dioxus-ui/src/app.rs`. Esa raíz controla la navegación y el
+filtro de Auditoría. Los adaptadores TypeScript conectan las pantallas a
+Tauri y al WebView. Si WebAssembly falla, la interfaz permite reintentar y
+conserva los respaldos interactivos de Flujo, Estado y controles y relaciones
+entre recuerdos. El arranque y las recuperaciones funcionan sin React.
+`Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
-Las vistas React desactivadas se conservan en `Frontend/src/Legacy/`.
+Las vistas React y sus pruebas históricas se conservan en `Frontend/src/Legacy/`.
+React sólo se declara como dependencia de desarrollo para ese archivo histórico.
 [Mapa del proyecto](docs/architecture/MAPA_CARPETAS_RAIZ.md) · [Estado de Dioxus](docs/architecture/DIOXUS_MIGRATION_STATUS.md).
 
 ```sh

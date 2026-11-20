@@ -16,7 +16,7 @@ import initialize, {
   mount_dashboard, update_dashboard, unmount_dashboard,
   mount_audit_page, update_audit_page, unmount_audit_page,
   mount_conversation_page, update_conversation_page, unmount_conversation_page,
-  mount_navigation, update_navigation, unmount_navigation,
+  mount_app, update_app_frame, unmount_app,
   mount_governance_page, update_governance_page, unmount_governance_page,
   mount_settings_page, update_settings_page, unmount_settings_page,
   mount_planner_page, update_planner_page, unmount_planner_page,
@@ -97,7 +97,7 @@ export async function loadConversationPageRuntime(): Promise<StateControlsRuntim
 
 export async function loadNavigationRuntime(): Promise<StateControlsRuntime> {
   await loadRuntime();
-  return { mount: mount_navigation, update: update_navigation, unmount: unmount_navigation };
+  return { mount: mount_app, update: update_app_frame, unmount: unmount_app };
 }
 
 export async function loadGovernanceRuntime(): Promise<StateControlsRuntime> {

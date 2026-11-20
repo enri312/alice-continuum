@@ -13,8 +13,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "tsBuildInfoFile": "../node_modules/.cache/tsbuildinfo/app.tsbuildinfo",
-    "jsx": "react-jsx"
+    "tsBuildInfoFile": "../node_modules/.cache/tsbuildinfo/app.tsbuildinfo"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/Legacy"]
 }

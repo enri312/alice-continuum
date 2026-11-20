@@ -423,6 +423,15 @@ try {
     await click('[data-navigation-renderer="error"] > .shell > [role=alert] button');
     await until(()=>evaluate(`Boolean(document.querySelector('[data-navigation-renderer=dioxus] main[data-screen="${screen}"] ${component}'))`),'recuperar la navegación en '+screen);
   }
+  await send('Network.setBlockedURLs',{urls:['*.wasm']});
+  const recoveryHome = new URL(url); recoveryHome.searchParams.set('screen','dashboard');
+  await send('Page.navigate',{url:recoveryHome.href});
+  await until(()=>evaluate('Boolean(document.querySelector("[data-dashboard-renderer=error]"))'),'Dashboard disponible en modo de recuperación');
+  await evaluate('Array.from(document.querySelectorAll("[data-dashboard-renderer=error] button")).find(button=>button.textContent==="Abrir Conversación").click()');
+  await until(()=>evaluate('Boolean(document.querySelector("[data-conversation-renderer=error]"))'),'cambio de pantalla con WASM bloqueado');
+  await send('Network.setBlockedURLs',{urls:[]});
+  await click('[data-navigation-renderer="error"] > .shell > [role=alert] button');
+  await ready();
   const voicePage = new URL(url); voicePage.searchParams.set('screen', 'identificacion');
   await send('Page.navigate',{url:voicePage.href});
   await ready();

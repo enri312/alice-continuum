@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.app.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "tsBuildInfoFile": "../../../node_modules/.cache/tsbuildinfo/legacy.tsbuildinfo"
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../vite-env.d.ts", "../types/*.d.ts"],
+  "exclude": []
+}

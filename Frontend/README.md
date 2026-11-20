@@ -1,14 +1,15 @@
 # Frontend de Alice Continuum
 
-Workspace de la interfaz. La reubicación conserva los archivos de diseño,
-iconos, recursos y comportamiento; no convierte por sí sola más pantallas a Dioxus.
+Workspace de la interfaz. `src/main.ts` arranca la raíz Dioxus desde
+`crates/dioxus-ui/src/app.rs`. Los adaptadores TypeScript conectan sus
+pantallas y mantienen disponibles los reintentos si falla WebAssembly.
 
 | Ruta | Contenido |
 |---|---|
 | `src/` | Entrada, navegación, pantallas, componentes, estilos, contratos y lógica TypeScript existente. |
-| `crates/dioxus-ui/` | Fuentes Rust/Dioxus de Dashboard, Conversación, Auditoría y diagnóstico, Estado y controles, Flujo, relaciones y Actividad. |
+| `crates/dioxus-ui/` | Raíz de la aplicación, sesiones compartidas y vistas Rust/Dioxus. |
 | `src/dioxus/dioxus-ui/pkg/` | WASM y bindings versionados, verificados contra las fuentes. |
-| `src/Legacy/` | Vistas React desactivadas y sus pruebas. Se conservan hasta completar la migración de interfaz y lógica. |
+| `src/Legacy/` | Entrada anterior, vistas React y pruebas históricas con configuración JSX propia. |
 | `icons/` | Catálogo SVG consumido por la interfaz. Los iconos nativos de Tauri siguen en el backend. |
 | `public/` | Recursos estáticos y licencias, publicados en las mismas URL que antes. |
 | `dist/` | Build regenerable que Tauri utiliza; excluido de Git. |
@@ -38,7 +39,8 @@ pertenecen a este workspace: conservan sus ubicaciones en `data/`, `runtime/` y
 `experiments/`. El servidor Vite mantiene bloqueados esos directorios, incluso
 cuando las dependencias npm se comparten con la raíz.
 
-Actividad se presenta en un solo montaje Dioxus; `src/pages/cognitive/ActivityHost.tsx`
-sólo conecta su ciclo de vida y el buffer temporal de `App.tsx`. Auditoría y
-diagnóstico abre en Dioxus. Su vista anterior está en `src/Legacy/`. Ver
-[alcance y aceptación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
+Actividad usa la sesión compartida de Rust. Las recuperaciones de Flujo, Estado
+y controles y relaciones entre recuerdos se cargan al fallar WebAssembly y
+mantienen sus selecciones, borradores y confirmaciones según la vista. React y
+React DOM son dependencias de desarrollo de las pruebas históricas.
+[Inventario de la migración](../docs/architecture/DIOXUS_MIGRATION_STATUS.md).

@@ -16,7 +16,7 @@ describe("Alice Continuum identity", () => {
     expect(lock.packages.Frontend.name).toBe(frontend.name);
     expect(project.scripts.dev).toContain("--workspace=Frontend");
     expect(project.scripts.build).toContain("--workspace=Frontend");
-    for (const file of ["Frontend/src/main.tsx", "Frontend/index.html", "Frontend/vite.config.ts", "Frontend/public/favicon.svg", "Frontend/crates/dioxus-ui/Cargo.toml"]) {
+    for (const file of ["Frontend/src/main.ts", "Frontend/index.html", "Frontend/vite.config.ts", "Frontend/public/favicon.svg", "Frontend/crates/dioxus-ui/Cargo.toml"]) {
       expect(existsSync(path.join(root, file)), file).toBe(true);
     }
     for (const previous of ["src", "public", "icons", "crates", "index.html", "vite.config.ts"]) expect(existsSync(path.join(root, previous)), previous).toBe(false);

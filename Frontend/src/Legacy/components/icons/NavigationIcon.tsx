@@ -13,7 +13,7 @@ import volumeSvg from "../../../../icons/cognitive-neural-volume.svg?raw";
 import flowSvg from "../../../../icons/cognitive-evidence-flow.svg?raw";
 import stateSvg from "../../../../icons/cognitive-state-controls.svg?raw";
 import plannerSvg from "../../../../icons/cognitive-action-planner.svg?raw";
-import { InlineSvgIcon } from "../../../components/icons/InlineSvgIcon";
+import { InlineSvgIcon } from "./InlineSvgIcon";
 
 export type NavigationIconKind = "memory" | "activity" | "audit" | "bridges" | "avatar" | "identification" | "settings" | "skills" | "procedures" | "face" | "body" | "volume" | "flow" | "state" | "planner";
 

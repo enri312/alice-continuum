@@ -15,7 +15,7 @@ import { VolumeColourGuide } from "./VolumeColourGuide";
 import { VolumeLearningActivity, type VolumeLearningActivityState } from "./VolumeLearningActivity";
 import { VolumeLearningSummary, type VolumeLearningChange, type VolumeObservedLearning, type VolumeStudyProgress } from "./VolumeLearningSummary";
 import { createVolumeLearningCheckpoint, diffVolumeLearningCheckpoints, volumeLearningScale } from "../../../core/cognitive/volume-learning";
-import { InlineSvgIcon } from "../../../components/icons/InlineSvgIcon";
+import { InlineSvgIcon } from "../icons/InlineSvgIcon";
 import rotateIcon from "../../../../icons/camera-orbit-control.svg?raw";
 import panIcon from "../../../../icons/camera-pan-control.svg?raw";
 import zoomInIcon from "../../../../icons/camera-zoom-in-control.svg?raw";

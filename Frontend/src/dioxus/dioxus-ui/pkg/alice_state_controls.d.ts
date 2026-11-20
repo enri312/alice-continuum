@@ -1,5 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+export function unmount_app(id: number): void;
+export function update_app_frame(id: number, raw: string): void;
+export function mount_app(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_cognitive_flow(id: number): void;
 export function update_cognitive_flow(id: number, raw: string): void;
 export function mount_cognitive_flow(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -21,9 +24,6 @@ export function mount_embodiment(root: string, raw: string, on_action: Function,
 export function unmount_governance_page(id: number): void;
 export function update_governance_page(id: number, raw: string): void;
 export function mount_governance_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
-export function unmount_navigation(id: number): void;
-export function update_navigation(id: number, raw: string): void;
-export function mount_navigation(root: string, raw: string, on_action: Function, on_ready: Function): number;
 export function unmount_memory_page(id: number): void;
 export function update_memory_page(id: number, raw: string): void;
 export function mount_memory_page(root: string, raw: string, on_action: Function, on_ready: Function): number;
@@ -69,6 +69,7 @@ export interface InitOutput {
   readonly apply_activity_batch: (a: number, b: number) => [number, number, number, number];
   readonly init_conversation_session: (a: number, b: number) => [number, number, number, number];
   readonly mount_activity_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
+  readonly mount_app: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_audit_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_cognitive_flow: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_conversation_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -78,7 +79,6 @@ export interface InitOutput {
   readonly mount_governance_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_associations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_memory_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
-  readonly mount_navigation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_planner_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_relation_confirmation: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_saved_relations: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
@@ -87,6 +87,7 @@ export interface InitOutput {
   readonly mount_state_controls: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly mount_volume_page: (a: number, b: number, c: number, d: number, e: any, f: any) => [number, number, number];
   readonly unmount_activity_page: (a: number) => void;
+  readonly unmount_app: (a: number) => void;
   readonly unmount_audit_page: (a: number) => void;
   readonly unmount_cognitive_flow: (a: number) => void;
   readonly unmount_conversation_page: (a: number) => void;
@@ -96,7 +97,6 @@ export interface InitOutput {
   readonly unmount_governance_page: (a: number) => void;
   readonly unmount_memory_associations: (a: number) => void;
   readonly unmount_memory_page: (a: number) => void;
-  readonly unmount_navigation: (a: number) => void;
   readonly unmount_planner_page: (a: number) => void;
   readonly unmount_relation_confirmation: (a: number) => void;
   readonly unmount_saved_relations: (a: number) => void;
@@ -106,6 +106,7 @@ export interface InitOutput {
   readonly unmount_volume_page: (a: number) => void;
   readonly update_activity_page: (a: number, b: number, c: number) => [number, number];
   readonly update_app: (a: number, b: number) => [number, number, number, number];
+  readonly update_app_frame: (a: number, b: number, c: number) => [number, number];
   readonly update_audit_page: (a: number, b: number, c: number) => [number, number];
   readonly update_cognitive_flow: (a: number, b: number, c: number) => [number, number];
   readonly update_conversation_page: (a: number, b: number, c: number) => [number, number];
@@ -118,7 +119,6 @@ export interface InitOutput {
   readonly update_memory_associations: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_page: (a: number, b: number, c: number) => [number, number];
   readonly update_memory_session: (a: number, b: number) => [number, number, number, number];
-  readonly update_navigation: (a: number, b: number, c: number) => [number, number];
   readonly update_observation_session: (a: number, b: number) => [number, number, number, number];
   readonly update_planner_page: (a: number, b: number, c: number) => [number, number];
   readonly update_relation_confirmation: (a: number, b: number, c: number) => [number, number];

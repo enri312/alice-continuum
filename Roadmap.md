@@ -26,7 +26,7 @@ la interfaz y la lógica de la aplicación.
 Las implementaciones desactivadas y sus pruebas se organizan en
 `Frontend/src/Legacy/`. La evaluación de `App.tsx` empieza por trasladar el
 estado compartido por bloques antes de sustituir el arranque React.
-[Evaluación del contenedor](docs/architecture/DIOXUS_MIGRATION_STATUS.md#evaluación-de-apptsx).
+[Recuperación del contenedor](docs/architecture/DIOXUS_MIGRATION_STATUS.md#recuperación-de-la-interfaz).
 
 **Primera etapa de App.tsx (2026-11-19).** El buffer temporal de Actividad y la
 secuencia de eventos pasan a la sesión Rust del crate Dioxus. La consola, el
@@ -81,7 +81,7 @@ retención con sus confirmaciones. Consolidación muestra el plan de solo lectur
 registra la decisión de mantener recuerdos separados y restaura transacciones
 interrumpidas con recibos verificados por Tauri. La página React se conserva
 desactivada en `Legacy`.
-[Trabajo pendiente en el contenedor general](docs/architecture/DIOXUS_MIGRATION_STATUS.md#trabajo-pendiente-en-el-contenedor-general).
+[Arranque y recuperación](docs/architecture/DIOXUS_MIGRATION_STATUS.md#recuperación-de-la-interfaz).
 
 **Decimotercera etapa de App.tsx (2026-11-19).** Capacidades y permisos,
 Procedimientos y Taller de habilidades pasan a Dioxus. El inventario enlaza
@@ -144,14 +144,14 @@ confirmada en Flujo sigue visible en Volumen cognitivo tras recargar la ventana.
 El próximo paso del cerebro es seguir un aprendizaje desde su registro hasta su
 aparición en Volumen cognitivo y comprobar qué persiste al reiniciar Alice.
 
-**Cierre de la migración:** el objetivo es dejar de usar React por completo,
-avanzando por componentes. Se incluyen las pantallas, el estado compartido de
-`App.tsx`, la navegación, el arranque y las recuperaciones. Los hosts y respaldos
-React actuales son temporales. La retirada de dependencias, tipos y plugin JSX
-se hará después de sustituir y probar todos sus consumidores; una pantalla
-Dioxus aislada no cierra la migración de la aplicación. El
-[inventario y criterios de salida](docs/architecture/DIOXUS_MIGRATION_STATUS.md)
-guían los siguientes incrementos.
+**Cierre del arranque Dioxus.** La aplicación abre desde `main.ts` y
+`app.rs` en Windows. Las pantallas montan Dioxus y los respaldos interactivos
+se ejecutan en el navegador incluso con WebAssembly bloqueado. `App.tsx`,
+la entrada anterior y sus hosts quedaron archivados en `Frontend/src/Legacy/`.
+Se retiraron el plugin React de Vite y JSX de la compilación activa. Las
+dependencias de React se reservan para las pruebas históricas de `Legacy`.
+La migración del arranque mantiene separadas las pruebas con servicios y
+dispositivos reales. [Inventario de la migración](docs/architecture/DIOXUS_MIGRATION_STATUS.md).
 
 **Propuesta 04 incorporada a Conversación (2026-11-15):** el propietario eligió
 el HTML «Mejora del diseño actual» como referencia. La pantalla principal adopta

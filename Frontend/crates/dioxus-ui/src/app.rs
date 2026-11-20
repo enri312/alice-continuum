@@ -76,12 +76,66 @@ impl App {
 }
 
 #[cfg(target_arch = "wasm32")]
-mod browser {
+pub(crate) mod browser {
     use super::App;
-    use std::cell::RefCell;
+    use crate::navigation_model::Payload;
+    use crate::navigation_ui::frame;
+    use dioxus::prelude::*;
+    use futures_channel::mpsc::UnboundedReceiver;
+    use futures_util::StreamExt;
+    use serde_json::json;
+    use std::{cell::RefCell, rc::Rc};
     use wasm_bindgen::prelude::*;
 
     thread_local! { static APP: RefCell<App> = RefCell::new(App::default()); }
+
+    #[derive(Clone)]
+    pub struct PageProps {
+        pub initial: Payload,
+        pub rx: Rc<RefCell<Option<UnboundedReceiver<Payload>>>>,
+        pub on_action: js_sys::Function,
+        pub on_ready: js_sys::Function,
+    }
+
+    impl PartialEq for PageProps {
+        fn eq(&self, _: &Self) -> bool {
+            true
+        }
+    }
+
+    pub fn page(props: PageProps) -> Element {
+        let mut selected = use_signal(|| (props.initial.initial_screen, false));
+        let mut counters = use_signal(|| (props.initial.memories, props.initial.events));
+        let receiver = props.rx.clone();
+        use_future(move || {
+            let receiver = receiver.borrow_mut().take();
+            async move {
+                let mut last_request = None;
+                if let Some(mut receiver) = receiver {
+                    while let Some(payload) = receiver.next().await {
+                        counters.set((payload.memories, payload.events));
+                        if let Some(request) =
+                            payload.request.filter(|item| Some(item.id) != last_request)
+                        {
+                            last_request = Some(request.id);
+                            selected.set((request.screen, false));
+                        }
+                    }
+                }
+            }
+        });
+        let on_ready = props.on_ready.clone();
+        use_effect(move || {
+            let _ = on_ready.call0(&JsValue::NULL);
+        });
+        let on_action = props.on_action.clone();
+        use_effect(move || {
+            let (screen, clear_audit) = selected();
+            let message = json!({ "type": "route", "screen": screen, "clearAudit": clear_audit });
+            let _ = on_action.call1(&JsValue::NULL, &JsValue::from_str(&message.to_string()));
+        });
+        frame(selected().0, counters(), selected)
+    }
 
     #[wasm_bindgen]
     pub fn update_app(raw: &str) -> Result<String, JsValue> {

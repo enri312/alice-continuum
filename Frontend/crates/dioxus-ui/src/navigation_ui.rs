@@ -1,24 +1,5 @@
-use crate::navigation_model::{Payload, Screen, Workspace};
+use crate::navigation_model::{Screen, Workspace};
 use dioxus::prelude::*;
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::StreamExt;
-use serde_json::json;
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::JsValue;
-
-#[derive(Clone)]
-pub struct PageProps {
-    pub initial: Payload,
-    pub rx: Rc<RefCell<Option<UnboundedReceiver<Payload>>>>,
-    pub on_action: js_sys::Function,
-    pub on_ready: js_sys::Function,
-}
-
-impl PartialEq for PageProps {
-    fn eq(&self, _: &Self) -> bool {
-        true
-    }
-}
 
 struct ScreenInfo {
     slug: &'static str,
@@ -165,41 +146,11 @@ impl ScreenInfo {
     }
 }
 
-pub fn page(props: PageProps) -> Element {
-    let mut selected = use_signal(|| (props.initial.initial_screen, false));
-    let mut counters = use_signal(|| (props.initial.memories, props.initial.events));
-    let receiver = props.rx.clone();
-    use_future(move || {
-        let receiver = receiver.borrow_mut().take();
-        async move {
-            let mut last_request = None;
-            if let Some(mut receiver) = receiver {
-                while let Some(payload) = receiver.next().await {
-                    counters.set((payload.memories, payload.events));
-                    if let Some(request) = payload.request {
-                        if last_request != Some(request.id) {
-                            last_request = Some(request.id);
-                            selected.set((request.screen, false));
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    let on_ready = props.on_ready.clone();
-    use_effect(move || {
-        let _ = on_ready.call0(&JsValue::NULL);
-    });
-    let on_action = props.on_action.clone();
-    use_effect(move || {
-        let (screen, clear_audit) = selected();
-        let message = json!({ "type": "route", "screen": screen, "clearAudit": clear_audit });
-        let _ = on_action.call1(&JsValue::NULL, &JsValue::from_str(&message.to_string()));
-    });
-
-    let (screen, _) = selected();
-    let (memories, events) = counters();
+pub fn frame(
+    screen: Screen,
+    (memories, events): (usize, usize),
+    mut selected: Signal<(Screen, bool)>,
+) -> Element {
     let info = ScreenInfo::for_screen(screen);
     if screen == Screen::Dashboard {
         return rsx! { div { id: "alice-page-outlet", "data-route": "dashboard" } };

@@ -6,7 +6,7 @@ import { parseKnowledgeGraphVolumeProjection } from "../../../core/memory/knowle
 import type { KnowledgeGraphVolumeState } from "../../../core/memory/knowledge-graph-volume";
 import type { ConfirmedMemoryAssociation } from "../../../core/cognitive/cognitive-volume";
 import type { SelfStudySnapshot } from "../../../core/memory/self-study";
-import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../../../pages/shared/nucleus-shared";
+import { NucleusFrame, type NucleusPageProps, useNucleusSnapshot } from "../shared/nucleus-shared";
 
 type VolumePageProps = NucleusPageProps & { learningReady?: boolean; selfStudy?: SelfStudySnapshot | null; learningActivity?: VolumeLearningActivityState; onRefreshLearning?: () => void };
 
