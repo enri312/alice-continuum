@@ -97,4 +97,9 @@ npm test
 npm run build
 ```
 
+La verificación posterior a la migración incluye el arranque en Tauri para
+Windows con datos aislados, las 15 pantallas en Edge y la recuperación con
+WebAssembly bloqueado. La aceptación con voz, Spotify y el proveedor de uso
+cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
+
 **Versión del producto** 0.1.0 · **Documento maestro** 0.65 · **Rama de trabajo** `master`. [Especificación ilustrada](docs/especificacion_alice_continuum.html).

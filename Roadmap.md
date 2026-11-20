@@ -16,10 +16,18 @@ siguen pendientes; el plan no da por resuelto R9 ni R10.
 
 La [guía por tareas](docs/README.md) reúne instalación, uso, aprendizaje y recuperación.
 
+**Verificación posterior a la migración Dioxus.** El lanzador de Windows
+pasó `--check`. Pasaron la compilación, `npm test`, 478 pruebas Rust
+(421 del backend y 57 de Dioxus) y 29 pruebas de los adaptadores Python.
+Edge comprobó las 15 pantallas y los reintentos con WebAssembly bloqueado.
+Tauri abrió con datos aislados y completó navegación, Memoria, permisos y
+recuperación de consolidación. La siguiente prueba es la aceptación real de
+R9, con un turno de texto y cinco turnos por voz en Windows. [Criterios de R9](docs/plans/R9-presence-voice-body.md).
+
 **Navegación general en Dioxus (2026-11-19).** El crate `dioxus-ui` administra
 la ruta activa, el regreso al Dashboard, los tres núcleos y sus 15 pestañas.
-El marco conserva los iconos SVG y los contadores. `App.tsx` monta el contenido
-en la ruta seleccionada y conserva el estado compartido. Si falla WebAssembly,
+El marco conserva los iconos SVG y los contadores. En esta etapa intermedia
+`App.tsx` montaba el contenido en la ruta seleccionada. Si falla WebAssembly,
 la página solicitada conserva su recuperación y el marco permite reintentar.
 El marco React anterior queda desactivado hasta completar la migración de
 la interfaz y la lógica de la aplicación.
@@ -1185,23 +1193,17 @@ están en `Backend/`. La [revisión de organización](https://github.com/enri312
 registra las rutas actualizadas, las comprobaciones y los candidatos de limpieza
 que requieren revisión individual antes de retirarlos.
 
-El tramo activo se limita a **Estado y controles**: comprobar esta primera página
-Dioxus, conservar diseño y funciones, actualizar su icono y cerrar sus pendientes.
-Las otras páginas, R9 y los cambios de persistencia no se amplían en este tramo.
-Estado y controles dibuja en Rust/Dioxus también el marco de actividad R3 y prepara
-sus controles de sesión, además de la selección, el inspector y la memoria real.
-Se eliminó `StateControlsPage.tsx`; el puente React conecta el estado compartido con
-Conversación y conserva la vista de recuperación. Se revisaron marco, inspector,
-controles y navegación en Tauri con datos aislados. La aceptación con recuerdos
-del usuario y una respuesta real sigue separada de esa prueba.
-Pensamiento crítico y ética se incorporan al autoestudio con tres lecciones y
-ejercicios por materia; las 42 lecciones anteriores se conservan sin cambios.
-La agenda siguiente se conserva para retomarla después.
+La migración de la interfaz a Dioxus ya llegó al arranque general. El siguiente
+tramo vuelve a la aceptación de Alice en Windows con la voz, el proveedor y
+los usos cotidianos del propietario. La prueba con recuerdos personales y una
+respuesta real también forma parte de esta aceptación.
 
 Las **Fases R1 a R8** conservan sus cierres documentados. R9 ya tiene
 implementación parcial. El trabajo inmediato queda ordenado así:
 
 1. **Revisar latencia y comprobar cinco turnos breves de R9.**
+   Usar primero un turno por texto con el mismo proveedor como referencia para
+   distinguir la espera del proveedor del tiempo de transcripción y síntesis.
    Inicio, vencimiento y rearme compartido del watchdog pasaron las pruebas
    controladas. El propietario confirmó una respuesta en la nueva prueba real,
    aunque tardó; el último turno auditado concentra más tiempo en ASR.
@@ -1213,15 +1215,7 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    queda como candidato de desarrollo/habilidad. Las propuestas de wake word,
    embeddings y SQLite requieren sus propias pruebas y contratos; no están activadas.
    La persistencia y los grafos de R6/R8 se revisarán posteriormente a fondo.
-   Como evaluación de interfaz separada, el piloto Dioxus-Web reproduce
-   **Estado y controles** con fixtures, inspector y estados de lectura.
-   Sus instrucciones locales en `experiments/dioxus-state/README.md` permiten abrirlo aparte.
-   No sustituye pantallas ni añade trabajo al arranque actual; la adopción queda
-   condicionada a la validación y aceptación posterior.
-   La [revisión de la exportación de AI Studio](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/DIOXUS_MIGRATION_REVIEW_2026-11-14.md)
-   sirvió para incorporar sólo el renderizado de Estado y controles, preservando
-   CSS, contratos, bloqueos y backend. Ver el [cierre de la primera página](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
-   Completar además la validación del incremento autorizado de Estado y controles:
+   Completar además la aceptación de Estado y controles:
    dos ajustes reales de conversación local y trazabilidad de la memoria
    proporcionada al modelo, conservando permisos y controles bloqueados.
    Después, reproducir Spotify, pausar,
@@ -1239,8 +1233,7 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    bóveda. Comprobar pausa, errores y prioridad de conversación. La sonda aislada
    de 14 áreas (10 aprobadas y 4 fallidas) no representa avance personal.
 3. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
-   colaboradores lo implementado; continuar separando coordinación de `App.tsx`
-   después de extraer las fuentes de aprendizaje (ADR-P-116), y delimitar las
+   colaboradores las sesiones extraídas durante la migración y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. La prioridad de solicitudes ya se separó
    (ADR-P-118). La reanudación rápida ya conserva el reinicio y rechaza resultados
