@@ -1273,21 +1273,27 @@ Los prototipos externos, el avatar y la sala de observación conservan su lugar
 posterior. No se amplían las materias del autoestudio ni se activa ninguna
 capacidad por la sola actualización de esta hoja de ruta.
 
-### Integración posterior con n8n
+### Evaluar Nod de n8n Labs
 
-Después de la validación real de R9, evaluar un flujo manual en una instancia
-local de n8n. Para usar únicamente el modelo, probar el nodo Ollama contra el
-motor local. Para integrar **Alice** como paso de procesamiento, probar un nodo
-HTTP Request con un adaptador local acotado a texto de prueba y respuesta.
-El adaptador deberá respetar el arbitraje del motor compartido para que la
-conversación y la voz tengan prioridad.
+Nod es una aplicación independiente de automatización personal con navegador,
+espacio de trabajo y tareas programadas. n8n Labs la publicó como vista previa
+de investigación el 10 de noviembre de 2026 bajo licencia Apache 2.0.
+[Anuncio](https://blog.n8n.io/meet-nod/) · [Código](https://github.com/n8n-io/nod).
 
-El piloto se limita a solicitudes explícitas, datos ficticios y tiempos de
-espera medidos. La memoria, las acciones de escritorio y las credenciales de
-Alice quedan fuera del contrato del piloto. Considerar un nodo personalizado
-cuando el contrato se haya probado y el flujo se reutilice.
-[Ollama en n8n](https://docs.n8n.io/integrations/builtin/credentials/ollama/)
-· [HTTP Request](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/).
+Nod admite servidores compatibles con OpenAI como Ollama y `llama.cpp`. Su guía
+pide llamadas a herramientas y al menos 64.000 tokens de contexto. El servidor
+Gemma de Alice inicia con 4.096, así que la compatibilidad para ejecutar tareas
+queda pendiente de una prueba con otro perfil de inferencia.
+[Requisitos del modelo](https://nod.n8n.io/docs/connect/local-models/).
+
+Tras validar R9, el primer ensayo sería ejecutar Nod por separado con un modelo
+local y una tarea sobre datos ficticios. Medir la demora y el uso de recursos,
+comprobar el resultado y verificar que la cancelación funcione. Si el ensayo es
+satisfactorio, evaluar cómo Alice podría delegar tareas aprobadas y registrar su
+resultado. La prueba usaría un espacio de trabajo separado de la memoria,
+las credenciales y el control de escritorio de Alice. Las conexiones gestionadas
+de Nod pasan por un servicio de n8n y Composio por defecto.
+[Flujo de datos](https://nod.n8n.io/docs/trust/security-review/).
 
 ## Identidad adoptada — Alice Continuum
 

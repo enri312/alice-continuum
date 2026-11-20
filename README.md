@@ -103,8 +103,9 @@ La verificación posterior a la migración incluye el arranque en Tauri para
 Windows con datos aislados, las 15 pantallas en Edge y la recuperación con
 WebAssembly bloqueado. La aceptación con voz, Spotify y el proveedor de uso
 cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
-El Roadmap también plantea evaluar un flujo local de n8n después de validar
-R9. [Alcance del ensayo](Roadmap.md#integración-posterior-con-n8n).
+Tras validar R9, el Roadmap plantea evaluar **Nod**, el agente personal de
+n8n Labs, como posible ejecutor externo de tareas acotadas.
+[Alcance de la evaluación](Roadmap.md#evaluar-nod-de-n8n-labs).
 
 Después de los cinco turnos de R9 y de comprobar el autoestudio con Obsidian,
 Python asumirá otra parte del formateo manual por lotes de las notas. Node.js seguirá
