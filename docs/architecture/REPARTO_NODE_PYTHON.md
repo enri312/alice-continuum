@@ -1,8 +1,8 @@
 # Reparto entre Node.js, Python y Rust
 
 Fecha: 2026-11-15. Estado: **formateo manual e informe R8 incorporados**.
-El propietario pidió iniciar este reparto. La migración a Dioxus conserva su
-objetivo; el resto de transferencias descritas aquí permanece como propuesta.
+El propietario pidió continuar el reparto después de los cinco turnos de R9 y del
+ciclo de autoestudio con Obsidian. El próximo incremento se describe más abajo.
 
 `npm run obsidian:sync:python` permite generar las notas con Python y conservar
 la validación y escritura Node. La vigilancia de dos segundos y el arranque
@@ -20,7 +20,7 @@ cambiar de lenguaje no constituye una mejora de rendimiento demostrada.
 |---|---|
 | Node.js/npm | Vite/TypeScript, pruebas frontend, CLI Tauri, herramientas Dioxus, generación de iconos, respaldos y proyección Obsidian. |
 | Python | Extracción documental, puente multimedia Linux, formateo manual de notas Obsidian e informe offline de reranqueo R8; algunos instaladores y ensayos. |
-| Rust/Tauri | Núcleo nativo, permisos, auditoría, memoria operativa, control de procesos/modelos e invocación de adaptadores. Dioxus incorpora progresivamente la interfaz y sus modelos. |
+| Rust/Tauri | Núcleo nativo, permisos, auditoría, memoria operativa, control de procesos/modelos e invocación de adaptadores. Dioxus monta la interfaz y administra sus modelos. |
 
 El JavaScript que usa la WebView para audio, cámara o servicios del navegador
 tiene un lugar de ejecución diferente de los scripts Node. La migración a
@@ -40,6 +40,21 @@ Python puede recibir más trabajo de análisis documental o evaluación de audio
 aprovechando los adaptadores existentes. Eso debe distinguirse de trasladar una
 tarea que hoy haga Node: la transcripción productiva actual ya la controla Rust
 mediante el ejecutable Whisper configurado.
+
+## Próximo incremento
+
+Ampliar el formateo manual por lotes de Obsidian. Hoy
+`scripts/obsidian/python-renderer.mjs` arma las etiquetas de vigencia,
+accesibilidad, supresión, archivo y procedencia antes de enviar las notas
+al formateador. El ensayo pasará esa presentación a
+`Backend/adapters/obsidian_note_formatter.py` a partir de campos validados.
+Node.js conserva la lectura, la serialización del JSON técnico, la detección
+de ediciones y la escritura protegida de la bóveda.
+
+Probar con bóvedas ficticias y comparar el Markdown byte a byte, incluyendo
+Unicode, procedencia ausente y recuerdos retirados. Medir el tiempo por lote
+incluyendo el arranque del intérprete y comprobar que un fallo de Python deja
+intacta la bóveda. La rutina automática se evalúa por separado.
 
 ## Segundo incremento: informe del evaluador R8
 

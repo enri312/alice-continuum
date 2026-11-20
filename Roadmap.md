@@ -1232,7 +1232,12 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la
    bóveda. Comprobar pausa, errores y prioridad de conversación. La sonda aislada
    de 14 áreas (10 aprobadas y 4 fallidas) no representa avance personal.
-3. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
+3. **Delegar otra parte del trabajo de Node.js a Python.** Después de los cinco
+   turnos de R9 y del ciclo de autoestudio, probar que el formateador Python por lotes
+   prepare también las etiquetas de estado y procedencia de las notas Obsidian.
+   Comparar los bytes del Markdown y medir la duración total antes de integrar.
+   [Alcance de la transferencia](docs/architecture/REPARTO_NODE_PYTHON.md#próximo-incremento).
+4. **Revisar contratos y continuar la estructura del núcleo.** Revisar con
    colaboradores las sesiones extraídas durante la migración y delimitar las
    responsabilidades de transporte, proceso y arbitraje de `local_inference.rs`
    en incrementos justificados. La prioridad de solicitudes ya se separó
@@ -1240,12 +1245,12 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    del ciclo anterior, sin solapar ciclos (ADR-P-119). La posible primitiva de
    persistencia compartida y las propuestas de almacenamiento/grafos quedan para
    la revisión profunda posterior, sin cambiar ahora formatos ni controles.
-4. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
+5. **Completar la aceptación personal de Memoria.** Verificar las cuatro secciones,
    sus herramientas, avisos de actualización y estados de carga/error en la sesión
    del propietario. El Volumen ya se revisó en Tauri con fuentes y cambios
    observados; quedan las comprobaciones conjuntas de recuperación y Obsidian
    del primer paso. La revisión visual no sustituye esa aceptación completa.
-5. **Completar la aceptación funcional de R9.** Mantener cinco turnos reales con
+6. **Completar la aceptación funcional de R9.** Mantener cinco turnos reales con
    corrección de referentes; probar escucha sin música, con música de la notebook
    y de otro equipo; medir la demora completa y la naturalidad; aceptar acciones,
    cámara y escritorio con parada e indicadores coherentes. Después completar y

@@ -102,4 +102,8 @@ Windows con datos aislados, las 15 pantallas en Edge y la recuperación con
 WebAssembly bloqueado. La aceptación con voz, Spotify y el proveedor de uso
 cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
 
+Después de los cinco turnos de R9 y de comprobar el autoestudio con Obsidian,
+Python asumirá otra parte del formateo manual por lotes de las notas. Node.js seguirá
+a cargo de Vite, npm y el arranque de desarrollo. [Reparto de responsabilidades](docs/architecture/REPARTO_NODE_PYTHON.md#próximo-incremento).
+
 **Versión del producto** 0.1.0 · **Documento maestro** 0.65 · **Rama de trabajo** `master`. [Especificación ilustrada](docs/especificacion_alice_continuum.html).
