@@ -77,6 +77,16 @@ Criterios pendientes para este alcance:
 - [ ] Aceptar cámara y escritorio por turno en uso real, con parada e indicadores
   coherentes y continuidad del diálogo cuando una fuente no esté disponible.
 
+**Medición de referencia en Windows, 20 de noviembre de 2026.** En Tauri con
+datos aislados, Gemma local tardó 8,1 s en iniciar y 3,6 s en responder por IPC
+a una consulta breve. Un segundo turno, enviado desde Conversación tras
+iniciar Gemma desde el Dashboard, devolvió la respuesta esperada y guardó su
+recibo en el historial aislado. El backend registró 3,5 s para ese envío.
+Whisper small en CPU transcribió una toma sintética de
+3,4 s en 5,3 s, con decodificación incluida. Son mediciones de una sola toma y
+una consulta. Sigue pendiente medir la sesión completa con el micrófono del
+propietario, la síntesis Fish y las acciones musicales.
+
 La base de estos componentes ya existe; una casilla pendiente indica que todavía
 falta completar o aceptar su comportamiento cotidiano. La integración del cuerpo
 (expresiones, sincronización labial, mirada y movimiento) se conserva como trabajo
