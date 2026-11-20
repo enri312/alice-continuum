@@ -1,6 +1,6 @@
 import type { VoiceTurnTranscript } from "./voice-input";
 import type { VoiceOutputResult } from "./voice-output";
-import { isAddressedToAlice, isMicrophoneOffCommand, isVoiceStopCommand } from "./voice-commands";
+import { isAddressedToAlice, isMicrophoneOffCommand, isVoiceStopCommand, normalizeSpokenSpotifyRequest } from "./voice-commands";
 import { isRecoverableNoiseFailure, type NoiseFailureReason } from "./noise-types";
 
 export type VoiceLoopState = "idle" | "preparing" | "arming" | "standby" | "transcribing" | "thinking" | "synthesizing" | "speaking" | "error";
@@ -152,7 +152,8 @@ export class VoiceLoop {
         await this.listen(generation);
         return;
       }
-      if (!(this.ports.acceptTranscript ?? isAddressedToAlice)(transcript.text)) {
+      const request = normalizeSpokenSpotifyRequest(transcript.text);
+      if (!(this.ports.acceptTranscript ?? isAddressedToAlice)(request)) {
         this.observeIgnoredTake({ reason: "notAddressed", ...ignoredTranscript });
         await this.listen(generation); return;
       }
@@ -163,7 +164,7 @@ export class VoiceLoop {
         synthesisMs: null, untilPlaybackMs: null, totalMs: null, outcome: "processing" };
       observed({});
       this.ports.onState("thinking");
-      const response = await this.ports.respond(transcript.text, id);
+      const response = await this.ports.respond(request, id);
       if (!this.current(generation)) return;
       const responded = now();
       observed({ responseMs: responded - transcribed });

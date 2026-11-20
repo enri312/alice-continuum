@@ -20,6 +20,13 @@ export function isMicrophoneOffCommand(text: string): boolean {
   return command !== null && /^(?:alice )?(?:por favor )?(?:alice )?(?:(?:apaga|apagar|desactiva|desactivar|cierra|cerrar) (?:por favor )?(?:el|mi|este) (?:microfono|micro)|deja de escuchar)(?: alice)?(?: por favor)?$/.test(command);
 }
 
+// An observed ASR rendering of the name is accepted only in this complete command.
+export function normalizeSpokenSpotifyRequest(text: string): string {
+  return /^a[ \t]+list(?:[ \t]*,[ \t]*|[ \t]+)reproduce[ \t]+spotify\.?$/iu.test(text.trim())
+    ? "Alice, reproduce Spotify."
+    : text;
+}
+
 // Explicit address only. This operates on ASR text; it is not acoustic wake-word
 // detection, speaker identification or a general conversational-attention model.
 export function isAddressedToAlice(text: string): boolean {

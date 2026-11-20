@@ -1233,6 +1233,9 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    ejemplos en Contexto y permisos. La orden hablada para reproducir Spotify
    llegó con palabras distintas y no activó la acción. El diagnóstico permite
    llevar una transcripción al borrador, corregirla y revisarla antes de enviarla.
+   En una segunda toma Whisper conservó la orden y transcribió el nombre como
+   «A list». La escucha automática recupera esa variante para la orden completa
+   de reproducir Spotify y conserva lo transcrito en el diagnóstico.
    Repetir la prueba con el micrófono para comprobar la precisión del ASR.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa

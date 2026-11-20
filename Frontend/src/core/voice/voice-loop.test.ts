@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { VoiceLoop, type VoiceLoopPorts } from "./voice-loop";
 
-function fixture() {
+function fixture(text = "Hola, Alice") {
   const captures: {
     quiet: () => void;
     error: Parameters<VoiceLoopPorts["capture"]>[2];
@@ -18,7 +18,7 @@ function fixture() {
       captures.push({ quiet: onQuiet, error: onError, record: metadata => onRecorded(new Blob(["fixture"]), metadata), control });
       return control;
     }),
-    transcribe: vi.fn(async () => ({ text: "Hola, Alice", noSpeech: false, model: "Gemma", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false } as const)),
+    transcribe: vi.fn(async () => ({ text, noSpeech: false, model: "Gemma", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false } as const)),
     respond: vi.fn(async () => ({ exchangeId: "exchange-1" })),
     synthesize: vi.fn(async () => ({ requestId: "tts", mimeType: "audio/mpeg", audioBase64: "AAAA", characterCount: 4, durationMs: 20, ephemeral: true } as const)),
     play: vi.fn(async (_audio, onStarted) => { onStarted?.(); }), stopPlayback: vi.fn(), onState: vi.fn(), onNotice: vi.fn(),
@@ -348,6 +348,35 @@ describe("sesión de voz automática", () => {
     await f.loop.start(); f.record(); await flush();
     expect(f.ports.onTurnObserved).not.toHaveBeenCalled();
     expect(f.ports.respond).not.toHaveBeenCalled(); f.loop.stop();
+  });
+
+  it.each([
+    "A list reproduce Spotify.",
+    "A list, reproduce Spotify",
+  ])("recupera una orden completa de Spotify y conserva la transcripción: %s", async text => {
+    const f = fixture(text);
+    f.ports.onTurnObserved = vi.fn();
+    try {
+      await f.loop.start();
+      f.record(); await flush();
+      expect(f.ports.respond).toHaveBeenCalledExactlyOnceWith("Alice, reproduce Spotify.", "session-1");
+      expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(expect.objectContaining({ transcript: text }));
+    } finally { f.loop.stop(); }
+  });
+
+  it.each([
+    "A list", "A list no reproduce Spotify", "A list pausa Spotify", "Reproduce Spotify",
+    "A list reproduce YouTube", "A list reproduce Spotify y abre otra aplicación",
+    "A list reproduce\nSpotify", '«A list reproduce Spotify»', "Dijo A list reproduce Spotify",
+  ])("no aplica el alias fuera de la orden exacta: %s", async text => {
+    const f = fixture(text);
+    f.ports.onIgnoredTakeObserved = vi.fn();
+    try {
+      await f.loop.start();
+      f.record(); await flush();
+      expect(f.ports.respond).not.toHaveBeenCalled();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(expect.objectContaining({ reason: "notAddressed", transcript: text }));
+    } finally { f.loop.stop(); }
   });
 
   it.each([

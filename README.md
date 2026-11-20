@@ -105,6 +105,8 @@ WebAssembly bloqueado. La aceptación con voz, Spotify y el proveedor de uso
 cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
 Si Alice transcribe mal una orden, «Corregir en el borrador» recupera el texto
 desde el diagnóstico de voz para editarlo y revisarlo antes de enviarlo.
+La escucha automática admite la variante «A list» cuando la transcripción
+contiene la orden completa «reproduce Spotify».
 Tras validar R9, el Roadmap plantea evaluar **Nod**, el agente personal de
 n8n Labs, como posible ejecutor externo de tareas acotadas.
 [Alcance de la evaluación](Roadmap.md#evaluar-nod-de-n8n-labs).
