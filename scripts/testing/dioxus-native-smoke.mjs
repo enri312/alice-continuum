@@ -128,6 +128,14 @@ try {
   assert.equal(await evaluate('document.querySelector("[data-navigation-renderer]")?.dataset.navigationRenderer'), 'dioxus');
   assert.equal(await evaluate('document.querySelector("[data-dashboard-renderer]").dataset.dashboardRenderer'), 'dioxus');
   const nativeReading = await evaluate('__TAURI_INTERNALS__.invoke("system_overview")');
+  assert.deepEqual(Object.keys(nativeReading).sort(), ['cpuPercent', 'disk', 'memory', 'network', 'power', 'uptimeSeconds']);
+  for (const field of ['memory', 'disk']) {
+    assert.deepEqual(Object.keys(nativeReading[field]).sort(), ['totalBytes', 'usedBytes']);
+  }
+  assert.deepEqual(Object.keys(nativeReading.network).sort(), ['receivedBytesPerSecond', 'transmittedBytesPerSecond']);
+  if (nativeReading.power !== null) {
+    assert.deepEqual(Object.keys(nativeReading.power).sort(), ['batteryPercent', 'pluggedIn']);
+  }
   assert.ok(nativeReading.memory.totalBytes > 0 && nativeReading.disk.totalBytes > 0);
   assert.ok(Number.isFinite(nativeReading.cpuPercent) && nativeReading.cpuPercent >= 0 && nativeReading.cpuPercent <= 100);
   assert.ok(nativeReading.network.receivedBytesPerSecond >= 0 && nativeReading.network.transmittedBytesPerSecond >= 0);

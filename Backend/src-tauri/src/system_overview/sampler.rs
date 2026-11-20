@@ -1,3 +1,4 @@
+use super::platform::{disk_capacity, power};
 use serde::Serialize;
 use std::{
     path::Path,
@@ -19,13 +20,13 @@ pub(crate) struct SystemOverview {
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct Capacity {
+pub(super) struct Capacity {
     used_bytes: u64,
     total_bytes: u64,
 }
 
 impl Capacity {
-    fn from_available(total: u64, available: u64) -> Option<Self> {
+    pub(super) fn from_available(total: u64, available: u64) -> Option<Self> {
         (total > 0 && available <= total).then(|| Self {
             total_bytes: total,
             used_bytes: total - available,
@@ -42,9 +43,9 @@ struct NetworkRate {
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct Power {
-    plugged_in: Option<bool>,
-    battery_percent: Option<u8>,
+pub(super) struct Power {
+    pub(super) plugged_in: Option<bool>,
+    pub(super) battery_percent: Option<u8>,
 }
 
 struct Sampler {
@@ -106,79 +107,14 @@ impl Sampler {
     }
 }
 
-#[cfg(windows)]
-fn disk_capacity(path: &Path) -> Option<Capacity> {
-    use std::os::windows::ffi::OsStrExt;
-    use windows::{core::PCWSTR, Win32::Storage::FileSystem::GetDiskFreeSpaceExW};
-    let folder = path.ancestors().find(|path| path.is_dir())?;
-    let wide: Vec<u16> = folder.as_os_str().encode_wide().chain([0]).collect();
-    let (mut available, mut total) = (0, 0);
-    // The path and both output buffers live until the synchronous call returns.
-    unsafe {
-        GetDiskFreeSpaceExW(
-            PCWSTR(wide.as_ptr()),
-            Some(&mut available),
-            Some(&mut total),
-            None,
-        )
-    }
-    .ok()?;
-    Capacity::from_available(total, available)
-}
-
-#[cfg(not(windows))]
-fn disk_capacity(path: &Path) -> Option<Capacity> {
-    let folder = path.ancestors().find_map(|path| path.canonicalize().ok())?;
-    let disks = sysinfo::Disks::new_with_refreshed_list();
-    let disk = disks
-        .iter()
-        .filter(|disk| folder.starts_with(disk.mount_point()))
-        .max_by_key(|disk| disk.mount_point().components().count())?;
-    Capacity::from_available(disk.total_space(), disk.available_space())
-}
-
-#[cfg(windows)]
-fn power() -> Option<Power> {
-    use windows::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
-    let mut status = SYSTEM_POWER_STATUS::default();
-    // Writes to the live stack buffer and returns synchronously.
-    unsafe { GetSystemPowerStatus(&mut status) }.ok()?;
-    Some(Power {
-        plugged_in: match status.ACLineStatus {
-            0 => Some(false),
-            1 => Some(true),
-            _ => None,
-        },
-        battery_percent: (status.BatteryLifePercent <= 100 && status.BatteryFlag & 128 == 0)
-            .then_some(status.BatteryLifePercent),
-    })
-}
-
-#[cfg(not(windows))]
-fn power() -> Option<Power> {
-    None
-}
-
-#[tauri::command]
-pub(crate) async fn system_overview(
-    window: tauri::WebviewWindow,
-    app: tauri::AppHandle,
-) -> Result<SystemOverview, String> {
-    if window.label() != "main" {
-        return Err("El estado del equipo se consulta desde la ventana principal.".into());
-    }
-    let path = crate::util::alice_data_root_path(&app).ok();
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut state = SAMPLER
-            .lock()
-            .map_err(|_| "Lectura del equipo no disponible.")?;
-        let sampler = state.get_or_insert_with(|| Sampler {
-            system: System::new(),
-            networks: Networks::new(),
-            last: None,
-        });
-        Ok(sampler.read(path.as_deref()))
-    })
-    .await
-    .map_err(|_| "No se pudo consultar el equipo.".to_string())?
+pub(super) fn read(data_root: Option<&Path>) -> Result<SystemOverview, String> {
+    let mut state = SAMPLER
+        .lock()
+        .map_err(|_| "Lectura del equipo no disponible.")?;
+    let sampler = state.get_or_insert_with(|| Sampler {
+        system: System::new(),
+        networks: Networks::new(),
+        last: None,
+    });
+    Ok(sampler.read(data_root))
 }

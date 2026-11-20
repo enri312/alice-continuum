@@ -87,6 +87,8 @@ Tauri y al WebView. Si WebAssembly falla, la interfaz permite reintentar y
 conserva los respaldos interactivos de Flujo, Estado y controles y relaciones
 entre recuerdos. El arranque y las recuperaciones funcionan sin React.
 `Backend/` contiene el núcleo nativo de Tauri y sus adaptadores.
+La consulta del Dashboard reúne en un módulo el comando Tauri, el muestreo y
+las lecturas por plataforma. [Módulo de estado del equipo](Backend/src-tauri/src/system_overview/).
 Los iconos funcionales son SVG locales. Se regeneran con `npm run icons:generate`.
 Las vistas React y sus pruebas históricas se conservan en `Frontend/src/Legacy/`.
 React sólo se declara como dependencia de desarrollo para ese archivo histórico.

@@ -1193,6 +1193,12 @@ están en `Backend/`. La [revisión de organización](https://github.com/enri312
 registra las rutas actualizadas, las comprobaciones y los candidatos de limpieza
 que requieren revisión individual antes de retirarlos.
 
+**Piloto de arquitectura (20 de noviembre de 2026).** El módulo
+`system_overview` separa el comando del Dashboard, el muestreo y las lecturas
+de disco y energía por plataforma. El comando conserva la autorización de la
+ventana principal y su respuesta IPC. El ensayo nativo comprueba también los
+nombres y la estructura de sus campos. [Módulo piloto](Backend/src-tauri/src/system_overview/).
+
 La migración de la interfaz a Dioxus ya llegó al arranque general. El siguiente
 tramo vuelve a la aceptación de Alice en Windows con la voz, el proveedor y
 los usos cotidianos del propietario. La prueba con recuerdos personales y una
