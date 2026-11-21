@@ -55,6 +55,8 @@ mod voice_input;
 mod voice_output;
 mod voice_profile;
 mod voice_session;
+#[cfg(windows)]
+mod voice_spotify_volume;
 mod whisper_input;
 mod working_memory;
 
@@ -282,8 +284,9 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("No se pudo iniciar Alice Continuum")
-        .run(|_app, event| {
+        .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
+                app.state::<voice_session::VoiceSessionStore>().end();
                 let _ = local_inference::runtime().stop();
             }
         });

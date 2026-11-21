@@ -13,7 +13,7 @@ type VoicePorts = {
   setDraft: (value: string) => void;
   invalidateReview: () => void;
   prepare: () => Promise<void>;
-  start: () => Promise<string>;
+  start: (duckSpotify: boolean) => Promise<string>;
   stop: (id: string) => Promise<void>;
   transcribe: (audio: string, mime: string, session?: string) => Promise<VoiceTurnTranscript>;
   respond: (text: string, session: string) => Promise<{ exchangeId: string }>;
@@ -43,7 +43,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
   const state = {
     loopState: "idle" as VoiceLoopState,
     loopError: "", notice: "", lastTurn: null as VoiceTurnObservation | null, ignored: null as VoiceIgnoredTakeObservation | null,
-    devices: [] as Device[], deviceMessage: "", device: "", sensitivity: "soft" as MicrophoneSensitivity,
+    devices: [] as Device[], deviceMessage: "", device: "", sensitivity: "soft" as MicrophoneSensitivity, duckSpotify: false,
     noise: null as NoiseStatus | null,
     manualOpen: false, captureState: "idle" as CaptureState, inputMessage: microphoneOff, elapsed: 0,
     recorded: null as number | null, transcriptMs: null as number | null, model: null as string | null,
@@ -65,6 +65,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
   const active = () => state.loopState !== "idle" && state.loopState !== "error";
   const busy = () => ["requesting", "recording", "transcribing"].includes(state.captureState);
   const locked = () => disposed || !ports.desktopApp() || ports.isDisabled() || busy() || active() || Boolean(state.pending);
+  const spotifyDuckingAvailable = () => ports.desktopApp() && /Windows/i.test(navigator.userAgent);
   const canReviewTranscript = () => !disposed && ports.desktopApp() && !ports.isDisabled()
     && !busy() && !state.pending && (!active() || state.loopState === "standby");
   const update = (values: Partial<typeof state>) => {
@@ -84,7 +85,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
         : state.preview ? { label: "Respuesta lista para autorizar su voz", tone: "idle" } : null);
     return { ...state, desktopApp: ports.desktopApp(), disabled: ports.isDisabled(), busy: busy(), active: active(), modeOpen: state.manualOpen,
       loopLabel: labels[state.loopState], statusLabel: status?.label ?? "", statusTone: status?.tone ?? "",
-      canReviewTranscript: canReviewTranscript() };
+      canReviewTranscript: canReviewTranscript(), spotifyDuckingAvailable: spotifyDuckingAvailable() };
   }
 
   function clearInputPreview() {
@@ -241,7 +242,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
         if (disposed || context !== output) throw Error("La preparación de voz se canceló.");
         closeManual();
         ports.invalidateReview();
-        return ports.start();
+        return ports.start(spotifyDuckingAvailable() && state.duckSpotify);
       },
       revoke: ports.stop,
       capture: (recorded, quiet, error) => new VoiceCapture({
@@ -373,6 +374,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
         if (!locked() && typeof value === "string" && (!value || state.devices.some(item => item.id === value))) update({ device: value });
         break;
       case "sensitivity": if (!locked() && (value === "soft" || value === "normal")) update({ sensitivity: value }); break;
+      case "duckSpotify": if (!locked() && spotifyDuckingAvailable() && typeof value === "boolean") update({ duckSpotify: value }); break;
       case "inputPlaybackError":
         if (typeof value === "string" && inputPreview.isCurrent(value)) {
           clearInputPreview();

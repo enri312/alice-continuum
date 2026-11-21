@@ -123,8 +123,8 @@ export async function prepareVoiceTurn(): Promise<void> {
   recordEvent("PERCEPTION", "VOICE_TURN_READY", "Gemma preparado por solicitud del propietario; micrófono todavía apagado.");
 }
 
-export async function startVoiceSession(): Promise<string> {
-  const session = await invoke<{ sessionId: string }>("start_voice_session");
+export async function startVoiceSession(duckSpotify = false): Promise<string> {
+  const session = await invoke<{ sessionId: string }>("start_voice_session", { duckSpotify });
   try {
     await prepareVoiceTurn();
     return session.sessionId;

@@ -351,23 +351,26 @@ describe("sesión de voz automática", () => {
   });
 
   it.each([
-    "A list reproduce Spotify.",
-    "A list, reproduce Spotify",
-  ])("recupera una orden completa de Spotify y conserva la transcripción: %s", async text => {
+    ["A list reproduce Spotify.", "Alice, reproduce Spotify."],
+    ["A list, reproduce Spotify", "Alice, reproduce Spotify."],
+    ["Alista pausa spotify", "Alice, pausa Spotify."],
+    ["Alista, reproduce Spotify.", "Alice, reproduce Spotify."],
+  ])("recupera una orden completa de Spotify y conserva la transcripción: %s", async (text, command) => {
     const f = fixture(text);
     f.ports.onTurnObserved = vi.fn();
     try {
       await f.loop.start();
       f.record(); await flush();
-      expect(f.ports.respond).toHaveBeenCalledExactlyOnceWith("Alice, reproduce Spotify.", "session-1");
+      expect(f.ports.respond).toHaveBeenCalledExactlyOnceWith(command, "session-1");
       expect(f.ports.onTurnObserved).toHaveBeenLastCalledWith(expect.objectContaining({ transcript: text }));
     } finally { f.loop.stop(); }
   });
 
   it.each([
-    "A list", "A list no reproduce Spotify", "A list pausa Spotify", "Reproduce Spotify",
+    "A list", "A list no reproduce Spotify", "Alista Spotify", "Reproduce Spotify",
     "A list reproduce YouTube", "A list reproduce Spotify y abre otra aplicación",
     "A list reproduce\nSpotify", '«A list reproduce Spotify»', "Dijo A list reproduce Spotify",
+    "¡Alicias! ¡Pauza Spotfield!", "Alista pausa Spotfield",
   ])("no aplica el alias fuera de la orden exacta: %s", async text => {
     const f = fixture(text);
     f.ports.onIgnoredTakeObserved = vi.fn();

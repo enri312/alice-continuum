@@ -4,8 +4,17 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, State};
 use uuid::Uuid;
 
+pub(crate) const VOICE_SESSION_LIMIT: Duration = Duration::from_secs(2 * 60 * 60);
+
+struct VoiceSession {
+    id: String,
+    started: Instant,
+    #[cfg(windows)]
+    _spotify_volume: Option<crate::voice_spotify_volume::SpotifyVolumeGuard>,
+}
+
 #[derive(Clone, Default)]
-pub(crate) struct VoiceSessionStore(Arc<Mutex<Option<(String, Instant)>>>);
+pub(crate) struct VoiceSessionStore(Arc<Mutex<Option<VoiceSession>>>);
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -24,21 +33,31 @@ impl VoiceSessionStore {
         self.0.lock().is_ok_and(|active| {
             active
                 .as_ref()
-                .is_some_and(|(_, started)| started.elapsed() < Duration::from_secs(2 * 60 * 60))
+                .is_some_and(|session| session.started.elapsed() < VOICE_SESSION_LIMIT)
         })
     }
 
-    pub(crate) fn begin(&self) -> Result<String, String> {
+    fn begin(&self, _duck_spotify: bool) -> Result<String, String> {
         crate::local_inference::runtime().preempt_background();
+        let mut active = self.0.lock().map_err(|_| "Sesión de voz bloqueada")?;
+        // Restore the earlier session's volume before replacing it.
+        *active = None;
         let id = Uuid::new_v4().to_string();
-        *self.0.lock().map_err(|_| "Sesión de voz bloqueada")? = Some((id.clone(), Instant::now()));
+        *active = Some(VoiceSession {
+            id: id.clone(),
+            started: Instant::now(),
+            #[cfg(windows)]
+            _spotify_volume: _duck_spotify
+                .then(crate::voice_spotify_volume::SpotifyVolumeGuard::begin)
+                .transpose()?,
+        });
         Ok(id)
     }
 
     pub(crate) fn require(&self, id: &str) -> Result<(), String> {
         let active = self.0.lock().map_err(|_| "Sesión de voz bloqueada")?;
-        if active.as_ref().is_some_and(|(current, started)| {
-            current == id && started.elapsed() < Duration::from_secs(2 * 60 * 60)
+        if active.as_ref().is_some_and(|session| {
+            session.id == id && session.started.elapsed() < VOICE_SESSION_LIMIT
         }) {
             Ok(())
         } else {
@@ -57,10 +76,16 @@ impl VoiceSessionStore {
 
     fn stop(&self, id: &str) -> Result<(), String> {
         let mut active = self.0.lock().map_err(|_| "Sesión de voz bloqueada")?;
-        if active.as_ref().is_some_and(|(current, _)| current == id) {
+        if active.as_ref().is_some_and(|session| session.id == id) {
             *active = None;
         }
         Ok(())
+    }
+
+    pub(crate) fn end(&self) {
+        if let Ok(mut active) = self.0.lock() {
+            *active = None;
+        }
     }
 }
 
@@ -84,13 +109,14 @@ fn audit_session(app: &AppHandle, reason: &str) -> Result<(), String> {
 pub(crate) fn start_voice_session(
     app: AppHandle,
     state: State<'_, VoiceSessionStore>,
+    duck_spotify: Option<bool>,
 ) -> Result<VoiceSessionStarted, String> {
     if !crate::voice_output::voice_is_configured(&app) {
         return Err(
             "Configura la clave y la voz de Fish antes de iniciar la conversación por voz.".into(),
         );
     }
-    let session_id = state.begin()?;
+    let session_id = state.begin(duck_spotify.unwrap_or_default())?;
     if let Err(error) = audit_session(&app, "VOICE_SESSION_STARTED") {
         state.stop(&session_id)?;
         return Err(error);
@@ -116,10 +142,10 @@ mod tests {
         let store = VoiceSessionStore::default();
         assert!(!store.is_active());
         assert!(store.require("arbitrary").is_err());
-        let first = store.begin().unwrap();
+        let first = store.begin(false).unwrap();
         assert!(store.is_active());
         assert!(store.require(&first).is_ok());
-        let second = store.begin().unwrap();
+        let second = store.begin(false).unwrap();
         assert!(store.require(&first).is_err());
         store.stop(&first).unwrap();
         assert!(store.require(&second).is_ok());
@@ -131,12 +157,12 @@ mod tests {
     #[test]
     fn completed_results_do_not_escape_a_revoked_or_replaced_session() {
         let store = VoiceSessionStore::default();
-        let first = store.begin().unwrap();
+        let first = store.begin(false).unwrap();
         assert_eq!(store.complete(&first, Ok("respuesta")), Ok("respuesta"));
         store.stop(&first).unwrap();
         assert!(store.complete(&first, Ok("respuesta tardía")).is_err());
-        let second = store.begin().unwrap();
-        let third = store.begin().unwrap();
+        let second = store.begin(false).unwrap();
+        let third = store.begin(false).unwrap();
         assert!(store.complete(&second, Ok("respuesta anterior")).is_err());
         assert_eq!(
             store.complete(&third, Err::<(), _>("fallo original".into())),

@@ -125,6 +125,13 @@ fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> El
                 button { r#type: "button", class: "secondary", disabled,
                     onclick: move |_| on_action.call(json!({"type":"refreshDevices"})), "Actualizar micrófonos" }
             }
+            if truth(&view, "spotifyDuckingAvailable") {
+                label {
+                    input { r#type: "checkbox", checked: truth(&view, "duckSpotify"), disabled,
+                        onchange: move |event| on_action.call(json!({"type":"duckSpotify","value":event.checked()})) }
+                    " Bajar el volumen de Spotify durante la escucha"
+                }
+            }
             p { "Voz baja y pausada aumenta la ganancia local y conserva la salida del filtro sin una segunda atenuación. En la escucha automática espera 2 segundos de silencio para cerrar el turno. Normal espera 1 segundo y mantiene la atenuación adicional. Si el ruido abre tomas o la voz satura, usa Normal." }
             if !device_message.is_empty() { p { role: "status", "{device_message}" } }
             if !noise.is_null() {

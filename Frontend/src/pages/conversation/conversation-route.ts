@@ -62,9 +62,9 @@ function connect(element: HTMLDivElement, reply: Reply) {
     setDraft: value => page.setVoiceDraft(value),
     invalidateReview: () => page.invalidateReview(),
     prepare: prepareVoiceTurn,
-    start: () => {
+    start: duckSpotify => {
       page.startVoiceSession();
-      return startVoiceSession();
+      return startVoiceSession(duckSpotify);
     },
     stop: stopVoiceSession,
     transcribe: transcribeVoiceTurn,

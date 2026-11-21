@@ -1236,7 +1236,24 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    En una segunda toma Whisper conservó la orden y transcribió el nombre como
    «A list». La escucha automática recupera esa variante para la orden completa
    de reproducir Spotify y conserva lo transcrito en el diagnóstico.
-   Repetir la prueba con el micrófono para comprobar la precisión del ASR.
+   Una prueba posterior por voz alteró el nombre de Alice y el de Spotify.
+   En seis muestras sintéticas (tres frases limpias y las mismas con atenuación
+   y ruido), Whisper Small coincidió en cuatro y Large V3 Turbo Q5 en cinco.
+   En CPU, las tomas limpias tardaron cerca de 5 s con Small y de 24 s con
+   Turbo. Los ensayos con un contexto de audio reducido aceleraron Turbo y
+   volvieron a alterar el nombre de Alice en la orden corta. Con una misma
+   toma real, ambos conservaron «pausa Spotify» y transcribieron el nombre de
+   modo distinto. Small devolvió «Alista» en 5,1 s y Turbo «Analis» en 23,7 s.
+   Small sigue como reconocedor y la escucha acepta «Alista» cuando se lee la
+   orden completa de reproducir o pausar Spotify. Falta probar esa corrección
+   con la captura automática y su filtro.
+   [Whisper Large V3 Turbo Q5](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-large-v3-turbo-q5_0.bin).
+   En Windows, la escucha puede bajar el volumen de las sesiones abiertas de
+   Spotify al activarse y recuperarlo al terminar. La opción está en Audio de
+   entrada y se aplica por sesión, con prioridad para los cambios manuales de
+   volumen. El propietario comprobó que Spotify bajó y recuperó el volumen al
+   apagar el micrófono. Queda por comprobar la orden hablada con música.
+   Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
    pendientes/repasos, recupera una lección aprobada con su fuente y actualiza la

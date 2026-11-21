@@ -20,11 +20,10 @@ export function isMicrophoneOffCommand(text: string): boolean {
   return command !== null && /^(?:alice )?(?:por favor )?(?:alice )?(?:(?:apaga|apagar|desactiva|desactivar|cierra|cerrar) (?:por favor )?(?:el|mi|este) (?:microfono|micro)|deja de escuchar)(?: alice)?(?: por favor)?$/.test(command);
 }
 
-// An observed ASR rendering of the name is accepted only in this complete command.
+// Observed renderings of the name are accepted only in complete Spotify commands.
 export function normalizeSpokenSpotifyRequest(text: string): string {
-  return /^a[ \t]+list(?:[ \t]*,[ \t]*|[ \t]+)reproduce[ \t]+spotify\.?$/iu.test(text.trim())
-    ? "Alice, reproduce Spotify."
-    : text;
+  const command = /^(?:a[ \t]+list|alista)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa)[ \t]+spotify\.?$/iu.exec(text.trim());
+  return command ? `Alice, ${command[1].toLowerCase()} Spotify.` : text;
 }
 
 // Explicit address only. This operates on ASR text; it is not acoustic wake-word
