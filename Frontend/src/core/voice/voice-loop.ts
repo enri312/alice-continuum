@@ -82,10 +82,11 @@ export class VoiceLoop {
   private current(generation: number) { return this.active && generation === this.generation; }
 
   private observeIgnoredTake(take: VoiceIgnoredTakeObservation | null) {
-    // Keep one ephemeral result. Quiet windows must not hide an ASR result or
-    // repeat the same notice while the person inspects what was transcribed.
+    // Keep one ephemeral result. Silent takes must not hide text the person
+    // can inspect and correct while the microphone is still listening.
     if (take === null && this.ignoredTake === null) return;
     if (take?.reason === "insufficientSpeech" && this.ignoredTake !== null) return;
+    if (take?.reason === "noSpeech" && !take.transcript && this.ignoredTake?.reason === "notAddressed") return;
     this.ignoredTake = take;
     this.ports.onIgnoredTakeObserved?.(take);
   }

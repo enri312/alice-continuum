@@ -452,7 +452,7 @@ describe("sesión de voz automática", () => {
     } finally { f.loop.stop(); }
   });
 
-  it("conserva el descarte transcrito durante quiet posteriores y lo reemplaza sólo con un resultado ASR nuevo", async () => {
+  it("conserva el descarte transcrito durante tomas sin palabras y lo reemplaza con el siguiente texto", async () => {
     const f = fixture();
     f.ports.onIgnoredTakeObserved = vi.fn();
     try {
@@ -466,8 +466,12 @@ describe("sesión de voz automática", () => {
       expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(transcribedDiscard);
       vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "", noSpeech: true, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
       f.record(); await flush();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledOnce();
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(transcribedDiscard);
+      vi.mocked(f.ports.transcribe).mockResolvedValueOnce({ text: "Pausa Spotify", noSpeech: false, model: "Whisper small", durationMs: 10, ephemeralAudio: true, sentToConversation: false, persisted: false });
+      f.record(); await flush();
       expect(f.ports.onIgnoredTakeObserved).toHaveBeenCalledTimes(2);
-      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(expect.objectContaining({ reason: "noSpeech", transcript: "" }));
+      expect(f.ports.onIgnoredTakeObserved).toHaveBeenLastCalledWith(expect.objectContaining({ reason: "notAddressed", transcript: "Pausa Spotify" }));
       expect(f.ports.respond).not.toHaveBeenCalled();
       expect(f.ports.synthesize).not.toHaveBeenCalled();
     } finally { f.loop.stop(); }

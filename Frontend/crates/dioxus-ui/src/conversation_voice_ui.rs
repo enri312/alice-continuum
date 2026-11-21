@@ -78,7 +78,7 @@ fn IgnoredObservation(take: Value, can_review: bool, on_action: EventHandler<Val
                     div { dt { "Transcripción" } dd { {seconds(&take["transcriptionMs"])} } }
                 }
             }
-            p { "El resultado transcrito queda en este diagnóstico hasta la siguiente transcripción, una frase atendida o el apagado del micrófono." }
+            p { "El resultado transcrito queda en este diagnóstico hasta que haya otro texto, se atienda una frase o apagues el micrófono." }
         }
     }
 }

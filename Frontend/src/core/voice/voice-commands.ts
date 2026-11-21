@@ -38,5 +38,5 @@ export function isAddressedToAlice(text: string): boolean {
   // A trailing vocative is admitted for a question or imperative, not "hablo con Alice".
   if (/(?:^| )(?:con|a|sobre|de|llamada|llamado) alice$/u.test(words)) return false;
   if (/(?:^| )(?:es|era|fue|esta|dijo|dice|quiere|puede|sabe) alice$/u.test(words)) return false;
-  return /^(?:que|como|cual|cuando|donde|quien|por que|puedes|podrias|estas|me (?:escuchas|oyes|ves|ayudas)|quiero que|abre|reproduce|pausa|continua|busca|muestra|cierra|explica|dime|ayudame|escucha|responde|espera|deten|detend)\b.* alice$/u.test(words);
+  return /^(?:que|como|cual|cuando|donde|quien|por que|puedes|podrias|estas|me (?:escuchas|oyes|ves|ayudas)|quiero que|abre|reproduce|pausa|reanuda|continua|busca|muestra|cierra|explica|dime|ayudame|escucha|responde|espera|deten|detend)\b.* alice$/u.test(words);
 }

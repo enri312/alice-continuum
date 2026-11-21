@@ -109,8 +109,10 @@ cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
 Si Nyxia transcribe mal una orden, «Corregir en el borrador» recupera el texto
 desde el diagnóstico de voz para editarlo y revisarlo antes de enviarlo.
 Para la escucha automática, decí «Nyxia, pausa Spotify» o «Nyxia, reproduce
-Spotify». El nombre se pronuncia «Ník-sia». La pausa por voz se comprobó con
-Parakeet y señal directa en Windows. La repetibilidad sigue en R9.
+Spotify». El nombre se pronuncia «Ník-sia». Hubo una pausa por voz con
+Parakeet y señal directa en Windows. En una prueba posterior, ninguna de las
+tres órdenes ejecutó Spotify. El diagnóstico conserva el texto descartado
+aunque el micrófono siga captando silencio. La repetibilidad sigue en R9.
 En Windows, **Audio de entrada** permite bajar el volumen de Spotify durante
 la escucha y recuperarlo al cerrar el micrófono o terminar Nyxia normalmente.
 En ese panel, **Probar señal directa para transcribir** permite comparar la

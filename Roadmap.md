@@ -1278,6 +1278,10 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    Con el nombre Nyxia, la prueba real con Parakeet y señal directa registró
    «Nixia, pausa Spotify» y pausó el reproductor en el segundo intento. La
    transcripción tardó 3,19 s y la acción del reproductor tardó 0,32 s.
+   En la siguiente prueba de pausa, reanudación y pausa, ninguna orden llegó
+   a Spotify. La auditoría registró tomas con texto y tomas sin habla. El
+   diagnóstico conserva el último descarte con texto durante las tomas vacías
+   para poder revisar qué oyó el reconocedor.
    [Modelo de Parakeet](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html).
    Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
