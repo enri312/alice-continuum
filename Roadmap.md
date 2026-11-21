@@ -1252,7 +1252,18 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    Spotify al activarse y recuperarlo al terminar. La opción está en Audio de
    entrada y se aplica por sesión, con prioridad para los cambios manuales de
    volumen. El propietario comprobó que Spotify bajó y recuperó el volumen al
-   apagar el micrófono. Queda por comprobar la orden hablada con música.
+   apagar el micrófono. La auditoría confirmó que Spotify se pausó por voz
+   después de varios intentos. La repetibilidad sigue pendiente.
+   Se compararon Whisper Small y Parakeet TDT 0.6B v3 INT8 con tres frases
+   sintéticas en tres condiciones (limpia, señal baja con ruido y voz de
+   fondo simulada), con y sin el filtrado de Alice. Acertaron 12/18 y 14/18,
+   respectivamente. Whisper tardó 4,83 s por toma de mediana, con la carga
+   incluida. Parakeet cargó en 2,59 s y obtuvo 0,33 s de mediana con el modelo
+   cargado. En el piloto de una toma con carga incluida, Parakeet tardó 4,08 s
+   y Whisper 4,60 s. Con Whisper, la señal directa acertó 7/9 y la filtrada 5/9. La
+   prueba evalúa el filtro RNNoise con ganancia suave en una simulación y
+   deja pendiente comprobar su efecto con el micrófono en uso.
+   [Modelo de Parakeet](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html).
    Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar
    ejercicios y fuentes, reiniciar y comprobar que conserva el progreso, continúa
