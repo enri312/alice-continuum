@@ -54,6 +54,11 @@ impl VoiceSessionStore {
         Ok(id)
     }
 
+    #[cfg(all(test, target_os = "linux"))]
+    pub(crate) fn begin_for_capture_test(&self) -> Result<String, String> {
+        self.begin(false)
+    }
+
     pub(crate) fn require(&self, id: &str) -> Result<(), String> {
         let active = self.0.lock().map_err(|_| "Sesión de voz bloqueada")?;
         if active.as_ref().is_some_and(|session| {

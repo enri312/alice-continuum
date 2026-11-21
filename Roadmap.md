@@ -1295,7 +1295,14 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    repetición de pausa y reanudación con esa configuración no logró ejecutar
    ninguna de las cuatro órdenes. En una toma, «Mix reanuda Spotify» conservó
    verbo y servicio. La escucha recupera «Mix» y «Mixia» sólo en órdenes
-   completas de reproducir, pausar o reanudar Spotify. Falta repetir tras el ajuste.
+   completas de reproducir, pausar o reanudar Spotify. El ensayo siguiente
+   volvió a fallar y devolvió «Mixier anuda Spotify». Se recupera esa forma
+   completa para reanudar y se conserva la transcripción en el diagnóstico.
+   En seis órdenes sintéticas, la búsqueda con varias hipótesis de Parakeet
+   recuperó dos órdenes completas frente a una con la decodificación actual,
+   pero devolvió dos transcripciones vacías. Se conserva la configuración
+   actual y se evalúa la posición del vocativo con voz real.
+   Sigue pendiente demostrar varios aciertos consecutivos con voz real.
    [Modelo de Parakeet](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html).
    Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar

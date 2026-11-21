@@ -115,6 +115,8 @@ repetibilidad sigue en R9. El diagnóstico conserva el texto descartado aunque
 el micrófono siga captando silencio.
 En órdenes completas de reproducir, pausar o reanudar Spotify, la escucha
 también reconoce «Mix» y «Mixia» como variantes transcritas del nombre.
+La forma observada «Mixier anuda Spotify» se interpreta como la orden explícita
+de reanudar. La precisión del reconocimiento general sigue en validación.
 Cuando el motor elegido es Parakeet, Nyxia recorta los extremos de muy bajo
 nivel antes de transcribir si detecta señal sostenida. Conserva margen alrededor
 de la voz, las pausas internas y la toma original para la vista previa.

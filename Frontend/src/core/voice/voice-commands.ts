@@ -24,7 +24,10 @@ export function isMicrophoneOffCommand(text: string): boolean {
 
 // Observed renderings of the name are accepted only in complete Spotify commands.
 export function normalizeSpokenSpotifyRequest(text: string): string {
-  const command = /^(?:a[ \t]+list|alista|mix(?:ia)?)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa|reanuda)[ \t]+spotify\.?$/iu.exec(text.trim());
+  const trimmed = text.trim();
+  const command = /^(?:a[ \t]+list|alista|mix(?:ia)?)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa|reanuda)[ \t]+spotify\.?$/iu.exec(trimmed);
+  // Parakeet can join the initial consonant of "reanuda" to the spoken name.
+  if (/^mixier[ \t]+anuda[ \t]+spotify\.?$/iu.test(trimmed)) return "Nyxia, reanuda Spotify.";
   return command ? `Nyxia, ${command[1].toLowerCase()} Spotify.` : text;
 }
 

@@ -158,7 +158,7 @@ mod tests {
             settings.set_enable_media_stream(true);
             settings.set_enable_mock_capture_devices(true);
             let session = VoiceSessionStore::default();
-            session.begin().unwrap();
+            session.begin_for_capture_test().unwrap();
             if hook {
                 install(&view, session);
             }
