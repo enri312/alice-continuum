@@ -24,7 +24,7 @@ export function isMicrophoneOffCommand(text: string): boolean {
 
 // Observed renderings of the name are accepted only in complete Spotify commands.
 export function normalizeSpokenSpotifyRequest(text: string): string {
-  const command = /^(?:a[ \t]+list|alista)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa)[ \t]+spotify\.?$/iu.exec(text.trim());
+  const command = /^(?:a[ \t]+list|alista|mix(?:ia)?)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa|reanuda)[ \t]+spotify\.?$/iu.exec(text.trim());
   return command ? `Nyxia, ${command[1].toLowerCase()} Spotify.` : text;
 }
 

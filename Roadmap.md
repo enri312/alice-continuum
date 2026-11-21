@@ -1282,6 +1282,20 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    a Spotify. La auditoría registró tomas con texto y tomas sin habla. El
    diagnóstico conserva el último descarte con texto durante las tomas vacías
    para poder revisar qué oyó el reconocedor.
+   En dictado manual, el propietario oyó la frase completa. Con el mismo audio,
+   un recorte de 16,6 s a 3,1 s permitió a Parakeet recuperar «pausa Spotify»,
+   aunque confundió el nombre. Whisper Small confundió el verbo con ambas
+   duraciones. El preprocesamiento de Parakeet ahora recorta extremos de nivel
+   muy bajo cuando detecta señal sostenida, conserva margen y pausas internas y
+   deja intacta la toma que se escucha en la interfaz.
+   El 21 de noviembre, con el recorte integrado y sensibilidad Normal, la
+   escucha automática transcribió «Nixia, pausa Spotify» y pausó al primer
+   intento. La auditoría midió 3,94 s de transcripción, 0,32 s de acción y
+   2,30 s de síntesis. En este ensayo también cambió la sensibilidad. La
+   repetición de pausa y reanudación con esa configuración no logró ejecutar
+   ninguna de las cuatro órdenes. En una toma, «Mix reanuda Spotify» conservó
+   verbo y servicio. La escucha recupera «Mix» y «Mixia» sólo en órdenes
+   completas de reproducir, pausar o reanudar Spotify. Falta repetir tras el ajuste.
    [Modelo de Parakeet](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html).
    Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar

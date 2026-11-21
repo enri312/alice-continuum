@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
+mod pcm;
 mod process;
 use process::FailureKind;
 pub(crate) use process::WhisperFailure;
@@ -145,24 +146,6 @@ fn parse_text(bytes: Vec<u8>) -> Result<(String, bool), WhisperFailure> {
     Ok((if quiet { String::new() } else { text.into() }, quiet))
 }
 
-fn is_silent(wav: &[u8]) -> bool {
-    let mut offset = 12usize;
-    while let Some(header) = wav.get(offset..offset.saturating_add(8)) {
-        let length = u32::from_le_bytes(header[4..8].try_into().unwrap()) as usize;
-        let start = offset + 8;
-        if &header[..4] == b"data" {
-            let end = start.saturating_add(length).min(wav.len());
-            return wav[start..end]
-                .as_chunks::<2>()
-                .0
-                .iter()
-                .all(|sample| i16::from_le_bytes(*sample).unsigned_abs() <= 3);
-        }
-        offset = start.saturating_add(length).saturating_add(length % 2);
-    }
-    false
-}
-
 fn command_for(configuration: &Configuration) -> Command {
     let mut command = Command::new(&configuration.binary);
     match configuration.recognizer {
@@ -204,14 +187,17 @@ pub(crate) fn transcribe(
 
 fn transcribe_take(
     configuration: &Configuration,
-    wav: Vec<u8>,
+    mut wav: Vec<u8>,
     cancelled: impl Fn() -> bool,
 ) -> Result<(String, bool), WhisperFailure> {
     if cancelled() {
         return Err(WhisperFailure::new(FailureKind::Cancelled));
     }
-    if is_silent(&wav) {
+    if pcm::is_silent(&wav) {
         return Ok((String::new(), true));
+    }
+    if configuration.recognizer == Recognizer::Parakeet {
+        pcm::trim_quiet_edges(&mut wav);
     }
     let bytes = process::run(
         command_for(configuration),
@@ -398,9 +384,9 @@ mod tests {
         let mut wav = b"RIFF0000WAVEdata".to_vec();
         wav.extend(4u32.to_le_bytes());
         wav.extend([0, 0, 0, 0]);
-        assert!(is_silent(&wav));
+        assert!(pcm::is_silent(&wav));
         wav[20..22].copy_from_slice(&40i16.to_le_bytes());
-        assert!(!is_silent(&wav));
+        assert!(!pcm::is_silent(&wav));
     }
 
     fn synthetic_wav() -> Vec<u8> {

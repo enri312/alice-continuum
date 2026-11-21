@@ -355,6 +355,8 @@ describe("sesión de voz automática", () => {
     ["A list, reproduce Spotify", "Nyxia, reproduce Spotify."],
     ["Alista pausa spotify", "Nyxia, pausa Spotify."],
     ["Alista, reproduce Spotify.", "Nyxia, reproduce Spotify."],
+    ["Mix reanuda Spotify.  ", "Nyxia, reanuda Spotify."],
+    ["Mixia pausa Spotify", "Nyxia, pausa Spotify."],
   ])("recupera una orden completa de Spotify y conserva la transcripción: %s", async (text, command) => {
     const f = fixture(text);
     f.ports.onTurnObserved = vi.fn();
@@ -371,6 +373,9 @@ describe("sesión de voz automática", () => {
     "A list reproduce YouTube", "A list reproduce Spotify y abre otra aplicación",
     "A list reproduce\nSpotify", '«A list reproduce Spotify»', "Dijo A list reproduce Spotify",
     "¡Alicias! ¡Pauza Spotfield!", "Alista pausa Spotfield",
+    "Mix Spotify", "Mix no reanuda Spotify", "Mix reanuda YouTube",
+    "Mixia pausa Spotify y abre el navegador", "Mixia, ¿cómo estás?",
+    "«Mix reanuda Spotify»",
   ])("no aplica el alias fuera de la orden exacta: %s", async text => {
     const f = fixture(text);
     f.ports.onIgnoredTakeObserved = vi.fn();
