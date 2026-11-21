@@ -835,8 +835,7 @@ async fn send_cloud_message_inner(
                     .unwrap_or(false)
                 {
                     return Err(
-                        "Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd"
-                            .into(),
+                        "Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd".into(),
                     );
                 }
                 let response = client

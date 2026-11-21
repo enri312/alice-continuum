@@ -288,9 +288,7 @@ async fn preview_inner(
         .map(|value| !value.trim().is_empty())
         .unwrap_or(false)
     {
-        return Err(
-            "Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd".into(),
-        );
+        return Err("Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd".into());
     }
     let evidence_fragments = literal_evidence_fragments(source);
     if evidence_fragments.is_empty() {
