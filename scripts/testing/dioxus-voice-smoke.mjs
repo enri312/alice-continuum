@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 // Runs inside a fresh page's synthetic IPC fixture. This never requests a device.
 function installVoiceFixture() {
   const rawTracks = [];
+  const captureRequests = [];
   const previousInvoke = globalThis.__TAURI_INTERNALS__.invoke;
   const exchanges = [];
-  globalThis.__dioxusVoiceFixture = { rawTracks, exchanges };
+  globalThis.__dioxusVoiceFixture = { rawTracks, captureRequests, exchanges };
   globalThis.__TAURI_INTERNALS__.invoke = async (command, args) => {
     switch (command) {
       case 'start_local_runtime': return { running: true };
@@ -27,7 +28,8 @@ function installVoiceFixture() {
   };
   navigator.mediaDevices.enumerateDevices = async () =>
     [{ kind: 'audioinput', deviceId: 'synthetic-input', label: 'Micrófono sintético' }];
-  navigator.mediaDevices.getUserMedia = async () => {
+  navigator.mediaDevices.getUserMedia = async constraints => {
+    captureRequests.push(constraints.audio);
     const context = new AudioContext({ sampleRate: 48000 });
     await context.resume();
     const oscillator = context.createOscillator();
@@ -70,9 +72,12 @@ export async function assertDioxusVoice({ evaluate, click, until }) {
   assert.equal(await evaluate('Boolean(document.querySelector("#alice-voice-input-player"))'), false);
   assert.deepEqual(await evaluate('__dioxusVoiceFixture.exchanges'), ['transcribe_voice_turn']);
   assert.equal(await evaluate('__calls.filter(({cmd}) => cmd === "send_cloud_message").length'), 0, 'El dictado todavía no autoriza el envío');
+  await evaluate(`Array.from(document.querySelectorAll('.audio-input-settings label')).find(label => label.textContent.includes('Probar señal directa')).querySelector('input').click()`);
   await click('.hands-free-controls button');
   await until(() => evaluate('document.querySelector(".hands-free-controls strong").textContent.includes("Escuchando")'), 'Escucha automática armada');
   assert.equal(await evaluate('__dioxusVoiceFixture.rawTracks[1].readyState'), 'live');
+  assert.equal(await evaluate('__dioxusVoiceFixture.captureRequests[0].noiseSuppression'), true);
+  assert.equal(await evaluate('__dioxusVoiceFixture.captureRequests[1].noiseSuppression'), false, 'La opción de señal directa llega al micrófono');
   await click('.dashboard-entry');
   await until(() => evaluate('__dioxusVoiceFixture.rawTracks[1].readyState === "ended" && __dioxusVoiceFixture.exchanges.includes("stop_voice_session")'), 'Salir libera la captura y la autorización');
 }

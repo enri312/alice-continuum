@@ -109,6 +109,8 @@ La escucha automática admite «A list» y «Alista» como variantes del nombre
 en las órdenes completas «reproduce Spotify» y «pausa Spotify».
 En Windows, **Audio de entrada** permite bajar el volumen de Spotify durante
 la escucha y recuperarlo al cerrar el micrófono o terminar Alice normalmente.
+En ese panel, **Probar señal directa para transcribir** permite comparar la
+captura previa a RNNoise. La detección de voz conserva su filtro local.
 La comparación de Whisper y Parakeet en este equipo está en
 [las pruebas de voz de R9](Roadmap.md#próximo-paso-autorizado).
 Para probar Parakeet al arrancar Alice, definí `ALICE_PARAKEET_HOME` con la

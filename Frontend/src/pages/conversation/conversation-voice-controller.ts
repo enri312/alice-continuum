@@ -43,7 +43,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
   const state = {
     loopState: "idle" as VoiceLoopState,
     loopError: "", notice: "", lastTurn: null as VoiceTurnObservation | null, ignored: null as VoiceIgnoredTakeObservation | null,
-    devices: [] as Device[], deviceMessage: "", device: "", sensitivity: "soft" as MicrophoneSensitivity, duckSpotify: false,
+    devices: [] as Device[], deviceMessage: "", device: "", sensitivity: "soft" as MicrophoneSensitivity, duckSpotify: false, directSignal: false,
     noise: null as NoiseStatus | null,
     manualOpen: false, captureState: "idle" as CaptureState, inputMessage: microphoneOff, elapsed: 0,
     recorded: null as number | null, transcriptMs: null as number | null, model: null as string | null,
@@ -200,7 +200,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
           take = recordingStarted ? null : previousTake;
           update({ captureState: take ? "recorded" : "idle", inputMessage: error });
         },
-      }, undefined, false, { deviceId: state.device, sensitivity: state.sensitivity });
+      }, undefined, false, { deviceId: state.device, sensitivity: state.sensitivity, directSignal: state.directSignal });
       await capture.start();
     } catch (error) {
       if (current()) update({ captureState: previousTake ? "recorded" : "idle", inputMessage: `No se abrió el micrófono: ${String(error)}` });
@@ -249,7 +249,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
         onStarted: () => undefined, onElapsed: () => undefined,
         onProcessed: noise => update({ noise }),
         onRecorded: (recording, seconds) => recorded(recording, { recordedSeconds: seconds }), onQuiet: quiet, onError: error,
-      }, undefined, true, { deviceId: state.device, sensitivity: state.sensitivity }),
+      }, undefined, true, { deviceId: state.device, sensitivity: state.sensitivity, directSignal: state.directSignal }),
       transcribe: async (recording, id) => ports.transcribe(bytesToBase64(new Uint8Array(await recording.arrayBuffer())), recording.type, id),
       respond: ports.respond,
       synthesize: (turn, id) => ports.speak(turn.exchangeId, id),
@@ -375,6 +375,7 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
         break;
       case "sensitivity": if (!locked() && (value === "soft" || value === "normal")) update({ sensitivity: value }); break;
       case "duckSpotify": if (!locked() && spotifyDuckingAvailable() && typeof value === "boolean") update({ duckSpotify: value }); break;
+      case "directSignal": if (!locked() && typeof value === "boolean") update({ directSignal: value }); break;
       case "inputPlaybackError":
         if (typeof value === "string" && inputPreview.isCurrent(value)) {
           clearInputPreview();

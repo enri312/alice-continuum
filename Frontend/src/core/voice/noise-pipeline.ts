@@ -6,7 +6,7 @@ import { readAudioSignalCounters, signalCountersAdvance, snapshotAudioSignal } f
 export async function getMicrophone(options: MicrophoneOptions = {}) {
   if (!navigator.mediaDevices?.getUserMedia) throw Error("El micrófono no está disponible en este entorno.");
   const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false, channelCount: 1, sampleRate: 48000,
+    audio: { echoCancellation: true, noiseSuppression: !options.directSignal, autoGainControl: false, channelCount: 1, sampleRate: 48000,
       ...(options.deviceId ? { deviceId: { exact: options.deviceId } } : {}) }, video: false,
   });
   try {
@@ -28,6 +28,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
   let source: MediaStreamAudioSourceNode | undefined;
   let filter: BiquadFilterNode | undefined;
   let gain: GainNode | undefined;
+  let silentMonitor: GainNode | undefined;
   let node: AudioWorkletNode | undefined;
   let destination: MediaStreamAudioDestinationNode | undefined;
   let closed = false;
@@ -37,7 +38,7 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     closed = true;
     signal?.removeEventListener("abort", close);
     rejectInitialization?.();
-    source?.disconnect(); filter?.disconnect(); gain?.disconnect(); node?.disconnect();
+    source?.disconnect(); filter?.disconnect(); gain?.disconnect(); node?.disconnect(); silentMonitor?.disconnect();
     node?.port.postMessage({ type: "close" });
     worker?.terminate();
     destination?.stream.getTracks().forEach(track => track.stop());
@@ -101,7 +102,17 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     filter = context.createBiquadFilter(); filter.type = "highpass"; filter.frequency.value = 80; filter.Q.value = 0.707;
     gain = context.createGain(); gain.gain.value = profile.gain;
     destination = context.createMediaStreamDestination();
-    source.connect(filter); filter.connect(gain); gain.connect(node); node.connect(destination);
+    source.connect(filter); filter.connect(gain); gain.connect(node);
+    if (options.directSignal) {
+      // Keep the filtered branch for endpoint detection, with zero contribution to the recording.
+      silentMonitor = context.createGain();
+      silentMonitor.gain.value = 0;
+      node.connect(silentMonitor);
+      silentMonitor.connect(destination);
+      source.connect(destination);
+    } else {
+      node.connect(destination);
+    }
     // WASM/worklet preparation can take longer than the signal deadline. Only
     // start that deadline when this graph can actually deliver audio metrics.
     lastMetric = performance.now();
@@ -111,8 +122,9 @@ export async function processMicrophone(raw: MediaStream, onError: (message: str
     const echoMode: unknown = settings?.echoCancellation;
     return {
       stream: destination.stream,
-      status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true, sensitivity: profile.sensitivity },
-      getSignalSnapshot: () => signalCounters ? snapshotAudioSignal(signalCounters, profile.gain) : undefined,
+      status: { microphone: track?.label || "Micrófono del sistema", systemEcho: echoMode === "all", browserNoise: settings?.noiseSuppression === true, sensitivity: profile.sensitivity,
+        ...(options.directSignal ? { directSignal: true } : {}) },
+      getSignalSnapshot: () => !options.directSignal && signalCounters ? snapshotAudioSignal(signalCounters, profile.gain) : undefined,
       read: () => {
         if (performance.now() - lastMetric > 1500) {
           close();

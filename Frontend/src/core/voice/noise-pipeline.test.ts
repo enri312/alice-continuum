@@ -21,7 +21,7 @@ vi.mock("./noise-worker?worker", () => ({ default: class {
 } }));
 vi.mock("./noise-worklet?worker&url", () => ({ default: "filtered-worklet.js" }));
 
-import { processMicrophone } from "./noise-pipeline";
+import { getMicrophone, processMicrophone } from "./noise-pipeline";
 import { NoiseSignalTimeout } from "./noise-types";
 
 function fixture() {
@@ -44,7 +44,7 @@ function fixture() {
     }),
   };
   const node = { port, connect: vi.fn(), disconnect: vi.fn(), onprocessorerror: null as (() => void) | null };
-  const rawTrack = { stop: vi.fn(), readyState: "live", label: "Micrófono de prueba", getSettings: () => ({ noiseSuppression: true }) };
+  const rawTrack = { stop: vi.fn(), readyState: "live", label: "Micrófono de prueba", getSettings: () => ({ noiseSuppression: true }), getCapabilities: () => ({}) };
   const raw = { getAudioTracks: () => [rawTrack] } as unknown as MediaStream;
   vi.stubGlobal("AudioContext", class { constructor() { return context; } });
   vi.stubGlobal("AudioWorkletNode", class { constructor() { return node; } });
@@ -291,6 +291,31 @@ describe("pipeline local de ruido y causas de descarte", () => {
     expect(processed.stream).not.toBe(f.raw);
     processed.close();
     processed.close();
+    f.assertDisposed();
+  });
+
+  it("lleva la señal directa a la grabación y usa RNNoise en una rama inaudible", async () => {
+    const f = fixture();
+    const monitor = { connect: vi.fn(), disconnect: vi.fn(), gain: { value: 1 } };
+    f.context.createGain.mockReturnValueOnce(f.gain).mockReturnValueOnce(monitor);
+    const getUserMedia = vi.fn(async () => f.raw);
+    vi.stubGlobal("navigator", { mediaDevices: { getUserMedia } });
+    // Browser noise suppression is disabled, but echo cancellation stays requested.
+    expect(await getMicrophone({ directSignal: true })).toBe(f.raw);
+    expect(getUserMedia).toHaveBeenCalledWith(expect.objectContaining({ audio: expect.objectContaining({
+      echoCancellation: true, noiseSuppression: false,
+    }) }));
+    const processed = await processMicrophone(f.raw, vi.fn(), undefined, { directSignal: true });
+    expect(f.source.connect.mock.calls).toEqual([[f.filter], [f.destination]]);
+    expect(f.node.connect).toHaveBeenCalledExactlyOnceWith(monitor);
+    expect(monitor.gain.value).toBe(0);
+    expect(monitor.connect).toHaveBeenCalledExactlyOnceWith(f.destination);
+    expect(processed.status.directSignal).toBe(true);
+    f.port.onmessage!({ data: { type: "metrics", rms: 0.05, probability: 1, voicedMs: 50, frames: 5 } });
+    expect(processed.read()).toEqual({ rms: 0.05, probability: 1, voicedMs: 50 });
+    expect(processed.getSignalSnapshot!()).toBeUndefined();
+    processed.close();
+    expect(monitor.disconnect).toHaveBeenCalledOnce();
     f.assertDisposed();
   });
 

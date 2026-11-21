@@ -29,8 +29,8 @@ export function microphoneProfile(value?: unknown): Readonly<{ sensitivity: Micr
     : { sensitivity: "normal", gain: 1, silenceMs: 1000 };
 }
 
-export type MicrophoneOptions = { deviceId?: string; sensitivity?: MicrophoneSensitivity };
-export type NoiseStatus = { microphone: string; systemEcho: boolean; browserNoise: boolean; sensitivity?: MicrophoneSensitivity };
+export type MicrophoneOptions = { deviceId?: string; sensitivity?: MicrophoneSensitivity; directSignal?: boolean };
+export type NoiseStatus = { microphone: string; systemEcho: boolean; browserNoise: boolean; sensitivity?: MicrophoneSensitivity; directSignal?: boolean };
 export type AudioSignalCounters = {
   inputSamples: number;
   inputSquareSum: number;

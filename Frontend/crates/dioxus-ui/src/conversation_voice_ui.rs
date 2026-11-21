@@ -125,6 +125,11 @@ fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> El
                 button { r#type: "button", class: "secondary", disabled,
                     onclick: move |_| on_action.call(json!({"type":"refreshDevices"})), "Actualizar micrófonos" }
             }
+            label {
+                input { r#type: "checkbox", checked: truth(&view, "directSignal"), disabled,
+                    onchange: move |event| on_action.call(json!({"type":"directSignal","value":event.checked()})) }
+                " Probar señal directa para transcribir"
+            }
             if truth(&view, "spotifyDuckingAvailable") {
                 label {
                     input { r#type: "checkbox", checked: truth(&view, "duckSpotify"), disabled,
@@ -132,10 +137,12 @@ fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> El
                     " Bajar el volumen de Spotify durante la escucha"
                 }
             }
-            p { "Voz baja y pausada aumenta la ganancia local y conserva la salida del filtro sin una segunda atenuación. En la escucha automática espera 2 segundos de silencio para cerrar el turno. Normal espera 1 segundo y mantiene la atenuación adicional. Si el ruido abre tomas o la voz satura, usa Normal." }
+            p { "Voz baja y pausada espera 2 segundos de silencio para cerrar el turno. Normal espera 1 segundo. Con señal directa, el filtro detecta la voz y Whisper o Parakeet recibe la señal previa al filtro." }
             if !device_message.is_empty() { p { role: "status", "{device_message}" } }
             if !noise.is_null() {
-                p { "Última toma preparada con filtro: {microphone}. "
+                p {
+                    if truth(noise, "directSignal") { "Última toma con señal directa: {microphone}. " }
+                    else { "Última toma preparada con filtro: {microphone}. " }
                     if !text(noise,"sensitivity").is_empty() {
                         "Sensibilidad: "
                         if text(noise, "sensitivity") == "soft" { "Voz baja y pausada. " } else { "Normal. " }
