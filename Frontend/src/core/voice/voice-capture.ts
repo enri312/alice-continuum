@@ -8,7 +8,7 @@ const MIME_TYPE = "audio/webm;codecs=opus";
 
 function captureErrorMessage(cause: unknown): string {
   if (cause && typeof cause === "object" && "name" in cause && cause.name === "NotAllowedError") {
-    return "No se pudo acceder al micrófono: el permiso fue rechazado. Revisa los permisos de audio y vuelve a iniciar la escucha de Alice.";
+    return "No se pudo acceder al micrófono: el permiso fue rechazado. Revisa los permisos de audio y vuelve a iniciar la escucha de Nyxia.";
   }
   return String(cause);
 }

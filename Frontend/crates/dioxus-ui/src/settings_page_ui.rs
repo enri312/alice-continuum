@@ -93,7 +93,7 @@ pub fn page(props: PageProps) -> Element {
     rsx! {
         section { class: "settings-page", "aria-labelledby": "settings-title",
             header { class: "settings-heading",
-                div { p { class: "eyebrow", "CONFIGURACIÓN LOCAL · SISTEMA" } h2 { id: "settings-title", "Configuración de Alice" }
+                div { p { class: "eyebrow", "CONFIGURACIÓN LOCAL · SISTEMA" } h2 { id: "settings-title", "Configuración de Nyxia" }
                     p { "Las decisiones técnicas permanecen aquí para que Conversación se concentre únicamente en hablar, revisar permisos y enviar." } }
                 div { class: if count > 0 { "cloud-status ready" } else { "cloud-status offline" }, i {} "{status}" }
             }

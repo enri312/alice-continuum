@@ -1,11 +1,15 @@
-# Roadmap de Alice Continuum
+# Roadmap de Nyxia
 
 Autor y propietario: Carlos Nuñez  
-Última actualización: **2026-11-19**. Identidad adoptada: 2026-09-16.  
+Última actualización: **2026-11-20**.  
 Producto: **0.1.0** · documento maestro: **0.65**.  
 Estado: R1 a R8 cerradas en sus alcances documentados; **R9 en progreso**; R10 futura.
 
-**Dirección acordada:** Alice será una asistente y compañía capaz de realizar
+**Identidad vigente.** Nyxia (Ník-sia) adopta el nombre visible y conversacional.
+La instalación usa los identificadores y las rutas existentes de Alice Continuum
+para abrir el mismo historial, preferencias y recuerdos.
+
+**Dirección acordada:** Nyxia será una asistente y compañía capaz de realizar
 acciones autorizadas, con objetivo Windows, Linux y macOS. Se prioriza reproducir
 los fallos comunicados en instalaciones limpias de Windows y Linux; aún no se
 conoce el error exacto. La migración progresiva a Dioxus conservará diseño,
@@ -1335,11 +1339,10 @@ las credenciales y el control de escritorio de Alice. Las conexiones gestionadas
 de Nod pasan por un servicio de n8n y Composio por defecto.
 [Flujo de datos](https://nod.n8n.io/docs/trust/security-review/).
 
-## Identidad adoptada — Alice Continuum
+## Identidad previa — Alice Continuum
 
-Carlos Nuñez aprobó **Alice Continuum** como identidad técnica. La marca visible
-de la asistente continúa siendo **Alice**. La adopción del nombre y la recuperación
-del checkout ya se realizaron; no son una migración futura.
+El proyecto se recuperó con el nombre técnico **Alice Continuum** y la marca
+visible **Alice**. Desde el 20 de noviembre de 2026 se presenta como **Nyxia**.
 
 La raíz vigente es **`D:\Alice Continuum`**, con rama principal `master`. El
 lanzador resuelve su propia carpeta, usa `data/` por defecto, respeta

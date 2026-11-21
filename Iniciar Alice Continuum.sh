@@ -6,7 +6,7 @@ if [[ -e .alice-restore-incomplete ]]; then
   exit 1
 fi
 if [[ ${1:-} != '' && ${1:-} != '--check' ]]; then
-  echo 'Uso: bash "Iniciar Alice Continuum.sh" [--check]' >&2
+  echo 'Uso: bash "Iniciar Nyxia.sh" [--check]' >&2
   exit 2
 fi
 # rustup may have been installed after the desktop session began.

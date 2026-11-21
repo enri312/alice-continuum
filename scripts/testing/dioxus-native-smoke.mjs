@@ -146,7 +146,7 @@ try {
   await until(() => evaluate('Boolean(document.querySelector(\'[data-conversation-renderer="dioxus"] #alice-message\'))'), 'Dashboard abre Conversación en Dioxus');
   await evaluate('document.querySelector(\'button[aria-label="Flujo cognitivo"]\').click()');
   await flowReady();
-  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Conversación con Alice").click()');
+  await evaluate('Array.from(document.querySelectorAll("button")).find(button=>button.getAttribute("aria-label")==="Conversación con Nyxia").click()');
   await until(() => evaluate('Boolean(document.querySelector(".conversation-page #alice-message"))'), 'Conversación nativa abre con su entrada');
   await evaluate('document.fonts.ready');
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'), '14px', 'Tema de consola cargado en Tauri');

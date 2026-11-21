@@ -30,10 +30,10 @@ pub fn learning_panel(
         &study.phase
     };
     rsx! {
-        section { class: "memory-learning-view", "aria-label": "Aprendizaje de Alice",
+        section { class: "memory-learning-view", "aria-label": "Aprendizaje de Nyxia",
             section { class: "automatic-memory-panel", "aria-labelledby": "self-study-title",
                 header {
-                    div { span { class: "eyebrow", "AUTOESTUDIO CON FUENTES" } h3 { id: "self-study-title", "Lo que Alice está estudiando" }
+                    div { span { class: "eyebrow", "AUTOESTUDIO CON FUENTES" } h3 { id: "self-study-title", "Lo que Nyxia está estudiando" }
                         p { "Matemáticas, historia bíblica de tradición católica, psicología e inteligencia emocional, empatía, solidaridad, humildad, pensamiento crítico y ética. Cada lección conserva su fuente y una comprobación mediante ejercicios." } }
                     label {
                         input { r#type: "checkbox", checked: study.enabled, disabled: !study.ready || busy,
@@ -68,7 +68,7 @@ pub fn learning_panel(
             }
             section { class: "automatic-memory-panel", "aria-labelledby": "automatic-memory-title",
                 header {
-                    div { span { class: "eyebrow", "APRENDER CONVERSANDO" } h3 { id: "automatic-memory-title", "Lo que Alice decide conservar" }
+                    div { span { class: "eyebrow", "APRENDER CONVERSANDO" } h3 { id: "automatic-memory-title", "Lo que Nyxia decide conservar" }
                         p { "Recuerdos seleccionados de tus palabras. Puedes corregirlos o retirarlos del contexto sin borrar su procedencia." } }
                     label {
                         input { r#type: "checkbox", checked: automatic.enabled, disabled: !automatic.ready || busy,
@@ -91,7 +91,7 @@ pub fn learning_panel(
                                     article { key: "{record.id}", class: if record.active { "" } else { "is-withdrawn" },
                                         header { span { "{record.type_label}" }
                                             small {
-                                                if record.corrected { "Corregido por ti" } else { "Elegido por Alice · sin revisión manual" }
+                                                if record.corrected { "Corregido por ti" } else { "Elegido por Nyxia · sin revisión manual" }
                                                 if !record.active { " · retirado del RAG" }
                                             }
                                         }
@@ -136,7 +136,7 @@ pub fn profile_panel(profile: Option<&Profile>, error: &str) -> Element {
         .and_then(|profile| profile.owner_name.as_ref())
         .map_or_else(
             || "Perfil del propietario".into(),
-            |owner| format!("Lo que Alice conoce de {owner}"),
+            |owner| format!("Lo que Nyxia conoce de {owner}"),
         );
     rsx! {
         section { class: "memory-view-panel owner-profile-panel", "aria-labelledby": "owner-profile-title",
@@ -162,7 +162,7 @@ pub fn profile_panel(profile: Option<&Profile>, error: &str) -> Element {
                 }
                 footer { code { "{profile.storage_path}" } span { "Solo se adjunta a una conversación cuando autorizás “Recuerdos relevantes”." } }
             } else {
-                div { class: "memory-empty", h3 { "Perfil privado no cargado" } p { "Abre Alice como aplicación de escritorio para validar el archivo local." } }
+                div { class: "memory-empty", h3 { "Perfil privado no cargado" } p { "Abre Nyxia como aplicación de escritorio para validar el archivo local." } }
             }
         }
     }
@@ -217,14 +217,14 @@ pub fn working_panel(
                                 }
                             }
                         }
-                        footer { div { strong { "SOLO RAM · NO PERSISTENTE" } span { "Al cerrar Alice se descarta · R3 conserva únicamente SHA-256" } }
+                        footer { div { strong { "SOLO RAM · NO PERSISTENTE" } span { "Al cerrar Nyxia se descarta · R3 conserva únicamente SHA-256" } }
                             button { class: "danger", r#type: "button", disabled: busy || data.message_count == 0,
                                 onclick: move |_| run.call((Notice::Main, json!({ "type": "clear", "generation": generation }))), "Vaciar memoria de trabajo" }
                         }
                     }
                 }
             } else {
-                div { class: "working-memory-empty", strong { "SNAPSHOT NATIVO NO DISPONIBLE" } span { "Abre Alice como aplicación de escritorio para consultar el estado real." } }
+                div { class: "working-memory-empty", strong { "SNAPSHOT NATIVO NO DISPONIBLE" } span { "Abre Nyxia como aplicación de escritorio para consultar el estado real." } }
             }
             {notice(message)}
         }

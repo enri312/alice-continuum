@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
-describe("Alice Continuum identity", () => {
+describe("Identidad de Nyxia", () => {
   it("separa las fuentes de Frontend y mantiene la coordinación desde la raíz", () => {
     const root = fileURLToPath(new URL("../../", import.meta.url));
     const project = JSON.parse(read("package.json"));
@@ -31,7 +31,7 @@ describe("Alice Continuum identity", () => {
     expect(existsSync(path.join(root, "src-tauri"))).toBe(false);
     expect(existsSync(path.join(root, "scripts/adapters"))).toBe(false);
   });
-  it("aligns npm, Rust and desktop product names", () => {
+  it("mantiene los identificadores técnicos y aplica Nyxia al producto", () => {
     expect(JSON.parse(read("package.json")).name).toBe("alice-continuum");
     const lock = JSON.parse(read("package-lock.json"));
     expect(lock.name).toBe("alice-continuum");
@@ -40,8 +40,8 @@ describe("Alice Continuum identity", () => {
     expect(read("Backend/src-tauri/Cargo.toml")).toContain('name = "alice_continuum_lib"');
     expect(read("Backend/src-tauri/src/main.rs")).toContain("alice_continuum_lib::run()");
     const config = JSON.parse(read("Backend/src-tauri/tauri.conf.json"));
-    expect(config.productName).toBe("Alice Continuum");
-    expect(config.app.windows[0].title).toContain("Alice Continuum");
+    expect(config.productName).toBe("Nyxia");
+    expect(config.app.windows[0].title).toContain("Nyxia");
   });
 
   it("preserves persistent identity and storage keys during the rebrand", () => {
@@ -53,15 +53,17 @@ describe("Alice Continuum identity", () => {
   });
 
   it("brands the UI and documentation without renaming the character asset", () => {
-    expect(read("Frontend/crates/dioxus-ui/src/navigation_ui.rs")).toContain("ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA");
-    expect(read("Frontend/index.html")).toContain("<title>Alice Continuum</title>");
-    expect(read("README.md")).toMatch(/^# Alice Continuum/);
-    expect(read("docs/especificacion_alice_continuum.html")).toContain("<title>Alice Continuum — Documento maestro</title>");
-    expect(read("Frontend/icons/app-alice.svg")).toContain('aria-label="Emblema de Alice Continuum"');
+    expect(read("Frontend/crates/dioxus-ui/src/navigation_ui.rs")).toContain("NYXIA · MEMORIA, COGNICIÓN Y PRESENCIA");
+    expect(read("Frontend/index.html")).toContain("<title>Nyxia</title>");
+    expect(read("README.md")).toMatch(/^# Nyxia/);
+    expect(read("docs/especificacion_alice_continuum.html")).toContain("<title>Nyxia — Documento maestro</title>");
+    expect(read("Frontend/icons/app-alice.svg")).toContain('aria-label="Emblema de Nyxia"');
   });
 
   it("recognizes both executable names for launch and self-observation safety", () => {
     const launcher = read("Iniciar Alice Continuum.cmd");
+    expect(read("Iniciar Nyxia.cmd")).toContain("Iniciar Alice Continuum.cmd");
+    expect(read("Iniciar Nyxia.sh")).toContain("Iniciar Alice Continuum.sh");
     expect(launcher).toContain('"%~dp0"');
     expect(launcher).toContain("scripts\\setup\\launch-windows.ps1");
     const windowsLauncher = read("scripts/setup/launch-windows.ps1");

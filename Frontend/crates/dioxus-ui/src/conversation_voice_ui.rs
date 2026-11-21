@@ -35,7 +35,7 @@ fn TurnObservation(turn: Value, can_review: bool, on_action: EventHandler<Value>
     rsx! {
         details { class: "voice-session-observation",
             summary { "Último mensaje atendido · {heading}" }
-            p { strong { "Alice entendió:" } " {transcript}" }
+            p { strong { "Nyxia entendió:" } " {transcript}" }
             if !transcript.is_empty() {
                 button { r#type: "button", class: "secondary", disabled: !can_review,
                     onclick: move |_| on_action.call(json!({"type":"reviewTranscript","value":"attended"})),
@@ -58,7 +58,7 @@ fn IgnoredObservation(take: Value, can_review: bool, on_action: EventHandler<Val
     let explanation = match reason {
         "insufficientSpeech" => "El detector no reconoció voz suficiente. La toma se descartó antes de transcribirla.",
         "noSpeech" => "El transcriptor no devolvió palabras. La toma no generó una respuesta.",
-        _ => "La transcripción no se reconoció como una frase dirigida a Alice y no generó una respuesta.",
+        _ => "La transcripción no se reconoció como una frase dirigida a Nyxia y no generó una respuesta.",
     };
     let transcript = text(&take, "transcript");
     let model = text(&take, "transcriptionModel");
@@ -104,7 +104,7 @@ fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> El
     rsx! {
         details { class: "audio-input-settings",
             summary { "Audio de entrada · reducción de ruido local" }
-            p { "Alice filtra el ruido antes de transcribir y busca presencia de voz para cerrar cada turno. No necesita otro modelo de conversación." }
+            p { "Nyxia filtra el ruido antes de transcribir y busca presencia de voz para cerrar cada turno. No necesita otro modelo de conversación." }
             div { class: "audio-input-devices",
                 label { "Micrófono"
                     select { value: "{device}", disabled,
@@ -151,7 +151,7 @@ fn Settings(view: Value, can_review: bool, on_action: EventHandler<Value>) -> El
                 }
             }
             if !view["ignored"].is_null() { IgnoredObservation { take: view["ignored"].clone(), can_review, on_action } }
-            p { "El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende frases dirigidas a Alice. «Detén la conversación, Alice» vuelve a la escucha y «Apaga el micrófono, Alice» termina la sesión." }
+            p { "El filtro reduce ruido, pero no reconoce quién habla ni garantiza separar voces cantadas o de otras personas. La escucha automática atiende frases dirigidas a Nyxia. «Detén la conversación, Nyxia» vuelve a la escucha y «Apaga el micrófono, Nyxia» termina la sesión." }
         }
     }
 }
@@ -350,10 +350,10 @@ pub fn VoiceControls(view: Value, on_action: EventHandler<Value>) -> Element {
     let notice = text(&view, "notice");
     let error = text(&view, "loopError");
     let note = match loop_state {
-        _ if !active => "La transcripción y las respuestas de Gemma se procesan localmente. El texto de respuesta se envía al servicio externo Fish Audio para generar la voz. Di «Alice» y tu frase seguida. La escucha termina al pulsar Apagar micrófono, salir de esta pantalla o cumplir 2 horas.",
-        "standby" => "Micrófono activo. Di «Alice» y tu frase seguida. Puedes apagarlo con el botón.",
+        _ if !active => "La transcripción y las respuestas de Gemma se procesan localmente. El texto de respuesta se envía al servicio externo Fish Audio para generar la voz. Di «Nyxia» y tu frase seguida. La escucha termina al pulsar Apagar micrófono, salir de esta pantalla o cumplir 2 horas.",
+        "standby" => "Micrófono activo. Di «Nyxia» y tu frase seguida. Puedes apagarlo con el botón.",
         "arming" => "Preparando la entrada y el filtro local antes de escuchar.",
-        _ => "Micrófono apagado mientras Alice transcribe, procesa o habla. Después vuelve a escuchar. Puedes apagarlo con el botón en cualquier momento.",
+        _ => "Micrófono apagado mientras Nyxia transcribe, procesa o habla. Después vuelve a escuchar. Puedes apagarlo con el botón en cualquier momento.",
     };
     rsx! {
         div { class: "voice-turn automatic-voice-entry",
@@ -361,7 +361,7 @@ pub fn VoiceControls(view: Value, on_action: EventHandler<Value>) -> Element {
                 div { class: "hands-free-controls",
                     button { r#type: "button", class: if active { "secondary danger" } else { "primary" }, disabled,
                         onclick: move |_| on_action.call(json!({"type":"listen"})),
-                        if active { "Apagar micrófono" } else { "Iniciar escucha de Alice" }
+                        if active { "Apagar micrófono" } else { "Iniciar escucha de Nyxia" }
                     }
                     if loop_state == "standby" {
                         button { r#type: "button", class: "secondary",
@@ -425,7 +425,7 @@ pub fn VoiceOutput(view: Value, on_action: EventHandler<Value>) -> Element {
                 } else {
                     p { class: "voice-output-warning",
                         if text(preview,"configuration") == "missingApiKey" {
-                            "Falta FISH_API_KEY en el proceso de Alice. Cerrá y abrí Alice después de configurarla."
+                            "Falta FISH_API_KEY en el proceso de Nyxia. Cerrá y abrí Nyxia después de configurarla."
                         } else {
                             "Revisa data/voice-profile.json o ALICE_FISH_REFERENCE_ID. La selección se guarda fuera de Git."
                         }

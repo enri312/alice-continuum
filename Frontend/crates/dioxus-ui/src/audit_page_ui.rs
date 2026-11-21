@@ -147,7 +147,7 @@ fn audit_panel(
                 }
             }
             if !state.desktop_app {
-                div { class: "event-empty", "La auditoría nativa está disponible únicamente en Alice de escritorio." }
+                div { class: "event-empty", "La auditoría nativa está disponible únicamente en Nyxia de escritorio." }
             } else if let Some(error) = &reading.error {
                 div { class: "native-audit-error", role: "alert", strong { "LECTURA NO DISPONIBLE" } span { "{error}" } }
             } else if let Some(audit) = &reading.snapshot {
@@ -237,7 +237,7 @@ fn diagnostic_panel(state: &State, refresh: EventHandler<View>) -> Element {
                 }
             }
             if !state.desktop_app {
-                div { class: "event-empty", "El diagnóstico nativo está disponible únicamente en Alice de escritorio." }
+                div { class: "event-empty", "El diagnóstico nativo está disponible únicamente en Nyxia de escritorio." }
             } else if let Some(error) = &reading.error {
                 div { class: "native-audit-error", role: "alert", strong { "DIAGNÓSTICO NO DISPONIBLE" } span { "{error}" } }
             } else if let Some(report) = &reading.snapshot {

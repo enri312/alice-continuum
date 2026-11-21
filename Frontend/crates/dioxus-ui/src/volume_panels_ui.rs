@@ -107,14 +107,14 @@ pub fn learning_activity(data: &LearningActivity, command: EventHandler<Command>
         _ => "Leyendo los registros iniciales…",
     };
     rsx! {
-        section { class: "volume-learning-activity", "data-state": "{data.status}", "aria-label": "Estado del aprendizaje de Alice",
+        section { class: "volume-learning-activity", "data-state": "{data.status}", "aria-label": "Estado del aprendizaje de Nyxia",
             div { class: "volume-learning-source-states",
                 for source in &data.sources {
                     div { key: "{source.id}", "data-state": "{source.status}",
                         strong { "{source.label}" }
                         span { role: "status",
                             if source.status == "error" { "No se pudo actualizar la lectura" }
-                            else if source.status == "loading" { "Conectando con Alice…" } else { "{source.detail}" }
+                            else if source.status == "loading" { "Conectando con Nyxia…" } else { "{source.detail}" }
                         }
                         small { if let Some(updated) = &source.updated { "Última lectura correcta · {updated}" } else { "Sin lectura confirmada" } }
                         if source.polling_only { small { "Actualizando mediante consultas periódicas" } }
@@ -129,7 +129,7 @@ pub fn learning_activity(data: &LearningActivity, command: EventHandler<Command>
             }
             div { class: "volume-learning-refresh",
                 span { if data.status == "error" { "Se conserva el último estado conocido; una fuente puede estar desactualizada." }
-                    else { "Los cambios se incorporan al volumen cuando Alice los guarda." } }
+                    else { "Los cambios se incorporan al volumen cuando Nyxia los guarda." } }
                 button { r#type: "button", onclick: move |_| command.call(Command::Browser("refresh")), "Actualizar lectura" }
             }
             if let Some(error) = &data.cycle_error { p { class: "volume-learning-cycle-error", role: "status", "Autoestudio: {error}" } }
@@ -234,7 +234,7 @@ pub fn color_guide(legends: &Legends) -> Element {
                     div { class: "volume-affect-legend", "aria-label": "Colores de las asociaciones emocionales",
                         for affect in &legends.affects { span { key: "{affect.id}", "data-affect": "{affect.id}", i { style: "background-color:{affect.color}" } "{affect.label}" } }
                     }
-                    small { "Son asociaciones del recuerdo revisadas por el propietario; no sentimientos atribuidos a Alice." }
+                    small { "Son asociaciones del recuerdo revisadas por el propietario; no sentimientos atribuidos a Nyxia." }
                 }
                 section { h4 { "Contorno y estado" } p { "El estado cambia el contorno o la atenuación y conserva el relleno. La ficha muestra todos los estados; el contorno usa el primero que corresponda en este orden." }
                     div { class: "volume-state-legend", "aria-label": "Marcas de estado de los recuerdos",
@@ -381,7 +381,7 @@ pub fn signal_console(
             }
             details { class: "volume-signal-explanation", summary { "¿Qué representa esta actividad?" }
                 p { "Los nodos conservan los recuerdos y procesos que puedes inspeccionar. La evidencia reciente se resume en una ventana temporal; no indica que cada proceso siga ejecutándose ahora. Las asociaciones confirmadas y los recuerdos del mismo intercambio conservan sus significados y colores." }
-                p { "Inspirarse en el cerebro significa modelar mecanismos concretos, como propagación con retardos, activación por umbral, inhibición y reposo. Esta vista representa el flujo funcional de Alice; no simula todavía esas neuronas biológicas ni mide conciencia." }
+                p { "Inspirarse en el cerebro significa modelar mecanismos concretos, como propagación con retardos, activación por umbral, inhibición y reposo. Esta vista representa el flujo funcional de Nyxia; no simula todavía esas neuronas biológicas ni mide conciencia." }
             }
         }
     }

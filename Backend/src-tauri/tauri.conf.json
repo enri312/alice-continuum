@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Alice Continuum",
+  "productName": "Nyxia",
   "version": "0.1.0",
   "identifier": "com.carlosnunez.alicecognitivecore",
   "build": {
@@ -20,7 +20,7 @@
     },
     "windows": [
       {
-        "title": "Alice Continuum — Memoria, cognición y presencia",
+        "title": "Nyxia — Memoria, cognición y presencia",
         "width": 1000,
         "height": 800,
         "resizable": true

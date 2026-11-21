@@ -24,7 +24,7 @@ def quoted(value):
 entry = applications / (app_id + ".desktop")
 entry.write_text(
     "[Desktop Entry]\nType=Application\nVersion=1.0\n"
-    "Name=Alice Continuum\nComment=Asistente personal con conversación y memoria local\n"
+    "Name=Nyxia\nComment=Asistente personal con conversación y memoria local\n"
     "Exec=/bin/bash " + quoted(root / "scripts/setup/launch-ubuntu-desktop.sh") + "\n"
     "Icon=" + app_id + "\nTerminal=false\nStartupNotify=true\n"
     "StartupWMClass=alice-continuum\nCategories=Utility;\nKeywords=Alice;Asistente;Voz;\n",
@@ -54,4 +54,4 @@ if desktop.is_dir() and desktop != Path.home():
     shutil.copyfile(entry, shortcut)
     shortcut.chmod(0o755)
     subprocess.run(["gio", "set", str(shortcut), "metadata::trusted", "true"], check=False)
-print("Alice Continuum registrada en el menú de aplicaciones y en el escritorio.")
+print("Nyxia registrada en el menú de aplicaciones y en el escritorio.")

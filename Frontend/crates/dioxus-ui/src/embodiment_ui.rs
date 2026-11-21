@@ -228,7 +228,7 @@ fn face_page(view: &FaceView, desktop: bool, run: EventHandler<Value>) -> Elemen
         .and_then(|item| item.sha256.as_deref())
         .and_then(|item| item.get(..12));
     rsx! {
-        section { class: "bridge-page", "aria-label": "Control facial de Alice",
+        section { class: "bridge-page", "aria-label": "Control facial de Nyxia",
             div { class: "face-diagnostic",
                 header { class: "face-diagnostic-header",
                     div { span { "[05/FACE]" } strong { "FACE + BODY OUTPUT BRIDGE // FACIAL CHANNEL" } }
@@ -305,7 +305,7 @@ fn avatar_page(
     rsx! {
         section { class: "avatar-page", "aria-labelledby": "avatar-title",
             div { class: "avatar-heading",
-                div { p { class: "eyebrow", "AVATAR LOCAL · VRM 1.0" } h2 { id: "avatar-title", "Cuerpo visible de Alice" }
+                div { p { class: "eyebrow", "AVATAR LOCAL · VRM 1.0" } h2 { id: "avatar-title", "Cuerpo visible de Nyxia" }
                     p { "Esta pantalla inspecciona tu archivo local. Incluye control reversible con gamepad y un ensayo técnico local de diez segundos; todavía no recibe voz, cámara, emociones, Mocap ni órdenes cognitivas." } }
                 div { class: if ready { "avatar-file-state ready" } else { "avatar-file-state" }, i {}
                     if ready { "MODELO CARGADO" } else if model.is_some_and(|item| item.available) { "ARCHIVO ENCONTRADO" } else { "SIN MODELO" } }
@@ -322,7 +322,7 @@ fn avatar_page(
                         {avatar_inspector(model, telemetry, state.clips)}
                     }
                 } else {
-                    div { class: "avatar-unavailable", span { "VRM 000" } strong { "No se encontró Alice.vrm" }
+                    div { class: "avatar-unavailable", span { "VRM 000" } strong { "No se encontró Nyxia.vrm" }
                         p { "Colocá el archivo en " code { "{model.path}" } " y reiniciá la aplicación." } }
                 }
             }
@@ -462,13 +462,13 @@ fn AvatarViewer(
             div { class: "avatar-control-dock",
                 div { class: "avatar-viewer-state state-{view.state}", "aria-live": "polite", i {} "{label}" }
                 if ready {
-                    div { class: "avatar-viewer-actions", role: "group", "aria-label": "Controles corporales de Alice",
+                    div { class: "avatar-viewer-actions", role: "group", "aria-label": "Controles corporales de Nyxia",
                         button { class: "avatar-gamepad {gamepad_class}", r#type: "button", "aria-pressed": "{gamepad}", onclick: move |_| run.call(json!({"type":"gamepad"})),
                             if gamepad { "Detener control PS5" } else { "Probar control PS5" } }
                         button { class: "avatar-gait-test {diagnostic_class}", r#type: "button", "aria-pressed": "{diagnostic}", onclick: move |_| run.call(json!({"type":"diagnostic"})),
                             if diagnostic { "Detener ensayo" } else { "Ensayar marcha" } }
                         button { class: "avatar-posture", r#type: "button", disabled: !rest || transition || !posture, onclick: move |_| run.call(json!({"type":"posture"})),
-                            if view.body_state == "sitting-idle" { "Levantar a Alice" } else { "Sentar a Alice" } }
+                            if view.body_state == "sitting-idle" { "Levantar a Nyxia" } else { "Sentar a Nyxia" } }
                         button { class: "avatar-pose", r#type: "button", disabled: view.mode != "off" || view.body_state != "standing-idle",
                             onclick: move |_| run.call(json!({"type":"pose"})), if rest { "Ver pose de referencia" } else { "Volver a postura de reposo" } }
                     }
@@ -488,7 +488,7 @@ fn AvatarViewer(
                         code { class: "avatar-body-motion", "IK APOYO · {ik} · ERROR {motion.ik_residual * 100.0:.1} CM" }
                     }
                 }
-                if view.state == "error" { div { class: "avatar-viewer-error", strong { "No se pudo mostrar Alice" } span { "{view.error}" } } }
+                if view.state == "error" { div { class: "avatar-viewer-error", strong { "No se pudo mostrar Nyxia" } span { "{view.error}" } } }
                 p { class: "avatar-viewer-help", "FSM · {body}   {help}" }
             }
         }

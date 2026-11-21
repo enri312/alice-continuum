@@ -1,3 +1,4 @@
+mod assistant_identity;
 mod audit;
 mod avatar;
 mod capabilities;
@@ -283,7 +284,7 @@ pub fn run() {
             dispatch_task_notification
         ])
         .build(tauri::generate_context!())
-        .expect("No se pudo iniciar Alice Continuum")
+        .expect("No se pudo iniciar Nyxia")
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
                 app.state::<voice_session::VoiceSessionStore>().end();

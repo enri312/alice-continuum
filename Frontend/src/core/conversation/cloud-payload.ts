@@ -86,7 +86,7 @@ export function buildCloudPayloadReview(input: CloudPayloadInput): CloudPayloadR
   const ownerHistory = input.recentHistory.filter((item) => item.role === "user");
   const history = input.includeAssistantDialogue ? input.recentHistory : ownerHistory;
   const historyText = input.includeAssistantDialogue
-    ? `DIÁLOGO RECIENTE AUTORIZADO · LAS RESPUESTAS DE ALICE NO SON EVIDENCIA FACTUAL\n${history.map(item => `${item.role === "user" ? "Carlos" : "Alice (respuesta anterior no verificada)"}: ${item.text}`).join("\n")}`
+    ? `DIÁLOGO RECIENTE AUTORIZADO · LAS RESPUESTAS DE NYXIA NO SON EVIDENCIA FACTUAL\n${history.map(item => `${item.role === "user" ? "Carlos" : "Nyxia (respuesta anterior no verificada)"}: ${item.text}`).join("\n")}`
     : `HISTORIAL LOCAL AUTORIZADO · SOLO MENSAJES DEL PROPIETARIO\n${ownerHistory.map(item => `Carlos Nuñez: ${item.text}`).join("\n")}`;
   const fragments = [
     fragment("history", "Historial reciente", true, input.includeHistory && history.length ? historyText : null),
@@ -96,7 +96,7 @@ export function buildCloudPayloadReview(input: CloudPayloadInput): CloudPayloadR
     fragment("window", "Ventana actual", true, input.includeWindow && input.observationEnabled && input.foregroundContext
       ? `VENTANA AUTORIZADA\nPrograma: ${input.foregroundContext.processName}\nTítulo: ${input.foregroundContext.windowTitle}`
       : null),
-    fragment("message", "Mensaje actual", false, `MENSAJE ACTUAL\nCarlos Nuñez → Alice:\n${input.draft.trim()}`),
+    fragment("message", "Mensaje actual", false, `MENSAJE ACTUAL\nCarlos Nuñez → Nyxia:\n${input.draft.trim()}`),
   ];
   const included = fragments.filter((item) => item.content !== null);
   const payload = included.map((item) => item.content).join("\n\n");

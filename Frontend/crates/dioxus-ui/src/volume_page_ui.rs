@@ -241,7 +241,7 @@ pub fn page(props: PageProps) -> Element {
         section { class: "neuro-panel nucleus-page", "data-activity-state": activity, "aria-labelledby": "[01]-title",
             div { class: "neuro-heading nucleus-page-header is-{activity}", "data-activity-state": activity,
                 div { p { class: "eyebrow", "[01] · ESTADO VERIFICABLE" } h2 { id: "[01]-title", "Volumen cognitivo" }
-                    p { class: "nucleus-page-description", "Explora los recuerdos de Alice, la evidencia de actividad y el recorrido visual de las señales." } }
+                    p { class: "nucleus-page-description", "Explora los recuerdos de Nyxia, la evidencia de actividad y el recorrido visual de las señales." } }
                 span { class: "neuro-live {activity} is-{activity}", "data-activity-state": activity,
                     "data-signal-present": "{is_ready}", role: "status", "aria-live": "polite",
                     "aria-atomic": "true", "aria-busy": "{is_loading}",
@@ -282,7 +282,7 @@ pub fn page(props: PageProps) -> Element {
                     }
                     div { class: "volume-workbench-grid {rail_class} {grid_class}",
                         div { class: "neural-volume traceable-volume mode-{mode} {scene_class}", "data-signal-mode": signal_mode,
-                            role: "group", "aria-label": "Volumen cognitivo tridimensional trazable de Alice",
+                            role: "group", "aria-label": "Volumen cognitivo tridimensional trazable de Nyxia",
                             div { class: "nucleus-panel-label", span { "3D" } strong { "RED DE RECUERDOS" } small { "ARRASTRA PARA EXPLORAR" } }
                             canvas { id: "{setup.canvas_id}", tabindex: tab_index, "aria-label": labels.0,
                                 onmounted: move |_| command.call(Command::Browser("attachCanvas")),

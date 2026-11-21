@@ -117,14 +117,28 @@ fn likes(text: &str) -> bool {
     )
 }
 
+fn wake_prefix_len(all: &[Word]) -> usize {
+    match all {
+        [first, ..] if crate::assistant_identity::WAKE_NAMES.contains(&first.text.as_str()) => 1,
+        [first, second, ..] if first.text == "nik" && second.text == "sia" => 2,
+        _ => 0,
+    }
+}
+
 fn request_start(all: &[Word]) -> Option<usize> {
     let mut from = 0;
     // Spoken fillers and the observed ASR rendering of Alice are accepted only
     // before a direct verb. This does not scan stories for embedded commands.
     for _ in 0..5 {
+        let address = wake_prefix_len(all.get(from..)?);
+        if address > 0 {
+            from += address;
+            continue;
+        }
         match all.get(from)?.text.as_str() {
-            "alice" | "alista" | "ah" | "eh" | "oye" | "hola" | "bueno" | "puedes" | "podrias"
-            | "me" => from += 1,
+            "alista" | "ah" | "eh" | "oye" | "hola" | "bueno" | "puedes" | "podrias" | "me" => {
+                from += 1
+            }
             "por" if all.get(from + 1)?.text == "favor" => from += 2,
             "quiero" if all.get(from + 1)?.text == "que" => from += 2,
             _ => break,
@@ -155,7 +169,9 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
     let all = words(text);
     let mut from = request_start(&all)?;
     let mut end = all.len();
-    if all.last()?.text == "alice" {
+    if end >= 2 && wake_prefix_len(&all[end - 2..]) == 2 {
+        end -= 2;
+    } else if end > 0 && wake_prefix_len(&all[end - 1..]) == 1 {
         end -= 1;
     }
     if end >= 2 && all[end - 2].text == "por" && all[end - 1].text == "favor" {
@@ -364,14 +380,15 @@ pub(crate) fn parse_request(text: &str) -> Option<MediaRequest> {
 fn ambiguous_addressed_action(text: &str, all: &[Word]) -> bool {
     // This is a bounded ambiguity check, not a general Spanish verb parser.
     // Never turn an unrecognised word into a delegated media operation.
+    let address = wake_prefix_len(all);
     if text.contains(['¿', '?'])
-        || all.len() != 3
-        || all[0].text != "alice"
-        || !matches!(all[2].text.as_str(), "spotify" | "youtube")
+        || address == 0
+        || all.len() != address + 2
+        || !matches!(all[address + 1].text.as_str(), "spotify" | "youtube")
     {
         return false;
     }
-    let candidate = all[1].text.as_str();
+    let candidate = all[address].text.as_str();
     if !(3..=32).contains(&candidate.len())
         || !candidate.bytes().all(|byte| byte.is_ascii_alphabetic())
         || verb_operation(candidate).is_some()
@@ -453,7 +470,8 @@ pub(crate) fn clarification(text: &str) -> Option<&'static str> {
     let bare_service = all.len() == 1 && service;
     // ASR may preserve the addressee and service while losing the action.
     // This bounded mention must ask for clarification, never guess playback.
-    let addressed_service = all.len() == 2 && all[0].text == "alice" && service;
+    let address = wake_prefix_len(&all);
+    let addressed_service = address > 0 && all.len() == address + 1 && service;
     let direct = request_start(&all)
         .and_then(|from| all.get(from))
         .and_then(|w| verb_operation(&w.text))
@@ -843,6 +861,24 @@ mod tests {
         assert_eq!(exit_code, 0);
         assert!(completed.load(std::sync::atomic::Ordering::Acquire));
     }
+    #[test]
+    fn new_public_name_routes_only_explicit_media_commands() {
+        for phrase in [
+            "Nyxia, pausa Spotify",
+            "Nixia pausa Spotify",
+            "Niksia pausa Spotify",
+            "Ník-sia, pausa Spotify",
+            "Pausa Spotify, Nik sia",
+        ] {
+            let request = parse_request(phrase).unwrap_or_else(|| panic!("{phrase}"));
+            assert_eq!(request.operation, MediaOperation::Pause);
+            assert_eq!(request.service, Some(MediaService::Spotify));
+        }
+        assert!(parse_request("Nyxia no pausa Spotify").is_none());
+        assert!(parse_request("La canción menciona a Nyxia").is_none());
+        assert!(clarification("Nyxia, Spotify").is_some());
+    }
+
     #[test]
     fn actual_failed_voice_phrases_now_select_the_spotify_collection() {
         for text in [

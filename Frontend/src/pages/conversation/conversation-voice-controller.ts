@@ -27,9 +27,9 @@ type CaptureState = "idle" | "requesting" | "recording" | "recorded" | "transcri
 type Device = { id: string; label: string };
 const microphoneOff = "El micrófono está apagado. Nada se graba ni se envía.";
 const labels: Record<VoiceLoopState, string> = {
-  idle: "Escucha de Alice", preparing: "Preparando Gemma y la voz…", arming: "Preparando micrófono y filtro…",
-  standby: "Escuchando · di Alice y tu frase", transcribing: "Entendiendo tu frase…", thinking: "Alice está respondiendo…",
-  synthesizing: "Preparando la voz…", speaking: "Alice está hablando", error: "La sesión se detuvo",
+  idle: "Escucha de Nyxia", preparing: "Preparando Gemma y la voz…", arming: "Preparando micrófono y filtro…",
+  standby: "Escuchando · di Nyxia y tu frase", transcribing: "Entendiendo tu frase…", thinking: "Nyxia está respondiendo…",
+  synthesizing: "Preparando la voz…", speaking: "Nyxia está hablando", error: "La sesión se detuvo",
 };
 
 export function measureInputDiagnostics(inputs: IdentificationInputs, observationAvailable: boolean) {
@@ -74,13 +74,13 @@ export function createConversationVoice(ports: VoicePorts, onChange: () => void)
   };
 
   function snapshot() {
-    const playbackStatus = state.playback === "playing" ? { label: "Alice está hablando", tone: "speaking" } :
-      state.playback === "paused" ? { label: "Voz de Alice en pausa", tone: "idle" } : null;
+    const playbackStatus = state.playback === "playing" ? { label: "Nyxia está hablando", tone: "speaking" } :
+      state.playback === "paused" ? { label: "Voz de Nyxia en pausa", tone: "idle" } : null;
     const status = active() ? { label: labels[state.loopState], tone: state.loopState === "standby" ? "recording" : state.loopState === "speaking" ? "speaking" : "busy" }
       : state.captureState === "recording" ? { label: "Te escucho", tone: "recording" }
       : state.captureState === "transcribing" ? { label: "Transcribiendo tu voz", tone: "busy" }
       : state.captureState === "requesting" ? { label: "Preparando el micrófono", tone: "busy" }
-      : state.pending === "confirm" ? { label: "Generando la voz de Alice", tone: "busy" }
+      : state.pending === "confirm" ? { label: "Generando la voz de Nyxia", tone: "busy" }
       : playbackStatus ?? (state.outputError ? { label: "Hay un problema que revisar", tone: "error" }
         : state.preview ? { label: "Respuesta lista para autorizar su voz", tone: "idle" } : null);
     return { ...state, desktopApp: ports.desktopApp(), disabled: ports.isDisabled(), busy: busy(), active: active(), modeOpen: state.manualOpen,

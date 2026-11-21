@@ -148,7 +148,7 @@ export class VoiceLoop {
       }
       if (isVoiceStopCommand(transcript.text)) {
         this.observeIgnoredTake(null);
-        this.ports.onNotice?.("Conversación detenida. Sigo escuchando: dirigite a Alice para hablar otra vez. Para cerrar la escucha, decí «Apaga el micrófono, Alice».");
+        this.ports.onNotice?.("Conversación detenida. Sigo escuchando: dirigite a Nyxia para hablar otra vez. Para cerrar la escucha, decí «Apaga el micrófono, Nyxia».");
         await this.listen(generation);
         return;
       }

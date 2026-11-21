@@ -340,7 +340,7 @@ try {
   await until(()=>evaluate('Boolean(document.querySelector(\'[data-renderer="dioxus"] .internal-state\'))'),'teclado abre Estado Dioxus');
   assert.equal(await evaluate('document.querySelector(".shell").classList.contains("is-conversation")'),false);
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".core-system-frame")).borderRadius'),'14px','Estado comparte el marco de consola');
-  await click('.screen-tabs button[aria-label="Conversación con Alice"]'); await ready();
+  await click('.screen-tabs button[aria-label="Conversación con Nyxia"]'); await ready();
   assert.equal(await evaluate('document.querySelector("#alice-message").value'),'Prueba del estado de error.','Navegar conserva el borrador');
   assert.equal(await evaluate('document.querySelectorAll(".chat-message").length'),2,'Navegar conserva el chat');
   assert.equal(await evaluate('__devices'),0);

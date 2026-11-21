@@ -67,7 +67,7 @@ pub fn Graph(payload: Payload, on_select: EventHandler<String>) -> Element {
         div { class: "neuro-stage", div { class: "cognitive-flow",
             header { class: "flow-heading", h3 { "Rutas del espacio de trabajo" } span { "{summary}" } }
             div { class: "flow-viewport", role: "region", tabindex: "0", "aria-label": "Mapa de conexiones",
-            svg { view_box:"0 0 1000 430", role:"group", "aria-label":"Flujo funcional verificable de Alice",
+            svg { view_box:"0 0 1000 430", role:"group", "aria-label":"Flujo funcional verificable de Nyxia",
                 g { class:"flow-connections",
                     for (from_id,to_id,evidence) in CONNECTIONS {
                         if let (Some(from),Some(to))=(snap.nodes.iter().find(|n|n.id==from_id),snap.nodes.iter().find(|n|n.id==to_id)) {

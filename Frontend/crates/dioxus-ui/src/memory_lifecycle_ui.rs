@@ -183,7 +183,7 @@ pub fn lifecycle_panel(
             if let Some(stats) = preview { {lifecycle_metrics(stats, revisions)} }
             else { div { class: "memory-layer-empty",
                 if state.loading { "Verificando records.json…" }
-                else if !desktop { "Abre Alice como aplicación de escritorio para consultar el ciclo nativo." }
+                else if !desktop { "Abre Nyxia como aplicación de escritorio para consultar el ciclo nativo." }
                 else { "No existe una vista previa disponible." }
             } }
             div { class: "memory-lifecycle-boundary",

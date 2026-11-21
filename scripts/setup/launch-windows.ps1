@@ -72,7 +72,7 @@ try {
     try { $lockAcquired = $launchLock.WaitOne(0) }
     catch [Threading.AbandonedMutexException] { $lockAcquired = $true }
     if (-not $lockAcquired) {
-        Write-Host '[ALICE] Alice ya se está iniciando o ejecutando desde esta carpeta.'
+        Write-Host '[ALICE] Nyxia ya se está iniciando o ejecutando desde esta carpeta.'
         if ($checkOnly) { exit 10 }
         exit 0
     }
@@ -106,7 +106,7 @@ try {
     if (-not $npm) { throw 'No se encontró npm en PATH.' }
     if (-not $cargo) { throw 'No se encontró Rust/Cargo en PATH.' }
     & $node.Source -e "const [major, minor] = process.versions.node.split('.').map(Number); if (major !== 26 || minor < 13) process.exit(1); console.log('[ALICE] Node     : ' + process.version);"
-    if ($LASTEXITCODE -ne 0) { throw 'Alice requiere Node 26.13 o superior de la rama 26 LTS.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Nyxia requiere Node 26.13 o superior de la rama 26 LTS.' }
     $cargoVersion = & $cargo.Source --version
     if ($LASTEXITCODE -ne 0) { throw 'Rust/Cargo no pudo comprobar su versión.' }
     Write-Host "[ALICE] Cargo    : $cargoVersion"
@@ -123,7 +123,7 @@ try {
         $processPath = $null
         try { $processPath = $process.Path } catch { continue }
         if ($processPath -and [IO.Path]::GetFullPath($processPath).StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
-            Write-Host "[ALICE] Alice ya está abierta desde esta carpeta (PID $($process.Id))."
+            Write-Host "[ALICE] Nyxia ya está abierta desde esta carpeta (PID $($process.Id))."
             if ($checkOnly) { exit 10 }
             exit 0
         }
@@ -142,11 +142,11 @@ try {
     if (Start-LocalOllama -Command $ollama -Listeners $listeners) {
         Write-Host '[ALICE] Ollama   : LISTO en 127.0.0.1:11434'
     } else {
-        Write-Host '[ALICE] Ollama   : NO DISPONIBLE; Gemma local y los demás proveedores se comprueban dentro de Alice.'
+        Write-Host '[ALICE] Ollama   : NO DISPONIBLE; Gemma local y los demás proveedores se comprueban dentro de Nyxia.'
     }
     Write-Host ''
     Write-Host '[ALICE] Iniciando aplicación de escritorio...'
-    Write-Host '[ALICE] Para detenerla, cierra la ventana de Alice o presiona Ctrl+C aquí.'
+    Write-Host '[ALICE] Para detenerla, cierra la ventana de Nyxia o presiona Ctrl+C aquí.'
     Write-Host ''
     & $node.Source (Join-Path $root 'scripts\backups\cli.mjs') run
     $exitCode = $LASTEXITCODE

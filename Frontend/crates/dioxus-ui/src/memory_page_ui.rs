@@ -322,8 +322,8 @@ pub fn page(props: PageProps) -> Element {
     rsx! {
         section { class: "memory-page", "aria-labelledby": "memory-title",
             div { class: "memory-heading",
-                div { p { class: "eyebrow", "ALMACÉN COGNITIVO · LOCAL" } h2 { id: "memory-title", "Memoria de Alice" }
-                    p { "Consultá lo que Alice estudia, los recuerdos que conserva y el contexto de esta sesión. Las herramientas de revisión y respaldo están en Mantenimiento." } }
+                div { p { class: "eyebrow", "ALMACÉN COGNITIVO · LOCAL" } h2 { id: "memory-title", "Memoria de Nyxia" }
+                    p { "Consultá lo que Nyxia estudia, los recuerdos que conserva y el contexto de esta sesión. Las herramientas de revisión y respaldo están en Mantenimiento." } }
                 div { class: "memory-side",
                     div { class: "memory-storage storage-{page.memory_status}", title: storage_title, i {} "{storage_label}" }
                     div { class: "memory-count memory-count-breakdown", "aria-label": "{total} elementos consultables: {page.records.len()} recuerdos y {page.profile_count} hechos de perfil",
@@ -404,7 +404,7 @@ fn records_panel(
         (
             page.by_origin.teaching,
             "ENSEÑANZAS REGISTRADAS",
-            "Contenido indicado explícitamente para Alice.",
+            "Contenido indicado explícitamente para Nyxia.",
         ),
         (
             page.profile_count,

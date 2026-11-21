@@ -342,6 +342,9 @@ fn source_is_excluded(source: &str) -> bool {
                 *word,
                 "hola"
                     | "alice"
+                    | "nyxia"
+                    | "nixia"
+                    | "niksia"
                     | "muchas"
                     | "gracias"
                     | "por"

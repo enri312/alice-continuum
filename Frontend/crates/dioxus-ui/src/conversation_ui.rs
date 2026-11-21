@@ -96,11 +96,11 @@ pub fn page(props: PageProps) -> Element {
     rsx! {
         section { class: "conversation-home", "aria-labelledby": "conversation-home-title",
             header { class: "conversation-home-heading",
-                div { h2 { id: "conversation-home-title", "Conversación con Alice" } p { "Escribe o habla. Este es tu espacio para conversar." } }
+                div { h2 { id: "conversation-home-title", "Conversación con Nyxia" } p { "Escribe o habla. Este es tu espacio para conversar." } }
                 span { class: "conversation-home-label", "TEXTO Y VOZ" }
             }
             div { class: "conversation-home-main",
-                section { class: "conversation-page embedded", "aria-label": "Conversación real con Alice",
+                section { class: "conversation-page embedded", "aria-label": "Conversación real con Nyxia",
                     div { class: status_class, role: "status", "aria-live": "polite",
                         i { "aria-hidden": "true" } strong { "{view.status_label}" } span { "{status_provider}" }
                     }
@@ -128,7 +128,7 @@ pub fn page(props: PageProps) -> Element {
                                                         div { class: "conversation-voice-trigger",
                                                             button { r#type: "button", class: "secondary", disabled: !view.desktop_app || writing_disabled || view.voice_pending.is_some(),
                                                                 onclick: move |_| voice_dispatch.call(json!({"type":"preview","exchangeId":voice_id})),
-                                                                if view.voice_pending.as_deref() == Some("preview") { "Preparando voz…" } else { "Escuchar con la voz de Alice" }
+                                                                if view.voice_pending.as_deref() == Some("preview") { "Preparando voz…" } else { "Escuchar con la voz de Nyxia" }
                                                             }
                                                             small { "Manual · revisás el texto antes de enviar una copia a Fish Audio." }
                                                         }
@@ -240,7 +240,7 @@ fn context(view: &Payload, has_draft: bool, dispatch: EventHandler<Value>) -> El
                         onchange: move |event| dispatch.call(json!({"type":"history","included":event.checked()})) }
                     span { strong { "Historial reciente" }
                         small {
-                            if history_available { "{view.history_count} mensajes tuyos disponibles · respuestas previas de Alice no se reutilizan como hechos" }
+                            if history_available { "{view.history_count} mensajes tuyos disponibles · respuestas previas de Nyxia no se reutilizan como hechos" }
                             else { "seleccionado · todavía no hay mensajes guardados" }
                         }
                     }
@@ -257,7 +257,7 @@ fn context(view: &Payload, has_draft: bool, dispatch: EventHandler<Value>) -> El
                 }
                 if has_draft && !view.memory_matches.is_empty() && !view.include_memory {
                     p { class: "memory-authorization-warning", role: "status",
-                        "Alice encontró {view.memory_matches.len()} recuerdos, pero quedan fuera del contexto mientras esta casilla siga desmarcada."
+                        "Nyxia encontró {view.memory_matches.len()} recuerdos, pero quedan fuera del contexto mientras esta casilla siga desmarcada."
                     }
                 }
                 if has_draft {
@@ -311,7 +311,7 @@ fn context(view: &Payload, has_draft: bool, dispatch: EventHandler<Value>) -> El
                         if view.observation_enabled { "Administrar observador en Gateway" } else { "Configurar observador en Gateway" }
                     }
                 }
-                p { class: "context-sensor-boundary", "El observador aporta metadatos. Para imágenes de cámara y escritorio usa Vista de Alice. Gemma las procesa mientras la vista está activa." }
+                p { class: "context-sensor-boundary", "El observador aporta metadatos. Para imágenes de cámara y escritorio usa Vista de Nyxia. Gemma las procesa mientras la vista está activa." }
                 div { class: "context-section-label local", strong { "CONTINUIDAD LOCAL" } span { "HISTORIAL + RAM" } }
                 div { class: "conversation-working-memory", i {} span { strong { "CONVERSACIÓN GUARDADA LOCALMENTE" }
                     small { "Cada intercambio exitoso se conserva para continuar después de reiniciar. También entra en la RAM inmediata, sin convertirse automáticamente en recuerdo ni en hecho confirmado." }
@@ -368,7 +368,7 @@ fn review_panel(view: &Payload, review: &Review, dispatch: EventHandler<Value>) 
             }
             if review.local {
                 p { class: "review-note",
-                    "Con Vista de Alice activa se agregan imágenes recientes al procesar. Gemma recibe hasta 700 caracteres finales de las referencias y el mensaje actual completo (hasta 1600 caracteres). El presupuesto de arriba corresponde al texto revisado antes de ese ajuste."
+                    "Con Vista de Nyxia activa se agregan imágenes recientes al procesar. Gemma recibe hasta 700 caracteres finales de las referencias y el mensaje actual completo (hasta 1600 caracteres). El presupuesto de arriba corresponde al texto revisado antes de ese ajuste."
                 }
             }
             details { class: "payload-detail",
@@ -377,14 +377,14 @@ fn review_panel(view: &Payload, review: &Review, dispatch: EventHandler<Value>) 
                 pre { "{review.payload}" }
             }
             p { class: "review-note",
-                "Además se incluye una política breve: responder en español, describir las acciones realizadas y pedir aprobación antes de acciones externas o costosas. La respuesta se guardará en el historial local de Alice."
+                "Además se incluye una política breve: responder en español, describir las acciones realizadas y pedir aprobación antes de acciones externas o costosas. La respuesta se guardará en el historial local de Nyxia."
             }
             if !view.desktop_app {
                 p { class: "cloud-error", "La inferencia sólo funciona desde la aplicación de escritorio." }
             }
             if view.desktop_app && !view.configured {
                 p { class: "cloud-error",
-                    if review.local { "El motor local no está disponible. Verificá que esté instalado e iniciá Alice desde su lanzador." }
+                    if review.local { "El motor local no está disponible. Verificá que esté instalado e iniciá Nyxia desde su lanzador." }
                     else { "Configurá las variables de entorno de este proveedor para poder enviar la consulta." }
                 }
             }

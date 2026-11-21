@@ -10,7 +10,7 @@ pub fn VisionPanel(view: VisionView, on_action: EventHandler<Value>) -> Element 
     } else if active {
         "Vista activa · Gemma local"
     } else {
-        "Vista de Alice"
+        "Vista de Nyxia"
     };
     let description = if !active {
         "Activa una vista para hablar de lo que tienes delante o de tu pantalla.".to_owned()
@@ -26,7 +26,7 @@ pub fn VisionPanel(view: VisionView, on_action: EventHandler<Value>) -> Element 
     rsx! {
         section {
             class: if active { "conversation-vision active" } else { "conversation-vision" },
-            aria_label: "Vista de Alice",
+            aria_label: "Vista de Nyxia",
             div { class: "vision-toolbar",
                 span { class: "vision-status", i {} "{status}" }
                 button { r#type: "button", aria_pressed: view.camera, disabled: !view.available || view.busy,
@@ -50,7 +50,7 @@ pub fn VisionPanel(view: VisionView, on_action: EventHandler<Value>) -> Element 
             }
             if view.camera {
                 label { class: "vision-device", "Cámara "
-                    select { aria_label: "Cámara para Alice", value: "{view.device_id}", disabled: view.busy,
+                    select { aria_label: "Cámara para Nyxia", value: "{view.device_id}", disabled: view.busy,
                         onchange: move |event| on_action.call(json!({"type":"visionDevice","value":event.value()})),
                         for device in view.devices.iter() {
                             option { key: "{device.id}", value: "{device.id}", selected: device.id == view.device_id, "{device.label}" }

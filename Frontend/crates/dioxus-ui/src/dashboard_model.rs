@@ -133,7 +133,7 @@ impl Payload {
 
     pub fn reading_status(&self) -> &'static str {
         match &self.snapshot {
-            _ if !self.desktop_app => "Disponible en Alice Desktop",
+            _ if !self.desktop_app => "Disponible en Nyxia Desktop",
             _ if self.failed => "Lectura no disponible. Se reintentará.",
             None => "Leyendo el equipo…",
             Some(reading) if reading.cpu_percent.is_none() || reading.network.is_none() => {
@@ -173,7 +173,7 @@ impl Payload {
                 snapshot.and_then(|reading| reading.memory.as_ref()),
             ),
             capacity_metric(
-                "Disco de Alice",
+                "Disco de Nyxia",
                 "VOL",
                 snapshot.and_then(|reading| reading.disk.as_ref()),
             ),

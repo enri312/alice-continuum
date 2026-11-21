@@ -289,7 +289,7 @@ async fn preview_inner(
         .unwrap_or(false)
     {
         return Err(
-            "Ollama local no está listo. Iniciá Alice con Iniciar Alice Continuum.cmd".into(),
+            "Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd".into(),
         );
     }
     let evidence_fragments = literal_evidence_fragments(source);

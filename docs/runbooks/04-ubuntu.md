@@ -42,8 +42,8 @@ cd alice-continuum
 npm ci
 python3 -m venv --copies runtime/venv-linux
 runtime/venv-linux/bin/python -m pip install -r Backend/adapters/requirements.txt
-bash 'Iniciar Alice Continuum.sh' --check
-bash 'Iniciar Alice Continuum.sh'
+bash 'Iniciar Nyxia.sh' --check
+bash 'Iniciar Nyxia.sh'
 ```
 
 El repositorio figura como público al 10 de noviembre de 2026; los datos y
@@ -100,7 +100,7 @@ Para registrar el acceso directo y el icono existente en tu cuenta Ubuntu:
 python3 scripts/setup/install-ubuntu-desktop.py
 ```
 
-Luego busca **Alice Continuum** en el menú de aplicaciones o abre su acceso
+Luego busca **Nyxia** en el menú de aplicaciones o abre su acceso
 directo del escritorio. Si Ubuntu pide «Permitir lanzamiento» la primera vez,
 selecciónalo. El registro del lanzador gráfico se conserva en
 `~/.local/state/alice-continuum/launcher.log`. La partición del proyecto debe
@@ -171,7 +171,7 @@ Ejemplo antes del lanzador:
 export ALICE_LLAMA_SERVER="$HOME/motores/llama-server"
 export ALICE_WHISPER_BIN="$HOME/motores/whisper-cli"
 export ALICE_DATA_DIR="$HOME/Alice/data"
-bash 'Iniciar Alice Continuum.sh'
+bash 'Iniciar Nyxia.sh'
 ```
 
 Usar CUDA exige compilar/configurar un motor Linux compatible con la GPU y su

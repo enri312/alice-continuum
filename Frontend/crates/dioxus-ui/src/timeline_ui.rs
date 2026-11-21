@@ -20,7 +20,7 @@ pub fn panel(view: &State, on_select: EventHandler<String>) -> Element {
             }
             div { class: "timeline-stage",
                 if visible.is_empty() {
-                    div { class: "timeline-empty", span { "000" } strong { "SIN EVENTOS COGNITIVOS" } small { "La línea aparecerá cuando Alice registre actividad local verificable." } }
+                    div { class: "timeline-empty", span { "000" } strong { "SIN EVENTOS COGNITIVOS" } small { "La línea aparecerá cuando Nyxia registre actividad local verificable." } }
                 } else {
                     div { class: "timeline-axis", span { "{visible[0].time_label}" } i {} span { "{visible[visible.len()-1].time_label}" } }
                     div { class: "timeline-rail", role: "list", "aria-label": "Últimos eventos cognitivos",

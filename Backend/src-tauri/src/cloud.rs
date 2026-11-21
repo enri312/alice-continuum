@@ -25,7 +25,7 @@ const VOICE_SYSTEM_PROMPT: &str = concat!(
     "\n\n",
     include_str!("prompts/conversation-voice.txt")
 );
-const VOICE_GREETING_PROMPT: &str = "\n\nSALUDO ACTUAL: Carlos te saluda ahora. Responde como Alice con un saludo breve y seguro, sin entusiasmo forzado ni pregunta obligatoria. Puedes decir «sí, te escucho» para confirmar que recibiste la frase. Atiende también el tema que incluya su saludo: si habla de mejorarte, usa mi sistema o mis respuestas; si menciona a otra persona, conserva ese referente. Ejemplo ficticio de tono, no guion obligatorio: «Ey, Carlos. Sí, te escucho. Vamos con eso». No afirmes que todos tus módulos están activos.";
+const VOICE_GREETING_PROMPT: &str = "\n\nSALUDO ACTUAL: Carlos te saluda ahora. Responde como Nyxia con un saludo breve y seguro, sin entusiasmo forzado ni pregunta obligatoria. Puedes decir «sí, te escucho» para confirmar que recibiste la frase. Atiende también el tema que incluya su saludo: si habla de mejorarte, usa mi sistema o mis respuestas; si menciona a otra persona, conserva ese referente. Ejemplo ficticio de tono, no guion obligatorio: «Ey, Carlos. Sí, te escucho. Vamos con eso». No afirmes que todos tus módulos están activos.";
 fn is_direct_greeting(message: &str) -> bool {
     message
         .trim_start_matches(|c: char| c.is_whitespace() || matches!(c, '¡' | '¿'))
@@ -322,10 +322,10 @@ fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
             | "xai"
             | "compatible"
     ) {
-        return Err("El proveedor seleccionado no está registrado en Alice".into());
+        return Err("El proveedor seleccionado no está registrado en Nyxia".into());
     }
     if request.provider == "openrouter" && OPENROUTER_PAUSED {
-        return Err("OpenRouter está pausado; Alice usa Ollama local por ahora".into());
+        return Err("OpenRouter está pausado; Nyxia usa Ollama local por ahora".into());
     }
     if request.provider == "google" && (request.model.contains('/') || request.model.contains(':'))
     {
@@ -338,7 +338,7 @@ fn validate_cloud_request(request: &CloudRequest) -> Result<(), String> {
         let model = request.model.to_ascii_lowercase();
         if model.ends_with(":cloud") || model.ends_with("-cloud") {
             return Err(
-                "Alice sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
+                "Nyxia sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
                     .into(),
             );
         }
@@ -835,7 +835,7 @@ async fn send_cloud_message_inner(
                     .unwrap_or(false)
                 {
                     return Err(
-                        "Ollama local no está listo. Iniciá Alice con Iniciar Alice Continuum.cmd"
+                        "Ollama local no está listo. Iniciá Nyxia con Iniciar Nyxia.cmd"
                             .into(),
                     );
                 }
@@ -928,7 +928,7 @@ async fn send_cloud_message_inner(
                 let response = client
                     .post("https://openrouter.ai/api/v1/chat/completions")
                     .bearer_auth(key.trim())
-                    .header("X-OpenRouter-Title", "Alice")
+                    .header("X-OpenRouter-Title", "Nyxia")
                     .timeout(Duration::from_secs(180))
                     .json(&body)
                     .send()
@@ -961,7 +961,7 @@ async fn send_cloud_message_inner(
                     .await;
                 ("Compatible", response)
             }
-            _ => return Err("El proveedor seleccionado no está registrado en Alice".into()),
+            _ => return Err("El proveedor seleccionado no está registrado en Nyxia".into()),
         };
         let response = response
             .map_err(|error| format!("No se pudo conectar con {provider_label}: {error}"))?;
@@ -1131,7 +1131,7 @@ mod tests {
         for prompt in [SYSTEM_PROMPT, VOICE_SYSTEM_PROMPT] {
             assert!(prompt.starts_with(personality));
             for required in [
-                "Conserva tu identidad como Alice",
+                "Conserva tu identidad como Nyxia",
                 "criterio propio",
                 "humor seco ocasional",
                 "En asuntos operativos, prioriza el paso concreto",
@@ -1507,7 +1507,7 @@ mod tests {
     fn cloud_request_validation_rejects_unsafe_or_unknown_values() {
         assert_eq!(
             validate_cloud_request(&valid_cloud_request("openrouter")),
-            Err("OpenRouter está pausado; Alice usa Ollama local por ahora".into())
+            Err("OpenRouter está pausado; Nyxia usa Ollama local por ahora".into())
         );
 
         let mut empty = valid_cloud_request("openai");
@@ -1527,7 +1527,7 @@ mod tests {
         let unknown = valid_cloud_request("desconocido");
         assert_eq!(
             validate_cloud_request(&unknown),
-            Err("El proveedor seleccionado no está registrado en Alice".into())
+            Err("El proveedor seleccionado no está registrado en Nyxia".into())
         );
 
         let mut google_path = valid_cloud_request("google");
@@ -1641,7 +1641,7 @@ mod tests {
             assert_eq!(
                 validate_cloud_request(&request),
                 Err(
-                    "Alice sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
+                    "Nyxia sólo admite modelos Ollama locales; los modelos cloud están bloqueados"
                         .into()
                 )
             );

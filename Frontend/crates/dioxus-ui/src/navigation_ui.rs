@@ -17,7 +17,7 @@ impl ScreenInfo {
             Screen::Identificacion => (
                 "identificacion",
                 "Conversación",
-                "Conversación con Alice",
+                "Conversación con Nyxia",
                 "CONVERSATION",
                 "identification",
                 include_str!("../../../icons/cognitive-conversation-channel.svg"),
@@ -161,21 +161,21 @@ pub fn frame(
         Workspace::Cognitive => (
             "cognitive",
             "[SYS.01] COGNITIVE WORKSPACE",
-            "ALICE_NEURAL_CORE",
+            "NYXIA_NEURAL_CORE",
             "LOCAL COGNITIVE CORE",
             "Pantallas del núcleo cognitivo",
         ),
         Workspace::Body => (
             "body",
             "[SYS.02] EMBODIMENT WORKSPACE",
-            "ALICE_NEURAL_CORE",
+            "NYXIA_NEURAL_CORE",
             "PHYSICAL OUTPUT · SAFE OFF",
             "Pantallas de Body Solver",
         ),
         Workspace::Governance => (
             "governance",
             "[SIS.00] GOBERNANZA",
-            "CONTROL LOCAL DE ALICE",
+            "CONTROL LOCAL DE NYXIA",
             "CONTROL LOCAL DEL PROPIETARIO",
             "Herramientas de gobierno local",
         ),
@@ -191,13 +191,13 @@ pub fn frame(
             header { class: "hero",
                 div { class: "brand-line",
                     div { class: "monogram", aria_hidden: "true", "A" }
-                    p { class: "eyebrow", "ALICE CONTINUUM · MEMORIA, COGNICIÓN Y PRESENCIA" }
+                    p { class: "eyebrow", "NYXIA · MEMORIA, COGNICIÓN Y PRESENCIA" }
                 }
                 h1 { span { "Una presencia digital," } " " em { "bajo tu control." } }
                 span { class: "privacy-badge", i {} "Local-first" }
             }
             button { r#type: "button", class: "dashboard-entry", onclick: move |_| selected.set((Screen::Dashboard, false)), "← Dashboard" }
-            nav { class: "core-system-selector", aria_label: "Sistemas de Alice", role: "tablist",
+            nav { class: "core-system-selector", aria_label: "Sistemas de Nyxia", role: "tablist",
                 for (group, class, code, label, caption) in [
                     (Workspace::Cognitive, "cognitive", "SYS 01 · MENTE Y CONDUCTA", "COGNITIVE CORE", "percepción · memoria · estado · actividad"),
                     (Workspace::Body, "body", "SYS 02 · PRESENCIA FÍSICA", "EMBODIMENT CORE", "rostro · cuerpo · avatar · entorno futuro"),

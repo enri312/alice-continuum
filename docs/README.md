@@ -1,4 +1,4 @@
-# Guías de Alice Continuum
+# Guías de Nyxia
 
 Para la primera instalación, seguí la guía de tu sistema. Cuando abra el Dashboard, entrá en **Conversación** para enviar el primer mensaje.
 

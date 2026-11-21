@@ -449,7 +449,7 @@ pub(crate) async fn confirm_voice_output(
         };
         let message = match response.status().as_u16() {
             401 | 403 => {
-                "Fish Audio rechazó la credencial; verificá la variable local sin pegarla en Alice."
+                "Fish Audio rechazó la credencial; verificá la variable local sin pegarla en Nyxia."
             }
             402 => "Fish Audio informó que faltan créditos para generar este audio.",
             429 => "Fish Audio pidió esperar antes de generar otra voz.",

@@ -5,7 +5,9 @@ function directCommand(text: string): string | null {
 
 function normalize(text: string): string {
   return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
-    .replace(/[.,;:!?¡¿]/gu, " ").replace(/\s+/gu, " ").trim();
+    .replace(/[.,;:!?¡¿]/gu, " ").replace(/\s+/gu, " ").trim()
+    // Use one token for the written name and its phonetic renderings in the grammar.
+    .replace(/\b(?:nyxia|nixia|nik[- ]?sia)\b/gu, "alice");
 }
 
 // Match the entire request before inference/TTS. "Detend" is the observed ASR
@@ -23,7 +25,7 @@ export function isMicrophoneOffCommand(text: string): boolean {
 // Observed renderings of the name are accepted only in complete Spotify commands.
 export function normalizeSpokenSpotifyRequest(text: string): string {
   const command = /^(?:a[ \t]+list|alista)(?:[ \t]*,[ \t]*|[ \t]+)(reproduce|pausa)[ \t]+spotify\.?$/iu.exec(text.trim());
-  return command ? `Alice, ${command[1].toLowerCase()} Spotify.` : text;
+  return command ? `Nyxia, ${command[1].toLowerCase()} Spotify.` : text;
 }
 
 // Explicit address only. This operates on ASR text; it is not acoustic wake-word

@@ -351,10 +351,10 @@ describe("sesión de voz automática", () => {
   });
 
   it.each([
-    ["A list reproduce Spotify.", "Alice, reproduce Spotify."],
-    ["A list, reproduce Spotify", "Alice, reproduce Spotify."],
-    ["Alista pausa spotify", "Alice, pausa Spotify."],
-    ["Alista, reproduce Spotify.", "Alice, reproduce Spotify."],
+    ["A list reproduce Spotify.", "Nyxia, reproduce Spotify."],
+    ["A list, reproduce Spotify", "Nyxia, reproduce Spotify."],
+    ["Alista pausa spotify", "Nyxia, pausa Spotify."],
+    ["Alista, reproduce Spotify.", "Nyxia, reproduce Spotify."],
   ])("recupera una orden completa de Spotify y conserva la transcripción: %s", async (text, command) => {
     const f = fixture(text);
     f.ports.onTurnObserved = vi.fn();

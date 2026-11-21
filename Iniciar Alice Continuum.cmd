@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 chcp 65001 >nul
-title Alice Continuum - Memoria, cognición y presencia
+title Nyxia - Memoria, cognición y presencia
 
 rem Resolver la raíz incluso al abrir desde un acceso directo u otra carpeta.
 cd /d "%~dp0"
@@ -24,7 +24,7 @@ if not "%ALICE_EXIT_CODE%"=="0" goto :fatal
 exit /b 0
 
 :usage
-echo [ALICE] Uso: Iniciar Alice Continuum.cmd [--check]
+echo [ALICE] Uso: Iniciar Nyxia.cmd [--check]
 exit /b 2
 
 :fatal

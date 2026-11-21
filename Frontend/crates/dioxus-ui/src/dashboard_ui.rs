@@ -71,7 +71,7 @@ pub fn page(props: PageProps) -> Element {
             "puentes",
             &view.assets.permissions,
             "Capacidades y permisos",
-            "Revisa qué puede hacer Alice y qué acceso tiene.",
+            "Revisa qué puede hacer Nyxia y qué acceso tiene.",
         ),
     ];
 
@@ -79,14 +79,14 @@ pub fn page(props: PageProps) -> Element {
         main { class: "alice-dashboard", "aria-labelledby": "dashboard-title",
             header { class: "dashboard-brand",
                 img { src: view.assets.emblem.as_str(), width: "48", height: "48", alt: "" }
-                div { h1 { id: "dashboard-title", "Alice Continuum" } p { "Asistente personal" } }
+                div { h1 { id: "dashboard-title", "Nyxia" } p { "Asistente personal" } }
                 button { r#type: "button", class: "dashboard-link", onclick: navigation(props.on_action.clone(), "configuracion"),
                     "Configuración " span { "aria-hidden": "true", "↗" }
                 }
             }
             div { class: "dashboard-overview",
                 section { class: "dashboard-panel dashboard-assistant", "aria-labelledby": "dashboard-assistant-title",
-                    h2 { id: "dashboard-assistant-title", "Estado de Alice" }
+                    h2 { id: "dashboard-assistant-title", "Estado de Nyxia" }
                     dl { class: "dashboard-assistant-summary",
                         div { dt { "Motor seleccionado" } dd { "{view.assistant.provider}" } }
                         div { dt { "Recuerdos disponibles" } dd { "{view.assistant.memory_count}" } }
@@ -117,7 +117,7 @@ pub fn page(props: PageProps) -> Element {
             }
             section { class: "dashboard-workspace", "aria-labelledby": "dashboard-workspace-title",
                 div { class: "dashboard-panel-heading",
-                    h2 { id: "dashboard-workspace-title", "Herramientas de Alice" }
+                    h2 { id: "dashboard-workspace-title", "Herramientas de Nyxia" }
                     button { r#type: "button", class: "dashboard-link", onclick: navigation(props.on_action.clone(), "actividad"),
                         "Ver actividad " span { "aria-hidden": "true", "↗" }
                     }

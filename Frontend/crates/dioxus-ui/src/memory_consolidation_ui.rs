@@ -49,7 +49,7 @@ pub fn consolidation_panel(
                     p { "Rust no encontró " code { "records.json" } ". La lectura no crea candidatos ni archivos." } }
             } else if state.is_none() {
                 div { class: "consolidation-empty", strong { if data.loading { "LEYENDO SNAPSHOT NATIVO" } else { "SNAPSHOT NATIVO NO DISPONIBLE" } }
-                    p { if !desktop { "Abre Alice como aplicación de escritorio para analizar el archivo canónico." }
+                    p { if !desktop { "Abre Nyxia como aplicación de escritorio para analizar el archivo canónico." }
                         else if !data.loading { "Actualizá la vista previa para volver a consultar la fuente." } } }
             }
             footer {

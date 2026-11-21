@@ -177,7 +177,7 @@ pub fn page(props: PageProps) -> Element {
                             p { i {} if activity { "CONTEXTO LOCAL DISPONIBLE" } else { "SIN ENTRADA" } } }
                         section { class: "planner-source", "aria-label": "Fuente del planificador",
                             span { "INPUT CHECKPOINT" } strong { "{source}" }
-                            small { if activity { "La entrada existe, pero aún no fue evaluada por un planificador." } else { "Alice espera una interacción verificable." } } }
+                            small { if activity { "La entrada existe, pero aún no fue evaluada por un planificador." } else { "Nyxia espera una interacción verificable." } } }
                         button { class: if selected_item == Selection::Response { "planner-response selected" } else { "planner-response" },
                             r#type: "button", "aria-pressed": selected_item == Selection::Response, onclick: move |_| selected.set(Selection::Response),
                             span { "SELECTED RESPONSE // CANDIDATE 000" } strong { "NO HAY RESPUESTA SELECCIONADA" }
@@ -356,7 +356,7 @@ fn tasks(mut state: Signal<State>, request: Callback<Action>) -> Element {
                             div { dt { "PRÓXIMA EVALUACIÓN ÚTIL" } dd { "{engine.map_or(no_next, |engine| engine.next_label.as_str())}" } }
                         }
                         div {
-                            p { if running { "Alice relee el reloj una vez por segundo. El estado vive sólo en RAM y vuelve apagado al reiniciar." }
+                            p { if running { "Nyxia relee el reloj una vez por segundo. El estado vive sólo en RAM y vuelve apagado al reiniciar." }
                                 else { "La evaluación periódica está detenida. La lectura manual de esta pantalla no escribe ni activa procesos de salida." } }
                             button { r#type: "button", disabled: busy || engine.is_none_or(|engine| engine.registry_state == RegistryState::Invalid),
                                 onclick: move |_| request.call(Action::Toggle { enabled: !running }),

@@ -1,4 +1,5 @@
 //! Owner-delegated destinations. Only a direct current message can select one.
+use crate::assistant_identity::{strip_wake_prefix, strip_wake_suffix};
 use crate::audit::{
     new_operation_id, record_producer_audit, AuditOutcome, AuditSource, AuditStage,
 };
@@ -39,10 +40,11 @@ pub(crate) fn direct_target(text: &str) -> Option<DesktopTarget> {
     let normalized = normalize(text);
     let mut command = normalized.as_str();
     for _ in 0..3 {
-        if let Some(rest) = ["alice ", "alista ", "ah ", "oye "]
-            .iter()
-            .find_map(|prefix| command.strip_prefix(prefix))
-        {
+        if let Some(rest) = strip_wake_prefix(command).or_else(|| {
+            ["alista ", "ah ", "oye "]
+                .iter()
+                .find_map(|prefix| command.strip_prefix(prefix))
+        }) {
             command = rest;
         } else {
             break;
@@ -50,7 +52,7 @@ pub(crate) fn direct_target(text: &str) -> Option<DesktopTarget> {
     }
     let command = command.strip_prefix("por favor ").unwrap_or(command);
     let command = command.strip_suffix(" por favor").unwrap_or(command);
-    let command = command.strip_suffix(" alice").unwrap_or(command);
+    let command = strip_wake_suffix(command).unwrap_or(command);
     let target = [
         "abre ",
         "abres ",
@@ -79,7 +81,7 @@ pub(crate) fn tool_candidate(text: &str) -> Option<DesktopTarget> {
         return None;
     }
     let normalized = normalize(text);
-    let command = normalized.strip_prefix("alice ").unwrap_or(&normalized);
+    let command = strip_wake_prefix(&normalized).unwrap_or(&normalized);
     let command = command.strip_prefix("por favor ").unwrap_or(command);
     let words: Vec<_> = command.split_whitespace().collect();
     if words.iter().any(|word| {

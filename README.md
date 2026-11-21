@@ -1,4 +1,4 @@
-# Alice Continuum
+# Nyxia
 
 [![Rust 1.99.1](https://img.shields.io/badge/Rust-1.99.1-DEA584?logo=rust&logoColor=black)](rust-toolchain.toml)
 [![TypeScript 7.0.2](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?logo=typescript&logoColor=white)](package-lock.json)
@@ -9,7 +9,10 @@
 [![Vite 8.3.5](https://img.shields.io/badge/Vite-8.3.5-646CFF?logo=vite&logoColor=white)](package-lock.json)
 [![Vitest 4.1.12](https://img.shields.io/badge/Vitest-4.1.12-6E9F18?logo=vitest&logoColor=white)](package-lock.json)
 
-**Alice Continuum es una asistente personal de escritorio.** Podés conversar con Alice, revisar qué recuerda y pedirle acciones autorizadas, como reproducir una playlist. El Dashboard muestra el estado del motor, los recuerdos y los recursos del equipo.
+**Nyxia (Ník-sia) es una asistente personal de escritorio.** Podés conversar con ella, revisar qué recuerda y pedirle acciones autorizadas, como reproducir una playlist. El Dashboard muestra el estado del motor, los recuerdos y los recursos del equipo.
+
+Nyxia es el nombre que adopta el proyecto Alice Continuum. La instalación
+sigue usando el repositorio `alice-continuum` y su almacenamiento existente.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Guías por tarea](docs/README.md) · [Roadmap](Roadmap.md)
 
@@ -19,13 +22,13 @@
 
 ```powershell
 npm ci
-& '.\Iniciar Alice Continuum.cmd' --check
-& '.\Iniciar Alice Continuum.cmd'
+& '.\Iniciar Nyxia.cmd' --check
+& '.\Iniciar Nyxia.cmd'
 ```
 
 El primer arranque compila la aplicación. Para las siguientes sesiones podés abrir el lanzador con doble clic. Si el arranque se detiene, la guía explica cómo comprobar dependencias, rutas y el puerto 5173. [Arranque local](docs/runbooks/01-arranque-local.md).
 
-**Ubuntu.** Instalá las dependencias del sistema y del proyecto siguiendo la guía. Probá el entorno con `bash 'Iniciar Alice Continuum.sh' --check` y abrí Alice con `bash 'Iniciar Alice Continuum.sh'`. La validación en macOS sigue pendiente. [Instalación en Ubuntu](docs/runbooks/04-ubuntu.md).
+**Ubuntu.** Instalá las dependencias del sistema y del proyecto siguiendo la guía. Probá el entorno con `bash 'Iniciar Nyxia.sh' --check` y abrí Nyxia con `bash 'Iniciar Nyxia.sh'`. La validación en macOS sigue pendiente. [Instalación en Ubuntu](docs/runbooks/04-ubuntu.md).
 
 **Primer mensaje.** Abrí **Conversación** y comprobá que el proveedor seleccionado esté listo. Los motores y modelos locales se instalan por separado. Para usar un proveedor remoto, configurá sus credenciales en tu equipo y revisá el mensaje y el contexto antes de enviarlos. [Configurar conversación y voz](docs/runbooks/03-conversacion-y-voz.md).
 
@@ -103,21 +106,21 @@ La verificación posterior a la migración incluye el arranque en Tauri para
 Windows con datos aislados, las 15 pantallas en Edge y la recuperación con
 WebAssembly bloqueado. La aceptación con voz, Spotify y el proveedor de uso
 cotidiano sigue en R9. [Próximo paso](Roadmap.md#próximo-paso-autorizado).
-Si Alice transcribe mal una orden, «Corregir en el borrador» recupera el texto
+Si Nyxia transcribe mal una orden, «Corregir en el borrador» recupera el texto
 desde el diagnóstico de voz para editarlo y revisarlo antes de enviarlo.
-La escucha automática admite «A list» y «Alista» como variantes del nombre
-en las órdenes completas «reproduce Spotify» y «pausa Spotify».
+Para la escucha automática, decí «Nyxia, pausa Spotify» o «Nyxia, reproduce
+Spotify». El nombre se pronuncia «Ník-sia».
 En Windows, **Audio de entrada** permite bajar el volumen de Spotify durante
-la escucha y recuperarlo al cerrar el micrófono o terminar Alice normalmente.
+la escucha y recuperarlo al cerrar el micrófono o terminar Nyxia normalmente.
 En ese panel, **Probar señal directa para transcribir** permite comparar la
 captura previa a RNNoise. La detección de voz conserva su filtro local.
 La comparación de Whisper y Parakeet en este equipo está en
 [las pruebas de voz de R9](Roadmap.md#próximo-paso-autorizado).
-Para probar Parakeet al arrancar Alice, definí `ALICE_PARAKEET_HOME` con la
+Para probar Parakeet al arrancar Nyxia, definí `ALICE_PARAKEET_HOME` con la
 ruta absoluta a una instalación local que tenga `venv/` y `model/`.
 El entorno usa `sherpa-onnx` y `model/` contiene `encoder.int8.onnx`,
 `decoder.int8.onnx`, `joiner.int8.onnx` y `tokens.txt` de la edición INT8.
-Alice usa la selección habitual de Whisper o Gemma al arrancar sin esa variable.
+Nyxia usa la selección habitual de Whisper o Gemma al arrancar sin esa variable.
 Tras validar R9, el Roadmap plantea evaluar **Nod**, el agente personal de
 n8n Labs, como posible ejecutor externo de tareas acotadas.
 [Alcance de la evaluación](Roadmap.md#evaluar-nod-de-n8n-labs).

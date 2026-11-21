@@ -290,7 +290,7 @@ impl Payload {
                 } else {
                     "estilo habitual"
                 };
-                format!("Tono para el próximo envío: {tone}. Tres tramos de estilo que mantienen respeto, personalidad y límites; no representa una emoción de Alice.")
+                format!("Tono para el próximo envío: {tone}. Tres tramos de estilo que mantienen respeto, personalidad y límites; no representa una emoción de Nyxia.")
             };
             if behavior.busy {
                 control.detail.push_str(

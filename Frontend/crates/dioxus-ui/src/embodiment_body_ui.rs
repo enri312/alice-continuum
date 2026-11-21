@@ -106,7 +106,7 @@ pub fn body_page() -> Element {
         ("MCU temperature", "—"),
     ];
     rsx! {
-        section { class: "bridge-page", "aria-label": "Solucionador corporal de Alice",
+        section { class: "bridge-page", "aria-label": "Solucionador corporal de Nyxia",
             div { class: "body-diagnostic",
                 header { class: "body-diagnostic-header",
                     div { span { "[05/BODY]" } strong { "FACE + BODY OUTPUT BRIDGE // BODY CHANNEL" } }

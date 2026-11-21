@@ -56,7 +56,7 @@ pub fn page(props: PageProps) -> Element {
             div { class: "activity-heading",
                 div { p { class: "eyebrow", "[06—07] COGNITIVE ACTIVITY · LOCAL" }
                     h2 { id: "activity-title", "Actividad cognitiva" }
-                    p { "Línea temporal y eventos observables de la conducta actual de Alice." }
+                    p { "Línea temporal y eventos observables de la conducta actual de Nyxia." }
                 }
                 div { class: if total > 0 { "activity-status" } else { "activity-status idle" }, i {}
                     if total > 0 { "EVIDENCIA REAL" } else { "EN ESPERA" }

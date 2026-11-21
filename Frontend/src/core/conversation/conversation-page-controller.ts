@@ -230,7 +230,7 @@ export function createConversationPage(getInputs: () => ConversationPageInputs, 
   async function confirmLearning(input: ConversationPageInputs, id: string) {
     const candidate = learning?.candidates.find(item => item.candidateId === id);
     if (!input.desktopApp || !learning || !candidate || learningPending) return;
-    if (!window.confirm(`¿Confirmás guardar este recuerdo para Alice?\n\n${candidate.intention}\n\nLa propuesta se basó sólo en tu mensaje. También se guardará cualquier interpretación emocional que figure en la propuesta.`)) return;
+    if (!window.confirm(`¿Confirmás guardar este recuerdo para Nyxia?\n\n${candidate.intention}\n\nLa propuesta se basó sólo en tu mensaje. También se guardará cualquier interpretación emocional que figure en la propuesta.`)) return;
     learningPending = id;
     learningMessage = "";
     error = "";
@@ -419,7 +419,7 @@ export function createConversationPage(getInputs: () => ConversationPageInputs, 
     const newestExchangeId = input.messages.at(-1)?.exchangeId;
     const latest = input.showFullHistory ? input.messages : input.messages.slice(-12);
     const auto = input.automaticLearning;
-    const automaticLabel = auto?.phase === "evaluating" ? "Alice está evaluando qué recordar…"
+    const automaticLabel = auto?.phase === "evaluating" ? "Nyxia está evaluando qué recordar…"
       : auto?.phase === "error" ? "No pudo evaluar este turno · revisa Memoria"
       : auto?.enabled ? `${input.provider === "llamacpp" ? "Aprendizaje automático activo" : "Aprendizaje preparado · usa Gemma local"} · ${auto.count} recuerdos`
       : auto ? "Aprendizaje automático pausado" : null;
@@ -447,7 +447,7 @@ export function createConversationPage(getInputs: () => ConversationPageInputs, 
       observationEnabled: input.observationEnabled, windowProcess: input.foregroundContext?.processName ?? null,
       delegatedActions: input.desktopApp && input.provider === "llamacpp",
       voiceBusy: input.voice.busy || input.voice.active, voicePending: input.voice.pending,
-      statusLabel: input.voice.statusLabel || (sendPending ? "Alice está respondiendo"
+      statusLabel: input.voice.statusLabel || (sendPending ? "Nyxia está respondiendo"
         : error ? "Hay un problema que revisar"
         : review ? "Revisa el mensaje antes de enviarlo" : "Micrófono apagado"),
       statusTone: input.voice.statusLabel ? input.voice.statusTone : sendPending ? "busy" : error ? "error" : "idle",

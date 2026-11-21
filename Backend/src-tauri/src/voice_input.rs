@@ -44,7 +44,7 @@ fn validate_input(input: &VoiceTurnInput) -> Result<(), String> {
         );
     }
     if input.mime_type != "audio/webm" && input.mime_type != "audio/webm;codecs=opus" {
-        return Err("La toma debe usar WebM/Opus desde el micrófono visible de Alice".into());
+        return Err("La toma debe usar WebM/Opus desde el micrófono visible de Nyxia".into());
     }
     if !(128..=MAX_AUDIO_BASE64_CHARACTERS).contains(&input.audio_base64.len())
         || !input
