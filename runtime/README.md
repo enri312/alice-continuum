@@ -8,7 +8,7 @@ Desde el 15 de noviembre de 2026 el nombre es `runtime/` (antes `local/`). Se
 actualizaron sus consumidores y la configuración privada necesaria. Los scripts
 históricos dentro de `maintenance/` y las copias de pilotos pueden conservar
 rutas anteriores y necesitan revisión antes de reutilizarlos. El contenido de
-`data/` no se trasladó. Ver [verificación del renombrado](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
+`data/` no se trasladó. Ver [verificación del renombrado](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
 
 ## Ubicaciones por función
 
@@ -29,7 +29,7 @@ rutas anteriores y necesitan revisión antes de reutilizarlos. El contenido de
 | `backup.json`, `ubuntu.env` | Configuración privada de esta instalación; no publicar sus valores. |
 | `alice-launch.lock` | Bloqueo del lanzador Linux mediante `flock`; permanece en su ruta activa. Windows usa un mutex por checkout. No mover ni borrar un bloqueo en uso. |
 
-La [revisión del 15 de noviembre de 2026](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+La [revisión del 15 de noviembre de 2026](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
 agrupó evidencias y auxiliares sin trasladar entornos, herramientas ni modelos
 activos. `data/visual-checks/` pasó a `artifacts/visual-checks/`; eran dos capturas
 técnicas sin referencias encontradas en los datos revisados. Los informes de

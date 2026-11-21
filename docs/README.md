@@ -16,5 +16,5 @@ Para localizar código, datos y recursos, consultá el [mapa del proyecto](archi
 El alcance funcional está en la [especificación ilustrada](especificacion_alice_continuum.html).
 Los cambios en curso se siguen en el [roadmap](../Roadmap.md) y en el [inventario de migración a Dioxus](architecture/DIOXUS_MIGRATION_STATUS.md).
 
-Las decisiones anteriores, los informes de pruebas y los planes terminados están disponibles en el [archivo histórico de la documentación](https://github.com/enri312/alice-continuum/tree/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs).
+Las decisiones anteriores, los informes de pruebas y los planes terminados están disponibles en el [archivo histórico de la documentación](https://github.com/enri312/nyxia/tree/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs).
 Con el historial Git descargado también podés leerlos sin conexión. Por ejemplo, `git show 99e67bf:docs/decisions/README.md` abre el catálogo de decisiones.

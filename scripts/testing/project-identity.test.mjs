@@ -61,11 +61,10 @@ describe("Identidad de Nyxia", () => {
   });
 
   it("recognizes both executable names for launch and self-observation safety", () => {
-    const launcher = read("Iniciar Alice Continuum.cmd");
-    expect(read("Iniciar Nyxia.cmd")).toContain("Iniciar Alice Continuum.cmd");
-    expect(read("Iniciar Nyxia.sh")).toContain("Iniciar Alice Continuum.sh");
+    const launcher = read("Iniciar Nyxia.cmd");
     expect(launcher).toContain('"%~dp0"');
     expect(launcher).toContain("scripts\\setup\\launch-windows.ps1");
+    expect(read("Iniciar Nyxia.sh")).toContain("flock -n");
     const windowsLauncher = read("scripts/setup/launch-windows.ps1");
     expect(windowsLauncher).toContain("'alice-continuum','alice-cognitive-core'");
     const observer = read("Backend/src-tauri/src/observation.rs");

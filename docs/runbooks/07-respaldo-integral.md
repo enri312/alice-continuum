@@ -138,5 +138,5 @@ el ejecutable nativo, `npm run dev` o `npm run tauri -- dev` no activa este
 supervisor. No se ha añadido un servicio de Windows, tarea programada ni función
 equivalente al instalador empaquetado.
 
-[Decisión técnica](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-114-respaldo-integral.md) ·
-[Pruebas y recuperación real](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/INTEGRAL_BACKUP_REPORT_2026-11-10.md).
+[Decisión técnica](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-114-respaldo-integral.md) ·
+[Pruebas y recuperación real](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/INTEGRAL_BACKUP_REPORT_2026-11-10.md).

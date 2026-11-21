@@ -34,7 +34,7 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 ## 1. Inicio rápido
 
 1. Abrí `D:\Alice Continuum`.
-2. Hacé doble clic en **Iniciar Alice Continuum.cmd**.
+2. Hacé doble clic en **Iniciar Nyxia.cmd**.
 3. Dejá abierta la terminal negra mientras uses Alice.
 4. Esperá a que se abra la ventana de la aplicación.
 5. Usá el **Dashboard** para revisar el estado de Alice o abrir una herramienta.
@@ -43,7 +43,7 @@ y procedencia. Guardar información no entrena los pesos de Gemma.
 Para revisar el entorno sin abrir la aplicación:
 
 ```powershell
-& 'D:\Alice Continuum\Iniciar Alice Continuum.cmd' --check
+& 'D:\Alice Continuum\Iniciar Nyxia.cmd' --check
 ```
 
 Si Alice ya está abierta, no vuelvas a iniciar otra instancia. El lanzador protege
@@ -159,13 +159,13 @@ Spotify» o «¿Me escuchas, Alice?». Es el comportamiento predeterminado de es
 primera espera dirigida. Las otras frases no entran al chat, herramientas ni Fish.
 No identifica quién habla: otra persona que formule una llamada directa puede
 activarla. Este filtro posterior a ASR no es un detector acústico de palabra clave.
-[Contrato de espera y apagado](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
+[Contrato de espera y apagado](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
 
 El filtro reduce ruido y no identifica tu voz. La eliminación de música de la
 notebook depende de la cancelación de eco que confirme el equipo; la música
 externa con voces todavía puede interferir. Acercar el micrófono a tu boca o
 usar auriculares mejora la relación entre voz y música. Si falla el filtro,
-Alice descarta la toma y avisa. [Contrato de audio](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md).
+Alice descarta la toma y avisa. [Contrato de audio](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md).
 
 Al pie hay dos accesos opcionales:
 
@@ -253,7 +253,7 @@ acercar, restablecer y elegir un nodo modifican sólo la vista.
 
 La malla cerebral es ilustrativa. Los registros y señales proceden de fuentes
 inspeccionables; no son una medición biológica ni una prueba de conciencia.
-[Diseño y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
+[Diseño y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
 
 ### Flujo cognitivo
 
@@ -558,7 +558,7 @@ acciones reales registradas.
 ### El lanzador informa puerto ocupado o instancia existente
 
 Cerrá la ventana anterior de Alice y su terminal. Si no sabés qué proceso sigue
-activo, ejecutá primero `Iniciar Alice Continuum.cmd --check` y no finalices procesos al azar.
+activo, ejecutá primero `Iniciar Nyxia.cmd --check` y no finalices procesos al azar.
 
 ## 10. Datos, respaldo y privacidad
 
@@ -682,7 +682,7 @@ En la versión recompilada, Configuración permite iniciar/apagar Gemma. Iniciar
 
 Después de iniciar Gemma, seleccioná **Gemma local · llama.cpp**, volvé a Conversación y usá la revisión de contexto habitual. Para volver a Ollama, apagá Gemma primero. El micrófono se activa por separado con Iniciar conversación; los turnos de voz ya están integrados. **Proponer recuerdo de este intercambio** usa Gemma local y analiza solamente el mensaje del propietario; la observación de pantalla y los candidatos heredados siguen usando Ollama y permanecen bloqueados mientras Gemma está activo.
 
-Detalles y límites: [Gemma en Configuración y conversación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/GEMMA_SETTINGS_CHAT_2026-09-05.md).
+Detalles y límites: [Gemma en Configuración y conversación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/GEMMA_SETTINGS_CHAT_2026-09-05.md).
 
 ## Ver con Alice: cámara y escritorio
 
@@ -708,7 +708,7 @@ Con vistas activas, usa mensajes de hasta 1600 caracteres. Se acorta el contexto
 anterior para dejar espacio a las imágenes; si falta un referente, nómbralo en la
 pregunta. Si Windows deniega la cámara o otro programa la ocupa, el error aparece
 en la tarjeta y la sesión se cierra. Tras recargas de desarrollo debes reactivar
-las fuentes. Contrato: [ADR-P-102](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md).
+las fuentes. Contrato: [ADR-P-102](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md).
 
 ## Abrir Spotify y los discos autorizados
 
@@ -730,7 +730,7 @@ arbitrarios.
 En Volumen, «Núcleo en ejecución» pulsa mientras responde el proceso nativo. El
 arranque real también ilumina Contexto. Ese latido es distinto de las señales de
 conversación o aprendizaje: no aumenta la cantidad de recuerdos ni inventa rutas.
-Ver [ADR-P-103](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-103-actividad-y-herramientas-delegadas.md).
+Ver [ADR-P-103](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-103-actividad-y-herramientas-delegadas.md).
 
 ## Música: Tus me gusta y YouTube en Chrome
 
@@ -776,5 +776,5 @@ Alice comunica el fallo. Tampoco afirma éxito ante ventanas ambiguas. No cambie
 de ventana durante la selección del vídeo. La reproducción de Spotify se probó
 con Tus me gusta; la primera prueba real de YouTube queda para tu canción.
 
-Contrato y verificación: [ADR-P-104](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
-e [informe de música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_PLAYBACK_REPORT_2026-11-03.md).
+Contrato y verificación: [ADR-P-104](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
+e [informe de música](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_PLAYBACK_REPORT_2026-11-03.md).

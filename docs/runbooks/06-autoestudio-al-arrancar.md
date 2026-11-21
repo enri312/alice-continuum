@@ -26,7 +26,7 @@ oportunidad de estudio aunque un ciclo alcance su límite de tiempo.
 Este currículo inicial no equivale a cubrir todas las ramas de las matemáticas.
 
 Las fuentes y sus criterios están en
-[Fuentes del autoestudio](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/SELF_STUDY_SOURCES_2026-11-10.md). El contenido
+[Fuentes del autoestudio](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/SELF_STUDY_SOURCES_2026-11-10.md). El contenido
 editable por desarrollo está en `Backend/src-tauri/resources/self-study-curriculum.json`.
 Cambiar el currículo requiere revisar sus preguntas y recompilar el backend.
 

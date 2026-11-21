@@ -71,9 +71,9 @@ La línea temporal tiene un único renderer Dioxus: un fallo muestra un aviso y
 permite reintentar con los eventos que siguen en la sesión. No carga otra línea
 temporal React. Las demás recuperaciones anteriores se mantienen hasta cubrir
 su sustitución; el objetivo final incluye retirarlas junto con el contenedor
-React. [Alcance y pruebas de la línea temporal](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
+React. [Alcance y pruebas de la línea temporal](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
 
-La [migración de la sesión de Estado](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md)
+La [migración de la sesión de Estado](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md)
 también verifica métricas R3, dos ajustes disponibles, teclado, ausencia de
 lecturas superpuestas, descarte al salir y recuperación conservando selección.
 

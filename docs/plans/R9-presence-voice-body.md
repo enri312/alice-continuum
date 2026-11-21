@@ -6,13 +6,13 @@ inicio, detección de pausas, transcripción Whisper local y respuesta Fish sin 
 cada turno. El micrófono vuelve a escuchar al terminar la reproducción. Se
 mantiene el modo manual y queda pendiente aceptación acústica y de latencia con
 el propietario. Gemma 4 se mantiene; el avatar queda al final. Node 26.13.0 LTS
-y npm 11.20.0 verificados. Ver [ADR-P-099](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
+y npm 11.20.0 verificados. Ver [ADR-P-099](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).
 
 Incremento posterior: orden directa **Detén la conversación, Alice** durante
 escucha, interpretación de referentes y Rust 1.99.1. Ver
-[ADR-P-100](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
+[ADR-P-100](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
 
-Incremento vigente — [ADR-P-106](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md):
+Incremento vigente — [ADR-P-106](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-106-estabilizacion-oral-y-rumbo-nerumi.md):
 Whisper base CPU reconoce el español y Gemma mantiene el diálogo. Se comprueba
 el ciclo nativo de dos respuestas y parada con audio sintético; se rechazan
 respuestas tardías después de detener y se conserva el texto si falla Fish.
@@ -21,7 +21,7 @@ Aceptación con Carlos y música real pendiente. La activación dedicada por nom
 y la interrupción durante reproducción requieren trabajo posterior. La prioridad
 es conversación y acciones de PC ya delegadas, sin domótica; Nerumi queda como
 referencia futura y el avatar sigue al final. Ver
-[el informe](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+[el informe](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
 > El contrato inicial que sigue se conserva como antecedente. En la sesión de
 > voz vigente, iniciar autoriza el ciclo hasta detener, salir o vencer a las dos
@@ -33,12 +33,12 @@ Incremento 2026-11-05: preguntas sobre «tu explicación/voz…» en una cita co
 destinatario explícito disponen de una resolución local acotada, con procedencia
 visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
 Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
-la conversación real. [ADR-P-110](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
+la conversación real. [ADR-P-110](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
 
 Fiabilidad 2026-11-05: el estado y la detención de Gemma ya no esperan al HTTP
 de chat; se cancelan las peticiones de una generación anterior. Guardar y
 restaurar memoria básica recuperan la fuente ante errores comunicados.
-[ADR-P-111](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+[ADR-P-111](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-111-persistencia-y-control-del-motor.md).
 Estas correcciones no cierran la aceptación acústica ni la continuidad de cinco
 turnos: esa es la siguiente prueba con el propietario.
 
@@ -48,10 +48,10 @@ Prioridad vigente al 11 de noviembre de 2026: consolidar el núcleo cognitivo y
 el ciclo autoestudio/Obsidian en paralelo con la aceptación de conversación,
 escucha y acciones delegadas de R9. Una orden de Spotify ya se comprobó con la
 voz del propietario y salida audible; los criterios de sesión prolongada
-continúan pendientes. [Prueba y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
-[Estructura y comprobaciones](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+continúan pendientes. [Prueba y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
+[Estructura y comprobaciones](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
-Incremento 2026-11-06 — [ADR-P-112](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md):
+Incremento 2026-11-06 — [ADR-P-112](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md):
 iniciar la escucha queda en espera de frases dirigidas a Alice. Detener la
 conversación vuelve a espera; apagar el micrófono cierra la sesión. Es un filtro
 ASR por frase, con aceptación acústica pendiente; no cierra el requisito de
@@ -99,14 +99,14 @@ El propietario limita YouTube a su playlist privada y solicita repetición compl
 se verificaron los controles nativos y el regreso del último video al primero con
 su sesión iniciada. Falta aceptar las órdenes habladas y la escucha con música. Las pruebas
 de inferencia aisladas no sustituyen la medición de latencia del turno completo.
-Ver [informe de latencia y música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+Ver [informe de latencia y música](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 Recuperación del 2026-11-09: cambios Ubuntu conservados en el checkpoint remoto
 `7e796ee`, datos y recursos privados copiados a otro volumen y validación Windows
 desde `D:\Alice Continuum` completada. La validación Linux se ajusta a Ubuntu
 26.04 por el requisito de GStreamer para grabar WebM/Opus. Esto no cambia las
 casillas de aceptación humana anteriores.
-[Informe de recuperación y pendientes](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
+[Informe de recuperación y pendientes](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md).
 
 ## Propósito
 
@@ -185,14 +185,14 @@ al cerrar el reproductor o iniciar otra vista previa.
 La identidad de presentación aprobada para seleccionar la futura voz es femenino,
 español latino neutro, joven-adulto, claro, sereno y técnico-cercano. Se evaluará
 por escucha comparativa, no por nombre de catálogo. Ver
-[identidad de voz de Alice](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/ALICE_VOICE_IDENTITY_R9.md).
+[identidad de voz de Alice](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/ALICE_VOICE_IDENTITY_R9.md).
 La primera terna pública fue investigada sin usar la API. La candidata inicial fue
 descartada por Carlos al oírla, por lo que ninguna voz comunitaria queda adoptada.
 Voice Design se reserva como alternativa futura porque no está incluido en su plan
 gratuito. R9.2 continuará con una búsqueda y audición controlada de voces públicas
 sin clonación, franquicias ni suscripción. Ver la
-[ruta gratuita de selección](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/ALICE_ORIGINAL_VOICE_DESIGN_R9.md) y
-la [terna inicial descartada](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/ALICE_FISH_VOICE_SHORTLIST_2026-09-12.md).
+[ruta gratuita de selección](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/ALICE_ORIGINAL_VOICE_DESIGN_R9.md) y
+la [terna inicial descartada](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/ALICE_FISH_VOICE_SHORTLIST_2026-09-12.md).
 
 ### Estados visibles comunes
 
@@ -223,7 +223,7 @@ grant, perder el proveedor o fallar una validación, el estado termina en
 Prechequeo técnico completado sin red desde Alice, clave ni audio: la API pública
 publica un endpoint REST con Bearer, modelo en encabezado y precio por bytes. Se
 mantiene el proveedor como candidato hasta la prueba manual. Ver
-[prechequeo Fish Audio](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/FISH_AUDIO_R9_PRECHECK_2026-09-12.md).
+[prechequeo Fish Audio](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/FISH_AUDIO_R9_PRECHECK_2026-09-12.md).
 
 1. [x] Registrar `output.voice.synthesize` como parcial con adaptador, efectos y
    permiso nativo explícito.
@@ -313,23 +313,23 @@ el historial de tareas. La auditoría debe permitir reconstruir el intento sin
 revelar texto, audio ni secreto.
 
 
-Incremento 2026-11-03: [ADR-P-101](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
+Incremento 2026-11-03: [ADR-P-101](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md)
 autoriza memoria automática independiente para nuevos mensajes Gemma. La selección
 no necesita aprobación por recuerdo; la configuración global y las correcciones
 permanecen en Memoria. El Volumen incorpora formas orgánicas y sólo nodos reales.
 Los contratos manuales anteriores siguen siendo antecedentes de sus adaptadores.
 
-Incremento 2026-11-03 — [ADR-P-102](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md):
+Incremento 2026-11-03 — [ADR-P-102](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md):
 visión de cámara y escritorio por turno conectada a conversación Gemma, controles
 visibles y dispositivo seleccionable. No cierra R9: la percepción continua, la
 identificación del propietario y el avatar siguen fuera de este incremento.
 
-Incremento 2026-11-03 — [ADR-P-103](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-103-actividad-y-herramientas-delegadas.md):
+Incremento 2026-11-03 — [ADR-P-103](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-103-actividad-y-herramientas-delegadas.md):
 latido técnico desde arranque, coordenadas de procesos dentro del contorno y
 aperturas limitadas a Spotify y D:/E:, con función Gemma para variantes naturales.
 No incluye ejecución general, control musical o autenticación facial.
 
-Incremento posterior 2026-11-03 — [ADR-P-104](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md):
+Incremento posterior 2026-11-03 — [ADR-P-104](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md):
 el propietario amplía la delegación a reproducir Tus me gusta, pausar/reanudar
 Spotify y reproducir canciones pedidas en YouTube con Google Chrome. Se verificó
 Spotify desde Alice con datos separados y se dejó pausado. YouTube queda
@@ -338,7 +338,7 @@ pendiente de aceptación con la canción que el propietario indique. No cierra R
 Corrección posterior: las órdenes habladas compuestas y sus repeticiones
 transcritas deben activar el control nativo. Se evita que una petición musical
 incompleta termine en una promesa sin ejecución y se conserva la sesión ante
-errores de selección. Ver [regresión](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+errores de selección. Ver [regresión](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
 
 Aceptación reanudada el 2026-11-04: desde Alice nativa, la transcripción que
 fallaba reprodujo Tus me gusta; pausa, continuación y pausa final se completaron
@@ -346,7 +346,7 @@ con recibos correctos y datos separados. El HTML v0.54 recupera la portada y
 agrupa las notas de avances en su historial. YouTube mantiene pendiente su
 canción de aceptación y el avatar continúa pospuesto.
 
-Incremento 2026-11-04 — [ADR-P-105](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md):
+Incremento 2026-11-04 — [ADR-P-105](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md):
 RNNoise local antes de ambas grabaciones, detección de voz en lugar de sólo
 volumen, selección de micrófono y filtro opcional de dirección «Alice». Vite
 8.3.5 y Vitest 4.1.12. Aceptación con música real de ambos orígenes y separación

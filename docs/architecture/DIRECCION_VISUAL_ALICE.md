@@ -80,7 +80,7 @@ reutilizan la misma base de estilos.
   Comprueba el acceso a Conversación, la conservación de su borrador, Estado,
   Flujo, Actividad y la persistencia de relaciones con registros aislados.
 - Las pruebas de voz, cámara y proveedores reales tienen su propio alcance.
-- [Informe de la incorporación inicial de Conversación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+- [Informe de la incorporación inicial de Conversación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
 La adaptación visual y la migración a Dioxus se registran por separado.
 [Inventario de migración](DIOXUS_MIGRATION_STATUS.md).

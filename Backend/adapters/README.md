@@ -46,7 +46,7 @@ un archivo elegido explícitamente. Sólo imprime JSON: no guarda informes ni
 modifica la entrada. Usa el mismo Python seleccionable que Obsidian y sólo
 biblioteca estándar. Límite de 10.000 filas, 1 MiB de entrada, 16 KiB de salida
 y diez segundos; un fallo no recurre a otra implementación ni imprime los datos.
-No interviene en el arranque. Ver [formato y alcance](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+No interviene en el arranque. Ver [formato y alcance](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 
 ## Lector documental
 
@@ -102,7 +102,7 @@ su distribución con un instalador sigue pendiente.
 
 ## Lanzador
 
-`Iniciar Alice Continuum.cmd --check` no crea datos ni inicia Ollama o la aplicación.
+`Iniciar Nyxia.cmd --check` no crea datos ni inicia Ollama o la aplicación.
 Devuelve 0 si puede iniciar, 10 si Alice ya está abierta, 1 ante fallo de entorno
 y 2 para argumentos desconocidos. Sin argumentos conserva el inicio habitual.
 

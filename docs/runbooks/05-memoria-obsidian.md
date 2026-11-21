@@ -99,7 +99,7 @@ representación exacta, incluidos números y Unicode.
 La vigilancia automática continúa con Node y `--watch --formatter python` se
 rechaza. La medición del ensayo mostró más latencia al iniciar Python; este modo
 es una opción por lotes, no una mejora de velocidad demostrada.
-Ver [paridad, pruebas y mediciones](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
+Ver [paridad, pruebas y mediciones](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
 ## Ediciones y conflictos
 

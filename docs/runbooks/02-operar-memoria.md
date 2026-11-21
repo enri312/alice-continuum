@@ -6,7 +6,7 @@ Los botones de exportación/restauración descritos aquí cubren la memoria conf
 
 ## Localizar los datos
 
-Abrir la pestaña Memoria y usar `Abrir carpeta de memoria`. Al arrancar mediante `Iniciar Alice Continuum.cmd`, la ruta activa en Windows es `D:\Alice Continuum\data\memory`.
+Abrir la pestaña Memoria y usar `Abrir carpeta de memoria`. Al arrancar mediante `Iniciar Nyxia.cmd`, la ruta activa en Windows es `D:\Alice Continuum\data\memory`.
 
 La variable `ALICE_DATA_DIR` controla la raíz. No cambiarla con Alice abierta. Para trasladar datos: cerrar Alice, copiar la carpeta completa, validar `records.json`, cambiar la variable y confirmar desde la pantalla Memoria antes de borrar la fuente anterior.
 
@@ -31,7 +31,7 @@ retiran el archivo creado. El respaldo del guardado está en
 `memory/backups/records.backup.json`. Si el error informa que también falló la
 recuperación, cerrar Alice y seguir la recuperación manual antes de reintentar.
 Estos controles no equivalen a una transacción completa frente a cortes de energía.
-Véase [ADR-P-111](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-111-persistencia-y-control-del-motor.md).
+Véase [ADR-P-111](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-111-persistencia-y-control-del-motor.md).
 
 ## Recuperación manual
 

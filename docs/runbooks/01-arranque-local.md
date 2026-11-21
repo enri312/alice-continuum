@@ -3,12 +3,12 @@
 ## Primera instalación
 
 1. Instalá Node.js y npm en las versiones del proyecto, Rust mediante rustup, las herramientas de C++ de Visual Studio y el runtime WebView2. [Versiones del proyecto](../../README.md).
-2. Abrí PowerShell en la carpeta que contiene `Iniciar Alice Continuum.cmd` y ejecutá `npm ci`.
+2. Abrí PowerShell en la carpeta que contiene `Iniciar Nyxia.cmd` y ejecutá `npm ci`.
 3. Comprobá el entorno y abrí Alice.
 
 ```powershell
-& '.\Iniciar Alice Continuum.cmd' --check
-& '.\Iniciar Alice Continuum.cmd'
+& '.\Iniciar Nyxia.cmd' --check
+& '.\Iniciar Nyxia.cmd'
 ```
 
 El primer inicio compila la aplicación. En las siguientes sesiones basta con abrir el archivo `.cmd`. Cuando veas el Dashboard, entrá en **Conversación** y comprobá que haya un proveedor listo. [Configurar un modelo, la voz y el primer mensaje](03-conversacion-y-voz.md).

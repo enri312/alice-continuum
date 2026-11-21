@@ -17,11 +17,11 @@ Desde el 9 de noviembre de 2026, la carpeta de trabajo es **Datos → Alice
 Continuum**. En Ubuntu se monta en
 `/run/media/carlos-nu-ez/Datos/Alice Continuum`; los accesos del menú y del
 escritorio apuntan a esa carpeta. En Windows, abre el volumen **Datos**, entra
-en **Alice Continuum** y ejecuta `Iniciar Alice Continuum.cmd`. La letra que
+en **Alice Continuum** y ejecuta `Iniciar Nyxia.cmd`. La letra que
 Windows asigne al volumen puede variar; el lanzador obtiene su propia ubicación.
 
 La recuperación conservó Git, los cambios locales, los datos y los recursos
-privados. Consulta el [informe de recuperación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
+privados. Consulta el [informe de recuperación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/PROJECT_RECOVERY_REPORT_2026-11-09.md).
 
 ## Preparar el sistema
 
@@ -37,7 +37,7 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
   libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
   python3-venv python3-gi gir1.2-atspi-2.0 ffmpeg util-linux \
   gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
-git clone https://github.com/enri312/alice-continuum.git
+git clone https://github.com/enri312/nyxia.git
 cd alice-continuum
 npm ci
 python3 -m venv --copies runtime/venv-linux
@@ -240,7 +240,7 @@ reproducción confirmada. La lista privada y su vuelta al primer video se
 verificaron con esa sesión iniciada. Estos adaptadores son de Ubuntu;
 al volver a Windows habrá que comprobar también esta preferencia allí.
 
-Ver [mediciones y aceptación de música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+Ver [mediciones y aceptación de música](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 ## Alcance y comprobación
 
@@ -248,7 +248,7 @@ Linux conecta el permiso de micrófono WebKitGTK con la sesión iniciada mediant
 «Iniciar escucha de Alice». Una captura manual o de cámara muestra un diálogo
 nativo «Alice · Permiso de captura»; pulsa Permitir para esa captura. Cancelar no
 abre dispositivos. Si se rechaza el micrófono, Alice muestra el motivo en español.
-Ver [corrección y prueba reproducible](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md).
+Ver [corrección y prueba reproducible](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_MICROPHONE_REPORT_2026-11-06.md).
 
 Si Alice se queda en espera sin llegar a transcribir, revisa primero la entrada
 real de audio. En esta Nitro, Ubuntu exponía **Stereo Microphone** (entrada

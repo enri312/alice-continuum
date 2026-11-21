@@ -227,7 +227,7 @@ export function SensoryLearningPanel({ observationEnabled, ollamaReady, ollamaMo
   async function startVisualSession() {
     setError("");
     if (!nativeRuntime) { setError("La observación visual requiere Alice Desktop."); return; }
-    if (!ollamaReady) { setError("Ollama local no está listo. Abrí Alice mediante Iniciar Alice Continuum.cmd."); return; }
+    if (!ollamaReady) { setError("Ollama local no está listo. Abrí Alice mediante Iniciar Nyxia.cmd."); return; }
     if (!navigator.mediaDevices?.getDisplayMedia) { setError("El runtime actual no ofrece el selector seguro de pantalla."); return; }
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 1, max: 2 } }, audio: false });

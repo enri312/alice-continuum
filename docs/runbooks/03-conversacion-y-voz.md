@@ -51,7 +51,7 @@ El estilo no amplía permisos, no convierte una respuesta en recibo de ejecució
 ni elimina la procedencia visible. Cambiar la voz no entrena al reconocedor y
 no acredita una mejora del micrófono. La nueva escucha y el estilo cotidiano
 requieren valoración del propietario; ver
-[reporte del incremento](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
+[reporte del incremento](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
 
 ## Vista del historial
 
@@ -131,8 +131,8 @@ de forma incompleta, usar **Dictar con botón → Empezar a grabar** y pulsar
 Ese modo no cierra por silencio y deja el borrador para revisar; no enviarlo
 al chat durante el diagnóstico. El botón de la sesión automática conserva el
 cierre por silencio, así que no equivale a este dictado manual.
-Ver [evaluación de small](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
-[la validación y los límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
+Ver [evaluación de small](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md) y
+[la validación y los límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_SESSION_REPORT_2026-11-04.md).
 
 ## Tomas no atendidas y peticiones ambiguas
 
@@ -171,7 +171,7 @@ la aclaración como un recibo de ejecución.
 
 La precisión ASR continúa pendiente. Se mantienen la voz privada, personalidad,
 modelos y filtros. Ver
-[alcance y resultados del incremento](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
+[alcance y resultados del incremento](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
 
 ## Música y ruido de fondo
 
@@ -187,12 +187,12 @@ recortadas. Se mantienen los demás filtros, criterios VAD, dispositivo y
 modelos; no se amplía la interfaz. Es un ajuste acotado para reducir la
 amplificación: no acredita mejor reconocimiento ni demuestra que el recorte
 fuera la única causa. Ver
-[caso medido y comprobación pendiente](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
+[caso medido y comprobación pendiente](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md#ajuste-posterior-ganancia-de-voz-baja-4-a-2).
 
 Voz baja conserva la salida de RNNoise sin una segunda atenuación según la
 probabilidad de voz. Normal mantiene esa atenuación adicional. El ajuste puede
 dejar pasar más ruido residual y no garantiza por sí solo una transcripción
-correcta. Ver [pruebas y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
+correcta. Ver [pruebas y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
 
 1. Abrir **Audio de entrada**, actualizar la lista y elegir el micrófono cercano
    a la boca. No cambiar dispositivos mientras la captura está activa.
@@ -210,7 +210,7 @@ correcta. Ver [pruebas y límites](https://github.com/enri312/alice-continuum/bl
 La cancelación de toda la música del sistema sólo se anuncia si WebView2 confirma
 ese modo. El filtro no garantiza separación de cantantes o personas. La prueba
 de laboratorio no sustituye estos pasos con Carlos. Ver
-[ADR-P-105](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md).
+[ADR-P-105](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md).
 
 ## Aprendizaje automático y RAG
 
@@ -334,7 +334,7 @@ git diff --check
 ```
 
 Estas comprobaciones no llaman a Fish para validar calidad audible. Mantener el
-VRM fuera de esta etapa, según [ADR-P-096](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-096-prioridad-conversacional-y-voz-contextual.md).
+VRM fuera de esta etapa, según [ADR-P-096](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-096-prioridad-conversacional-y-voz-contextual.md).
 
 ## Vista durante la conversación
 
@@ -343,7 +343,7 @@ cámara por nombre o comparte el escritorio y pregunta normalmente. El backend
 toma imágenes por turno con Gemma local. Detener vistas es independiente de
 Detener conversación; salir de la pantalla detiene ambos canales. Revisa los
 límites y el procedimiento en [el manual](../MANUAL_DE_USO.md#ver-con-alice-cámara-y-escritorio)
-y [ADR-P-102](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md).
+y [ADR-P-102](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-102-vision-conversacional-local.md).
 
 ## Música durante la sesión
 
@@ -357,7 +357,7 @@ reproducción se devuelve como respuesta para poder seguir hablando.
 Se verificó reproducción, pausa y continuación de Tus me gusta desde el chat
 escrito; no sustituye la comprobación audible del reconocimiento y Fish con
 música de fondo. La primera canción real de YouTube la elegirá el propietario.
-Contrato: [ADR-P-104](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md).
+Contrato: [ADR-P-104](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md).
 
 La revisión posterior detectó que «abres Spotify y reproduce mi mi música»
 terminaba en una respuesta del modelo sin ejecutar la herramienta. El parser
@@ -365,7 +365,7 @@ ahora admite esa variante y la orden «abre Spotify y reproduce mi música».
 Para diagnosticar otros casos, contrasta `userText` con el recibo: una acción
 multimedia real usa `responseId` con prefijo `desktop:media:`, no `chatcmpl-`.
 Una petición incompleta debe devolver aclaración, nunca un éxito inventado.
-Ver [regresión de voz y música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+Ver [regresión de voz y música](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
 
 ## Citas con destinatario explícito
 

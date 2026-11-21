@@ -29,7 +29,7 @@ No debe borrarse una carpeta generada durante una ejecución. Antes de limpiar
 archivos privados o mover código, comprobar sus referencias y el respaldo.
 
 Las guías de [`runtime/`](../../runtime/README.md) y [`data/`](../../data/README.md)
-explican sus ubicaciones y límites. La [revisión del 15 de noviembre](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+explican sus ubicaciones y límites. La [revisión del 15 de noviembre](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
 reubicó evidencias y auxiliares; mantuvo los datos operativos, modelos, entornos
 y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
 `runtime/artifacts/dioxus/{browser,native}/`. Los scripts privados de
@@ -45,7 +45,7 @@ y herramientas en sus rutas activas. Las nuevas pruebas Dioxus escriben en
   Núcleo de gobernanza.
 
 La guía [Componentes de iconos](../../Frontend/src/components/icons/README.md) y la
-[revisión de reorganización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md) contienen más detalle.
+[revisión de reorganización](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md) contienen más detalle.
 
 ## Verificación de rutas
 

@@ -11,8 +11,8 @@
 
 **Nyxia (Ník-sia) es una asistente personal de escritorio.** Podés conversar con ella, revisar qué recuerda y pedirle acciones autorizadas, como reproducir una playlist. El Dashboard muestra el estado del motor, los recuerdos y los recursos del equipo.
 
-Nyxia es el nombre que adopta el proyecto Alice Continuum. La instalación
-sigue usando el repositorio `alice-continuum` y su almacenamiento existente.
+El código se publica en `enri312/nyxia`. La instalación usa el almacenamiento
+existente para conservar recuerdos, historial y configuración.
 
 [Manual de uso](docs/MANUAL_DE_USO.md) · [Guías por tarea](docs/README.md) · [Roadmap](Roadmap.md)
 

@@ -176,7 +176,7 @@ y anchos 320–1280 px. La aceptación Tauri usa IPC real y datos aislados, sin
 enviar una consulta a un modelo ni abrir dispositivos. Esa primera versión de
 Conversación todavía usaba React.
 Ver [dirección visual](docs/architecture/DIRECCION_VISUAL_ALICE.md) e
-[informe y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
+[informe y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_PROPOSAL04_REPORT_2026-11-15.md).
 
 **Limpieza de elementos añadidos:** por observación del propietario se retiraron
 el aro decorativo, las dos flechas y el encabezado técnico repetido que se había
@@ -193,7 +193,7 @@ cristal, circuitos y acentos violeta/azul/cian, conservando mensajes, micrófono
 filtro local, respuesta vocal y visión opcional. La escena es estática y no
 indica dispositivos activos. Generación individual reproducible, otros 21 SVG
 intactos, 173 comprobaciones de iconos, compilación y aceptación de navegador
-correctas. Ver [informe](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
+correctas. Ver [informe](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/CONVERSATION_ICON_PROPOSAL04_REPORT_2026-11-15.md).
 
 **Reparto Node.js/Python, primer incremento (2026-11-15):** por instrucción del
 propietario se inició el formateo de notas Obsidian en Python. El ensayo privado
@@ -205,7 +205,7 @@ La integración se probó únicamente con bóvedas ficticias, incluidos conflict
 y fallo del adaptador. Respaldos, núcleo, permisos y diseño conservan su función.
 El segundo incremento incorpora el análisis del reranqueo R8 descrito debajo;
 Dioxus mantiene el objetivo de retirar React. Ver [reparto y estado](docs/architecture/REPARTO_NODE_PYTHON.md)
-y [pruebas](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
+y [pruebas](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_OBSIDIAN_REPORT_2026-11-15.md).
 
 **Reparto Node.js/Python, segundo incremento (2026-11-15):** el evaluador manual
 `r8-gemma-rerank-eval.test.ts` delega conteos Top-1/Top-3, proporciones, latencia
@@ -215,7 +215,7 @@ y comprobación SHA-256. El modo offline `eval:r8:report` procesa sólo rankings
 numéricos elegidos expresamente, sin modelos ni textos personales. Se compara
 con el cálculo anterior usando 25 lotes ficticios; el ensayo con Gemma y perfil
 real continúa siendo optativo y no se ejecutó en este incremento. No se portan
-los pilotos históricos ni se modifica su evidencia. Ver [auditoría y validación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
+los pilotos históricos ni se modifica su evidencia. Ver [auditoría y validación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NODE_PYTHON_R8_REPORT_2026-11-15.md).
 El contenedor de Actividad avanzó en el incremento Dioxus descrito más abajo.
 
 **Prioridad posterior del propietario:** continuar en Windows y reducir React
@@ -283,7 +283,7 @@ privacidad; Edge con IPC ficticio comprueba también desmontaje y respuesta
 tardía sin guardar. Se conservaron clases CSS, rótulos y contenido; no se usaron
 recuerdos personales. Siguen pendientes la aceptación nativa Tauri y retirar
 las dependencias del contenedor/sondeo de Flujo y sus respaldos.
-Ver [informe y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md).
+Ver [informe y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ASSOCIATIONS_DIOXUS_REPORT_2026-11-15.md).
 
 **Contenedor y sondeo de Flujo (2026-11-15):** el contenedor completo, la selección,
 la validación/proyección R3 y el sondeo de cinco segundos pasan a Rust/Dioxus.
@@ -300,7 +300,7 @@ de Tauri/WebView2 y backend real sobre fuentes sintéticas: Conversación,
 Estado/Flujo, inspector, R3, revisión, confirmación, cancelación y persistencia
 al recargar. Esa prueba detectó y permitió corregir el formato de hashes de
 evidencia (`sha256:`); los fixtures y una regresión cubren ahora el contrato
-nativo. Ver [informe y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
+nativo. Ver [informe y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/FLOW_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 **Cierre obligatorio de cada migración:** abrir Alice en Windows desde el código
 actual, comprobar la pantalla afectada y la navegación, y distinguir la prueba
@@ -332,7 +332,7 @@ nuevas usan `runtime/artifacts/dioxus/` y los respaldos cubren también
 frontend (dos omitidas), 15 Obsidian, 20 respaldos y dos privacidad aprobadas.
 Edge con IPC ficticio y Tauri/WebView2 con backend real y datos aislados
 comprobaron navegación, R3, relaciones y persistencia tras la movida.
-El [informe de organización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
+El [informe de organización](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/LOCAL_DATA_ORGANIZATION_REPORT_2026-11-15.md)
 detalla el alcance. La siguiente migración continúa de una pantalla por vez;
 este incremento no modifica componentes ni estilos.
 
@@ -344,7 +344,7 @@ los originales de esas configuraciones se conservaron en D:. Build, 894 pruebas
 frontend, 421 del backend Rust (32 omitidas), Obsidian, respaldos, privacidad y
 19 pruebas Python (una omitida) aprobados. Tauri/WebView2 comprobó navegación,
 R3 y persistencia desde la nueva ruta. Linux nativo se comprobará por separado.
-Ver [informe del renombrado](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
+Ver [informe del renombrado](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/RUNTIME_RENAME_REPORT_2026-11-15.md).
 
 **Sesión R3 de Estado y controles (2026-11-15):** sondeo serializado de cinco
 segundos, validación y proyección de métricas pasan a Rust/Dioxus. El host React
@@ -355,7 +355,7 @@ Build, 28 pruebas Rust, Clippy WASM y 898 frontend aprobados; también Obsidian,
 respaldos y privacidad. Edge verificó lecturas suspendidas durante dos intervalos,
 señal inválida, teclado, ajustes, desmontaje y recuperación. Tauri/WebView2 abrió
 Estado con R3 real y comprobó navegación y persistencia con datos aislados.
-Ver [informe y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
+Ver [informe y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_SESSION_DIOXUS_REPORT_2026-11-15.md).
 
 **Línea temporal cognitiva (2026-11-15):** la ventana de 24 eventos, selección,
 geometría, contadores, duración, inspector y leyenda pasan a Rust/Dioxus.
@@ -366,7 +366,7 @@ persistencia en este renderer. En ese incremento, el contenedor de Actividad y
 las otras vistas continuaban pendientes. Build, 32 pruebas Rust, Clippy WASM, 900 frontend,
 Obsidian, respaldos y privacidad aprobados. Navegador y Tauri comprobaron
 selección por teclado, actualización, vaciado, navegación y recuperación.
-Ver [informe del incremento](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
+Ver [informe del incremento](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/TIMELINE_DIOXUS_REPORT_2026-11-15.md).
 
 **Página de Actividad (2026-11-15):** encabezado, pestañas Timeline/Event Stream,
 consola, búsqueda, filtro por módulo y estado visible pasan a Rust/Dioxus en un
@@ -378,7 +378,7 @@ Se retiran `ActivityPage.tsx`, `CognitiveTimelineHost.tsx` y el montaje WASM
 independiente de Timeline. Auditoría/diagnóstico queda separado, con su contenido
 React anterior. `ActivityHost.tsx` es una frontera temporal de montaje/reintento;
 `App.tsx` todavía produce y conserva el buffer y la navegación. La salida total
-de React permanece pendiente. Ver [alcance y aceptación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
+de React permanece pendiente. Ver [alcance y aceptación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ACTIVITY_PAGE_DIOXUS_REPORT_2026-11-15.md).
 
 **Primer ensayo de instalación limpia Windows:** en un clon aislado sin
 dependencias, el lanzador indicó que faltaba Vite y pidió `npm ci`. Después de
@@ -410,7 +410,7 @@ Después se retoma la comprobación del núcleo ya implementado: el autoestudio
 limitado a las materias autorizadas y su proyección en Obsidian conservan sus
 avances. Siguen pendientes la revisión de contratos, la aceptación personal del
 ciclo de aprendizaje y los incrementos de estructura que esa revisión justifique.
-Ver [estructura y pendientes](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
+Ver [estructura y pendientes](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_STRUCTURE_REPORT_2026-11-10.md).
 
 En paralelo continúa la aceptación de conversación, escucha, voz, percepción y
 acciones de PC ya delegadas de R9. Gemma local mantiene el diálogo; Whisper local
@@ -429,7 +429,7 @@ considerará su incorporación tras validar funcionamiento, contenido, límites 
 reversión; un build o una muestra sintética no bastan. La propuesta
 «Persistencia y Grafos: Evolución futura de R6 y R8» queda aplazada para una
 revisión profunda del proyecto. No se autoriza una migración de memoria en este tramo.
-[Resultados de los pilotos y pendientes](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
+[Resultados de los pilotos y pendientes](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ISOLATED_PILOTS_REPORT_2026-11-13.md).
 El ajuste visual de Dioxus queda dentro de `experiments/`: deslizadores bloqueados
 para comportamiento y fila `EPISODIC` sintética. Compilación, cuatro pruebas de
 modelo, inspector y presentación de escritorio comprobados; quedan la revisión
@@ -442,7 +442,7 @@ su bloqueo. La fila de memoria muestra el contexto recuperado real, distinguiend
 preparación, envío, respuesta, ruta sin memoria y fallo. Contratos, compilación y
 revisión Tauri de escritorio comprobados; quedan la aceptación del tono y la
 revisión completa a otros anchos. El
-[incremento React/Tauri](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md) conserva
+[incremento React/Tauri](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_CONTROLS_REPORT_2026-11-13.md) conserva
 el rótulo técnico y «Modelo interno», sin migrar la persistencia de R6/R8.
 La memoria recuperada adopta una fila compacta de categoría, contenido y puntuación,
 con estado y procedencia al seleccionarla en el inspector. Recuperación local real
@@ -452,7 +452,7 @@ y selección comprobadas en Tauri; 20 pruebas dirigidas y compilación aprobadas
 con el mismo CSS y contenido, dos ajustes conectados, seis controles bloqueados,
 memoria real e inspector. El adaptador React conserva el estado y una vista de
 respaldo. Pasaron 863 pruebas frontend, 15 de Obsidian, 20 de respaldos, dos del
-contrato Rust, compilación WASM y Clippy. Ver [evidencia y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
+contrato Rust, compilación WASM y Clippy. Ver [evidencia y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/STATE_CONTROLS_DIOXUS_REPORT_2026-11-14.md).
 `experiments/` queda fuera de Git; de `data/obsidian/` sólo se versiona `.gitkeep`.
 
 ## Propósito
@@ -497,7 +497,7 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
 - **Estructura del núcleo:** autoestudio separado en contratos, reglas,
   persistencia, adaptación a Gemma y coordinación nativa. La aplicación sigue
   siendo un monolito parcialmente modularizado.
-  [ADR-P-113](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-113-autoestudio-modular.md).
+  [ADR-P-113](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-113-autoestudio-modular.md).
 - **Memoria:** cuatro accesos —Aprendizaje, Recuerdos, En sesión y Mantenimiento—;
   autoestudio primero, icono de conocimiento con fuentes conectadas y nombres
   completos en la barra compacta. Escucha y cierre de eventos autorizados sólo
@@ -510,34 +510,34 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   [Respaldo y restauración](docs/runbooks/07-respaldo-integral.md).
 - **Documentación y publicación:** README con tecnologías y versiones verificadas;
   cambios integrados en la rama principal `master` de
-  [alice-continuum](https://github.com/enri312/alice-continuum).
+  [alice-continuum](https://github.com/enri312/nyxia).
 
 - **Volumen y evolución:** representación del cerebro lógico con nodos vinculados
   a registros y seguimiento de cambios observados al aprender, sin duplicar el
   mapa de módulos de Flujo cognitivo.
   Los intentos de estudio permanecen visibles con su estado, separados de RAG;
   la actividad R3 y el modo Demostración tienen fuentes y significados distintos.
-  [ADR-P-115](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
+  [ADR-P-115](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-115-volumen-cognitivo-y-evolucion-visible.md).
 
 - **Fuentes de aprendizaje y núcleo:** lecturas serializadas y recuperables,
   eventos con respaldo periódico, mutaciones protegidas frente a respuestas
   antiguas y coordinación extraída de `App.tsx`. El Volumen muestra fase registrada,
   última lectura y errores, con reintento de consulta; la leyenda queda plegada
-  fuera del lienzo. [ADR-P-116](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md).
+  fuera del lienzo. [ADR-P-116](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-116-fuentes-de-aprendizaje-observables.md).
 
 - **Colores y revisión nativa del Volumen:** relleno por tipo o asociación
   emocional revisada; estados en contornos y recuperación en anillo blanco,
   con guía y ficha derivadas de las mismas definiciones. Se revisaron la página,
   sus fuentes y la actualización de lecturas en Tauri. El fallo del canal anterior
   de automatización se resolvió usando la conexión compatible.
-  [ADR-P-117](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-117-colores-y-marcas-del-volumen.md).
+  [ADR-P-117](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-117-colores-y-marcas-del-volumen.md).
 
 - **Fiabilidad del aprendizaje y prioridad:** una respuesta no evaluable conserva
   el conocimiento anterior y termina el ciclo con un aviso, sin calificaciones
   ficticias. El motor reserva la prioridad de conversación antes de la cola y
   vuelve a comprobar la cesión al recibir una respuesta. La prioridad vive en
   un módulo privado separado del transporte y del proceso.
-  [ADR-P-118](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md).
+  [ADR-P-118](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-118-evaluacion-fiable-y-prioridad-de-conversacion.md).
 
 - **Reanudación del estudio y continuación R9:** pausa invalida el ciclo anterior;
   reanudar mientras termina conserva una única solicitud y la libera al cerrar
@@ -545,8 +545,8 @@ Alice no se integrará al kernel de Windows. La integración con el equipo se re
   Volumen incorpora crecimiento observado y contornos de estado; Spotify en
   Windows admite la playlist privada configurada, comprobando su identificador
   en el contexto de reproducción.
-  [Coordinación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
-  [Spotify](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
+  [Coordinación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-119-reanudacion-del-autoestudio.md) ·
+  [Spotify](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-120-playlist-spotify-configurada.md).
 
 **Validación conservada del 12 de noviembre:** 824 pruebas frontend aprobadas
 (2 sondas omitidas), 393 Rust (30 sondas omitidas), 15 de Obsidian y 20 de respaldo;
@@ -572,12 +572,12 @@ La pérdida de «pausa» también se observó al repetir una orden corta. Whispe
 deja de recibir una lista fija como texto inicial; una mención de servicio sin
 acción pide aclaración antes de Gemma y de cualquier herramienta. La repetición
 acústica con este ajuste permanece pendiente.
-[ADR-P-122](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-122-transcripcion-sin-texto-prefijado.md).
+[ADR-P-122](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-122-transcripcion-sin-texto-prefijado.md).
 Por la petición de mayor sensibilidad para voz baja se añadió un perfil de
 ganancia 4× y pausa de cierre de 2 s, con opción Normal y sin modificar los
 criterios mínimos de voz. En la repetición personal hubo una orden corta de
 pausa correcta y otras con palabras sustituidas; la precisión no es estable.
-[ADR-P-123](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-123-voz-baja-y-pausada.md).
+[ADR-P-123](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-123-voz-baja-y-pausada.md).
 Se instaló small multilingüe junto a base, sin cambiar la captura.
 La configuración se fija una vez por toma y el resultado identifica ese modelo;
 la selección explícita por entorno conserva prioridad. La aceptación acústica
@@ -599,15 +599,15 @@ que reducía la señal estimada como poco probable voz hasta el 8 %. Se conserva
 RNNoise, supresión del navegador, ganancia 4×, modelo y detector de fin de frase.
 La prueba de señal controlada no acredita por sí sola que conserve todas las
 palabras del propietario; la repetición acústica sigue pendiente.
-[ADR-P-125](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-125-conservar-voz-baja-filtrada.md) ·
-[Pruebas de señal](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
+[ADR-P-125](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-125-conservar-voz-baja-filtrada.md) ·
+[Pruebas de señal](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SOFT_VOICE_SIGNAL_REPORT_2026-11-12.md).
 La repetición personal siguió cambiando palabras. Se añade diagnóstico local
 de entrada/salida y saturación, junto a escucha de la toma filtrada antes de
 transcribir y un resultado ASR separado del borrador. Se mantiene la cadena
 de audio para medirla antes de decidir otro ajuste. La claridad del sonido y
 la precisión de la frase real siguen pendientes.
-[ADR-P-126](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-126-diagnostico-local-de-audio.md) ·
-[Diagnóstico de entrada](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
+[ADR-P-126](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-126-diagnostico-local-de-audio.md) ·
+[Diagnóstico de entrada](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_INPUT_DIAGNOSTICS_REPORT_2026-11-12.md).
 Por prioridad del propietario, se incorpora una personalidad compartida para
 texto, voz y visión y una selección de voz Fish privada en
 `data/voice-profile.json`. El perfil local prevalece; la variable heredada sólo
@@ -616,8 +616,8 @@ se consulta si no existe ese archivo. No se cambia el modelo TTS
 síntesis exitosa de una frase revisada en Tauri. La valoración audible
 y la aceptación cotidiana del estilo quedan pendientes del propietario; no
 cierran el fallo de reconocimiento ni R9.
-[ADR-P-127](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-127-voz-privada-y-personalidad-alice.md) ·
-[Verificación del incremento](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
+[ADR-P-127](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-127-voz-privada-y-personalidad-alice.md) ·
+[Verificación del incremento](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/ALICE_VOICE_PERSONALITY_REPORT_2026-11-12.md).
 El propietario confirmó que dijo «Alice reproduce Spotify»; el reconocedor
 cambió el verbo y el modelo respondió con una formulación que no correspondía
 a una ejecución real. Se añade un único resultado efímero de entrada no atendida
@@ -631,8 +631,8 @@ respectivamente, y la compilación TypeScript/Vite. La variación de assets es
 2.366 bytes (0,031 %), con cinco assets; no mide CPU o arranque nativo.
 Clippy y formato también aprobaron. En Tauri se comprobó la aclaración por
 texto y el detalle de descartes; la aceptación acústica continúa pendiente.
-[ADR-P-128](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) ·
-[Resultados y pendientes](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
+[ADR-P-128](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-128-feedback-de-escucha-y-aclaracion-local.md) ·
+[Resultados y pendientes](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_TURN_FEEDBACK_REPORT_2026-11-12.md).
 Una toma manual posterior mostró recorte de entrada con ganancia 4×. Se reduce
 únicamente la ganancia de **Voz baja y pausada** a **2×**, conservando Normal,
 filtros, VAD, cierre de 2 s, dispositivo y modelos. No se añaden controles,
@@ -642,11 +642,11 @@ el propietario había pronunciado la etiqueta del botón. Se aclara que debe pul
 de recorte no demuestra la causa única de una transcripción incorrecta.
 Los incrementos anteriores conservan sus valores históricos de 4×.
 
-[ADR-P-124](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
-[Evaluación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
-[Prueba con micrófono y recuperación](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
-[Continuación del núcleo y R9](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
-[Resultados y alcance](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/README.md#verificación).
+[ADR-P-124](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-124-modelo-whisper-small.md) ·
+[Evaluación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_SMALL_REPORT_2026-11-12.md).
+[Prueba con micrófono y recuperación](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/VOICE_PLAYLIST_ACCEPTANCE_REPORT_2026-11-11.md).
+[Continuación del núcleo y R9](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/COGNITIVE_R9_CONTINUATION_REPORT_2026-11-11.md).
+[Resultados y alcance](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/README.md#verificación).
 
 ### Incremento del 13 de noviembre: fallos del proceso Whisper
 
@@ -667,8 +667,8 @@ aprobaron en 5,13 s en total y la positiva sintética con Alice/Gemma activos
 en 8,01 s. Son comprobaciones de proceso, no aceptación acústica, que sigue
 pendiente. La opinión solicitada sobre el diseño no añade
 un proyecto de rediseño ni cambia la prioridad de estabilizar R9.
-[ADR-P-129](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-129-fallos-del-proceso-whisper.md) ·
-[Resultados y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
+[ADR-P-129](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-129-fallos-del-proceso-whisper.md) ·
+[Resultados y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WHISPER_PROCESS_FAILURE_REPORT_2026-11-13.md).
 
 ### Incremento del 13 de noviembre: watchdog del filtro local
 
@@ -693,8 +693,8 @@ con demora. El último turno R3 registró 6998 ms de transcripción, 1721 ms de
 respuesta y 2361 ms de síntesis; no incluye captura, pausa de cierre o reproducción.
 La causa física anterior y la aceptación prolongada siguen pendientes;
 Whisper, Obsidian y respaldo conservan sus validaciones anteriores sin repetirse.
-[ADR-P-130](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-130-watchdog-del-filtro-local.md) ·
-[Resultados y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
+[ADR-P-130](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-130-watchdog-del-filtro-local.md) ·
+[Resultados y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/NOISE_WATCHDOG_REPORT_2026-11-13.md).
 
 
 El propietario confirmó que puede ver el progreso del autoestudio. Aún deben
@@ -798,7 +798,7 @@ La pestaña Actividad será una lectura comprensible de eventos reales; los arch
 
 Alice tiene diez canales definidos: Alegría, Tristeza, Ira, Temor, Desagrado, Ansiedad, Envidia, Aburrimiento, Vergüenza y Nostalgia. Un recuerdo conversacional nuevo puede conservar hasta tres emociones explícitas, cada una con intensidad y cita literal revisada por Carlos. El volumen mezcla esos colores; tamaño e intensidad siguen siendo magnitudes separadas. El estado afectivo efímero de Alice permanece apagado, sin emoción dominante.
 
-El futuro motor deberá explicar qué señal modificó cada canal, aplicar decaimiento, separar estado efímero de memoria y permitir desactivar su influencia sobre comportamiento y avatar. No se presentará como conciencia, sentimiento biológico ni diagnóstico del usuario. El diseño completo está en [AFFECTIVE_SIMULATION_DESIGN.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md).
+El futuro motor deberá explicar qué señal modificó cada canal, aplicar decaimiento, separar estado efímero de memoria y permitir desactivar su influencia sobre comportamiento y avatar. No se presentará como conciencia, sentimiento biológico ni diagnóstico del usuario. El diseño completo está en [AFFECTIVE_SIMULATION_DESIGN.md](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/AFFECTIVE_SIMULATION_DESIGN.md).
 
 ### Fase R4 — Taller de habilidades
 
@@ -940,16 +940,16 @@ El tamaño visual de un nodo podrá representar fuerza o uso, pero nunca será p
 
 R6.1 satisface capa, procedencia y reconstrucción; R6.2 separa RAM y salida; R6.3-B permite mantener pares separados; R6.3-C proyecta una fusión; R6.3-D demuestra reemplazo atómico y restauración controlada; R6.3-E persiste el recibo y R6.3-F expone estado y restauración gobernada. Crear o ejecutar una fusión canónica continúa bloqueado y requerirá una decisión independiente.
 
-**Preauditoría R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resolvió la brecha estructural de capa, pero quedaron nueve recuerdos `notAssessed` sin procedencia explícita. Esa evidencia histórica y el bloqueo correcto se conservan en [R6_CLOSEOUT_AUDIT_2026-08-24.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md).
+**Preauditoría R6 · 2026-08-24:** las sondas Rust de sólo lectura encontraron 20 recuerdos reales y conservaron los SHA-256 de los 21 archivos canónicos. R6.6-A resolvió la brecha estructural de capa, pero quedaron nueve recuerdos `notAssessed` sin procedencia explícita. Esa evidencia histórica y el bloqueo correcto se conservan en [R6_CLOSEOUT_AUDIT_2026-08-24.md](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R6_CLOSEOUT_AUDIT_2026-08-24.md).
 
-**Cierre final R6 · 2026-09-01:** después de las decisiones explícitas del propietario y la retirada de registros inconclusos, `records.json` contiene 15 recuerdos reales: 13 vigentes y 2 conflictivos, sin recuerdos no evaluados ni procedencia faltante. La proyección `layer-index-v3.json` activa clasifica 14 episodios y 1 procedimiento `pendingR5`, sin elementos no clasificados. El ciclo `lifecycle-index-v1.json` también está activo sobre el mismo SHA-256 vigente. Las dos sondas canónicas de sólo lectura conservaron exactamente los 35 archivos de `data/` y su digest agregado. Los 2 conflictos permanecen visibles y excluidos de recuperación como conocimiento vigente; no bloquean el cierre porque R6 exige preservarlos, no resolverlos silenciosamente. Evidencia completa en [R6_CLOSEOUT_REPORT_2026-09-01.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md).
+**Cierre final R6 · 2026-09-01:** después de las decisiones explícitas del propietario y la retirada de registros inconclusos, `records.json` contiene 15 recuerdos reales: 13 vigentes y 2 conflictivos, sin recuerdos no evaluados ni procedencia faltante. La proyección `layer-index-v3.json` activa clasifica 14 episodios y 1 procedimiento `pendingR5`, sin elementos no clasificados. El ciclo `lifecycle-index-v1.json` también está activo sobre el mismo SHA-256 vigente. Las dos sondas canónicas de sólo lectura conservaron exactamente los 35 archivos de `data/` y su digest agregado. Los 2 conflictos permanecen visibles y excluidos de recuperación como conocimiento vigente; no bloquean el cierre porque R6 exige preservarlos, no resolverlos silenciosamente. Evidencia completa en [R6_CLOSEOUT_REPORT_2026-09-01.md](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R6_CLOSEOUT_REPORT_2026-09-01.md).
 
 #### Ampliaciones de memoria autorizadas en noviembre
 
 La selección automática de citas conversacionales del 3 de noviembre conserva
 lo declarado por el propietario, su procedencia y los controles de pausa,
 corrección y retirada. No reescribe los registros confirmados.
-[ADR-P-101](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+[ADR-P-101](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 
 El autoestudio incorporado el 10 de noviembre comenzó con 42 lecciones. Ahora
 usa **48 lecciones en 16 áreas**, con tres niveles por área. Sus materias son:
@@ -973,8 +973,8 @@ las materias en profundidad ni modifica los pesos del modelo.
 El progreso vive en `data/memory/self-study-v1.json`, separado de recuerdos
 personales y perfil. Obsidian lo proyecta junto con las otras fuentes mediante
 sincronización **Alice → Obsidian**; las notas generadas no amplían el currículo.
-[Fuentes](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/SELF_STUDY_SOURCES_2026-11-10.md) ·
-[Prueba de arranque y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SELF_STUDY_STARTUP_REPORT_2026-11-10.md) ·
+[Fuentes](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/SELF_STUDY_SOURCES_2026-11-10.md) ·
+[Prueba de arranque y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/SELF_STUDY_STARTUP_REPORT_2026-11-10.md) ·
 [Proyección en Obsidian](docs/runbooks/05-memoria-obsidian.md).
 
 ### Fase R7 — Tareas programadas e intenciones
@@ -993,8 +993,8 @@ La primera versión permitirá recordatorios locales y comprobaciones de solo le
 - [x] El historial diferencia programación, intento, omisión y resultado.
 - [x] El modo en segundo plano puede desactivarse completamente.
 
-Cierre y alcance precisos en [el plan R7](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/plans/R7-tasks-intentions.md) y
-[la validación viva R7.5](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R7_5_LIVE_VALIDATION_2026-09-04.md).
+Cierre y alcance precisos en [el plan R7](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/plans/R7-tasks-intentions.md) y
+[la validación viva R7.5](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/R7_5_LIVE_VALIDATION_2026-09-04.md).
 El reloj detecta vencimientos; las salidas requieren una decisión explícita y
 mantienen reservas durables para evitar duplicados.
 
@@ -1031,7 +1031,7 @@ reales. El observatorio distingue estado vacío, normal, fuente cambiada y error
 sonda final reconstruyó 3 nodos desde la memoria canónica actual y preservó 42 archivos
 sin escrituras ni índices persistentes.
 Contrato: [KNOWLEDGE_GRAPH_R8.md](docs/architecture/KNOWLEDGE_GRAPH_R8.md).
-Plan: [R8-knowledge-graph.md](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/plans/R8-knowledge-graph.md).
+Plan: [R8-knowledge-graph.md](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/plans/R8-knowledge-graph.md).
 
 **Criterios de aceptación:**
 
@@ -1060,9 +1060,9 @@ del 2026-11-04: detección de pausas, Whisper base CPU para español, diálogo G
 respuesta Fish y nueva escucha sin confirmación por turno. Dos respuestas y
 parada comprobadas con audio sintético; aceptación con Carlos y música real
 pendiente. Node 26.13.0 LTS actualizado.
-Gemma 4 se mantiene y el avatar queda al final según [ADR-P-099](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).  
+Gemma 4 se mantiene y el avatar queda al final según [ADR-P-099](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-099-sesion-de-voz-y-node-26.md).  
 Se añade parada mediante orden directa durante escucha y evaluación de referentes
-Alice/Carlos/terceros con [ADR-P-100](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
+Alice/Carlos/terceros con [ADR-P-100](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-100-referentes-parada-de-voz-rust.md).
 El compilador del proyecto queda actualizado a Rust 1.99.1 estable.
 **Pendiente prioritario para uso cotidiano:** aceptación de cinco turnos con la
 voz del propietario y música de notebook/otro equipo; corregir referentes y
@@ -1077,19 +1077,19 @@ un turno real de voz y controles nativos de Spotify y de su playlist de YouTube;
 siguen pendientes las órdenes habladas, la escucha con música y la latencia del
 turno completo.
 [Base Ubuntu](docs/runbooks/04-ubuntu.md) ·
-[Resultados de voz y música](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
+[Resultados de voz y música](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/UBUNTU_LATENCY_MEDIA_REPORT_2026-11-06.md).
 
 Incremento 2026-11-05: preguntas sobre «tu explicación/voz…» en una cita con
 destinatario explícito disponen de una resolución local acotada, con procedencia
 visible y sin inferencia adicional. Los casos sin cobertura continúan en Gemma.
 Persisten errores con pronombres ambiguos y continuidad; no se da por aceptada
-la conversación real. [ADR-P-110](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
+la conversación real. [ADR-P-110](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-110-referencias-explicitas-en-citas.md).
 
 Incremento 2026-11-06: espera de frases dirigidas a Alice después de transcribir;
 «Detén la conversación, Alice» vuelve a espera y «Apaga el micrófono, Alice»
 cierra la sesión. Es un filtro por frase, no activación acústica dedicada ni
 interrupción durante la reproducción.
-[ADR-P-112](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
+[ADR-P-112](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-112-espera-por-nombre-y-apagado.md).
 
 **Dependencia:** Fases R1 a R3  
 **Objetivo vigente:** lograr conversación, escucha, voz, percepción y acciones
@@ -1108,7 +1108,7 @@ separados. Ninguno escribe recuerdos, decide por Alice o se activa al iniciar. L
 voz externa recibe una respuesta ya persistida. En la sesión automática, iniciar
 autoriza sus turnos hasta detener, salir o vencer; en modo manual se mantiene la
 vista previa por intento. Se conservan límites y descarte. Consulta el
-[plan R9](docs/plans/R9-presence-voice-body.md) y [ADR-P-094](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md).
+[plan R9](docs/plans/R9-presence-voice-body.md) y [ADR-P-094](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-094-puentes-de-presencia-voz-y-cuerpo.md).
 
 **Base corporal local ya comprobada:** el visor manual dispone de doce clips privados, mezcla locomotora, IK de apoyo y una FSM de siete estados para reposo, arranque, locomoción, salto, sentarse y levantarse. Sus transiciones generan telemetría R3 mínima con procedencia humana o diagnóstica; alimentan una región `Motor manual` aislada y no activan el puente cognitivo. El aprendizaje motor futuro deberá correlacionar intención, acción, telemetría y resultado en R3, exigir repeticiones válidas y proponer memoria procedural bajo confirmación; nunca inferir aprendizaje por la sola existencia o reproducción de un clip.
 
@@ -1186,14 +1186,14 @@ npm run build
 El 2026-11-03 se implementa la selección y persistencia automática de citas de
 nuevos mensajes Gemma, con pausa, corrección y retirada, RAG activo y proyección
 orgánica del volumen. El almacén automático conserva procedencia y no reescribe
-memoria confirmada. Ver [ADR-P-101](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
+memoria confirmada. Ver [ADR-P-101](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-101-aprendizaje-autonomo-y-volumen-organico.md).
 El autoestudio posterior se describe en las ampliaciones de R6. Ambas fuentes
 conservan su política y procedencia; el avatar continúa al final.
 
 ## Próximo paso autorizado
 
 Organización del proyecto (14 de noviembre): el backend nativo y sus adaptadores
-están en `Backend/`. La [revisión de organización](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md)
+están en `Backend/`. La [revisión de organización](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/REORGANIZACION_2026-11-14.md)
 registra las rutas actualizadas, las comprobaciones y los candidatos de limpieza
 que requieren revisión individual antes de retirarlos.
 
@@ -1219,7 +1219,7 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    aunque tardó; el último turno auditado concentra más tiempo en ASR.
    Comparar alternativas sólo con mediciones equivalentes y conservar el motor
    operativo hasta decidir. El proceso Whisper conserva sus pruebas.
-   La [revisión de herramientas](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/HERRAMIENTAS_Y_PERSISTENCIA_REVIEW_2026-11-13.md)
+   La [revisión de herramientas](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/research/HERRAMIENTAS_Y_PERSISTENCIA_REVIEW_2026-11-13.md)
    delimita el piloto ASR aislado, con carga e inferencia separadas; no promete
    velocidad por cambiar de librería o aumentar el modelo. Open Interpreter
    queda como candidato de desarrollo/habilidad. Las propuestas de wake word,
@@ -1354,25 +1354,25 @@ de Git. Las rutas anteriores se conservan únicamente como antecedentes en los
 informes de recuperación.
 
 El código y la documentación se publican en
-[enri312/alice-continuum](https://github.com/enri312/alice-continuum). La publicación
+[enri312/nyxia](https://github.com/enri312/nyxia). La publicación
 no incluye recuerdos, configuración privada, claves, modelos, capturas ni activos
 privados; las copias Git y los respaldos integrales tienen alcances diferentes.
-[Recuperación y límites](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md) ·
+[Recuperación y límites](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/WINDOWS_RECOVERY_READINESS_REPORT_2026-11-09.md) ·
 [Respaldo integral](docs/runbooks/07-respaldo-integral.md).
 
 ## Identidad vigente: Alice Continuum
 
 Desde el 2026-09-16 la plataforma se denomina **Alice Continuum**; Alice mantiene
 su nombre como personaje. Esta adopción no modifica el alcance ni el estado de
-las fases. Consulta [ADR-P-095](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-095-identidad-alice-continuum.md)
-y la [matriz de compatibilidad](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/CONTINUUM_IDENTITY.md).
+las fases. Consulta [ADR-P-095](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-095-identidad-alice-continuum.md)
+y la [matriz de compatibilidad](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/architecture/CONTINUUM_IDENTITY.md).
 
 ## Historial de incrementos de voz y acciones
 
 Las notas siguientes corresponden a sus fechas. El estado vigente de R9 y el
 orden de trabajo se encuentran en sus apartados anteriores.
 
-Incremento R9 del 2026-11-03: [música delegada](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
+Incremento R9 del 2026-11-03: [música delegada](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-104-musica-spotify-youtube-chrome.md)
 con Tus me gusta en Spotify y canciones pedidas en YouTube mediante Chrome.
 Spotify pasó la prueba de reproducir, pausar, continuar y pausar desde Alice con
 datos separados. La reproducción real de YouTube espera la canción del
@@ -1380,6 +1380,6 @@ propietario. El avatar sigue pospuesto; este incremento no cierra R9.
 
 Seguimiento del mismo día: se corrigen las órdenes habladas compuestas que
 recibían promesas sin reproducción, y se amplía la espera de Spotify al arrancar
-sin ventana. [Regresión y pruebas](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
+sin ventana. [Regresión y pruebas](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/testing/MEDIA_VOICE_REGRESSION_REPORT_2026-11-03.md).
 
-Incremento R9 del 2026-11-04: [reducción local de ruido](https://github.com/enri312/alice-continuum/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md) antes de grabar, detector de voz y micrófono seleccionable. Dirección Alice opcional para otras voces. Vite 8.3.5 y Vitest 4.1.12; falta aceptación acústica con la voz del propietario y música de ambos orígenes. El avatar permanece al final.
+Incremento R9 del 2026-11-04: [reducción local de ruido](https://github.com/enri312/nyxia/blob/99e67bf0b26136962f1b298b6449460dcdf7e4d8/docs/decisions/ADR-P-105-supresion-local-ruido-vite.md) antes de grabar, detector de voz y micrófono seleccionable. Dirección Alice opcional para otras voces. Vite 8.3.5 y Vitest 4.1.12; falta aceptación acústica con la voz del propietario y música de ambos orígenes. El avatar permanece al final.
