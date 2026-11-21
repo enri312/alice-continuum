@@ -8,6 +8,14 @@ use process::FailureKind;
 pub(crate) use process::WhisperFailure;
 
 const MAX_TEXT: usize = 6_000;
+const PARAKEET_LABEL: &str = "Parakeet TDT 0.6B v3 INT8 · local CPU";
+const PARAKEET_SCRIPT: &str = include_str!("../../adapters/parakeet_transcriber.py");
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Recognizer {
+    Whisper,
+    Parakeet,
+}
 
 /// A take keeps the same paths and display label through decode and recognition.
 #[derive(Clone, Debug)]
@@ -15,6 +23,7 @@ pub(crate) struct Configuration {
     binary: PathBuf,
     model: PathBuf,
     label: &'static str,
+    recognizer: Recognizer,
 }
 impl Configuration {
     pub(crate) fn label(&self) -> &'static str {
@@ -57,10 +66,46 @@ fn configuration_at(
         binary,
         model,
         label,
+        recognizer: Recognizer::Whisper,
     }))
 }
 
+fn parakeet_configuration(home: &Path) -> Result<Configuration, String> {
+    if !home.is_absolute() {
+        return Err("ALICE_PARAKEET_HOME debe contener una ruta absoluta".into());
+    }
+    let binary = home.join(if cfg!(windows) {
+        "venv/Scripts/python.exe"
+    } else {
+        "venv/bin/python"
+    });
+    let model = home.join("model");
+    if !binary.is_file()
+        || ![
+            "encoder.int8.onnx",
+            "decoder.int8.onnx",
+            "joiner.int8.onnx",
+            "tokens.txt",
+        ]
+        .iter()
+        .all(|file| model.join(file).is_file())
+    {
+        return Err(
+            "La instalación de Parakeet está incompleta. Revisa ALICE_PARAKEET_HOME.".into(),
+        );
+    }
+    Ok(Configuration {
+        binary,
+        model,
+        label: PARAKEET_LABEL,
+        recognizer: Recognizer::Parakeet,
+    })
+}
+
 pub(crate) fn configuration() -> Result<Option<Configuration>, String> {
+    if let Some(home) = std::env::var_os("ALICE_PARAKEET_HOME").filter(|value| !value.is_empty()) {
+        return parakeet_configuration(Path::new(&home)).map(Some);
+    }
     let binary = crate::runtime_paths::whisper_bin()?;
     let model = crate::runtime_paths::whisper_model()?;
     let required = ["ALICE_WHISPER_BIN", "ALICE_WHISPER_MODEL"]
@@ -120,10 +165,20 @@ fn is_silent(wav: &[u8]) -> bool {
 
 fn command_for(configuration: &Configuration) -> Command {
     let mut command = Command::new(&configuration.binary);
+    match configuration.recognizer {
+        Recognizer::Whisper => {
+            command
+                .arg("-m")
+                .arg(&configuration.model)
+                .args(arguments());
+        }
+        Recognizer::Parakeet => {
+            command
+                .args(["-I", "-B", "-c", PARAKEET_SCRIPT])
+                .arg(&configuration.model);
+        }
+    }
     command
-        .arg("-m")
-        .arg(&configuration.model)
-        .args(arguments())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -136,6 +191,18 @@ fn command_for(configuration: &Configuration) -> Command {
 }
 
 pub(crate) fn transcribe(
+    configuration: &Configuration,
+    wav: Vec<u8>,
+    cancelled: impl Fn() -> bool,
+) -> Result<(String, bool), WhisperFailure> {
+    let result = transcribe_take(configuration, wav, cancelled);
+    match configuration.recognizer {
+        Recognizer::Whisper => result,
+        Recognizer::Parakeet => result.map_err(WhisperFailure::for_parakeet),
+    }
+}
+
+fn transcribe_take(
     configuration: &Configuration,
     wav: Vec<u8>,
     cancelled: impl Fn() -> bool,
@@ -248,12 +315,48 @@ mod tests {
     }
 
     #[test]
+    fn parakeet_requires_a_complete_absolute_installation_and_uses_binary_pipes() {
+        let fixture = Installation::new();
+        assert!(parakeet_configuration(Path::new("relative")).is_err());
+        assert!(parakeet_configuration(&fixture.0).is_err());
+        let binary = fixture.0.join(if cfg!(windows) {
+            "venv/Scripts/python.exe"
+        } else {
+            "venv/bin/python"
+        });
+        std::fs::create_dir_all(binary.parent().unwrap()).unwrap();
+        std::fs::write(&binary, b"fixture-not-executed").unwrap();
+        let model = fixture.0.join("model");
+        std::fs::create_dir_all(&model).unwrap();
+        for file in [
+            "encoder.int8.onnx",
+            "decoder.int8.onnx",
+            "joiner.int8.onnx",
+            "tokens.txt",
+        ] {
+            std::fs::write(model.join(file), b"fixture-not-loaded").unwrap();
+        }
+        let selected = parakeet_configuration(&fixture.0).unwrap();
+        assert_eq!(selected.label(), PARAKEET_LABEL);
+        let command = command_for(&selected);
+        assert_eq!(command.get_program(), binary.as_os_str());
+        assert_eq!(command.get_args().last(), Some(model.as_os_str()));
+        assert_eq!(
+            transcribe(&selected, Vec::new(), || true)
+                .unwrap_err()
+                .audit_reason(),
+            "VOICE_PARAKEET_CANCELLED"
+        );
+    }
+
+    #[test]
     fn a_revoked_take_does_not_spawn_and_a_disappeared_binary_returns_an_error() {
         let fixture = Installation::new();
         let configuration = Configuration {
             binary: fixture.binary(),
             model: fixture.model("ggml-small.bin"),
             label: "Whisper small · local CPU",
+            recognizer: Recognizer::Whisper,
         };
         assert!(transcribe(&configuration, b"not-audio".to_vec(), || true)
             .unwrap_err()

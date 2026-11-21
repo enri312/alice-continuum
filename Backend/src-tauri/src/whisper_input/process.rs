@@ -31,6 +31,7 @@ pub(super) enum FailureKind {
 pub(crate) struct WhisperFailure {
     kind: FailureKind,
     exit_code: Option<u32>,
+    parakeet: bool,
 }
 
 impl WhisperFailure {
@@ -38,11 +39,21 @@ impl WhisperFailure {
         Self {
             kind,
             exit_code: None,
+            parakeet: false,
         }
     }
 
     fn at_exit(kind: FailureKind, exit_code: Option<u32>) -> Self {
-        Self { kind, exit_code }
+        Self {
+            kind,
+            exit_code,
+            parakeet: false,
+        }
+    }
+
+    pub(super) fn for_parakeet(mut self) -> Self {
+        self.parakeet = true;
+        self
     }
 
     pub(crate) fn audit_reason(&self) -> String {
@@ -64,9 +75,10 @@ impl WhisperFailure {
             FailureKind::DiagnosticLimit => "DIAGNOSTIC_LIMIT",
             FailureKind::InvalidText => "TEXT_INVALID",
         };
+        let engine = if self.parakeet { "PARAKEET" } else { "WHISPER" };
         match self.exit_code {
-            Some(code) => format!("VOICE_WHISPER_{class}_EXIT_{code:08X}"),
-            None => format!("VOICE_WHISPER_{class}"),
+            Some(code) => format!("VOICE_{engine}_{class}_EXIT_{code:08X}"),
+            None => format!("VOICE_{engine}_{class}"),
         }
     }
 
@@ -89,6 +101,11 @@ impl WhisperFailure {
             FailureKind::DiagnosticLimit => "Whisper produjo un diagnóstico excesivo. El resultado fue descartado.",
             FailureKind::InvalidText => "Whisper devolvió texto inválido. El resultado fue descartado.",
         };
+        let message = if self.parakeet {
+            message.replace("Whisper", "Parakeet")
+        } else {
+            message.to_owned()
+        };
         if matches!(
             self.kind,
             FailureKind::Exit | FailureKind::Crash | FailureKind::Instruction
@@ -97,7 +114,7 @@ impl WhisperFailure {
                 return format!("{message} Código: 0x{code:08X}.");
             }
         }
-        message.into()
+        message
     }
 }
 

@@ -111,6 +111,11 @@ En Windows, **Audio de entrada** permite bajar el volumen de Spotify durante
 la escucha y recuperarlo al cerrar el micrófono o terminar Alice normalmente.
 La comparación de Whisper y Parakeet en este equipo está en
 [las pruebas de voz de R9](Roadmap.md#próximo-paso-autorizado).
+Para probar Parakeet al arrancar Alice, definí `ALICE_PARAKEET_HOME` con la
+ruta absoluta a una instalación local que tenga `venv/` y `model/`.
+El entorno usa `sherpa-onnx` y `model/` contiene `encoder.int8.onnx`,
+`decoder.int8.onnx`, `joiner.int8.onnx` y `tokens.txt` de la edición INT8.
+Alice usa la selección habitual de Whisper o Gemma al arrancar sin esa variable.
 Tras validar R9, el Roadmap plantea evaluar **Nod**, el agente personal de
 n8n Labs, como posible ejecutor externo de tareas acotadas.
 [Alcance de la evaluación](Roadmap.md#evaluar-nod-de-n8n-labs).

@@ -1263,6 +1263,10 @@ implementación parcial. El trabajo inmediato queda ordenado así:
    y Whisper 4,60 s. Con Whisper, la señal directa acertó 7/9 y la filtrada 5/9. La
    prueba evalúa el filtro RNNoise con ganancia suave en una simulación y
    deja pendiente comprobar su efecto con el micrófono en uso.
+   En una toma real con música, Small y Parakeet conservaron la orden de
+   pausar Spotify. Small tardó 5,8 s y Parakeet tardó 3,1 s, con la carga
+   incluida en ambos casos. Parakeet se puede seleccionar al arrancar con
+   `ALICE_PARAKEET_HOME` para probarlo con el filtro y la escucha de Alice.
    [Modelo de Parakeet](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html).
    Tras el reinicio, el propietario volvió a ver los registros en Memoria.
 2. **Aceptar el ciclo personal de autoestudio y Obsidian.** Arrancar Alice, revisar

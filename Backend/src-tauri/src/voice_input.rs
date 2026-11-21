@@ -193,7 +193,7 @@ pub(crate) async fn transcribe_voice_turn(
         .map_or(crate::local_inference::GEMMA_MODEL, |selected| {
             selected.label()
         });
-    let mut whisper_failure_reason = None;
+    let mut recognition_failure_reason = None;
     let result = match configuration {
         Err(error) => Err(error),
         Ok(configuration) => {
@@ -222,7 +222,7 @@ pub(crate) async fn transcribe_voice_turn(
                                 {
                                     Ok(Ok(transcript)) => Ok(transcript),
                                     Ok(Err(failure)) => {
-                                        whisper_failure_reason = Some(failure.audit_reason());
+                                        recognition_failure_reason = Some(failure.audit_reason());
                                         Err(failure.public_message())
                                     }
                                     Err(_) => {
@@ -294,7 +294,7 @@ pub(crate) async fn transcribe_voice_turn(
                 AuditOutcome::Error,
                 Some(duration_ms),
                 None,
-                whisper_failure_reason
+                recognition_failure_reason
                     .as_deref()
                     .unwrap_or("VOICE_TURN_TRANSCRIPTION_FAILED"),
             );
